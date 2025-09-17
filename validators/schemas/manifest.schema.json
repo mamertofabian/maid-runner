@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MAID Task Manifest",
     "type": "object",
-    "required": ["goal", "creatableFiles", "readonlyFiles", "expectedArtifacts", "validationCommand"],
+    "required": ["goal", "readonlyFiles", "expectedArtifacts", "validationCommand"],
     "properties": {
       "goal": { "type": "string" },
       "creatableFiles": { "type": "array", "items": { "type": "string" } },
