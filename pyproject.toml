@@ -1,0 +1,16 @@
+[project]
+name = "maid-runner"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "jsonschema>=4.25.1",
+    "pytest>=8.4.2",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "ruff>=0.13.0",
+]

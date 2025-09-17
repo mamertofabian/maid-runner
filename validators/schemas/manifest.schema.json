@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MAID Task Manifest",
+    "type": "object",
+    "required": ["goal", "creatableFiles", "readonlyFiles", "expectedArtifacts", "validationCommand"],
+    "properties": {
+      "goal": { "type": "string" },
+      "creatableFiles": { "type": "array", "items": { "type": "string" } },
+      "editableFiles": { "type": "array", "items": { "type": "string" } },
+      "readonlyFiles": { "type": "array", "items": { "type": "string" } },
+      "expectedArtifacts": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "contains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "enum": ["class", "function", "attribute"] },
+                "name": { "type": "string" },
+                "class": { "type": "string", "description": "The parent class for attributes or methods" }
+              },
+              "required": ["type", "name"]
+            }
+          }
+        },
+        "required": ["file", "contains"]
+      },
+      "validationCommand": { "type": "string" }
+    }
+  }
