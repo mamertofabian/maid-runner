@@ -31,16 +31,46 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def __init__(self):
         self.found_classes = set()
+        self.found_class_bases = {}  # class_name -> list of base class names
         self.found_attributes = {}  # class_name -> set of attribute names
         self.variable_to_class = {}  # variable_name -> class_name
+        self.found_functions = {}  # function_name -> list of parameter names
 
     def visit_ImportFrom(self, node):
-        """Collect imported class names."""
+        """Collect imported class names and functions."""
         if node.names:
             for alias in node.names:
                 # Classes typically start with uppercase
                 if alias.name and alias.name[0].isupper():
                     self.found_classes.add(alias.name)
+                else:
+                    # Could be a function - add with empty parameters for now
+                    # (imported functions don't show parameters in import statement)
+                    self.found_functions[alias.name] = []
+        self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        """Collect function definitions and their parameters."""
+        param_names = [arg.arg for arg in node.args.args]
+        self.found_functions[node.name] = param_names
+        self.generic_visit(node)
+
+    def visit_ClassDef(self, node):
+        """Collect class definitions and their base classes."""
+        self.found_classes.add(node.name)
+
+        # Collect base classes
+        base_names = []
+        for base in node.bases:
+            if isinstance(base, ast.Name):
+                base_names.append(base.id)
+            elif isinstance(base, ast.Attribute):
+                # Handle cases like module.ClassName
+                base_names.append(base.attr)
+
+        if base_names:
+            self.found_class_bases[node.name] = base_names
+
         self.generic_visit(node)
 
     def visit_Assign(self, node):
@@ -105,21 +135,28 @@ def validate_with_ast(manifest_data, test_file_path):
         artifact_name = artifact.get("name")
 
         if artifact_type == "class":
-            _validate_class(artifact_name, collector.found_classes)
+            base_class = artifact.get("base")
+            _validate_class(artifact_name, base_class, collector.found_classes, collector.found_class_bases)
 
         elif artifact_type == "attribute":
             parent_class = artifact.get("class")
             _validate_attribute(artifact_name, parent_class, collector.found_attributes)
 
         elif artifact_type == "function":
-            # Function validation not yet implemented
-            pass
+            parameters = artifact.get("parameters", [])
+            _validate_function(artifact_name, parameters, collector.found_functions)
 
 
-def _validate_class(class_name, found_classes):
-    """Validate that a class is referenced in the code."""
+def _validate_class(class_name, expected_base, found_classes, found_class_bases):
+    """Validate that a class is referenced in the code with the expected base class."""
     if class_name not in found_classes:
         raise AlignmentError(f"Artifact '{class_name}' not found")
+
+    # Check base class if specified
+    if expected_base:
+        actual_bases = found_class_bases.get(class_name, [])
+        if expected_base not in actual_bases:
+            raise AlignmentError(f"Class '{class_name}' does not inherit from '{expected_base}'")
 
 
 def _validate_attribute(attribute_name, parent_class, found_attributes):
@@ -128,3 +165,16 @@ def _validate_attribute(attribute_name, parent_class, found_attributes):
 
     if attribute_name not in class_attributes:
         raise AlignmentError(f"Artifact '{attribute_name}' not found")
+
+
+def _validate_function(function_name, expected_parameters, found_functions):
+    """Validate that a function exists with the expected parameters."""
+    if function_name not in found_functions:
+        raise AlignmentError(f"Artifact '{function_name}' not found")
+
+    # Check parameters if specified
+    if expected_parameters:
+        actual_parameters = found_functions[function_name]
+        for param in expected_parameters:
+            if param not in actual_parameters:
+                raise AlignmentError(f"Parameter '{param}' not found in function '{function_name}'")

@@ -17,9 +17,16 @@
             "items": {
               "type": "object",
               "properties": {
-                "type": { "enum": ["class", "function", "attribute"] },
+                "type": { "enum": ["class", "function", "attribute", "parameter"] },
                 "name": { "type": "string" },
-                "class": { "type": "string", "description": "The parent class for attributes or methods" }
+                "class": { "type": "string", "description": "The parent class for attributes or methods" },
+                "base": { "type": "string", "description": "The base class for a class (optional)" },
+                "function": { "type": "string", "description": "The parent function for parameters" },
+                "parameters": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "List of parameter names for a function"
+                }
               },
               "required": ["type", "name"]
             }

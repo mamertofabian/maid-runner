@@ -11,11 +11,13 @@
       "contains": [
         {
           "type": "class",
-          "name": "AlignmentError"
+          "name": "AlignmentError",
+          "base": "Exception"
         },
         {
           "type": "function",
-          "name": "validate_with_ast"
+          "name": "validate_with_ast",
+          "parameters": ["manifest_data", "test_file_path"]
         }
       ]
     },
