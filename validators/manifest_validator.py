@@ -45,6 +45,7 @@ def validate_with_ast(manifest_data, test_file_path):
     # Extract all classes and attributes referenced in the test
     found_classes = set()
     found_attributes = {}  # maps class_name -> set of attribute names
+    variable_to_class = {}  # maps variable_name -> class_name
 
     class ArtifactCollector(ast.NodeVisitor):
         def visit_ImportFrom(self, node):
@@ -55,19 +56,30 @@ def validate_with_ast(manifest_data, test_file_path):
                         found_classes.add(alias.name)
             self.generic_visit(node)
 
+        def visit_Assign(self, node):
+            # Track variable assignments like user = User(...) or admin_user = User(...)
+            if isinstance(node.value, ast.Call):
+                if isinstance(node.value.func, ast.Name):
+                    class_name = node.value.func.id
+                    if class_name in found_classes:
+                        # Map each target variable to its class
+                        for target in node.targets:
+                            if isinstance(target, ast.Name):
+                                variable_to_class[target.id] = class_name
+            self.generic_visit(node)
+
         def visit_Attribute(self, node):
-            # Collect attribute accesses like user.name
+            # Collect attribute accesses like user.name or admin_user.user_id
             if isinstance(node.value, ast.Name):
                 var_name = node.value.id
                 attr_name = node.attr
 
-                # Try to infer the class from variable naming convention
-                # e.g., 'user' -> 'User' class
-                potential_class = var_name.capitalize()
-                if potential_class in found_classes:
-                    if potential_class not in found_attributes:
-                        found_attributes[potential_class] = set()
-                    found_attributes[potential_class].add(attr_name)
+                # Look up the actual class for this variable
+                if var_name in variable_to_class:
+                    class_name = variable_to_class[var_name]
+                    if class_name not in found_attributes:
+                        found_attributes[class_name] = set()
+                    found_attributes[class_name].add(attr_name)
             self.generic_visit(node)
 
     collector = ArtifactCollector()
