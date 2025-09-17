@@ -69,3 +69,139 @@ def test_ast_validation_fails_on_missing_class(tmp_path: Path):
     }
     with pytest.raises(AlignmentError, match="Artifact 'Order' not found"):
         validate_with_ast(misaligned_manifest, str(test_file))
+
+
+# Test cases for function parameter validation
+def test_function_parameters_validation_passes(tmp_path: Path):
+    """Tests that function parameter validation passes when parameters match."""
+    code_with_functions = """
+def process_data(input_data, options, verbose=False):
+    return input_data
+
+def calculate_total(items, tax_rate):
+    return sum(items) * (1 + tax_rate)
+
+class Calculator:
+    def add(self, a, b):
+        return a + b
+"""
+    test_file = tmp_path / "functions.py"
+    test_file.write_text(code_with_functions)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            {"type": "function", "name": "process_data", "parameters": ["input_data", "options", "verbose"]},
+            {"type": "function", "name": "calculate_total", "parameters": ["items", "tax_rate"]}
+        ]}
+    }
+    # Should not raise an error
+    validate_with_ast(manifest, str(test_file))
+
+
+def test_function_parameters_validation_fails(tmp_path: Path):
+    """Tests that function parameter validation fails when parameters don't match."""
+    code_with_functions = """
+def process_data(input_data, options):
+    return input_data
+"""
+    test_file = tmp_path / "functions.py"
+    test_file.write_text(code_with_functions)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            # Function exists but 'verbose' parameter is missing
+            {"type": "function", "name": "process_data", "parameters": ["input_data", "options", "verbose"]}
+        ]}
+    }
+    with pytest.raises(AlignmentError, match="Parameter 'verbose' not found in function 'process_data'"):
+        validate_with_ast(manifest, str(test_file))
+
+
+def test_function_without_parameters_specified(tmp_path: Path):
+    """Tests that function validation works when parameters are not specified in manifest."""
+    code_with_functions = """
+def process_data(input_data, options, verbose=False):
+    return input_data
+"""
+    test_file = tmp_path / "functions.py"
+    test_file.write_text(code_with_functions)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            # No parameters specified - should only check function existence
+            {"type": "function", "name": "process_data"}
+        ]}
+    }
+    # Should not raise an error
+    validate_with_ast(manifest, str(test_file))
+
+
+# Test cases for base class validation
+def test_base_class_validation_passes(tmp_path: Path):
+    """Tests that base class validation passes when inheritance matches."""
+    code_with_classes = """
+class CustomError(Exception):
+    pass
+
+class ValidationError(ValueError):
+    def __init__(self, message):
+        self.message = message
+
+class Animal:
+    pass
+
+class Dog(Animal):
+    def bark(self):
+        return "Woof!"
+"""
+    test_file = tmp_path / "classes.py"
+    test_file.write_text(code_with_classes)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            {"type": "class", "name": "CustomError", "base": "Exception"},
+            {"type": "class", "name": "ValidationError", "base": "ValueError"},
+            {"type": "class", "name": "Dog", "base": "Animal"},
+            {"type": "class", "name": "Animal"}  # No base specified
+        ]}
+    }
+    # Should not raise an error
+    validate_with_ast(manifest, str(test_file))
+
+
+def test_base_class_validation_fails(tmp_path: Path):
+    """Tests that base class validation fails when inheritance doesn't match."""
+    code_with_classes = """
+class CustomError(ValueError):  # Inherits from ValueError, not Exception
+    pass
+"""
+    test_file = tmp_path / "classes.py"
+    test_file.write_text(code_with_classes)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            # Expects Exception but actual base is ValueError
+            {"type": "class", "name": "CustomError", "base": "Exception"}
+        ]}
+    }
+    with pytest.raises(AlignmentError, match="Class 'CustomError' does not inherit from 'Exception'"):
+        validate_with_ast(manifest, str(test_file))
+
+
+def test_class_without_base_specified(tmp_path: Path):
+    """Tests that class validation works when base class is not specified in manifest."""
+    code_with_classes = """
+class CustomError(Exception):
+    pass
+"""
+    test_file = tmp_path / "classes.py"
+    test_file.write_text(code_with_classes)
+
+    manifest = {
+        "expectedArtifacts": { "contains": [
+            # No base class specified - should only check class existence
+            {"type": "class", "name": "CustomError"}
+        ]}
+    }
+    # Should not raise an error
+    validate_with_ast(manifest, str(test_file))
