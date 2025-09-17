@@ -17,7 +17,7 @@
         {
           "type": "function",
           "name": "validate_with_ast",
-          "parameters": ["manifest_data", "test_file_path"]
+          "parameters": ["manifest_data", "test_file_path", "use_manifest_chain"]
         }
       ]
     },

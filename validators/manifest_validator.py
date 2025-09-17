@@ -1,5 +1,6 @@
 import ast
 import json
+from pathlib import Path
 from jsonschema import validate
 
 
@@ -35,24 +36,37 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.found_attributes = {}  # class_name -> set of attribute names
         self.variable_to_class = {}  # variable_name -> class_name
         self.found_functions = {}  # function_name -> list of parameter names
+        self.current_class = None  # Track if we're inside a class definition
+
+    def visit_Import(self, node):
+        """Handle regular import statements."""
+        # Don't add imports to found classes/functions
+        # They are external dependencies, not artifacts of this file
+        self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
-        """Collect imported class names and functions."""
+        """Collect imported class names from local modules only."""
         if node.names:
+            # Check if this is importing from a local module (relative import or local package)
+            is_local = node.level > 0 or (node.module and not node.module.startswith(
+                ('pathlib', 'typing', 'collections', 'datetime', 'json', 'ast', 'os', 'sys', 're', 'jsonschema')
+            ))
+
             for alias in node.names:
                 # Classes typically start with uppercase
-                if alias.name and alias.name[0].isupper():
+                if alias.name and alias.name[0].isupper() and is_local:
                     self.found_classes.add(alias.name)
-                else:
-                    # Could be a function - add with empty parameters for now
-                    # (imported functions don't show parameters in import statement)
-                    self.found_functions[alias.name] = []
+                # Don't track imported functions as they're external dependencies
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
         """Collect function definitions and their parameters."""
-        param_names = [arg.arg for arg in node.args.args]
-        self.found_functions[node.name] = param_names
+        # Only collect module-level functions (not methods inside classes)
+        if self.current_class is None:
+            param_names = [arg.arg for arg in node.args.args]
+            self.found_functions[node.name] = param_names
+
+        # Continue visiting child nodes
         self.generic_visit(node)
 
     def visit_ClassDef(self, node):
@@ -71,7 +85,15 @@ class _ArtifactCollector(ast.NodeVisitor):
         if base_names:
             self.found_class_bases[node.name] = base_names
 
+        # Track that we're inside a class for nested function definitions
+        old_class = self.current_class
+        self.current_class = node.name
+
+        # Visit child nodes (including methods)
         self.generic_visit(node)
+
+        # Restore previous class context
+        self.current_class = old_class
 
     def visit_Assign(self, node):
         """Track variable assignments to class instances."""
@@ -104,13 +126,83 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def validate_with_ast(manifest_data, test_file_path):
+def _discover_related_manifests(target_file):
+    """
+    Discover all manifests that have touched the target file.
+
+    Args:
+        target_file: Path to the file to check
+
+    Returns:
+        List of manifest paths in chronological order
+    """
+    manifests = []
+    manifest_dir = Path("manifests")
+
+    if not manifest_dir.exists():
+        return manifests
+
+    # Sort manifest files chronologically (task-001, task-002, etc.)
+    for manifest_path in sorted(manifest_dir.glob("*.json")):
+        with open(manifest_path, "r") as f:
+            data = json.load(f)
+
+        # Check if this manifest touches the target file
+        created_files = data.get("creatableFiles", [])
+        edited_files = data.get("editableFiles", [])
+        expected_file = data.get("expectedArtifacts", {}).get("file")
+
+        # Check both the lists and the expected file
+        if (target_file in created_files or
+            target_file in edited_files or
+            target_file == expected_file):
+            manifests.append(str(manifest_path))
+
+    return manifests
+
+
+def _merge_expected_artifacts(manifest_paths):
+    """
+    Merge expected artifacts from multiple manifests.
+
+    Args:
+        manifest_paths: List of paths to manifest files
+
+    Returns:
+        Merged list of expected artifacts
+    """
+    merged_artifacts = []
+    seen_artifacts = {}  # Track (type, name) -> artifact
+
+    for path in manifest_paths:
+        with open(path, "r") as f:
+            data = json.load(f)
+
+        artifacts = data.get("expectedArtifacts", {}).get("contains", [])
+
+        for artifact in artifacts:
+            # Use (type, name) as unique key
+            artifact_type = artifact.get("type")
+            artifact_name = artifact.get("name")
+            key = (artifact_type, artifact_name)
+
+            # Add if not seen, or always update (later manifests override earlier ones)
+            # This ensures that modifications in later tasks override earlier definitions
+            seen_artifacts[key] = artifact
+
+    # Return artifacts in a consistent order
+    merged_artifacts = list(seen_artifacts.values())
+    return merged_artifacts
+
+
+def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
     """
     Validate that artifacts listed in manifest are referenced in the test file.
 
     Args:
         manifest_data: Dictionary containing the manifest with expectedArtifacts
         test_file_path: Path to the Python test file to analyze
+        use_manifest_chain: If True, discovers and merges all related manifests
 
     Raises:
         AlignmentError: If any expected artifact is not found in the code
@@ -125,11 +217,20 @@ def validate_with_ast(manifest_data, test_file_path):
     collector = _ArtifactCollector()
     collector.visit(tree)
 
-    # Extract expected artifacts from manifest
-    expected_artifacts = manifest_data.get("expectedArtifacts", {})
-    expected_items = expected_artifacts.get("contains", [])
+    # Determine expected artifacts based on mode
+    if use_manifest_chain:
+        # Discover all manifests that touched this file
+        target_file = manifest_data.get("expectedArtifacts", {}).get("file", test_file_path)
+        related_manifests = _discover_related_manifests(target_file)
 
-    # Validate each expected artifact
+        # Merge artifacts from all related manifests
+        expected_items = _merge_expected_artifacts(related_manifests)
+    else:
+        # Use single manifest mode (current behavior)
+        expected_artifacts = manifest_data.get("expectedArtifacts", {})
+        expected_items = expected_artifacts.get("contains", [])
+
+    # Validate each expected artifact exists
     for artifact in expected_items:
         artifact_type = artifact.get("type")
         artifact_name = artifact.get("name")
@@ -145,6 +246,14 @@ def validate_with_ast(manifest_data, test_file_path):
         elif artifact_type == "function":
             parameters = artifact.get("parameters", [])
             _validate_function(artifact_name, parameters, collector.found_functions)
+
+    # Check for unexpected public artifacts (strict mode)
+    # Only validate if we're checking an implementation file (not a test file)
+    # Skip strict validation for test files (files with test functions)
+    is_test_file = any(func.startswith("test_") for func in collector.found_functions)
+
+    if expected_items and not is_test_file:  # Only enforce for non-test files with expectations
+        _validate_no_unexpected_artifacts(expected_items, collector.found_classes, collector.found_functions)
 
 
 def _validate_class(class_name, expected_base, found_classes, found_class_bases):
@@ -175,6 +284,40 @@ def _validate_function(function_name, expected_parameters, found_functions):
     # Check parameters if specified
     if expected_parameters:
         actual_parameters = found_functions[function_name]
+
+        # Check all expected parameters are present
         for param in expected_parameters:
             if param not in actual_parameters:
                 raise AlignmentError(f"Parameter '{param}' not found in function '{function_name}'")
+
+        # Check for unexpected parameters (strict validation)
+        unexpected_params = set(actual_parameters) - set(expected_parameters)
+        if unexpected_params:
+            raise AlignmentError(
+                f"Unexpected parameter(s) in function '{function_name}': {', '.join(sorted(unexpected_params))}"
+            )
+
+
+def _validate_no_unexpected_artifacts(expected_items, found_classes, found_functions):
+    """Validate that no unexpected public artifacts exist in the code."""
+    # Build sets of expected names
+    expected_classes = {
+        item["name"] for item in expected_items
+        if item.get("type") == "class"
+    }
+    expected_functions = {
+        item["name"] for item in expected_items
+        if item.get("type") == "function"
+    }
+
+    # Check for unexpected public classes (exclude private ones starting with _)
+    public_classes = {cls for cls in found_classes if not cls.startswith("_")}
+    unexpected_classes = public_classes - expected_classes
+    if unexpected_classes:
+        raise AlignmentError(f"Unexpected public class(es) found: {', '.join(sorted(unexpected_classes))}")
+
+    # Check for unexpected public functions (exclude private ones starting with _)
+    public_functions = {func for func in found_functions if not func.startswith("_")}
+    unexpected_functions = public_functions - expected_functions
+    if unexpected_functions:
+        raise AlignmentError(f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}")
