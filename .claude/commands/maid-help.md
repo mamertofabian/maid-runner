@@ -52,4 +52,12 @@ Example: `/maid-status`
 - **AST Validation**: `validate_with_ast(manifest_data, implementation_file)`
 - **Test Execution**: `PYTHONPATH=. uv run pytest [test-file]`
 
-These commands ensure alignment between specifications (manifests), tests, and implementation!
+## Automatic Validation:
+
+**Stop Hooks** are configured to automatically validate your project:
+- **AST Validator Hook**: Runs on every Claude stop to check manifest-implementation alignment
+- **Test Runner Hook**: Runs all tests automatically when Claude finishes responding
+- **Auto-blocking**: Claude is prevented from stopping if validation fails
+- See `.claude/hooks/README.md` for details
+
+These commands and hooks ensure alignment between specifications (manifests), tests, and implementation!
