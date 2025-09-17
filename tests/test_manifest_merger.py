@@ -1,4 +1,5 @@
 """Tests for the manifest merger functionality."""
+
 import pytest
 import json
 import tempfile
@@ -7,7 +8,7 @@ from validators.manifest_validator import (
     _discover_related_manifests,
     _merge_expected_artifacts,
     validate_with_ast,
-    AlignmentError
+    AlignmentError,
 )
 
 
@@ -38,7 +39,7 @@ def test_discover_manifests_chronological_order():
 
         manifest_content = {
             "expectedArtifacts": {"file": "test.py", "contains": []},
-            "creatableFiles": ["test.py"]
+            "creatableFiles": ["test.py"],
         }
 
         for path in [task_003, task_001, task_002]:
@@ -47,6 +48,7 @@ def test_discover_manifests_chronological_order():
 
         # Mock the manifest directory for the function
         import validators.manifest_validator as mv
+
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
@@ -70,9 +72,7 @@ def test_merge_expected_artifacts():
         # First manifest with validate_schema function
         content1 = {
             "expectedArtifacts": {
-                "contains": [
-                    {"type": "function", "name": "validate_schema"}
-                ]
+                "contains": [{"type": "function", "name": "validate_schema"}]
             }
         }
 
@@ -81,7 +81,11 @@ def test_merge_expected_artifacts():
             "expectedArtifacts": {
                 "contains": [
                     {"type": "class", "name": "AlignmentError", "base": "Exception"},
-                    {"type": "function", "name": "validate_with_ast", "parameters": ["manifest_data", "test_file_path"]}
+                    {
+                        "type": "function",
+                        "name": "validate_with_ast",
+                        "parameters": ["manifest_data", "test_file_path"],
+                    },
                 ]
             }
         }
@@ -120,9 +124,7 @@ def test_merge_handles_duplicates():
         # Both manifests declare the same function but with different detail levels
         content1 = {
             "expectedArtifacts": {
-                "contains": [
-                    {"type": "function", "name": "process_data"}
-                ]
+                "contains": [{"type": "function", "name": "process_data"}]
             }
         }
 
@@ -130,7 +132,11 @@ def test_merge_handles_duplicates():
         content2 = {
             "expectedArtifacts": {
                 "contains": [
-                    {"type": "function", "name": "process_data", "parameters": ["data", "options"]}
+                    {
+                        "type": "function",
+                        "name": "process_data",
+                        "parameters": ["data", "options"],
+                    }
                 ]
             }
         }
@@ -154,7 +160,7 @@ def test_merge_handles_duplicates():
 def test_validate_with_manifest_chain(tmp_path: Path):
     """Test validation using the manifest chain mode."""
     # Create a Python file with multiple artifacts
-    implementation = '''
+    implementation = """
 class AlignmentError(Exception):
     pass
 
@@ -163,7 +169,7 @@ def validate_schema(manifest_data, schema_path):
 
 def validate_with_ast(manifest_data, test_file_path):
     pass
-'''
+"""
 
     test_file = tmp_path / "implementation.py"
     test_file.write_text(implementation)
@@ -180,10 +186,14 @@ def validate_with_ast(manifest_data, test_file_path):
         "expectedArtifacts": {
             "file": str(test_file),
             "contains": [
-                {"type": "function", "name": "validate_schema", "parameters": ["manifest_data", "schema_path"]}
-            ]
+                {
+                    "type": "function",
+                    "name": "validate_schema",
+                    "parameters": ["manifest_data", "schema_path"],
+                }
+            ],
         },
-        "creatableFiles": [str(test_file)]
+        "creatableFiles": [str(test_file)],
     }
 
     # Task 2 adds AlignmentError and validate_with_ast
@@ -192,10 +202,14 @@ def validate_with_ast(manifest_data, test_file_path):
             "file": str(test_file),
             "contains": [
                 {"type": "class", "name": "AlignmentError", "base": "Exception"},
-                {"type": "function", "name": "validate_with_ast", "parameters": ["manifest_data", "test_file_path"]}
-            ]
+                {
+                    "type": "function",
+                    "name": "validate_with_ast",
+                    "parameters": ["manifest_data", "test_file_path"],
+                },
+            ],
         },
-        "editableFiles": [str(test_file)]
+        "editableFiles": [str(test_file)],
     }
 
     with open(task1, "w") as f:
@@ -205,6 +219,7 @@ def validate_with_ast(manifest_data, test_file_path):
 
     # Mock the manifest directory
     import validators.manifest_validator as mv
+
     original_path = mv.Path
     mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 

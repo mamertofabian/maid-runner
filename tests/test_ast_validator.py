@@ -24,22 +24,26 @@ def test_product_creation():
     assert item.sku == "abc"
 """
 
+
 def test_ast_validation_passes_when_aligned(tmp_path: Path):
     """Tests that a correctly aligned manifest passes."""
     test_file = tmp_path / "test_complex.py"
     test_file.write_text(DUMMY_TEST_CODE)
 
     aligned_manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "User"},
-            {"type": "class", "name": "Product"},
-            {"type": "attribute", "name": "name", "class": "User"},
-            {"type": "attribute", "name": "user_id", "class": "User"},
-            {"type": "attribute", "name": "sku", "class": "Product"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "User"},
+                {"type": "class", "name": "Product"},
+                {"type": "attribute", "name": "name", "class": "User"},
+                {"type": "attribute", "name": "user_id", "class": "User"},
+                {"type": "attribute", "name": "sku", "class": "Product"},
+            ]
+        }
     }
     # Should not raise an error
     validate_with_ast(aligned_manifest, str(test_file))
+
 
 def test_ast_validation_fails_on_missing_attribute(tmp_path: Path):
     """Tests that a misaligned manifest (missing attribute) fails."""
@@ -47,14 +51,17 @@ def test_ast_validation_fails_on_missing_attribute(tmp_path: Path):
     test_file.write_text(DUMMY_TEST_CODE)
 
     misaligned_manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "User"},
-            # The 'email' attribute is NOT in the test code
-            {"type": "attribute", "name": "email", "class": "User"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "User"},
+                # The 'email' attribute is NOT in the test code
+                {"type": "attribute", "name": "email", "class": "User"},
+            ]
+        }
     }
     with pytest.raises(AlignmentError, match="Artifact 'email' not found"):
         validate_with_ast(misaligned_manifest, str(test_file))
+
 
 def test_ast_validation_fails_on_missing_class(tmp_path: Path):
     """Tests that a misaligned manifest (missing class) fails."""
@@ -62,10 +69,12 @@ def test_ast_validation_fails_on_missing_class(tmp_path: Path):
     test_file.write_text(DUMMY_TEST_CODE)
 
     misaligned_manifest = {
-        "expectedArtifacts": { "contains": [
-            # The 'Order' class is NOT in the test code
-            {"type": "class", "name": "Order"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # The 'Order' class is NOT in the test code
+                {"type": "class", "name": "Order"}
+            ]
+        }
     }
     with pytest.raises(AlignmentError, match="Artifact 'Order' not found"):
         validate_with_ast(misaligned_manifest, str(test_file))
@@ -89,11 +98,24 @@ class Calculator:
     test_file.write_text(code_with_functions)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "function", "name": "process_data", "parameters": ["input_data", "options", "verbose"]},
-            {"type": "function", "name": "calculate_total", "parameters": ["items", "tax_rate"]},
-            {"type": "class", "name": "Calculator"}  # Include the class in manifest
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {
+                    "type": "function",
+                    "name": "process_data",
+                    "parameters": ["input_data", "options", "verbose"],
+                },
+                {
+                    "type": "function",
+                    "name": "calculate_total",
+                    "parameters": ["items", "tax_rate"],
+                },
+                {
+                    "type": "class",
+                    "name": "Calculator",
+                },  # Include the class in manifest
+            ]
+        }
     }
     # Should not raise an error
     validate_with_ast(manifest, str(test_file))
@@ -109,12 +131,20 @@ def process_data(input_data, options):
     test_file.write_text(code_with_functions)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # Function exists but 'verbose' parameter is missing
-            {"type": "function", "name": "process_data", "parameters": ["input_data", "options", "verbose"]}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # Function exists but 'verbose' parameter is missing
+                {
+                    "type": "function",
+                    "name": "process_data",
+                    "parameters": ["input_data", "options", "verbose"],
+                }
+            ]
+        }
     }
-    with pytest.raises(AlignmentError, match="Parameter 'verbose' not found in function 'process_data'"):
+    with pytest.raises(
+        AlignmentError, match="Parameter 'verbose' not found in function 'process_data'"
+    ):
         validate_with_ast(manifest, str(test_file))
 
 
@@ -128,10 +158,12 @@ def process_data(input_data, options, verbose=False):
     test_file.write_text(code_with_functions)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # No parameters specified - should only check function existence
-            {"type": "function", "name": "process_data"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # No parameters specified - should only check function existence
+                {"type": "function", "name": "process_data"}
+            ]
+        }
     }
     # Should not raise an error
     validate_with_ast(manifest, str(test_file))
@@ -159,12 +191,14 @@ class Dog(Animal):
     test_file.write_text(code_with_classes)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "CustomError", "base": "Exception"},
-            {"type": "class", "name": "ValidationError", "base": "ValueError"},
-            {"type": "class", "name": "Dog", "base": "Animal"},
-            {"type": "class", "name": "Animal"}  # No base specified
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "CustomError", "base": "Exception"},
+                {"type": "class", "name": "ValidationError", "base": "ValueError"},
+                {"type": "class", "name": "Dog", "base": "Animal"},
+                {"type": "class", "name": "Animal"},  # No base specified
+            ]
+        }
     }
     # Should not raise an error
     validate_with_ast(manifest, str(test_file))
@@ -180,12 +214,16 @@ class CustomError(ValueError):  # Inherits from ValueError, not Exception
     test_file.write_text(code_with_classes)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # Expects Exception but actual base is ValueError
-            {"type": "class", "name": "CustomError", "base": "Exception"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # Expects Exception but actual base is ValueError
+                {"type": "class", "name": "CustomError", "base": "Exception"}
+            ]
+        }
     }
-    with pytest.raises(AlignmentError, match="Class 'CustomError' does not inherit from 'Exception'"):
+    with pytest.raises(
+        AlignmentError, match="Class 'CustomError' does not inherit from 'Exception'"
+    ):
         validate_with_ast(manifest, str(test_file))
 
 
@@ -199,10 +237,12 @@ class CustomError(Exception):
     test_file.write_text(code_with_classes)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # No base class specified - should only check class existence
-            {"type": "class", "name": "CustomError"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # No base class specified - should only check class existence
+                {"type": "class", "name": "CustomError"}
+            ]
+        }
     }
     # Should not raise an error
     validate_with_ast(manifest, str(test_file))
@@ -218,14 +258,23 @@ def process_data(input_data, options, verbose=False):
     test_file.write_text(code_with_function)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # Only declaring two parameters, but function has three
-            {"type": "function", "name": "process_data", "parameters": ["input_data", "options"]}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # Only declaring two parameters, but function has three
+                {
+                    "type": "function",
+                    "name": "process_data",
+                    "parameters": ["input_data", "options"],
+                }
+            ]
+        }
     }
 
     # Should fail because 'verbose' parameter is not declared
-    with pytest.raises(AlignmentError, match="Unexpected parameter\\(s\\) in function 'process_data': verbose"):
+    with pytest.raises(
+        AlignmentError,
+        match="Unexpected parameter\\(s\\) in function 'process_data': verbose",
+    ):
         validate_with_ast(manifest, str(test_file))
 
 
@@ -239,10 +288,16 @@ def process_data(input_data, options, verbose=False):
     test_file.write_text(code_with_function)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            # Declaring all three parameters
-            {"type": "function", "name": "process_data", "parameters": ["input_data", "options", "verbose"]}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                # Declaring all three parameters
+                {
+                    "type": "function",
+                    "name": "process_data",
+                    "parameters": ["input_data", "options", "verbose"],
+                }
+            ]
+        }
     }
 
     # Should pass with all parameters declared
@@ -267,12 +322,17 @@ def _private_function():
     test_file.write_text(code)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "function", "name": "expected_function"}
-            # unexpected_public_function is NOT listed, should fail
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "expected_function"}
+                # unexpected_public_function is NOT listed, should fail
+            ]
+        }
     }
-    with pytest.raises(AlignmentError, match="Unexpected public function\\(s\\) found: unexpected_public_function"):
+    with pytest.raises(
+        AlignmentError,
+        match="Unexpected public function\\(s\\) found: unexpected_public_function",
+    ):
         validate_with_ast(manifest, str(test_file))
 
 
@@ -293,12 +353,17 @@ class _PrivateClass:
     test_file.write_text(code)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "ExpectedClass"}
-            # UnexpectedPublicClass is NOT listed, should fail
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "ExpectedClass"}
+                # UnexpectedPublicClass is NOT listed, should fail
+            ]
+        }
     }
-    with pytest.raises(AlignmentError, match="Unexpected public class\\(es\\) found: UnexpectedPublicClass"):
+    with pytest.raises(
+        AlignmentError,
+        match="Unexpected public class\\(es\\) found: UnexpectedPublicClass",
+    ):
         validate_with_ast(manifest, str(test_file))
 
 
@@ -324,11 +389,13 @@ def _another_private_function():
     test_file.write_text(code)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "PublicClass"},
-            {"type": "function", "name": "public_function"}
-            # Private artifacts (_PrivateClass, _private_helper, etc.) not listed
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "PublicClass"},
+                {"type": "function", "name": "public_function"},
+                # Private artifacts (_PrivateClass, _private_helper, etc.) not listed
+            ]
+        }
     }
     # Should not raise an error - private artifacts are allowed
     validate_with_ast(manifest, str(test_file))
@@ -357,11 +424,17 @@ class _InternalCache:
     test_file.write_text(code)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "ValidationError", "base": "Exception"},
-            {"type": "function", "name": "validate_data", "parameters": ["data", "schema"]},
-            {"type": "function", "name": "process_items", "parameters": ["items"]}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "ValidationError", "base": "Exception"},
+                {
+                    "type": "function",
+                    "name": "validate_data",
+                    "parameters": ["data", "schema"],
+                },
+                {"type": "function", "name": "process_items", "parameters": ["items"]},
+            ]
+        }
     }
     # Should pass - all public artifacts are declared, private ones are ignored
     validate_with_ast(manifest, str(test_file))
@@ -392,10 +465,12 @@ def extra_func2():
     test_file.write_text(code)
 
     manifest = {
-        "expectedArtifacts": { "contains": [
-            {"type": "class", "name": "Expected"},
-            {"type": "function", "name": "expected_func"}
-        ]}
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "Expected"},
+                {"type": "function", "name": "expected_func"},
+            ]
+        }
     }
     # Should report all unexpected artifacts
     with pytest.raises(AlignmentError) as exc_info:

@@ -8,3 +8,5 @@ wheels/
 
 # Virtual environments
 .venv
+
+docs/key_learnings_*.md

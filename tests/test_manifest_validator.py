@@ -1,10 +1,10 @@
 # tests/test_manifest_validator.py
 import pytest
-import json
 from jsonschema import ValidationError
 from validators.manifest_validator import validate_schema
 
 SCHEMA_PATH = "validators/schemas/manifest.schema.json"
+
 
 def test_validate_schema_with_valid_manifest():
     """
@@ -16,20 +16,19 @@ def test_validate_schema_with_valid_manifest():
         "readonlyFiles": ["tests/test.py"],
         "expectedArtifacts": {
             "file": "src/test.py",
-            "contains": [{"type": "class", "name": "MyClass"}]
+            "contains": [{"type": "class", "name": "MyClass"}],
         },
-        "validationCommand": "pytest"
+        "validationCommand": "pytest",
     }
     # This should not raise an exception
     validate_schema(valid_manifest, SCHEMA_PATH)
+
 
 def test_validate_schema_with_invalid_manifest():
     """
     Tests that an invalid manifest (missing required 'goal' field) raises a ValidationError.
     """
-    invalid_manifest = {
-        "creatableFiles": ["src/test.py"]
-    }
+    invalid_manifest = {"creatableFiles": ["src/test.py"]}
     with pytest.raises(ValidationError):
         validate_schema(invalid_manifest, SCHEMA_PATH)
 
@@ -47,11 +46,11 @@ def test_validate_schema_with_function_parameters():
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options", "verbose"]
+                    "parameters": ["input_data", "options", "verbose"],
                 }
-            ]
+            ],
         },
-        "validationCommand": "pytest"
+        "validationCommand": "pytest",
     }
     # This should not raise an exception
     validate_schema(manifest_with_params, SCHEMA_PATH)
@@ -66,15 +65,9 @@ def test_validate_schema_with_class_base():
         "readonlyFiles": ["tests/test.py"],
         "expectedArtifacts": {
             "file": "src/test.py",
-            "contains": [
-                {
-                    "type": "class",
-                    "name": "CustomError",
-                    "base": "Exception"
-                }
-            ]
+            "contains": [{"type": "class", "name": "CustomError", "base": "Exception"}],
         },
-        "validationCommand": "pytest"
+        "validationCommand": "pytest",
     }
     # This should not raise an exception
     validate_schema(manifest_with_base, SCHEMA_PATH)
@@ -91,32 +84,18 @@ def test_validate_schema_with_mixed_artifacts():
         "expectedArtifacts": {
             "file": "src/test.py",
             "contains": [
-                {
-                    "type": "class",
-                    "name": "MyError",
-                    "base": "ValueError"
-                },
+                {"type": "class", "name": "MyError", "base": "ValueError"},
                 {
                     "type": "function",
                     "name": "calculate",
-                    "parameters": ["a", "b", "operation"]
+                    "parameters": ["a", "b", "operation"],
                 },
-                {
-                    "type": "attribute",
-                    "name": "value",
-                    "class": "MyClass"
-                },
-                {
-                    "type": "class",
-                    "name": "SimpleClass"  # No base specified
-                },
-                {
-                    "type": "function",
-                    "name": "simple_func"  # No parameters specified
-                }
-            ]
+                {"type": "attribute", "name": "value", "class": "MyClass"},
+                {"type": "class", "name": "SimpleClass"},  # No base specified
+                {"type": "function", "name": "simple_func"},  # No parameters specified
+            ],
         },
-        "validationCommand": "pytest"
+        "validationCommand": "pytest",
     }
     # This should not raise an exception
     validate_schema(complex_manifest, SCHEMA_PATH)

@@ -1,4 +1,3 @@
-import pytest
 import json
 from pathlib import Path
 from validators.manifest_validator import validate_schema, validate_with_ast
@@ -29,7 +28,9 @@ def test_task_001_manifest_is_aligned_with_its_implementation():
         manifest_data = json.load(f)
 
     # Get the implementation file path from the manifest
-    implementation_file = manifest_data["expectedArtifacts"]["file"]  # Should be "validators/manifest_validator.py"
+    implementation_file = manifest_data["expectedArtifacts"][
+        "file"
+    ]  # Should be "validators/manifest_validator.py"
 
     assert Path(implementation_file).exists()
 

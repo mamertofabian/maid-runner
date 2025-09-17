@@ -48,9 +48,23 @@ class _ArtifactCollector(ast.NodeVisitor):
         """Collect imported class names from local modules only."""
         if node.names:
             # Check if this is importing from a local module (relative import or local package)
-            is_local = node.level > 0 or (node.module and not node.module.startswith(
-                ('pathlib', 'typing', 'collections', 'datetime', 'json', 'ast', 'os', 'sys', 're', 'jsonschema')
-            ))
+            is_local = node.level > 0 or (
+                node.module
+                and not node.module.startswith(
+                    (
+                        "pathlib",
+                        "typing",
+                        "collections",
+                        "datetime",
+                        "json",
+                        "ast",
+                        "os",
+                        "sys",
+                        "re",
+                        "jsonschema",
+                    )
+                )
+            )
 
             for alias in node.names:
                 # Classes typically start with uppercase
@@ -153,9 +167,11 @@ def _discover_related_manifests(target_file):
         expected_file = data.get("expectedArtifacts", {}).get("file")
 
         # Check both the lists and the expected file
-        if (target_file in created_files or
-            target_file in edited_files or
-            target_file == expected_file):
+        if (
+            target_file in created_files
+            or target_file in edited_files
+            or target_file == expected_file
+        ):
             manifests.append(str(manifest_path))
 
     return manifests
@@ -220,7 +236,9 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
     # Determine expected artifacts based on mode
     if use_manifest_chain:
         # Discover all manifests that touched this file
-        target_file = manifest_data.get("expectedArtifacts", {}).get("file", test_file_path)
+        target_file = manifest_data.get("expectedArtifacts", {}).get(
+            "file", test_file_path
+        )
         related_manifests = _discover_related_manifests(target_file)
 
         # Merge artifacts from all related manifests
@@ -237,7 +255,12 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
 
         if artifact_type == "class":
             base_class = artifact.get("base")
-            _validate_class(artifact_name, base_class, collector.found_classes, collector.found_class_bases)
+            _validate_class(
+                artifact_name,
+                base_class,
+                collector.found_classes,
+                collector.found_class_bases,
+            )
 
         elif artifact_type == "attribute":
             parent_class = artifact.get("class")
@@ -252,8 +275,12 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
     # Skip strict validation for test files (files with test functions)
     is_test_file = any(func.startswith("test_") for func in collector.found_functions)
 
-    if expected_items and not is_test_file:  # Only enforce for non-test files with expectations
-        _validate_no_unexpected_artifacts(expected_items, collector.found_classes, collector.found_functions)
+    if (
+        expected_items and not is_test_file
+    ):  # Only enforce for non-test files with expectations
+        _validate_no_unexpected_artifacts(
+            expected_items, collector.found_classes, collector.found_functions
+        )
 
 
 def _validate_class(class_name, expected_base, found_classes, found_class_bases):
@@ -265,7 +292,9 @@ def _validate_class(class_name, expected_base, found_classes, found_class_bases)
     if expected_base:
         actual_bases = found_class_bases.get(class_name, [])
         if expected_base not in actual_bases:
-            raise AlignmentError(f"Class '{class_name}' does not inherit from '{expected_base}'")
+            raise AlignmentError(
+                f"Class '{class_name}' does not inherit from '{expected_base}'"
+            )
 
 
 def _validate_attribute(attribute_name, parent_class, found_attributes):
@@ -288,7 +317,9 @@ def _validate_function(function_name, expected_parameters, found_functions):
         # Check all expected parameters are present
         for param in expected_parameters:
             if param not in actual_parameters:
-                raise AlignmentError(f"Parameter '{param}' not found in function '{function_name}'")
+                raise AlignmentError(
+                    f"Parameter '{param}' not found in function '{function_name}'"
+                )
 
         # Check for unexpected parameters (strict validation)
         unexpected_params = set(actual_parameters) - set(expected_parameters)
@@ -302,22 +333,24 @@ def _validate_no_unexpected_artifacts(expected_items, found_classes, found_funct
     """Validate that no unexpected public artifacts exist in the code."""
     # Build sets of expected names
     expected_classes = {
-        item["name"] for item in expected_items
-        if item.get("type") == "class"
+        item["name"] for item in expected_items if item.get("type") == "class"
     }
     expected_functions = {
-        item["name"] for item in expected_items
-        if item.get("type") == "function"
+        item["name"] for item in expected_items if item.get("type") == "function"
     }
 
     # Check for unexpected public classes (exclude private ones starting with _)
     public_classes = {cls for cls in found_classes if not cls.startswith("_")}
     unexpected_classes = public_classes - expected_classes
     if unexpected_classes:
-        raise AlignmentError(f"Unexpected public class(es) found: {', '.join(sorted(unexpected_classes))}")
+        raise AlignmentError(
+            f"Unexpected public class(es) found: {', '.join(sorted(unexpected_classes))}"
+        )
 
     # Check for unexpected public functions (exclude private ones starting with _)
     public_functions = {func for func in found_functions if not func.startswith("_")}
     unexpected_functions = public_functions - expected_functions
     if unexpected_functions:
-        raise AlignmentError(f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}")
+        raise AlignmentError(
+            f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}"
+        )
