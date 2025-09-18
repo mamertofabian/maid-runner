@@ -5,6 +5,7 @@
     "required": ["goal", "readonlyFiles", "expectedArtifacts", "validationCommand"],
     "properties": {
       "goal": { "type": "string" },
+      "taskType": { "type": "string" },
       "creatableFiles": { "type": "array", "items": { "type": "string" } },
       "editableFiles": { "type": "array", "items": { "type": "string" } },
       "readonlyFiles": { "type": "array", "items": { "type": "string" } },
