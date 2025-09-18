@@ -302,5 +302,3 @@ def process_data(input_data, options, verbose=False):
 
     # Should pass with all parameters declared
     validate_with_ast(manifest, str(test_file))
-
-

@@ -9,18 +9,19 @@ import os
 import subprocess
 from pathlib import Path
 
+
 def run_tests():
     """Run all tests from manifests and integration tests."""
     try:
         # Read hook input from stdin
         input_data = json.load(sys.stdin)
-        project_dir = os.environ.get('CLAUDE_PROJECT_DIR', '.')
+        project_dir = os.environ.get("CLAUDE_PROJECT_DIR", ".")
 
         # Change to project directory
         os.chdir(project_dir)
 
         # Skip if stop hook is already active to prevent infinite loops
-        if input_data.get('stop_hook_active', False):
+        if input_data.get("stop_hook_active", False):
             return
 
         print("🧪 Running MAID Test Suite...")
@@ -34,12 +35,14 @@ def run_tests():
 
             for manifest_path in sorted(manifest_files):
                 try:
-                    with open(manifest_path, 'r') as f:
+                    with open(manifest_path, "r") as f:
                         manifest_data = json.load(f)
 
                     validation_cmd = manifest_data.get("validationCommand")
                     if validation_cmd:
-                        print(f"🧪 Running tests for {manifest_path.name}: {validation_cmd}")
+                        print(
+                            f"🧪 Running tests for {manifest_path.name}: {validation_cmd}"
+                        )
 
                         env = os.environ.copy()
 
@@ -49,7 +52,7 @@ def run_tests():
                             capture_output=True,
                             text=True,
                             env=env,
-                            timeout=120  # 2 minute timeout
+                            timeout=120,  # 2 minute timeout
                         )
 
                         if result.returncode == 0:
@@ -59,13 +62,23 @@ def run_tests():
                             print(f"❌ {manifest_path.name}: Tests failed")
                             print(f"   stdout: {result.stdout}")
                             print(f"   stderr: {result.stderr}")
-                            test_results.append((manifest_path.name, False, result.stderr or result.stdout))
+                            test_results.append(
+                                (
+                                    manifest_path.name,
+                                    False,
+                                    result.stderr or result.stdout,
+                                )
+                            )
                     else:
-                        print(f"📋 {manifest_path.name}: No validation command specified")
+                        print(
+                            f"📋 {manifest_path.name}: No validation command specified"
+                        )
 
                 except json.JSONDecodeError as e:
                     print(f"❌ {manifest_path.name}: Invalid JSON - {e}")
-                    test_results.append((manifest_path.name, False, f"Invalid JSON: {e}"))
+                    test_results.append(
+                        (manifest_path.name, False, f"Invalid JSON: {e}")
+                    )
                 except subprocess.TimeoutExpired:
                     print(f"⏰ {manifest_path.name}: Tests timed out")
                     test_results.append((manifest_path.name, False, "Test timeout"))
@@ -90,27 +103,35 @@ def run_tests():
                         capture_output=True,
                         text=True,
                         env=env,
-                        timeout=120
+                        timeout=120,
                     )
 
                     if result.returncode == 0:
                         print(f"✅ {test_file.name}: Integration tests passed")
-                        test_results.append((f"integration:{test_file.name}", True, None))
+                        test_results.append(
+                            (f"integration:{test_file.name}", True, None)
+                        )
                     else:
                         print(f"❌ {test_file.name}: Integration tests failed")
                         print(f"   stderr: {result.stderr}")
-                        test_results.append((f"integration:{test_file.name}", False, result.stderr))
+                        test_results.append(
+                            (f"integration:{test_file.name}", False, result.stderr)
+                        )
 
                 except subprocess.TimeoutExpired:
                     print(f"⏰ {test_file.name}: Integration tests timed out")
-                    test_results.append((f"integration:{test_file.name}", False, "Test timeout"))
+                    test_results.append(
+                        (f"integration:{test_file.name}", False, "Test timeout")
+                    )
                 except Exception as e:
                     print(f"❌ {test_file.name}: Integration test error - {e}")
-                    test_results.append((f"integration:{test_file.name}", False, str(e)))
+                    test_results.append(
+                        (f"integration:{test_file.name}", False, str(e))
+                    )
 
         # 3. Run all tests together for comprehensive check
         if Path("tests").exists():
-            print(f"\n🧪 Running comprehensive test suite")
+            print("\n🧪 Running comprehensive test suite")
 
             env = os.environ.copy()
 
@@ -121,19 +142,19 @@ def run_tests():
                     capture_output=True,
                     text=True,
                     env=env,
-                    timeout=180  # 3 minute timeout for all tests
+                    timeout=180,  # 3 minute timeout for all tests
                 )
 
                 if result.returncode == 0:
-                    print(f"✅ Comprehensive test suite: All tests passed")
+                    print("✅ Comprehensive test suite: All tests passed")
                     test_results.append(("comprehensive", True, None))
                 else:
-                    print(f"❌ Comprehensive test suite: Some tests failed")
+                    print("❌ Comprehensive test suite: Some tests failed")
                     print(f"   stderr: {result.stderr}")
                     test_results.append(("comprehensive", False, result.stderr))
 
             except subprocess.TimeoutExpired:
-                print(f"⏰ Comprehensive test suite: Timed out")
+                print("⏰ Comprehensive test suite: Timed out")
                 test_results.append(("comprehensive", False, "Test timeout"))
             except Exception as e:
                 print(f"❌ Comprehensive test suite error: {e}")
@@ -156,7 +177,7 @@ def run_tests():
                 # Block Claude from stopping if tests fail
                 output = {
                     "decision": "block",
-                    "reason": f"Tests failed for {failed} test suite(s). Please fix the failing tests before proceeding."
+                    "reason": f"Tests failed for {failed} test suite(s). Please fix the failing tests before proceeding.",
                 }
                 print(json.dumps(output))
             else:
@@ -168,6 +189,7 @@ def run_tests():
         print(f"🔧 Test Runner Hook Error: {e}", file=sys.stderr)
         # Don't block on hook errors
         sys.exit(0)
+
 
 if __name__ == "__main__":
     run_tests()

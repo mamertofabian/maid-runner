@@ -179,5 +179,3 @@ def extra_func2():
     error_msg = str(exc_info.value)
     # Check that it mentions unexpected classes or functions
     assert "Extra1" in error_msg or "extra_func1" in error_msg
-
-
