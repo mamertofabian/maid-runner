@@ -41,9 +41,7 @@ def run_tests():
                     if validation_cmd:
                         print(f"🧪 Running tests for {manifest_path.name}: {validation_cmd}")
 
-                        # Set PYTHONPATH and run command
                         env = os.environ.copy()
-                        env['PYTHONPATH'] = '.'
 
                         result = subprocess.run(
                             validation_cmd,
@@ -84,7 +82,6 @@ def run_tests():
                 print(f"🧪 Running {test_file.name}")
 
                 env = os.environ.copy()
-                env['PYTHONPATH'] = '.'
 
                 try:
                     result = subprocess.run(
@@ -116,7 +113,6 @@ def run_tests():
             print(f"\n🧪 Running comprehensive test suite")
 
             env = os.environ.copy()
-            env['PYTHONPATH'] = '.'
 
             try:
                 result = subprocess.run(
