@@ -32,14 +32,14 @@ MAID Runner is an implementation of the Manifest-driven AI Development (MAID) me
 ## Common Development Commands
 
 ```bash
-# Run all tests with proper Python path
-export PYTHONPATH=.; uv run pytest tests/ -v
+# Run all tests (python -m pytest automatically handles module paths)
+uv run python -m pytest tests/ -v
 
 # Run specific test file
-export PYTHONPATH=.; uv run pytest tests/test_manifest_validator.py -v
+uv run python -m pytest tests/test_manifest_validator.py -v
 
 # Run tests for a specific integration task
-export PYTHONPATH=.; uv run pytest tests/test_task_001_integration.py -v
+uv run python -m pytest tests/test_task_001_integration.py -v
 
 # Format code with black
 uv run black .
@@ -61,7 +61,7 @@ Tests are organized by component:
 
 ## Important Implementation Notes
 
-1. **PYTHONPATH Required**: Always set `PYTHONPATH=.` when running tests to ensure module imports work correctly
+1. **Running Tests**: Use `uv run python -m pytest` to run tests - this automatically handles module imports correctly
 
 2. **Artifact Validation**: The validator strictly enforces that:
    - All expected public artifacts exist

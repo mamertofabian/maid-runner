@@ -50,7 +50,7 @@ Example: `/maid-status`
 
 - **Schema Validation**: `validate_schema(manifest_data, schema_path)`
 - **AST Validation**: `validate_with_ast(manifest_data, implementation_file)`
-- **Test Execution**: `PYTHONPATH=. uv run pytest [test-file]`
+- **Test Execution**: `uv run python -m pytest [test-file]`
 
 ## Automatic Validation:
 

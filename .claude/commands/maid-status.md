@@ -1,6 +1,6 @@
 ---
 description: Show MAID project status and available manifests
-allowed-tools: Bash(ls*), Bash(PYTHONPATH=. uv run python*), Read
+allowed-tools: Bash(ls*), Bash(uv run python -m *), Read
 ---
 
 ## Task: Display MAID Project Status

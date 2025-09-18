@@ -40,7 +40,7 @@ Enhance the tests in $1 and update manifest: $2 to reflect any new requirements.
 
 1. **Analyze Current Coverage:**
    ```bash
-   PYTHONPATH=. uv run pytest $1 --cov --cov-report=term-missing
+   uv run python -m pytest $1 --cov --cov-report=term-missing
    ```
 
 2. **Identify Gaps:**

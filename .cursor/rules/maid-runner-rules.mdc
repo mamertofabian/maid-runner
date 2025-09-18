@@ -1,0 +1,7 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+Always refer to the @CLAUDE.md as well as the @docs/maid_specs.md

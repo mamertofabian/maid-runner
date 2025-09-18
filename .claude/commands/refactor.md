@@ -62,12 +62,12 @@ Refactor the implementation in $1 according to manifest: $2
 
 ```bash
 # Before refactoring
-PYTHONPATH=. uv run pytest $VALIDATION_COMMAND
+uv run python -m pytest $VALIDATION_COMMAND
 
 # After refactoring
 uv run black $1
 uv run ruff check $1
-PYTHONPATH=. uv run pytest $VALIDATION_COMMAND
+uv run python -m pytest $VALIDATION_COMMAND
 ```
 
 Remember: The goal is to improve the internal quality without changing external behavior!

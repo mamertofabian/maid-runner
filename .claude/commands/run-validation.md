@@ -1,7 +1,7 @@
 ---
 description: Run manifest validation tests directly
 argument-hint: [manifest-file-path | task-number]
-allowed-tools: Bash(PYTHONPATH=. uv run pytest*)
+allowed-tools: Bash(uv run python -m pytest*)
 ---
 
 ## Task: Run Validation Tests for Manifest
@@ -26,7 +26,7 @@ if [[ "$1" =~ ^[0-9]+$ ]]; then
     TEST_FILE="tests/test_task_${1}_integration.py"
     if [ -f "$TEST_FILE" ]; then
         echo "🧪 Running integration tests for Task $1"
-        PYTHONPATH=. uv run pytest "$TEST_FILE" -v
+        uv run python -m pytest "$TEST_FILE" -v
     else
         echo "❌ Test file not found: $TEST_FILE"
         echo "🔍 Available tests:"
@@ -40,8 +40,8 @@ else
         # Extract validation command from JSON
         VALIDATION_CMD=$(python -c "import json; print(json.load(open('$MANIFEST'))['validationCommand'])" 2>/dev/null)
         if [ -n "$VALIDATION_CMD" ]; then
-            echo "🧪 Running: PYTHONPATH=. $VALIDATION_CMD"
-            PYTHONPATH=. $VALIDATION_CMD
+            echo "🧪 Running: uv run python -m $VALIDATION_CMD"
+            uv run python -m $VALIDATION_CMD
         else
             echo "❌ No validation command found in manifest"
         fi

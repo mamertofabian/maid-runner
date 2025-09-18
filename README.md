@@ -44,14 +44,14 @@ uv sync --group dev
 
 ```bash
 # Run all tests
-export PYTHONPATH=.; uv run pytest tests/ -v
+uv run python -m pytest tests/ -v
 
 # Run specific test files
-export PYTHONPATH=.; uv run pytest tests/test_manifest_validator.py -v
-export PYTHONPATH=.; uv run pytest tests/test_ast_validator.py -v
+uv run python -m pytest tests/test_manifest_validator.py -v
+uv run python -m pytest tests/test_ast_validator.py -v
 
 # Run integration tests for specific tasks
-export PYTHONPATH=.; uv run pytest tests/test_task_001_integration.py -v
+uv run python -m pytest tests/test_task_001_integration.py -v
 ```
 
 ### Code Quality

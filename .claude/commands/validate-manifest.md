@@ -1,7 +1,7 @@
 ---
 description: Validate a manifest against schema and implementation using AST validator
 argument-hint: [manifest-file-path] [--chain]
-allowed-tools: Read, Bash(PYTHONPATH=. uv run pytest*), Bash(PYTHONPATH=. uv run python*)
+allowed-tools: Read, Bash(uv run python -m pytest*), Bash(uv run python -m*)
 ---
 
 ## Task: Validate Manifest Against Schema and Implementation
@@ -85,7 +85,7 @@ def validate_manifest(manifest_path, use_chain=False):
             print(f"🧪 Running validation command: {validation_cmd}")
             import subprocess
             result = subprocess.run(
-                f"PYTHONPATH=. {validation_cmd}",
+                f"uv run python -m {validation_cmd}",
                 shell=True,
                 capture_output=True,
                 text=True
