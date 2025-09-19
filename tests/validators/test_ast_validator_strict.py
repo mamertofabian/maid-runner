@@ -126,7 +126,7 @@ class _InternalCache:
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "ValidationError", "base": "Exception"},
+                {"type": "class", "name": "ValidationError", "bases": ["Exception"]},
                 {
                     "type": "function",
                     "name": "validate_data",
@@ -179,3 +179,96 @@ def extra_func2():
     error_msg = str(exc_info.value)
     # Check that it mentions unexpected classes or functions
     assert "Extra1" in error_msg or "extra_func1" in error_msg
+
+
+# ============================================================================
+# Test File Validation Exclusion Tests
+# ============================================================================
+
+
+def test_strict_validation_skipped_for_test_files(tmp_path: Path):
+    """Test that files with test_ functions skip strict validation."""
+    code = """
+def expected_function():
+    pass
+
+def unexpected_function():
+    pass
+
+def test_something():
+    # Presence of test function should disable strict validation
+    pass
+
+class UnexpectedClass:
+    pass
+"""
+    test_file = tmp_path / "test_module.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "expected_function"}
+                # unexpected_function and UnexpectedClass not listed
+                # But should pass because test_ function present
+            ]
+        }
+    }
+    # Should pass - strict validation skipped for test files
+    validate_with_ast(manifest, str(test_file))
+
+
+def test_strict_validation_applied_to_non_test_files(tmp_path: Path):
+    """Test that regular files get strict validation."""
+    code = """
+def expected_function():
+    pass
+
+def unexpected_function():
+    # No test_ functions, so strict validation should apply
+    pass
+"""
+    test_file = tmp_path / "regular.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "expected_function"}
+                # unexpected_function not listed - should fail
+            ]
+        }
+    }
+    # Should fail - strict validation applies to non-test files
+    with pytest.raises(AlignmentError, match="Unexpected public function"):
+        validate_with_ast(manifest, str(test_file))
+
+
+def test_file_with_test_prefix_but_no_test_functions(tmp_path: Path):
+    """Test edge case: filename starts with test but no test functions."""
+    code = """
+def setup():
+    pass
+
+def teardown():
+    pass
+
+def helper_function():
+    # File named test_*.py but no test_ functions
+    pass
+"""
+    test_file = tmp_path / "test_helpers.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "setup"},
+                {"type": "function", "name": "teardown"},
+                # helper_function not listed
+            ]
+        }
+    }
+    # Should fail - no test_ functions means strict validation applies
+    with pytest.raises(AlignmentError, match="Unexpected public function"):
+        validate_with_ast(manifest, str(test_file))

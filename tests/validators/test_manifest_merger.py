@@ -80,7 +80,7 @@ def test_merge_expected_artifacts():
         content2 = {
             "expectedArtifacts": {
                 "contains": [
-                    {"type": "class", "name": "AlignmentError", "base": "Exception"},
+                    {"type": "class", "name": "AlignmentError", "bases": ["Exception"]},
                     {
                         "type": "function",
                         "name": "validate_with_ast",
@@ -109,7 +109,7 @@ def test_merge_expected_artifacts():
 
         # Check that details are preserved
         alignment_error = next(a for a in merged if a["name"] == "AlignmentError")
-        assert alignment_error.get("base") == "Exception"
+        assert alignment_error.get("bases") == ["Exception"]
 
         validate_ast = next(a for a in merged if a["name"] == "validate_with_ast")
         assert validate_ast.get("parameters") == ["manifest_data", "test_file_path"]
@@ -201,7 +201,7 @@ def validate_with_ast(manifest_data, test_file_path):
         "expectedArtifacts": {
             "file": str(test_file),
             "contains": [
-                {"type": "class", "name": "AlignmentError", "base": "Exception"},
+                {"type": "class", "name": "AlignmentError", "bases": ["Exception"]},
                 {
                     "type": "function",
                     "name": "validate_with_ast",

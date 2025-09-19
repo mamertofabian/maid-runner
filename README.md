@@ -83,7 +83,7 @@ manifest_data = {
             {"type": "function", "name": "authenticate", "parameters": ["username", "password"]}
         ]
     },
-    "validationCommand": "pytest tests/test_auth.py"
+    "validationCommand": ["pytest tests/test_auth.py"]
 }
 
 validate_schema(manifest_data, "validators/schemas/manifest.schema.json")
@@ -111,13 +111,13 @@ Task manifests define isolated units of work with explicit inputs, outputs, and 
       }
     ]
   },
-  "validationCommand": "pytest tests/test_user_repository.py"
+  "validationCommand": ["pytest tests/test_user_repository.py"]
 }
 ```
 
 ### Supported Artifact Types
 
-- **Classes**: `{"type": "class", "name": "ClassName", "base": "BaseClass"}`
+- **Classes**: `{"type": "class", "name": "ClassName", "bases": ["BaseClass"]}`
 - **Functions**: `{"type": "function", "name": "function_name", "parameters": ["param1", "param2"]}`
 - **Attributes**: `{"type": "attribute", "name": "attr_name", "class": "ParentClass"}`
 

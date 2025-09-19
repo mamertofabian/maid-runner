@@ -61,7 +61,7 @@ The development process is broken down into five distinct phases, creating a cle
       "expectedArtifacts": { 
         "contains": [{"type": "function", "name": "get_user_by_id"}]
       },
-      "validationCommand": "pytest tests/test_user_repository.py"
+      "validationCommand": ["pytest tests/test_user_repository.py"]
     }
     ```
 

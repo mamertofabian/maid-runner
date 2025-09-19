@@ -254,10 +254,10 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
         artifact_name = artifact.get("name")
 
         if artifact_type == "class":
-            base_class = artifact.get("base")
+            expected_bases = artifact.get("bases", [])
             _validate_class(
                 artifact_name,
-                base_class,
+                expected_bases,
                 collector.found_classes,
                 collector.found_class_bases,
             )
@@ -283,18 +283,19 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
         )
 
 
-def _validate_class(class_name, expected_base, found_classes, found_class_bases):
-    """Validate that a class is referenced in the code with the expected base class."""
+def _validate_class(class_name, expected_bases, found_classes, found_class_bases):
+    """Validate that a class is referenced in the code with the expected base classes."""
     if class_name not in found_classes:
         raise AlignmentError(f"Artifact '{class_name}' not found")
 
-    # Check base class if specified
-    if expected_base:
+    # Check base classes if specified
+    if expected_bases:
         actual_bases = found_class_bases.get(class_name, [])
-        if expected_base not in actual_bases:
-            raise AlignmentError(
-                f"Class '{class_name}' does not inherit from '{expected_base}'"
-            )
+        for expected_base in expected_bases:
+            if expected_base not in actual_bases:
+                raise AlignmentError(
+                    f"Class '{class_name}' does not inherit from '{expected_base}'"
+                )
 
 
 def _validate_attribute(attribute_name, parent_class, found_attributes):

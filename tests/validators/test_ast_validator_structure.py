@@ -193,9 +193,9 @@ class Dog(Animal):
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "CustomError", "base": "Exception"},
-                {"type": "class", "name": "ValidationError", "base": "ValueError"},
-                {"type": "class", "name": "Dog", "base": "Animal"},
+                {"type": "class", "name": "CustomError", "bases": ["Exception"]},
+                {"type": "class", "name": "ValidationError", "bases": ["ValueError"]},
+                {"type": "class", "name": "Dog", "bases": ["Animal"]},
                 {"type": "class", "name": "Animal"},  # No base specified
             ]
         }
@@ -217,7 +217,7 @@ class CustomError(ValueError):  # Inherits from ValueError, not Exception
         "expectedArtifacts": {
             "contains": [
                 # Expects Exception but actual base is ValueError
-                {"type": "class", "name": "CustomError", "base": "Exception"}
+                {"type": "class", "name": "CustomError", "bases": ["Exception"]}
             ]
         }
     }
@@ -301,4 +301,175 @@ def process_data(input_data, options, verbose=False):
     }
 
     # Should pass with all parameters declared
+    validate_with_ast(manifest, str(test_file))
+
+
+# ============================================================================
+# Method vs Function Distinction Tests
+# ============================================================================
+
+
+def test_module_level_functions_collected(tmp_path: Path):
+    """Test that top-level functions are collected."""
+    code = """
+def module_function(a, b):
+    return a + b
+
+async def async_module_function():
+    pass
+
+def _private_module_function():
+    pass
+"""
+    test_file = tmp_path / "module_funcs.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {
+                    "type": "function",
+                    "name": "module_function",
+                    "parameters": ["a", "b"],
+                }
+                # Async functions are not collected by the validator
+                # _private_module_function is private, handled by strict validation
+            ]
+        }
+    }
+    # Should pass - module-level functions are collected
+    validate_with_ast(manifest, str(test_file))
+
+    # Verify async functions are not collected
+    manifest_with_async = {
+        "expectedArtifacts": {
+            "contains": [{"type": "function", "name": "async_module_function"}]
+        }
+    }
+    # Should fail - async functions are not tracked
+    with pytest.raises(
+        AlignmentError, match="Artifact 'async_module_function' not found"
+    ):
+        validate_with_ast(manifest_with_async, str(test_file))
+
+
+def test_class_methods_not_collected_as_functions(tmp_path: Path):
+    """Test that methods inside classes aren't collected as module functions."""
+    code = """
+def module_func():
+    pass
+
+class Calculator:
+    def add(self, a, b):
+        return a + b
+
+    def subtract(self, a, b):
+        return a - b
+
+    @staticmethod
+    def multiply(a, b):
+        return a * b
+
+    @classmethod
+    def from_string(cls, string):
+        return cls()
+"""
+    test_file = tmp_path / "methods.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "module_func"},
+                {"type": "class", "name": "Calculator"},
+                # Methods (add, subtract, multiply, from_string) should NOT be in functions
+            ]
+        }
+    }
+    # Should pass - class methods are not collected as module functions
+    validate_with_ast(manifest, str(test_file))
+
+
+def test_nested_class_methods(tmp_path: Path):
+    """Test methods in nested classes."""
+    code = """
+def top_level():
+    pass
+
+class OuterClass:
+    def outer_method(self):
+        pass
+
+    class InnerClass:
+        def inner_method(self):
+            pass
+
+        class DeepClass:
+            def deep_method(self):
+                pass
+"""
+    test_file = tmp_path / "nested.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "top_level"},
+                {"type": "class", "name": "OuterClass"},
+                {"type": "class", "name": "InnerClass"},  # Nested classes ARE collected
+                {"type": "class", "name": "DeepClass"},  # Even deeply nested ones
+                # Methods inside classes are correctly NOT collected as module functions
+            ]
+        }
+    }
+    # Should pass - nested classes are collected, but methods are not module functions
+    validate_with_ast(manifest, str(test_file))
+
+    # Verify methods are NOT collected as module functions
+    manifest_with_method = {
+        "expectedArtifacts": {
+            "contains": [
+                {
+                    "type": "function",
+                    "name": "outer_method",
+                }  # Should fail - it's a method
+            ]
+        }
+    }
+    # Should fail - methods are not module functions
+    with pytest.raises(AlignmentError, match="Artifact 'outer_method' not found"):
+        validate_with_ast(manifest_with_method, str(test_file))
+
+
+def test_static_and_class_methods(tmp_path: Path):
+    """Test that @staticmethod and @classmethod are not collected as module functions."""
+    code = """
+class Service:
+    @staticmethod
+    def static_method():
+        pass
+
+    @classmethod
+    def class_method(cls):
+        pass
+
+    def instance_method(self):
+        pass
+
+def standalone_function():
+    pass
+"""
+    test_file = tmp_path / "decorators.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "Service"},
+                {"type": "function", "name": "standalone_function"},
+                # Decorated methods should NOT be module functions
+            ]
+        }
+    }
+    # Should pass - decorated methods are not module functions
     validate_with_ast(manifest, str(test_file))

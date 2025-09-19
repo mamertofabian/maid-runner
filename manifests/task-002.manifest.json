@@ -14,7 +14,7 @@
         {
           "type": "class",
           "name": "AlignmentError",
-          "base": "Exception"
+          "bases": ["Exception"]
         },
         {
           "type": "function",
@@ -23,5 +23,12 @@
         }
       ]
     },
-    "validationCommand": "pytest tests/test_ast_validator_strict.py && pytest tests/test_ast_validator_structure.py"
+    "validationCommand": [
+      "pytest tests/validators/test_imports.py",
+      "pytest tests/validators/test_attributes.py",
+      "pytest tests/validators/test_inheritance.py",
+      "pytest tests/validators/test_edge_cases.py",
+      "pytest tests/validators/test_ast_validator_structure.py",
+      "pytest tests/validators/test_ast_validator_strict.py"
+    ]
   }

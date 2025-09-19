@@ -21,7 +21,7 @@
                 "type": { "enum": ["class", "function", "attribute", "parameter"] },
                 "name": { "type": "string" },
                 "class": { "type": "string", "description": "The parent class for attributes or methods" },
-                "base": { "type": "string", "description": "The base class for a class (optional)" },
+                "bases": { "type": "array", "items": { "type": "string" }, "description": "The base classes for a class (optional)" },
                 "function": { "type": "string", "description": "The parent function for parameters" },
                 "parameters": {
                   "type": "array",
@@ -35,6 +35,6 @@
         },
         "required": ["file", "contains"]
       },
-      "validationCommand": { "type": "string" }
+      "validationCommand": { "type": "array", "items": { "type": "string" } }
     }
   }

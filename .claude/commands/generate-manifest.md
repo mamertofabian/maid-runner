@@ -40,7 +40,7 @@ The manifest must validate against @validators/schemas/manifest.schema.json
       {
         "type": "class",
         "name": "MyClass",
-        "base": "BaseClass"
+        "bases": ["BaseClass"]
       },
       {
         "type": "function",
@@ -49,7 +49,7 @@ The manifest must validate against @validators/schemas/manifest.schema.json
       }
     ]
   },
-  "validationCommand": "pytest tests/test_file.py"
+  "validationCommand": ["pytest tests/test_file.py"]
 }
 ```
 

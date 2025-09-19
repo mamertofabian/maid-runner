@@ -18,7 +18,7 @@ def test_validate_schema_with_valid_manifest():
             "file": "src/test.py",
             "contains": [{"type": "class", "name": "MyClass"}],
         },
-        "validationCommand": "pytest",
+        "validationCommand": ["pytest"],
     }
     # This should not raise an exception
     validate_schema(valid_manifest, SCHEMA_PATH)
@@ -50,7 +50,7 @@ def test_validate_schema_with_function_parameters():
                 }
             ],
         },
-        "validationCommand": "pytest",
+        "validationCommand": ["pytest"],
     }
     # This should not raise an exception
     validate_schema(manifest_with_params, SCHEMA_PATH)
@@ -65,9 +65,11 @@ def test_validate_schema_with_class_base():
         "readonlyFiles": ["tests/test.py"],
         "expectedArtifacts": {
             "file": "src/test.py",
-            "contains": [{"type": "class", "name": "CustomError", "base": "Exception"}],
+            "contains": [
+                {"type": "class", "name": "CustomError", "bases": ["Exception"]}
+            ],
         },
-        "validationCommand": "pytest",
+        "validationCommand": ["pytest"],
     }
     # This should not raise an exception
     validate_schema(manifest_with_base, SCHEMA_PATH)
@@ -84,7 +86,7 @@ def test_validate_schema_with_mixed_artifacts():
         "expectedArtifacts": {
             "file": "src/test.py",
             "contains": [
-                {"type": "class", "name": "MyError", "base": "ValueError"},
+                {"type": "class", "name": "MyError", "bases": ["ValueError"]},
                 {
                     "type": "function",
                     "name": "calculate",
@@ -95,7 +97,30 @@ def test_validate_schema_with_mixed_artifacts():
                 {"type": "function", "name": "simple_func"},  # No parameters specified
             ],
         },
-        "validationCommand": "pytest",
+        "validationCommand": ["pytest"],
     }
     # This should not raise an exception
     validate_schema(complex_manifest, SCHEMA_PATH)
+
+
+def test_validate_schema_with_multiple_bases():
+    """
+    Tests that a manifest with multiple base classes (using the new 'bases' array) is valid.
+    """
+    manifest_with_multiple_bases = {
+        "goal": "Test class with multiple inheritance",
+        "readonlyFiles": ["tests/test.py"],
+        "expectedArtifacts": {
+            "file": "src/test.py",
+            "contains": [
+                {
+                    "type": "class",
+                    "name": "MultiDerivedClass",
+                    "bases": ["BaseClass1", "BaseClass2", "Mixin"],
+                }
+            ],
+        },
+        "validationCommand": ["pytest", "-v"],
+    }
+    # This should not raise an exception
+    validate_schema(manifest_with_multiple_bases, SCHEMA_PATH)

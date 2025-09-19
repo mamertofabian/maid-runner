@@ -18,5 +18,7 @@
         }
       ]
     },
-    "validationCommand": "pytest tests/test_manifest_validator.py"
+    "validationCommand": [
+        "pytest tests/test_manifest_validator.py"
+      ]
   }
