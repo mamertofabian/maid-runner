@@ -241,3 +241,43 @@ def test_empty_manifest_chain():
 
     merged = _merge_expected_artifacts([])
     assert merged == []
+
+
+def test_discover_manifests_with_four_digit_numbers():
+    """Test that 4-digit task numbers are sorted correctly after 3-digit ones."""
+    # Create a temporary manifest directory with 3 and 4 digit task numbers
+    with tempfile.TemporaryDirectory() as tmpdir:
+        manifest_dir = Path(tmpdir) / "manifests"
+        manifest_dir.mkdir()
+
+        # Create manifests with both 3-digit and 4-digit numbers
+        task_998 = manifest_dir / "task-998.json"
+        task_999 = manifest_dir / "task-999.json"
+        task_1000 = manifest_dir / "task-1000.json"
+        task_1001 = manifest_dir / "task-1001-add-feature.json"  # With description
+
+        manifest_content = {
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "creatableFiles": ["test.py"],
+        }
+
+        for path in [task_998, task_999, task_1000, task_1001]:
+            with open(path, "w") as f:
+                json.dump(manifest_content, f)
+
+        # Mock the manifest directory for the function
+        import validators.manifest_validator as mv
+
+        original_path = mv.Path
+        mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
+
+        try:
+            manifests = _discover_related_manifests("test.py")
+            # Should be sorted numerically, not lexicographically
+            assert len(manifests) == 4
+            assert "task-998" in manifests[0]
+            assert "task-999" in manifests[1]
+            assert "task-1000" in manifests[2]
+            assert "task-1001-add-feature" in manifests[3]
+        finally:
+            mv.Path = original_path

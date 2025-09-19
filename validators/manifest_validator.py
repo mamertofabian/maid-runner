@@ -156,8 +156,30 @@ def _discover_related_manifests(target_file):
     if not manifest_dir.exists():
         return manifests
 
-    # Sort manifest files chronologically (task-001, task-002, etc.)
-    for manifest_path in sorted(manifest_dir.glob("*.json")):
+    # Get all JSON files and sort numerically by task number
+    manifest_files = list(manifest_dir.glob("*.json"))
+
+    def _get_task_number(path):
+        """Extract task number from filename like task-XXX-description.json"""
+        stem = path.stem
+        # Handle .manifest.json files by removing .manifest suffix
+        if stem.endswith(".manifest"):
+            stem = stem[:-9]  # Remove '.manifest' suffix
+
+        if stem.startswith("task-"):
+            try:
+                # Split by '-' and get the number part (second element)
+                parts = stem.split("-")
+                if len(parts) >= 2:
+                    return int(parts[1])
+            except (ValueError, IndexError):
+                pass
+        return float("inf")  # Put non-task files at the end
+
+    # Sort manifest files numerically (supports task-1 through task-999999+)
+    manifest_files.sort(key=_get_task_number)
+
+    for manifest_path in manifest_files:
         with open(manifest_path, "r") as f:
             data = json.load(f)
 
