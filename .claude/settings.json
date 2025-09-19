@@ -12,6 +12,17 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/test-runner.py",
             "timeout": 300
+          },
+          {
+            "__comment": "Check todo completion status when Claude finishes responding",
+            "matcher": "",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-todos.py",
+                "timeout": 60
+              }
+            ]
           }
         ]
       }
