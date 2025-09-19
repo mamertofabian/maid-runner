@@ -53,6 +53,8 @@ uv run ruff check --fix .
 
 ## Testing Strategy
 
+When creating unit tests, always follow the guidelines in `@docs/unit-testing-rules.md` for effective test design and implementation.
+
 Tests are organized by component:
 - `test_manifest_validator.py` - Schema validation tests
 - `test_ast_validator.py` - AST-based artifact validation
