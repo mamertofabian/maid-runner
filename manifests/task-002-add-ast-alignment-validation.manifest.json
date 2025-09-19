@@ -1,34 +1,36 @@
 {
-    "goal": "Implement the `validate_with_ast` function in the existing manifest_validator.py file. This function will parse a given Python test file into an Abstract Syntax Tree (AST) to verify that the artifacts listed in `expectedArtifacts` are actually referenced in the code. If an expected artifact is not found, it must raise a custom `AlignmentError`.",
-    "taskType": "edit",
-    "editableFiles": [
-      "validators/manifest_validator.py"
-    ],
-    "readonlyFiles": [
-      "tests/test_ast_validator_strict.py",
-      "tests/test_ast_validator_structure.py"
-    ],
-    "expectedArtifacts": {
-      "file": "validators/manifest_validator.py",
-      "contains": [
-        {
-          "type": "class",
-          "name": "AlignmentError",
-          "bases": ["Exception"]
-        },
-        {
-          "type": "function",
-          "name": "validate_with_ast",
-          "parameters": ["manifest_data", "test_file_path", "use_manifest_chain"]
-        }
-      ]
-    },
-    "validationCommand": [
-      "pytest tests/validators/test_imports.py",
-      "pytest tests/validators/test_attributes.py",
-      "pytest tests/validators/test_inheritance.py",
-      "pytest tests/validators/test_edge_cases.py",
-      "pytest tests/validators/test_ast_validator_structure.py",
-      "pytest tests/validators/test_ast_validator_strict.py"
+  "goal": "Implement the `validate_with_ast` function in the existing manifest_validator.py file. This function will parse a given Python test file into an Abstract Syntax Tree (AST) to verify that the artifacts listed in `expectedArtifacts` are actually referenced in the code. If an expected artifact is not found, it must raise a custom `AlignmentError`.",
+  "taskType": "edit",
+  "editableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": [
+    "tests/test_ast_validator_strict.py",
+    "tests/test_ast_validator_structure.py"
+  ],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "bases": ["Exception"]
+      },
+      {
+        "type": "function",
+        "name": "validate_with_ast",
+        "parameters": [
+          { "name": "manifest_data" },
+          { "name": "test_file_path" },
+          { "name": "use_manifest_chain" }
+        ]
+      }
     ]
-  }
+  },
+  "validationCommand": [
+    "pytest tests/validators/test_imports.py",
+    "pytest tests/validators/test_attributes.py",
+    "pytest tests/validators/test_inheritance.py",
+    "pytest tests/validators/test_edge_cases.py",
+    "pytest tests/validators/test_ast_validator_structure.py",
+    "pytest tests/validators/test_ast_validator_strict.py"
+  ]
+}

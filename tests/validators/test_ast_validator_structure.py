@@ -103,12 +103,16 @@ class Calculator:
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options", "verbose"],
+                    "parameters": [
+                        {"name": "input_data"},
+                        {"name": "options"},
+                        {"name": "verbose"},
+                    ],
                 },
                 {
                     "type": "function",
                     "name": "calculate_total",
-                    "parameters": ["items", "tax_rate"],
+                    "parameters": [{"name": "items"}, {"name": "tax_rate"}],
                 },
                 {
                     "type": "class",
@@ -137,7 +141,11 @@ def process_data(input_data, options):
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options", "verbose"],
+                    "parameters": [
+                        {"name": "input_data"},
+                        {"name": "options"},
+                        {"name": "verbose"},
+                    ],
                 }
             ]
         }
@@ -264,7 +272,7 @@ def process_data(input_data, options, verbose=False):
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options"],
+                    "parameters": [{"name": "input_data"}, {"name": "options"}],
                 }
             ]
         }
@@ -294,7 +302,11 @@ def process_data(input_data, options, verbose=False):
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options", "verbose"],
+                    "parameters": [
+                        {"name": "input_data"},
+                        {"name": "options"},
+                        {"name": "verbose"},
+                    ],
                 }
             ]
         }
@@ -330,7 +342,7 @@ def _private_module_function():
                 {
                     "type": "function",
                     "name": "module_function",
-                    "parameters": ["a", "b"],
+                    "parameters": [{"name": "a"}, {"name": "b"}],
                 }
                 # Async functions are not collected by the validator
                 # _private_module_function is private, handled by strict validation

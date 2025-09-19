@@ -1,24 +1,20 @@
 {
-    "goal": "Implement the `validate_schema` function in a new file. This function takes manifest data (as a dict) and a path to a schema file, and uses the `jsonschema` library to validate the data against the schema. It should raise `jsonschema.ValidationError` on failure.",
-    "taskType": "create",
-    "creatableFiles": [
-      "validators/manifest_validator.py"
-    ],
-    "readonlyFiles": [
-      "tests/test_manifest_validator.py",
-      "validators/schemas/manifest.schema.json"
-    ],
-    "expectedArtifacts": {
-      "file": "validators/manifest_validator.py",
-      "contains": [
-        {
-          "type": "function",
-          "name": "validate_schema",
-          "parameters": ["manifest_data", "schema_path"]
-        }
-      ]
-    },
-    "validationCommand": [
-        "pytest tests/test_manifest_validator.py"
-      ]
-  }
+  "goal": "Implement the `validate_schema` function in a new file. This function takes manifest data (as a dict) and a path to a schema file, and uses the `jsonschema` library to validate the data against the schema. It should raise `jsonschema.ValidationError` on failure.",
+  "taskType": "create",
+  "creatableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": [
+    "tests/test_manifest_validator.py",
+    "validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "validate_schema",
+        "parameters": [{ "name": "manifest_data" }, { "name": "schema_path" }]
+      }
+    ]
+  },
+  "validationCommand": ["pytest tests/test_manifest_validator.py"]
+}

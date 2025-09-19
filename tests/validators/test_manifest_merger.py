@@ -84,7 +84,10 @@ def test_merge_expected_artifacts():
                     {
                         "type": "function",
                         "name": "validate_with_ast",
-                        "parameters": ["manifest_data", "test_file_path"],
+                        "parameters": [
+                            {"name": "manifest_data"},
+                            {"name": "test_file_path"},
+                        ],
                     },
                 ]
             }
@@ -112,7 +115,10 @@ def test_merge_expected_artifacts():
         assert alignment_error.get("bases") == ["Exception"]
 
         validate_ast = next(a for a in merged if a["name"] == "validate_with_ast")
-        assert validate_ast.get("parameters") == ["manifest_data", "test_file_path"]
+        assert validate_ast.get("parameters") == [
+            {"name": "manifest_data"},
+            {"name": "test_file_path"},
+        ]
 
 
 def test_merge_handles_duplicates():
@@ -135,7 +141,7 @@ def test_merge_handles_duplicates():
                     {
                         "type": "function",
                         "name": "process_data",
-                        "parameters": ["data", "options"],
+                        "parameters": [{"name": "data"}, {"name": "options"}],
                     }
                 ]
             }
@@ -154,7 +160,7 @@ def test_merge_handles_duplicates():
         assert merged[0]["name"] == "process_data"
 
         # Should keep the more detailed version
-        assert merged[0].get("parameters") == ["data", "options"]
+        assert merged[0].get("parameters") == [{"name": "data"}, {"name": "options"}]
 
 
 def test_validate_with_manifest_chain(tmp_path: Path):
@@ -189,7 +195,7 @@ def validate_with_ast(manifest_data, test_file_path):
                 {
                     "type": "function",
                     "name": "validate_schema",
-                    "parameters": ["manifest_data", "schema_path"],
+                    "parameters": [{"name": "manifest_data"}, {"name": "schema_path"}],
                 }
             ],
         },
@@ -205,7 +211,10 @@ def validate_with_ast(manifest_data, test_file_path):
                 {
                     "type": "function",
                     "name": "validate_with_ast",
-                    "parameters": ["manifest_data", "test_file_path"],
+                    "parameters": [
+                        {"name": "manifest_data"},
+                        {"name": "test_file_path"},
+                    ],
                 },
             ],
         },

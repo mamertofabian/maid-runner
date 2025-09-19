@@ -337,15 +337,17 @@ def _validate_function(function_name, expected_parameters, found_functions):
     if expected_parameters:
         actual_parameters = found_functions[function_name]
 
+        expected_param_names = [p["name"] for p in expected_parameters]
+
         # Check all expected parameters are present
-        for param in expected_parameters:
-            if param not in actual_parameters:
+        for param_name in expected_param_names:
+            if param_name not in actual_parameters:
                 raise AlignmentError(
-                    f"Parameter '{param}' not found in function '{function_name}'"
+                    f"Parameter '{param_name}' not found in function '{function_name}'"
                 )
 
         # Check for unexpected parameters (strict validation)
-        unexpected_params = set(actual_parameters) - set(expected_parameters)
+        unexpected_params = set(actual_parameters) - set(expected_param_names)
         if unexpected_params:
             raise AlignmentError(
                 f"Unexpected parameter(s) in function '{function_name}': {', '.join(sorted(unexpected_params))}"

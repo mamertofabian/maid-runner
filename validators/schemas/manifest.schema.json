@@ -25,7 +25,7 @@
                 "function": { "type": "string", "description": "The parent function for parameters" },
                 "parameters": {
                   "type": "array",
-                  "items": { "type": "string" },
+                  "items": { "type": "object", "properties": { "name": { "type": "string" }, "type": { "type": "string" } } },
                   "description": "List of parameter names for a function"
                 }
               },

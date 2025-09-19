@@ -130,9 +130,13 @@ class _InternalCache:
                 {
                     "type": "function",
                     "name": "validate_data",
-                    "parameters": ["data", "schema"],
+                    "parameters": [{"name": "data"}, {"name": "schema"}],
                 },
-                {"type": "function", "name": "process_items", "parameters": ["items"]},
+                {
+                    "type": "function",
+                    "name": "process_items",
+                    "parameters": [{"name": "items"}],
+                },
             ]
         }
     }

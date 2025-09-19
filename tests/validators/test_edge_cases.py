@@ -36,7 +36,7 @@ def with_params(a, b, c):
                 {
                     "type": "function",
                     "name": "with_params",
-                    "parameters": ["a", "b", "c"],
+                    "parameters": [{"name": "a"}, {"name": "b"}, {"name": "c"}],
                 },
             ]
         }
@@ -80,7 +80,7 @@ def only_args(*values):
                 {
                     "type": "function",
                     "name": "variadic_function",
-                    "parameters": ["a"],
+                    "parameters": [{"name": "a"}],
                 },  # Only regular arg
                 {
                     "type": "function",
@@ -105,7 +105,7 @@ def only_args(*values):
                 {
                     "type": "function",
                     "name": "variadic_function",
-                    "parameters": ["a", "args", "kwargs"],
+                    "parameters": [{"name": "a"}, {"name": "args"}, {"name": "kwargs"}],
                 }
             ]
         }
@@ -167,7 +167,11 @@ async def async_no_params():
         "expectedArtifacts": {
             "contains": [
                 # Only sync functions are collected
-                {"type": "function", "name": "sync_function", "parameters": ["data"]}
+                {
+                    "type": "function",
+                    "name": "sync_function",
+                    "parameters": [{"name": "data"}],
+                }
             ]
         }
     }
@@ -178,7 +182,11 @@ async def async_no_params():
     manifest_with_async = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "function", "name": "async_function", "parameters": ["data"]}
+                {
+                    "type": "function",
+                    "name": "async_function",
+                    "parameters": [{"name": "data"}],
+                }
             ]
         }
     }
@@ -296,7 +304,10 @@ def use_container():
                 {
                     "type": "function",
                     "name": "complex_function",
-                    "parameters": ["param1", "param2"],  # Optional parameters field
+                    "parameters": [
+                        {"name": "param1"},
+                        {"name": "param2"},
+                    ],  # Optional parameters field
                 },
                 {"type": "class", "name": "Container"},
                 {"type": "function", "name": "use_container"},

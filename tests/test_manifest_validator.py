@@ -46,7 +46,11 @@ def test_validate_schema_with_function_parameters():
                 {
                     "type": "function",
                     "name": "process_data",
-                    "parameters": ["input_data", "options", "verbose"],
+                    "parameters": [
+                        {"name": "input_data"},
+                        {"name": "options"},
+                        {"name": "verbose"},
+                    ],
                 }
             ],
         },
@@ -90,7 +94,7 @@ def test_validate_schema_with_mixed_artifacts():
                 {
                     "type": "function",
                     "name": "calculate",
-                    "parameters": ["a", "b", "operation"],
+                    "parameters": [{"name": "a"}, {"name": "b"}, {"name": "operation"}],
                 },
                 {"type": "attribute", "name": "value", "class": "MyClass"},
                 {"type": "class", "name": "SimpleClass"},  # No base specified
