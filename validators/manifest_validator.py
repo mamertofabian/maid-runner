@@ -30,16 +30,31 @@ class AlignmentError(Exception):
 class _ArtifactCollector(ast.NodeVisitor):
     """AST visitor that collects class and attribute references from Python code."""
 
-    def __init__(self):
+    def __init__(self, validation_mode="implementation"):
+        self.validation_mode = validation_mode  # "implementation" or "behavioral"
         self.found_classes = set()
         self.found_class_bases = {}  # class_name -> list of base class names
         self.found_attributes = {}  # class_name -> set of attribute names
         self.variable_to_class = {}  # variable_name -> class_name
         self.found_functions = {}  # function_name -> list of parameter names
+        self.found_methods = (
+            {}
+        )  # class_name -> {method_name -> list of parameter names}
         self.current_class = None  # Track if we're inside a class definition
+
+        # For behavioral validation (tracking usage)
+        self.used_classes = set()  # Classes that are instantiated
+        self.used_functions = set()  # Functions that are called
+        self.used_methods = {}  # class_name -> set of method names called
+        self.used_arguments = set()  # Arguments used in function calls
+        self.imports_pytest = False  # Track if pytest is imported
 
     def visit_Import(self, node):
         """Handle regular import statements."""
+        # Check if pytest is imported (for auto-detection of test files)
+        for alias in node.names:
+            if alias.name == "pytest":
+                self.imports_pytest = True
         # Don't add imports to found classes/functions
         # They are external dependencies, not artifacts of this file
         self.generic_visit(node)
@@ -75,10 +90,16 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         """Collect function definitions and their parameters."""
-        # Only collect module-level functions (not methods inside classes)
+        param_names = [arg.arg for arg in node.args.args]
+
         if self.current_class is None:
-            param_names = [arg.arg for arg in node.args.args]
+            # Module-level function
             self.found_functions[node.name] = param_names
+        else:
+            # Method inside a class
+            if self.current_class not in self.found_methods:
+                self.found_methods[self.current_class] = {}
+            self.found_methods[self.current_class][node.name] = param_names
 
         # Continue visiting child nodes
         self.generic_visit(node)
@@ -93,8 +114,18 @@ class _ArtifactCollector(ast.NodeVisitor):
             if isinstance(base, ast.Name):
                 base_names.append(base.id)
             elif isinstance(base, ast.Attribute):
-                # Handle cases like module.ClassName
-                base_names.append(base.attr)
+                # Handle cases like module.ClassName (e.g., ast.NodeVisitor)
+                # Build the full qualified name
+                parts = []
+                current = base
+                while isinstance(current, ast.Attribute):
+                    parts.append(current.attr)
+                    current = current.value
+                if isinstance(current, ast.Name):
+                    parts.append(current.id)
+                # Reconstruct in correct order (reversed)
+                full_name = ".".join(reversed(parts))
+                base_names.append(full_name)
 
         if base_names:
             self.found_class_bases[node.name] = base_names
@@ -110,7 +141,20 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.current_class = old_class
 
     def visit_Assign(self, node):
-        """Track variable assignments to class instances."""
+        """Track variable assignments to class instances and self attributes."""
+        # Track self.attribute = value assignments inside classes
+        if self.current_class:
+            for target in node.targets:
+                if isinstance(target, ast.Attribute) and isinstance(
+                    target.value, ast.Name
+                ):
+                    if target.value.id == "self":
+                        # Track as an attribute of the current class
+                        if self.current_class not in self.found_attributes:
+                            self.found_attributes[self.current_class] = set()
+                        self.found_attributes[self.current_class].add(target.attr)
+
+        # Track variable assignments to class instances
         if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
             class_name = node.value.func.id
 
@@ -136,6 +180,73 @@ class _ArtifactCollector(ast.NodeVisitor):
                     self.found_attributes[class_name] = set()
 
                 self.found_attributes[class_name].add(attribute_name)
+
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        """Track function and method calls in behavioral tests."""
+        if self.validation_mode == "behavioral":
+            # Handle method calls (e.g., service.get_user_by_id())
+            if isinstance(node.func, ast.Attribute):
+                method_name = node.func.attr
+                self.used_functions.add(method_name)
+
+                # Track the object's class if known
+                if isinstance(node.func.value, ast.Name):
+                    var_name = node.func.value.id
+                    if var_name in self.variable_to_class:
+                        class_name = self.variable_to_class[var_name]
+                        if class_name not in self.used_methods:
+                            self.used_methods[class_name] = set()
+                        self.used_methods[class_name].add(method_name)
+                # Handle direct method calls on instantiated objects
+                elif isinstance(node.func.value, ast.Call) and isinstance(
+                    node.func.value.func, ast.Name
+                ):
+                    # e.g., UserService().get_user_by_id()
+                    class_name = node.func.value.func.id
+                    if class_name in self.found_classes or (
+                        class_name and class_name[0].isupper()
+                    ):
+                        if class_name not in self.used_methods:
+                            self.used_methods[class_name] = set()
+                        self.used_methods[class_name].add(method_name)
+                        self.used_classes.add(class_name)
+
+                # For chained calls, also track intermediate methods
+                current = node.func.value
+                while isinstance(current, ast.Attribute):
+                    self.used_functions.add(current.attr)
+                    current = current.value
+
+            # Handle direct function calls
+            elif isinstance(node.func, ast.Name):
+                func_name = node.func.id
+
+                # Check if it's a class instantiation
+                if func_name in self.found_classes or (
+                    func_name and func_name[0].isupper()
+                ):
+                    self.used_classes.add(func_name)
+                else:
+                    self.used_functions.add(func_name)
+
+                # Handle isinstance checks for return type validation
+                if func_name == "isinstance" and len(node.args) >= 2:
+                    if isinstance(node.args[1], ast.Name):
+                        self.used_classes.add(node.args[1].id)
+
+            # Track keyword arguments
+            for keyword in node.keywords:
+                if keyword.arg:
+                    self.used_arguments.add(keyword.arg)
+
+            # Track positional arguments as "used" (mark all as used for now)
+            # This is a simplification - proper parameter tracking would need more context
+            # For behavioral tests, we consider parameters used if the function is called
+            if node.args and len(node.args) > 0:
+                # Mark that positional arguments were provided
+                self.used_arguments.add("__positional__")  # Marker for positional args
 
         self.generic_visit(node)
 
@@ -233,7 +344,9 @@ def _merge_expected_artifacts(manifest_paths):
     return merged_artifacts
 
 
-def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
+def validate_with_ast(
+    manifest_data, test_file_path, use_manifest_chain=False, validation_mode=None
+):
     """
     Validate that artifacts listed in manifest are referenced in the test file.
 
@@ -241,6 +354,7 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
         manifest_data: Dictionary containing the manifest with expectedArtifacts
         test_file_path: Path to the Python test file to analyze
         use_manifest_chain: If True, discovers and merges all related manifests
+        validation_mode: "implementation" or "behavioral" mode, auto-detected if None
 
     Raises:
         AlignmentError: If any expected artifact is not found in the code
@@ -251,8 +365,15 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
 
     tree = ast.parse(test_code)
 
+    # Auto-detect validation mode if not specified
+    if validation_mode is None:
+        # Default to implementation mode
+        # Behavioral mode should be explicitly requested for now
+        # This ensures backward compatibility with existing tests
+        validation_mode = "implementation"
+
     # Collect artifacts from the test code
-    collector = _ArtifactCollector()
+    collector = _ArtifactCollector(validation_mode=validation_mode)
     collector.visit(tree)
 
     # Determine expected artifacts based on mode
@@ -277,12 +398,21 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
 
         if artifact_type == "class":
             expected_bases = artifact.get("bases", [])
-            _validate_class(
-                artifact_name,
-                expected_bases,
-                collector.found_classes,
-                collector.found_class_bases,
-            )
+            if validation_mode == "behavioral":
+                # In behavioral mode, check if class was used
+                if artifact_name not in collector.used_classes:
+                    raise AlignmentError(
+                        f"Class '{artifact_name}' not used in behavioral test"
+                    )
+                # Note: Base class validation doesn't apply to usage
+            else:
+                # In implementation mode, check definitions
+                _validate_class(
+                    artifact_name,
+                    expected_bases,
+                    collector.found_classes,
+                    collector.found_class_bases,
+                )
 
         elif artifact_type == "attribute":
             parent_class = artifact.get("class")
@@ -290,7 +420,87 @@ def validate_with_ast(manifest_data, test_file_path, use_manifest_chain=False):
 
         elif artifact_type == "function":
             parameters = artifact.get("parameters", [])
-            _validate_function(artifact_name, parameters, collector.found_functions)
+            parent_class = artifact.get("class")
+
+            if validation_mode == "behavioral":
+                # In behavioral mode, check if function/method was called
+                if parent_class:
+                    # It's a method
+                    if parent_class in collector.used_methods:
+                        if artifact_name not in collector.used_methods[parent_class]:
+                            raise AlignmentError(
+                                f"Method '{artifact_name}' not called on class '{parent_class}'"
+                            )
+                    else:
+                        raise AlignmentError(
+                            f"Class '{parent_class}' not used or method '{artifact_name}' not called"
+                        )
+                else:
+                    # It's a standalone function
+                    if artifact_name not in collector.used_functions:
+                        raise AlignmentError(
+                            f"Function '{artifact_name}' not called in behavioral test"
+                        )
+
+                # Validate parameters were used
+                if parameters:
+                    # If we have positional arguments, we can't reliably check parameter names
+                    # Only check keyword arguments
+                    for param in parameters:
+                        param_name = param.get("name")
+                        if param_name:
+                            # Check if this specific parameter was used as a keyword argument
+                            # We skip checking if positional args were used since we can't map them
+                            if "__positional__" not in collector.used_arguments:
+                                if param_name not in collector.used_arguments:
+                                    raise AlignmentError(
+                                        f"Parameter '{param_name}' not used in call to '{artifact_name}'"
+                                    )
+
+                # Validate return type if specified
+                returns = artifact.get("returns")
+                if returns and returns not in collector.used_classes:
+                    # Return type should be validated via isinstance or type annotation
+                    raise AlignmentError(
+                        f"Return type '{returns}' not validated for '{artifact_name}'"
+                    )
+            else:
+                # In implementation mode, check definitions
+                if parent_class:
+                    # It's a method - check in found_methods
+                    if parent_class not in collector.found_methods:
+                        raise AlignmentError(
+                            f"Class '{parent_class}' not found for method '{artifact_name}'"
+                        )
+                    if artifact_name not in collector.found_methods[parent_class]:
+                        raise AlignmentError(
+                            f"Method '{artifact_name}' not found in class '{parent_class}'"
+                        )
+
+                    # Validate parameters if specified
+                    if parameters:
+                        actual_parameters = collector.found_methods[parent_class][
+                            artifact_name
+                        ]
+                        # Skip 'self' parameter for methods
+                        if "self" in actual_parameters:
+                            actual_parameters = [
+                                p for p in actual_parameters if p != "self"
+                            ]
+
+                        expected_param_names = [p["name"] for p in parameters]
+
+                        # Check all expected parameters are present
+                        for param_name in expected_param_names:
+                            if param_name not in actual_parameters:
+                                raise AlignmentError(
+                                    f"Parameter '{param_name}' not found in method '{artifact_name}'"
+                                )
+                else:
+                    # It's a standalone function
+                    _validate_function(
+                        artifact_name, parameters, collector.found_functions
+                    )
 
     # Check for unexpected public artifacts (strict mode)
     # Only validate if we're checking an implementation file (not a test file)
@@ -314,7 +524,17 @@ def _validate_class(class_name, expected_bases, found_classes, found_class_bases
     if expected_bases:
         actual_bases = found_class_bases.get(class_name, [])
         for expected_base in expected_bases:
-            if expected_base not in actual_bases:
+            # Check if expected base matches either the full name or just the class name part
+            found = False
+            for actual_base in actual_bases:
+                # Match exact name or match the last component (for qualified names)
+                if (
+                    actual_base == expected_base
+                    or actual_base.split(".")[-1] == expected_base
+                ):
+                    found = True
+                    break
+            if not found:
                 raise AlignmentError(
                     f"Class '{class_name}' does not inherit from '{expected_base}'"
                 )

@@ -1,0 +1,72 @@
+{
+  "goal": "Add behavioral test validation support to AST validator to enable validation of function/method calls and class usage in test files, not just definitions",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": ["tests/test_task_003_behavioral_validation.py"],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "bases": ["Exception"]
+      },
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "bases": ["ast.NodeVisitor"]
+      },
+      {
+        "type": "function",
+        "name": "validate_schema",
+        "parameters": [
+          {"name": "manifest_data"},
+          {"name": "schema_path"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "validate_with_ast",
+        "parameters": [
+          {"name": "manifest_data"},
+          {"name": "test_file_path"},
+          {"name": "use_manifest_chain"},
+          {"name": "validation_mode"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "visit_Call",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "validation_mode",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "used_classes",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "used_functions",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "used_methods",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "used_arguments",
+        "class": "_ArtifactCollector"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_003_behavioral_validation.py", "-v"]
+}

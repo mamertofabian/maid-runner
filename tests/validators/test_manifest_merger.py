@@ -19,10 +19,11 @@ def test_discover_related_manifests():
 
     manifests = _discover_related_manifests(target_file)
 
-    # Should find both task-001 and task-002 manifests
-    assert len(manifests) == 2
+    # Should find task-001, task-002, and task-003 manifests
+    assert len(manifests) == 3
     assert "task-001" in manifests[0]
     assert "task-002" in manifests[1]
+    assert "task-003" in manifests[2]
 
 
 def test_discover_manifests_chronological_order():
