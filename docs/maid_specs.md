@@ -1,7 +1,7 @@
 ### **MAID: The Manifest-driven AI Development Methodology (Updated)**
 
-**Version:** 1.1
-**Date:** September 18, 2025
+**Version:** 1.2
+**Date:** September 19, 2025
 
 #### **Abstract**
 
@@ -23,26 +23,28 @@ The MAID methodology is founded on five core principles:
 
 #### **The MAID Workflow**
 
-The development process is broken down into five distinct phases, creating a clear and repeatable loop.
+The development process is broken down into a series of distinct phases. The workflow includes a crucial "Planning Loop" for the architect and separate validation steps to ensure correctness before and after AI implementation.
 
 1.  **Phase 1: Goal Definition (Human Architect)**
     The human developer defines a high-level feature or bug fix. For example: "The system needs an endpoint to retrieve a user's profile by their ID."
 
-2.  **Phase 2: Contract Generation (Architect Agent)**
-    The human architect instructs an "Architect Agent" to create the contract for the work. The agent generates a comprehensive test suite defining the required behavior.
+2.  **Phase 2: The Planning Loop (Human Architect & Validator Tool)**
+    This is an iterative phase where the plan is perfected before being committed. The process is as follows:
+    * **Draft the Contract:** The architect first drafts the **behavioral test suite**. This file is the primary contract that defines the task's requirements.
+    * **Draft the Manifest:** Concurrently, the architect drafts the **manifest**, which points to the test suite and declaratively describes the expected structural artifacts.
+    * **Structural Validation & Refinement:** The architect uses a validator tool to repeatedly check for alignment. The validation is comprehensive:
+        * It validates the **draft manifest** against the **behavioral test code**.
+        * If the task involves editing an existing file, it also validates the **current implementation code** against its entire manifest history to ensure the starting point is valid.
+    * The architect refines both the manifest and the tests together until this validation passes and the plan is deemed complete.
 
-3.  **Phase 3: Human Review & Manifest Creation**
-    The human architect reviews and validates the generated tests. This is the most critical quality gate. Once satisfied, the architect creates a `task-XXX.manifest.json` file, using a sequential identifier (e.g., `task-001`, `task-002`) to establish its place in the project's history.
+3.  **Phase 3: Implementation (Developer Agent)**
+    Once the plan is finalized and committed, an automated system invokes a "Developer Agent" with the manifest. The agent's loop is as follows:
+    * Read the manifest to load only the specified files into its context.
+    * Write or modify the code based on the `goal` and its understanding of the tests.
+    * The controlling script executes the `validationCommand` from the manifest.
+    * If this **Behavioral Validation** fails, the error output is fed back into the agent's context for the next iteration. This loop continues until all tests pass.
 
-4.  **Phase 4: Implementation (Developer Agent)**
-    An automated system invokes a "Developer Agent" and provides it with the manifest file. The agent's workflow is as follows:
-
-      * Read the manifest to load only the specified `editableFiles` and `readonlyFiles` into its context.
-      * Write or modify the code based on the `goal` and its understanding of the tests.
-      * The controlling script executes the `validationCommand` and the **Merging Validator**.
-      * If tests or validation fail, the error output is automatically fed back into the agent's context for the next iteration. This loop continues until all conditions are met.
-
-5.  **Phase 5: Integration**
+4.  **Phase 4: Integration**
     Once the task is complete, the newly implemented code and its corresponding manifest are committed. Because the work was performed against a strict, tested, and verifiable contract, it can be integrated with high confidence.
 
 -----
@@ -50,20 +52,42 @@ The development process is broken down into five distinct phases, creating a cle
 #### **Core Components & Patterns**
 
   * **The Task Manifest**
-    The Task Manifest is a JSON file that makes every task explicit and self-contained. It serves as an immutable record of a single change, forming one link in a chronological chain that defines the state of a module.
+    The Task Manifest is a JSON file that makes every task explicit and self-contained. It serves as an immutable record of a single change, forming one link in a chronological chain that defines the state of a module. The schema supports detailed interface definitions and multiple validation commands.
 
     ```json
     {
-      "version": "1.1",
-      "goal": "Implement the get_user_by_id function...",
-      "editableFiles": ["src/repositories/user_repository.py"],
-      "readonlyFiles": ["tests/test_user_repository.py"],
-      "expectedArtifacts": { 
-        "contains": [{"type": "function", "name": "get_user_by_id"}]
+      "version": "1.2",
+      "goal": "Add a method to find a user by their ID.",
+      "taskType": "edit",
+      "supersedes": [],
+      "editableFiles": ["src/services/user_service.py"],
+      "readonlyFiles": [
+        "tests/test_user_service.py",
+        "src/models/user.py"
+      ],
+      "expectedArtifacts": {
+        "file": "src/services/user_service.py",
+        "contains": [
+          {
+            "type": "function",
+            "name": "get_user_by_id",
+            "class": "UserService",
+            "args": [{"name": "user_id", "type": "int"}],
+            "returns": "User"
+          }
+        ]
       },
-      "validationCommand": ["pytest tests/test_user_repository.py"]
+      "validationCommand": [
+        "pytest tests/test_user_service.py"
+      ]
     }
     ```
+
+  * **Context-Aware Validation Modes**
+    The structural validator operates in two modes based on the manifest's intent, providing a balance between strictness and flexibility:
+
+      * **Strict Mode (for `creatableFiles`):** The implementation's public artifacts must *exactly match* `expectedArtifacts`. This prevents AI code pollution in new files.
+      * **Permissive Mode (for `editableFiles`):** The implementation's public artifacts must *contain at least* `expectedArtifacts`. This allows for iterative changes to existing files.
 
   * **Prescribed Architectural Patterns**
     To enable the necessary isolation, projects following MAID must adhere to these patterns:
@@ -76,12 +100,12 @@ The development process is broken down into five distinct phases, creating a cle
 
 #### **Advanced Concepts & Future Techniques**
 
-  * **The Migration Pattern & Merging Validator**
-    Inspired by database migration systems, this pattern treats the codebase's state as the result of applying a sequence of manifest "migrations." A **Merging Validator** is used to enforce this. To validate a file, it performs these steps:
+  * **Handling Refactoring with Superseding Manifests**
+    Inspired by database migration systems, this pattern treats the codebase's state as the result of applying a sequence of manifests. To handle breaking changes without violating immutability, a manifest can formally supersede another.
 
-    1.  **Discover History:** It finds all manifests in chronological order that have ever modified the target file.
-    2.  **Aggregate Artifacts:** It iterates through the sequence, merging the `expectedArtifacts` from each manifest into a final, comprehensive list. This allows for manifests that add, and potentially remove or rename, artifacts over time.
-    3.  **Strict Validation:** It strictly compares the aggregated list against the public interface of the current file. The file's state must exactly match the state defined by its migration history, ensuring no un-manifested code exists.
+    1.  **The `supersedes` Property:** A manifest can contain a `supersedes` property, which is an array of paths to older, now-obsolete manifests.
+    2.  **Smart Validator Logic:** When the **Merging Validator** runs, it first discovers the entire history of a file, then removes any manifest that has been superseded. It then merges the remaining "active" manifests to build the final, expected state of the code.
+    3.  **Historical Integrity:** Superseded manifests are considered "dead" for active validation but remain as an immutable part of the project's historical audit log, preserving a complete and traceable record of architectural evolution.
 
   * **The "Scaffold and Fill" Pattern**
     A stricter version of the workflow where the Architect Agent not only creates tests but also creates the `editableFiles` with empty function signatures. This reduces the Developer Agent's task to pure implementation.
@@ -91,3 +115,4 @@ The development process is broken down into five distinct phases, creating a cle
 
   * **Codebase as a Dependency Graph**
     By analyzing `import` statements, the entire codebase can be mapped as a Directed Acyclic Graph (DAG). This allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.
+    
