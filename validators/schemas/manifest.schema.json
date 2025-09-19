@@ -27,7 +27,8 @@
                   "type": "array",
                   "items": { "type": "object", "properties": { "name": { "type": "string" }, "type": { "type": "string" } } },
                   "description": "List of parameter names for a function"
-                }
+                },
+                "returns": { "type": "string", "description": "The return type of a function (optional)" }
               },
               "required": ["type", "name"]
             }
