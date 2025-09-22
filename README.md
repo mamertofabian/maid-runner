@@ -47,7 +47,7 @@ uv sync --group dev
 uv run python -m pytest tests/ -v
 
 # Run specific test files
-uv run python -m pytest tests/test_manifest_validator.py -v
+uv run python -m pytest tests/test_schema_validator_functions.py -v
 uv run python -m pytest tests/test_ast_validator.py -v
 
 # Run integration tests for specific tasks
@@ -146,7 +146,7 @@ For detailed methodology documentation, see `docs/maid_specs.md`.
 
 Tests are organized by component:
 
-- `test_manifest_validator.py` - Schema validation tests
+- `test_schema_validator_functions.py` - Schema validation tests
 - `test_ast_validator.py` - AST-based artifact validation tests
 - `test_manifest_merger.py` - Manifest chain merging logic tests
 - `test_task_XXX_integration.py` - End-to-end validation for each task
