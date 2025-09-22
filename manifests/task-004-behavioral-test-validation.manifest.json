@@ -1,0 +1,46 @@
+{
+  "goal": "Implement behavioral test validation to ensure tests in validationCommand actually exercise the expectedArtifacts declared in manifests, completing MAID Phase 2 Planning Loop validation",
+  "taskType": "create",
+  "creatableFiles": ["validators/validate_behavioral_tests.py"],
+  "editableFiles": ["validate_manifest.py"],
+  "readonlyFiles": [
+    "tests/test_task_004_behavioral_test_validation.py",
+    "validators/manifest_validator.py",
+    "validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "validators/validate_behavioral_tests.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "BehavioralTestValidationError",
+        "bases": ["Exception"]
+      },
+      {
+        "type": "class",
+        "name": "AlignmentError"
+      },
+      {
+        "type": "function",
+        "name": "extract_test_files_from_command",
+        "parameters": [{"name": "command"}],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "validate_behavioral_tests",
+        "parameters": [
+          {"name": "manifest"},
+          {"name": "use_manifest_chain"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "validate_all_manifests",
+        "parameters": [{"name": "manifests_dir"}],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest tests/test_task_004_behavioral_test_validation.py -v"]
+}

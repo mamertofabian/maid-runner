@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from validators.manifest_validator import validate_with_ast, AlignmentError
+from validators.validate_behavioral_tests import validate_behavioral_tests, BehavioralTestValidationError
 
 
 def main():
@@ -33,11 +34,18 @@ Examples:
   # Combined behavioral + manifest chain
   %(prog)s manifests/task-001.manifest.json --validation-mode behavioral --use-manifest-chain
 
+  # Validate that behavioral tests exercise expected artifacts (MAID Phase 2)
+  %(prog)s manifests/task-001.manifest.json --validate-tests
+
+  # Validate tests with manifest chain
+  %(prog)s manifests/task-001.manifest.json --validate-tests --use-manifest-chain
+
 Validation Modes:
   implementation  - Validates that code DEFINES the expected artifacts (default)
   behavioral      - Validates that tests USE/CALL the expected artifacts
 
-This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
+The --validate-tests flag enables MAID Phase 2 validation: ensures behavioral tests
+in validationCommand properly exercise the expectedArtifacts declared in the manifest!
         """
     )
 
@@ -65,6 +73,12 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         help="Only output errors (suppress success messages)"
     )
 
+    parser.add_argument(
+        "--validate-tests",
+        action="store_true",
+        help="Validate that behavioral tests properly exercise expected artifacts (MAID Phase 2)"
+    )
+
     args = parser.parse_args()
 
     try:
@@ -78,38 +92,64 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         with open(manifest_path, "r") as f:
             manifest_data = json.load(f)
 
-        # Get the file to validate from the manifest
-        file_path = manifest_data.get("expectedArtifacts", {}).get("file")
-        if not file_path:
-            print("✗ Error: No file specified in manifest's expectedArtifacts.file")
-            sys.exit(1)
+        # Check if we should validate behavioral tests
+        if args.validate_tests:
+            # Validate that tests properly exercise expected artifacts
+            result = validate_behavioral_tests(
+                manifest_data,
+                use_manifest_chain=args.use_manifest_chain
+            )
 
-        # Validate target file exists
-        if not Path(file_path).exists():
-            print(f"✗ Error: Target file not found: {file_path}")
-            sys.exit(1)
+            if result:
+                if not args.quiet:
+                    print(f"✓ Behavioral test validation PASSED")
+                    print(f"  {result['message']}")
+                    if result.get('validated_files'):
+                        print(f"  Validated files: {', '.join(result['validated_files'])}")
+            else:
+                if not args.quiet:
+                    print("  No validationCommand in manifest")
 
-        # Perform validation
-        validate_with_ast(
-            manifest_data,
-            file_path,
-            use_manifest_chain=args.use_manifest_chain,
-            validation_mode=args.validation_mode
-        )
+        else:
+            # Regular validation (implementation or behavioral mode on target file)
+            file_path = manifest_data.get("expectedArtifacts", {}).get("file")
+            if not file_path:
+                print("✗ Error: No file specified in manifest's expectedArtifacts.file")
+                sys.exit(1)
 
-        # Success message
-        if not args.quiet:
-            print(f"✓ Validation PASSED ({args.validation_mode} mode)")
-            if args.use_manifest_chain:
-                print("  Used manifest chain for validation")
-            print(f"  Manifest: {args.manifest_path}")
-            print(f"  Target:   {file_path}")
+            # Validate target file exists
+            if not Path(file_path).exists():
+                print(f"✗ Error: Target file not found: {file_path}")
+                sys.exit(1)
+
+            # Perform validation
+            validate_with_ast(
+                manifest_data,
+                file_path,
+                use_manifest_chain=args.use_manifest_chain,
+                validation_mode=args.validation_mode
+            )
+
+            # Success message
+            if not args.quiet:
+                print(f"✓ Validation PASSED ({args.validation_mode} mode)")
+                if args.use_manifest_chain:
+                    print("  Used manifest chain for validation")
+                print(f"  Manifest: {args.manifest_path}")
+                print(f"  Target:   {file_path}")
 
     except AlignmentError as e:
         print(f"✗ Validation FAILED: {e}")
         if not args.quiet:
             print(f"  Manifest: {args.manifest_path}")
             print(f"  Mode:     {args.validation_mode}")
+        sys.exit(1)
+
+    except BehavioralTestValidationError as e:
+        print(f"✗ Behavioral test validation FAILED:")
+        print(f"  {e}")
+        if not args.quiet:
+            print(f"  Manifest: {args.manifest_path}")
         sys.exit(1)
 
     except json.JSONDecodeError as e:
