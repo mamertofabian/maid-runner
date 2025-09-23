@@ -9,8 +9,14 @@ This module tests how the validator tracks:
 - Unknown variable handling
 """
 
+import pytest
+import sys
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast
+
+# Add parent directories to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 def test_variable_to_class_tracking(tmp_path: Path):
@@ -169,3 +175,35 @@ def process():
     }
     # Should pass - attributes on unknown variables are ignored
     validate_with_ast(manifest, str(test_file))
+
+
+def test_missing_attribute_raises_alignment_error(tmp_path: Path):
+    """Test that AlignmentError is raised when expected attribute is missing."""
+    code = """
+class User:
+    def __init__(self):
+        self.name = ""
+        self.email = ""
+"""
+    test_file = tmp_path / "missing_attr.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "User"},
+                {"type": "attribute", "name": "name", "class": "User"},
+                {"type": "attribute", "name": "email", "class": "User"},
+                {"type": "attribute", "name": "age", "class": "User"},  # This doesn't exist
+            ]
+        }
+    }
+
+    # Should raise AlignmentError for missing attribute
+    with pytest.raises(AlignmentError, match="age"):
+        validate_with_ast(manifest, str(test_file))
+
+    # Also verify AlignmentError is properly instantiated
+    error = AlignmentError("Test message")
+    assert isinstance(error, AlignmentError)
+    assert isinstance(error, Exception)

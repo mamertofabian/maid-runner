@@ -1,4 +1,3 @@
-# tests/test_validate_schema.py
 import pytest
 from jsonschema import ValidationError
 from validators.manifest_validator import validate_schema

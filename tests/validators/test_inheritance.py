@@ -9,8 +9,14 @@ This module tests how the validator handles:
 - Mixin patterns
 """
 
+import pytest
+import sys
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast
+
+# Add parent directories to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 def test_multiple_inheritance(tmp_path: Path):
@@ -174,3 +180,25 @@ class AdminService(LoggingMixin, BaseService):
     }
     # Should pass - mixin pattern validated
     validate_with_ast(manifest, str(test_file))
+
+
+def test_missing_base_class_raises_alignment_error(tmp_path: Path):
+    """Test that AlignmentError is raised when expected base class is missing."""
+    code = """
+class SimpleClass:
+    pass
+"""
+    test_file = tmp_path / "missing_base.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "SimpleClass", "bases": ["BaseClass"]},  # No such base
+            ]
+        }
+    }
+
+    # Should raise AlignmentError for missing base class
+    with pytest.raises(AlignmentError, match="BaseClass"):
+        validate_with_ast(manifest, str(test_file))

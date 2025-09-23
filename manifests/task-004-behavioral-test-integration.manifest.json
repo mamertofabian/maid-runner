@@ -1,0 +1,36 @@
+{
+  "goal": "Integrate behavioral test validation into the main validation flow to validate test files BEFORE validating implementation, ensuring test-manifest alignment in MAID workflow",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validate_manifest.py"],
+  "readonlyFiles": ["tests/test_task_004_behavioral_test_integration.py"],
+  "expectedArtifacts": {
+    "file": "validate_manifest.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "extract_test_files_from_command",
+        "parameters": [
+          { "name": "validation_command" }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "validate_behavioral_tests",
+        "parameters": [
+          { "name": "manifest_data" },
+          { "name": "test_files" },
+          { "name": "use_manifest_chain" },
+          { "name": "quiet" }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "main"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_004_behavioral_test_integration.py", "-v"]
+}
