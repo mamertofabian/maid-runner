@@ -42,16 +42,16 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
     print(f"Goal: {goal[:100]}..." if len(goal) > 100 else f"Goal: {goal}")
 
     # 1. Validate the manifest's own structure
-    print(f"\n[Step 1] Validating manifest structure...")
+    print("\n[Step 1] Validating manifest structure...")
     validate_schema(manifest_data, str(SCHEMA_PATH))
-    print(f"         ✓ Manifest structure valid")
+    print("         ✓ Manifest structure valid")
 
     # 2. Validate the manifest against its behavioral test (validationCommand)
     validation_command = manifest_data.get("validationCommand", [])
     if validation_command:
         test_files = extract_test_files_from_command(validation_command)
         if test_files:
-            print(f"\n[Step 2] Validating behavioral tests...")
+            print("\n[Step 2] Validating behavioral tests...")
             print(f"         Command: {' '.join(validation_command)}")
             print(f"         Test files: {', '.join(test_files)}")
 
@@ -59,15 +59,15 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
             validate_behavioral_tests(
                 manifest_data, test_files, use_manifest_chain=False
             )
-            print(f"         ✓ Behavioral tests properly exercise declared artifacts")
+            print("         ✓ Behavioral tests properly exercise declared artifacts")
         else:
-            print(f"         ⚠ No test files extracted from command")
+            print("         ⚠ No test files extracted from command")
     else:
-        print(f"\n[Step 2] No validation command - skipping behavioral test validation")
+        print("\n[Step 2] No validation command - skipping behavioral test validation")
 
     # 3. Validate the manifest against its implementation code using the merging validator
     implementation_file = manifest_data["expectedArtifacts"]["file"]
-    print(f"\n[Step 3] Validating implementation...")
+    print("\n[Step 3] Validating implementation...")
     print(f"         File: {implementation_file}")
 
     assert Path(

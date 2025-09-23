@@ -8,10 +8,9 @@ as part of the MAID workflow.
 """
 import pytest
 import json
-import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Add parent directory to path to import validate_manifest
 sys.path.insert(0, str(Path(__file__).parent.parent))
