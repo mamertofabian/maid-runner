@@ -19,9 +19,11 @@ import argparse
 try:
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
+
     # Define dummy class to avoid NameError
     class FileSystemEventHandler:
         pass
@@ -38,7 +40,7 @@ class MAIDDevRunner:
 
     def _load_manifest(self) -> Dict:
         """Load and parse manifest JSON."""
-        with open(self.manifest_path, 'r') as f:
+        with open(self.manifest_path, "r") as f:
             return json.load(f)
 
     def run_validation(self) -> bool:
@@ -53,10 +55,7 @@ class MAIDDevRunner:
 
         try:
             result = subprocess.run(
-                self.validation_command,
-                capture_output=True,
-                text=True,
-                timeout=30
+                self.validation_command, capture_output=True, text=True, timeout=30
             )
 
             # Print output
@@ -87,14 +86,16 @@ class MAIDDevRunner:
                 ["python", "validate_manifest.py", str(self.manifest_path), "--quiet"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if result.returncode == 0:
                 print("✅ Structural validation passed")
                 return True
             else:
-                print(f"❌ Structural validation failed:\n{result.stdout}{result.stderr}")
+                print(
+                    f"❌ Structural validation failed:\n{result.stdout}{result.stderr}"
+                )
                 return False
         except Exception as e:
             print(f"⚠️  Could not run structural validation: {e}")
@@ -175,24 +176,17 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Bootstrap MAID development runner",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument("manifest", help="Path to manifest file")
+
+    parser.add_argument(
+        "--watch", action="store_true", help="Watch files and run tests on changes"
     )
 
     parser.add_argument(
-        "manifest",
-        help="Path to manifest file"
-    )
-
-    parser.add_argument(
-        "--watch",
-        action="store_true",
-        help="Watch files and run tests on changes"
-    )
-
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run validation once and exit (default)"
+        "--once", action="store_true", help="Run validation once and exit (default)"
     )
 
     args = parser.parse_args()

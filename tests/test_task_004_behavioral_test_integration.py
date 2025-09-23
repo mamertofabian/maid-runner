@@ -16,7 +16,11 @@ from unittest.mock import patch, MagicMock
 # Add parent directory to path to import validate_manifest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validate_manifest import extract_test_files_from_command, validate_behavioral_tests, main
+from validate_manifest import (
+    extract_test_files_from_command,
+    validate_behavioral_tests,
+    main,
+)
 
 
 class TestExtractTestFilesFromCommand:
@@ -73,9 +77,17 @@ class TestExtractTestFilesFromCommand:
     def test_handles_complex_pytest_command(self):
         """Test extraction from complex pytest commands with multiple options."""
         command = [
-            "uv", "run", "python", "-m", "pytest",
-            "tests/test_one.py", "tests/test_two.py",
-            "-v", "--tb=short", "-x", "--cov=src"
+            "uv",
+            "run",
+            "python",
+            "-m",
+            "pytest",
+            "tests/test_one.py",
+            "tests/test_two.py",
+            "-v",
+            "--tb=short",
+            "-x",
+            "--cov=src",
         ]
         result = extract_test_files_from_command(command)
         assert result == ["tests/test_one.py", "tests/test_two.py"]
@@ -92,10 +104,13 @@ class TestExtractTestFilesFromCommand:
             "pytest",
             "tests/test_relative.py",
             "/absolute/path/to/test_absolute.py",
-            "-v"
+            "-v",
         ]
         result = extract_test_files_from_command(command)
-        assert result == ["tests/test_relative.py", "/absolute/path/to/test_absolute.py"]
+        assert result == [
+            "tests/test_relative.py",
+            "/absolute/path/to/test_absolute.py",
+        ]
 
 
 class TestValidateBehavioralTests:
@@ -120,24 +135,23 @@ def test_get_user_by_id():
             "expectedArtifacts": {
                 "file": "src/services/user_service.py",
                 "contains": [
-                    {
-                        "type": "class",
-                        "name": "UserService"
-                    },
+                    {"type": "class", "name": "UserService"},
                     {
                         "type": "function",
                         "name": "get_user_by_id",
                         "class": "UserService",
-                        "parameters": [{"name": "user_id"}]
-                    }
-                ]
+                        "parameters": [{"name": "user_id"}],
+                    },
+                ],
             }
         }
 
         test_files = [str(test_file)]
 
         # Should not raise any exception
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=False, quiet=True
+        )
 
     def test_validates_multiple_test_files(self, tmp_path: Path):
         """Test validation of multiple behavioral test files."""
@@ -167,30 +181,29 @@ def test_delete_user():
             "expectedArtifacts": {
                 "file": "src/services/user_service.py",
                 "contains": [
-                    {
-                        "type": "class",
-                        "name": "UserService"
-                    },
+                    {"type": "class", "name": "UserService"},
                     {
                         "type": "function",
                         "name": "create_user",
                         "class": "UserService",
-                        "parameters": [{"name": "name"}, {"name": "email"}]
+                        "parameters": [{"name": "name"}, {"name": "email"}],
                     },
                     {
                         "type": "function",
                         "name": "delete_user",
                         "class": "UserService",
-                        "parameters": [{"name": "user_id"}]
-                    }
-                ]
+                        "parameters": [{"name": "user_id"}],
+                    },
+                ],
             }
         }
 
         test_files = [str(test_file_1), str(test_file_2)]
 
         # Should not raise any exception
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=False, quiet=True
+        )
 
     def test_fails_when_test_missing_required_artifact(self, tmp_path: Path):
         """Test that validation fails when test doesn't use required artifact."""
@@ -207,16 +220,13 @@ def test_something_else():
             "expectedArtifacts": {
                 "file": "src/services/user_service.py",
                 "contains": [
-                    {
-                        "type": "class",
-                        "name": "UserService"
-                    },
+                    {"type": "class", "name": "UserService"},
                     {
                         "type": "function",
                         "name": "get_user_by_id",
-                        "class": "UserService"
-                    }
-                ]
+                        "class": "UserService",
+                    },
+                ],
             }
         }
 
@@ -224,24 +234,23 @@ def test_something_else():
 
         # Should raise AlignmentError
         with pytest.raises(Exception) as exc_info:
-            validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+            validate_behavioral_tests(
+                manifest_data, test_files, use_manifest_chain=False, quiet=True
+            )
 
         assert "UserService" in str(exc_info.value)
 
     def test_handles_non_existent_test_file(self):
         """Test proper error handling for non-existent test files."""
-        manifest_data = {
-            "expectedArtifacts": {
-                "file": "src/test.py",
-                "contains": []
-            }
-        }
+        manifest_data = {"expectedArtifacts": {"file": "src/test.py", "contains": []}}
 
         test_files = ["/path/to/nonexistent/test.py"]
 
         # Should raise FileNotFoundError or similar
         with pytest.raises(Exception):
-            validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+            validate_behavioral_tests(
+                manifest_data, test_files, use_manifest_chain=False, quiet=True
+            )
 
     def test_uses_manifest_chain_when_requested(self, tmp_path: Path):
         """Test that manifest chain is used when use_manifest_chain=True."""
@@ -258,12 +267,7 @@ def test_get_user():
         manifest_data = {
             "expectedArtifacts": {
                 "file": str(test_file),
-                "contains": [
-                    {
-                        "type": "class",
-                        "name": "UserService"
-                    }
-                ]
+                "contains": [{"type": "class", "name": "UserService"}],
             }
         }
 
@@ -271,21 +275,20 @@ def test_get_user():
 
         # Should not raise exception even with manifest chain
         # The actual chain logic is tested in the manifest_validator tests
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=True, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=True, quiet=True
+        )
 
     def test_handles_empty_test_files_list(self):
         """Test handling of empty test files list."""
-        manifest_data = {
-            "expectedArtifacts": {
-                "file": "src/test.py",
-                "contains": []
-            }
-        }
+        manifest_data = {"expectedArtifacts": {"file": "src/test.py", "contains": []}}
 
         test_files = []
 
         # Should handle empty list gracefully (no validation to perform)
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=False, quiet=True
+        )
 
     def test_validates_with_complex_artifacts(self, tmp_path: Path):
         """Test validation with complex artifact definitions."""
@@ -313,18 +316,9 @@ def test_create_order_with_user():
             "expectedArtifacts": {
                 "file": "src/services/order_service.py",
                 "contains": [
-                    {
-                        "type": "class",
-                        "name": "User"
-                    },
-                    {
-                        "type": "class",
-                        "name": "Order"
-                    },
-                    {
-                        "type": "class",
-                        "name": "OrderService"
-                    },
+                    {"type": "class", "name": "User"},
+                    {"type": "class", "name": "Order"},
+                    {"type": "class", "name": "OrderService"},
                     {
                         "type": "function",
                         "name": "create_order",
@@ -333,24 +327,28 @@ def test_create_order_with_user():
                             {"name": "user"},
                             {"name": "items"},
                             {"name": "discount_percent"},
-                            {"name": "tax_rate"}
+                            {"name": "tax_rate"},
                         ],
-                        "returns": "Order"
-                    }
-                ]
+                        "returns": "Order",
+                    },
+                ],
             }
         }
 
         test_files = [str(test_file)]
 
         # Should validate successfully
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=False, quiet=True
+        )
 
 
 class TestMainFunctionIntegration:
     """Test integration of behavioral test validation into main validation flow."""
 
-    def test_main_validates_behavioral_tests_before_implementation(self, tmp_path: Path):
+    def test_main_validates_behavioral_tests_before_implementation(
+        self, tmp_path: Path
+    ):
         """Test that main validates behavioral tests BEFORE implementation when validationCommand contains tests."""
         # Create manifest with validationCommand containing test files
         manifest_data = {
@@ -360,14 +358,9 @@ class TestMainFunctionIntegration:
             "editableFiles": ["src/example.py"],
             "expectedArtifacts": {
                 "file": "src/example.py",
-                "contains": [
-                    {
-                        "type": "class",
-                        "name": "ExampleService"
-                    }
-                ]
+                "contains": [{"type": "class", "name": "ExampleService"}],
             },
-            "validationCommand": ["pytest", "tests/test_example.py", "-v"]
+            "validationCommand": ["pytest", "tests/test_example.py", "-v"],
         }
 
         # Create test file
@@ -401,11 +394,12 @@ class ExampleService:
         test_args = [
             "validate_manifest.py",
             str(manifest_file),
-            "--validation-mode", "implementation"
+            "--validation-mode",
+            "implementation",
         ]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("sys.exit") as mock_exit:
                 # Should complete without errors
                 main()
                 mock_exit.assert_not_called()
@@ -416,11 +410,13 @@ class ExampleService:
             "goal": "Test extraction",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
-            "expectedArtifacts": {
-                "file": "src/example.py",
-                "contains": []
-            },
-            "validationCommand": ["pytest", "tests/test_one.py", "tests/test_two.py", "-v"]
+            "expectedArtifacts": {"file": "src/example.py", "contains": []},
+            "validationCommand": [
+                "pytest",
+                "tests/test_one.py",
+                "tests/test_two.py",
+                "-v",
+            ],
         }
 
         # Create minimal implementation file
@@ -438,16 +434,18 @@ class ExampleService:
         test_file_2.write_text("def test_two(): pass")
 
         # Update validation command with actual paths
-        manifest_data["validationCommand"] = ["pytest", str(test_file_1), str(test_file_2), "-v"]
+        manifest_data["validationCommand"] = [
+            "pytest",
+            str(test_file_1),
+            str(test_file_2),
+            "-v",
+        ]
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file)
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file)]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("sys.exit") as mock_exit:
                 # Should complete without errors
                 main()
                 mock_exit.assert_not_called()
@@ -458,10 +456,7 @@ class ExampleService:
             "goal": "Test without validation command",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
-            "expectedArtifacts": {
-                "file": "src/example.py",
-                "contains": []
-            }
+            "expectedArtifacts": {"file": "src/example.py", "contains": []},
             # No validationCommand specified
         }
 
@@ -472,13 +467,10 @@ class ExampleService:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file)
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file)]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("sys.exit") as mock_exit:
                 # Should complete without errors (no behavioral validation needed)
                 main()
                 mock_exit.assert_not_called()
@@ -491,14 +483,9 @@ class ExampleService:
             "editableFiles": ["src/example.py"],
             "expectedArtifacts": {
                 "file": "src/example.py",
-                "contains": [
-                    {
-                        "type": "class",
-                        "name": "RequiredService"
-                    }
-                ]
+                "contains": [{"type": "class", "name": "RequiredService"}],
             },
-            "validationCommand": ["pytest", "tests/test_bad.py", "-v"]
+            "validationCommand": ["pytest", "tests/test_bad.py", "-v"],
         }
 
         # Create test that doesn't use required artifacts
@@ -524,18 +511,17 @@ class RequiredService:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file)
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file)]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("sys.exit") as mock_exit:
                 # Should fail and exit with non-zero code
                 main()
                 mock_exit.assert_called_with(1)
 
-    def test_main_supports_use_manifest_chain_with_behavioral_tests(self, tmp_path: Path):
+    def test_main_supports_use_manifest_chain_with_behavioral_tests(
+        self, tmp_path: Path
+    ):
         """Test that main supports --use-manifest-chain flag with behavioral test validation."""
         manifest_data = {
             "goal": "Test chain integration",
@@ -543,14 +529,9 @@ class RequiredService:
             "editableFiles": ["src/example.py"],
             "expectedArtifacts": {
                 "file": "src/example.py",
-                "contains": [
-                    {
-                        "type": "class",
-                        "name": "ChainService"
-                    }
-                ]
+                "contains": [{"type": "class", "name": "ChainService"}],
             },
-            "validationCommand": ["pytest", "tests/test_chain.py", "-v"]
+            "validationCommand": ["pytest", "tests/test_chain.py", "-v"],
         }
 
         # Create test file
@@ -578,14 +559,10 @@ class ChainService:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file),
-            "--use-manifest-chain"
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file), "--use-manifest-chain"]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("sys.exit") as mock_exit:
                 # Should complete without errors
                 main()
                 mock_exit.assert_not_called()
@@ -600,14 +577,9 @@ class ChainService:
             "editableFiles": ["src/example.py"],
             "expectedArtifacts": {
                 "file": "src/example.py",
-                "contains": [
-                    {
-                        "type": "class",
-                        "name": "OrderService"
-                    }
-                ]
+                "contains": [{"type": "class", "name": "OrderService"}],
             },
-            "validationCommand": ["pytest", "tests/test_order.py", "-v"]
+            "validationCommand": ["pytest", "tests/test_order.py", "-v"],
         }
 
         # Create test file that uses the artifact
@@ -636,23 +608,28 @@ class OrderService:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file)
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file)]
 
         # Use a mock to track the order of validate_with_ast calls
         call_order = []
 
-        def track_validation_calls(manifest_data, file_path, use_manifest_chain=False, validation_mode=None):
+        def track_validation_calls(
+            manifest_data, file_path, use_manifest_chain=False, validation_mode=None
+        ):
             call_order.append((file_path, validation_mode))
             # Call the actual validation
             from validators.manifest_validator import validate_with_ast as real_validate
-            return real_validate(manifest_data, file_path, use_manifest_chain, validation_mode)
 
-        with patch('sys.argv', test_args):
-            with patch('validate_manifest.validate_with_ast', side_effect=track_validation_calls):
-                with patch('sys.exit') as mock_exit:
+            return real_validate(
+                manifest_data, file_path, use_manifest_chain, validation_mode
+            )
+
+        with patch("sys.argv", test_args):
+            with patch(
+                "validate_manifest.validate_with_ast",
+                side_effect=track_validation_calls,
+            ):
+                with patch("sys.exit") as mock_exit:
                     main()
                     mock_exit.assert_not_called()
 
@@ -688,17 +665,14 @@ class TestErrorHandlingAndEdgeCases:
         test_file = tmp_path / "test_empty.py"
         test_file.write_text("def test_empty(): pass")
 
-        manifest_data = {
-            "expectedArtifacts": {
-                "file": str(test_file),
-                "contains": []
-            }
-        }
+        manifest_data = {"expectedArtifacts": {"file": str(test_file), "contains": []}}
 
         test_files = [str(test_file)]
 
         # Should handle empty artifacts gracefully
-        validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=True)
+        validate_behavioral_tests(
+            manifest_data, test_files, use_manifest_chain=False, quiet=True
+        )
 
     def test_main_with_quiet_flag_suppresses_output(self, tmp_path: Path):
         """Test that --quiet flag suppresses success output."""
@@ -706,10 +680,7 @@ class TestErrorHandlingAndEdgeCases:
             "goal": "Test quiet mode",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
-            "expectedArtifacts": {
-                "file": "src/example.py",
-                "contains": []
-            }
+            "expectedArtifacts": {"file": "src/example.py", "contains": []},
         }
 
         impl_file = tmp_path / "example.py"
@@ -719,18 +690,17 @@ class TestErrorHandlingAndEdgeCases:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        test_args = [
-            "validate_manifest.py",
-            str(manifest_file),
-            "--quiet"
-        ]
+        test_args = ["validate_manifest.py", str(manifest_file), "--quiet"]
 
-        with patch('sys.argv', test_args):
-            with patch('builtins.print') as mock_print:
-                with patch('sys.exit') as mock_exit:
+        with patch("sys.argv", test_args):
+            with patch("builtins.print") as mock_print:
+                with patch("sys.exit") as mock_exit:
                     main()
                     mock_exit.assert_not_called()
                     # Should not print success messages in quiet mode
-                    success_prints = [call for call in mock_print.call_args_list
-                                    if len(call[0]) > 0 and "✓" in str(call[0][0])]
+                    success_prints = [
+                        call
+                        for call in mock_print.call_args_list
+                        if len(call[0]) > 0 and "✓" in str(call[0][0])
+                    ]
                     assert len(success_prints) == 0

@@ -26,6 +26,7 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
     It performs both schema and AST alignment validation.
     """
     import logging
+
     caplog.set_level(logging.INFO)
 
     # Log the manifest being tested
@@ -55,7 +56,9 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
             print(f"         Test files: {', '.join(test_files)}")
 
             # ALL manifests should pass behavioral validation - no exceptions
-            validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False)
+            validate_behavioral_tests(
+                manifest_data, test_files, use_manifest_chain=False
+            )
             print(f"         ✓ Behavioral tests properly exercise declared artifacts")
         else:
             print(f"         ⚠ No test files extracted from command")
@@ -81,6 +84,10 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
         artifact_type = artifact.get("type", "unknown")
         artifact_types[artifact_type] = artifact_types.get(artifact_type, 0) + 1
 
-    artifacts_summary = ", ".join([f"{count} {type}(s)" for type, count in artifact_types.items()])
-    print(f"         ✓ Implementation contains: {artifacts_summary if artifacts_summary else 'no specific artifacts'}")
+    artifacts_summary = ", ".join(
+        [f"{count} {type}(s)" for type, count in artifact_types.items()]
+    )
+    print(
+        f"         ✓ Implementation contains: {artifacts_summary if artifacts_summary else 'no specific artifacts'}"
+    )
     print(f"\n✅ PASSED: {manifest_name}")

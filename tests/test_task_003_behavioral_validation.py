@@ -10,7 +10,11 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.manifest_validator import validate_with_ast, AlignmentError, validate_schema
+from validators.manifest_validator import (
+    validate_with_ast,
+    AlignmentError,
+    validate_schema,
+)
 
 
 def test_validates_method_calls_in_behavioral_tests(tmp_path: Path):
@@ -405,11 +409,8 @@ def test_validate_schema_function_usage():
         "goal": "Test manifest",
         "taskType": "create",
         "readonlyFiles": [],
-        "expectedArtifacts": {
-            "file": "test.py",
-            "contains": []
-        },
-        "validationCommand": ["pytest test.py"]
+        "expectedArtifacts": {"file": "test.py", "contains": []},
+        "validationCommand": ["pytest test.py"],
     }
     schema_path = "validators/schemas/manifest.schema.json"
 

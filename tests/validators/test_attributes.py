@@ -194,7 +194,11 @@ class User:
                 {"type": "class", "name": "User"},
                 {"type": "attribute", "name": "name", "class": "User"},
                 {"type": "attribute", "name": "email", "class": "User"},
-                {"type": "attribute", "name": "age", "class": "User"},  # This doesn't exist
+                {
+                    "type": "attribute",
+                    "name": "age",
+                    "class": "User",
+                },  # This doesn't exist
             ]
         }
     }

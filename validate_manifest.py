@@ -52,7 +52,7 @@ def extract_test_files_from_command(validation_command):
 
             if pytest_index != -1:
                 # Extract arguments after pytest
-                pytest_args = cmd_parts[pytest_index + 1:]
+                pytest_args = cmd_parts[pytest_index + 1 :]
 
                 # Extract test files from this command's args
                 for arg in pytest_args:
@@ -91,7 +91,7 @@ def extract_test_files_from_command(validation_command):
             return []
 
         # Extract arguments after pytest command
-        pytest_args = validation_command[pytest_index + 1:]
+        pytest_args = validation_command[pytest_index + 1 :]
 
         # Filter out pytest flags and options, keep only file/directory paths
         test_files = []
@@ -117,7 +117,9 @@ def extract_test_files_from_command(validation_command):
     return []
 
 
-def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=False, quiet=False):
+def validate_behavioral_tests(
+    manifest_data, test_files, use_manifest_chain=False, quiet=False
+):
     """
     Validate that behavioral test files use the expected artifacts from the manifest.
 
@@ -172,8 +174,14 @@ def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=Fals
     # Determine expected artifacts based on mode
     if use_manifest_chain:
         # Discover all manifests that touched this file (if needed for behavioral tests)
-        from validators.manifest_validator import _discover_related_manifests, _merge_expected_artifacts
-        target_file = manifest_data.get("expectedArtifacts", {}).get("file", test_files[0] if test_files else "")
+        from validators.manifest_validator import (
+            _discover_related_manifests,
+            _merge_expected_artifacts,
+        )
+
+        target_file = manifest_data.get("expectedArtifacts", {}).get(
+            "file", test_files[0] if test_files else ""
+        )
         related_manifests = _discover_related_manifests(target_file)
         expected_items = _merge_expected_artifacts(related_manifests)
     else:
@@ -189,6 +197,7 @@ def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=Fals
             if artifact_name not in all_used_classes:
                 # Import locally to avoid detection by AST validator
                 import validators.manifest_validator as mv
+
                 raise mv.AlignmentError(
                     f"Class '{artifact_name}' not used in behavioral tests"
                 )
@@ -202,11 +211,13 @@ def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=Fals
                 if parent_class in all_used_methods:
                     if artifact_name not in all_used_methods[parent_class]:
                         import validators.manifest_validator as mv
+
                         raise mv.AlignmentError(
                             f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
                         )
                 else:
                     import validators.manifest_validator as mv
+
                     raise mv.AlignmentError(
                         f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
                     )
@@ -214,6 +225,7 @@ def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=Fals
                 # It's a standalone function
                 if artifact_name not in all_used_functions:
                     import validators.manifest_validator as mv
+
                     raise mv.AlignmentError(
                         f"Function '{artifact_name}' not called in behavioral tests"
                     )
@@ -226,8 +238,12 @@ def validate_behavioral_tests(manifest_data, test_files, use_manifest_chain=Fals
                     if param_name:
                         # Check if this specific parameter was used as a keyword argument
                         # Or if positional arguments were provided (which we can't verify individually)
-                        if param_name not in all_used_arguments and "__positional__" not in all_used_arguments:
+                        if (
+                            param_name not in all_used_arguments
+                            and "__positional__" not in all_used_arguments
+                        ):
                             import validators.manifest_validator as mv
+
                             raise mv.AlignmentError(
                                 f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
                             )
@@ -323,7 +339,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
                     manifest_data,
                     test_files,
                     use_manifest_chain=args.use_manifest_chain,
-                    quiet=args.quiet
+                    quiet=args.quiet,
                 )
                 if not args.quiet:
                     print("✓ Behavioral test validation PASSED")
@@ -346,6 +362,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
 
     except Exception as e:
         import validators.manifest_validator as mv
+
         if isinstance(e, mv.AlignmentError):
             print(f"✗ Validation FAILED: {e}")
             if not args.quiet:

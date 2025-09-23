@@ -194,7 +194,11 @@ class SimpleClass:
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "SimpleClass", "bases": ["BaseClass"]},  # No such base
+                {
+                    "type": "class",
+                    "name": "SimpleClass",
+                    "bases": ["BaseClass"],
+                },  # No such base
             ]
         }
     }
