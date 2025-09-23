@@ -38,31 +38,29 @@ Validation Modes:
   behavioral      - Validates that tests USE/CALL the expected artifacts
 
 This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
-        """
+        """,
     )
 
-    parser.add_argument(
-        "manifest_path",
-        help="Path to the manifest JSON file"
-    )
+    parser.add_argument("manifest_path", help="Path to the manifest JSON file")
 
     parser.add_argument(
         "--validation-mode",
         choices=["implementation", "behavioral"],
         default="implementation",
-        help="Validation mode: 'implementation' (default) checks definitions, 'behavioral' checks usage"
+        help="Validation mode: 'implementation' (default) checks definitions, 'behavioral' checks usage",
     )
 
     parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests"
+        help="Use manifest chain to merge all related manifests",
     )
 
     parser.add_argument(
-        "--quiet", "-q",
+        "--quiet",
+        "-q",
         action="store_true",
-        help="Only output errors (suppress success messages)"
+        help="Only output errors (suppress success messages)",
     )
 
     args = parser.parse_args()
@@ -94,7 +92,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
             manifest_data,
             file_path,
             use_manifest_chain=args.use_manifest_chain,
-            validation_mode=args.validation_mode
+            validation_mode=args.validation_mode,
         )
 
         # Success message
@@ -124,6 +122,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         print(f"✗ Unexpected error: {e}")
         if not args.quiet:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

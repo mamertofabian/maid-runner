@@ -10,3 +10,5 @@ wheels/
 .venv
 
 docs/key_learnings_*.md
+
+.idea/

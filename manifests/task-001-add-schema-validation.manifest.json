@@ -3,7 +3,7 @@
   "taskType": "create",
   "creatableFiles": ["validators/manifest_validator.py"],
   "readonlyFiles": [
-    "tests/test_schema_validator_functions.py",
+    "tests/test_validate_schema.py",
     "validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
@@ -16,5 +16,5 @@
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_schema_validator_functions.py"]
+  "validationCommand": ["pytest tests/test_validate_schema.py"]
 }
