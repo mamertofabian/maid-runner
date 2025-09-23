@@ -47,16 +47,33 @@ def extract_type_annotation(node: ast.AST, annotation_attr: str = "annotation") 
 
 
 def _ast_to_type_string(node):
-    """Convert an AST node to a type string representation."""
+    """
+    Convert an AST node to a type string representation.
+
+    Handles various Python type hint syntaxes including:
+    - Simple types (int, str, etc.)
+    - Generic types (List[str], Dict[str, int])
+    - Qualified names (typing.Optional)
+    - Union types (str | None in Python 3.10+)
+    - Forward references (string literals)
+
+    Args:
+        node: AST node representing a type annotation
+
+    Returns:
+        String representation of the type, or None if node is None
+    """
     if node is None:
         return None
 
     if isinstance(node, ast.Name):
         return node.id
-    elif isinstance(node, ast.Constant):
+
+    if isinstance(node, ast.Constant):
         # Handle string constants (for forward references)
         return str(node.value)
-    elif isinstance(node, ast.Subscript):
+
+    if isinstance(node, ast.Subscript):
         # Handle generic types like List[str], Dict[str, int]
         base = _ast_to_type_string(node.value)
 
@@ -69,16 +86,19 @@ def _ast_to_type_string(node):
             # Single type argument like List[str]
             arg = _ast_to_type_string(node.slice)
             return f"{base}[{arg}]"
-    elif isinstance(node, ast.Attribute):
+
+    if isinstance(node, ast.Attribute):
         # Handle qualified names like typing.Optional
         value = _ast_to_type_string(node.value)
         return f"{value}.{node.attr}" if value else node.attr
-    elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
         # Handle Union types using | operator (Python 3.10+)
         left = _ast_to_type_string(node.left)
         right = _ast_to_type_string(node.right)
         return f"Union[{left}, {right}]"
-    elif isinstance(node, ast.Ellipsis):
+
+    if isinstance(node, ast.Ellipsis):
         return "..."
 
     # Fallback: try to get the source representation
@@ -112,9 +132,23 @@ def compare_types(manifest_type: str, implementation_type: str) -> bool:
     return norm_manifest == norm_impl
 
 
+# Type string constants
+_OPTIONAL_PREFIX = "Optional["
+_UNION_PREFIX = "Union["
+_BRACKET_OPEN = "["
+_BRACKET_CLOSE = "]"
+_COMMA = ","
+
+
 def normalize_type_string(type_str: str) -> str:
     """
     Normalize a type string for consistent comparison.
+
+    Performs the following normalizations:
+    - Removes extra whitespace
+    - Converts Optional[X] to Union[X, None]
+    - Sorts Union members alphabetically
+    - Ensures consistent comma spacing in generic types
 
     Args:
         type_str: Type string to normalize
@@ -126,67 +160,97 @@ def normalize_type_string(type_str: str) -> str:
         return None
 
     # Remove extra spaces
-    normalized = type_str.strip()
-    normalized = normalized.replace(" ", "")
+    normalized = type_str.strip().replace(" ", "")
 
     # Convert Optional[X] to Union[X, None]
-    if normalized.startswith("Optional[") and normalized.endswith("]"):
-        inner_type = normalized[9:-1]  # Extract what's inside Optional[...]
-        normalized = f"Union[{inner_type},None]"
+    normalized = _normalize_optional_type(normalized)
 
     # Handle Union types - sort members alphabetically
-    if normalized.startswith("Union[") and normalized.endswith("]"):
-        # Extract union members
-        inner = normalized[6:-1]  # Remove "Union[" and "]"
-
-        # Split by comma, handling nested types
-        members = []
-        current = ""
-        bracket_depth = 0
-
-        for char in inner:
-            if char == "[":
-                bracket_depth += 1
-                current += char
-            elif char == "]":
-                bracket_depth -= 1
-                current += char
-            elif char == "," and bracket_depth == 0:
-                members.append(current.strip())
-                current = ""
-            else:
-                current += char
-
-        if current:
-            members.append(current.strip())
-
-        # Sort members alphabetically
-        members.sort()
-        normalized = f"Union[{','.join(members)}]"
+    normalized = _normalize_union_type(normalized)
 
     # Normalize spacing after commas in generic types
-    # This handles Dict[str,int] vs Dict[str, int]
+    return _normalize_comma_spacing(normalized)
+
+
+def _normalize_optional_type(type_str: str) -> str:
+    """Convert Optional[X] to Union[X, None]."""
+    if not (
+        type_str.startswith(_OPTIONAL_PREFIX) and type_str.endswith(_BRACKET_CLOSE)
+    ):
+        return type_str
+
+    optional_len = len(_OPTIONAL_PREFIX)
+    inner_type = type_str[optional_len:-1]
+    return f"Union[{inner_type},None]"
+
+
+def _normalize_union_type(type_str: str) -> str:
+    """Sort Union type members alphabetically."""
+    if not (type_str.startswith(_UNION_PREFIX) and type_str.endswith(_BRACKET_CLOSE)):
+        return type_str
+
+    union_len = len(_UNION_PREFIX)
+    inner = type_str[union_len:-1]
+
+    # Split by comma, handling nested types
+    members = _split_type_arguments(inner)
+    members.sort()
+    return f"Union[{','.join(members)}]"
+
+
+def _split_type_arguments(inner: str) -> list:
+    """Split type arguments by comma, respecting nested brackets."""
+    members = []
+    current = ""
+    bracket_depth = 0
+
+    for char in inner:
+        if char == _BRACKET_OPEN:
+            bracket_depth += 1
+        elif char == _BRACKET_CLOSE:
+            bracket_depth -= 1
+        elif char == _COMMA and bracket_depth == 0:
+            members.append(current.strip())
+            current = ""
+            continue
+
+        current += char
+
+    if current:
+        members.append(current.strip())
+
+    return members
+
+
+def _normalize_comma_spacing(type_str: str) -> str:
+    """
+    Normalize spacing after commas in generic types.
+    This handles Dict[str,int] vs Dict[str, int].
+    """
     result = ""
     bracket_depth = 0
     i = 0
-    while i < len(normalized):
-        char = normalized[i]
-        if char == "[":
+
+    while i < len(type_str):
+        char = type_str[i]
+
+        if char == _BRACKET_OPEN:
             bracket_depth += 1
             result += char
-        elif char == "]":
+        elif char == _BRACKET_CLOSE:
             bracket_depth -= 1
             result += char
-        elif char == "," and bracket_depth > 0:
+        elif char == _COMMA and bracket_depth > 0:
             # Add comma with consistent spacing
             result += ", "
-            i += 1
             # Skip any spaces after the comma in the original
-            while i < len(normalized) and normalized[i] == " ":
+            i += 1
+            while i < len(type_str) and type_str[i] == " ":
                 i += 1
             i -= 1  # Back up one since the loop will increment
         else:
             result += char
+
         i += 1
 
     return result
@@ -811,100 +875,115 @@ def validate_type_hints(
         List of error messages for type mismatches
     """
     errors = []
-
-    # Get expected artifacts from manifest
     expected_items = manifest_artifacts.get("contains", [])
 
     for artifact in expected_items:
-        artifact_type = artifact.get("type")
-        artifact_name = artifact.get("name")
+        if artifact.get("type") != "function":
+            continue
 
-        if artifact_type == "function":
-            parent_class = artifact.get("class")
-
-            if parent_class:
-                # It's a method
-                if parent_class in implementation_artifacts.get("methods", {}):
-                    method_info = implementation_artifacts["methods"][parent_class].get(
-                        artifact_name, {}
-                    )
-
-                    # Check parameter types
-                    manifest_params = artifact.get("parameters", [])
-                    impl_params = method_info.get("parameters", [])
-
-                    for manifest_param in manifest_params:
-                        param_name = manifest_param.get("name")
-                        manifest_type = manifest_param.get("type")
-
-                        # Find matching parameter in implementation
-                        impl_param = next(
-                            (p for p in impl_params if p.get("name") == param_name),
-                            None,
-                        )
-
-                        if impl_param:
-                            impl_type = impl_param.get("type")
-                            if manifest_type and not compare_types(
-                                manifest_type, impl_type
-                            ):
-                                errors.append(
-                                    f"Type mismatch for parameter '{param_name}' in method '{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
-                                )
-                        elif manifest_type:
-                            errors.append(
-                                f"Missing type annotation for parameter '{param_name}' in method '{artifact_name}'"
-                            )
-
-                    # Check return type
-                    manifest_return = artifact.get("returns")
-                    impl_return = method_info.get("returns")
-                    if manifest_return and not compare_types(
-                        manifest_return, impl_return
-                    ):
-                        errors.append(
-                            f"Type mismatch for return type in method '{artifact_name}': expected '{manifest_return}', got '{impl_return}'"
-                        )
-            else:
-                # It's a standalone function
-                if artifact_name in implementation_artifacts.get("functions", {}):
-                    func_info = implementation_artifacts["functions"][artifact_name]
-
-                    # Check parameter types
-                    manifest_params = artifact.get("parameters", [])
-                    impl_params = func_info.get("parameters", [])
-
-                    for manifest_param in manifest_params:
-                        param_name = manifest_param.get("name")
-                        manifest_type = manifest_param.get("type")
-
-                        # Find matching parameter in implementation
-                        impl_param = next(
-                            (p for p in impl_params if p.get("name") == param_name),
-                            None,
-                        )
-
-                        if impl_param:
-                            impl_type = impl_param.get("type")
-                            if manifest_type and not compare_types(
-                                manifest_type, impl_type
-                            ):
-                                errors.append(
-                                    f"Type mismatch for parameter '{param_name}' in function '{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
-                                )
-                        elif manifest_type:
-                            errors.append(
-                                f"Missing type annotation for parameter '{param_name}' in function '{artifact_name}'"
-                            )
-
-                    # Check return type
-                    manifest_return = artifact.get("returns")
-                    impl_return = func_info.get("returns")
-                    if manifest_return and not compare_types(
-                        manifest_return, impl_return
-                    ):
-                        errors.append(
-                            f"Type mismatch for return type in function '{artifact_name}': expected '{manifest_return}', got '{impl_return}'"
-                        )
+        artifact_errors = _validate_function_types(artifact, implementation_artifacts)
+        errors.extend(artifact_errors)
 
     return errors
+
+
+def _validate_function_types(artifact: dict, implementation_artifacts: dict) -> list:
+    """Validate type hints for a single function or method artifact."""
+    errors = []
+    artifact_name = artifact.get("name")
+    parent_class = artifact.get("class")
+
+    # Get implementation info based on whether it's a method or function
+    impl_info = _get_implementation_info(
+        artifact_name, parent_class, implementation_artifacts
+    )
+
+    if not impl_info:
+        return errors  # No implementation found to validate
+
+    # Validate parameter types
+    param_errors = _validate_parameter_types(
+        artifact, impl_info, artifact_name, parent_class
+    )
+    errors.extend(param_errors)
+
+    # Validate return type
+    return_error = _validate_return_type(
+        artifact, impl_info, artifact_name, parent_class
+    )
+    if return_error:
+        errors.append(return_error)
+
+    return errors
+
+
+def _get_implementation_info(
+    artifact_name: str, parent_class: str, implementation_artifacts: dict
+) -> dict:
+    """Get implementation info for a function or method."""
+    if parent_class:
+        # It's a method
+        methods = implementation_artifacts.get("methods", {})
+        if parent_class in methods:
+            return methods[parent_class].get(artifact_name, {})
+    else:
+        # It's a standalone function
+        functions = implementation_artifacts.get("functions", {})
+        return functions.get(artifact_name, {})
+
+    return None
+
+
+def _validate_parameter_types(
+    artifact: dict, impl_info: dict, artifact_name: str, parent_class: str
+) -> list:
+    """Validate parameter types match between manifest and implementation."""
+    errors = []
+    manifest_params = artifact.get("parameters", [])
+    impl_params = impl_info.get("parameters", [])
+
+    for manifest_param in manifest_params:
+        param_name = manifest_param.get("name")
+        manifest_type = manifest_param.get("type")
+
+        if not manifest_type:
+            continue  # No type specified in manifest, nothing to validate
+
+        # Find matching parameter in implementation
+        impl_param = next((p for p in impl_params if p.get("name") == param_name), None)
+
+        if not impl_param:
+            entity_type = "method" if parent_class else "function"
+            errors.append(
+                f"Missing type annotation for parameter '{param_name}' "
+                f"in {entity_type} '{artifact_name}'"
+            )
+        else:
+            impl_type = impl_param.get("type")
+            if not compare_types(manifest_type, impl_type):
+                entity_type = "method" if parent_class else "function"
+                errors.append(
+                    f"Type mismatch for parameter '{param_name}' in {entity_type} "
+                    f"'{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
+                )
+
+    return errors
+
+
+def _validate_return_type(
+    artifact: dict, impl_info: dict, artifact_name: str, parent_class: str
+) -> str:
+    """Validate return type matches between manifest and implementation."""
+    manifest_return = artifact.get("returns")
+    if not manifest_return:
+        return None  # No return type specified in manifest
+
+    impl_return = impl_info.get("returns")
+    if not compare_types(manifest_return, impl_return):
+        entity_type = "method" if parent_class else "function"
+        return (
+            f"Type mismatch for return type in {entity_type} '{artifact_name}': "
+            f"expected '{manifest_return}', got '{impl_return}'"
+        )
+
+    return None
