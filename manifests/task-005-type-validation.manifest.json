@@ -1,0 +1,59 @@
+{
+  "goal": "Add Python type hint validation to ensure implementation types match manifest type declarations for function parameters and return types",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": ["tests/test_task_005_type_validation.py"],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "validate_type_hints",
+        "parameters": [
+          { "name": "manifest_artifacts", "type": "dict" },
+          { "name": "implementation_artifacts", "type": "dict" }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "extract_type_annotation",
+        "parameters": [
+          { "name": "node", "type": "ast.AST" },
+          { "name": "annotation_attr", "type": "str" }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "compare_types",
+        "parameters": [
+          { "name": "manifest_type", "type": "str" },
+          { "name": "implementation_type", "type": "str" }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "normalize_type_string",
+        "parameters": [
+          { "name": "type_str", "type": "str" }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "attribute",
+        "name": "found_function_types",
+        "class": "_ArtifactCollector"
+      },
+      {
+        "type": "attribute",
+        "name": "found_method_types",
+        "class": "_ArtifactCollector"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_005_type_validation.py", "-v"]
+}

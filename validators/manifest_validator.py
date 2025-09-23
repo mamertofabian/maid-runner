@@ -27,6 +27,171 @@ class AlignmentError(Exception):
     pass
 
 
+def extract_type_annotation(node: ast.AST, annotation_attr: str = "annotation") -> str:
+    """
+    Extract type annotation string from an AST node.
+
+    Args:
+        node: AST node to extract type annotation from
+        annotation_attr: Name of the attribute containing the annotation
+
+    Returns:
+        String representation of the type annotation, or None if not present
+    """
+    annotation = getattr(node, annotation_attr, None)
+
+    if annotation is None:
+        return None
+
+    return _ast_to_type_string(annotation)
+
+
+def _ast_to_type_string(node):
+    """Convert an AST node to a type string representation."""
+    if node is None:
+        return None
+
+    if isinstance(node, ast.Name):
+        return node.id
+    elif isinstance(node, ast.Constant):
+        # Handle string constants (for forward references)
+        return str(node.value)
+    elif isinstance(node, ast.Subscript):
+        # Handle generic types like List[str], Dict[str, int]
+        base = _ast_to_type_string(node.value)
+
+        # Handle the subscript part (what's inside the brackets)
+        if isinstance(node.slice, ast.Tuple):
+            # Multiple type arguments like Dict[str, int]
+            args = [_ast_to_type_string(elt) for elt in node.slice.elts]
+            return f"{base}[{', '.join(args)}]"
+        else:
+            # Single type argument like List[str]
+            arg = _ast_to_type_string(node.slice)
+            return f"{base}[{arg}]"
+    elif isinstance(node, ast.Attribute):
+        # Handle qualified names like typing.Optional
+        value = _ast_to_type_string(node.value)
+        return f"{value}.{node.attr}" if value else node.attr
+    elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        # Handle Union types using | operator (Python 3.10+)
+        left = _ast_to_type_string(node.left)
+        right = _ast_to_type_string(node.right)
+        return f"Union[{left}, {right}]"
+    elif isinstance(node, ast.Ellipsis):
+        return "..."
+
+    # Fallback: try to get the source representation
+    try:
+        return ast.unparse(node)
+    except (AttributeError, TypeError):
+        return str(node)
+
+
+def compare_types(manifest_type: str, implementation_type: str) -> bool:
+    """
+    Compare two type strings for equivalence.
+
+    Args:
+        manifest_type: Type string from manifest
+        implementation_type: Type string from implementation
+
+    Returns:
+        True if types are equivalent, False otherwise
+    """
+    # Handle None cases
+    if manifest_type is None and implementation_type is None:
+        return True
+    if manifest_type is None or implementation_type is None:
+        return False
+
+    # Normalize both types
+    norm_manifest = normalize_type_string(manifest_type)
+    norm_impl = normalize_type_string(implementation_type)
+
+    return norm_manifest == norm_impl
+
+
+def normalize_type_string(type_str: str) -> str:
+    """
+    Normalize a type string for consistent comparison.
+
+    Args:
+        type_str: Type string to normalize
+
+    Returns:
+        Normalized type string
+    """
+    if type_str is None:
+        return None
+
+    # Remove extra spaces
+    normalized = type_str.strip()
+    normalized = normalized.replace(" ", "")
+
+    # Convert Optional[X] to Union[X, None]
+    if normalized.startswith("Optional[") and normalized.endswith("]"):
+        inner_type = normalized[9:-1]  # Extract what's inside Optional[...]
+        normalized = f"Union[{inner_type},None]"
+
+    # Handle Union types - sort members alphabetically
+    if normalized.startswith("Union[") and normalized.endswith("]"):
+        # Extract union members
+        inner = normalized[6:-1]  # Remove "Union[" and "]"
+
+        # Split by comma, handling nested types
+        members = []
+        current = ""
+        bracket_depth = 0
+
+        for char in inner:
+            if char == "[":
+                bracket_depth += 1
+                current += char
+            elif char == "]":
+                bracket_depth -= 1
+                current += char
+            elif char == "," and bracket_depth == 0:
+                members.append(current.strip())
+                current = ""
+            else:
+                current += char
+
+        if current:
+            members.append(current.strip())
+
+        # Sort members alphabetically
+        members.sort()
+        normalized = f"Union[{','.join(members)}]"
+
+    # Normalize spacing after commas in generic types
+    # This handles Dict[str,int] vs Dict[str, int]
+    result = ""
+    bracket_depth = 0
+    i = 0
+    while i < len(normalized):
+        char = normalized[i]
+        if char == "[":
+            bracket_depth += 1
+            result += char
+        elif char == "]":
+            bracket_depth -= 1
+            result += char
+        elif char == "," and bracket_depth > 0:
+            # Add comma with consistent spacing
+            result += ", "
+            i += 1
+            # Skip any spaces after the comma in the original
+            while i < len(normalized) and normalized[i] == " ":
+                i += 1
+            i -= 1  # Back up one since the loop will increment
+        else:
+            result += char
+        i += 1
+
+    return result
+
+
 class _ArtifactCollector(ast.NodeVisitor):
     """AST visitor that collects class and attribute references from Python code."""
 
@@ -41,6 +206,14 @@ class _ArtifactCollector(ast.NodeVisitor):
             {}
         )  # class_name -> {method_name -> list of parameter names}
         self.current_class = None  # Track if we're inside a class definition
+
+        # Type tracking for functions and methods
+        self.found_function_types = (
+            {}
+        )  # function_name -> {"parameters": [...], "returns": ...}
+        self.found_method_types = (
+            {}
+        )  # class_name -> {method_name -> {"parameters": [...], "returns": ...}}
 
         # For behavioral validation (tracking usage)
         self.used_classes = set()  # Classes that are instantiated
@@ -92,14 +265,37 @@ class _ArtifactCollector(ast.NodeVisitor):
         """Collect function definitions and their parameters."""
         param_names = [arg.arg for arg in node.args.args]
 
+        # Extract parameter types
+        param_types = []
+        for arg in node.args.args:
+            param_info = {
+                "name": arg.arg,
+                "type": extract_type_annotation(arg, "annotation"),
+            }
+            param_types.append(param_info)
+
+        # Extract return type
+        return_type = extract_type_annotation(node, "returns")
+
         if self.current_class is None:
             # Module-level function
             self.found_functions[node.name] = param_names
+            self.found_function_types[node.name] = {
+                "parameters": param_types,
+                "returns": return_type,
+            }
         else:
             # Method inside a class
             if self.current_class not in self.found_methods:
                 self.found_methods[self.current_class] = {}
             self.found_methods[self.current_class][node.name] = param_names
+
+            if self.current_class not in self.found_method_types:
+                self.found_method_types[self.current_class] = {}
+            self.found_method_types[self.current_class][node.name] = {
+                "parameters": param_types,
+                "returns": return_type,
+            }
 
         # Continue visiting child nodes
         self.generic_visit(node)
@@ -599,3 +795,116 @@ def _validate_no_unexpected_artifacts(expected_items, found_classes, found_funct
         raise AlignmentError(
             f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}"
         )
+
+
+def validate_type_hints(
+    manifest_artifacts: dict, implementation_artifacts: dict
+) -> list:
+    """
+    Validate that implementation type hints match manifest type declarations.
+
+    Args:
+        manifest_artifacts: Dictionary containing the manifest with expectedArtifacts
+        implementation_artifacts: Dictionary with implementation type information
+
+    Returns:
+        List of error messages for type mismatches
+    """
+    errors = []
+
+    # Get expected artifacts from manifest
+    expected_items = manifest_artifacts.get("contains", [])
+
+    for artifact in expected_items:
+        artifact_type = artifact.get("type")
+        artifact_name = artifact.get("name")
+
+        if artifact_type == "function":
+            parent_class = artifact.get("class")
+
+            if parent_class:
+                # It's a method
+                if parent_class in implementation_artifacts.get("methods", {}):
+                    method_info = implementation_artifacts["methods"][parent_class].get(
+                        artifact_name, {}
+                    )
+
+                    # Check parameter types
+                    manifest_params = artifact.get("parameters", [])
+                    impl_params = method_info.get("parameters", [])
+
+                    for manifest_param in manifest_params:
+                        param_name = manifest_param.get("name")
+                        manifest_type = manifest_param.get("type")
+
+                        # Find matching parameter in implementation
+                        impl_param = next(
+                            (p for p in impl_params if p.get("name") == param_name),
+                            None,
+                        )
+
+                        if impl_param:
+                            impl_type = impl_param.get("type")
+                            if manifest_type and not compare_types(
+                                manifest_type, impl_type
+                            ):
+                                errors.append(
+                                    f"Type mismatch for parameter '{param_name}' in method '{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
+                                )
+                        elif manifest_type:
+                            errors.append(
+                                f"Missing type annotation for parameter '{param_name}' in method '{artifact_name}'"
+                            )
+
+                    # Check return type
+                    manifest_return = artifact.get("returns")
+                    impl_return = method_info.get("returns")
+                    if manifest_return and not compare_types(
+                        manifest_return, impl_return
+                    ):
+                        errors.append(
+                            f"Type mismatch for return type in method '{artifact_name}': expected '{manifest_return}', got '{impl_return}'"
+                        )
+            else:
+                # It's a standalone function
+                if artifact_name in implementation_artifacts.get("functions", {}):
+                    func_info = implementation_artifacts["functions"][artifact_name]
+
+                    # Check parameter types
+                    manifest_params = artifact.get("parameters", [])
+                    impl_params = func_info.get("parameters", [])
+
+                    for manifest_param in manifest_params:
+                        param_name = manifest_param.get("name")
+                        manifest_type = manifest_param.get("type")
+
+                        # Find matching parameter in implementation
+                        impl_param = next(
+                            (p for p in impl_params if p.get("name") == param_name),
+                            None,
+                        )
+
+                        if impl_param:
+                            impl_type = impl_param.get("type")
+                            if manifest_type and not compare_types(
+                                manifest_type, impl_type
+                            ):
+                                errors.append(
+                                    f"Type mismatch for parameter '{param_name}' in function '{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
+                                )
+                        elif manifest_type:
+                            errors.append(
+                                f"Missing type annotation for parameter '{param_name}' in function '{artifact_name}'"
+                            )
+
+                    # Check return type
+                    manifest_return = artifact.get("returns")
+                    impl_return = func_info.get("returns")
+                    if manifest_return and not compare_types(
+                        manifest_return, impl_return
+                    ):
+                        errors.append(
+                            f"Type mismatch for return type in function '{artifact_name}': expected '{manifest_return}', got '{impl_return}'"
+                        )
+
+    return errors

@@ -11,22 +11,24 @@ This document outlines the remaining tasks to complete the MAID Runner implement
 - **Task-002**: AST-based implementation validation
 - **Task-003**: Behavioral validation capability
 - **Task-004**: Behavioral test integration (validates tests USE artifacts)
+- **Task-005**: Type validation (validates Python type hints match manifest declarations)
 
 ### Validation Layers Implemented
 1. **Structural**: Manifest conforms to schema
-2. **Behavioral**: Tests syntactically reference declared artifacts
-3. **Implementation**: Code contains declared artifacts
+2. **Type Contract**: Implementation types match manifest declarations
+3. **Behavioral**: Tests syntactically reference declared artifacts
+4. **Implementation**: Code contains declared artifacts
 
 ## Required Components for Completion
 
 ---
 
-## Task-005: Systemic Validator
+## Task-006: Systemic Validator
 
 ### Goal
 Implement systemic validation that orchestrates validation across all manifests in chronological order, ensuring complete codebase integrity.
 
-### Manifest: `task-005-systemic-validator.manifest.json`
+### Manifest: `task-006-systemic-validator.manifest.json`
 ```json
 {
   "goal": "Implement systemic validator to orchestrate validation of entire manifest chain with chronological ordering and comprehensive reporting",
@@ -35,7 +37,7 @@ Implement systemic validation that orchestrates validation across all manifests 
   "readonlyFiles": [
     "validators/manifest_validator.py",
     "validate_manifest.py",
-    "tests/test_task_005_systemic_validator.py"
+    "tests/test_task_006_systemic_validator.py"
   ],
   "expectedArtifacts": {
     "file": "validators/systemic_validator.py",
@@ -61,11 +63,11 @@ Implement systemic validation that orchestrates validation across all manifests 
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_task_005_systemic_validator.py -v"]
+  "validationCommand": ["pytest tests/test_task_006_systemic_validator.py -v"]
 }
 ```
 
-### Behavioral Tests: `tests/test_task_005_systemic_validator.py`
+### Behavioral Tests: `tests/test_task_006_systemic_validator.py`
 ```python
 def test_validates_all_manifests_in_order():
     """Test that all manifests are validated in chronological order"""
@@ -92,19 +94,19 @@ def test_cli_interface():
 
 ---
 
-## Task-006: Command Executor
+## Task-007: Command Executor
 
 ### Goal
 Implement actual execution of validation commands with subprocess management, timeout handling, and result parsing.
 
-### Manifest: `task-006-command-executor.manifest.json`
+### Manifest: `task-007-command-executor.manifest.json`
 ```json
 {
   "goal": "Implement command executor to run validation commands with proper error handling, timeout management, and result parsing",
   "taskType": "create",
   "creatableFiles": ["validators/command_executor.py"],
   "readonlyFiles": [
-    "tests/test_task_006_command_executor.py"
+    "tests/test_task_007_command_executor.py"
   ],
   "expectedArtifacts": {
     "file": "validators/command_executor.py",
@@ -142,7 +144,7 @@ Implement actual execution of validation commands with subprocess management, ti
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_task_006_command_executor.py -v"]
+  "validationCommand": ["pytest tests/test_task_007_command_executor.py -v"]
 }
 ```
 
@@ -166,19 +168,19 @@ def test_parses_pytest_failure_output():
 
 ---
 
-## Task-007: Coverage Analyzer
+## Task-008: Coverage Analyzer
 
 ### Goal
 Implement coverage analysis to verify that tests actually execute the code paths for declared artifacts, not just syntactically reference them.
 
-### Manifest: `task-007-coverage-analyzer.manifest.json`
+### Manifest: `task-008-coverage-analyzer.manifest.json`
 ```json
 {
   "goal": "Implement coverage analyzer using coverage.py to verify tests execute declared artifact code paths",
   "taskType": "create",
   "creatableFiles": ["validators/coverage_analyzer.py"],
   "readonlyFiles": [
-    "tests/test_task_007_coverage_analyzer.py"
+    "tests/test_task_008_coverage_analyzer.py"
   ],
   "expectedArtifacts": {
     "file": "validators/coverage_analyzer.py",
@@ -208,7 +210,7 @@ Implement coverage analysis to verify that tests actually execute the code paths
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_task_007_coverage_analyzer.py -v"]
+  "validationCommand": ["pytest tests/test_task_008_coverage_analyzer.py -v"]
 }
 ```
 
@@ -235,19 +237,19 @@ def test_integrates_with_pytest_cov():
 
 ---
 
-## Task-008: Validation Reporter
+## Task-009: Validation Reporter
 
 ### Goal
 Implement comprehensive reporting system with multiple output formats (JSON, Markdown, CI-friendly).
 
-### Manifest: `task-008-validation-reporter.manifest.json`
+### Manifest: `task-009-validation-reporter.manifest.json`
 ```json
 {
   "goal": "Implement validation reporter with JSON, Markdown, and CI output formats for comprehensive validation results",
   "taskType": "create",
   "creatableFiles": ["validators/validation_reporter.py"],
   "readonlyFiles": [
-    "tests/test_task_008_validation_reporter.py"
+    "tests/test_task_009_validation_reporter.py"
   ],
   "expectedArtifacts": {
     "file": "validators/validation_reporter.py",
@@ -276,18 +278,18 @@ Implement comprehensive reporting system with multiple output formats (JSON, Mar
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_task_008_validation_reporter.py -v"]
+  "validationCommand": ["pytest tests/test_task_009_validation_reporter.py -v"]
 }
 ```
 
 ---
 
-## Task-009: CI/CD Integration
+## Task-010: CI/CD Integration
 
 ### Goal
 Implement pre-commit hooks and GitHub Actions integration for automated validation.
 
-### Manifest: `task-009-ci-integration.manifest.json`
+### Manifest: `task-010-ci-integration.manifest.json`
 ```json
 {
   "goal": "Create CI/CD integration with pre-commit hooks and GitHub Actions for automated MAID validation",
@@ -297,7 +299,7 @@ Implement pre-commit hooks and GitHub Actions integration for automated validati
     ".github/workflows/maid-validation.yml"
   ],
   "readonlyFiles": [
-    "tests/test_task_009_ci_integration.py"
+    "tests/test_task_010_ci_integration.py"
   ],
   "expectedArtifacts": {
     "file": ".github/workflows/maid-validation.yml",
@@ -307,18 +309,18 @@ Implement pre-commit hooks and GitHub Actions integration for automated validati
       {"type": "attribute", "name": "jobs"}
     ]
   },
-  "validationCommand": ["pytest tests/test_task_009_ci_integration.py -v"]
+  "validationCommand": ["pytest tests/test_task_010_ci_integration.py -v"]
 }
 ```
 
 ---
 
-## Task-010: MAID Runner CLI
+## Task-011: MAID Runner CLI
 
 ### Goal
 Create unified CLI interface for all MAID operations.
 
-### Manifest: `task-010-maid-runner-cli.manifest.json`
+### Manifest: `task-011-maid-runner-cli.manifest.json`
 ```json
 {
   "goal": "Implement comprehensive CLI for MAID runner with commands for validation, reporting, and development workflow",
@@ -329,7 +331,7 @@ Create unified CLI interface for all MAID operations.
     "validators/command_executor.py",
     "validators/coverage_analyzer.py",
     "validators/validation_reporter.py",
-    "tests/test_task_010_maid_runner_cli.py"
+    "tests/test_task_011_maid_runner_cli.py"
   ],
   "expectedArtifacts": {
     "file": "maid_runner.py",
@@ -355,7 +357,7 @@ Create unified CLI interface for all MAID operations.
       }
     ]
   },
-  "validationCommand": ["pytest tests/test_task_010_maid_runner_cli.py -v"]
+  "validationCommand": ["pytest tests/test_task_011_maid_runner_cli.py -v"]
 }
 ```
 
@@ -381,17 +383,20 @@ maid-runner coverage manifests/task-001.manifest.json
 
 ## Integration Timeline
 
+### Phase 0: Type System (Completed)
+- [x] Task-005: Type Validation
+
 ### Phase 1: Core Infrastructure (Week 1)
-- [ ] Task-005: Systemic Validator
-- [ ] Task-006: Command Executor
+- [ ] Task-006: Systemic Validator
+- [ ] Task-007: Command Executor
 
 ### Phase 2: Analysis Tools (Week 2)
-- [ ] Task-007: Coverage Analyzer
-- [ ] Task-008: Validation Reporter
+- [ ] Task-008: Coverage Analyzer
+- [ ] Task-009: Validation Reporter
 
 ### Phase 3: Automation (Week 3)
-- [ ] Task-009: CI/CD Integration
-- [ ] Task-010: MAID Runner CLI
+- [ ] Task-010: CI/CD Integration
+- [ ] Task-011: MAID Runner CLI
 
 ### Phase 4: Testing & Documentation (Week 4)
 - [ ] End-to-end testing
@@ -466,10 +471,13 @@ graph TD
 
 ## Next Immediate Steps
 
-1. **Review and approve this roadmap**
-2. **Create feature branch**: `maid-runner-completion`
-3. **Begin with Task-005**: Systemic Validator
-4. **Follow strict MAID workflow** for each task
+1. ✅ **Task-005 Complete**: Type validation implemented using MAID methodology with specialized subagents
+2. **Begin with Task-006**: Systemic Validator
+3. **Follow strict MAID workflow** for each task using:
+   - Phase 1: maid-manifest-architect for manifest creation
+   - Phase 2: maid-test-designer for behavioral tests
+   - Phase 3: maid-developer for implementation
+4. **Validate manifest chain** after each task
 
 ---
 
