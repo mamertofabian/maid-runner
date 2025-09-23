@@ -19,11 +19,60 @@ def test_discover_related_manifests():
 
     manifests = _discover_related_manifests(target_file)
 
-    # Should find task-001, task-002, and task-003 manifests
-    assert len(manifests) == 3
-    assert "task-001" in manifests[0]
-    assert "task-002" in manifests[1]
-    assert "task-003" in manifests[2]
+    # Should find at least the known manifests that reference this file
+    # This test is future-proof - it will pass even if more manifests are added
+    assert len(manifests) >= 3, f"Expected at least 3 manifests, got {len(manifests)}"
+
+    # Verify that manifests are returned in chronological order
+    manifest_names = [Path(manifest).stem for manifest in manifests]
+
+    # Extract task numbers and verify they're in ascending order
+    task_numbers = []
+    for name in manifest_names:
+        if name.startswith("task-"):
+            # Handle .manifest.json files by removing .manifest suffix
+            clean_name = name.replace(".manifest", "")
+            try:
+                task_num = int(clean_name.split("-")[1])
+                task_numbers.append(task_num)
+            except (ValueError, IndexError):
+                # Skip non-standard task names
+                pass
+
+    # Verify chronological ordering
+    assert task_numbers == sorted(
+        task_numbers
+    ), f"Manifests not in chronological order: {task_numbers}"
+
+    # Verify that we have the expected core manifests
+    expected_manifests = ["task-001", "task-002", "task-003"]
+    found_expected = [
+        name
+        for name in manifest_names
+        if any(exp in name for exp in expected_manifests)
+    ]
+    assert (
+        len(found_expected) == 3
+    ), f"Expected to find task-001, task-002, and task-003, found: {found_expected}"
+
+    # Verify that all returned manifests actually reference the target file
+    for manifest_path in manifests:
+        with open(manifest_path, "r") as f:
+            data = json.load(f)
+
+        # Check if this manifest touches the target file
+        created_files = data.get("creatableFiles", [])
+        edited_files = data.get("editableFiles", [])
+        expected_file = data.get("expectedArtifacts", {}).get("file")
+
+        touches_file = (
+            target_file in created_files
+            or target_file in edited_files
+            or target_file == expected_file
+        )
+        assert (
+            touches_file
+        ), f"Manifest {manifest_path} does not reference {target_file}"
 
 
 def test_discover_manifests_chronological_order():
