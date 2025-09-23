@@ -19,6 +19,11 @@ This directory contains specialized subagents for the MAID (Manifest-driven AI D
 **Purpose:** Implements code to make behavioral tests pass while maintaining manifest compliance
 **Invocation:** Use after tests are created to implement the solution
 
+### 4. maid-refactorer
+**Phase:** 3.5 - Code Quality Refactoring
+**Purpose:** Improves code quality, maintainability, and performance while preserving manifest compliance
+**Invocation:** Use after implementation passes all tests to enhance code quality
+
 ## Usage
 
 These agents will be automatically invoked by Claude Code when appropriate based on their descriptions. You can also explicitly request them:
@@ -28,6 +33,7 @@ These agents will be automatically invoked by Claude Code when appropriate based
 > Use the maid-manifest-architect agent to create a manifest for adding feature X
 > Have the maid-test-designer create tests for task-005
 > Get the maid-developer to implement the code for task-005
+> Use the maid-refactorer to improve code quality for task-005
 ```
 
 ## Workflow
@@ -37,6 +43,7 @@ The typical MAID workflow using these agents:
 1. **Define Goal** → maid-manifest-architect creates and validates manifest
 2. **Create Tests** → maid-test-designer creates behavioral tests
 3. **Implement** → maid-developer implements code to pass tests
+4. **Refactor** → maid-refactorer improves code quality while maintaining test compliance
 
 Each agent handles its phase completely with iterative validation loops, ensuring quality at each step.
 

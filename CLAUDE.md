@@ -21,8 +21,38 @@ Confirm the high-level goal with user before proceeding.
 3. Run behavioral validation (from `validationCommand`)
 4. Iterate until all tests pass
 
+### Phase 3.5: Refactoring
+1. After tests pass, improve code quality
+2. Maintain public API and manifest compliance
+3. Apply clean code principles and patterns
+4. Validate tests still pass after each change
+
 ### Phase 4: Integration
 Verify complete chain: `uv run python -m pytest tests/ -v`
+
+## MAID Subagents
+
+**Specialized Claude Code subagents are available for each MAID phase.** See `.claude/agents/README.md` for detailed information.
+
+### Available Agents:
+1. **maid-manifest-architect** - Phase 1: Creates and validates manifests
+2. **maid-test-designer** - Phase 2: Creates behavioral tests from manifests
+3. **maid-developer** - Phase 3: Implements code to pass tests
+4. **maid-refactorer** - Phase 3.5: Improves code quality (completes TDD cycle)
+
+### Invoking Agents:
+```bash
+# These agents will be invoked PROACTIVELY by Claude Code when appropriate
+# You can also explicitly request them:
+> Use the maid-manifest-architect to create a manifest for feature X
+> Have the maid-test-designer create tests for task-005
+> Get the maid-developer to implement task-005
+> Use the maid-refactorer to improve code quality for task-005
+```
+
+**Note:** The MAID workflow embodies TDD at two levels:
+- **Planning Loop**: Iterative test-manifest refinement (micro TDD)
+- **Overall Workflow**: Red (failing tests) → Green (passing implementation) → Refactor (quality improvement)
 
 ## Project Overview
 
