@@ -10,6 +10,9 @@ help:
 	@echo "  make watch TASK=005 - Watch and test specific task"
 	@echo "  make dev TASK=005  - Run tests once for specific task"
 	@echo "  make install-dev   - Install development dependencies"
+	@echo "  make lint          - Run linting"
+	@echo "  make lint-fix      - Run linting and fix issues"
+	@echo "  make format        - Run formatting"
 
 # Run all tests
 test:
@@ -67,6 +70,9 @@ validate-003:
 
 validate-004:
 	uv run python validate_manifest.py manifests/task-004-behavioral-test-integration.manifest.json
+
+validate-005:
+	uv run python validate_manifest.py manifests/task-005-type-validation.manifest.json
 
 # Run specific test files
 test-schema:
