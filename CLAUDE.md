@@ -12,7 +12,7 @@ Confirm the high-level goal with user before proceeding.
 1. Draft behavioral tests (`tests/test_task_XXX_*.py`) - **PRIMARY CONTRACT**
 2. Draft manifest (`manifests/task-XXX.manifest.json`) pointing to tests & declaring artifacts
 3. Run structural validation (checks manifest↔tests AND implementation↔history):
-   `uv run python validators/manifest_validator.py manifests/task-XXX.manifest.json --use-manifest-chain`
+   `uv run python validate_manifest.py manifests/task-XXX.manifest.json --use-manifest-chain`
 4. Refine BOTH tests & manifest together until validation passes
 
 ### Phase 3: Implementation
@@ -32,9 +32,10 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 ### Core Components
 
-1. **Manifest Validator** (`validators/manifest_validator.py`)
+1. **Manifest Validator** (`validate_manifest.py`)
    - Validates manifest JSON against schema
-   - AST-based validation to verify expected artifacts exist in code
+   - Behavioral test validation: Verifies tests USE declared artifacts
+   - Implementation validation: Verifies code DEFINES artifacts
    - Enforces manifest chain chronology
 
 2. **Manifest Schema** (`validators/schemas/manifest.schema.json`)
@@ -45,6 +46,11 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
    - Chronologically ordered, immutable task records
    - Sequential naming: task-001, task-002, task-003, etc.
    - Each represents a single atomic change
+
+4. **Bootstrap Development Tools**
+   - `dev_bootstrap.py`: TDD runner for manifest-driven development
+   - `Makefile`: Convenience commands for development workflow
+   - Enables building MAID tools using MAID methodology
 
 ### Key MAID Principles in This Codebase
 
@@ -57,6 +63,16 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
 **ALWAYS:** Tests first → Manifest → Implementation → Validate
+
+## Validation Flow
+
+The `validate_manifest.py` script performs validation in this order:
+
+1. **Schema Validation**: Ensures manifest follows the JSON schema
+2. **Behavioral Test Validation**: Verifies test files USE the declared artifacts (AST-based)
+3. **Implementation Validation**: Verifies implementation DEFINES the artifacts
+
+Note: Behavioral validation only checks artifacts from the current manifest, not the merged chain.
 
 ## Validation Modes (MAID v1.2)
 
@@ -92,20 +108,33 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 ## Quick Commands
 
 ```bash
+# Bootstrap Development (TDD workflow)
+make dev TASK=005        # Run tests once for task-005
+make watch TASK=005      # Watch mode with auto-test for task-005
+make validate            # Validate all manifests with chain
+
 # Find next manifest number
 ls manifests/task-*.manifest.json | tail -1
 
-# Structural validation (pre-implementation)
-uv run python validators/manifest_validator.py manifests/task-XXX.manifest.json --use-manifest-chain
+# Validation Flow
+# 1. Structural validation (pre-implementation)
+uv run python validate_manifest.py manifests/task-XXX.manifest.json --use-manifest-chain
 
-# Behavioral validation (test execution)
-uv run python -m pytest tests/test_task_XXX_integration.py -v
+# 2. The validator now runs THREE checks:
+#    a) Schema validation (manifest structure)
+#    b) Behavioral validation (tests USE artifacts)
+#    c) Implementation validation (code DEFINES artifacts)
+
+# 3. Behavioral test execution (run actual tests)
+uv run python -m pytest tests/test_task_XXX_*.py -v
 
 # Full test suite
-uv run python -m pytest tests/ -v
+make test  # or: uv run python -m pytest tests/ -v
 
 # Code quality
-uv run black . && uv run ruff check . --fix
+make lint        # Run black formatter
+make type-check  # Run mypy type checking
+make format      # Auto-fix formatting issues
 ```
 
 ## Artifact Rules
