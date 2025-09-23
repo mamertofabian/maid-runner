@@ -19,7 +19,7 @@ test:
 validate:
 	@for manifest in manifests/task-*.manifest.json; do \
 		echo "Validating $$manifest..."; \
-		uv run python validate_manifest.py $$manifest --quiet || exit 1; \
+		uv run python validate_manifest.py $$manifest --quiet --use-manifest-chain || exit 1; \
 	done
 	@echo "✅ All manifests valid"
 

@@ -171,22 +171,12 @@ def validate_behavioral_tests(
                 all_used_methods[class_name] = set()
             all_used_methods[class_name].update(methods)
 
-    # Determine expected artifacts based on mode
-    if use_manifest_chain:
-        # Discover all manifests that touched this file (if needed for behavioral tests)
-        from validators.manifest_validator import (
-            _discover_related_manifests,
-            _merge_expected_artifacts,
-        )
-
-        target_file = manifest_data.get("expectedArtifacts", {}).get(
-            "file", test_files[0] if test_files else ""
-        )
-        related_manifests = _discover_related_manifests(target_file)
-        expected_items = _merge_expected_artifacts(related_manifests)
-    else:
-        expected_artifacts = manifest_data.get("expectedArtifacts", {})
-        expected_items = expected_artifacts.get("contains", [])
+    # For behavioral validation, we only validate artifacts from the current manifest
+    # NOT the merged artifacts from the manifest chain
+    # The tests for each task should only use the artifacts that task declares
+    # The use_manifest_chain parameter is ignored for behavioral validation
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    expected_items = expected_artifacts.get("contains", [])
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
