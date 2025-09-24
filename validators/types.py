@@ -11,6 +11,7 @@ Module Organization:
     - Core Validation Types: Types for validation results and operations
     - Artifact Definition Types: Types for representing code artifacts
     - Error and Diagnostic Types: Types for error reporting and diagnostics
+    - Function Signature Types: Types for function and method signatures
     - Implementation Discovery Types: Types for discovered implementation artifacts
 
 Usage:
@@ -28,7 +29,7 @@ Type Safety:
     with appropriate runtime type validation libraries.
 """
 
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 
 # ============================================================================
 # Type Aliases for Common Data Structures
@@ -68,6 +69,21 @@ suitable for subprocess execution.
 Example:
     pytest_cmd: TestCommand = ["pytest", "tests/", "-v"]
     mypy_cmd: TestCommand = ["mypy", "src/", "--strict"]
+"""
+
+ValidationMode = Literal["implementation", "behavioral"]
+"""Type alias for validation mode selection.
+
+Specifies which type of validation to perform:
+- "implementation": Validates that code defines expected artifacts
+- "behavioral": Validates that tests use expected artifacts
+
+Example:
+    mode: ValidationMode = "implementation"
+    if mode == "behavioral":
+        validate_tests()
+    else:
+        validate_implementation()
 """
 
 
@@ -204,6 +220,116 @@ class TypeMismatch(TypedDict):
     expected_type: str
     actual_type: str
     mismatch_kind: str
+
+
+# ============================================================================
+# Function Signature Types
+# ============================================================================
+
+
+class ParameterInfo(TypedDict, total=False):
+    """Information about a function parameter.
+
+    Represents parameter metadata including name and optional type annotation.
+    Used for tracking function signatures during AST parsing and validation.
+
+    Required Fields:
+        name: Parameter identifier
+
+    Optional Fields:
+        type: Type annotation as a string representation
+
+    Examples:
+        typed_param: ParameterInfo = {"name": "path", "type": "str"}
+        untyped_param: ParameterInfo = {"name": "data"}  # type is optional
+        self_param: ParameterInfo = {"name": "self"}  # typically untyped
+    """
+
+    name: str  # Parameter name/identifier
+    type: Optional[str]  # Optional type annotation string
+
+
+class FunctionTypeInfo(TypedDict):
+    """Type information for a function or method.
+
+    Captures complete function signature including parameters and return type.
+    Used by the AST collector to track discovered function definitions and
+    validate against expected signatures from manifests.
+
+    Attributes:
+        parameters: Ordered list of function parameters
+        returns: Optional return type annotation
+
+    Examples:
+        # Simple function with typed parameters
+        func_info: FunctionTypeInfo = {
+            "parameters": [{"name": "path", "type": "str"}],
+            "returns": "bool"
+        }
+
+        # Method with self parameter
+        method_info: FunctionTypeInfo = {
+            "parameters": [
+                {"name": "self"},
+                {"name": "data", "type": "Dict[str, Any]"}
+            ],
+            "returns": "ValidationResult"
+        }
+    """
+
+    parameters: List[ParameterInfo]  # Ordered list of parameters
+    returns: Optional[str]  # Optional return type annotation
+
+
+class CollectorTypeInfo(TypedDict):
+    """Type information collected from implementation parsing.
+
+    Aggregates all discovered type information from AST parsing,
+    organizing functions and methods for validation purposes.
+    This structure mirrors the organization found in Python modules
+    with top-level functions and class methods separated.
+
+    Attributes:
+        functions: Mapping of function names to their type information
+        methods: Nested mapping of class names to method type information
+
+    Example:
+        collector_info: CollectorTypeInfo = {
+            "functions": {
+                "validate": {
+                    "parameters": [{"name": "path", "type": "str"}],
+                    "returns": "ValidationResult"
+                },
+                "parse_manifest": {
+                    "parameters": [{"name": "data", "type": "Dict[str, Any]"}],
+                    "returns": "ManifestData"
+                }
+            },
+            "methods": {
+                "Validator": {
+                    "__init__": {
+                        "parameters": [{"name": "self"}, {"name": "strict", "type": "bool"}],
+                        "returns": None
+                    },
+                    "check": {
+                        "parameters": [{"name": "self"}],
+                        "returns": "bool"
+                    }
+                },
+                "Parser": {
+                    "parse": {
+                        "parameters": [{"name": "self"}, {"name": "source", "type": "str"}],
+                        "returns": "ArtifactDict"
+                    }
+                }
+            }
+        }
+    """
+
+    functions: Dict[str, FunctionTypeInfo]  # Top-level function signatures
+    methods: Dict[
+        str, Dict[str, FunctionTypeInfo]
+    ]  # Class method signatures by class name
 
 
 # ============================================================================

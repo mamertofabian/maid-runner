@@ -1,0 +1,36 @@
+{
+  "goal": "Add missing type definitions to validators/types.py needed for type-hinting manifest_validator.py",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validators/types.py"],
+  "readonlyFiles": ["tests/test_task_007a_additional_type_definitions.py"],
+  "expectedArtifacts": {
+    "file": "validators/types.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "ValidationMode"
+      },
+      {
+        "type": "class",
+        "name": "ParameterInfo",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "FunctionTypeInfo",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "CollectorTypeInfo",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_007a_additional_type_definitions.py", "-v"]
+}
