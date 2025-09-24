@@ -1,0 +1,22 @@
+{
+  "goal": "Fix AST validator to detect module-level attributes like type aliases and constants",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": [
+    "tests/test_task_006a_validator_module_attributes.py",
+    "validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "description": "AST visitor that collects class, function, and attribute references including module-level attributes"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_006a_validator_module_attributes.py", "-v"]
+}

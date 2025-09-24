@@ -1,0 +1,56 @@
+{
+  "goal": "Create validators/types.py with comprehensive type definitions for the MAID validation system",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": ["validators/types.py"],
+  "editableFiles": [],
+  "readonlyFiles": ["tests/test_task_007_type_definitions_module.py"],
+  "expectedArtifacts": {
+    "file": "validators/types.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "ManifestData"
+      },
+      {
+        "type": "attribute",
+        "name": "FilePath"
+      },
+      {
+        "type": "attribute",
+        "name": "TestCommand"
+      },
+      {
+        "type": "class",
+        "name": "ValidationResult",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "ArtifactDict",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "ExpectedArtifacts",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "TypeMismatch",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "ImplementationArtifacts",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_007_type_definitions_module.py", "-v"]
+}

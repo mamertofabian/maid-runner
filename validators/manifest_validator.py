@@ -524,19 +524,26 @@ def _skip_spaces(text: str, start_idx: int) -> int:
 
 
 class _ArtifactCollector(ast.NodeVisitor):
-    """AST visitor that collects class and attribute references from Python code."""
+    """AST visitor that collects class, function, and attribute references from Python code.
+
+    Collects artifacts at different scopes:
+    - Module-level: stored with None as key in found_attributes
+    - Class-level: stored with class name as key in found_attributes
+    - Functions and methods: stored separately in found_functions/found_methods
+    """
 
     def __init__(self, validation_mode=_VALIDATION_MODE_IMPLEMENTATION):
         self.validation_mode = validation_mode  # _VALIDATION_MODE_IMPLEMENTATION or _VALIDATION_MODE_BEHAVIORAL
         self.found_classes = set()
         self.found_class_bases = {}  # class_name -> list of base class names
-        self.found_attributes = {}  # class_name -> set of attribute names
+        self.found_attributes = {}  # {class_name|None -> set of attribute names}
         self.variable_to_class = {}  # variable_name -> class_name
         self.found_functions = {}  # function_name -> list of parameter names
         self.found_methods = (
             {}
         )  # class_name -> {method_name -> list of parameter names}
-        self.current_class = None  # Track if we're inside a class definition
+        self.current_class = None  # Track current class scope
+        self.current_function = None  # Track current function scope
 
         # Type tracking for functions and methods
         self.found_function_types = (
@@ -565,71 +572,129 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node):
         """Collect imported class names from local modules only."""
-        if node.names:
-            # Check if this is importing from a local module (relative import or local package)
-            is_local = node.level > 0 or (
-                node.module
-                and not node.module.startswith(
-                    (
-                        "pathlib",
-                        "typing",
-                        "collections",
-                        "datetime",
-                        "json",
-                        "ast",
-                        "os",
-                        "sys",
-                        "re",
-                        "jsonschema",
-                    )
-                )
-            )
+        if not node.names:
+            self.generic_visit(node)
+            return
 
-            for alias in node.names:
-                # Classes typically start with uppercase
-                if alias.name and alias.name[0].isupper() and is_local:
-                    self.found_classes.add(alias.name)
-                # Don't track imported functions as they're external dependencies
+        # Determine if this is a local import
+        is_local = self._is_local_import(node)
+
+        # Process each imported name
+        for alias in node.names:
+            if is_local and self._is_class_name(alias.name):
+                self.found_classes.add(alias.name)
+
         self.generic_visit(node)
+
+    def _is_local_import(self, node):
+        """Check if an import is from a local module.
+
+        Args:
+            node: ImportFrom AST node
+
+        Returns:
+            True if this is a local import (relative or non-stdlib)
+        """
+        # Relative imports are always local
+        if node.level > 0:
+            return True
+
+        # Check if module is not from standard library
+        stdlib_modules = (
+            "pathlib",
+            "typing",
+            "collections",
+            "datetime",
+            "json",
+            "ast",
+            "os",
+            "sys",
+            "re",
+            "jsonschema",
+        )
+        return node.module and not node.module.startswith(stdlib_modules)
+
+    def _is_class_name(self, name):
+        """Check if a name follows class naming conventions.
+
+        Args:
+            name: String name to check
+
+        Returns:
+            True if name follows Python class naming conventions
+        """
+        if not name:
+            return False
+
+        # Standard class names start with uppercase
+        if name[0].isupper():
+            return True
+
+        # Private class names like _ClassName
+        if name.startswith("_") and len(name) > 1 and name[1].isupper():
+            return True
+
+        return False
 
     def visit_FunctionDef(self, node):
         """Collect function definitions and their parameters."""
+        # Extract function signature information
         param_names = [arg.arg for arg in node.args.args]
+        param_types = self._extract_parameter_types(node.args.args)
+        return_type = extract_type_annotation(node, "returns")
 
-        # Extract parameter types
+        # Store function/method information based on scope
+        if self.current_class is None:
+            self._store_function_info(node.name, param_names, param_types, return_type)
+        else:
+            self._store_method_info(node.name, param_names, param_types, return_type)
+
+        # Track function scope for nested definitions
+        old_function = self.current_function
+        self.current_function = node.name
+        self.generic_visit(node)
+        self.current_function = old_function
+
+    def _extract_parameter_types(self, args):
+        """Extract type information for function parameters.
+
+        Args:
+            args: List of ast.arg nodes
+
+        Returns:
+            List of parameter type information dictionaries
+        """
         param_types = []
-        for arg in node.args.args:
+        for arg in args:
             param_info = {
                 "name": arg.arg,
                 "type": extract_type_annotation(arg, "annotation"),
             }
             param_types.append(param_info)
+        return param_types
 
-        # Extract return type
-        return_type = extract_type_annotation(node, "returns")
+    def _store_function_info(self, name, param_names, param_types, return_type):
+        """Store information about a module-level function."""
+        self.found_functions[name] = param_names
+        self.found_function_types[name] = {
+            "parameters": param_types,
+            "returns": return_type,
+        }
 
-        if self.current_class is None:
-            # Module-level function
-            self.found_functions[node.name] = param_names
-            self.found_function_types[node.name] = {
-                "parameters": param_types,
-                "returns": return_type,
-            }
-        else:
-            # Method inside a class
-            if self.current_class not in self.found_methods:
-                self.found_methods[self.current_class] = {}
-            self.found_methods[self.current_class][node.name] = param_names
+    def _store_method_info(self, name, param_names, param_types, return_type):
+        """Store information about a class method."""
+        # Ensure dictionaries exist for this class
+        if self.current_class not in self.found_methods:
+            self.found_methods[self.current_class] = {}
+        if self.current_class not in self.found_method_types:
+            self.found_method_types[self.current_class] = {}
 
-            if self.current_class not in self.found_method_types:
-                self.found_method_types[self.current_class] = {}
-            self.found_method_types[self.current_class][node.name] = {
-                "parameters": param_types,
-                "returns": return_type,
-            }
-
-        # Continue visiting child nodes
-        self.generic_visit(node)
+        # Store method information
+        self.found_methods[self.current_class][name] = param_names
+        self.found_method_types[self.current_class][name] = {
+            "parameters": param_types,
+            "returns": return_type,
+        }
 
     def visit_ClassDef(self, node):
         """Collect class definitions and their base classes."""
@@ -668,45 +733,98 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.current_class = old_class
 
     def visit_Assign(self, node):
-        """Track variable assignments to class instances and self attributes."""
-        # Track self.attribute = value assignments inside classes
+        """Track variable assignments to class instances, self attributes, and module-level attributes."""
+        # Process based on current scope
         if self.current_class:
-            for target in node.targets:
-                if isinstance(target, ast.Attribute) and isinstance(
-                    target.value, ast.Name
-                ):
-                    if target.value.id == "self":
-                        # Track as an attribute of the current class
-                        if self.current_class not in self.found_attributes:
-                            self.found_attributes[self.current_class] = set()
-                        self.found_attributes[self.current_class].add(target.attr)
+            self._process_class_assignments(node)
+        elif not self.current_function:
+            self._process_module_assignments(node)
 
-        # Track variable assignments to class instances
-        if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
-            class_name = node.value.func.id
-
-            # Only track if this is a known class
-            if class_name in self.found_classes:
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        self.variable_to_class[target.id] = class_name
+        # Track variable-to-class mappings
+        self._track_class_instantiations(node)
 
         self.generic_visit(node)
 
+    def _process_class_assignments(self, node):
+        """Process assignments within a class scope (self.attribute = value)."""
+        for target in node.targets:
+            if self._is_self_attribute(target):
+                self._add_class_attribute(self.current_class, target.attr)
+
+    def _process_module_assignments(self, node):
+        """Process assignments at module level."""
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                # Simple name assignment (e.g., CONSTANT = 5)
+                self._add_module_attribute(target.id)
+            elif isinstance(target, ast.Tuple):
+                # Tuple unpacking (e.g., X, Y = 1, 2)
+                self._process_tuple_assignment(target)
+
+    def _process_tuple_assignment(self, target):
+        """Process tuple unpacking assignments."""
+        for element in target.elts:
+            if isinstance(element, ast.Name):
+                self._add_module_attribute(element.id)
+
+    def _track_class_instantiations(self, node):
+        """Track variable assignments to class instances."""
+        if not (
+            isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
+        ):
+            return
+
+        class_name = node.value.func.id
+        if class_name in self.found_classes:
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    self.variable_to_class[target.id] = class_name
+
+    def _is_self_attribute(self, target):
+        """Check if target is a self.attribute assignment."""
+        return (
+            isinstance(target, ast.Attribute)
+            and isinstance(target.value, ast.Name)
+            and target.value.id == "self"
+        )
+
+    def _add_class_attribute(self, class_name, attribute_name):
+        """Add an attribute to a class's attribute set."""
+        if class_name not in self.found_attributes:
+            self.found_attributes[class_name] = set()
+        self.found_attributes[class_name].add(attribute_name)
+
+    def _add_module_attribute(self, attribute_name):
+        """Add an attribute to module-level attributes."""
+        if None not in self.found_attributes:
+            self.found_attributes[None] = set()
+        self.found_attributes[None].add(attribute_name)
+
+    def visit_AnnAssign(self, node):
+        """Track annotated assignments including module-level type-annotated variables."""
+        # Only track module-level annotated assignments
+        if self._is_module_scope() and isinstance(node.target, ast.Name):
+            self._add_module_attribute(node.target.id)
+
+        self.generic_visit(node)
+
+    def _is_module_scope(self):
+        """Check if currently at module scope (not inside class or function)."""
+        return not self.current_class and not self.current_function
+
     def visit_Attribute(self, node):
         """Collect attribute accesses on class instances."""
-        if isinstance(node.value, ast.Name):
-            variable_name = node.value.id
-            attribute_name = node.attr
+        if not isinstance(node.value, ast.Name):
+            self.generic_visit(node)
+            return
 
-            # Map attribute to its class if we know the variable's type
-            if variable_name in self.variable_to_class:
-                class_name = self.variable_to_class[variable_name]
+        variable_name = node.value.id
+        attribute_name = node.attr
 
-                if class_name not in self.found_attributes:
-                    self.found_attributes[class_name] = set()
-
-                self.found_attributes[class_name].add(attribute_name)
+        # Map attribute to its class if we know the variable's type
+        if variable_name in self.variable_to_class:
+            class_name = self.variable_to_class[variable_name]
+            self._add_class_attribute(class_name, attribute_name)
 
         self.generic_visit(node)
 
@@ -733,7 +851,15 @@ class _ArtifactCollector(ast.NodeVisitor):
                     # e.g., UserService().get_user_by_id()
                     class_name = node.func.value.func.id
                     if class_name in self.found_classes or (
-                        class_name and class_name[0].isupper()
+                        class_name
+                        and (
+                            class_name[0].isupper()
+                            or (
+                                class_name.startswith("_")
+                                and len(class_name) > 1
+                                and class_name[1].isupper()
+                            )
+                        )
                     ):
                         if class_name not in self.used_methods:
                             self.used_methods[class_name] = set()
@@ -752,7 +878,15 @@ class _ArtifactCollector(ast.NodeVisitor):
 
                 # Check if it's a class instantiation
                 if func_name in self.found_classes or (
-                    func_name and func_name[0].isupper()
+                    func_name
+                    and (
+                        func_name[0].isupper()
+                        or (
+                            func_name.startswith("_")
+                            and len(func_name) > 1
+                            and func_name[1].isupper()
+                        )
+                    )
                 ):
                     self.used_classes.add(func_name)
                 else:

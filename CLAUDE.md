@@ -182,3 +182,76 @@ make format      # Auto-fix formatting issues
 - Manifest chain = source of truth for file state
 - Tests = contracts, not suggestions
 - Every change needs a manifest with sequential numbering
+
+## Lessons Learned: Handling Prerequisite Discovery
+
+### The Challenge (Task-007)
+When implementing Task-007 (Type Definitions Module), we discovered that the validator couldn't detect module-level attributes like type aliases (`ManifestData = Dict[str, Any]`). The `_ArtifactCollector` only tracked class attributes and function definitions, not module-level assignments.
+
+### The MAID-Compliant Solution
+
+**What NOT to do:**
+- ❌ Create workarounds in tests (artificial assertions)
+- ❌ Document limitations and continue
+- ❌ Modify the manifest to hide the problem
+
+**The Correct Approach:**
+1. **Stash Current Work**: `git stash` Task-007 implementation
+2. **Create Prerequisite Task**: Task-006a to fix the validator
+3. **Complete Prerequisite**: Full MAID workflow for Task-006a
+4. **Restore and Complete**: Task-007 now works cleanly
+
+### Task Numbering Strategy
+
+When discovering prerequisites mid-task, use alphabetic suffixes:
+- Task-006a, Task-006b, etc. for discovered prerequisites
+- Preserves original task numbers (Task-007 remains Task-007)
+- Maintains clean chronological ordering
+
+### Key Principle: No Partial Solutions
+
+**Every task must complete fully with all validations passing.** If validation fails, either:
+1. Fix the test (if test is wrong)
+2. Fix the implementation (if implementation is wrong)
+3. Fix the prerequisite (if system limitation discovered)
+
+Never leave a task partially complete or with failing validations.
+
+### The Pattern for Prerequisite Discovery
+
+```bash
+# 1. Discovery Phase
+> Implement Task-N
+> Run validation
+> ❌ Validation fails due to system limitation
+
+# 2. Stash and Fix Phase
+git stash push -m "Task-N implementation"
+> Create Task-(N-1)a: Fix the limitation
+> Complete Task-(N-1)a with full MAID workflow
+
+# 3. Restore and Complete Phase
+git stash pop
+> Run validation again
+> ✅ Validation passes
+> Task-N complete
+```
+
+### Benefits of This Approach
+
+1. **Clean History**: Each task in the chain is complete and valid
+2. **No Technical Debt**: No workarounds accumulate
+3. **Clear Dependencies**: Prerequisites are explicit in task ordering
+4. **Maintainability**: Future developers understand the progression
+
+### Example: Tasks 006a and 007
+
+- **Task-007**: Create type definitions module
+  - **Discovered**: Validator can't detect module-level attributes
+- **Task-006a**: Fix validator to detect module-level attributes
+  - **Implementation**: Enhanced `_ArtifactCollector.visit_Assign`
+  - **Result**: Module attributes stored under `found_attributes[None]`
+- **Task-007** (restored): Type definitions module
+  - **Result**: Now validates completely with fixed validator
+
+This pattern ensures every task contributes to a stronger, more capable system.
