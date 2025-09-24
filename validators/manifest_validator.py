@@ -1,6 +1,13 @@
+"""Manifest validator module for MAID framework.
+
+Provides validation of manifest files against schema and verification that
+code artifacts match their declarative specifications.
+"""
+
 import ast
 import json
 from pathlib import Path
+from typing import Optional, Any, List
 from jsonschema import validate
 
 
@@ -27,26 +34,59 @@ class AlignmentError(Exception):
     pass
 
 
-def extract_type_annotation(node: ast.AST, annotation_attr: str = "annotation") -> str:
+def extract_type_annotation(
+    node: ast.AST, annotation_attr: str = "annotation"
+) -> Optional[str]:
     """
     Extract type annotation string from an AST node.
+
+    This function extracts type annotations from various AST nodes,
+    typically from function arguments or return types.
 
     Args:
         node: AST node to extract type annotation from
         annotation_attr: Name of the attribute containing the annotation
+            (default: "annotation" for arguments, can be "returns" for functions)
 
     Returns:
         String representation of the type annotation, or None if not present
-    """
-    annotation = getattr(node, annotation_attr, None)
 
+    Raises:
+        AttributeError: If node is None (for backward compatibility)
+    """
+    # Validate inputs
+    _validate_extraction_inputs(node, annotation_attr)
+
+    # Extract annotation attribute
+    annotation = getattr(node, annotation_attr, None)
     if annotation is None:
         return None
 
+    # Convert AST annotation to string
     return _ast_to_type_string(annotation)
 
 
-def _ast_to_type_string(node):
+def _validate_extraction_inputs(node: Any, annotation_attr: str) -> None:
+    """Validate inputs for type annotation extraction.
+
+    Args:
+        node: Node to validate
+        annotation_attr: Attribute name to validate
+
+    Raises:
+        AttributeError: If node is None (for backward compatibility)
+    """
+    if node is None:
+        raise AttributeError("Cannot extract type annotation from None node")
+
+    if not isinstance(node, ast.AST):
+        return  # Will return None from main function
+
+    if not annotation_attr:
+        return  # Will return None from main function
+
+
+def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
     """
     Convert an AST node to a type string representation.
 
@@ -66,51 +106,131 @@ def _ast_to_type_string(node):
     if node is None:
         return None
 
-    if isinstance(node, ast.Name):
-        return node.id
+    # Use safe wrapper to handle any exceptions
+    return _safe_ast_conversion(node)
 
-    if isinstance(node, ast.Constant):
-        # Handle string constants (for forward references)
-        return str(node.value)
 
-    if isinstance(node, ast.Subscript):
-        # Handle generic types like List[str], Dict[str, int]
-        base = _ast_to_type_string(node.value)
+def _safe_ast_conversion(node: ast.AST) -> Optional[str]:
+    """Safely convert AST node to string with error handling.
 
-        # Handle the subscript part (what's inside the brackets)
-        if isinstance(node.slice, ast.Tuple):
-            # Multiple type arguments like Dict[str, int]
-            args = [_ast_to_type_string(elt) for elt in node.slice.elts]
-            return f"{base}[{', '.join(args)}]"
-        else:
-            # Single type argument like List[str]
-            arg = _ast_to_type_string(node.slice)
-            return f"{base}[{arg}]"
+    Args:
+        node: AST node to convert
 
-    if isinstance(node, ast.Attribute):
-        # Handle qualified names like typing.Optional
-        value = _ast_to_type_string(node.value)
-        return f"{value}.{node.attr}" if value else node.attr
+    Returns:
+        String representation or None if conversion fails
+    """
+    try:
+        # Dispatch based on node type
+        if isinstance(node, ast.Name):
+            return node.id
 
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
-        # Handle Union types using | operator (Python 3.10+)
-        left = _ast_to_type_string(node.left)
-        right = _ast_to_type_string(node.right)
-        return f"Union[{left}, {right}]"
+        if isinstance(node, ast.Constant):
+            return str(node.value)
 
-    if isinstance(node, ast.Ellipsis):
-        return "..."
+        if isinstance(node, ast.Subscript):
+            return _handle_subscript_node(node)
 
-    # Fallback: try to get the source representation
+        if isinstance(node, ast.Attribute):
+            return _handle_attribute_node(node)
+
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+            return _handle_union_operator(node)
+
+        if isinstance(node, ast.Ellipsis):
+            return "..."
+
+        # Fallback to AST unparsing if available
+        return _fallback_ast_unparse(node)
+
+    except Exception:
+        # Final safety net
+        return _safe_str_conversion(node)
+
+
+def _handle_subscript_node(node: ast.Subscript) -> str:
+    """Handle generic type subscript nodes like List[str], Dict[str, int].
+
+    Args:
+        node: Subscript AST node
+
+    Returns:
+        String representation of the generic type
+    """
+    base = _ast_to_type_string(node.value)
+
+    if isinstance(node.slice, ast.Tuple):
+        # Multiple type arguments like Dict[str, int]
+        args = [_ast_to_type_string(elt) for elt in node.slice.elts]
+        return f"{base}{_BRACKET_OPEN}{', '.join(args)}{_BRACKET_CLOSE}"
+    else:
+        # Single type argument like List[str]
+        arg = _ast_to_type_string(node.slice)
+        return f"{base}{_BRACKET_OPEN}{arg}{_BRACKET_CLOSE}"
+
+
+def _handle_attribute_node(node: ast.Attribute) -> str:
+    """Handle qualified name nodes like typing.Optional.
+
+    Args:
+        node: Attribute AST node
+
+    Returns:
+        String representation of the qualified name
+    """
+    value = _ast_to_type_string(node.value)
+    return f"{value}.{node.attr}" if value else node.attr
+
+
+def _handle_union_operator(node: ast.BinOp) -> str:
+    """Handle Union types using | operator (Python 3.10+).
+
+    Args:
+        node: BinOp AST node with BitOr operator
+
+    Returns:
+        String representation in Union[...] format
+    """
+    left = _ast_to_type_string(node.left)
+    right = _ast_to_type_string(node.right)
+    return f"{_UNION_PREFIX}{left}, {right}{_BRACKET_CLOSE}"
+
+
+def _fallback_ast_unparse(node: ast.AST) -> Optional[str]:
+    """Try to unparse AST node as fallback.
+
+    Args:
+        node: AST node to unparse
+
+    Returns:
+        Unparsed string or None if unparsing fails
+    """
     try:
         return ast.unparse(node)
     except (AttributeError, TypeError):
         return str(node)
 
 
+def _safe_str_conversion(node: Any) -> Optional[str]:
+    """Safely convert any object to string.
+
+    Args:
+        node: Object to convert
+
+    Returns:
+        String representation or None if conversion fails
+    """
+    try:
+        return str(node)
+    except Exception:
+        return None
+
+
 def compare_types(manifest_type: str, implementation_type: str) -> bool:
     """
     Compare two type strings for equivalence.
+
+    Handles various forms of type representations and normalizes them
+    before comparison to ensure semantic equivalence is detected.
 
     Args:
         manifest_type: Type string from manifest
@@ -119,48 +239,76 @@ def compare_types(manifest_type: str, implementation_type: str) -> bool:
     Returns:
         True if types are equivalent, False otherwise
     """
+    # Normalize inputs to strings or None
+    manifest_type = _normalize_type_input(manifest_type)
+    implementation_type = _normalize_type_input(implementation_type)
+
     # Handle None cases
     if manifest_type is None and implementation_type is None:
         return True
     if manifest_type is None or implementation_type is None:
         return False
 
-    # Normalize both types
+    # Normalize and compare
     norm_manifest = normalize_type_string(manifest_type)
     norm_impl = normalize_type_string(implementation_type)
 
     return norm_manifest == norm_impl
 
 
-# Type string constants
+def _normalize_type_input(type_value: Any) -> Optional[str]:
+    """Normalize a type input value to string or None.
+
+    Args:
+        type_value: Any value that represents a type
+
+    Returns:
+        String representation or None
+    """
+    if type_value is None:
+        return None
+    if isinstance(type_value, str):
+        return type_value
+    return str(type_value)
+
+
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+# Type string constants for parsing and normalization
 _OPTIONAL_PREFIX = "Optional["
 _UNION_PREFIX = "Union["
 _BRACKET_OPEN = "["
 _BRACKET_CLOSE = "]"
 _COMMA = ","
+_PIPE = "|"
+_SPACE = " "
+_NONE_TYPE = "None"
 
-# Artifact kind constants
-_ARTIFACT_KIND_TYPE = "type"
-_ARTIFACT_KIND_RUNTIME = "runtime"
-_TYPEDDICT_INDICATOR = "TypedDict"
+# Artifact kind constants - determines validation behavior
+_ARTIFACT_KIND_TYPE = "type"  # Compile-time only artifacts
+_ARTIFACT_KIND_RUNTIME = "runtime"  # Runtime behavioral artifacts
+_TYPEDDICT_INDICATOR = "TypedDict"  # Marker for TypedDict classes
 
-# Artifact type constants
+# Artifact type constants - categorization of code elements
 _ARTIFACT_TYPE_CLASS = "class"
 _ARTIFACT_TYPE_FUNCTION = "function"
 _ARTIFACT_TYPE_ATTRIBUTE = "attribute"
 
-# Validation mode constants
-_VALIDATION_MODE_BEHAVIORAL = "behavioral"
-_VALIDATION_MODE_IMPLEMENTATION = "implementation"
+# Validation mode constants - how validation is performed
+_VALIDATION_MODE_BEHAVIORAL = "behavioral"  # Test usage validation
+_VALIDATION_MODE_IMPLEMENTATION = "implementation"  # Code definition validation
 
 
-def normalize_type_string(type_str: str) -> str:
+def normalize_type_string(type_str: str) -> Optional[str]:
     """
     Normalize a type string for consistent comparison.
 
     Performs the following normalizations:
     - Removes extra whitespace
     - Converts Optional[X] to Union[X, None]
+    - Converts modern union syntax (X | Y) to Union[X, Y]
     - Sorts Union members alphabetically
     - Ensures consistent comma spacing in generic types
 
@@ -168,80 +316,171 @@ def normalize_type_string(type_str: str) -> str:
         type_str: Type string to normalize
 
     Returns:
-        Normalized type string
+        Normalized type string, or None if input is None
     """
     if type_str is None:
         return None
 
-    # Remove extra spaces
-    normalized = type_str.strip().replace(" ", "")
+    # Clean and prepare the string
+    type_str = type_str.strip()
+    if not type_str:
+        return type_str
 
-    # Convert Optional[X] to Union[X, None]
+    # Apply normalization pipeline
+    normalized = type_str.replace(_SPACE, "")  # Remove all spaces first
+    normalized = _normalize_modern_union_syntax(normalized)
     normalized = _normalize_optional_type(normalized)
-
-    # Handle Union types - sort members alphabetically
     normalized = _normalize_union_type(normalized)
+    normalized = _normalize_comma_spacing(normalized)
 
-    # Normalize spacing after commas in generic types
-    return _normalize_comma_spacing(normalized)
+    return normalized
+
+
+def _normalize_modern_union_syntax(type_str: str) -> str:
+    """Convert modern union syntax (X | Y) to Union[X, Y].
+
+    Args:
+        type_str: Type string that may contain pipe union operators
+
+    Returns:
+        Type string with Union[...] syntax instead of pipes
+    """
+    if _PIPE not in type_str:
+        return type_str
+
+    # Split by pipe at top level only (respecting bracket nesting)
+    parts = _split_by_delimiter(type_str, _PIPE)
+
+    # Convert to Union syntax if multiple parts found
+    if len(parts) > 1:
+        return f"{_UNION_PREFIX}{_COMMA.join(parts)}{_BRACKET_CLOSE}"
+
+    return type_str
 
 
 def _normalize_optional_type(type_str: str) -> str:
-    """Convert Optional[X] to Union[X, None]."""
-    if not (
-        type_str.startswith(_OPTIONAL_PREFIX) and type_str.endswith(_BRACKET_CLOSE)
-    ):
+    """Convert Optional[X] to Union[X, None].
+
+    Args:
+        type_str: Type string that may contain Optional[...]
+
+    Returns:
+        Type string with Union[X, None] instead of Optional[X]
+    """
+    if not _is_optional_type(type_str):
         return type_str
 
-    optional_len = len(_OPTIONAL_PREFIX)
-    inner_type = type_str[optional_len:-1]
-    return f"Union[{inner_type},None]"
+    inner_type = _extract_bracketed_content(type_str, _OPTIONAL_PREFIX)
+    return f"{_UNION_PREFIX}{inner_type},{_NONE_TYPE}{_BRACKET_CLOSE}"
+
+
+def _is_optional_type(type_str: str) -> bool:
+    """Check if a type string represents Optional[...] type."""
+    return type_str.startswith(_OPTIONAL_PREFIX) and type_str.endswith(_BRACKET_CLOSE)
+
+
+def _extract_bracketed_content(type_str: str, prefix: str) -> str:
+    """Extract content between prefix and closing bracket.
+
+    Args:
+        type_str: Full type string
+        prefix: Prefix to remove (e.g., 'Optional[', 'Union[')
+
+    Returns:
+        Content between prefix and closing bracket
+    """
+    return type_str[len(prefix) : -1]
 
 
 def _normalize_union_type(type_str: str) -> str:
-    """Sort Union type members alphabetically."""
-    if not (type_str.startswith(_UNION_PREFIX) and type_str.endswith(_BRACKET_CLOSE)):
+    """Sort Union type members alphabetically.
+
+    Args:
+        type_str: Type string that may contain Union[...]
+
+    Returns:
+        Type string with Union members sorted alphabetically
+    """
+    if not _is_union_type(type_str):
         return type_str
 
-    union_len = len(_UNION_PREFIX)
-    inner = type_str[union_len:-1]
-
-    # Split by comma, handling nested types
+    inner = _extract_bracketed_content(type_str, _UNION_PREFIX)
     members = _split_type_arguments(inner)
     members.sort()
-    return f"Union[{','.join(members)}]"
+    return f"{_UNION_PREFIX}{_COMMA.join(members)}{_BRACKET_CLOSE}"
+
+
+def _is_union_type(type_str: str) -> bool:
+    """Check if a type string represents Union[...] type."""
+    return type_str.startswith(_UNION_PREFIX) and type_str.endswith(_BRACKET_CLOSE)
 
 
 def _split_type_arguments(inner: str) -> list:
-    """Split type arguments by comma, respecting nested brackets."""
-    members = []
+    """Split type arguments by comma, respecting nested brackets.
+
+    Args:
+        inner: String containing comma-separated type arguments
+
+    Returns:
+        List of individual type argument strings
+    """
+    return _split_by_delimiter(inner, _COMMA)
+
+
+def _split_by_delimiter(text: str, delimiter: str) -> list:
+    """Split text by delimiter at top level, respecting bracket nesting.
+
+    This utility function handles splitting strings that contain nested
+    brackets, ensuring we only split at the top level.
+
+    Args:
+        text: String to split
+        delimiter: Character(s) to split by
+
+    Returns:
+        List of split parts with whitespace trimmed
+    """
+    if not text:
+        return []
+
+    parts = []
     current = ""
     bracket_depth = 0
 
-    for char in inner:
+    for char in text:
         if char == _BRACKET_OPEN:
             bracket_depth += 1
         elif char == _BRACKET_CLOSE:
             bracket_depth -= 1
-        elif char == _COMMA and bracket_depth == 0:
-            members.append(current.strip())
+        elif char == delimiter and bracket_depth == 0:
+            parts.append(current.strip())
             current = ""
             continue
 
         current += char
 
     if current:
-        members.append(current.strip())
+        parts.append(current.strip())
 
-    return members
+    return parts
 
 
 def _normalize_comma_spacing(type_str: str) -> str:
+    """Normalize spacing after commas in generic types.
+
+    Ensures consistent formatting like Dict[str, int] instead of
+    Dict[str,int] or Dict[str,  int].
+
+    Args:
+        type_str: Type string to normalize
+
+    Returns:
+        Type string with normalized comma spacing
     """
-    Normalize spacing after commas in generic types.
-    This handles Dict[str,int] vs Dict[str, int].
-    """
-    result = ""
+    if _COMMA not in type_str:
+        return type_str
+
+    result = []
     bracket_depth = 0
     i = 0
 
@@ -250,24 +489,38 @@ def _normalize_comma_spacing(type_str: str) -> str:
 
         if char == _BRACKET_OPEN:
             bracket_depth += 1
-            result += char
+            result.append(char)
         elif char == _BRACKET_CLOSE:
             bracket_depth -= 1
-            result += char
+            result.append(char)
         elif char == _COMMA and bracket_depth > 0:
-            # Add comma with consistent spacing
-            result += ", "
-            # Skip any spaces after the comma in the original
-            i += 1
-            while i < len(type_str) and type_str[i] == " ":
-                i += 1
-            i -= 1  # Back up one since the loop will increment
+            # Add comma with single space
+            result.append(_COMMA)
+            result.append(_SPACE)
+            # Skip any following spaces
+            i = _skip_spaces(type_str, i + 1) - 1
         else:
-            result += char
+            result.append(char)
 
         i += 1
 
-    return result
+    return "".join(result)
+
+
+def _skip_spaces(text: str, start_idx: int) -> int:
+    """Skip whitespace characters starting from given index.
+
+    Args:
+        text: String to process
+        start_idx: Starting index
+
+    Returns:
+        Index of first non-space character or end of string
+    """
+    idx = start_idx
+    while idx < len(text) and text[idx] == _SPACE:
+        idx += 1
+    return idx
 
 
 class _ArtifactCollector(ast.NodeVisitor):
@@ -633,39 +886,91 @@ def validate_with_ast(
     Raises:
         AlignmentError: If any expected artifact is not found in the code
     """
-    # Parse the test file into an AST
-    with open(test_file_path, "r") as f:
-        test_code = f.read()
+    # Parse and collect artifacts from the code
+    tree = _parse_file(test_file_path)
+    validation_mode = validation_mode or _VALIDATION_MODE_IMPLEMENTATION
+    collector = _collect_artifacts_from_ast(tree, validation_mode)
 
-    tree = ast.parse(test_code)
+    # Get expected artifacts
+    expected_items = _get_expected_artifacts(
+        manifest_data, test_file_path, use_manifest_chain
+    )
 
-    # Auto-detect validation mode if not specified
-    if validation_mode is None:
-        # Default to implementation mode
-        # Behavioral mode should be explicitly requested for now
-        # This ensures backward compatibility with existing tests
-        validation_mode = _VALIDATION_MODE_IMPLEMENTATION
+    # Validate all expected artifacts
+    _validate_all_artifacts(expected_items, collector, validation_mode)
 
-    # Collect artifacts from the test code
+    # Check for unexpected public artifacts (strict mode)
+    _check_unexpected_artifacts(expected_items, collector)
+
+
+def _parse_file(file_path: str) -> ast.AST:
+    """Parse a Python file into an AST.
+
+    Args:
+        file_path: Path to the Python file
+
+    Returns:
+        Parsed AST tree
+    """
+    with open(file_path, "r") as f:
+        code = f.read()
+    return ast.parse(code)
+
+
+def _collect_artifacts_from_ast(
+    tree: ast.AST, validation_mode: str
+) -> "_ArtifactCollector":
+    """Collect artifacts from an AST tree.
+
+    Args:
+        tree: Parsed AST tree
+        validation_mode: Mode for validation
+
+    Returns:
+        Collector with discovered artifacts
+    """
     collector = _ArtifactCollector(validation_mode=validation_mode)
     collector.visit(tree)
+    return collector
 
-    # Determine expected artifacts based on mode
+
+def _get_expected_artifacts(
+    manifest_data: dict, test_file_path: str, use_manifest_chain: bool
+) -> List[dict]:
+    """Get expected artifacts from manifest(s).
+
+    Args:
+        manifest_data: Manifest data dictionary
+        test_file_path: Path to file being validated
+        use_manifest_chain: Whether to use manifest chain
+
+    Returns:
+        List of expected artifact definitions
+    """
     if use_manifest_chain:
-        # Discover all manifests that touched this file
         target_file = manifest_data.get("expectedArtifacts", {}).get(
             "file", test_file_path
         )
         related_manifests = _discover_related_manifests(target_file)
-
-        # Merge artifacts from all related manifests
-        expected_items = _merge_expected_artifacts(related_manifests)
+        return _merge_expected_artifacts(related_manifests)
     else:
-        # Use single manifest mode (current behavior)
         expected_artifacts = manifest_data.get("expectedArtifacts", {})
-        expected_items = expected_artifacts.get("contains", [])
+        return expected_artifacts.get("contains", [])
 
-    # Validate each expected artifact exists
+
+def _validate_all_artifacts(
+    expected_items: List[dict], collector: "_ArtifactCollector", validation_mode: str
+) -> None:
+    """Validate all expected artifacts exist in the code.
+
+    Args:
+        expected_items: List of expected artifacts
+        collector: Artifact collector with discovered artifacts
+        validation_mode: Validation mode
+
+    Raises:
+        AlignmentError: If any expected artifact is not found
+    """
     for artifact in expected_items:
         # Skip type-only artifacts in behavioral validation
         if (
@@ -674,126 +979,203 @@ def validate_with_ast(
         ):
             continue
 
-        artifact_type = artifact.get("type")
-        artifact_name = artifact.get("name")
+        _validate_single_artifact(artifact, collector, validation_mode)
 
-        if artifact_type == _ARTIFACT_TYPE_CLASS:
-            expected_bases = artifact.get("bases", [])
-            if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
-                # In behavioral mode, check if class was used
-                if artifact_name not in collector.used_classes:
-                    raise AlignmentError(
-                        f"Class '{artifact_name}' not used in behavioral test"
-                    )
-                # Note: Base class validation doesn't apply to usage
-            else:
-                # In implementation mode, check definitions
-                _validate_class(
-                    artifact_name,
-                    expected_bases,
-                    collector.found_classes,
-                    collector.found_class_bases,
-                )
 
-        elif artifact_type == _ARTIFACT_TYPE_ATTRIBUTE:
-            parent_class = artifact.get("class")
-            _validate_attribute(artifact_name, parent_class, collector.found_attributes)
+def _check_unexpected_artifacts(
+    expected_items: List[dict], collector: "_ArtifactCollector"
+) -> None:
+    """Check for unexpected public artifacts in strict mode.
 
-        elif artifact_type == _ARTIFACT_TYPE_FUNCTION:
-            parameters = artifact.get("parameters", [])
-            parent_class = artifact.get("class")
+    Args:
+        expected_items: List of expected artifacts
+        collector: Artifact collector with discovered artifacts
 
-            if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
-                # In behavioral mode, check if function/method was called
-                if parent_class:
-                    # It's a method
-                    if parent_class in collector.used_methods:
-                        if artifact_name not in collector.used_methods[parent_class]:
-                            raise AlignmentError(
-                                f"Method '{artifact_name}' not called on class '{parent_class}'"
-                            )
-                    else:
-                        raise AlignmentError(
-                            f"Class '{parent_class}' not used or method '{artifact_name}' not called"
-                        )
-                else:
-                    # It's a standalone function
-                    if artifact_name not in collector.used_functions:
-                        raise AlignmentError(
-                            f"Function '{artifact_name}' not called in behavioral test"
-                        )
-
-                # Validate parameters were used
-                if parameters:
-                    # If we have positional arguments, we can't reliably check parameter names
-                    # Only check keyword arguments
-                    for param in parameters:
-                        param_name = param.get("name")
-                        if param_name:
-                            # Check if this specific parameter was used as a keyword argument
-                            # We skip checking if positional args were used since we can't map them
-                            if "__positional__" not in collector.used_arguments:
-                                if param_name not in collector.used_arguments:
-                                    raise AlignmentError(
-                                        f"Parameter '{param_name}' not used in call to '{artifact_name}'"
-                                    )
-
-                # Validate return type if specified
-                returns = artifact.get("returns")
-                if returns and returns not in collector.used_classes:
-                    # Return type should be validated via isinstance or type annotation
-                    raise AlignmentError(
-                        f"Return type '{returns}' not validated for '{artifact_name}'"
-                    )
-            else:
-                # In implementation mode, check definitions
-                if parent_class:
-                    # It's a method - check in found_methods
-                    if parent_class not in collector.found_methods:
-                        raise AlignmentError(
-                            f"Class '{parent_class}' not found for method '{artifact_name}'"
-                        )
-                    if artifact_name not in collector.found_methods[parent_class]:
-                        raise AlignmentError(
-                            f"Method '{artifact_name}' not found in class '{parent_class}'"
-                        )
-
-                    # Validate parameters if specified
-                    if parameters:
-                        actual_parameters = collector.found_methods[parent_class][
-                            artifact_name
-                        ]
-                        # Skip 'self' parameter for methods
-                        if "self" in actual_parameters:
-                            actual_parameters = [
-                                p for p in actual_parameters if p != "self"
-                            ]
-
-                        expected_param_names = [p["name"] for p in parameters]
-
-                        # Check all expected parameters are present
-                        for param_name in expected_param_names:
-                            if param_name not in actual_parameters:
-                                raise AlignmentError(
-                                    f"Parameter '{param_name}' not found in method '{artifact_name}'"
-                                )
-                else:
-                    # It's a standalone function
-                    _validate_function(
-                        artifact_name, parameters, collector.found_functions
-                    )
-
-    # Check for unexpected public artifacts (strict mode)
-    # Only validate if we're checking an implementation file (not a test file)
-    # Skip strict validation for test files (files with test functions)
+    Raises:
+        AlignmentError: If unexpected public artifacts are found
+    """
+    # Skip strict validation for test files
     is_test_file = any(func.startswith("test_") for func in collector.found_functions)
 
-    if (
-        expected_items and not is_test_file
-    ):  # Only enforce for non-test files with expectations
+    if expected_items and not is_test_file:
         _validate_no_unexpected_artifacts(
             expected_items, collector.found_classes, collector.found_functions
         )
+
+
+def _validate_single_artifact(
+    artifact: dict, collector: "_ArtifactCollector", validation_mode: str
+) -> None:
+    """Validate a single artifact.
+
+    Args:
+        artifact: Artifact definition
+        collector: Artifact collector
+        validation_mode: Validation mode
+
+    Raises:
+        AlignmentError: If artifact is not found or invalid
+    """
+    artifact_type = artifact.get("type")
+    artifact_name = artifact.get("name")
+
+    if artifact_type == _ARTIFACT_TYPE_CLASS:
+        expected_bases = artifact.get("bases", [])
+        if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+            # In behavioral mode, check if class was used
+            if artifact_name not in collector.used_classes:
+                raise AlignmentError(
+                    f"Class '{artifact_name}' not used in behavioral test"
+                )
+        else:
+            # In implementation mode, check definitions
+            _validate_class(
+                artifact_name,
+                expected_bases,
+                collector.found_classes,
+                collector.found_class_bases,
+            )
+
+    elif artifact_type == _ARTIFACT_TYPE_ATTRIBUTE:
+        parent_class = artifact.get("class")
+        _validate_attribute(artifact_name, parent_class, collector.found_attributes)
+
+    elif artifact_type == _ARTIFACT_TYPE_FUNCTION:
+        _validate_function_artifact(artifact, collector, validation_mode)
+
+
+def _validate_function_artifact(
+    artifact: dict, collector: "_ArtifactCollector", validation_mode: str
+) -> None:
+    """Validate a function or method artifact.
+
+    Args:
+        artifact: Function/method artifact definition
+        collector: Artifact collector
+        validation_mode: Validation mode
+
+    Raises:
+        AlignmentError: If function/method is not found or invalid
+    """
+    artifact_name = artifact.get("name")
+    parameters = artifact.get("parameters", [])
+    parent_class = artifact.get("class")
+
+    if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+        _validate_function_behavioral(
+            artifact_name, parameters, parent_class, artifact, collector
+        )
+    else:
+        _validate_function_implementation(
+            artifact_name, parameters, parent_class, collector
+        )
+
+
+def _validate_function_behavioral(
+    artifact_name: str,
+    parameters: List[dict],
+    parent_class: Optional[str],
+    artifact: dict,
+    collector: "_ArtifactCollector",
+) -> None:
+    """Validate function/method in behavioral mode."""
+    if parent_class:
+        # It's a method
+        if parent_class not in collector.used_methods:
+            raise AlignmentError(
+                f"Class '{parent_class}' not used or method '{artifact_name}' not called"
+            )
+        if artifact_name not in collector.used_methods[parent_class]:
+            raise AlignmentError(
+                f"Method '{artifact_name}' not called on class '{parent_class}'"
+            )
+    else:
+        # It's a standalone function
+        if artifact_name not in collector.used_functions:
+            raise AlignmentError(
+                f"Function '{artifact_name}' not called in behavioral test"
+            )
+
+    # Validate parameters were used
+    _validate_parameters_used(parameters, artifact_name, collector)
+
+    # Validate return type if specified
+    returns = artifact.get("returns")
+    if returns and returns not in collector.used_classes:
+        raise AlignmentError(
+            f"Return type '{returns}' not validated for '{artifact_name}'"
+        )
+
+
+def _validate_parameters_used(
+    parameters: List[dict], artifact_name: str, collector: "_ArtifactCollector"
+) -> None:
+    """Validate parameters were used in function calls."""
+    if not parameters:
+        return
+
+    # If we have positional arguments, we can't reliably check parameter names
+    # Only check keyword arguments
+    for param in parameters:
+        param_name = param.get("name")
+        if param_name:
+            # Skip checking if positional args were used
+            if "__positional__" not in collector.used_arguments:
+                if param_name not in collector.used_arguments:
+                    raise AlignmentError(
+                        f"Parameter '{param_name}' not used in call to '{artifact_name}'"
+                    )
+
+
+def _validate_function_implementation(
+    artifact_name: str,
+    parameters: List[dict],
+    parent_class: Optional[str],
+    collector: "_ArtifactCollector",
+) -> None:
+    """Validate function/method in implementation mode."""
+    if parent_class:
+        # It's a method
+        if parent_class not in collector.found_methods:
+            raise AlignmentError(
+                f"Class '{parent_class}' not found for method '{artifact_name}'"
+            )
+        if artifact_name not in collector.found_methods[parent_class]:
+            raise AlignmentError(
+                f"Method '{artifact_name}' not found in class '{parent_class}'"
+            )
+
+        # Validate method parameters
+        if parameters:
+            _validate_method_parameters(
+                artifact_name, parameters, parent_class, collector
+            )
+    else:
+        # It's a standalone function
+        _validate_function(artifact_name, parameters, collector.found_functions)
+
+
+def _validate_method_parameters(
+    method_name: str,
+    parameters: List[dict],
+    class_name: str,
+    collector: "_ArtifactCollector",
+) -> None:
+    """Validate method parameters match expectations."""
+    actual_parameters = collector.found_methods[class_name][method_name]
+
+    # Skip 'self' parameter for methods
+    if "self" in actual_parameters:
+        actual_parameters = [p for p in actual_parameters if p != "self"]
+
+    expected_param_names = [p["name"] for p in parameters]
+
+    # Check all expected parameters are present
+    for param_name in expected_param_names:
+        if param_name not in actual_parameters:
+            raise AlignmentError(
+                f"Parameter '{param_name}' not found in method '{method_name}'"
+            )
 
 
 def _validate_class(class_name, expected_bases, found_classes, found_class_bases):
@@ -888,6 +1270,10 @@ def validate_type_hints(
     """
     Validate that implementation type hints match manifest type declarations.
 
+    This is the main entry point for type validation, checking that all
+    function and method type annotations in the implementation match
+    what was declared in the manifest.
+
     Args:
         manifest_artifacts: Dictionary containing the manifest with expectedArtifacts
         implementation_artifacts: Dictionary with implementation type information
@@ -895,38 +1281,97 @@ def validate_type_hints(
     Returns:
         List of error messages for type mismatches
     """
-    errors = []
+    # Validate inputs
+    if not _are_valid_type_validation_inputs(
+        manifest_artifacts, implementation_artifacts
+    ):
+        return []
+
     expected_items = manifest_artifacts.get("contains", [])
+    if not isinstance(expected_items, list):
+        return []
+
+    # Collect all type validation errors
+    errors = []
 
     for artifact in expected_items:
-        if artifact.get("type") != _ARTIFACT_TYPE_FUNCTION:
+        if not _should_validate_artifact_types(artifact):
             continue
 
-        artifact_errors = _validate_function_types(artifact, implementation_artifacts)
-        errors.extend(artifact_errors)
+        errors.extend(_validate_function_types(artifact, implementation_artifacts))
 
     return errors
 
 
+def _are_valid_type_validation_inputs(
+    manifest_artifacts: Any, implementation_artifacts: Any
+) -> bool:
+    """Check if inputs are valid for type validation.
+
+    Args:
+        manifest_artifacts: Potentially a dict with manifest data
+        implementation_artifacts: Potentially a dict with implementation data
+
+    Returns:
+        True if both inputs are valid dictionaries
+    """
+    return (
+        manifest_artifacts is not None
+        and isinstance(manifest_artifacts, dict)
+        and implementation_artifacts is not None
+        and isinstance(implementation_artifacts, dict)
+    )
+
+
+def _should_validate_artifact_types(artifact: Any) -> bool:
+    """Check if an artifact should have its types validated.
+
+    Args:
+        artifact: Artifact definition from manifest
+
+    Returns:
+        True if artifact is a function/method that should be validated
+    """
+    return (
+        isinstance(artifact, dict) and artifact.get("type") == _ARTIFACT_TYPE_FUNCTION
+    )
+
+
 def _validate_function_types(artifact: dict, implementation_artifacts: dict) -> list:
-    """Validate type hints for a single function or method artifact."""
-    errors = []
+    """Validate type hints for a single function or method artifact.
+
+    Args:
+        artifact: Manifest artifact definition
+        implementation_artifacts: Collected implementation type information
+
+    Returns:
+        List of validation error messages
+    """
+    # Early return for invalid inputs
+    if not isinstance(artifact, dict):
+        return []
+
     artifact_name = artifact.get("name")
+    if not artifact_name:
+        return []
+
     parent_class = artifact.get("class")
 
-    # Get implementation info based on whether it's a method or function
+    # Get implementation info
     impl_info = _get_implementation_info(
         artifact_name, parent_class, implementation_artifacts
     )
 
     if not impl_info:
-        return errors  # No implementation found to validate
+        return []  # No implementation to validate against
 
-    # Validate parameter types
-    param_errors = _validate_parameter_types(
-        artifact, impl_info, artifact_name, parent_class
+    # Collect all validation errors
+    errors = []
+
+    # Validate parameters
+    errors.extend(
+        _validate_parameter_types(artifact, impl_info, artifact_name, parent_class)
     )
-    errors.extend(param_errors)
 
     # Validate return type
     return_error = _validate_return_type(
@@ -939,65 +1384,166 @@ def _validate_function_types(artifact: dict, implementation_artifacts: dict) -> 
 
 
 def _get_implementation_info(
-    artifact_name: str, parent_class: str, implementation_artifacts: dict
-) -> dict:
-    """Get implementation info for a function or method."""
-    if parent_class:
-        # It's a method
-        methods = implementation_artifacts.get("methods", {})
-        if parent_class in methods:
-            return methods[parent_class].get(artifact_name, {})
-    else:
-        # It's a standalone function
-        functions = implementation_artifacts.get("functions", {})
-        return functions.get(artifact_name, {})
+    artifact_name: str, parent_class: Optional[str], implementation_artifacts: dict
+) -> Optional[dict]:
+    """Get implementation info for a function or method.
 
-    return None
+    Args:
+        artifact_name: Name of the function or method
+        parent_class: Parent class name if method, None if function
+        implementation_artifacts: Collected implementation information
+
+    Returns:
+        Dictionary with type information, or None if not found
+    """
+    if not isinstance(implementation_artifacts, dict):
+        return None
+
+    if parent_class:
+        return _get_method_info(artifact_name, parent_class, implementation_artifacts)
+    else:
+        return _get_function_info(artifact_name, implementation_artifacts)
+
+
+def _get_method_info(
+    method_name: str, class_name: str, implementation_artifacts: dict
+) -> Optional[dict]:
+    """Get implementation info for a method.
+
+    Args:
+        method_name: Name of the method
+        class_name: Name of the parent class
+        implementation_artifacts: Collected implementation information
+
+    Returns:
+        Dictionary with method type information, or None if not found
+    """
+    methods = implementation_artifacts.get("methods", {})
+    if not isinstance(methods, dict):
+        return None
+
+    class_methods = methods.get(class_name)
+    if not isinstance(class_methods, dict):
+        return None
+
+    return class_methods.get(method_name, {})
+
+
+def _get_function_info(
+    function_name: str, implementation_artifacts: dict
+) -> Optional[dict]:
+    """Get implementation info for a standalone function.
+
+    Args:
+        function_name: Name of the function
+        implementation_artifacts: Collected implementation information
+
+    Returns:
+        Dictionary with function type information, or None if not found
+    """
+    functions = implementation_artifacts.get("functions", {})
+    if not isinstance(functions, dict):
+        return None
+
+    func_info = functions.get(function_name, {})
+    if not isinstance(func_info, dict):
+        return None
+
+    return func_info
 
 
 def _validate_parameter_types(
     artifact: dict, impl_info: dict, artifact_name: str, parent_class: str
 ) -> list:
-    """Validate parameter types match between manifest and implementation."""
+    """Validate parameter types match between manifest and implementation.
+
+    Args:
+        artifact: Manifest artifact definition
+        impl_info: Implementation type information
+        artifact_name: Name of the function/method
+        parent_class: Parent class name if method, None if function
+
+    Returns:
+        List of validation error messages
+    """
     errors = []
     manifest_params = artifact.get("parameters", [])
     impl_params = impl_info.get("parameters", [])
+
+    # Create lookup for implementation parameters
+    impl_params_dict = {p.get("name"): p for p in impl_params}
 
     for manifest_param in manifest_params:
         param_name = manifest_param.get("name")
         manifest_type = manifest_param.get("type")
 
         if not manifest_type:
-            continue  # No type specified in manifest, nothing to validate
+            continue  # No type to validate
 
-        # Find matching parameter in implementation
-        impl_param = next((p for p in impl_params if p.get("name") == param_name), None)
-
-        if not impl_param:
-            entity_type = "method" if parent_class else "function"
-            errors.append(
-                f"Missing type annotation for parameter '{param_name}' "
-                f"in {entity_type} '{artifact_name}'"
-            )
-        else:
-            impl_type = impl_param.get("type")
-            if not compare_types(manifest_type, impl_type):
-                entity_type = "method" if parent_class else "function"
-                errors.append(
-                    f"Type mismatch for parameter '{param_name}' in {entity_type} "
-                    f"'{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
-                )
+        error = _validate_single_parameter(
+            param_name, manifest_type, impl_params_dict, artifact_name, parent_class
+        )
+        if error:
+            errors.append(error)
 
     return errors
 
 
+def _validate_single_parameter(
+    param_name: str,
+    manifest_type: str,
+    impl_params_dict: dict,
+    artifact_name: str,
+    parent_class: Optional[str],
+) -> Optional[str]:
+    """Validate a single parameter's type annotation.
+
+    Args:
+        param_name: Parameter name
+        manifest_type: Expected type from manifest
+        impl_params_dict: Implementation parameters by name
+        artifact_name: Function/method name
+        parent_class: Parent class or None
+
+    Returns:
+        Error message if validation fails, None otherwise
+    """
+    entity_type = "method" if parent_class else "function"
+
+    impl_param = impl_params_dict.get(param_name)
+    if not impl_param:
+        return (
+            f"Missing type annotation for parameter '{param_name}' "
+            f"in {entity_type} '{artifact_name}'"
+        )
+
+    impl_type = impl_param.get("type")
+    if not compare_types(manifest_type, impl_type):
+        return (
+            f"Type mismatch for parameter '{param_name}' in {entity_type} "
+            f"'{artifact_name}': expected '{manifest_type}', got '{impl_type}'"
+        )
+
+    return None
+
+
 def _validate_return_type(
-    artifact: dict, impl_info: dict, artifact_name: str, parent_class: str
-) -> str:
-    """Validate return type matches between manifest and implementation."""
+    artifact: dict, impl_info: dict, artifact_name: str, parent_class: Optional[str]
+) -> Optional[str]:
+    """Validate return type matches between manifest and implementation.
+
+    Args:
+        artifact: Manifest artifact definition
+        impl_info: Implementation type information
+        artifact_name: Name of the function/method
+        parent_class: Parent class name if method, None if function
+
+    Returns:
+        Error message if validation fails, None otherwise
+    """
     manifest_return = artifact.get("returns")
     if not manifest_return:
-        return None  # No return type specified in manifest
+        return None
 
     impl_return = impl_info.get("returns")
     if not compare_types(manifest_return, impl_return):
@@ -1014,13 +1560,16 @@ def _is_typeddict_class(artifact: dict) -> bool:
     """
     Check if an artifact represents a TypedDict class.
 
+    TypedDict classes are special type-only constructs that don't
+    have runtime behavior and should be skipped during behavioral
+    validation.
+
     Args:
         artifact: Dictionary containing artifact metadata
 
     Returns:
-        bool: True if artifact is a TypedDict class, False otherwise
+        True if artifact is a TypedDict class, False otherwise
     """
-    # Guard clauses for early exit
     if artifact.get("type") != _ARTIFACT_TYPE_CLASS:
         return False
 
@@ -1028,15 +1577,23 @@ def _is_typeddict_class(artifact: dict) -> bool:
     if not bases:
         return False
 
-    # Check each base class for TypedDict indicator
-    return any(
-        base and _TYPEDDICT_INDICATOR in base
-        for base in bases
-        if base  # Guard against None/empty base names
-    )
+    # Check if any base class indicates TypedDict
+    return any(_is_typeddict_base(base) for base in bases if base)
 
 
-def should_skip_behavioral_validation(artifact) -> bool:
+def _is_typeddict_base(base_name: str) -> bool:
+    """Check if a base class name indicates TypedDict.
+
+    Args:
+        base_name: Name of the base class
+
+    Returns:
+        True if base class is TypedDict
+    """
+    return base_name and _TYPEDDICT_INDICATOR in base_name
+
+
+def should_skip_behavioral_validation(artifact: Any) -> bool:
     """
     Determine if an artifact should be skipped during behavioral validation.
 
@@ -1048,31 +1605,41 @@ def should_skip_behavioral_validation(artifact) -> bool:
         artifact: Dictionary containing artifact metadata
 
     Returns:
-        bool: True if artifact should be skipped, False if it should be validated
+        True if artifact should be skipped, False if it should be validated
     """
-    # Handle None or empty artifact gracefully
     if not artifact:
         return False
 
-    # Check explicit artifactKind field first
+    # Check explicit artifact kind first
+    skip_by_kind = _should_skip_by_artifact_kind(artifact)
+    if skip_by_kind is not None:
+        return skip_by_kind
+
+    # Auto-detect type-only patterns
+    if _is_typeddict_class(artifact):
+        return True
+
+    # Default to runtime validation
+    return False
+
+
+def _should_skip_by_artifact_kind(artifact: dict) -> Optional[bool]:
+    """Check if artifact kind explicitly indicates skip behavior.
+
+    Args:
+        artifact: Artifact metadata dictionary
+
+    Returns:
+        True to skip, False to validate, None if not explicitly specified
+    """
     artifact_kind = artifact.get("artifactKind")
 
-    # Handle explicit artifact kinds
     if artifact_kind == _ARTIFACT_KIND_TYPE:
         return True
     elif artifact_kind == _ARTIFACT_KIND_RUNTIME:
         return False
-    elif artifact_kind is not None and artifact_kind not in [
-        _ARTIFACT_KIND_TYPE,
-        _ARTIFACT_KIND_RUNTIME,
-    ]:
-        # Invalid artifactKind values default to runtime (don't skip)
+    elif artifact_kind is not None:
+        # Invalid values default to runtime (validate)
         return False
 
-    # Auto-detect TypedDict classes as type-only (when no explicit artifact kind)
-    if _is_typeddict_class(artifact):
-        # Note: If we reach here, artifact_kind is None (no explicit override)
-        return True
-
-    # Default to runtime behavior (don't skip)
-    return False
+    return None  # No explicit specification

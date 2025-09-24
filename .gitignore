@@ -12,3 +12,6 @@ wheels/
 docs/key_learnings_*.md
 
 .idea/
+.claude/tdd-guard/
+
+backup/
