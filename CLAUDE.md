@@ -9,8 +9,8 @@ Confirm the high-level goal with user before proceeding.
 
 ### Phase 2: Planning Loop
 **Before ANY implementation - iterative refinement:**
-1. Draft behavioral tests (`tests/test_task_XXX_*.py`) - **PRIMARY CONTRACT**
-2. Draft manifest (`manifests/task-XXX.manifest.json`) pointing to tests & declaring artifacts
+1. Draft manifest (`manifests/task-XXX.manifest.json`) - **PRIMARY CONTRACT**
+2. Draft behavioral tests (`tests/test_task_XXX_*.py`) to support and verify the manifest
 3. Run structural validation (checks manifest↔tests AND implementation↔history):
    `uv run python validate_manifest.py manifests/task-XXX.manifest.json --use-manifest-chain`
 4. Refine BOTH tests & manifest together until validation passes
@@ -94,7 +94,7 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 ## Key Rules
 
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
-**ALWAYS:** Tests first → Manifest → Implementation → Validate
+**ALWAYS:** Manifest first → Tests → Implementation → Validate
 
 ## Validation Flow
 
@@ -180,7 +180,7 @@ make format      # Auto-fix formatting issues
 
 - This codebase **IS** the MAID implementation - exemplify the methodology
 - Manifest chain = source of truth for file state
-- Tests = contracts, not suggestions
+- Manifest = contract; tests support implementation and verification
 - Every change needs a manifest with sequential numbering
 
 ## Lessons Learned: Handling Prerequisite Discovery

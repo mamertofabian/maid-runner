@@ -136,8 +136,8 @@ For detailed methodology documentation, see `docs/maid_specs.md`.
 ## Development Workflow
 
 1. **Define Goal**: Specify high-level feature or bug fix requirements
-2. **Generate Contract**: Create comprehensive test suite defining behavior
-3. **Create Manifest**: Review tests and create `task-XXX.manifest.json`
+2. **Create Manifest (Primary Contract)**: Define goal, scope, editable/readonly files, and expected artifacts in `task-XXX.manifest.json`
+3. **Author Behavioral Tests**: Create a test suite that verifies behavior and supports the manifest
 4. **Implement**: AI agent implements code based on manifest specifications
 5. **Validate**: Run validation commands and merge validators
 6. **Integrate**: Commit completed, validated code with confidence

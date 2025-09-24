@@ -15,7 +15,7 @@ The MAID methodology is founded on five core principles:
 
   * **Explicitness over Implicitness:** An AI agent's context must be explicitly defined. The agent should never have to guess which files to edit, what dependencies exist, or how to validate its work.
   * **Extreme Isolation:** A task given to an AI agent should be as isolated as possible from the wider codebase *at the time of its creation*. The goal is to create a temporary "micro-environment" for every task, minimizing the cognitive load on the LLM.
-  * **Test-Driven Validation:** The sole measure of an AI's success is its ability to make a predefined set of tests pass. Tests are the contract and the "definition of done."
+  * **Test-Driven Validation:** The sole measure of an AI's success is its ability to make a predefined set of tests pass. The **manifest is the primary contract**; tests support implementation and verify behavior against that contract.
   * **Directed Dependency:** The software architecture must enforce a one-way flow of dependencies from volatile details (frameworks, databases) inward to stable business logic, as defined by Clean Architecture. This protects the core logic and simplifies tasks for the AI.
   * **Verifiable Chronology:** The current state of any module must be the verifiable result of applying its entire sequence of historical manifests. This ensures that the codebase has a transparent and reproducible history, preventing undocumented changes or "code drift."
 
@@ -30,8 +30,8 @@ The development process is broken down into a series of distinct phases. The wor
 
 2.  **Phase 2: The Planning Loop (Human Architect & Validator Tool)**
     This is an iterative phase where the plan is perfected before being committed. The process is as follows:
-    * **Draft the Contract:** The architect first drafts the **behavioral test suite**. This file is the primary contract that defines the task's requirements.
-    * **Draft the Manifest:** Concurrently, the architect drafts the **manifest**, which points to the test suite and declaratively describes the expected structural artifacts.
+    * **Draft the Contract:** The architect first drafts the **manifest**. The manifest is the primary contract that defines the task's goal, scope, and expected artifacts.
+    * **Draft the Behavioral Tests:** The architect then drafts the **behavioral test suite**, which supports the manifest by verifying behavior and success criteria.
     * **Structural Validation & Refinement:** The architect uses a validator tool to repeatedly check for alignment. The validation is comprehensive:
         * It validates the **draft manifest** against the **behavioral test code**.
         * If the task involves editing an existing file, it also validates the **current implementation code** against its entire manifest history to ensure the starting point is valid.
@@ -45,7 +45,7 @@ The development process is broken down into a series of distinct phases. The wor
     * If this **Behavioral Validation** fails, the error output is fed back into the agent's context for the next iteration. This loop continues until all tests pass.
 
 4.  **Phase 4: Integration**
-    Once the task is complete, the newly implemented code and its corresponding manifest are committed. Because the work was performed against a strict, tested, and verifiable contract, it can be integrated with high confidence.
+    Once the task is complete, the newly implemented code and its corresponding manifest are committed. Because the work was performed against a strict, test-verified manifest contract, it can be integrated with high confidence.
 
 -----
 
