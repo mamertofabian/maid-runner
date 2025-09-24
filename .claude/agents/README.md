@@ -24,6 +24,11 @@ This directory contains specialized subagents for the MAID (Manifest-driven AI D
 **Purpose:** Improves code quality, maintainability, and performance while preserving manifest compliance
 **Invocation:** Use after implementation passes all tests to enhance code quality
 
+### 5. maid-auditor
+**Phase:** Cross-cutting - Compliance Enforcement
+**Purpose:** Enforces strict MAID methodology compliance, catches violations and shortcuts across all phases
+**Invocation:** Use after each phase or as final gate to ensure no compromises in methodology
+
 ## Usage
 
 These agents will be automatically invoked by Claude Code when appropriate based on their descriptions. You can also explicitly request them:
@@ -34,6 +39,7 @@ These agents will be automatically invoked by Claude Code when appropriate based
 > Have the maid-test-designer create tests for task-005
 > Get the maid-developer to implement the code for task-005
 > Use the maid-refactorer to improve code quality for task-005
+> Run the maid-auditor to check for MAID compliance violations
 ```
 
 ## Workflow
@@ -44,8 +50,9 @@ The typical MAID workflow using these agents:
 2. **Create Tests** → maid-test-designer creates behavioral tests
 3. **Implement** → maid-developer implements code to pass tests
 4. **Refactor** → maid-refactorer improves code quality while maintaining test compliance
+5. **Audit** → maid-auditor ensures strict MAID compliance (runs after each phase or as final gate)
 
-Each agent handles its phase completely with iterative validation loops, ensuring quality at each step.
+Each agent handles its phase completely with iterative validation loops, ensuring quality at each step. The auditor acts as a cross-cutting concern, validating compliance throughout the workflow.
 
 ## Key Features
 

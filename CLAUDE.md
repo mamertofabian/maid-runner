@@ -39,6 +39,7 @@ Verify complete chain: `uv run python -m pytest tests/ -v`
 2. **maid-test-designer** - Phase 2: Creates behavioral tests from manifests
 3. **maid-developer** - Phase 3: Implements code to pass tests
 4. **maid-refactorer** - Phase 3.5: Improves code quality (completes TDD cycle)
+5. **maid-auditor** - Cross-cutting: Enforces strict MAID compliance across all phases
 
 ### Invoking Agents:
 ```bash
@@ -48,6 +49,7 @@ Verify complete chain: `uv run python -m pytest tests/ -v`
 > Have the maid-test-designer create tests for task-005
 > Get the maid-developer to implement task-005
 > Use the maid-refactorer to improve code quality for task-005
+> Run the maid-auditor to check for MAID compliance violations
 ```
 
 **Note:** The MAID workflow embodies TDD at two levels:
