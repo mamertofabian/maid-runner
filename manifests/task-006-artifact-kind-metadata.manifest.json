@@ -1,0 +1,22 @@
+{
+  "goal": "Add artifact kind metadata support to distinguish type-only artifacts (TypedDict classes, type aliases) from runtime artifacts in behavioral validation",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["validators/manifest_validator.py"],
+  "readonlyFiles": ["tests/test_task_006_artifact_kind_metadata.py"],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "should_skip_behavioral_validation",
+        "parameters": [
+          { "name": "artifact", "type": "dict" }
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_006_artifact_kind_metadata.py", "-v"]
+}

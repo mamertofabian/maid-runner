@@ -11,6 +11,7 @@ help:
 	@echo "  make dev TASK=005  - Run tests once for specific task"
 	@echo "  make install-dev   - Install development dependencies"
 	@echo "  make lint          - Run linting"
+	@echo "  make type-check    - Run type checking (alias for lint)"
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
 
@@ -88,7 +89,13 @@ test-integration:
 lint:
 	uv run ruff check .
 
+type-check:
+	uv run ruff check .
+
 lint-fix:
+	uv run ruff check . --fix
+
+type-check-fix:
 	uv run ruff check . --fix
 
 format:

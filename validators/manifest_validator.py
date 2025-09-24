@@ -139,6 +139,20 @@ _BRACKET_OPEN = "["
 _BRACKET_CLOSE = "]"
 _COMMA = ","
 
+# Artifact kind constants
+_ARTIFACT_KIND_TYPE = "type"
+_ARTIFACT_KIND_RUNTIME = "runtime"
+_TYPEDDICT_INDICATOR = "TypedDict"
+
+# Artifact type constants
+_ARTIFACT_TYPE_CLASS = "class"
+_ARTIFACT_TYPE_FUNCTION = "function"
+_ARTIFACT_TYPE_ATTRIBUTE = "attribute"
+
+# Validation mode constants
+_VALIDATION_MODE_BEHAVIORAL = "behavioral"
+_VALIDATION_MODE_IMPLEMENTATION = "implementation"
+
 
 def normalize_type_string(type_str: str) -> str:
     """
@@ -259,8 +273,8 @@ def _normalize_comma_spacing(type_str: str) -> str:
 class _ArtifactCollector(ast.NodeVisitor):
     """AST visitor that collects class and attribute references from Python code."""
 
-    def __init__(self, validation_mode="implementation"):
-        self.validation_mode = validation_mode  # "implementation" or "behavioral"
+    def __init__(self, validation_mode=_VALIDATION_MODE_IMPLEMENTATION):
+        self.validation_mode = validation_mode  # _VALIDATION_MODE_IMPLEMENTATION or _VALIDATION_MODE_BEHAVIORAL
         self.found_classes = set()
         self.found_class_bases = {}  # class_name -> list of base class names
         self.found_attributes = {}  # class_name -> set of attribute names
@@ -445,7 +459,7 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def visit_Call(self, node):
         """Track function and method calls in behavioral tests."""
-        if self.validation_mode == "behavioral":
+        if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
             # Handle method calls (e.g., service.get_user_by_id())
             if isinstance(node.func, ast.Attribute):
                 method_name = node.func.attr
@@ -614,7 +628,7 @@ def validate_with_ast(
         manifest_data: Dictionary containing the manifest with expectedArtifacts
         test_file_path: Path to the Python test file to analyze
         use_manifest_chain: If True, discovers and merges all related manifests
-        validation_mode: "implementation" or "behavioral" mode, auto-detected if None
+        validation_mode: _VALIDATION_MODE_IMPLEMENTATION or _VALIDATION_MODE_BEHAVIORAL mode, auto-detected if None
 
     Raises:
         AlignmentError: If any expected artifact is not found in the code
@@ -630,7 +644,7 @@ def validate_with_ast(
         # Default to implementation mode
         # Behavioral mode should be explicitly requested for now
         # This ensures backward compatibility with existing tests
-        validation_mode = "implementation"
+        validation_mode = _VALIDATION_MODE_IMPLEMENTATION
 
     # Collect artifacts from the test code
     collector = _ArtifactCollector(validation_mode=validation_mode)
@@ -653,12 +667,19 @@ def validate_with_ast(
 
     # Validate each expected artifact exists
     for artifact in expected_items:
+        # Skip type-only artifacts in behavioral validation
+        if (
+            validation_mode == _VALIDATION_MODE_BEHAVIORAL
+            and should_skip_behavioral_validation(artifact)
+        ):
+            continue
+
         artifact_type = artifact.get("type")
         artifact_name = artifact.get("name")
 
-        if artifact_type == "class":
+        if artifact_type == _ARTIFACT_TYPE_CLASS:
             expected_bases = artifact.get("bases", [])
-            if validation_mode == "behavioral":
+            if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
                 # In behavioral mode, check if class was used
                 if artifact_name not in collector.used_classes:
                     raise AlignmentError(
@@ -674,15 +695,15 @@ def validate_with_ast(
                     collector.found_class_bases,
                 )
 
-        elif artifact_type == "attribute":
+        elif artifact_type == _ARTIFACT_TYPE_ATTRIBUTE:
             parent_class = artifact.get("class")
             _validate_attribute(artifact_name, parent_class, collector.found_attributes)
 
-        elif artifact_type == "function":
+        elif artifact_type == _ARTIFACT_TYPE_FUNCTION:
             parameters = artifact.get("parameters", [])
             parent_class = artifact.get("class")
 
-            if validation_mode == "behavioral":
+            if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
                 # In behavioral mode, check if function/method was called
                 if parent_class:
                     # It's a method
@@ -878,7 +899,7 @@ def validate_type_hints(
     expected_items = manifest_artifacts.get("contains", [])
 
     for artifact in expected_items:
-        if artifact.get("type") != "function":
+        if artifact.get("type") != _ARTIFACT_TYPE_FUNCTION:
             continue
 
         artifact_errors = _validate_function_types(artifact, implementation_artifacts)
@@ -987,3 +1008,71 @@ def _validate_return_type(
         )
 
     return None
+
+
+def _is_typeddict_class(artifact: dict) -> bool:
+    """
+    Check if an artifact represents a TypedDict class.
+
+    Args:
+        artifact: Dictionary containing artifact metadata
+
+    Returns:
+        bool: True if artifact is a TypedDict class, False otherwise
+    """
+    # Guard clauses for early exit
+    if artifact.get("type") != _ARTIFACT_TYPE_CLASS:
+        return False
+
+    bases = artifact.get("bases")
+    if not bases:
+        return False
+
+    # Check each base class for TypedDict indicator
+    return any(
+        base and _TYPEDDICT_INDICATOR in base
+        for base in bases
+        if base  # Guard against None/empty base names
+    )
+
+
+def should_skip_behavioral_validation(artifact) -> bool:
+    """
+    Determine if an artifact should be skipped during behavioral validation.
+
+    Type-only artifacts (like TypedDict classes, type aliases) are compile-time
+    constructs that shouldn't be behaviorally validated as they don't have runtime
+    behavior that can be tested.
+
+    Args:
+        artifact: Dictionary containing artifact metadata
+
+    Returns:
+        bool: True if artifact should be skipped, False if it should be validated
+    """
+    # Handle None or empty artifact gracefully
+    if not artifact:
+        return False
+
+    # Check explicit artifactKind field first
+    artifact_kind = artifact.get("artifactKind")
+
+    # Handle explicit artifact kinds
+    if artifact_kind == _ARTIFACT_KIND_TYPE:
+        return True
+    elif artifact_kind == _ARTIFACT_KIND_RUNTIME:
+        return False
+    elif artifact_kind is not None and artifact_kind not in [
+        _ARTIFACT_KIND_TYPE,
+        _ARTIFACT_KIND_RUNTIME,
+    ]:
+        # Invalid artifactKind values default to runtime (don't skip)
+        return False
+
+    # Auto-detect TypedDict classes as type-only (when no explicit artifact kind)
+    if _is_typeddict_class(artifact):
+        # Note: If we reach here, artifact_kind is None (no explicit override)
+        return True
+
+    # Default to runtime behavior (don't skip)
+    return False

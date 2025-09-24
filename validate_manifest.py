@@ -180,6 +180,13 @@ def validate_behavioral_tests(
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
+        # Import and use the should_skip_behavioral_validation function
+        from validators.manifest_validator import should_skip_behavioral_validation
+
+        # Skip type-only artifacts in behavioral validation
+        if should_skip_behavioral_validation(artifact):
+            continue
+
         artifact_type = artifact.get("type")
         artifact_name = artifact.get("name")
 
