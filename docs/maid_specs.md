@@ -54,6 +54,8 @@ The development process is broken down into distinct phases, characterized by tw
   * **The Task Manifest**
     The Task Manifest is a JSON file that makes every task explicit and self-contained. It serves as an immutable record of a single change, forming one link in a chronological chain that defines the state of a module. The schema supports detailed interface definitions and multiple validation commands.
 
+    **Note:** The example below shows the proposed v2.0 schema format. The current implementation uses v1.2. See the roadmap for v2.0 implementation plans.
+
     ```json
     {
       "version": "2.0",

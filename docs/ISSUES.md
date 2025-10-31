@@ -8,7 +8,7 @@ This document contains a comprehensive breakdown of implementation tasks for MAI
 
 ---
 
-## Track 1: Core Infrastructure (6 issues)
+## Track 1: Core Infrastructure (8 issues)
 
 ### Milestone 1.1: Manifest Schema v2.0
 
@@ -210,7 +210,7 @@ Update the merging validator to correctly handle snapshot manifests in the chain
 
 ---
 
-## Track 2: Automation & Intelligence (11 issues)
+## Track 2: Automation & Intelligence (15 issues)
 
 ### Milestone 2.1: Dependency Graph Analysis
 
@@ -590,7 +590,7 @@ Build a library of manifest templates for common development patterns and tasks.
 
 ---
 
-## Track 3: Tooling & Integration (13 issues)
+## Track 3: Tooling & Integration (16 issues)
 
 ### Milestone 3.1: Language Server Protocol (LSP) Implementation
 
@@ -997,7 +997,7 @@ Generate validation reports and status badges for repositories.
 
 ---
 
-## Track 4: Documentation & Developer Experience (10 issues)
+## Track 4: Documentation & Developer Experience (1 issue)
 
 ### Milestone 4.1: Comprehensive Documentation
 

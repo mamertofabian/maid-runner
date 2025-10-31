@@ -3,7 +3,7 @@
 **Status:** Planning
 **Target Version:** 1.3
 **Current Version:** 1.2
-**Estimated Timeline:** 6-8 months
+**Estimated Timeline:** 6-8 months (assumes 2-3 FTE engineers)
 **Last Updated:** October 30, 2025
 
 ## Executive Summary
