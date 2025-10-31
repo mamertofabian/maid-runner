@@ -1,7 +1,7 @@
-### **MAID: The Manifest-driven AI Development Methodology (Updated)**
+### **MAID: The Manifest-driven AI Development Methodology**
 
-**Version:** 1.2
-**Date:** September 19, 2025
+**Version:** 1.3
+**Date:** October 30, 2025
 
 #### **Abstract**
 
@@ -23,22 +23,22 @@ The MAID methodology is founded on five core principles:
 
 #### **The MAID Workflow**
 
-The development process is broken down into a series of distinct phases. The workflow includes a crucial "Planning Loop" for the architect and separate validation steps to ensure correctness before and after AI implementation.
+The development process is broken down into distinct phases, characterized by two main loops: a **Planning Loop** for the human architect and an **Implementation Loop** for the AI agent.
 
 1.  **Phase 1: Goal Definition (Human Architect)**
     The human developer defines a high-level feature or bug fix. For example: "The system needs an endpoint to retrieve a user's profile by their ID."
 
 2.  **Phase 2: The Planning Loop (Human Architect & Validator Tool)**
-    This is an iterative phase where the plan is perfected before being committed. The process is as follows:
-    * **Draft the Contract:** The architect first drafts the **manifest**. The manifest is the primary contract that defines the task's goal, scope, and expected artifacts.
-    * **Draft the Behavioral Tests:** The architect then drafts the **behavioral test suite**, which supports the manifest by verifying behavior and success criteria.
-    * **Structural Validation & Refinement:** The architect uses a validator tool to repeatedly check for alignment. The validation is comprehensive:
-        * It validates the **draft manifest** against the **behavioral test code**.
-        * If the task involves editing an existing file, it also validates the **current implementation code** against its entire manifest history to ensure the starting point is valid.
+    This is an iterative, local phase where the plan is perfected before being committed. The process is as follows:
+    * **Draft the Contract:** The architect first drafts the **manifest**. The manifest is the primary contract that defines the task's goal, scope, and expected structural artifacts.
+    * **Draft the Behavioral Tests:** The architect then drafts the **behavioral test suite**, which supports the manifest by defining the success criteria.
+    * **Structural Validation & Refinement:** The architect uses a validator tool (e.g., maid-runner) to repeatedly check for alignment. This Structural Validation is comprehensive:
+        * It validates the draft manifest against the behavioral test code (using AST analysis) to ensure the plan is internally consistent.
+        * If the task involves editing an existing file, it also validates the current implementation code against its entire manifest history (using the Merging Validator) to ensure the starting point is valid.
     * The architect refines both the manifest and the tests together until this validation passes and the plan is deemed complete.
 
 3.  **Phase 3: Implementation (Developer Agent)**
-    Once the plan is finalized and committed, an automated system invokes a "Developer Agent" with the manifest. The agent's loop is as follows:
+    Once the plan is finalized and committed, an automated system invokes a "Developer Agent" with the manifest. The agent's **Implementation Loop** is as follows:
     * Read the manifest to load only the specified files into its context.
     * Write or modify the code based on the `goal` and its understanding of the tests.
     * The controlling script executes the `validationCommand` from the manifest.
@@ -54,10 +54,12 @@ The development process is broken down into a series of distinct phases. The wor
   * **The Task Manifest**
     The Task Manifest is a JSON file that makes every task explicit and self-contained. It serves as an immutable record of a single change, forming one link in a chronological chain that defines the state of a module. The schema supports detailed interface definitions and multiple validation commands.
 
+    **Note:** The example below shows the proposed v2.0 schema format. The current implementation uses v1.2. See the roadmap for v2.0 implementation plans.
+
     ```json
     {
-      "version": "1.2",
-      "goal": "Add a method to find a user by their ID.",
+      "version": "2.0",
+      "goal": "Refactor the UserService to add a method for finding a user by ID.",
       "taskType": "edit",
       "supersedes": [],
       "editableFiles": ["src/services/user_service.py"],
@@ -69,6 +71,11 @@ The development process is broken down into a series of distinct phases. The wor
         "file": "src/services/user_service.py",
         "contains": [
           {
+            "type": "class",
+            "name": "UserService",
+            "bases": ["BaseService"]
+          },
+          {
             "type": "function",
             "name": "get_user_by_id",
             "class": "UserService",
@@ -78,7 +85,7 @@ The development process is broken down into a series of distinct phases. The wor
         ]
       },
       "validationCommand": [
-        "pytest tests/test_user_service.py"
+        "pytest tests/test_user_service.py --strict-markers"
       ]
     }
     ```
@@ -100,15 +107,20 @@ The development process is broken down into a series of distinct phases. The wor
 
 #### **Advanced Concepts & Future Techniques**
 
-  * **Handling Refactoring with Superseding Manifests**
-    Inspired by database migration systems, this pattern treats the codebase's state as the result of applying a sequence of manifests. To handle breaking changes without violating immutability, a manifest can formally supersede another.
+  * **Handling Code Evolution (Migrations, Refactoring & Snapshots)**
+    This is a set of strategies to manage the manifest history over the project's lifecycle, ensuring the codebase remains verifiable.
 
-    1.  **The `supersedes` Property:** A manifest can contain a `supersedes` property, which is an array of paths to older, now-obsolete manifests.
-    2.  **Smart Validator Logic:** When the **Merging Validator** runs, it first discovers the entire history of a file, then removes any manifest that has been superseded. It then merges the remaining "active" manifests to build the final, expected state of the code.
-    3.  **Historical Integrity:** Superseded manifests are considered "dead" for active validation but remain as an immutable part of the project's historical audit log, preserving a complete and traceable record of architectural evolution.
+    * **The Merging Validator:** Inspired by database migrations, this validator tool enforces the Verifiable Chronology principle. To validate a file, it finds all "active" manifests in its history, merges their `expectedArtifacts` into a single, comprehensive list, and performs a strict validation against the current state of the implementation code.
+
+    * **Handling Refactoring with `supersedes`:** To handle breaking changes without violating immutability, a new manifest can formally supersede an old one. It uses the optional `supersedes` property (an array of manifest paths). The Merging Validator is smart enough to ignore any manifest that has been superseded, allowing the contract to evolve. Superseded manifests are considered "dead" for validation but remain as an immutable part of the project's audit log.
+
+    * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
 
   * **The "Scaffold and Fill" Pattern**
     A stricter version of the workflow where the Architect Agent not only creates tests but also creates the `editableFiles` with empty function signatures. This reduces the Developer Agent's task to pure implementation.
+
+  * **IDE Integration (The "Guardian Watcher")**
+    The structural validator can be integrated into an IDE (e.g., as a VS Code extension). It runs in the background like a linter, providing real-time feedback to the architect during the "Planning Loop" and catching alignment errors the moment they are made.
 
   * **The Guardian Agent and Self-Healing Codebases**
     For ongoing maintenance, a top-level "Guardian Agent" can run the entire test suite after any change is committed. If a change breaks tests, the Guardian can automatically generate a new manifest to dispatch a fix.
