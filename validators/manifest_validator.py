@@ -971,9 +971,105 @@ def _discover_related_manifests(target_file):
     return manifests
 
 
+def _get_active_manifests(manifest_paths):
+    """
+    Filter out superseded manifests from the chain.
+
+    Returns only "active" manifests that haven't been superseded by other manifests.
+    Detects circular supersedes and raises an error if found.
+
+    Args:
+        manifest_paths: List of paths to manifest files
+
+    Returns:
+        List of active (non-superseded) manifest paths
+
+    Raises:
+        ValueError: If circular supersedes relationships are detected
+    """
+    if not manifest_paths:
+        return []
+
+    # Load all manifests and build supersedes mapping
+    manifests_data = {}
+    supersedes_map = {}  # manifest_path -> list of paths it supersedes
+
+    for path in manifest_paths:
+        with open(path, "r") as f:
+            data = json.load(f)
+        manifests_data[path] = data
+        supersedes = data.get("supersedes", [])
+
+        # Normalize supersedes paths to be relative to manifests directory
+        normalized_supersedes = []
+        for sup_path in supersedes:
+            # Convert to Path object for easier manipulation
+            sup_path_obj = Path(sup_path)
+            # If it's already a full path and exists, use it
+            if sup_path_obj.exists():
+                normalized_supersedes.append(str(sup_path_obj))
+            else:
+                # Try relative to current manifest's directory
+                manifest_dir = Path(path).parent
+                full_path = manifest_dir / sup_path
+                if full_path.exists():
+                    normalized_supersedes.append(str(full_path))
+                else:
+                    # Try relative to manifests/ directory
+                    manifests_dir = Path("manifests")
+                    full_path = manifests_dir / sup_path_obj.name
+                    if full_path.exists():
+                        normalized_supersedes.append(str(full_path))
+                    else:
+                        # Keep original path (will be filtered out if not in manifest_paths)
+                        normalized_supersedes.append(sup_path)
+
+        supersedes_map[path] = normalized_supersedes
+
+    # Detect circular supersedes using DFS
+    def _has_cycle(start_path, visited, rec_stack):
+        visited.add(start_path)
+        rec_stack.add(start_path)
+
+        for superseded_path in supersedes_map.get(start_path, []):
+            if superseded_path not in visited:
+                if _has_cycle(superseded_path, visited, rec_stack):
+                    return True
+            elif superseded_path in rec_stack:
+                return True
+
+        rec_stack.remove(start_path)
+        return False
+
+    visited = set()
+    for path in manifest_paths:
+        if path not in visited:
+            if _has_cycle(path, visited, set()):
+                raise ValueError(f"Circular supersedes relationship detected involving: {path}")
+
+    # Build set of all superseded manifests
+    superseded = set()
+    for path in manifest_paths:
+        for superseded_path in supersedes_map.get(path, []):
+            # Only mark as superseded if it's in our manifest_paths
+            if superseded_path in manifest_paths or any(
+                Path(mp).samefile(Path(superseded_path))
+                for mp in manifest_paths
+                if Path(superseded_path).exists() and Path(mp).exists()
+            ):
+                superseded.add(superseded_path)
+
+    # Return only non-superseded manifests
+    active = [path for path in manifest_paths if path not in superseded]
+    return active
+
+
 def _merge_expected_artifacts(manifest_paths):
     """
     Merge expected artifacts from multiple manifests.
+
+    This function now honors the supersedes relationship - it filters out
+    superseded manifests before merging.
 
     Args:
         manifest_paths: List of paths to manifest files
@@ -981,10 +1077,13 @@ def _merge_expected_artifacts(manifest_paths):
     Returns:
         Merged list of expected artifacts
     """
+    # Filter out superseded manifests first
+    active_paths = _get_active_manifests(manifest_paths)
+
     merged_artifacts = []
     seen_artifacts = {}  # Track (type, name) -> artifact
 
-    for path in manifest_paths:
+    for path in active_paths:
         with open(path, "r") as f:
             data = json.load(f)
 

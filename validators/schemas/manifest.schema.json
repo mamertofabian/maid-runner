@@ -5,7 +5,17 @@
     "required": ["goal", "readonlyFiles", "expectedArtifacts", "validationCommand"],
     "properties": {
       "goal": { "type": "string" },
-      "taskType": { "type": "string" },
+      "taskType": {
+        "type": "string",
+        "enum": ["create", "edit", "refactor", "snapshot"],
+        "description": "Type of task: create (new file), edit (modify existing), refactor (restructure), snapshot (consolidate history)"
+      },
+      "supersedes": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "List of manifest file paths that this manifest supersedes (replaces in validation chain)",
+        "default": []
+      },
       "creatableFiles": { "type": "array", "items": { "type": "string" } },
       "editableFiles": { "type": "array", "items": { "type": "string" } },
       "readonlyFiles": { "type": "array", "items": { "type": "string" } },
@@ -43,6 +53,29 @@
         },
         "required": ["file", "contains"]
       },
-      "validationCommand": { "type": "array", "items": { "type": "string" } }
+      "validationCommand": { "type": "array", "items": { "type": "string" } },
+      "snapshotMetadata": {
+        "type": "object",
+        "description": "Optional metadata for snapshot manifests",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO timestamp when snapshot was generated"
+          },
+          "generatedBy": {
+            "type": "string",
+            "description": "Tool or user that generated the snapshot"
+          },
+          "commitHash": {
+            "type": "string",
+            "description": "Git commit hash at time of snapshot generation"
+          },
+          "manifestsSuperseded": {
+            "type": "integer",
+            "description": "Number of manifests superseded by this snapshot"
+          }
+        }
+      }
     }
   }
