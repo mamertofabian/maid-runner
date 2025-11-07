@@ -12,6 +12,11 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
+# Import manifest discovery function from validators
+sys.path.insert(0, str(Path(__file__).parent))
+from validators.manifest_validator import _discover_related_manifests
+sys.path.pop(0)  # Remove the path after import
+
 
 def extract_artifacts_from_code(file_path: str) -> dict:
     """Extract artifacts from a Python source file using AST analysis.
@@ -37,7 +42,7 @@ def extract_artifacts_from_code(file_path: str) -> dict:
     if not file_path_obj.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         source_code = f.read()
 
     # Parse the AST
@@ -182,7 +187,7 @@ class _ArtifactExtractor(ast.NodeVisitor):
             # Fallback to unparsing
             try:
                 return ast.unparse(annotation_node)
-            except:
+            except (AttributeError, ValueError, TypeError):
                 return "Any"
 
     def _extract_base_name(self, base_node: ast.AST) -> Optional[str]:
@@ -242,8 +247,8 @@ class _ArtifactExtractor(ast.NodeVisitor):
 
 
 def create_snapshot_manifest(
-    file_path: str, artifacts: list, superseded_manifests: list
-) -> dict:
+    file_path: str, artifacts: List[Dict[str, Any]], superseded_manifests: List[str]
+) -> Dict[str, Any]:
     """Create a snapshot manifest structure.
 
     Args:
@@ -302,10 +307,6 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
     artifacts = extract_artifacts_from_code(file_path)
 
     # Discover existing manifests that reference this file
-    # Import the function from validators module
-    sys.path.insert(0, str(Path(__file__).parent))
-    from validators.manifest_validator import _discover_related_manifests
-
     superseded_manifests = _discover_related_manifests(file_path)
 
     # Create the snapshot manifest
@@ -316,12 +317,18 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Generate a unique filename based on the input file
+    # Use the full path to avoid overwriting manifests for files with same name
     input_filename = Path(file_path).stem
-    manifest_filename = f"snapshot-{input_filename}.manifest.json"
+    sanitized_path = str(Path(file_path).with_suffix('')).replace('/', '_').replace('\\', '_')
+    manifest_filename = f"snapshot-{sanitized_path}.manifest.json"
     manifest_path = output_path / manifest_filename
 
+    # Check if file exists and warn user
+    if manifest_path.exists():
+        print(f"Warning: Overwriting existing manifest: {manifest_path}", file=sys.stderr)
+
     # Write the manifest to file
-    with open(manifest_path, "w") as f:
+    with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
     return str(manifest_path)
