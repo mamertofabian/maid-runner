@@ -142,9 +142,22 @@ class _ArtifactExtractor(ast.NodeVisitor):
             "name": node.name,
         }
 
-        # Extract parameters
+        # Extract parameters - collect all parameter types
         params = []
-        for arg in node.args.args:
+
+        # Combine all parameter types in order:
+        # 1. Positional-only parameters (Python 3.8+)
+        # 2. Standard positional/keyword parameters
+        # 3. Variable-length positional (*args)
+        # 4. Keyword-only parameters
+        # 5. Variable-length keyword (**kwargs)
+        all_args = node.args.posonlyargs + node.args.args + node.args.kwonlyargs
+        if node.args.vararg:
+            all_args.append(node.args.vararg)
+        if node.args.kwarg:
+            all_args.append(node.args.kwarg)
+
+        for arg in all_args:
             param = {"name": arg.arg}
 
             # Extract type annotation if present
