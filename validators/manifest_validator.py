@@ -1084,7 +1084,11 @@ def _get_expected_artifacts(
     Returns:
         List of expected artifact definitions
     """
-    if use_manifest_chain:
+    # Check if this is a snapshot manifest
+    is_snapshot = manifest_data.get("taskType") == "snapshot"
+
+    # Snapshots are already consolidated, so skip manifest chain even if requested
+    if use_manifest_chain and not is_snapshot:
         target_file = manifest_data.get("expectedArtifacts", {}).get(
             "file", test_file_path
         )

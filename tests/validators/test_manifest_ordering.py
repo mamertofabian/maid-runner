@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from validators.manifest_validator import _discover_related_manifests
+from validators.manifest_validator import discover_related_manifests
 
 
 def test_four_digit_task_numbers():
@@ -37,7 +37,7 @@ def test_four_digit_task_numbers():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Verify correct ordering
             assert len(manifests) == 4
             assert "task-998" in manifests[0]
@@ -84,7 +84,7 @@ def test_mixed_digit_lengths():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Verify correct numerical ordering
             assert len(manifests) == 9
             assert "task-1" in manifests[0]
@@ -134,7 +134,7 @@ def test_descriptive_names_with_numbers():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Verify correct ordering despite descriptive names
             assert len(manifests) == 7
             assert "task-1-initial-setup" in manifests[0]
@@ -181,7 +181,7 @@ def test_non_task_files_sorted_last():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Task files should come first, then non-task files
             assert len(manifests) == 6
             assert "task-1" in manifests[0]
@@ -230,7 +230,7 @@ def test_malformed_task_names():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Valid task files should be sorted numerically
             assert "task-1" in manifests[0]
             assert "task-2-5" in manifests[1]  # This parses as task-2
@@ -274,7 +274,7 @@ def test_backward_compatibility_three_digit():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Should maintain correct ordering with leading zeros
             assert len(manifests) == 5
             assert "task-001" in manifests[0]
@@ -299,7 +299,7 @@ def test_empty_manifest_directory():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             assert manifests == []
         finally:
             mv.Path = original_path
@@ -337,7 +337,7 @@ def test_mixed_formats():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Should sort numerically regardless of padding
             assert len(manifests) == 5
             assert "task-001" in manifests[0]  # 1

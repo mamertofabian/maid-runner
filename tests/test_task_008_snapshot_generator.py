@@ -158,6 +158,50 @@ def broken_function(
         with pytest.raises(SyntaxError):
             extract_artifacts_from_code(str(test_file))
 
+    def test_filters_self_parameter_from_methods(self, tmp_path: Path):
+        """Test that 'self' parameter is excluded from method artifacts."""
+        from generate_snapshot import extract_artifacts_from_code
+
+        # Create a class with methods that have self parameter
+        code = """
+class MyClass:
+    def __init__(self, name: str):
+        self.name = name
+
+    def get_name(self) -> str:
+        return self.name
+
+    def set_name(self, name: str) -> None:
+        self.name = name
+"""
+        test_file = tmp_path / "myclass.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+
+        # Get the artifacts list
+        artifacts = result.get("artifacts", [])
+
+        # Find the methods in the artifacts
+        init_method = next((a for a in artifacts if a.get("name") == "__init__"), None)
+        get_name_method = next((a for a in artifacts if a.get("name") == "get_name"), None)
+        set_name_method = next((a for a in artifacts if a.get("name") == "set_name"), None)
+
+        # Verify 'self' is NOT in the parameters
+        if init_method and "parameters" in init_method:
+            param_names = [p["name"] for p in init_method["parameters"]]
+            assert "self" not in param_names, "__init__ should not include 'self' parameter"
+            assert "name" in param_names, "__init__ should include 'name' parameter"
+
+        if get_name_method and "parameters" in get_name_method:
+            # get_name should have no parameters (self is filtered out)
+            assert len(get_name_method["parameters"]) == 0, "get_name should have no parameters after filtering 'self'"
+
+        if set_name_method and "parameters" in set_name_method:
+            param_names = [p["name"] for p in set_name_method["parameters"]]
+            assert "self" not in param_names, "set_name should not include 'self' parameter"
+            assert "name" in param_names, "set_name should include 'name' parameter"
+
 
 class TestCreateSnapshotManifest:
     """Test snapshot manifest creation with proper structure."""

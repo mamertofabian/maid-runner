@@ -78,6 +78,7 @@ class _ArtifactExtractor(ast.NodeVisitor):
         self.methods = {}
         self.attributes = {}
         self.current_class = None
+        self.current_function = None  # Track when inside a function body
 
     def visit_FunctionDef(self, node):
         """Visit function definitions."""
@@ -93,8 +94,15 @@ class _ArtifactExtractor(ast.NodeVisitor):
                 self.methods[self.current_class] = []
             self.methods[self.current_class].append(func_info)
 
+        # Track that we're entering a function body
+        old_function = self.current_function
+        self.current_function = node.name
+
         # Continue visiting child nodes
         self.generic_visit(node)
+
+        # Restore previous function context
+        self.current_function = old_function
 
     # Support async functions by reusing the same logic
     visit_AsyncFunctionDef = visit_FunctionDef
@@ -140,8 +148,9 @@ class _ArtifactExtractor(ast.NodeVisitor):
                         self.attributes[self.current_class] = []
                     if target.attr not in self.attributes[self.current_class]:
                         self.attributes[self.current_class].append(target.attr)
-        else:
-            # Module scope: collect module-level variables
+        elif self.current_function is None:
+            # True module scope (not inside a function): collect module-level variables
+            # Skip if we're inside a function body (local variables shouldn't be collected)
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     # Module-level simple assignment (e.g., CONSTANT = 5)
@@ -185,6 +194,10 @@ class _ArtifactExtractor(ast.NodeVisitor):
             all_args.append(node.args.kwarg)
 
         for arg in all_args:
+            # Skip 'self' parameter for methods (implicit in Python)
+            if self.current_class is not None and arg.arg == "self":
+                continue
+
             param = {"name": arg.arg}
 
             # Extract type annotation if present
@@ -348,6 +361,43 @@ def create_snapshot_manifest(
     return manifest
 
 
+def _get_next_manifest_number(manifest_dir: Path) -> int:
+    """Find the next available manifest number.
+
+    Scans the manifest directory for task-XXX files (including snapshots)
+    and returns the next sequential number.
+
+    Args:
+        manifest_dir: Path to the manifest directory
+
+    Returns:
+        Next available manifest number
+    """
+    max_number = 0
+
+    if not manifest_dir.exists():
+        return 1
+
+    # Look for task-XXX pattern (covers both regular tasks and snapshots)
+    for manifest_file in manifest_dir.glob("*.manifest.json"):
+        stem = manifest_file.stem
+        # Remove .manifest suffix if present
+        if stem.endswith(".manifest"):
+            stem = stem[:-9]
+
+        # Check for task-XXX pattern
+        if stem.startswith("task-"):
+            try:
+                parts = stem.split("-")
+                if len(parts) >= 2:
+                    number = int(parts[1])
+                    max_number = max(max_number, number)
+            except (ValueError, IndexError):
+                pass
+
+    return max_number + 1
+
+
 def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> str:
     """Generate a complete snapshot manifest for a Python file.
 
@@ -375,31 +425,39 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     # Discover existing manifests that reference this file
     superseded_manifests = discover_related_manifests(file_path)
 
-    # Create the snapshot manifest
-    manifest = create_snapshot_manifest(file_path, artifacts, superseded_manifests)
-
     # Ensure output directory exists
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Generate a unique filename based on the input file
-    # Use the full path to avoid overwriting manifests for files with same name
-    sanitized_path = str(Path(file_path).with_suffix(''))
-    # Replace path separators and other special characters
-    sanitized_path = sanitized_path.replace('/', '_').replace('\\', '_')
-    # Remove or replace other problematic characters (: < > | etc.)
-    sanitized_path = re.sub(r'[:<>|"?*]', '_', sanitized_path)
-    # Remove leading dots/underscores to avoid hidden files
-    sanitized_path = sanitized_path.lstrip('._')
+    # Find the next sequential number by looking at existing manifests
+    next_number = _get_next_manifest_number(output_path)
+
+    # Generate a descriptive name based on the input file
+    # Use just the filename (not full path) for readability
+    sanitized_path = Path(file_path).stem  # Get filename without extension
+    # Replace special characters with hyphens for readability
+    sanitized_path = re.sub(r'[^a-zA-Z0-9]+', '-', sanitized_path)
+    # Remove leading/trailing hyphens
+    sanitized_path = sanitized_path.strip('-')
     # Ensure we have something after sanitization
     if not sanitized_path:
         sanitized_path = "unnamed"
-    manifest_filename = f"snapshot-{sanitized_path}.manifest.json"
+
+    # Use task prefix with sequential numbering for natural sorting
+    manifest_filename = f"task-{next_number:03d}-snapshot-{sanitized_path}.manifest.json"
     manifest_path = output_path / manifest_filename
 
-    # Check if file exists and handle based on force flag
+    # Filter out the snapshot itself from supersedes to avoid circular reference
+    # (This handles the case where we're regenerating with --force)
+    snapshot_path_str = str(manifest_path)
+    superseded_manifests = [m for m in superseded_manifests if m != snapshot_path_str]
+
+    # Create the snapshot manifest
+    manifest = create_snapshot_manifest(file_path, artifacts, superseded_manifests)
+
+    # Check if file exists (unlikely with sequential numbering, but safety check)
     if manifest_path.exists() and not force:
-        # Prompt user for confirmation
+        # This shouldn't happen with sequential numbering, but handle it anyway
         response = input(f"Manifest already exists: {manifest_path}\nOverwrite? (y/N): ")
         if response.lower() not in ('y', 'yes'):
             print("Operation cancelled.", file=sys.stderr)
