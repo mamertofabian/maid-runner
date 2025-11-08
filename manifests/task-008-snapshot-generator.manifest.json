@@ -26,16 +26,17 @@
         "parameters": [
           {"name": "file_path", "type": "str"},
           {"name": "artifacts", "type": "Union[List[Dict[str, Any]], Dict[str, Any]]"},
-          {"name": "superseded_manifests", "type": "list"}
+          {"name": "superseded_manifests", "type": "List[str]"}
         ],
-        "returns": "dict"
+        "returns": "Dict[str, Any]"
       },
       {
         "type": "function",
         "name": "generate_snapshot",
         "parameters": [
           {"name": "file_path", "type": "str"},
-          {"name": "output_dir", "type": "str"}
+          {"name": "output_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
         ],
         "returns": "str"
       },
