@@ -8,28 +8,18 @@ code using AST analysis and creates properly structured manifests.
 import argparse
 import ast
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 
 # Import manifest discovery function from validators
-# Note: Uses sys.path manipulation to import from validators module
-# This is a known limitation that should be addressed in future refactoring
-_parent_dir = str(Path(__file__).parent)
-sys.path.insert(0, _parent_dir)
+# Using public API function instead of sys.path manipulation
+sys.path.insert(0, str(Path(__file__).parent))
 try:
-    from validators.manifest_validator import _discover_related_manifests
-except ImportError as e:
-    raise RuntimeError(
-        f"Failed to import validators from '{_parent_dir}'. "
-        "Ensure you're running from the repository root."
-    ) from e
+    from validators.manifest_validator import discover_related_manifests
 finally:
-    # Always restore sys.path, even if import fails
-    try:
-        sys.path.remove(_parent_dir)
-    except ValueError:
-        pass
+    sys.path.pop(0)
 
 
 def extract_artifacts_from_code(file_path: str) -> dict:
@@ -140,8 +130,9 @@ class _ArtifactExtractor(ast.NodeVisitor):
         self.current_class = old_class
 
     def visit_Assign(self, node):
-        """Visit assignments to collect self.attribute assignments."""
+        """Visit assignments to collect self.attribute and module-level assignments."""
         if self.current_class:
+            # Class scope: collect self.attribute assignments
             for target in node.targets:
                 if self._is_self_attribute(target):
                     # Collect class attribute
@@ -149,6 +140,15 @@ class _ArtifactExtractor(ast.NodeVisitor):
                         self.attributes[self.current_class] = []
                     if target.attr not in self.attributes[self.current_class]:
                         self.attributes[self.current_class].append(target.attr)
+        else:
+            # Module scope: collect module-level variables
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    # Module-level simple assignment (e.g., CONSTANT = 5)
+                    if None not in self.attributes:
+                        self.attributes[None] = []
+                    if target.id not in self.attributes[None]:
+                        self.attributes[None].append(target.id)
 
         self.generic_visit(node)
 
@@ -293,14 +293,17 @@ class _ArtifactExtractor(ast.NodeVisitor):
                 method_with_class["class"] = class_name
                 artifacts.append(method_with_class)
 
-        # Add attributes (with class context)
+        # Add attributes (with class context or module-level)
         for class_name, attrs in self.attributes.items():
             for attr_name in attrs:
-                artifacts.append({
+                artifact = {
                     "type": "attribute",
                     "name": attr_name,
-                    "class": class_name,
-                })
+                }
+                # Only add class field if not module-level (None)
+                if class_name is not None:
+                    artifact["class"] = class_name
+                artifacts.append(artifact)
 
         return artifacts
 
@@ -345,7 +348,7 @@ def create_snapshot_manifest(
     return manifest
 
 
-def generate_snapshot(file_path: str, output_dir: str) -> str:
+def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> str:
     """Generate a complete snapshot manifest for a Python file.
 
     This function orchestrates the full snapshot generation workflow:
@@ -357,6 +360,7 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
     Args:
         file_path: Path to the Python file to snapshot
         output_dir: Directory where the manifest should be written
+        force: If True, overwrite existing manifests without prompting
 
     Returns:
         Path to the generated manifest file
@@ -369,7 +373,7 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
     artifacts = extract_artifacts_from_code(file_path)
 
     # Discover existing manifests that reference this file
-    superseded_manifests = _discover_related_manifests(file_path)
+    superseded_manifests = discover_related_manifests(file_path)
 
     # Create the snapshot manifest
     manifest = create_snapshot_manifest(file_path, artifacts, superseded_manifests)
@@ -380,13 +384,26 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
 
     # Generate a unique filename based on the input file
     # Use the full path to avoid overwriting manifests for files with same name
-    sanitized_path = str(Path(file_path).with_suffix('')).replace('/', '_').replace('\\', '_')
+    sanitized_path = str(Path(file_path).with_suffix(''))
+    # Replace path separators and other special characters
+    sanitized_path = sanitized_path.replace('/', '_').replace('\\', '_')
+    # Remove or replace other problematic characters (: < > | etc.)
+    sanitized_path = re.sub(r'[:<>|"?*]', '_', sanitized_path)
+    # Remove leading dots/underscores to avoid hidden files
+    sanitized_path = sanitized_path.lstrip('._')
+    # Ensure we have something after sanitization
+    if not sanitized_path:
+        sanitized_path = "unnamed"
     manifest_filename = f"snapshot-{sanitized_path}.manifest.json"
     manifest_path = output_path / manifest_filename
 
-    # Check if file exists and warn user
-    if manifest_path.exists():
-        print(f"Warning: Overwriting existing manifest: {manifest_path}", file=sys.stderr)
+    # Check if file exists and handle based on force flag
+    if manifest_path.exists() and not force:
+        # Prompt user for confirmation
+        response = input(f"Manifest already exists: {manifest_path}\nOverwrite? (y/N): ")
+        if response.lower() not in ('y', 'yes'):
+            print("Operation cancelled.", file=sys.stderr)
+            sys.exit(1)
 
     # Write the manifest to file
     with open(manifest_path, "w", encoding="utf-8") as f:
@@ -409,6 +426,11 @@ def main() -> None:
         default="manifests",
         help="Directory to write the manifest (default: manifests)"
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing manifests without prompting"
+    )
 
     args = parser.parse_args()
 
@@ -419,7 +441,7 @@ def main() -> None:
 
     try:
         # Generate the snapshot
-        manifest_path = generate_snapshot(args.file_path, args.output_dir)
+        manifest_path = generate_snapshot(args.file_path, args.output_dir, args.force)
 
         # Print success message
         print(f"Snapshot manifest generated successfully: {manifest_path}")

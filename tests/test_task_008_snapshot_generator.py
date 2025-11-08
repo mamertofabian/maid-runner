@@ -138,8 +138,8 @@ def complex_function(
         """Test error handling for non-existent files."""
         from generate_snapshot import extract_artifacts_from_code
 
-        # Should raise appropriate error for missing file
-        with pytest.raises(Exception):
+        # Should raise FileNotFoundError for missing file
+        with pytest.raises(FileNotFoundError):
             extract_artifacts_from_code("/nonexistent/path/to/file.py")
 
     def test_handles_invalid_python_syntax(self, tmp_path: Path):
@@ -154,8 +154,8 @@ def broken_function(
         test_file = tmp_path / "broken.py"
         test_file.write_text(bad_code)
 
-        # Should raise SyntaxError or similar
-        with pytest.raises(Exception):
+        # Should raise SyntaxError for invalid Python syntax
+        with pytest.raises(SyntaxError):
             extract_artifacts_from_code(str(test_file))
 
 

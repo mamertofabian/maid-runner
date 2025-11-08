@@ -912,9 +912,12 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def _discover_related_manifests(target_file):
+def discover_related_manifests(target_file):
     """
     Discover all manifests that have touched the target file.
+
+    This is a public API function that can be used by other modules
+    to find manifests related to a specific file.
 
     Args:
         target_file: Path to the file to check
@@ -1085,7 +1088,7 @@ def _get_expected_artifacts(
         target_file = manifest_data.get("expectedArtifacts", {}).get(
             "file", test_file_path
         )
-        related_manifests = _discover_related_manifests(target_file)
+        related_manifests = discover_related_manifests(target_file)
         return _merge_expected_artifacts(related_manifests)
     else:
         expected_artifacts = manifest_data.get("expectedArtifacts", {})
