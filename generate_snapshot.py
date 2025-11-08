@@ -106,6 +106,9 @@ class _ArtifactExtractor(ast.NodeVisitor):
         # Continue visiting child nodes
         self.generic_visit(node)
 
+    # Support async functions by reusing the same logic
+    visit_AsyncFunctionDef = visit_FunctionDef
+
     def visit_ClassDef(self, node):
         """Visit class definitions."""
         # Extract class information
@@ -155,6 +158,16 @@ class _ArtifactExtractor(ast.NodeVisitor):
             "type": "function",
             "name": node.name,
         }
+
+        # Extract decorators if present
+        if node.decorator_list:
+            decorators = []
+            for decorator in node.decorator_list:
+                decorator_name = self._extract_decorator_name(decorator)
+                if decorator_name:
+                    decorators.append(decorator_name)
+            if decorators:
+                func_info["decorators"] = decorators
 
         # Extract parameters - collect all parameter types
         params = []
@@ -240,6 +253,25 @@ class _ArtifactExtractor(ast.NodeVisitor):
             and isinstance(target.value, ast.Name)
             and target.value.id == "self"
         )
+
+    def _extract_decorator_name(self, decorator_node: ast.AST) -> Optional[str]:
+        """Extract decorator name from AST node."""
+        if isinstance(decorator_node, ast.Name):
+            # Simple decorator: @decorator
+            return decorator_node.id
+        elif isinstance(decorator_node, ast.Attribute):
+            # Qualified decorator: @module.decorator
+            value = self._extract_type_annotation(decorator_node.value)
+            return f"{value}.{decorator_node.attr}"
+        elif isinstance(decorator_node, ast.Call):
+            # Decorator with arguments: @decorator(args)
+            # Extract the function name being called
+            if isinstance(decorator_node.func, ast.Name):
+                return decorator_node.func.id
+            elif isinstance(decorator_node.func, ast.Attribute):
+                value = self._extract_type_annotation(decorator_node.func.value)
+                return f"{value}.{decorator_node.func.attr}"
+        return None
 
     def get_manifest_artifacts(self) -> List[dict]:
         """Convert collected artifacts into manifest format."""

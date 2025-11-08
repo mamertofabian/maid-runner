@@ -25,7 +25,7 @@
         "name": "create_snapshot_manifest",
         "parameters": [
           {"name": "file_path", "type": "str"},
-          {"name": "artifacts", "type": "list"},
+          {"name": "artifacts", "type": "Union[List[Dict[str, Any]], Dict[str, Any]]"},
           {"name": "superseded_manifests", "type": "list"}
         ],
         "returns": "dict"
