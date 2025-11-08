@@ -202,6 +202,43 @@ class MyClass:
             assert "self" not in param_names, "set_name should not include 'self' parameter"
             assert "name" in param_names, "set_name should include 'name' parameter"
 
+    def test_extracts_pep604_union_types(self, tmp_path: Path):
+        """Test extraction of PEP 604 union type syntax (Python 3.10+)."""
+        from generate_snapshot import extract_artifacts_from_code
+        import sys
+
+        # Skip test if Python version doesn't support PEP 604
+        if sys.version_info < (3, 10):
+            pytest.skip("PEP 604 union types require Python 3.10+")
+
+        code = """
+def process_value(value: str | int) -> bool | None:
+    '''Process a string or int value'''
+    return True
+
+class DataProcessor:
+    def transform(self, data: list[str] | dict[str, int]) -> int | float | str:
+        '''Transform data to various types'''
+        return 0
+"""
+        test_file = tmp_path / "pep604.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+
+        # Verify function with union types
+        artifacts = result.get("artifacts", [])
+        process_func = next((a for a in artifacts if a.get("name") == "process_value"), None)
+        assert process_func is not None
+        assert process_func["parameters"][0]["type"] == "str | int"
+        assert process_func["returns"] == "bool | None"
+
+        # Verify method with complex union types
+        transform_method = next((a for a in artifacts if a.get("name") == "transform"), None)
+        assert transform_method is not None
+        assert transform_method["parameters"][0]["type"] == "list[str] | dict[str, int]"
+        assert transform_method["returns"] == "int | float | str"
+
 
 class TestCreateSnapshotManifest:
     """Test snapshot manifest creation with proper structure."""

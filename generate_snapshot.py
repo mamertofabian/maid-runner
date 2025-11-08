@@ -268,7 +268,17 @@ class _ArtifactExtractor(ast.NodeVisitor):
         )
 
     def _extract_decorator_name(self, decorator_node: ast.AST) -> Optional[str]:
-        """Extract decorator name from AST node."""
+        """Extract decorator name from AST node.
+
+        Note: For decorators with arguments (e.g., @decorator(arg1, arg2)),
+        only the decorator name is extracted; arguments are discarded.
+
+        Args:
+            decorator_node: AST node representing a decorator
+
+        Returns:
+            Decorator name as a string, or None if extraction fails
+        """
         if isinstance(decorator_node, ast.Name):
             # Simple decorator: @decorator
             return decorator_node.id
@@ -278,7 +288,7 @@ class _ArtifactExtractor(ast.NodeVisitor):
             return f"{value}.{decorator_node.attr}"
         elif isinstance(decorator_node, ast.Call):
             # Decorator with arguments: @decorator(args)
-            # Extract the function name being called
+            # Extract the function name being called (arguments are discarded)
             if isinstance(decorator_node.func, ast.Name):
                 return decorator_node.func.id
             elif isinstance(decorator_node.func, ast.Attribute):
@@ -435,8 +445,9 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     # Generate a descriptive name based on the input file
     # Use just the filename (not full path) for readability
     sanitized_path = Path(file_path).stem  # Get filename without extension
-    # Replace special characters with hyphens for readability
-    sanitized_path = re.sub(r'[^a-zA-Z0-9]+', '-', sanitized_path)
+    # Replace special characters with hyphens, preserving underscores and Unicode word characters
+    # This handles files like: manifest_validator.py, café_utils.py, test_數據.py
+    sanitized_path = re.sub(r'[^\w-]+', '-', sanitized_path)
     # Remove leading/trailing hyphens
     sanitized_path = sanitized_path.strip('-')
     # Ensure we have something after sanitization
