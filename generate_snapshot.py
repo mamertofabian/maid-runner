@@ -10,12 +10,26 @@ import ast
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
 # Import manifest discovery function from validators
-sys.path.insert(0, str(Path(__file__).parent))
-from validators.manifest_validator import _discover_related_manifests
-sys.path.pop(0)  # Remove the path after import
+# Note: Uses sys.path manipulation to import from validators module
+# This is a known limitation that should be addressed in future refactoring
+_parent_dir = str(Path(__file__).parent)
+sys.path.insert(0, _parent_dir)
+try:
+    from validators.manifest_validator import _discover_related_manifests
+except ImportError as e:
+    raise RuntimeError(
+        f"Failed to import validators from '{_parent_dir}'. "
+        "Ensure you're running from the repository root."
+    ) from e
+finally:
+    # Always restore sys.path, even if import fails
+    try:
+        sys.path.remove(_parent_dir)
+    except ValueError:
+        pass
 
 
 def extract_artifacts_from_code(file_path: str) -> dict:
@@ -260,13 +274,16 @@ class _ArtifactExtractor(ast.NodeVisitor):
 
 
 def create_snapshot_manifest(
-    file_path: str, artifacts: List[Dict[str, Any]], superseded_manifests: List[str]
+    file_path: str,
+    artifacts: Union[List[Dict[str, Any]], Dict[str, Any]],
+    superseded_manifests: List[str]
 ) -> Dict[str, Any]:
     """Create a snapshot manifest structure.
 
     Args:
         file_path: Path to the file being snapshot
-        artifacts: List of artifacts extracted from the code
+        artifacts: Either a list of artifacts OR the full extraction dict from
+                   extract_artifacts_from_code() (with "artifacts" key)
         superseded_manifests: List of manifest paths that this snapshot supersedes
 
     Returns:
@@ -290,7 +307,7 @@ def create_snapshot_manifest(
             "file": file_path,
             "contains": artifact_list,
         },
-        "validationCommand": ["pytest", "--collect-only"],
+        "validationCommand": [],
     }
 
     return manifest
@@ -331,7 +348,6 @@ def generate_snapshot(file_path: str, output_dir: str) -> str:
 
     # Generate a unique filename based on the input file
     # Use the full path to avoid overwriting manifests for files with same name
-    input_filename = Path(file_path).stem
     sanitized_path = str(Path(file_path).with_suffix('')).replace('/', '_').replace('\\', '_')
     manifest_filename = f"snapshot-{sanitized_path}.manifest.json"
     manifest_path = output_path / manifest_filename
