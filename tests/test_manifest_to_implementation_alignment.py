@@ -13,9 +13,43 @@ SCHEMA_PATH = Path("validators/schemas/manifest.schema.json")
 MANIFESTS_DIR = Path("manifests/")
 
 
+def get_superseded_manifests():
+    """Find all manifests that are superseded by snapshots.
+
+    Returns:
+        set: Set of manifest paths that are superseded by snapshot manifests
+    """
+    superseded = set()
+
+    # Find all snapshot manifests
+    snapshot_manifests = MANIFESTS_DIR.glob("task-*-snapshot-*.manifest.json")
+
+    for snapshot_path in snapshot_manifests:
+        with open(snapshot_path, "r") as f:
+            snapshot_data = json.load(f)
+
+        # Get the supersedes list from the snapshot
+        supersedes_list = snapshot_data.get("supersedes", [])
+        for superseded_path in supersedes_list:
+            # Convert to Path and add to set
+            superseded.add(Path(superseded_path))
+
+    return superseded
+
+
 def find_manifest_files():
-    """Scans the manifests directory and returns a list of all task manifests."""
-    return sorted(MANIFESTS_DIR.glob("task-*.manifest.json"))
+    """Scans the manifests directory and returns a list of all task manifests.
+
+    Excludes manifests that are superseded by snapshots, as those are historical
+    records and may not match current implementation after refactoring.
+    """
+    all_manifests = sorted(MANIFESTS_DIR.glob("task-*.manifest.json"))
+    superseded = get_superseded_manifests()
+
+    # Filter out superseded manifests
+    active_manifests = [m for m in all_manifests if m not in superseded]
+
+    return active_manifests
 
 
 # Pytest will automatically run this test for every file found by the find_manifest_files function
