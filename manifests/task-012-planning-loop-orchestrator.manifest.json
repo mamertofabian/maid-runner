@@ -1,0 +1,68 @@
+{
+  "goal": "Create planning loop orchestrator that guides users through Phase 2 of MAID - creating manifests and behavioral tests with iterative structural validation until plan is complete",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_012_planning_loop_orchestrator.py",
+    "validators/manifest_validator.py",
+    "validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_planning_loop",
+        "parameters": [
+          {"name": "goal"},
+          {"name": "task_number"},
+          {"name": "max_iterations"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "get_next_task_number",
+        "parameters": [
+          {"name": "manifest_dir"}
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "prompt_for_manifest_details",
+        "parameters": [
+          {"name": "goal"}
+        ],
+        "returns": "Dict[str, Any]"
+      },
+      {
+        "type": "function",
+        "name": "create_draft_manifest",
+        "parameters": [
+          {"name": "task_number"},
+          {"name": "manifest_details"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "run_structural_validation",
+        "parameters": [
+          {"name": "manifest_path"},
+          {"name": "timeout"}
+        ],
+        "returns": "Dict[str, Any]"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_012_planning_loop_orchestrator.py",
+    "-v"
+  ]
+}
