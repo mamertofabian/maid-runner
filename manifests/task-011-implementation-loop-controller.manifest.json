@@ -1,0 +1,66 @@
+{
+  "goal": "Create MAID runner CLI that orchestrates Phase 3 implementation loop by loading manifests, preparing agent context, executing validation commands, and supporting iteration until tests pass",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_011_implementation_loop_controller.py",
+    "validators/manifest_validator.py",
+    "validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "main"
+      },
+      {
+        "type": "function",
+        "name": "run_implementation_loop",
+        "parameters": [
+          {"name": "manifest_path"},
+          {"name": "max_iterations"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "load_manifest_context",
+        "parameters": [
+          {"name": "manifest_data"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "execute_validation",
+        "parameters": [
+          {"name": "validation_command"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "display_agent_context",
+        "parameters": [
+          {"name": "context"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "display_validation_results",
+        "parameters": [
+          {"name": "result"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_011_implementation_loop_controller.py",
+    "-v"
+  ]
+}
