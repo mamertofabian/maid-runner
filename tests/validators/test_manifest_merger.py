@@ -5,19 +5,19 @@ import json
 import tempfile
 from pathlib import Path
 from validators.manifest_validator import (
-    _discover_related_manifests,
+    discover_related_manifests,
     _merge_expected_artifacts,
     validate_with_ast,
     AlignmentError,
 )
 
 
-def test_discover_related_manifests():
+def testdiscover_related_manifests():
     """Test that we can discover manifests that touched a specific file."""
     # This test uses the real manifests in the project
     target_file = "validators/manifest_validator.py"
 
-    manifests = _discover_related_manifests(target_file)
+    manifests = discover_related_manifests(target_file)
 
     # Should find at least the known manifests that reference this file
     # This test is future-proof - it will pass even if more manifests are added
@@ -103,7 +103,7 @@ def test_discover_manifests_chronological_order():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Should be sorted chronologically
             assert "task-001" in manifests[0]
             assert "task-002" in manifests[1]
@@ -295,7 +295,7 @@ def validate_with_ast(manifest_data, test_file_path):
 
 def test_empty_manifest_chain():
     """Test behavior when no manifests are found."""
-    manifests = _discover_related_manifests("non_existent_file.py")
+    manifests = discover_related_manifests("non_existent_file.py")
     assert manifests == []
 
     merged = _merge_expected_artifacts([])
@@ -331,7 +331,7 @@ def test_discover_manifests_with_four_digit_numbers():
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
 
         try:
-            manifests = _discover_related_manifests("test.py")
+            manifests = discover_related_manifests("test.py")
             # Should be sorted numerically, not lexicographically
             assert len(manifests) == 4
             assert "task-998" in manifests[0]

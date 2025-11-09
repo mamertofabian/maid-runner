@@ -353,7 +353,12 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         if not args.quiet:
             print(f"✓ Validation PASSED ({args.validation_mode} mode)")
             if args.use_manifest_chain:
-                print("  Used manifest chain for validation")
+                # Check if this is a snapshot (snapshots skip chain merging)
+                is_snapshot = manifest_data.get("taskType") == "snapshot"
+                if is_snapshot:
+                    print("  Snapshot manifest (chain skipped)")
+                else:
+                    print("  Used manifest chain for validation")
             print(f"  Manifest: {args.manifest_path}")
             print(f"  Target:   {file_path}")
 

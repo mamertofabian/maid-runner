@@ -1,0 +1,52 @@
+{
+  "goal": "Create a CLI tool that generates consolidated snapshot manifests for existing files, enabling legacy code onboarding to MAID",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": ["generate_snapshot.py"],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "validators/manifest_validator.py",
+    "validators/schemas/manifest.schema.json",
+    "tests/test_task_008_snapshot_generator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "generate_snapshot.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "extract_artifacts_from_code",
+        "parameters": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "create_snapshot_manifest",
+        "parameters": [
+          {"name": "file_path", "type": "str"},
+          {"name": "artifacts", "type": "Union[List[Dict[str, Any]], Dict[str, Any]]"},
+          {"name": "superseded_manifests", "type": "List[str]"}
+        ],
+        "returns": "Dict[str, Any]"
+      },
+      {
+        "type": "function",
+        "name": "generate_snapshot",
+        "parameters": [
+          {"name": "file_path", "type": "str"},
+          {"name": "output_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "parameters": [],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_008_snapshot_generator.py", "-v"]
+}
