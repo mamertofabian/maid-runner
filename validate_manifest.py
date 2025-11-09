@@ -14,7 +14,7 @@ from pathlib import Path
 from validators.manifest_validator import validate_with_ast
 
 
-def extract_test_files_from_command(validation_command):
+def extract_test_files_from_command(validation_command) -> list:
     """
     Extract test file paths from pytest validation commands.
 

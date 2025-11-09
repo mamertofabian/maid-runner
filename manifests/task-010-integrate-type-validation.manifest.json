@@ -1,0 +1,32 @@
+{
+  "goal": "Integrate type hint validation into main validation workflow to detect type mismatches during manifest validation",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_010_type_validation_integration.py"
+  ],
+  "expectedArtifacts": {
+    "file": "validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "validate_with_ast",
+        "parameters": [
+          {"name": "manifest_data"},
+          {"name": "test_file_path"},
+          {"name": "use_manifest_chain"},
+          {"name": "validation_mode"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_010_type_validation_integration.py",
+    "-v"
+  ]
+}

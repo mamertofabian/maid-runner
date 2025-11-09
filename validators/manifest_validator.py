@@ -1039,6 +1039,26 @@ def validate_with_ast(
     # Check for unexpected public artifacts (strict mode)
     _check_unexpected_artifacts(expected_items, collector)
 
+    # Type hint validation (only in implementation mode)
+    if validation_mode == _VALIDATION_MODE_IMPLEMENTATION:
+        # Extract type information from manifest
+        manifest_artifacts = manifest_data.get("expectedArtifacts", {})
+
+        # Format implementation type data from collector
+        implementation_artifacts = {
+            "functions": collector.found_function_types,
+            "methods": collector.found_method_types,
+        }
+
+        # Validate type hints match manifest declarations
+        type_errors = validate_type_hints(manifest_artifacts, implementation_artifacts)
+        if type_errors:
+            # Format errors for readability
+            formatted_errors = "\n".join(f"  - {err}" for err in type_errors)
+            raise AlignmentError(
+                f"Type validation failed:\n{formatted_errors}"
+            )
+
 
 def _parse_file(file_path: str) -> ast.AST:
     """Parse a Python file into an AST.
