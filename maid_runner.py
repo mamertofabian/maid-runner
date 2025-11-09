@@ -4,6 +4,10 @@ MAID Runner CLI - Implementation Loop Controller
 
 Orchestrates Phase 3 of MAID workflow by loading manifests, preparing agent
 context, executing validation commands, and supporting iteration until tests pass.
+
+This is a MANUAL implementation loop where the developer reviews validation
+failures and makes code changes between iterations. It does NOT automatically
+generate or modify code - that AI integration will come in a future phase.
 """
 
 import argparse
@@ -11,9 +15,10 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Dict, List, Any
 
 
-def main():
+def main() -> None:
     """CLI entry point for MAID runner."""
     parser = argparse.ArgumentParser(
         description="MAID Runner - Phase 2 & 3 Orchestrator",
@@ -57,6 +62,17 @@ Examples:
         default=10,
         help="Maximum number of validation iterations (default: 10)",
     )
+    run_parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Validation command timeout in seconds (default: 300)",
+    )
+    run_parser.add_argument(
+        "--auto",
+        action="store_true",
+        help="Run iterations automatically without pausing (not recommended)",
+    )
 
     args = parser.parse_args()
 
@@ -64,19 +80,29 @@ Examples:
         success = run_planning_loop(args.goal, args.task_number)
         sys.exit(0 if success else 1)
     elif args.command == "run":
-        success = run_implementation_loop(args.manifest_path, args.max_iterations)
+        success = run_implementation_loop(
+            args.manifest_path, args.max_iterations, args.timeout, args.auto
+        )
         sys.exit(0 if success else 1)
     else:
         parser.print_help()
 
 
-def run_implementation_loop(manifest_path: str, max_iterations: int) -> bool:
+def run_implementation_loop(
+    manifest_path: str, max_iterations: int, timeout: int = 300, auto: bool = False
+) -> bool:
     """
     Run the implementation loop for a given manifest.
+
+    This is a MANUAL loop - it pauses between iterations to allow the developer
+    to review failures and make code changes. It does NOT automatically generate
+    or modify code.
 
     Args:
         manifest_path: Path to the manifest JSON file
         max_iterations: Maximum number of validation iterations
+        timeout: Validation command timeout in seconds (default: 300)
+        auto: If True, run without pausing between iterations (default: False)
 
     Returns:
         bool: True if validation passed, False otherwise
@@ -109,6 +135,24 @@ def run_implementation_loop(manifest_path: str, max_iterations: int) -> bool:
         print("\n✗ Error: No validationCommand specified in manifest")
         return False
 
+    # Validate command structure
+    if not isinstance(validation_command, list):
+        print("\n✗ Error: validationCommand must be a list")
+        return False
+
+    if not all(isinstance(arg, str) for arg in validation_command):
+        print("\n✗ Error: All items in validationCommand must be strings")
+        return False
+
+    # Validate command is allowed (security)
+    ALLOWED_COMMANDS = {"pytest", "python", "uv", "make"}
+    if validation_command and validation_command[0] not in ALLOWED_COMMANDS:
+        print(
+            f"\n✗ Error: Command '{validation_command[0]}' not allowed. "
+            f"Allowed commands: {', '.join(sorted(ALLOWED_COMMANDS))}"
+        )
+        return False
+
     # Run validation loop
     iteration = 0
     while iteration < max_iterations:
@@ -120,7 +164,7 @@ def run_implementation_loop(manifest_path: str, max_iterations: int) -> bool:
 
         # Execute validation
         print(f"\nRunning: {' '.join(validation_command)}\n")
-        result = execute_validation(validation_command)
+        result = execute_validation(validation_command, timeout)
 
         # Display results
         display_validation_results(result)
@@ -131,12 +175,23 @@ def run_implementation_loop(manifest_path: str, max_iterations: int) -> bool:
             print("=" * 80)
             return True
 
+        # Validation failed
+        print(
+            f"\n⚠ Validation failed. Iteration {iteration}/{max_iterations} complete."
+        )
+
         if iteration < max_iterations:
-            print(
-                f"\n⚠ Validation failed. Iteration {iteration}/{max_iterations} complete."
-            )
             print("Please review the errors above and make necessary changes.")
-            print("Retrying validation...")
+
+            if not auto:
+                # Pause for user intervention (manual implementation loop)
+                try:
+                    input("\nPress Enter to retry validation (or Ctrl+C to abort): ")
+                except KeyboardInterrupt:
+                    print("\n\n✗ Aborted by user")
+                    return False
+            else:
+                print("Retrying validation automatically...")
 
     print("\n" + "=" * 80)
     print(f"✗ Maximum iterations ({max_iterations}) reached without success")
@@ -144,7 +199,7 @@ def run_implementation_loop(manifest_path: str, max_iterations: int) -> bool:
     return False
 
 
-def load_manifest_context(manifest_data: dict) -> dict:
+def load_manifest_context(manifest_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Load and prepare context from manifest for AI agent.
 
@@ -166,12 +221,15 @@ def load_manifest_context(manifest_data: dict) -> dict:
     }
 
 
-def execute_validation(validation_command: list) -> dict:
+def execute_validation(
+    validation_command: List[str], timeout: int = 300
+) -> Dict[str, Any]:
     """
     Execute validation command and capture results.
 
     Args:
         validation_command: List of command components to execute
+        timeout: Command timeout in seconds (default: 300)
 
     Returns:
         dict: Validation results including success status and output
@@ -181,7 +239,7 @@ def execute_validation(validation_command: list) -> dict:
             validation_command,
             capture_output=True,
             text=True,
-            timeout=300,  # 5 minute timeout
+            timeout=timeout,
         )
 
         return {
@@ -196,8 +254,8 @@ def execute_validation(validation_command: list) -> dict:
             "success": False,
             "returncode": -1,
             "stdout": "",
-            "stderr": "Command timed out after 5 minutes",
-            "output": "Command timed out after 5 minutes",
+            "stderr": f"Command timed out after {timeout} seconds",
+            "output": f"Command timed out after {timeout} seconds",
         }
     except Exception as e:
         return {
@@ -209,7 +267,7 @@ def execute_validation(validation_command: list) -> dict:
         }
 
 
-def display_agent_context(context: dict):
+def display_agent_context(context: Dict[str, Any]) -> None:
     """
     Display agent context information.
 
@@ -219,35 +277,35 @@ def display_agent_context(context: dict):
     print("\n📋 GOAL:")
     print(f"   {context['goal']}")
 
-    task_type = context.get('taskType', 'unknown')
+    task_type = context.get("taskType", "unknown")
     print(f"\n📂 FILES ({task_type}):")
 
     creatable = context["files"].get("creatable", [])
     if creatable:
-        print(f"\n   Creatable files (new):")
+        print("\n   Creatable files (new):")
         for f in creatable:
             print(f"   • {f}")
 
     editable = context["files"].get("editable", [])
     if editable:
-        print(f"\n   Editable files (modify):")
+        print("\n   Editable files (modify):")
         for f in editable:
             print(f"   • {f}")
 
     readonly = context["files"].get("readonly", [])
     if readonly:
-        print(f"\n   Readonly files (reference):")
+        print("\n   Readonly files (reference):")
         for f in readonly:
             print(f"   • {f}")
 
     artifacts = context.get("expectedArtifacts", {})
     if artifacts and artifacts.get("contains"):
-        print(f"\n🎯 EXPECTED ARTIFACTS:")
+        print("\n🎯 EXPECTED ARTIFACTS:")
         print(f"   File: {artifacts.get('file')}")
         print(f"   Artifacts: {len(artifacts.get('contains', []))} items")
 
 
-def display_validation_results(result: dict):
+def display_validation_results(result: Dict[str, Any]) -> None:
     """
     Display validation results.
 

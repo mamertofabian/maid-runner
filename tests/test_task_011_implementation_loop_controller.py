@@ -8,9 +8,7 @@ commands, and supporting iteration until tests pass.
 These tests USE the functions declared in the manifest.
 """
 
-import pytest
 import json
-import tempfile
 from pathlib import Path
 import sys
 
@@ -39,8 +37,8 @@ class TestImplementationLoopController:
             "readonlyFiles": ["tests/test.py"],
             "expectedArtifacts": {
                 "file": "test.py",
-                "contains": [{"type": "function", "name": "test_func"}]
-            }
+                "contains": [{"type": "function", "name": "test_func"}],
+            },
         }
 
         context = load_manifest_context(manifest_data)
@@ -54,7 +52,7 @@ class TestImplementationLoopController:
     def test_execute_validation_returns_dict(self):
         """Test that execute_validation returns a result dictionary."""
         # Use a simple command that will succeed
-        result = execute_validation(["echo", "test"])
+        result = execute_validation(["python", "-c", "print('test')"])
 
         # Should return a dict
         assert isinstance(result, dict)
@@ -66,7 +64,7 @@ class TestImplementationLoopController:
     def test_execute_validation_captures_failure(self):
         """Test that execute_validation captures command failures."""
         # Use a command that will fail
-        result = execute_validation(["false"])
+        result = execute_validation(["python", "-c", "exit(1)"])
 
         assert isinstance(result, dict)
         assert result["success"] is False
@@ -74,7 +72,7 @@ class TestImplementationLoopController:
     def test_execute_validation_captures_success(self):
         """Test that execute_validation captures command success."""
         # Use a command that will succeed
-        result = execute_validation(["true"])
+        result = execute_validation(["python", "-c", "exit(0)"])
 
         assert isinstance(result, dict)
         assert result["success"] is True
@@ -86,8 +84,8 @@ class TestImplementationLoopController:
             "files": {
                 "creatable": ["new.py"],
                 "editable": ["existing.py"],
-                "readonly": ["tests/test.py"]
-            }
+                "readonly": ["tests/test.py"],
+            },
         }
 
         # Should not raise an error
@@ -99,10 +97,7 @@ class TestImplementationLoopController:
 
     def test_display_validation_results_accepts_dict(self, capsys):
         """Test that display_validation_results can display results."""
-        result = {
-            "success": True,
-            "output": "All tests passed"
-        }
+        result = {"success": True, "output": "All tests passed"}
 
         # Should not raise an error
         display_validation_results(result)
@@ -120,19 +115,19 @@ class TestImplementationLoopController:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            },
-            "validationCommand": ["true"]  # Always succeeds
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["python", "-c", "exit(0)"],  # Always succeeds
         }
 
         manifest_path = tmp_path / "test.manifest.json"
         manifest_path.write_text(json.dumps(manifest))
 
         # Should complete without error
-        # Run with max_iterations=1 to avoid infinite loop
-        run_implementation_loop(str(manifest_path), max_iterations=1)
+        # Run with max_iterations=1 and auto=True to avoid pausing
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=1, timeout=300, auto=True
+        )
+        assert result is True
 
     def test_run_implementation_loop_with_failing_validation(self, tmp_path: Path):
         """Test run_implementation_loop when validation fails."""
@@ -142,18 +137,18 @@ class TestImplementationLoopController:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            },
-            "validationCommand": ["false"]  # Always fails
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["python", "-c", "exit(1)"],  # Always fails
         }
 
         manifest_path = tmp_path / "test.manifest.json"
         manifest_path.write_text(json.dumps(manifest))
 
         # Should handle failure gracefully and respect max_iterations
-        run_implementation_loop(str(manifest_path), max_iterations=2)
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=2, timeout=300, auto=True
+        )
+        assert result is False
 
     def test_run_implementation_loop_respects_max_iterations(self, tmp_path: Path):
         """Test that run_implementation_loop respects max_iterations limit."""
@@ -163,19 +158,18 @@ class TestImplementationLoopController:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            },
-            "validationCommand": ["false"]  # Always fails
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["python", "-c", "exit(1)"],  # Always fails
         }
 
         manifest_path = tmp_path / "test.manifest.json"
         manifest_path.write_text(json.dumps(manifest))
 
         # Should stop after max_iterations
-        # We can't easily verify the count, but it should complete
-        run_implementation_loop(str(manifest_path), max_iterations=3)
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=3, timeout=300, auto=True
+        )
+        assert result is False
 
     def test_load_manifest_context_includes_all_file_types(self):
         """Test that load_manifest_context includes all file categories."""
@@ -184,10 +178,7 @@ class TestImplementationLoopController:
             "creatableFiles": ["new1.py", "new2.py"],
             "editableFiles": ["edit1.py", "edit2.py"],
             "readonlyFiles": ["readonly1.py", "readonly2.py"],
-            "expectedArtifacts": {
-                "file": "new1.py",
-                "contains": []
-            }
+            "expectedArtifacts": {"file": "new1.py", "contains": []},
         }
 
         context = load_manifest_context(manifest_data)
@@ -205,17 +196,15 @@ class TestImplementationLoopController:
         """Test execute_validation with a pytest-like command."""
         # Create a simple test file that will pass
         test_file = tmp_path / "test_simple.py"
-        test_file.write_text("""
+        test_file.write_text(
+            """
 def test_always_pass():
     assert True
-""")
+"""
+        )
 
         # Execute validation with pytest
-        result = execute_validation([
-            "pytest",
-            str(test_file),
-            "-v"
-        ])
+        result = execute_validation(["pytest", str(test_file), "-v"])
 
         assert isinstance(result, dict)
         assert "success" in result
@@ -237,10 +226,7 @@ def test_always_pass():
 
     def test_display_agent_context_shows_goal(self, capsys):
         """Test that display_agent_context displays the goal."""
-        context = {
-            "goal": "UNIQUE_TEST_GOAL_12345",
-            "files": {}
-        }
+        context = {"goal": "UNIQUE_TEST_GOAL_12345", "files": {}}
 
         display_agent_context(context)
 
@@ -248,14 +234,11 @@ def test_always_pass():
         output = captured.out + captured.err
 
         # Goal should appear in output
-        assert "UNIQUE_TEST_GOAL_12345" in output or "goal" in output.lower()
+        assert "UNIQUE_TEST_GOAL_12345" in output, "Goal should be displayed in context"
 
     def test_display_validation_results_shows_success_status(self, capsys):
         """Test that display_validation_results shows success status."""
-        result = {
-            "success": True,
-            "output": "Test output"
-        }
+        result = {"success": True, "output": "Test output"}
 
         display_validation_results(result)
 
@@ -267,11 +250,7 @@ def test_always_pass():
 
     def test_display_validation_results_shows_failure_status(self, capsys):
         """Test that display_validation_results shows failure status."""
-        result = {
-            "success": False,
-            "output": "Test failed",
-            "stderr": "Error details"
-        }
+        result = {"success": False, "output": "Test failed", "stderr": "Error details"}
 
         display_validation_results(result)
 
@@ -280,3 +259,105 @@ def test_always_pass():
 
         # Should indicate failure
         assert len(output) > 0
+
+    def test_execute_validation_with_timeout_parameter(self):
+        """Test that execute_validation accepts and uses timeout parameter."""
+        # Use a simple command with custom timeout
+        result = execute_validation(["python", "-c", "exit(0)"], timeout=10)
+
+        assert isinstance(result, dict)
+        assert "success" in result
+        assert result["success"] is True
+
+    def test_execute_validation_timeout_expiry(self):
+        """Test that execute_validation handles timeout expiry."""
+        # Use a command that will timeout (sleep for 10 seconds with 1 second timeout)
+        result = execute_validation(["sleep", "10"], timeout=1)
+
+        assert isinstance(result, dict)
+        assert result["success"] is False
+        assert "timed out" in result["stderr"].lower()
+
+    def test_run_implementation_loop_with_auto_flag(self, tmp_path: Path):
+        """Test run_implementation_loop with auto flag enabled."""
+        manifest = {
+            "goal": "Test auto mode",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["python", "-c", "exit(0)"],
+        }
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_path.write_text(json.dumps(manifest))
+
+        # Should complete without pausing for user input
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=1, timeout=300, auto=True
+        )
+        assert result is True
+
+    def test_run_implementation_loop_with_custom_timeout(self, tmp_path: Path):
+        """Test run_implementation_loop with custom timeout parameter."""
+        manifest = {
+            "goal": "Test custom timeout",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["python", "-c", "exit(0)"],
+        }
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_path.write_text(json.dumps(manifest))
+
+        # Should accept custom timeout
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=1, timeout=10, auto=True
+        )
+        assert result is True
+
+    def test_run_implementation_loop_rejects_invalid_command(self, tmp_path: Path):
+        """Test that run_implementation_loop rejects non-whitelisted commands."""
+        manifest = {
+            "goal": "Test command validation",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["rm", "-rf", "/"],  # Not allowed
+        }
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_path.write_text(json.dumps(manifest))
+
+        # Should reject invalid command
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=1, timeout=300, auto=True
+        )
+        assert result is False
+
+    def test_run_implementation_loop_validates_command_structure(self, tmp_path: Path):
+        """Test that run_implementation_loop validates command structure."""
+        manifest = {
+            "goal": "Test command structure validation",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": "not a list",  # Should be a list
+        }
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_path.write_text(json.dumps(manifest))
+
+        # Should reject invalid command structure
+        result = run_implementation_loop(
+            str(manifest_path), max_iterations=1, timeout=300, auto=True
+        )
+        assert result is False
