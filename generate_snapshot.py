@@ -226,7 +226,10 @@ class _ArtifactExtractor(ast.NodeVisitor):
             base = self._extract_type_annotation(annotation_node.value)
             if isinstance(annotation_node.slice, ast.Tuple):
                 # Multiple type arguments
-                args = [self._extract_type_annotation(elt) for elt in annotation_node.slice.elts]
+                args = [
+                    self._extract_type_annotation(elt)
+                    for elt in annotation_node.slice.elts
+                ]
                 return f"{base}[{', '.join(args)}]"
             else:
                 # Single type argument
@@ -334,7 +337,7 @@ class _ArtifactExtractor(ast.NodeVisitor):
 def create_snapshot_manifest(
     file_path: str,
     artifacts: Union[List[Dict[str, Any]], Dict[str, Any]],
-    superseded_manifests: List[str]
+    superseded_manifests: List[str],
 ) -> Dict[str, Any]:
     """Create a snapshot manifest structure.
 
@@ -447,15 +450,17 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     sanitized_path = Path(file_path).stem  # Get filename without extension
     # Replace special characters with hyphens, preserving underscores and Unicode word characters
     # This handles files like: manifest_validator.py, café_utils.py, test_數據.py
-    sanitized_path = re.sub(r'[^\w-]+', '-', sanitized_path)
+    sanitized_path = re.sub(r"[^\w-]+", "-", sanitized_path)
     # Remove leading/trailing hyphens
-    sanitized_path = sanitized_path.strip('-')
+    sanitized_path = sanitized_path.strip("-")
     # Ensure we have something after sanitization
     if not sanitized_path:
         sanitized_path = "unnamed"
 
     # Use task prefix with sequential numbering for natural sorting
-    manifest_filename = f"task-{next_number:03d}-snapshot-{sanitized_path}.manifest.json"
+    manifest_filename = (
+        f"task-{next_number:03d}-snapshot-{sanitized_path}.manifest.json"
+    )
     manifest_path = output_path / manifest_filename
 
     # Filter out the snapshot itself from supersedes to avoid circular reference
@@ -469,8 +474,10 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     # Check if file exists (unlikely with sequential numbering, but safety check)
     if manifest_path.exists() and not force:
         # This shouldn't happen with sequential numbering, but handle it anyway
-        response = input(f"Manifest already exists: {manifest_path}\nOverwrite? (y/N): ")
-        if response.lower() not in ('y', 'yes'):
+        response = input(
+            f"Manifest already exists: {manifest_path}\nOverwrite? (y/N): "
+        )
+        if response.lower() not in ("y", "yes"):
             print("Operation cancelled.", file=sys.stderr)
             sys.exit(1)
 
@@ -486,19 +493,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate MAID snapshot manifests from existing Python files"
     )
-    parser.add_argument(
-        "file_path",
-        help="Path to the Python file to snapshot"
-    )
+    parser.add_argument("file_path", help="Path to the Python file to snapshot")
     parser.add_argument(
         "--output-dir",
         default="manifests",
-        help="Directory to write the manifest (default: manifests)"
+        help="Directory to write the manifest (default: manifests)",
     )
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite existing manifests without prompting"
+        help="Overwrite existing manifests without prompting",
     )
 
     args = parser.parse_args()

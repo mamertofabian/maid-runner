@@ -184,22 +184,32 @@ class MyClass:
 
         # Find the methods in the artifacts
         init_method = next((a for a in artifacts if a.get("name") == "__init__"), None)
-        get_name_method = next((a for a in artifacts if a.get("name") == "get_name"), None)
-        set_name_method = next((a for a in artifacts if a.get("name") == "set_name"), None)
+        get_name_method = next(
+            (a for a in artifacts if a.get("name") == "get_name"), None
+        )
+        set_name_method = next(
+            (a for a in artifacts if a.get("name") == "set_name"), None
+        )
 
         # Verify 'self' is NOT in the parameters
         if init_method and "parameters" in init_method:
             param_names = [p["name"] for p in init_method["parameters"]]
-            assert "self" not in param_names, "__init__ should not include 'self' parameter"
+            assert (
+                "self" not in param_names
+            ), "__init__ should not include 'self' parameter"
             assert "name" in param_names, "__init__ should include 'name' parameter"
 
         if get_name_method and "parameters" in get_name_method:
             # get_name should have no parameters (self is filtered out)
-            assert len(get_name_method["parameters"]) == 0, "get_name should have no parameters after filtering 'self'"
+            assert (
+                len(get_name_method["parameters"]) == 0
+            ), "get_name should have no parameters after filtering 'self'"
 
         if set_name_method and "parameters" in set_name_method:
             param_names = [p["name"] for p in set_name_method["parameters"]]
-            assert "self" not in param_names, "set_name should not include 'self' parameter"
+            assert (
+                "self" not in param_names
+            ), "set_name should not include 'self' parameter"
             assert "name" in param_names, "set_name should include 'name' parameter"
 
     def test_extracts_pep604_union_types(self, tmp_path: Path):
@@ -228,13 +238,17 @@ class DataProcessor:
 
         # Verify function with union types
         artifacts = result.get("artifacts", [])
-        process_func = next((a for a in artifacts if a.get("name") == "process_value"), None)
+        process_func = next(
+            (a for a in artifacts if a.get("name") == "process_value"), None
+        )
         assert process_func is not None
         assert process_func["parameters"][0]["type"] == "str | int"
         assert process_func["returns"] == "bool | None"
 
         # Verify method with complex union types
-        transform_method = next((a for a in artifacts if a.get("name") == "transform"), None)
+        transform_method = next(
+            (a for a in artifacts if a.get("name") == "transform"), None
+        )
         assert transform_method is not None
         assert transform_method["parameters"][0]["type"] == "list[str] | dict[str, int]"
         assert transform_method["returns"] == "int | float | str"
@@ -499,7 +513,12 @@ class Validator:
             manifest = json.load(f)
 
         # Load the schema
-        schema_path = Path(__file__).parent.parent / "validators" / "schemas" / "manifest.schema.json"
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
         with open(schema_path, "r") as f:
             schema = json.load(f)
 
@@ -749,7 +768,12 @@ def create_default_user() -> User:
             generated_manifest = json.load(f)
 
         # Load schema
-        schema_path = Path(__file__).parent.parent / "validators" / "schemas" / "manifest.schema.json"
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
         with open(schema_path, "r") as f:
             schema = json.load(f)
 
@@ -800,4 +824,6 @@ class DataProcessor:
         )
 
         # Validation should succeed (no errors)
-        assert result is not None or True  # validate_with_ast may return None on success
+        assert (
+            result is not None or True
+        )  # validate_with_ast may return None on success

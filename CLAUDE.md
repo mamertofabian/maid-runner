@@ -257,3 +257,39 @@ git stash pop
   - **Result**: Now validates completely with fixed validator
 
 This pattern ensures every task contributes to a stronger, more capable system.
+
+**Note:** Documents in the `./.claude/conversations` directory contain conversational history with Claude from experimentation and exploration. They should not be treated as a source of truth or referenced unnecessarily.
+
+## ⚠️ CRITICAL: Commit Policy ⚠️
+
+**NEVER AUTO-COMMIT WITHOUT EXPLICIT PERMISSION!**
+
+Before ANY commit, you MUST:
+
+1. **Run ALL code quality checks:**
+   ```bash
+   make lint          # Check code style
+   make type-check    # Check TypeScript types
+   make test          # Run tests
+   make format        # Format code
+   ```
+
+2. **Fix ALL errors and type issues** - Do NOT commit if there are ANY:
+   - Type errors
+   - Linting errors
+   - Test failures
+   - Build errors
+
+3. **Wait for explicit user direction** - Even if the user mentioned committing earlier in the conversation, ALWAYS:
+   - Show them the changes
+   - Show them the quality check results
+   - Wait for their explicit "commit now" or "go ahead" instruction
+   - NEVER assume permission to commit
+
+**This applies even if:**
+- The user asked to commit earlier
+- You think the changes are ready
+- All tests pass
+- The code looks perfect
+
+**ALWAYS WAIT FOR EXPLICIT DIRECTION BEFORE COMMITTING!**
