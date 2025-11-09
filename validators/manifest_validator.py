@@ -1055,9 +1055,7 @@ def validate_with_ast(
         if type_errors:
             # Format errors for readability
             formatted_errors = "\n".join(f"  - {err}" for err in type_errors)
-            raise AlignmentError(
-                f"Type validation failed:\n{formatted_errors}"
-            )
+            raise AlignmentError(f"Type validation failed:\n{formatted_errors}")
 
 
 def _parse_file(file_path: str) -> ast.AST:

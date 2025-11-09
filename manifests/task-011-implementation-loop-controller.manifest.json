@@ -23,7 +23,9 @@
         "name": "run_implementation_loop",
         "parameters": [
           {"name": "manifest_path"},
-          {"name": "max_iterations"}
+          {"name": "max_iterations"},
+          {"name": "timeout"},
+          {"name": "auto"}
         ]
       },
       {
@@ -32,15 +34,16 @@
         "parameters": [
           {"name": "manifest_data"}
         ],
-        "returns": "dict"
+        "returns": "Dict[str, Any]"
       },
       {
         "type": "function",
         "name": "execute_validation",
         "parameters": [
-          {"name": "validation_command"}
+          {"name": "validation_command"},
+          {"name": "timeout"}
         ],
-        "returns": "dict"
+        "returns": "Dict[str, Any]"
       },
       {
         "type": "function",

@@ -9,7 +9,6 @@ These tests USE validate_with_ast to verify the integration works correctly.
 """
 
 import pytest
-import tempfile
 from pathlib import Path
 import sys
 
@@ -42,9 +41,9 @@ def process_data(data):
                         "type": "function",
                         "name": "process_data",
                         "parameters": [{"name": "data", "type": "dict"}],
-                        "returns": "bool"
+                        "returns": "bool",
                     }
-                ]
+                ],
             }
         }
 
@@ -73,9 +72,9 @@ def get_user(user_id: str) -> dict:
                         "type": "function",
                         "name": "get_user",
                         "parameters": [{"name": "user_id", "type": "int"}],
-                        "returns": "dict"
+                        "returns": "dict",
                     }
-                ]
+                ],
             }
         }
 
@@ -106,11 +105,11 @@ def calculate(x: int, y: int):
                         "name": "calculate",
                         "parameters": [
                             {"name": "x", "type": "int"},
-                            {"name": "y", "type": "int"}
+                            {"name": "y", "type": "int"},
                         ],
-                        "returns": "int"
+                        "returns": "int",
                     }
-                ]
+                ],
             }
         }
 
@@ -139,9 +138,9 @@ def is_valid(value: str) -> str:
                         "type": "function",
                         "name": "is_valid",
                         "parameters": [{"name": "value", "type": "str"}],
-                        "returns": "bool"
+                        "returns": "bool",
                     }
-                ]
+                ],
             }
         }
 
@@ -172,11 +171,11 @@ def greet(name: str, age: int) -> str:
                         "name": "greet",
                         "parameters": [
                             {"name": "name", "type": "str"},
-                            {"name": "age", "type": "int"}
+                            {"name": "age", "type": "int"},
                         ],
-                        "returns": "str"
+                        "returns": "str",
                     }
-                ]
+                ],
             }
         }
 
@@ -198,18 +197,15 @@ class UserService:
             "expectedArtifacts": {
                 "file": str(impl_file),
                 "contains": [
-                    {
-                        "type": "class",
-                        "name": "UserService"
-                    },
+                    {"type": "class", "name": "UserService"},
                     {
                         "type": "function",
                         "name": "get_user",
                         "class": "UserService",
                         "parameters": [{"name": "user_id", "type": "int"}],
-                        "returns": "dict"
-                    }
-                ]
+                        "returns": "dict",
+                    },
+                ],
             }
         }
 
@@ -241,9 +237,9 @@ def find_user(user_id: int) -> Optional[dict]:
                         "type": "function",
                         "name": "find_user",
                         "parameters": [{"name": "user_id", "type": "int"}],
-                        "returns": "Optional[dict]"
+                        "returns": "Optional[dict]",
                     }
-                ]
+                ],
             }
         }
 
@@ -270,9 +266,9 @@ def process_items(items: List[str]) -> Dict[str, int]:
                         "type": "function",
                         "name": "process_items",
                         "parameters": [{"name": "items", "type": "List[str]"}],
-                        "returns": "Dict[str, int]"
+                        "returns": "Dict[str, int]",
                     }
-                ]
+                ],
             }
         }
 
@@ -297,11 +293,11 @@ def bad_function(x: int, y: str) -> None:
                         "name": "bad_function",
                         "parameters": [
                             {"name": "x", "type": "str"},  # Wrong type
-                            {"name": "y", "type": "int"}   # Wrong type
+                            {"name": "y", "type": "int"},  # Wrong type
                         ],
-                        "returns": "bool"  # Wrong type
+                        "returns": "bool",  # Wrong type
                     }
-                ]
+                ],
             }
         }
 
@@ -333,9 +329,9 @@ def calculate(x):  # Missing type hint
                         "type": "function",
                         "name": "calculate",
                         "parameters": [{"name": "x", "type": "int"}],
-                        "returns": "int"
+                        "returns": "int",
                     }
-                ]
+                ],
             }
         }
 
