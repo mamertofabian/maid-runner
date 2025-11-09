@@ -42,15 +42,13 @@ Examples:
         "plan", help="Run planning loop to create a new task manifest"
     )
     plan_parser.add_argument(
-        "--goal",
-        required=True,
-        help="The goal/description of the task"
+        "--goal", required=True, help="The goal/description of the task"
     )
     plan_parser.add_argument(
         "--task-number",
         type=int,
         default=None,
-        help="Task number (auto-detected if not specified)"
+        help="Task number (auto-detected if not specified)",
     )
 
     # Run command (Phase 3)
@@ -540,11 +538,8 @@ def prompt_for_manifest_details(goal: str) -> Dict[str, Any]:
         "creatableFiles": creatable_files,
         "editableFiles": editable_files,
         "readonlyFiles": readonly_files,
-        "expectedArtifacts": {
-            "file": impl_file,
-            "contains": []
-        },
-        "validationCommand": validation_command
+        "expectedArtifacts": {"file": impl_file, "contains": []},
+        "validationCommand": validation_command,
     }
 
 
@@ -564,8 +559,8 @@ def create_draft_manifest(task_number: int, manifest_details: Dict[str, Any]) ->
     # Create a simple filename from goal (lowercase, replace spaces with hyphens)
     goal_slug = goal.lower().replace(" ", "-")[:50]
     # Remove special characters and collapse multiple hyphens
-    goal_slug = re.sub(r'[^a-z0-9-]', '', goal_slug)
-    goal_slug = re.sub(r'-+', '-', goal_slug).strip('-')
+    goal_slug = re.sub(r"[^a-z0-9-]", "", goal_slug)
+    goal_slug = re.sub(r"-+", "-", goal_slug).strip("-")
     # Fallback if empty
     if not goal_slug:
         goal_slug = "task"
@@ -602,11 +597,11 @@ def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str
                 sys.executable,
                 "validate_manifest.py",
                 manifest_path,
-                "--use-manifest-chain"
+                "--use-manifest-chain",
             ],
             capture_output=True,
             text=True,
-            timeout=timeout
+            timeout=timeout,
         )
 
         return {
@@ -616,7 +611,9 @@ def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str
             "stdout": result.stdout,
             "stderr": result.stderr,
             "errors": [] if result.returncode == 0 else [result.stderr],
-            "message": "Validation passed" if result.returncode == 0 else "Validation failed"
+            "message": (
+                "Validation passed" if result.returncode == 0 else "Validation failed"
+            ),
         }
     except subprocess.TimeoutExpired:
         return {
@@ -624,7 +621,7 @@ def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str
             "returncode": -1,
             "output": "Validation timed out",
             "errors": [f"Validation timed out after {timeout} seconds"],
-            "message": "Validation timed out"
+            "message": "Validation timed out",
         }
     except Exception as e:
         return {
@@ -632,7 +629,7 @@ def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str
             "returncode": -1,
             "output": str(e),
             "errors": [str(e)],
-            "message": f"Validation error: {e}"
+            "message": f"Validation error: {e}",
         }
 
 

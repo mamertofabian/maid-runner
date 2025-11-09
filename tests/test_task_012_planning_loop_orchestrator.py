@@ -114,10 +114,7 @@ class TestCreateDraftManifest:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": ["tests/test.py"],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            }
+            "expectedArtifacts": {"file": "test.py", "contains": []},
         }
 
         # Use monkeypatch for safer directory changes
@@ -140,10 +137,7 @@ class TestCreateDraftManifest:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            }
+            "expectedArtifacts": {"file": "test.py", "contains": []},
         }
 
         monkeypatch.chdir(tmp_path)
@@ -166,7 +160,7 @@ class TestCreateDraftManifest:
             "creatableFiles": [],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {"file": "test.py", "contains": []}
+            "expectedArtifacts": {"file": "test.py", "contains": []},
         }
 
         monkeypatch.chdir(tmp_path)
@@ -190,11 +184,8 @@ class TestRunStructuralValidation:
             "creatableFiles": ["test.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "test.py",
-                "contains": []
-            },
-            "validationCommand": ["true"]
+            "expectedArtifacts": {"file": "test.py", "contains": []},
+            "validationCommand": ["true"],
         }
 
         manifest_path = tmp_path / "test.manifest.json"
@@ -216,9 +207,9 @@ class TestRunStructuralValidation:
             "readonlyFiles": [],
             "expectedArtifacts": {
                 "file": "nonexistent.py",
-                "contains": [{"type": "function", "name": "test"}]
+                "contains": [{"type": "function", "name": "test"}],
             },
-            "validationCommand": ["true"]
+            "validationCommand": ["true"],
         }
 
         manifest_path = tmp_path / "test.manifest.json"
@@ -239,11 +230,8 @@ class TestRunStructuralValidation:
             "creatableFiles": ["missing.py"],
             "editableFiles": [],
             "readonlyFiles": [],
-            "expectedArtifacts": {
-                "file": "missing.py",
-                "contains": []
-            },
-            "validationCommand": ["true"]
+            "expectedArtifacts": {"file": "missing.py", "contains": []},
+            "validationCommand": ["true"],
         }
 
         manifest_path = tmp_path / "test.manifest.json"
@@ -266,8 +254,7 @@ class TestRunPlanningLoop:
         # Mock user input to avoid interactive prompts
         # The function should handle this gracefully
         result = run_planning_loop(
-            goal="Test planning loop",
-            task_number=None  # Auto-detect
+            goal="Test planning loop", task_number=None  # Auto-detect
         )
 
         # Should return a boolean
@@ -278,10 +265,7 @@ class TestRunPlanningLoop:
         monkeypatch.chdir(tmp_path)
         (tmp_path / "manifests").mkdir()
 
-        result = run_planning_loop(
-            goal="Test with specific number",
-            task_number=42
-        )
+        result = run_planning_loop(goal="Test with specific number", task_number=42)
 
         assert isinstance(result, bool)
 
@@ -295,9 +279,6 @@ class TestRunPlanningLoop:
         (manifests_dir / "task-001-first.manifest.json").write_text("{}")
         (manifests_dir / "task-002-second.manifest.json").write_text("{}")
 
-        result = run_planning_loop(
-            goal="Test auto-detect",
-            task_number=None
-        )
+        result = run_planning_loop(goal="Test auto-detect", task_number=None)
 
         assert isinstance(result, bool)
