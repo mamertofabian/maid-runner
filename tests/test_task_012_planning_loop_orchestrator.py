@@ -8,9 +8,7 @@ validation, and iterative refinement.
 These tests USE the functions declared in the manifest.
 """
 
-import pytest
 import json
-import tempfile
 from pathlib import Path
 import sys
 
@@ -108,7 +106,7 @@ class TestPromptForManifestDetails:
 class TestCreateDraftManifest:
     """Test manifest file creation."""
 
-    def test_creates_manifest_file(self, tmp_path: Path):
+    def test_creates_manifest_file(self, tmp_path: Path, monkeypatch):
         """Test that manifest file is created."""
         manifest_details = {
             "goal": "Test goal",
@@ -122,24 +120,19 @@ class TestCreateDraftManifest:
             }
         }
 
-        # Change to tmp directory for this test
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            (tmp_path / "manifests").mkdir()
+        # Use monkeypatch for safer directory changes
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "manifests").mkdir()
 
-            manifest_path = create_draft_manifest(1, manifest_details)
+        manifest_path = create_draft_manifest(1, manifest_details)
 
-            # Should return a path
-            assert isinstance(manifest_path, str)
+        # Should return a path
+        assert isinstance(manifest_path, str)
 
-            # File should exist
-            assert Path(manifest_path).exists()
-        finally:
-            os.chdir(old_cwd)
+        # File should exist
+        assert Path(manifest_path).exists()
 
-    def test_manifest_has_valid_json(self, tmp_path: Path):
+    def test_manifest_has_valid_json(self, tmp_path: Path, monkeypatch):
         """Test that created manifest is valid JSON."""
         manifest_details = {
             "goal": "Test goal",
@@ -153,24 +146,19 @@ class TestCreateDraftManifest:
             }
         }
 
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            (tmp_path / "manifests").mkdir()
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "manifests").mkdir()
 
-            manifest_path = create_draft_manifest(5, manifest_details)
+        manifest_path = create_draft_manifest(5, manifest_details)
 
-            # Should be valid JSON
-            with open(manifest_path) as f:
-                data = json.load(f)
+        # Should be valid JSON
+        with open(manifest_path) as f:
+            data = json.load(f)
 
-            assert isinstance(data, dict)
-            assert data["goal"] == "Test goal"
-        finally:
-            os.chdir(old_cwd)
+        assert isinstance(data, dict)
+        assert data["goal"] == "Test goal"
 
-    def test_formats_task_number_correctly(self, tmp_path: Path):
+    def test_formats_task_number_correctly(self, tmp_path: Path, monkeypatch):
         """Test that task numbers are zero-padded."""
         manifest_details = {
             "goal": "Test",
@@ -181,18 +169,13 @@ class TestCreateDraftManifest:
             "expectedArtifacts": {"file": "test.py", "contains": []}
         }
 
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            (tmp_path / "manifests").mkdir()
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "manifests").mkdir()
 
-            manifest_path = create_draft_manifest(7, manifest_details)
+        manifest_path = create_draft_manifest(7, manifest_details)
 
-            # Should have zero-padded number
-            assert "task-007" in manifest_path or "007" in Path(manifest_path).name
-        finally:
-            os.chdir(old_cwd)
+        # Should have zero-padded number
+        assert "task-007" in manifest_path or "007" in Path(manifest_path).name
 
 
 class TestRunStructuralValidation:
@@ -277,59 +260,44 @@ class TestRunPlanningLoop:
 
     def test_planning_loop_creates_manifest(self, tmp_path: Path, monkeypatch):
         """Test that planning loop creates a manifest file."""
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            (tmp_path / "manifests").mkdir()
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "manifests").mkdir()
 
-            # Mock user input to avoid interactive prompts
-            # The function should handle this gracefully
-            result = run_planning_loop(
-                goal="Test planning loop",
-                task_number=None  # Auto-detect
-            )
+        # Mock user input to avoid interactive prompts
+        # The function should handle this gracefully
+        result = run_planning_loop(
+            goal="Test planning loop",
+            task_number=None  # Auto-detect
+        )
 
-            # Should return a boolean
-            assert isinstance(result, bool)
-        finally:
-            os.chdir(old_cwd)
+        # Should return a boolean
+        assert isinstance(result, bool)
 
-    def test_planning_loop_uses_provided_task_number(self, tmp_path: Path):
+    def test_planning_loop_uses_provided_task_number(self, tmp_path: Path, monkeypatch):
         """Test that planning loop uses provided task number."""
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            (tmp_path / "manifests").mkdir()
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "manifests").mkdir()
 
-            result = run_planning_loop(
-                goal="Test with specific number",
-                task_number=42
-            )
+        result = run_planning_loop(
+            goal="Test with specific number",
+            task_number=42
+        )
 
-            assert isinstance(result, bool)
-        finally:
-            os.chdir(old_cwd)
+        assert isinstance(result, bool)
 
-    def test_planning_loop_auto_detects_task_number(self, tmp_path: Path):
+    def test_planning_loop_auto_detects_task_number(self, tmp_path: Path, monkeypatch):
         """Test that planning loop auto-detects next task number."""
-        import os
-        old_cwd = os.getcwd()
-        try:
-            os.chdir(tmp_path)
-            manifests_dir = tmp_path / "manifests"
-            manifests_dir.mkdir()
+        monkeypatch.chdir(tmp_path)
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
 
-            # Create existing manifests
-            (manifests_dir / "task-001-first.manifest.json").write_text("{}")
-            (manifests_dir / "task-002-second.manifest.json").write_text("{}")
+        # Create existing manifests
+        (manifests_dir / "task-001-first.manifest.json").write_text("{}")
+        (manifests_dir / "task-002-second.manifest.json").write_text("{}")
 
-            result = run_planning_loop(
-                goal="Test auto-detect",
-                task_number=None
-            )
+        result = run_planning_loop(
+            goal="Test auto-detect",
+            task_number=None
+        )
 
-            assert isinstance(result, bool)
-        finally:
-            os.chdir(old_cwd)
+        assert isinstance(result, bool)

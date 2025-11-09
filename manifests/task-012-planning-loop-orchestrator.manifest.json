@@ -19,7 +19,8 @@
         "name": "run_planning_loop",
         "parameters": [
           {"name": "goal"},
-          {"name": "task_number"}
+          {"name": "task_number"},
+          {"name": "max_iterations"}
         ],
         "returns": "bool"
       },
@@ -37,7 +38,7 @@
         "parameters": [
           {"name": "goal"}
         ],
-        "returns": "dict"
+        "returns": "Dict[str, Any]"
       },
       {
         "type": "function",
@@ -52,9 +53,10 @@
         "type": "function",
         "name": "run_structural_validation",
         "parameters": [
-          {"name": "manifest_path"}
+          {"name": "manifest_path"},
+          {"name": "timeout"}
         ],
-        "returns": "dict"
+        "returns": "Dict[str, Any]"
       }
     ]
   },

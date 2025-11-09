@@ -12,10 +12,12 @@ generate or modify code - that AI integration will come in a future phase.
 
 import argparse
 import json
+import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 
 def main() -> None:
@@ -335,13 +337,16 @@ def display_validation_results(result: Dict[str, Any]) -> None:
 # ============================================================================
 
 
-def run_planning_loop(goal: str, task_number: int = None) -> bool:
+def run_planning_loop(
+    goal: str, task_number: Optional[int] = None, max_iterations: int = 10
+) -> bool:
     """
     Run the planning loop for creating a new task manifest.
 
     Args:
         goal: The goal/description of the task
         task_number: Optional task number (auto-detected if None)
+        max_iterations: Maximum validation iterations (default: 10)
 
     Returns:
         bool: True if planning completed successfully, False otherwise
@@ -385,7 +390,6 @@ def run_planning_loop(goal: str, task_number: int = None) -> bool:
         pass
 
     # Validation loop
-    max_iterations = 10
     iteration = 0
 
     while iteration < max_iterations:
@@ -457,7 +461,7 @@ def get_next_task_number(manifest_dir: Path) -> int:
     return max_number + 1
 
 
-def prompt_for_manifest_details(goal: str) -> dict:
+def prompt_for_manifest_details(goal: str) -> Dict[str, Any]:
     """
     Interactively prompt user for manifest details.
 
@@ -520,8 +524,8 @@ def prompt_for_manifest_details(goal: str) -> dict:
         val_cmd_input = input("Command: ").strip()
 
         if val_cmd_input:
-            # Split command into parts
-            validation_command = val_cmd_input.split()
+            # Split command into parts (handles quoted arguments correctly)
+            validation_command = shlex.split(val_cmd_input)
         else:
             validation_command = ["true"]  # Default no-op
 
@@ -544,7 +548,7 @@ def prompt_for_manifest_details(goal: str) -> dict:
     }
 
 
-def create_draft_manifest(task_number: int, manifest_details: dict) -> str:
+def create_draft_manifest(task_number: int, manifest_details: Dict[str, Any]) -> str:
     """
     Create a draft manifest file.
 
@@ -559,9 +563,12 @@ def create_draft_manifest(task_number: int, manifest_details: dict) -> str:
     goal = manifest_details.get("goal", "task")
     # Create a simple filename from goal (lowercase, replace spaces with hyphens)
     goal_slug = goal.lower().replace(" ", "-")[:50]
-    # Remove special characters
-    import re
+    # Remove special characters and collapse multiple hyphens
     goal_slug = re.sub(r'[^a-z0-9-]', '', goal_slug)
+    goal_slug = re.sub(r'-+', '-', goal_slug).strip('-')
+    # Fallback if empty
+    if not goal_slug:
+        goal_slug = "task"
 
     # Create manifest filename
     filename = f"task-{task_number:03d}-{goal_slug}.manifest.json"
@@ -578,12 +585,13 @@ def create_draft_manifest(task_number: int, manifest_details: dict) -> str:
     return str(manifest_path)
 
 
-def run_structural_validation(manifest_path: str) -> dict:
+def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str, Any]:
     """
     Run structural validation on a manifest.
 
     Args:
         manifest_path: Path to the manifest file
+        timeout: Validation timeout in seconds (default: 60)
 
     Returns:
         dict: Validation result with success status and errors
@@ -598,7 +606,7 @@ def run_structural_validation(manifest_path: str) -> dict:
             ],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=timeout
         )
 
         return {
@@ -615,7 +623,7 @@ def run_structural_validation(manifest_path: str) -> dict:
             "success": False,
             "returncode": -1,
             "output": "Validation timed out",
-            "errors": ["Validation timed out after 60 seconds"],
+            "errors": [f"Validation timed out after {timeout} seconds"],
             "message": "Validation timed out"
         }
     except Exception as e:
