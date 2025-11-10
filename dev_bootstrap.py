@@ -53,8 +53,17 @@ class MAIDDevRunner:
             # Enhanced format: array of command arrays
             commands_to_run = self.validation_commands
         elif self.validation_command:
-            # Legacy format: single command array, wrap it
-            commands_to_run = [self.validation_command]
+            # Legacy format: could be single command array or multiple string commands
+            # Check if it's multiple string commands (each element is a string with spaces)
+            if len(self.validation_command) > 1 and all(
+                isinstance(cmd, str) and " " in cmd for cmd in self.validation_command
+            ):
+                # Multiple string commands: ["pytest test1.py", "pytest test2.py"]
+                # Convert each string to a command array
+                commands_to_run = [cmd.split() for cmd in self.validation_command]
+            else:
+                # Single command array: ["pytest", "test.py", "-v"]
+                commands_to_run = [self.validation_command]
         else:
             print("❌ No validation command in manifest")
             return False
