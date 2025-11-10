@@ -14,7 +14,7 @@ from maid_agents.core.orchestrator import MAIDOrchestrator
 
 def test_run_planning_loop_method_exists():
     """Test run_planning_loop method exists with correct signature."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     result = orchestrator.run_planning_loop(goal="Test goal", max_iterations=5)
 
@@ -24,7 +24,7 @@ def test_run_planning_loop_method_exists():
 
 def test_run_planning_loop_with_different_iterations():
     """Test run_planning_loop with different iteration counts."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     result = orchestrator.run_planning_loop(
         goal="Create a test feature", max_iterations=3

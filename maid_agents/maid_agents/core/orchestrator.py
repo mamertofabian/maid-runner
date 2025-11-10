@@ -44,6 +44,7 @@ class MAIDOrchestrator:
         manifest_architect: Optional[ManifestArchitect] = None,
         test_designer: Optional[TestDesigner] = None,
         validation_runner: Optional[ValidationRunner] = None,
+        dry_run: bool = False,
     ):
         """Initialize orchestrator.
 
@@ -52,8 +53,10 @@ class MAIDOrchestrator:
             manifest_architect: Manifest architect agent (creates default if None)
             test_designer: Test designer agent (creates default if None)
             validation_runner: Validation runner (creates default if None)
+            dry_run: If True, skip all file write operations (for testing)
         """
         self._state = WorkflowState.INIT
+        self.dry_run = dry_run
 
         # Create default Claude wrapper if not provided
         if claude is None:
@@ -146,15 +149,16 @@ class MAIDOrchestrator:
             manifest_path = manifest_result["manifest_path"]
             manifest_data = manifest_result["manifest_data"]
 
-            # Save manifest to disk
-            try:
-                manifest_file = Path(manifest_path)
-                manifest_file.parent.mkdir(parents=True, exist_ok=True)
-                with open(manifest_file, "w") as f:
-                    json.dump(manifest_data, f, indent=2)
-            except Exception as e:
-                last_error = f"Failed to save manifest: {e}"
-                continue
+            # Save manifest to disk (skip in dry_run mode)
+            manifest_file = Path(manifest_path)
+            if not self.dry_run:
+                try:
+                    manifest_file.parent.mkdir(parents=True, exist_ok=True)
+                    with open(manifest_file, "w") as f:
+                        json.dump(manifest_data, f, indent=2)
+                except Exception as e:
+                    last_error = f"Failed to save manifest: {e}"
+                    continue
 
             # Step 2: Create tests using TestDesigner
             test_result = self.test_designer.create_tests(
@@ -168,16 +172,17 @@ class MAIDOrchestrator:
             test_paths = test_result["test_paths"]
             test_code = test_result["test_code"]
 
-            # Save test files to disk
-            try:
-                for test_path in test_paths:
-                    test_file = Path(test_path)
-                    test_file.parent.mkdir(parents=True, exist_ok=True)
-                    with open(test_file, "w") as f:
-                        f.write(test_code)
-            except Exception as e:
-                last_error = f"Failed to save test files: {e}"
-                continue
+            # Save test files to disk (skip in dry_run mode)
+            if not self.dry_run:
+                try:
+                    for test_path in test_paths:
+                        test_file = Path(test_path)
+                        test_file.parent.mkdir(parents=True, exist_ok=True)
+                        with open(test_file, "w") as f:
+                            f.write(test_code)
+                except Exception as e:
+                    last_error = f"Failed to save test files: {e}"
+                    continue
 
             # Step 3: Run behavioral validation
             # Validate that tests USE the declared artifacts (behavioral mode)
@@ -325,19 +330,20 @@ class MAIDOrchestrator:
                 last_error = "No files to modify"
                 continue
 
-            # Write code to the target file(s)
+            # Write code to the target file(s) (skip in dry_run mode)
             # Developer returns single code block for the primary file
-            try:
-                # Write to the first file in the list (primary target)
-                target_file = Path(files_modified[0])
-                target_file.parent.mkdir(parents=True, exist_ok=True)
+            if not self.dry_run:
+                try:
+                    # Write to the first file in the list (primary target)
+                    target_file = Path(files_modified[0])
+                    target_file.parent.mkdir(parents=True, exist_ok=True)
 
-                with open(target_file, "w") as f:
-                    f.write(generated_code)
+                    with open(target_file, "w") as f:
+                        f.write(generated_code)
 
-            except Exception as e:
-                last_error = f"Failed to write code to {files_modified[0]}: {e}"
-                continue
+                except Exception as e:
+                    last_error = f"Failed to write code to {files_modified[0]}: {e}"
+                    continue
 
             # Step 4: Run tests again
             test_result = self.validation_runner.run_behavioral_tests(manifest_path)

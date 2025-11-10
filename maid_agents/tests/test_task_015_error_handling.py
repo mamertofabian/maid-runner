@@ -10,7 +10,7 @@ from maid_agents.core.orchestrator import MAIDOrchestrator
 
 def test_handle_error_method_exists():
     """Test _handle_error method exists."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     # Call the method with a test exception
     error = Exception("Test error")
@@ -22,7 +22,7 @@ def test_handle_error_method_exists():
 
 def test_handle_error_with_different_exceptions():
     """Test _handle_error handles different exception types."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     # Test with ValueError
     result1 = orchestrator._handle_error(ValueError("Value error"))

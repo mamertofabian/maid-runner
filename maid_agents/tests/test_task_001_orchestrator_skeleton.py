@@ -126,7 +126,7 @@ def test_workflow_result_dataclass_failure_case():
 def test_maid_orchestrator_instantiation():
     """Test MAIDOrchestrator can be instantiated."""
 
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
     assert orchestrator is not None
     assert isinstance(orchestrator, MAIDOrchestrator)
 
@@ -134,7 +134,7 @@ def test_maid_orchestrator_instantiation():
 def test_run_full_workflow_method_exists():
     """Test run_full_workflow method can be called and returns WorkflowResult."""
 
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     # CALL the method with required goal parameter
     result = orchestrator.run_full_workflow(goal="Create a test module")
@@ -151,7 +151,7 @@ def test_run_full_workflow_method_exists():
 def test_run_full_workflow_with_different_goals():
     """Test run_full_workflow can be called with different goal strings."""
 
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     goals = [
         "Implement user authentication",
@@ -167,7 +167,7 @@ def test_run_full_workflow_with_different_goals():
 def test_get_workflow_state_method_exists():
     """Test get_workflow_state method can be called and returns WorkflowState."""
 
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     # CALL the method
     state = orchestrator.get_workflow_state()
@@ -179,7 +179,7 @@ def test_get_workflow_state_method_exists():
 def test_workflow_state_after_instantiation():
     """Test orchestrator has a valid workflow state after instantiation."""
 
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
     state = orchestrator.get_workflow_state()
 
     # State should be one of the valid WorkflowState enum members
@@ -197,7 +197,7 @@ def test_workflow_state_after_instantiation():
 
 def test_orchestrator_workflow_integration():
     """Test integration between run_full_workflow and get_workflow_state."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     # Get initial state
     initial_state = orchestrator.get_workflow_state()

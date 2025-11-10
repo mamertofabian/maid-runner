@@ -14,7 +14,7 @@ from maid_agents.core.orchestrator import MAIDOrchestrator
 
 def test_run_implementation_loop_method_exists():
     """Test run_implementation_loop method exists with correct signature."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     result = orchestrator.run_implementation_loop(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
@@ -27,7 +27,7 @@ def test_run_implementation_loop_method_exists():
 
 def test_run_implementation_loop_with_different_iterations():
     """Test run_implementation_loop with different iteration counts."""
-    orchestrator = MAIDOrchestrator()
+    orchestrator = MAIDOrchestrator(dry_run=True)
 
     result = orchestrator.run_implementation_loop(
         manifest_path="maid_agents/manifests/task-002-validation-runner.manifest.json",
