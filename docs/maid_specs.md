@@ -54,11 +54,16 @@ The development process is broken down into distinct phases, characterized by tw
   * **The Task Manifest**
     The Task Manifest is a JSON file that makes every task explicit and self-contained. It serves as an immutable record of a single change, forming one link in a chronological chain that defines the state of a module. The schema supports detailed interface definitions and multiple validation commands.
 
-    **Note:** The example below shows the proposed v2.0 schema format. The current implementation uses v1.2. See the roadmap for v2.0 implementation plans.
+    **Enhanced Format Support:** The schema now supports both legacy and enhanced formats for backward compatibility:
+    - **Legacy format:** `validationCommand` (single array), `parameters` field
+    - **Enhanced format:** `validationCommands` (array of arrays for multiple commands), `args` field, `metadata` object, enhanced `returns` format, `raises` field
 
+    Both formats are fully supported and can coexist. New manifests can use the enhanced format while existing manifests continue to work unchanged.
+
+    **Example (Enhanced Format):**
     ```json
     {
-      "version": "2.0",
+      "version": "1",
       "goal": "Refactor the UserService to add a method for finding a user by ID.",
       "taskType": "edit",
       "supersedes": [],
@@ -67,6 +72,11 @@ The development process is broken down into distinct phases, characterized by tw
         "tests/test_user_service.py",
         "src/models/user.py"
       ],
+      "metadata": {
+        "author": "developer@example.com",
+        "tags": ["refactoring", "user-service"],
+        "priority": "high"
+      },
       "expectedArtifacts": {
         "file": "src/services/user_service.py",
         "contains": [
@@ -80,13 +90,36 @@ The development process is broken down into distinct phases, characterized by tw
             "name": "get_user_by_id",
             "class": "UserService",
             "args": [{"name": "user_id", "type": "int"}],
+            "returns": {"type": "User"},
+            "raises": ["ValueError"]
+          }
+        ]
+      },
+      "validationCommands": [
+        ["pytest", "tests/test_user_service.py", "-v"],
+        ["mypy", "src/services/user_service.py"]
+      ]
+    }
+    ```
+
+    **Example (Legacy Format - Still Supported):**
+    ```json
+    {
+      "goal": "Add a method to UserService",
+      "readonlyFiles": [],
+      "expectedArtifacts": {
+        "file": "src/services/user_service.py",
+        "contains": [
+          {
+            "type": "function",
+            "name": "get_user_by_id",
+            "class": "UserService",
+            "parameters": [{"name": "user_id"}],
             "returns": "User"
           }
         ]
       },
-      "validationCommand": [
-        "pytest tests/test_user_service.py --strict-markers"
-      ]
+      "validationCommand": ["pytest", "tests/test_user_service.py"]
     }
     ```
 

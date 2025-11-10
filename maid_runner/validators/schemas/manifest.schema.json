@@ -2,13 +2,32 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MAID Task Manifest",
     "type": "object",
-    "required": ["goal", "readonlyFiles", "expectedArtifacts", "validationCommand"],
+    "required": ["goal", "readonlyFiles", "expectedArtifacts"],
+    "anyOf": [
+      { "required": ["validationCommand"] },
+      { "required": ["validationCommands"] }
+    ],
     "properties": {
+      "version": {
+        "type": "string",
+        "enum": ["1"],
+        "description": "Schema version (defaults to '1' if not specified). Currently only version '1' is supported.",
+        "default": "1"
+      },
       "goal": { "type": "string" },
       "taskType": { "type": "string" },
       "creatableFiles": { "type": "array", "items": { "type": "string" } },
       "editableFiles": { "type": "array", "items": { "type": "string" } },
       "readonlyFiles": { "type": "array", "items": { "type": "string" } },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "author": { "type": "string" },
+          "created": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "priority": { "type": "string" }
+        }
+      },
       "expectedArtifacts": {
         "type": "object",
         "properties": {
@@ -33,9 +52,40 @@
                     },
                     "required": ["name"]
                   },
-                  "description": "List of parameter names for a function"
+                  "description": "List of parameter names for a function (legacy format)"
                 },
-                "returns": { "type": "string", "description": "The return type of a function (optional)" }
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "type": { "type": "string" },
+                      "default": { "type": "string" }
+                    },
+                    "required": ["name"]
+                  },
+                  "description": "List of function arguments (enhanced format)"
+                },
+                "returns": {
+                  "anyOf": [
+                    { "type": "string", "description": "The return type of a function (string format)" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": { "type": "string" }
+                      },
+                      "required": ["type"],
+                      "description": "The return type of a function (object format)"
+                    }
+                  ],
+                  "description": "The return type of a function (optional)"
+                },
+                "raises": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "List of exception types that may be raised (optional)"
+                }
               },
               "required": ["type", "name"]
             }
@@ -43,6 +93,18 @@
         },
         "required": ["file", "contains"]
       },
-      "validationCommand": { "type": "array", "items": { "type": "string" } }
+      "validationCommand": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Single validation command (legacy format)"
+      },
+      "validationCommands": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": "Multiple validation commands (enhanced format)"
+      }
     }
   }

@@ -15,9 +15,11 @@ help:
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
 
-# Run all tests
+# Run all tests (including structural validation and validation commands from manifests)
 test:
 	uv run python -m pytest tests/ -v
+	@echo ""
+	@uv run python scripts/validate_all_manifests.py
 
 # Validate all manifests
 validate:

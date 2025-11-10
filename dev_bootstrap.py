@@ -36,47 +36,84 @@ class MAIDDevRunner:
         self.manifest_path = Path(manifest_path)
         self.manifest_data = self._load_manifest()
         self.editable_files = self.manifest_data.get("editableFiles", [])
+        # Support both validationCommand (legacy) and validationCommands (enhanced)
+        self.validation_commands = self.manifest_data.get("validationCommands", [])
         self.validation_command = self.manifest_data.get("validationCommand", [])
 
     def _load_manifest(self) -> Dict:
         """Load and parse manifest JSON."""
         with open(self.manifest_path, "r") as f:
-            return json.load(f)
+            manifest_data = json.load(f)
+
+        # Validate version field
+        from maid_runner.utils import validate_manifest_version
+
+        try:
+            validate_manifest_version(manifest_data, self.manifest_path.name)
+        except ValueError as e:
+            print(f"✗ Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        return manifest_data
 
     def run_validation(self) -> bool:
-        """Run the validation command and return success status."""
-        if not self.validation_command:
+        """Run the validation command(s) and return success status.
+
+        Supports multiple validation command formats:
+        - Enhanced: validationCommands (array of command arrays)
+        - Legacy: validationCommand (single array or multiple string commands)
+
+        Timeout: 300 seconds (5 minutes) per command to allow for comprehensive test suites.
+        """
+        from maid_runner.utils import normalize_validation_commands
+
+        commands_to_run = normalize_validation_commands(self.manifest_data)
+        if not commands_to_run:
             print("❌ No validation command in manifest")
             return False
 
-        print(f"\n{'='*60}")
-        print(f"🔄 Running validation: {' '.join(self.validation_command)}")
-        print(f"{'='*60}")
+        all_passed = True
+        for i, cmd in enumerate(commands_to_run):
+            if i > 0:
+                print()  # Add spacing between commands
 
-        try:
-            result = subprocess.run(
-                self.validation_command, capture_output=True, text=True, timeout=30
+            print(f"\n{'='*60}")
+            print(
+                f"🔄 Running validation command {i+1}/{len(commands_to_run)}: {' '.join(cmd)}"
             )
+            print(f"{'='*60}")
 
-            # Print output
-            if result.stdout:
-                print(result.stdout)
-            if result.stderr:
-                print(result.stderr, file=sys.stderr)
+            try:
+                # Timeout: 300 seconds (5 minutes) to allow for comprehensive test suites
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=300
+                )
 
-            if result.returncode == 0:
-                print("✅ Tests PASSED!")
-                return True
-            else:
-                print(f"❌ Tests FAILED (exit code: {result.returncode})")
-                return False
+                # Print output
+                if result.stdout:
+                    print(result.stdout)
+                if result.stderr:
+                    print(result.stderr, file=sys.stderr)
 
-        except subprocess.TimeoutExpired:
-            print("❌ Tests TIMEOUT (30s)")
-            return False
-        except Exception as e:
-            print(f"❌ Error running tests: {e}")
-            return False
+                if result.returncode == 0:
+                    print(f"✅ Command {i+1} PASSED!")
+                else:
+                    print(f"❌ Command {i+1} FAILED (exit code: {result.returncode})")
+                    all_passed = False
+
+            except subprocess.TimeoutExpired:
+                print(f"❌ Command {i+1} TIMEOUT (300s)")
+                all_passed = False
+            except Exception as e:
+                print(f"❌ Error running command {i+1}: {e}")
+                all_passed = False
+
+        if all_passed:
+            print(f"\n✅ All {len(commands_to_run)} validation command(s) PASSED!")
+        else:
+            print("\n❌ Some validation command(s) FAILED")
+
+        return all_passed
 
     def run_structural_validation(self) -> bool:
         """Run manifest structural validation."""
@@ -112,7 +149,10 @@ class MAIDDevRunner:
         print(f"\n📋 Manifest: {self.manifest_path.name}")
         print(f"📝 Goal: {self.manifest_data.get('goal', 'No goal specified')[:80]}...")
         print(f"📁 Editable files: {', '.join(self.editable_files)}")
-        print(f"🧪 Validation: {' '.join(self.validation_command[:3])}...")
+        if self.validation_commands:
+            print(f"🧪 Validation commands: {len(self.validation_commands)} command(s)")
+        elif self.validation_command:
+            print(f"🧪 Validation: {' '.join(self.validation_command[:3])}...")
 
 
 class FileChangeHandler(FileSystemEventHandler):

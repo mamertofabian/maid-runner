@@ -21,24 +21,52 @@ def extract_test_files_from_command(validation_command) -> list:
     Handles various pytest command formats:
     - ["pytest tests/test_file.py -v"] (single string)
     - ["pytest", "tests/test_file.py", "-v"] (separate elements)
+    - [["pytest", "test1.py"], ["pytest", "test2.py"]] (validationCommands format)
     - python -m pytest tests/test_file.py tests/test_other.py -v
     - uv run pytest tests/test_*.py -v
     - pytest tests/ -v
 
     Args:
-        validation_command: List of command components
+        validation_command: List of command components (legacy format)
+                          OR array of command arrays (enhanced format)
 
     Returns:
-        list: List of test file paths extracted from the command
+        list: List of test file paths extracted from the command(s)
     """
     if not validation_command:
         return []
 
-    # Handle multiple pytest commands (e.g., ["pytest test1.py", "pytest test2.py"])
     all_test_files = []
 
-    # Process each command in the list
-    for cmd in validation_command:
+    # Check if this is the enhanced format (array of arrays)
+    if validation_command and isinstance(validation_command[0], list):
+        # Enhanced format: validationCommands = [["pytest", "test1.py"], ["pytest", "test2.py"]]
+        for cmd_array in validation_command:
+            test_files = _extract_from_single_command(cmd_array)
+            all_test_files.extend(test_files)
+        return all_test_files
+    else:
+        # Legacy format: validationCommand = ["pytest", "test.py", "-v"]
+        return _extract_from_single_command(validation_command)
+
+
+def _extract_from_single_command(command) -> list:
+    """
+    Extract test files from a single command array.
+
+    Args:
+        command: List of command components (e.g., ["pytest", "test.py", "-v"])
+
+    Returns:
+        list: List of test file paths
+    """
+    if not command:
+        return []
+
+    test_files = []
+
+    # Handle multiple pytest commands as strings (e.g., ["pytest test1.py", "pytest test2.py"])
+    for cmd in command:
         if isinstance(cmd, str) and "pytest" in cmd:
             # Split if it's a single string command
             cmd_parts = cmd.split() if " " in cmd else [cmd]
@@ -67,21 +95,21 @@ def extract_test_files_from_command(validation_command) -> list:
                     # Extract file path from node IDs (file::class::method)
                     if "::" in arg:
                         file_path = arg.split("::")[0]
-                        all_test_files.append(file_path)
+                        test_files.append(file_path)
                     else:
                         # Regular file or directory path
-                        all_test_files.append(arg)
+                        test_files.append(arg)
 
-    # If we found test files from multiple commands, return them
-    if all_test_files:
-        return all_test_files
+    # If we found test files from string commands, return them
+    if test_files:
+        return test_files
 
     # Otherwise, try the original logic for single command format
     # (e.g., ["pytest", "test.py", "-v"])
-    if len(validation_command) > 1:
+    if len(command) > 1:
         # Find the pytest command index
         pytest_index = -1
-        for i, part in enumerate(validation_command):
+        for i, part in enumerate(command):
             if part == "pytest":
                 pytest_index = i
                 break
@@ -91,7 +119,7 @@ def extract_test_files_from_command(validation_command) -> list:
             return []
 
         # Extract arguments after pytest command
-        pytest_args = validation_command[pytest_index + 1 :]
+        pytest_args = command[pytest_index + 1 :]
 
         # Filter out pytest flags and options, keep only file/directory paths
         test_files = []
@@ -194,7 +222,8 @@ def validate_behavioral_tests(
 
         elif artifact_type == "function":
             parent_class = artifact.get("class")
-            parameters = artifact.get("parameters", [])
+            # Support both args (enhanced) and parameters (legacy)
+            parameters = artifact.get("args") or artifact.get("parameters", [])
 
             if parent_class:
                 # It's a method
@@ -277,13 +306,26 @@ def run_validation(
         with open(manifest_path_obj, "r") as f:
             manifest_data = json.load(f)
 
+        # Validate version field
+        from maid_runner.utils import validate_manifest_version
+
+        try:
+            validate_manifest_version(manifest_data, manifest_path_obj.name)
+        except ValueError as e:
+            print(f"✗ Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
         # Snapshot manifests must have comprehensive validationCommands
         # Check this early, before file validation
+        # Support both legacy (validationCommand) and enhanced (validationCommands) formats
         validation_command = manifest_data.get("validationCommand", [])
-        if manifest_data.get("taskType") == "snapshot" and not validation_command:
+        validation_commands = manifest_data.get("validationCommands", [])
+        has_validation = bool(validation_command or validation_commands)
+
+        if manifest_data.get("taskType") == "snapshot" and not has_validation:
             print(
                 f"✗ Error: Snapshot manifest {manifest_path_obj.name} must have a comprehensive "
-                f"validationCommand that tests all artifacts. Snapshot manifests document the "
+                f"validationCommand or validationCommands that tests all artifacts. Snapshot manifests document the "
                 f"complete current state and must validate all artifacts."
             )
             sys.exit(1)
@@ -300,10 +342,14 @@ def run_validation(
             sys.exit(1)
 
         # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
-        # Check if manifest has a validationCommand that contains test files
+        # Check if manifest has a validationCommand or validationCommands that contains test files
+        # Support both legacy (validationCommand) and enhanced (validationCommands) formats
+        validation_commands = manifest_data.get("validationCommands", [])
+        if not validation_commands:
+            validation_commands = manifest_data.get("validationCommand", [])
 
-        if validation_command:
-            test_files = extract_test_files_from_command(validation_command)
+        if validation_commands:
+            test_files = extract_test_files_from_command(validation_commands)
             if test_files:
                 if not quiet:
                     print("Running behavioral test validation...")
@@ -334,8 +380,20 @@ def run_validation(
                     print("  Snapshot manifest (chain skipped)")
                 else:
                     print("  Used manifest chain for validation")
+
             print(f"  Manifest: {manifest_path}")
             print(f"  Target:   {file_path}")
+
+        # Display metadata if present (outside conditional for consistent display)
+        metadata = manifest_data.get("metadata")
+        if metadata:
+            if metadata.get("author"):
+                print(f"  Author:   {metadata['author']}")
+            if metadata.get("tags"):
+                tags_str = ", ".join(metadata["tags"])
+                print(f"  Tags:     {tags_str}")
+            if metadata.get("priority"):
+                print(f"  Priority: {metadata['priority']}")
 
     except Exception as e:
         from maid_runner.validators.manifest_validator import AlignmentError

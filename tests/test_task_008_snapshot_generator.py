@@ -371,11 +371,26 @@ class TestCreateSnapshotManifest:
         )
 
         # Should aggregate validation commands from superseded manifests
-        assert "validationCommand" in result
-        assert isinstance(result["validationCommand"], list)
-        assert len(result["validationCommand"]) > 0
-        # Should deduplicate commands
-        assert len(result["validationCommand"]) == len(set(result["validationCommand"]))
+        # Support both validationCommand (legacy) and validationCommands (enhanced)
+        if "validationCommands" in result:
+            validation_commands = result["validationCommands"]
+            assert isinstance(validation_commands, list)
+            assert len(validation_commands) > 0
+            # Should deduplicate commands
+            assert len(validation_commands) == len(
+                set(
+                    tuple(cmd) if isinstance(cmd, list) else cmd
+                    for cmd in validation_commands
+                )
+            )
+        else:
+            assert "validationCommand" in result
+            assert isinstance(result["validationCommand"], list)
+            assert len(result["validationCommand"]) > 0
+            # Should deduplicate commands
+            assert len(result["validationCommand"]) == len(
+                set(result["validationCommand"])
+            )
 
     def test_filters_out_tests_for_removed_artifacts(self):
         """Test that tests referencing removed artifacts are filtered out."""
@@ -401,12 +416,23 @@ class TestCreateSnapshotManifest:
         )
 
         # Should filter out test_validate_schema.py since validate_schema was removed
-        assert "validationCommand" in result
-        validation_commands = result["validationCommand"]
+        # Support both validationCommand (legacy) and validationCommands (enhanced)
+        if "validationCommands" in result:
+            validation_commands_raw = result["validationCommands"]
+            # Flatten for checking
+            validation_commands = []
+            for cmd in validation_commands_raw:
+                if isinstance(cmd, list):
+                    validation_commands.extend(cmd)
+                else:
+                    validation_commands.append(cmd)
+        else:
+            assert "validationCommand" in result
+            validation_commands = result["validationCommand"]
 
         # test_validate_schema.py should NOT be in the commands
         test_validate_schema_cmd = any(
-            "test_validate_schema.py" in cmd for cmd in validation_commands
+            "test_validate_schema.py" in str(cmd) for cmd in validation_commands
         )
         assert (
             not test_validate_schema_cmd

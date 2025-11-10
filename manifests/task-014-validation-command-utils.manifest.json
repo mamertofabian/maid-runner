@@ -1,0 +1,43 @@
+{
+  "version": "1",
+  "goal": "Create a utility module with normalize_validation_commands function to extract and normalize validation commands from manifest data to a consistent format, supporting both legacy and enhanced formats.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/utils.py"],
+  "readonlyFiles": [
+    "tests/test_task_014_validation_command_utils.py"
+  ],
+      "expectedArtifacts": {
+        "file": "maid_runner/utils.py",
+        "contains": [
+          {
+            "type": "function",
+            "name": "normalize_validation_commands",
+            "args": [
+              {
+                "name": "manifest_data",
+                "type": "dict"
+              }
+            ],
+            "returns": "List[List[str]]"
+          },
+          {
+            "type": "function",
+            "name": "validate_manifest_version",
+            "args": [
+              {
+                "name": "manifest_data",
+                "type": "dict"
+              },
+              {
+                "name": "manifest_name",
+                "type": "str",
+                "default": "\"manifest\""
+              }
+            ],
+            "returns": "None"
+          }
+        ]
+      },
+  "validationCommand": ["pytest", "tests/test_task_014_validation_command_utils.py", "-v"]
+}
+

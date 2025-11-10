@@ -1250,7 +1250,8 @@ def _validate_function_artifact(
         AlignmentError: If function/method is not found or invalid
     """
     artifact_name = artifact.get("name")
-    parameters = artifact.get("parameters", [])
+    # Support both args (enhanced) and parameters (legacy)
+    parameters = artifact.get("args") or artifact.get("parameters", [])
     parent_class = artifact.get("class")
 
     if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
@@ -1659,7 +1660,8 @@ def _validate_parameter_types(
         List of validation error messages
     """
     errors = []
-    manifest_params = artifact.get("parameters", [])
+    # Support both args (enhanced) and parameters (legacy)
+    manifest_params = artifact.get("args") or artifact.get("parameters", [])
     impl_params = impl_info.get("parameters", [])
 
     # Create lookup for implementation parameters
@@ -1724,6 +1726,8 @@ def _validate_return_type(
 ) -> Optional[str]:
     """Validate return type matches between manifest and implementation.
 
+    Supports both string format ("Optional[dict]") and object format ({"type": "Optional[dict]"}).
+
     Args:
         artifact: Manifest artifact definition
         impl_info: Implementation type information
@@ -1737,7 +1741,25 @@ def _validate_return_type(
     if not manifest_return:
         return None
 
+    # Handle both string and object formats for returns
+    if isinstance(manifest_return, dict):
+        manifest_return_type = manifest_return.get("type")
+        if not manifest_return_type:
+            return None
+        manifest_return = manifest_return_type
+    elif not isinstance(manifest_return, str):
+        # Invalid format, skip validation
+        return None
+
     impl_return = impl_info.get("returns")
+    if not impl_return:
+        # Manifest specifies return type but implementation doesn't have one
+        entity_type = "method" if parent_class else "function"
+        return (
+            f"Missing return type annotation in {entity_type} '{artifact_name}': "
+            f"manifest expects '{manifest_return}' but implementation has no return type"
+        )
+
     if not compare_types(manifest_return, impl_return):
         entity_type = "method" if parent_class else "function"
         return (
