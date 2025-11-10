@@ -37,7 +37,6 @@ def _test_file_references_artifacts(
         return False
 
     try:
-        import ast
         from maid_runner.validators.manifest_validator import _ArtifactCollector
 
         with open(test_file_path, "r") as f:
@@ -88,9 +87,10 @@ def _test_file_references_artifacts(
         # If no expected artifacts match, this test likely references removed artifacts
         return False
 
-    except (SyntaxError, IOError, Exception):
+    except Exception:
         # If we can't parse the test file, include it to be safe
         # (better to have a test that might fail than to silently exclude it)
+        # Catches SyntaxError, IOError, and other parsing/IO errors
         return True
 
 
@@ -713,6 +713,42 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     return str(manifest_path)
 
 
+def run_snapshot(
+    file_path: str, output_dir: str = "manifests", force: bool = False
+) -> None:
+    """Core snapshot generation logic accepting parsed arguments.
+
+    Args:
+        file_path: Path to the Python file to snapshot
+        output_dir: Directory to write the manifest (default: manifests)
+        force: If True, overwrite existing manifests without prompting
+
+    Raises:
+        SystemExit: Exits with code 0 on success, 1 on failure
+    """
+    # Validate that the file exists
+    if not Path(file_path).exists():
+        print(f"Error: File not found: {file_path}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        # Generate the snapshot
+        manifest_path = generate_snapshot(file_path, output_dir, force)
+
+        # Print success message
+        print(f"Snapshot manifest generated successfully: {manifest_path}")
+
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except SyntaxError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """CLI entry point for the snapshot generator."""
     parser = argparse.ArgumentParser(
@@ -731,28 +767,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-
-    # Validate that the file exists
-    if not Path(args.file_path).exists():
-        print(f"Error: File not found: {args.file_path}", file=sys.stderr)
-        sys.exit(1)
-
-    try:
-        # Generate the snapshot
-        manifest_path = generate_snapshot(args.file_path, args.output_dir, args.force)
-
-        # Print success message
-        print(f"Snapshot manifest generated successfully: {manifest_path}")
-
-    except FileNotFoundError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except SyntaxError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}", file=sys.stderr)
-        sys.exit(1)
+    run_snapshot(args.file_path, args.output_dir, args.force)
 
 
 if __name__ == "__main__":

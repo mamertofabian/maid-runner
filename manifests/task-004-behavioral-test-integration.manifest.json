@@ -31,6 +31,18 @@
         "name": "main"
       },
       {
+        "type": "function",
+        "name": "run_validation",
+        "parameters": [
+          {"name": "manifest_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"},
+          {"name": "quiet", "type": "bool"}
+        ],
+        "returns": "None",
+        "artifactKind": "type"
+      },
+      {
         "type": "class",
         "name": "AlignmentError",
         "artifactKind": "type"

@@ -46,6 +46,17 @@
         "name": "main",
         "parameters": [],
         "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "run_snapshot",
+        "parameters": [
+          {"name": "file_path", "type": "str"},
+          {"name": "output_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None",
+        "artifactKind": "type"
       }
     ]
   },

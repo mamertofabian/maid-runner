@@ -11,7 +11,6 @@ import argparse
 import sys
 
 from maid_runner import __version__
-from maid_runner.cli import snapshot, validate
 
 
 def main():
@@ -83,37 +82,18 @@ def main():
         sys.exit(1)
 
     if args.command == "validate":
-        # Build arguments for validate command
-        validate_argv = [args.manifest_path]
-        if args.validation_mode != "implementation":
-            validate_argv.extend(["--validation-mode", args.validation_mode])
-        if args.use_manifest_chain:
-            validate_argv.append("--use-manifest-chain")
-        if args.quiet:
-            validate_argv.append("--quiet")
+        from maid_runner.cli.validate import run_validation
 
-        # Temporarily replace sys.argv for validate.main()
-        old_argv = sys.argv
-        sys.argv = ["validate"] + validate_argv
-        try:
-            validate.main()
-        finally:
-            sys.argv = old_argv
+        run_validation(
+            args.manifest_path,
+            args.validation_mode,
+            args.use_manifest_chain,
+            args.quiet,
+        )
     elif args.command == "snapshot":
-        # Build arguments for snapshot command
-        snapshot_argv = [args.file_path]
-        if args.output_dir != "manifests":
-            snapshot_argv.extend(["--output-dir", args.output_dir])
-        if args.force:
-            snapshot_argv.append("--force")
+        from maid_runner.cli.snapshot import run_snapshot
 
-        # Temporarily replace sys.argv for snapshot.main()
-        old_argv = sys.argv
-        sys.argv = ["snapshot"] + snapshot_argv
-        try:
-            snapshot.main()
-        finally:
-            sys.argv = old_argv
+        run_snapshot(args.file_path, args.output_dir, args.force)
     else:
         parser.print_help()
         sys.exit(1)
