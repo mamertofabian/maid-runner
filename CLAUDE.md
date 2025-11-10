@@ -14,7 +14,7 @@ Confirm the high-level goal with user before proceeding.
 1. Draft manifest (`manifests/task-XXX.manifest.json`) - **PRIMARY CONTRACT**
 2. Draft behavioral tests (`tests/test_task_XXX_*.py`) to support and verify the manifest
 3. Run structural validation (checks manifest↔tests AND implementation↔history):
-   `uv run python validate_manifest.py manifests/task-XXX.manifest.json --use-manifest-chain`
+   `uv run maid validate manifests/task-XXX.manifest.json --use-manifest-chain`
 4. Refine BOTH tests & manifest together until validation passes
 
 ### Phase 3: Implementation
@@ -45,7 +45,7 @@ Example Claude Code configurations demonstrating MAID automation are available i
 4. **maid-refactorer** - Phase 3.5: Improves code quality (completes TDD cycle)
 5. **maid-auditor** - Cross-cutting: Enforces strict MAID compliance across all phases
 
-**These are examples only.** MAID Runner itself provides validation tools (`validate_manifest.py`, `generate_snapshot.py`). External tools (Claude Code, custom agents, IDEs) use these validation tools to build automation workflows.
+**These are examples only.** MAID Runner itself provides validation tools via the `maid` CLI (`maid validate`, `maid snapshot`). External tools (Claude Code, custom agents, IDEs) use these CLI commands to build automation workflows.
 
 See `docs/future/claude-code-integration/README.md` for details on building your own automation.
 
@@ -61,7 +61,7 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 ### Core Components
 
-1. **Manifest Validator** (`validate_manifest.py`)
+1. **Manifest Validator** (CLI: `maid validate`)
    - Validates manifest JSON against schema
    - Behavioral test validation: Verifies tests USE declared artifacts
    - Implementation validation: Verifies code DEFINES artifacts
@@ -95,7 +95,7 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 ## Validation Flow
 
-The `validate_manifest.py` script performs validation in this order:
+The `maid validate` command performs validation in this order:
 
 1. **Schema Validation**: Ensures manifest follows the JSON schema
 2. **Behavioral Test Validation**: Verifies test files USE the declared artifacts (AST-based)
@@ -134,6 +134,23 @@ Note: Behavioral validation only checks artifacts from the current manifest, not
 }
 ```
 
+## MAID CLI Commands
+
+**IMPORTANT: Always use the `maid` CLI for validation and snapshots, NOT direct Python scripts.**
+
+```bash
+# Validate a manifest (with optional manifest chain)
+uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
+
+# Generate a snapshot manifest from existing code
+uv run maid snapshot <file-path> [--output-dir <dir>]
+
+# Get help
+uv run maid --help
+uv run maid validate --help
+uv run maid snapshot --help
+```
+
 ## Quick Commands
 
 ```bash
@@ -147,7 +164,7 @@ ls manifests/task-*.manifest.json | tail -1
 
 # Validation Flow
 # 1. Structural validation (pre-implementation)
-uv run python validate_manifest.py manifests/task-XXX.manifest.json --use-manifest-chain
+uv run maid validate manifests/task-XXX.manifest.json --use-manifest-chain
 
 # 2. The validator now runs THREE checks:
 #    a) Schema validation (manifest structure)
