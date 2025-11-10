@@ -334,7 +334,6 @@ class TestCreateSnapshotManifest:
     def test_creates_validation_command(self):
         """Test that a validation command is included in the manifest."""
         from maid_runner.cli.snapshot import create_snapshot_manifest
-        from pathlib import Path
 
         artifacts = [{"type": "class", "name": "Parser"}]
 
@@ -351,7 +350,13 @@ class TestCreateSnapshotManifest:
         from maid_runner.cli.snapshot import create_snapshot_manifest
         from pathlib import Path
 
-        artifacts = [{"type": "class", "name": "Parser"}]
+        # Use artifacts that are actually tested by the superseded manifests
+        # task-001 tests validate_schema, task-002 tests validate_with_ast and AlignmentError
+        artifacts = [
+            {"type": "function", "name": "validate_schema"},
+            {"type": "function", "name": "validate_with_ast"},
+            {"type": "class", "name": "AlignmentError"},
+        ]
         superseded = [
             "manifests/task-001-add-schema-validation.manifest.json",
             "manifests/task-002-add-ast-alignment-validation.manifest.json",
@@ -359,7 +364,10 @@ class TestCreateSnapshotManifest:
 
         manifest_dir = Path(__file__).parent.parent / "manifests"
         result = create_snapshot_manifest(
-            "parsers/json_parser.py", artifacts, superseded, manifest_dir=manifest_dir
+            "maid_runner/validators/manifest_validator.py",
+            artifacts,
+            superseded,
+            manifest_dir=manifest_dir,
         )
 
         # Should aggregate validation commands from superseded manifests
@@ -368,6 +376,41 @@ class TestCreateSnapshotManifest:
         assert len(result["validationCommand"]) > 0
         # Should deduplicate commands
         assert len(result["validationCommand"]) == len(set(result["validationCommand"]))
+
+    def test_filters_out_tests_for_removed_artifacts(self):
+        """Test that tests referencing removed artifacts are filtered out."""
+        from maid_runner.cli.snapshot import create_snapshot_manifest
+        from pathlib import Path
+
+        # Simulate a refactoring: snapshot removes validate_schema
+        # Only keep validate_with_ast
+        artifacts = [
+            {"type": "function", "name": "validate_with_ast"},
+            {"type": "class", "name": "AlignmentError"},
+        ]
+        superseded = [
+            "manifests/task-001-add-schema-validation.manifest.json",
+        ]
+
+        manifest_dir = Path(__file__).parent.parent / "manifests"
+        result = create_snapshot_manifest(
+            "maid_runner/validators/manifest_validator.py",
+            artifacts,
+            superseded,
+            manifest_dir=manifest_dir,
+        )
+
+        # Should filter out test_validate_schema.py since validate_schema was removed
+        assert "validationCommand" in result
+        validation_commands = result["validationCommand"]
+
+        # test_validate_schema.py should NOT be in the commands
+        test_validate_schema_cmd = any(
+            "test_validate_schema.py" in cmd for cmd in validation_commands
+        )
+        assert (
+            not test_validate_schema_cmd
+        ), "test_validate_schema.py should be filtered out when validate_schema is removed"
 
 
 class TestGenerateSnapshot:
