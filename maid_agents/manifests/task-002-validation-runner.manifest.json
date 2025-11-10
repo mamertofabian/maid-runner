@@ -1,0 +1,50 @@
+{
+  "goal": "Create ValidationRunner class that wraps maid-runner CLI calls for manifest validation and test execution",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/maid_agents/core/validation_runner.py"],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_002_validation_runner.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/core/validation_runner.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ValidationResult"
+      },
+      {
+        "type": "class",
+        "name": "ValidationRunner"
+      },
+      {
+        "type": "function",
+        "name": "validate_manifest",
+        "class": "ValidationRunner",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "str"
+          },
+          {
+            "name": "use_chain",
+            "type": "bool"
+          }
+        ],
+        "returns": "ValidationResult"
+      },
+      {
+        "type": "function",
+        "name": "run_behavioral_tests",
+        "class": "ValidationRunner",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "str"
+          }
+        ],
+        "returns": "ValidationResult"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_002_validation_runner.py", "-v"]
+}

@@ -1,0 +1,23 @@
+{
+  "goal": "Create BaseAgent abstract class that provides common functionality for all specialized agents",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/maid_agents/agents/base_agent.py"],
+  "readonlyFiles": ["maid_agents/tests/test_task_005_base_agent.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/agents/base_agent.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "BaseAgent"
+      },
+      {
+        "type": "function",
+        "name": "execute",
+        "class": "BaseAgent",
+        "args": [],
+        "returns": "Dict[str, Any]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_005_base_agent.py", "-v"]
+}

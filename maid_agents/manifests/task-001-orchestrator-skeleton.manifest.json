@@ -1,0 +1,46 @@
+{
+  "goal": "Create MAIDOrchestrator class with workflow state machine that coordinates the MAID workflow phases (Planning, Implementation, Refactoring, Integration). Includes WorkflowState enum and WorkflowResult dataclass.",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/maid_agents/core/orchestrator.py"],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_001_orchestrator_skeleton.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/core/orchestrator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "WorkflowState",
+        "bases": ["Enum"]
+      },
+      {
+        "type": "class",
+        "name": "WorkflowResult"
+      },
+      {
+        "type": "class",
+        "name": "MAIDOrchestrator"
+      },
+      {
+        "type": "function",
+        "name": "run_full_workflow",
+        "class": "MAIDOrchestrator",
+        "args": [
+          {
+            "name": "goal",
+            "type": "str"
+          }
+        ],
+        "returns": "WorkflowResult"
+      },
+      {
+        "type": "function",
+        "name": "get_workflow_state",
+        "class": "MAIDOrchestrator",
+        "args": [],
+        "returns": "WorkflowState"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_001_orchestrator_skeleton.py", "-v"]
+}

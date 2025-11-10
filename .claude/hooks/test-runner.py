@@ -39,7 +39,9 @@ def run_tests():
                         manifest_data = json.load(f)
 
                     # Get validation command (supports both formats)
-                    validation_cmd = manifest_data.get("validationCommand") or manifest_data.get("validationCommands", [{}])[0].get("command")
+                    validation_cmd = manifest_data.get(
+                        "validationCommand"
+                    ) or manifest_data.get("validationCommands", [{}])[0].get("command")
 
                     if validation_cmd:
                         # Convert list to string if needed
@@ -61,16 +63,20 @@ def run_tests():
                             test_results.append((manifest_path.name, True, None))
                         else:
                             print(f"❌ {manifest_path.name}: Tests failed")
-                            error_output = result.stderr.strip() or result.stdout.strip()
+                            error_output = (
+                                result.stderr.strip() or result.stdout.strip()
+                            )
                             if error_output:
                                 # Only show last 10 lines to avoid clutter
-                                error_lines = error_output.split('\n')[-10:]
+                                error_lines = error_output.split("\n")[-10:]
                                 print(f"   {chr(10).join(error_lines)}")
                             test_results.append(
                                 (manifest_path.name, False, error_output)
                             )
                     else:
-                        print(f"📋 {manifest_path.name}: No validation command specified")
+                        print(
+                            f"📋 {manifest_path.name}: No validation command specified"
+                        )
 
                 except json.JSONDecodeError as e:
                     print(f"❌ {manifest_path.name}: Invalid JSON - {e}")
@@ -85,7 +91,11 @@ def run_tests():
                     test_results.append((manifest_path.name, False, str(e)))
 
         # 2. Run integration tests
-        integration_tests = list(Path("tests").glob("test_*_integration.py")) if Path("tests").exists() else []
+        integration_tests = (
+            list(Path("tests").glob("test_*_integration.py"))
+            if Path("tests").exists()
+            else []
+        )
         if integration_tests:
             print(f"\n🔗 Running {len(integration_tests)} integration test file(s)")
 
@@ -162,7 +172,9 @@ def run_tests():
                 print("❌ Failed test suites:")
                 for name, success, error in test_results:
                     if not success:
-                        error_preview = error[:100] + "..." if error and len(error) > 100 else error
+                        error_preview = (
+                            error[:100] + "..." if error and len(error) > 100 else error
+                        )
                         print(f"   • {name}: {error_preview}")
 
                 # Block Claude from stopping if tests fail

@@ -1,0 +1,46 @@
+{
+  "goal": "Create ContextBuilder class that prepares context for AI agents by loading manifest and related files",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/maid_agents/core/context_builder.py"],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_003_context_builder.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/core/context_builder.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "AgentContext"
+      },
+      {
+        "type": "class",
+        "name": "ContextBuilder"
+      },
+      {
+        "type": "function",
+        "name": "build_from_manifest",
+        "class": "ContextBuilder",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "str"
+          }
+        ],
+        "returns": "AgentContext"
+      },
+      {
+        "type": "function",
+        "name": "load_file_contents",
+        "class": "ContextBuilder",
+        "args": [
+          {
+            "name": "file_paths",
+            "type": "list"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_003_context_builder.py", "-v"]
+}

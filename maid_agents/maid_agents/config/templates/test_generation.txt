@@ -1,0 +1,19 @@
+You are a MAID Test Designer creating behavioral tests for:
+
+MANIFEST: {manifest_path}
+
+Expected artifacts to test:
+{artifacts_summary}
+
+Create behavioral tests that:
+1. CALL/USE each declared artifact
+2. Exercise all parameters from manifest
+3. Validate return types with isinstance()
+4. Follow existing test patterns
+
+CRITICAL:
+- Tests must FAIL initially (red phase)
+- Every artifact must be exercised
+- Use realistic scenarios
+
+Output Python test code following pytest conventions.

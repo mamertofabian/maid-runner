@@ -45,7 +45,15 @@ def validate_manifest_implementation():
                 print(f"🔍 Validating {manifest_path.name}")
 
                 result = subprocess.run(
-                    ["uv", "run", "maid", "validate", str(manifest_path), "--use-manifest-chain", "--quiet"],
+                    [
+                        "uv",
+                        "run",
+                        "maid",
+                        "validate",
+                        str(manifest_path),
+                        "--use-manifest-chain",
+                        "--quiet",
+                    ],
                     capture_output=True,
                     text=True,
                     timeout=30,
@@ -63,7 +71,9 @@ def validate_manifest_implementation():
 
             except subprocess.TimeoutExpired:
                 print(f"⏰ {manifest_path.name}: Validation timed out")
-                validation_results.append((manifest_path.name, False, "Validation timeout"))
+                validation_results.append(
+                    (manifest_path.name, False, "Validation timeout")
+                )
             except Exception as e:
                 print(f"❌ {manifest_path.name}: Validation error - {e}")
                 validation_results.append((manifest_path.name, False, str(e)))
