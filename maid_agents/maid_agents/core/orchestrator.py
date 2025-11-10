@@ -59,6 +59,9 @@ class MAIDOrchestrator:
         if claude is None:
             claude = ClaudeWrapper(mock_mode=True)
 
+        # Store Claude wrapper for use by dynamically created agents
+        self.claude = claude
+
         # Create agents with provided or default Claude wrapper
         self.manifest_architect = manifest_architect or ManifestArchitect(claude)
         self.test_designer = test_designer or TestDesigner(claude)
@@ -277,7 +280,7 @@ class MAIDOrchestrator:
             # Pass test errors from previous iteration (if any)
             from maid_agents.agents.developer import Developer
 
-            developer = Developer(ClaudeWrapper(mock_mode=True))
+            developer = Developer(self.claude)
             impl_result = developer.implement(
                 manifest_path=manifest_path, test_errors=test_errors
             )
