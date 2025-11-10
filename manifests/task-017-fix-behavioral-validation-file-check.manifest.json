@@ -1,0 +1,16 @@
+{
+  "goal": "Fix behavioral validation to not require implementation file existence - only check test files exist for behavioral mode",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/cli/test_behavioral_validation_without_impl.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": []
+  },
+  "validationCommand": ["pytest", "tests/cli/test_behavioral_validation_without_impl.py", "-v"]
+}

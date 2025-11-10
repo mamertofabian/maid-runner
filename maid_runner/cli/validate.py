@@ -336,39 +336,76 @@ def run_validation(
             print("✗ Error: No file specified in manifest's expectedArtifacts.file")
             sys.exit(1)
 
-        # Validate target file exists
-        if not Path(file_path).exists():
-            print(f"✗ Error: Target file not found: {file_path}")
-            sys.exit(1)
-
-        # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
-        # Check if manifest has a validationCommand or validationCommands that contains test files
+        # BEHAVIORAL TEST VALIDATION
+        # In behavioral mode, we validate test structure, not implementation
         # Support both legacy (validationCommand) and enhanced (validationCommands) formats
         validation_commands = manifest_data.get("validationCommands", [])
         if not validation_commands:
             validation_commands = manifest_data.get("validationCommand", [])
 
-        if validation_commands:
-            test_files = extract_test_files_from_command(validation_commands)
-            if test_files:
-                if not quiet:
-                    print("Running behavioral test validation...")
-                validate_behavioral_tests(
-                    manifest_data,
-                    test_files,
-                    use_manifest_chain=use_manifest_chain,
-                    quiet=quiet,
-                )
-                if not quiet:
-                    print("✓ Behavioral test validation PASSED")
+        if validation_mode == "behavioral":
+            # Behavioral mode: Check test files exist and USE artifacts
+            if validation_commands:
+                test_files = extract_test_files_from_command(validation_commands)
+                if test_files:
+                    # Validate test files exist
+                    missing_test_files = []
+                    for test_file in test_files:
+                        if not Path(test_file).exists():
+                            missing_test_files.append(test_file)
 
-        # IMPLEMENTATION VALIDATION (after behavioral tests)
-        validate_with_ast(
-            manifest_data,
-            file_path,
-            use_manifest_chain=use_manifest_chain,
-            validation_mode=validation_mode,
-        )
+                    if missing_test_files:
+                        print(
+                            f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
+                        )
+                        sys.exit(1)
+
+                    if not quiet:
+                        print("Running behavioral test validation...")
+                    validate_behavioral_tests(
+                        manifest_data,
+                        test_files,
+                        use_manifest_chain=use_manifest_chain,
+                        quiet=quiet,
+                    )
+                    if not quiet:
+                        print("✓ Behavioral test validation PASSED")
+                else:
+                    if not quiet:
+                        print("⚠ Warning: No test files found in validationCommand")
+            else:
+                if not quiet:
+                    print(
+                        "⚠ Warning: No validationCommand specified for behavioral validation"
+                    )
+        else:
+            # Implementation mode: Check implementation file exists and DEFINES artifacts
+            if not Path(file_path).exists():
+                print(f"✗ Error: Target file not found: {file_path}")
+                sys.exit(1)
+
+            # Also run behavioral test validation if validation commands are present
+            if validation_commands:
+                test_files = extract_test_files_from_command(validation_commands)
+                if test_files:
+                    if not quiet:
+                        print("Running behavioral test validation...")
+                    validate_behavioral_tests(
+                        manifest_data,
+                        test_files,
+                        use_manifest_chain=use_manifest_chain,
+                        quiet=quiet,
+                    )
+                    if not quiet:
+                        print("✓ Behavioral test validation PASSED")
+
+            # IMPLEMENTATION VALIDATION
+            validate_with_ast(
+                manifest_data,
+                file_path,
+                use_manifest_chain=use_manifest_chain,
+                validation_mode=validation_mode,
+            )
 
         # Success message
         if not quiet:
