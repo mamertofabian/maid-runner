@@ -15,9 +15,16 @@ help:
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
 
-# Run all tests (including validation commands from manifests)
+# Run all tests (including structural validation and validation commands from manifests)
 test:
 	uv run python -m pytest tests/ -v
+	@echo ""
+	@echo "🔍 Running structural validation for all manifests..."
+	@for manifest in manifests/task-*.manifest.json; do \
+		echo "Validating $$manifest..."; \
+		uv run maid validate $$manifest --quiet --use-manifest-chain || exit 1; \
+	done
+	@echo "✅ All manifests structurally valid"
 	@echo ""
 	@echo "🧪 Running validation commands from manifests..."
 	@uv run python scripts/run_manifest_validation_commands.py
