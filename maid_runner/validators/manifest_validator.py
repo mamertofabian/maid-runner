@@ -1726,6 +1726,8 @@ def _validate_return_type(
 ) -> Optional[str]:
     """Validate return type matches between manifest and implementation.
 
+    Supports both string format ("Optional[dict]") and object format ({"type": "Optional[dict]"}).
+
     Args:
         artifact: Manifest artifact definition
         impl_info: Implementation type information
@@ -1739,7 +1741,20 @@ def _validate_return_type(
     if not manifest_return:
         return None
 
+    # Handle both string and object formats for returns
+    if isinstance(manifest_return, dict):
+        manifest_return_type = manifest_return.get("type")
+        if not manifest_return_type:
+            return None
+        manifest_return = manifest_return_type
+    elif not isinstance(manifest_return, str):
+        # Invalid format, skip validation
+        return None
+
     impl_return = impl_info.get("returns")
+    if not impl_return:
+        return None
+
     if not compare_types(manifest_return, impl_return):
         entity_type = "method" if parent_class else "function"
         return (
