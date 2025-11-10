@@ -76,9 +76,33 @@ class MAIDOrchestrator:
         Returns:
             WorkflowResult with status and manifest path
         """
-        # TODO: Implement workflow execution
+        # Phase 1-2: Planning Loop (manifest + tests)
+        planning_result = self.run_planning_loop(goal=goal)
+
+        if not planning_result["success"]:
+            return WorkflowResult(
+                success=False,
+                manifest_path="",
+                message=f"Planning failed: {planning_result['error']}",
+            )
+
+        manifest_path = planning_result["manifest_path"]
+
+        # Phase 3: Implementation Loop (code generation)
+        impl_result = self.run_implementation_loop(manifest_path=manifest_path)
+
+        if not impl_result["success"]:
+            return WorkflowResult(
+                success=False,
+                manifest_path=manifest_path,
+                message=f"Implementation failed: {impl_result['error']}",
+            )
+
+        # Success! Workflow complete
         return WorkflowResult(
-            success=False, manifest_path="", message="Not implemented"
+            success=True,
+            manifest_path=manifest_path,
+            message=f"Workflow complete! Manifest: {manifest_path}",
         )
 
     def get_workflow_state(self) -> WorkflowState:
