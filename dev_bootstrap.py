@@ -83,7 +83,13 @@ class MAIDDevRunner:
         print("\n🔍 Running structural validation...")
         try:
             result = subprocess.run(
-                ["maid", "validate", str(self.manifest_path), "--quiet", "--use-manifest-chain"],
+                [
+                    "maid",
+                    "validate",
+                    str(self.manifest_path),
+                    "--quiet",
+                    "--use-manifest-chain",
+                ],
                 capture_output=True,
                 text=True,
                 timeout=10,

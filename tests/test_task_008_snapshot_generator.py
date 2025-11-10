@@ -334,6 +334,7 @@ class TestCreateSnapshotManifest:
     def test_creates_validation_command(self):
         """Test that a validation command is included in the manifest."""
         from maid_runner.cli.snapshot import create_snapshot_manifest
+        from pathlib import Path
 
         artifacts = [{"type": "class", "name": "Parser"}]
 
@@ -342,9 +343,31 @@ class TestCreateSnapshotManifest:
         # Should include validationCommand
         assert "validationCommand" in result
         assert isinstance(result["validationCommand"], list)
-        # Snapshots may have empty validation commands (they document existing code)
-        # Just verify it's a list, not that it has content
-        assert len(result["validationCommand"]) >= 0
+        # Snapshots without superseded manifests should have empty validation commands
+        assert len(result["validationCommand"]) == 0
+
+    def test_aggregates_validation_commands_from_superseded(self):
+        """Test that validation commands are aggregated from superseded manifests."""
+        from maid_runner.cli.snapshot import create_snapshot_manifest
+        from pathlib import Path
+
+        artifacts = [{"type": "class", "name": "Parser"}]
+        superseded = [
+            "manifests/task-001-add-schema-validation.manifest.json",
+            "manifests/task-002-add-ast-alignment-validation.manifest.json",
+        ]
+
+        manifest_dir = Path(__file__).parent.parent / "manifests"
+        result = create_snapshot_manifest(
+            "parsers/json_parser.py", artifacts, superseded, manifest_dir=manifest_dir
+        )
+
+        # Should aggregate validation commands from superseded manifests
+        assert "validationCommand" in result
+        assert isinstance(result["validationCommand"], list)
+        assert len(result["validationCommand"]) > 0
+        # Should deduplicate commands
+        assert len(result["validationCommand"]) == len(set(result["validationCommand"]))
 
 
 class TestGenerateSnapshot:

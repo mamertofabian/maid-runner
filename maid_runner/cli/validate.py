@@ -316,6 +316,17 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         with open(manifest_path, "r") as f:
             manifest_data = json.load(f)
 
+        # Snapshot manifests must have comprehensive validationCommands
+        # Check this early, before file validation
+        validation_command = manifest_data.get("validationCommand", [])
+        if manifest_data.get("taskType") == "snapshot" and not validation_command:
+            print(
+                f"✗ Error: Snapshot manifest {manifest_path.name} must have a comprehensive "
+                f"validationCommand that tests all artifacts. Snapshot manifests document the "
+                f"complete current state and must validate all artifacts."
+            )
+            sys.exit(1)
+
         # Get the file to validate from the manifest
         file_path = manifest_data.get("expectedArtifacts", {}).get("file")
         if not file_path:
@@ -329,7 +340,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
 
         # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
         # Check if manifest has a validationCommand that contains test files
-        validation_command = manifest_data.get("validationCommand", [])
+
         if validation_command:
             test_files = extract_test_files_from_command(validation_command)
             if test_files:

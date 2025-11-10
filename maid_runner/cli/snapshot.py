@@ -16,6 +16,75 @@ from typing import Dict, List, Any, Optional, Union
 from maid_runner.validators.manifest_validator import discover_related_manifests
 
 
+def _aggregate_validation_commands_from_superseded(
+    superseded_manifests: List[str], manifest_dir: Path
+) -> List[str]:
+    """
+    Aggregate validation commands from superseded manifests for snapshot generation.
+    
+    Collects all validation commands from superseded manifests and returns them
+    as a list of command strings. Deduplicates identical commands.
+    
+    Args:
+        superseded_manifests: List of manifest paths (may be relative or absolute)
+        manifest_dir: Directory containing manifests (for resolving relative paths)
+        
+    Returns:
+        List of aggregated validation command strings
+    """
+    aggregated_commands = []
+    seen_commands = set()  # Deduplicate commands
+    
+    for superseded_path_str in superseded_manifests:
+        superseded_path = Path(superseded_path_str)
+        # Resolve relative paths
+        if not superseded_path.is_absolute():
+            # If path already includes "manifests/", resolve from manifest_dir's parent
+            # Otherwise resolve relative to manifest_dir
+            if str(superseded_path).startswith("manifests/"):
+                # Resolve from manifest_dir's parent (project root)
+                superseded_path = manifest_dir.parent / superseded_path
+            else:
+                # Resolve relative to manifest_dir
+                superseded_path = manifest_dir / superseded_path
+        
+        if not superseded_path.exists():
+            continue
+        
+        try:
+            with open(superseded_path, "r") as f:
+                superseded_data = json.load(f)
+            
+            superseded_cmd = superseded_data.get("validationCommand", [])
+            if superseded_cmd:
+                if isinstance(superseded_cmd, list):
+                    # Check if it's a single command as list: ["pytest", "test.py", "-v"]
+                    # vs multiple commands: ["pytest test1.py", "pytest test2.py"]
+                    if len(superseded_cmd) > 0 and superseded_cmd[0] == "pytest" and len(superseded_cmd) > 1:
+                        # Single command: join into one string
+                        cmd_str = " ".join(superseded_cmd)
+                        if cmd_str not in seen_commands:
+                            seen_commands.add(cmd_str)
+                            aggregated_commands.append(cmd_str)
+                    else:
+                        # Multiple commands: add each one
+                        for cmd_item in superseded_cmd:
+                            cmd_str = str(cmd_item)
+                            if cmd_str and cmd_str not in seen_commands:
+                                seen_commands.add(cmd_str)
+                                aggregated_commands.append(cmd_str)
+                else:
+                    # Single command as string
+                    cmd_str = str(superseded_cmd)
+                    if cmd_str and cmd_str not in seen_commands:
+                        seen_commands.add(cmd_str)
+                        aggregated_commands.append(cmd_str)
+        except (json.JSONDecodeError, IOError):
+            continue
+    
+    return aggregated_commands
+
+
 def extract_artifacts_from_code(file_path: str) -> dict:
     """Extract artifacts from a Python source file using AST analysis.
 
@@ -332,6 +401,7 @@ def create_snapshot_manifest(
     file_path: str,
     artifacts: Union[List[Dict[str, Any]], Dict[str, Any]],
     superseded_manifests: List[str],
+    manifest_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """Create a snapshot manifest structure.
 
@@ -340,6 +410,7 @@ def create_snapshot_manifest(
         artifacts: Either a list of artifacts OR the full extraction dict from
                    extract_artifacts_from_code() (with "artifacts" key)
         superseded_manifests: List of manifest paths that this snapshot supersedes
+        manifest_dir: Directory containing manifests (for resolving relative paths)
 
     Returns:
         Dictionary containing the complete manifest structure
@@ -349,6 +420,13 @@ def create_snapshot_manifest(
         artifact_list = artifacts["artifacts"]
     else:
         artifact_list = artifacts
+
+    # Aggregate validation commands from superseded manifests
+    validation_command = []
+    if superseded_manifests and manifest_dir:
+        validation_command = _aggregate_validation_commands_from_superseded(
+            superseded_manifests, manifest_dir
+        )
 
     # Create the manifest structure
     manifest = {
@@ -362,7 +440,7 @@ def create_snapshot_manifest(
             "file": file_path,
             "contains": artifact_list,
         },
-        "validationCommand": [],
+        "validationCommand": validation_command,
     }
 
     return manifest
@@ -463,7 +541,9 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     superseded_manifests = [m for m in superseded_manifests if m != snapshot_path_str]
 
     # Create the snapshot manifest
-    manifest = create_snapshot_manifest(file_path, artifacts, superseded_manifests)
+    manifest = create_snapshot_manifest(
+        file_path, artifacts, superseded_manifests, manifest_dir=output_path
+    )
 
     # Check if file exists (unlikely with sequential numbering, but safety check)
     if manifest_path.exists() and not force:

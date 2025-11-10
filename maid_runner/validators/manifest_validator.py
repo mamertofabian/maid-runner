@@ -1758,7 +1758,8 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
 
     Type-only artifacts (like TypedDict classes, type aliases) are compile-time
     constructs that shouldn't be behaviorally validated as they don't have runtime
-    behavior that can be tested.
+    behavior that can be tested. Private artifacts (starting with _) are also skipped
+    as they are implementation details, not part of the public API.
 
     Args:
         artifact: Dictionary containing artifact metadata
@@ -1768,6 +1769,16 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
     """
     if not artifact:
         return False
+
+    # Skip private artifacts (implementation details, not public API)
+    artifact_name = artifact.get("name", "")
+    if artifact_name.startswith("_"):
+        return True
+
+    # Skip methods/attributes on private classes (implementation details)
+    parent_class = artifact.get("class", "")
+    if parent_class and parent_class.startswith("_"):
+        return True
 
     # Check explicit artifact kind first
     skip_by_kind = _should_skip_by_artifact_kind(artifact)

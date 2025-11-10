@@ -85,6 +85,14 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
 
     # 2. Validate the manifest against its behavioral test (validationCommand)
     validation_command = manifest_data.get("validationCommand", [])
+
+    # Snapshot manifests must have comprehensive validationCommands
+    if manifest_data.get("taskType") == "snapshot" and not validation_command:
+        pytest.fail(
+            f"Snapshot manifest {manifest_path.name} has no validationCommand. "
+            f"Snapshot manifests must have a comprehensive validationCommand that tests all artifacts."
+        )
+
     if validation_command:
         test_files = extract_test_files_from_command(validation_command)
         if test_files:
@@ -100,6 +108,13 @@ def test_manifest_is_structurally_sound_and_aligned(manifest_path, caplog):
         else:
             print("         ⚠ No test files extracted from command")
     else:
+        # For snapshot manifests, this is an error - they must have validation commands
+        if manifest_data.get("taskType") == "snapshot":
+            pytest.fail(
+                f"Snapshot manifest {manifest_path.name} has no validationCommand and "
+                f"no superseded manifests with validation commands. "
+                f"Snapshot manifests must validate behavioral tests from superseded manifests."
+            )
         print("\n[Step 2] No validation command - skipping behavioral test validation")
 
     # 3. Validate the manifest against its implementation code using the merging validator
