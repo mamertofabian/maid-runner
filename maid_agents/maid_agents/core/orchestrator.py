@@ -152,12 +152,14 @@ class MAIDOrchestrator:
                 last_error = f"Failed to save test files: {e}"
                 continue
 
-            # Step 3: Run structural validation
-            validation_result = self.validation_runner.validate_manifest(
-                manifest_path=str(manifest_file), use_chain=True
+            # Step 3: Run behavioral validation
+            # Validate that tests USE the declared artifacts (behavioral mode)
+            # With the validator fix, this now works without implementation file existing
+            validation_result = self._validate_behavioral_tests(
+                manifest_path=str(manifest_file)
             )
 
-            if validation_result.success:
+            if validation_result["success"]:
                 # Planning loop succeeded!
                 return {
                     "success": True,
@@ -168,7 +170,10 @@ class MAIDOrchestrator:
                 }
             else:
                 # Validation failed - prepare error feedback for next iteration
-                last_error = f"Validation failed:\n{validation_result.stderr}\nErrors: {validation_result.errors}"
+                last_error = (
+                    f"Behavioral validation failed: {validation_result['error']}"
+                )
+                continue
 
         # Max iterations reached without success
         return {
@@ -178,6 +183,43 @@ class MAIDOrchestrator:
             "iterations": iteration,
             "error": f"Planning loop failed after {max_iterations} iterations. Last error: {last_error}",
         }
+
+    def _validate_behavioral_tests(self, manifest_path: str) -> dict:
+        """Run behavioral validation on tests to ensure they USE declared artifacts.
+
+        Args:
+            manifest_path: Path to manifest file
+
+        Returns:
+            Dict with success status and error message
+        """
+        import subprocess
+
+        # Run maid validate with behavioral mode
+        # This validates tests USE artifacts without requiring implementation to exist
+        cmd = [
+            "maid",
+            "validate",
+            manifest_path,
+            "--validation-mode",
+            "behavioral",
+            "--use-manifest-chain",
+        ]
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+
+            if result.returncode == 0:
+                return {"success": True, "error": None}
+            else:
+                return {
+                    "success": False,
+                    "error": f"{result.stderr}\n{result.stdout}",
+                }
+        except subprocess.TimeoutExpired:
+            return {"success": False, "error": "Behavioral validation timed out"}
+        except Exception as e:
+            return {"success": False, "error": f"Validation error: {e}"}
 
     def _get_next_task_number(self) -> int:
         """Determine next task number by counting existing manifests.
