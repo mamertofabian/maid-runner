@@ -1,0 +1,30 @@
+{
+  "goal": "Fix validator incorrectly detecting enum imports as local classes by adding 'enum' to stdlib_modules list",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_imports.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "bases": ["ast.NodeVisitor"]
+      },
+      {
+        "type": "function",
+        "name": "_is_local_import",
+        "class": "_ArtifactCollector",
+        "args": [
+          {"name": "node"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_imports.py::test_enum_import_not_tracked_as_local_class", "-v"]
+}
