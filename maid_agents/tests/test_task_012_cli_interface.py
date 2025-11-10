@@ -3,6 +3,7 @@
 import sys
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -12,6 +13,16 @@ from maid_agents.cli.main import main
 def test_main_function_exists():
     """Test main function can be imported."""
     assert callable(main)
+
+
+def test_main_function_with_help():
+    """Test calling main() with --help argument."""
+    with patch("sys.argv", ["ccmaid", "--help"]):
+        try:
+            main()
+        except SystemExit as e:
+            # --help causes sys.exit(0)
+            assert e.code == 0
 
 
 def test_cli_help_command():

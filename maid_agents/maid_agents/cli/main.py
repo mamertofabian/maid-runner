@@ -4,7 +4,7 @@ import argparse
 import sys
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         prog="ccmaid",
