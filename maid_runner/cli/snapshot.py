@@ -37,14 +37,11 @@ def _test_file_references_artifacts(
         return False
 
     try:
-        from maid_runner.validators.manifest_validator import _ArtifactCollector
+        from maid_runner.validators.manifest_validator import (
+            collect_behavioral_artifacts,
+        )
 
-        with open(test_file_path, "r") as f:
-            test_code = f.read()
-
-        tree = ast.parse(test_code)
-        collector = _ArtifactCollector(validation_mode="behavioral")
-        collector.visit(tree)
+        artifacts = collect_behavioral_artifacts(str(test_file_path))
 
         # Extract artifact names from expected artifacts
         expected_class_names = set()
@@ -67,21 +64,21 @@ def _test_file_references_artifacts(
                     expected_function_names.add(artifact_name)
 
         # Check if test uses any expected classes
-        if expected_class_names and collector.used_classes.intersection(
+        if expected_class_names and artifacts["used_classes"].intersection(
             expected_class_names
         ):
             return True
 
         # Check if test uses any expected functions
-        if expected_function_names and collector.used_functions.intersection(
+        if expected_function_names and artifacts["used_functions"].intersection(
             expected_function_names
         ):
             return True
 
         # Check if test uses any expected methods
         for class_name, methods in expected_method_names.items():
-            if class_name in collector.used_methods:
-                if collector.used_methods[class_name].intersection(methods):
+            if class_name in artifacts["used_methods"]:
+                if artifacts["used_methods"][class_name].intersection(methods):
                     return True
 
         # If no expected artifacts match, this test likely references removed artifacts
@@ -121,6 +118,10 @@ def _aggregate_validation_commands_from_superseded(
     aggregated_commands = []
     seen_commands = set()  # Deduplicate commands
 
+    # Determine project root for path validation
+    # Assume project root is manifest_dir's parent (typical structure)
+    project_root = manifest_dir.parent.resolve()
+
     for superseded_path_str in superseded_manifests:
         superseded_path = Path(superseded_path_str)
         # Resolve relative paths
@@ -133,6 +134,17 @@ def _aggregate_validation_commands_from_superseded(
             else:
                 # Resolve relative to manifest_dir
                 superseded_path = manifest_dir / superseded_path
+
+        # Resolve to absolute path and validate it's within project root
+        try:
+            superseded_path = superseded_path.resolve()
+            # Check if resolved path is within project root to prevent path traversal
+            if not str(superseded_path).startswith(str(project_root)):
+                # Path traversal detected - skip this manifest
+                continue
+        except (OSError, ValueError):
+            # Invalid path - skip this manifest
+            continue
 
         if not superseded_path.exists():
             continue

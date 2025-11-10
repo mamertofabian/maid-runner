@@ -356,6 +356,17 @@
       },
       {
         "type": "function",
+        "name": "collect_behavioral_artifacts",
+        "parameters": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
         "name": "_parse_file",
         "parameters": [
           {

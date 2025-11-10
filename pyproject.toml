@@ -46,3 +46,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
+
+[tool.setuptools.package-data]
+maid_runner = ["py.typed"]

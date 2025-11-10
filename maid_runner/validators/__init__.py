@@ -6,6 +6,7 @@ code artifacts match their declarative specifications.
 
 from maid_runner.validators.manifest_validator import (
     AlignmentError,
+    collect_behavioral_artifacts,
     discover_related_manifests,
     validate_schema,
     validate_with_ast,
@@ -13,6 +14,7 @@ from maid_runner.validators.manifest_validator import (
 
 __all__ = [
     "AlignmentError",
+    "collect_behavioral_artifacts",
     "discover_related_manifests",
     "validate_schema",
     "validate_with_ast",

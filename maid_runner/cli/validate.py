@@ -145,9 +145,8 @@ def validate_behavioral_tests(
             raise FileNotFoundError(f"Test file not found: {test_file}")
 
     # Collect usage data from all test files
-    import ast
     from maid_runner.validators.manifest_validator import (
-        _ArtifactCollector,
+        collect_behavioral_artifacts,
         should_skip_behavioral_validation,
     )
 
@@ -157,19 +156,14 @@ def validate_behavioral_tests(
     all_used_arguments = set()
 
     for test_file in test_files:
-        with open(test_file, "r") as f:
-            test_code = f.read()
-
-        tree = ast.parse(test_code)
-        collector = _ArtifactCollector(validation_mode="behavioral")
-        collector.visit(tree)
+        artifacts = collect_behavioral_artifacts(test_file)
 
         # Merge usage data
-        all_used_classes.update(collector.used_classes)
-        all_used_functions.update(collector.used_functions)
-        all_used_arguments.update(collector.used_arguments)
+        all_used_classes.update(artifacts["used_classes"])
+        all_used_functions.update(artifacts["used_functions"])
+        all_used_arguments.update(artifacts["used_arguments"])
 
-        for class_name, methods in collector.used_methods.items():
+        for class_name, methods in artifacts["used_methods"].items():
             if class_name not in all_used_methods:
                 all_used_methods[class_name] = set()
             all_used_methods[class_name].update(methods)
