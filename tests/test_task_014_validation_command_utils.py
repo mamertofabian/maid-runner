@@ -102,3 +102,32 @@ def test_handles_multiple_commands_with_different_flags():
         ["pytest", "tests/test1.py", "-v"],
         ["pytest", "tests/test2.py", "-vv"],
     ]
+
+
+def test_normalize_handles_quoted_arguments():
+    """Test command strings with quoted arguments."""
+    manifest_data = {"validationCommand": "pytest tests/ -k 'test user validation'"}
+    result = normalize_validation_commands(manifest_data)
+    assert result == [["pytest", "tests/", "-k", "test user validation"]]
+
+
+def test_normalize_handles_quoted_arguments_in_array():
+    """Test command strings with quoted arguments in array format."""
+    manifest_data = {
+        "validationCommand": [
+            "pytest tests/ -k 'test user validation'",
+            "pytest tests/ -k 'test admin validation'",
+        ]
+    }
+    result = normalize_validation_commands(manifest_data)
+    assert result == [
+        ["pytest", "tests/", "-k", "test user validation"],
+        ["pytest", "tests/", "-k", "test admin validation"],
+    ]
+
+
+def test_normalize_handles_file_paths_with_spaces():
+    """Test command strings with file paths containing spaces."""
+    manifest_data = {"validationCommand": 'pytest "tests/test file with spaces.py" -v'}
+    result = normalize_validation_commands(manifest_data)
+    assert result == [["pytest", "tests/test file with spaces.py", "-v"]]
