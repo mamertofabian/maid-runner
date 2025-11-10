@@ -7,14 +7,14 @@ This directory contains Claude Code stop hooks that automatically validate MAID 
 ## Hooks Overview
 
 ### 1. AST Validator Hook (`ast-validator.py`)
-**Purpose**: Validates that manifests are properly aligned with their implementations using AST analysis.
+**Purpose**: Validates that manifests are properly aligned with their implementations using the MAID CLI.
 
 **What it does**:
 - Scans all manifest files in `manifests/` directory
-- For each manifest with an `expectedArtifacts.file`, checks if implementation exists
-- Runs `validate_with_ast()` with manifest chaining to verify alignment
+- For each manifest, runs `uv run maid validate <manifest> --use-manifest-chain --quiet`
+- Validates both behavioral tests and implementation alignment
 - Reports validation results
-- **Blocks Claude from stopping** if AST validation fails
+- **Blocks Claude from stopping** if validation fails
 
 **When it runs**: Every time Claude stops responding (Stop event)
 
