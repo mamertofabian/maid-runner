@@ -1,6 +1,5 @@
 """Behavioral tests for Task-014: Prompt Templates."""
 
-import pytest
 import sys
 from pathlib import Path
 
@@ -9,7 +8,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def test_manifest_creation_template_exists():
     """Test manifest_creation.txt template exists."""
-    template_path = Path("maid_agents/maid_agents/config/templates/manifest_creation.txt")
+    template_path = Path(
+        "maid_agents/maid_agents/config/templates/manifest_creation.txt"
+    )
     assert template_path.exists()
 
     content = template_path.read_text()

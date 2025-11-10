@@ -1,8 +1,7 @@
 """Test Designer Agent - Phase 2: Creates behavioral tests from manifests."""
 
 import json
-from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from maid_agents.agents.base_agent import BaseAgent
 from maid_agents.claude.cli_wrapper import ClaudeWrapper
@@ -46,14 +45,14 @@ class TestDesigner(BaseAgent):
                 "success": False,
                 "error": f"Manifest not found: {manifest_path}",
                 "test_paths": [],
-                "test_code": None
+                "test_code": None,
             }
         except json.JSONDecodeError as e:
             return {
                 "success": False,
                 "error": f"Invalid manifest JSON: {e}",
                 "test_paths": [],
-                "test_code": None
+                "test_code": None,
             }
 
         # Build prompt for Claude
@@ -67,7 +66,7 @@ class TestDesigner(BaseAgent):
                 "success": False,
                 "error": response.error,
                 "test_paths": [],
-                "test_code": None
+                "test_code": None,
             }
 
         # Extract test file path from manifest
@@ -78,10 +77,12 @@ class TestDesigner(BaseAgent):
             "success": True,
             "test_paths": test_paths,
             "test_code": response.result,
-            "error": None
+            "error": None,
         }
 
-    def _build_test_prompt(self, manifest_data: Dict[str, Any], manifest_path: str) -> str:
+    def _build_test_prompt(
+        self, manifest_data: Dict[str, Any], manifest_path: str
+    ) -> str:
         """Build prompt for Claude to generate tests.
 
         Args:

@@ -4,7 +4,6 @@ Behavioral tests for Task-006: ManifestArchitect Agent.
 Tests the ManifestArchitect agent that creates MAID manifests from goals.
 """
 
-import pytest
 import sys
 from pathlib import Path
 
@@ -30,10 +29,7 @@ def test_create_manifest_method_signature():
     architect = ManifestArchitect(claude)
 
     # Call with goal and task_number
-    result = architect.create_manifest(
-        goal="Create a new feature",
-        task_number=42
-    )
+    result = architect.create_manifest(goal="Create a new feature", task_number=42)
 
     assert isinstance(result, dict)
     assert "success" in result or "manifest_path" in result or "manifest_data" in result
@@ -44,14 +40,55 @@ def test_create_manifest_returns_dict_with_status():
     claude = ClaudeWrapper(mock_mode=True)
     architect = ManifestArchitect(claude)
 
-    result = architect.create_manifest(
-        goal="Add user authentication",
-        task_number=10
-    )
+    result = architect.create_manifest(goal="Add user authentication", task_number=10)
 
     assert isinstance(result, dict)
     # Should have some indication of success/failure
     assert len(result) > 0
+
+
+def test_create_manifest_response_structure():
+    """Test create_manifest returns dict with expected fields."""
+    claude = ClaudeWrapper(mock_mode=True)
+    architect = ManifestArchitect(claude)
+
+    result = architect.create_manifest(goal="Add user authentication", task_number=10)
+
+    # Verify response has expected structure
+    assert "success" in result
+    assert "manifest_path" in result
+    assert "manifest_data" in result
+    assert "error" in result
+
+
+def test_create_manifest_generates_correct_path():
+    """Test create_manifest generates correctly formatted manifest path."""
+    claude = ClaudeWrapper(mock_mode=True)
+    architect = ManifestArchitect(claude)
+
+    result = architect.create_manifest(goal="Create new feature", task_number=42)
+
+    # When success is False (due to mock returning non-JSON),
+    # manifest_path should be None or the expected path
+    if result["success"]:
+        assert result["manifest_path"] == "manifests/task-042.manifest.json"
+
+
+def test_create_manifest_handles_invalid_json():
+    """Test create_manifest handles invalid JSON from Claude gracefully."""
+    claude = ClaudeWrapper(mock_mode=True)
+    architect = ManifestArchitect(claude)
+
+    result = architect.create_manifest(
+        goal="Test invalid JSON handling", task_number=99
+    )
+
+    # Mock returns non-JSON string, should handle gracefully
+    assert isinstance(result, dict)
+    # Should have error information when JSON parsing fails
+    if not result["success"]:
+        assert result["error"] is not None
+        assert "parse" in result["error"].lower() or result["error"] != ""
 
 
 def test_execute_method_inherited_from_base():

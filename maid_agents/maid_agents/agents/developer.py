@@ -45,7 +45,7 @@ class Developer(BaseAgent):
             return {
                 "success": False,
                 "error": f"Manifest not found: {manifest_path}",
-                "files_modified": []
+                "files_modified": [],
             }
 
         # Build prompt for Claude
@@ -55,26 +55,23 @@ class Developer(BaseAgent):
         response = self.claude.generate(prompt)
 
         if not response.success:
-            return {
-                "success": False,
-                "error": response.error,
-                "files_modified": []
-            }
+            return {"success": False, "error": response.error, "files_modified": []}
 
         # Extract files to modify from manifest
-        files_to_modify = (
-            manifest_data.get("creatableFiles", []) +
-            manifest_data.get("editableFiles", [])
+        files_to_modify = manifest_data.get("creatableFiles", []) + manifest_data.get(
+            "editableFiles", []
         )
 
         return {
             "success": True,
             "files_modified": files_to_modify,
             "code": response.result,
-            "error": None
+            "error": None,
         }
 
-    def _build_implementation_prompt(self, manifest_data: Dict[str, Any], test_errors: str) -> str:
+    def _build_implementation_prompt(
+        self, manifest_data: Dict[str, Any], test_errors: str
+    ) -> str:
         """Build prompt for Claude to generate implementation.
 
         Args:
@@ -85,8 +82,6 @@ class Developer(BaseAgent):
             Formatted prompt string
         """
         goal = manifest_data.get("goal", "")
-        artifacts = manifest_data.get("expectedArtifacts", {})
-
         error_section = f"\nTEST FAILURES:\n{test_errors}\n" if test_errors else ""
 
         return f"""You are a MAID Developer implementing code to pass tests.

@@ -1,8 +1,6 @@
 """Manifest Architect Agent - Phase 1: Creates manifests from goals."""
 
 import json
-from pathlib import Path
-from typing import Dict, Any
 
 from maid_agents.agents.base_agent import BaseAgent
 from maid_agents.claude.cli_wrapper import ClaudeWrapper
@@ -49,27 +47,61 @@ class ManifestArchitect(BaseAgent):
                 "success": False,
                 "error": response.error,
                 "manifest_path": None,
-                "manifest_data": None
+                "manifest_data": None,
             }
 
         # Parse response as JSON manifest
+        # Claude may wrap JSON in markdown code fences, so extract it
         try:
-            manifest_data = json.loads(response.result)
+            json_text = self._extract_json_from_response(response.result)
+            manifest_data = json.loads(json_text)
             manifest_path = f"manifests/task-{task_number:03d}.manifest.json"
 
             return {
                 "success": True,
                 "manifest_path": manifest_path,
                 "manifest_data": manifest_data,
-                "error": None
+                "error": None,
             }
         except json.JSONDecodeError as e:
             return {
                 "success": False,
-                "error": f"Failed to parse manifest JSON: {e}",
+                "error": f"Failed to parse manifest JSON: {e}. Response preview: {response.result[:200]}",
                 "manifest_path": None,
-                "manifest_data": None
+                "manifest_data": None,
             }
+
+    def _extract_json_from_response(self, response: str) -> str:
+        """Extract JSON from Claude response, handling markdown code fences.
+
+        Args:
+            response: Raw response from Claude
+
+        Returns:
+            Extracted JSON string
+        """
+        import re
+
+        # Try to find JSON within markdown code fences
+        # Pattern: ```json ... ``` or ``` ... ```
+        json_block_pattern = r"```(?:json)?\s*\n(.*?)\n```"
+        matches = re.findall(json_block_pattern, response, re.DOTALL)
+
+        if matches:
+            # Return the first JSON block found
+            return matches[0].strip()
+
+        # If no code fence, try to find JSON object directly
+        # Look for { ... } pattern
+        json_object_pattern = r"\{.*\}"
+        matches = re.findall(json_object_pattern, response, re.DOTALL)
+
+        if matches:
+            # Return the first/largest JSON object
+            return max(matches, key=len).strip()
+
+        # If nothing found, return original (will likely fail JSON parsing)
+        return response.strip()
 
     def _build_manifest_prompt(self, goal: str, task_number: int) -> str:
         """Build prompt for Claude to generate manifest.
@@ -81,24 +113,23 @@ class ManifestArchitect(BaseAgent):
         Returns:
             Formatted prompt string
         """
-        return f"""You are a MAID Manifest Architect creating task-{task_number:03d}.
+        return f"""You are a JSON generator. Your ONLY job is to output valid JSON. Do NOT write explanations, do NOT use markdown, do NOT create files.
+
+TASK: Generate a MAID v1.2 manifest JSON for task-{task_number:03d}
 
 GOAL: {goal}
 
-Create a MAID v1.2 manifest that:
-1. Determines task type (create/edit/refactor)
-2. Lists files to touch (creatableFiles vs editableFiles)
-3. Declares ALL public artifacts with precise signatures
-4. Specifies validation command (pytest path)
+REQUIREMENTS:
+1. Determine task type (create/edit/refactor)
+2. List files to touch (creatableFiles vs editableFiles)
+3. Declare ALL public artifacts with precise signatures
+4. Specify validation command (pytest path)
+5. Be atomic: touch minimal files
+6. Be explicit: declare all public APIs
 
-CRITICAL:
-- Be atomic: touch minimal files
-- Be explicit: declare all public APIs
-- Be testable: artifacts must be verifiable in tests
+CRITICAL: Your response must be ONLY the raw JSON object. No markdown, no explanation, no code fences.
 
-Output ONLY valid JSON matching the manifest schema.
-
-Example structure:
+Example JSON structure (return something like this):
 {{
   "goal": "{goal}",
   "taskType": "create",

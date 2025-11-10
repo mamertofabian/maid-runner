@@ -11,6 +11,7 @@ def test_logging_module_can_be_imported():
     """Test logging utils module can be imported."""
     try:
         from maid_agents.utils.logging import setup_logging
+
         assert callable(setup_logging)
     except ImportError:
         pytest.fail("Cannot import logging module")

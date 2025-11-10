@@ -1,6 +1,5 @@
 """Behavioral tests for Task-009: Refactorer Agent."""
 
-import pytest
 import sys
 from pathlib import Path
 

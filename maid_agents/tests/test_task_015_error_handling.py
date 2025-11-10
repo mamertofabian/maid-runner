@@ -1,6 +1,5 @@
 """Behavioral tests for Task-015: Error Handling."""
 
-import pytest
 import sys
 from pathlib import Path
 

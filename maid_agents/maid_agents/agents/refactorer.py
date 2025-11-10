@@ -44,7 +44,7 @@ class Refactorer(BaseAgent):
             return {
                 "success": False,
                 "error": f"Manifest not found: {manifest_path}",
-                "improvements": []
+                "improvements": [],
             }
 
         # Build prompt for Claude
@@ -54,17 +54,13 @@ class Refactorer(BaseAgent):
         response = self.claude.generate(prompt)
 
         if not response.success:
-            return {
-                "success": False,
-                "error": response.error,
-                "improvements": []
-            }
+            return {"success": False, "error": response.error, "improvements": []}
 
         return {
             "success": True,
             "improvements": ["Code quality improved"],
             "refactored_code": response.result,
-            "error": None
+            "error": None,
         }
 
     def _build_refactor_prompt(self, manifest_data: Dict[str, Any]) -> str:

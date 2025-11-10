@@ -1,6 +1,5 @@
 """Behavioral tests for Task-013: Configuration."""
 
-import pytest
 import sys
 from pathlib import Path
 

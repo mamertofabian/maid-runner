@@ -4,7 +4,6 @@ Behavioral tests for Task-007: TestDesigner Agent.
 Tests the TestDesigner agent that creates behavioral tests from manifests.
 """
 
-import pytest
 import sys
 from pathlib import Path
 

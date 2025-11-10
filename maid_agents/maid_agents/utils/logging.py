@@ -2,7 +2,6 @@
 
 import logging
 import sys
-from typing import Optional
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -18,7 +17,7 @@ def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(
         level=numeric_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)]
+        handlers=[logging.StreamHandler(sys.stdout)],
     )
 
     # Get logger for maid_agents

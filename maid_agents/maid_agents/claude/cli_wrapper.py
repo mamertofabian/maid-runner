@@ -49,7 +49,8 @@ class ClaudeWrapper:
             )
 
         # Real Claude invocation
-        cmd = ["claude", "-p", prompt, "--output-format", "json"]
+        # Note: -p/--print flag is required for non-interactive output
+        cmd = ["claude", "--print", prompt, "--output-format", "json"]
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)

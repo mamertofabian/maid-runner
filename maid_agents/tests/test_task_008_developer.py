@@ -1,6 +1,5 @@
 """Behavioral tests for Task-008: Developer Agent."""
 
-import pytest
 import sys
 from pathlib import Path
 
@@ -25,7 +24,7 @@ def test_implement_method_signature():
 
     result = developer.implement(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
-        test_errors=""
+        test_errors="",
     )
 
     assert isinstance(result, dict)

@@ -78,10 +78,12 @@ class MAIDOrchestrator:
             "success": False,
             "manifest_path": None,
             "test_paths": [],
-            "error": "Not yet implemented"
+            "error": "Not yet implemented",
         }
 
-    def run_implementation_loop(self, manifest_path: str, max_iterations: int = 20) -> dict:
+    def run_implementation_loop(
+        self, manifest_path: str, max_iterations: int = 20
+    ) -> dict:
         """Execute implementation loop: code generation until tests pass.
 
         Args:
@@ -100,11 +102,7 @@ class MAIDOrchestrator:
         # 4. If failed, extract errors and iterate
         # 5. Validate manifest compliance
 
-        return {
-            "success": False,
-            "iterations": 0,
-            "error": "Not yet implemented"
-        }
+        return {"success": False, "iterations": 0, "error": "Not yet implemented"}
 
     def _handle_error(self, error: Exception) -> dict:
         """Handle errors during workflow execution.
@@ -121,5 +119,5 @@ class MAIDOrchestrator:
         return {
             "error": error_message,
             "error_type": error_type,
-            "message": f"{error_type}: {error_message}"
+            "message": f"{error_type}: {error_message}",
         }
