@@ -38,13 +38,61 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 └──────────────────────────────────────┘
 ```
 
+## Installation
+
+### Local Development (Editable Install)
+
+For local development, install the package in editable mode:
+
+```bash
+# Using pip
+pip install -e .
+
+# Using uv (recommended)
+uv pip install -e .
+```
+
+After installation, the `maid` command will be available:
+
+```bash
+# Check version
+maid --version
+
+# Get help
+maid --help
+```
+
+### Python API
+
+You can also use MAID Runner as a Python library:
+
+```python
+from maid_runner import (
+    validate_schema,
+    validate_with_ast,
+    discover_related_manifests,
+    generate_snapshot,
+    AlignmentError,
+    __version__,
+)
+
+# Validate a manifest schema
+validate_schema(manifest_data, schema_path)
+
+# Validate implementation against manifest
+validate_with_ast(manifest_data, file_path, use_manifest_chain=True)
+
+# Generate snapshot manifest
+generate_snapshot("path/to/file.py", output_dir="manifests")
+```
+
 ## Core CLI Tools (For External Tools)
 
 ### 1. Manifest Validation
 
 ```bash
 # Validate manifest structure and implementation
-validate_manifest.py <manifest_path> [options]
+maid validate <manifest_path> [options]
 
 # Options:
 #   --validation-mode {implementation,behavioral}  # Default: implementation
@@ -60,19 +108,19 @@ validate_manifest.py <manifest_path> [options]
 
 ```bash
 # Validate implementation matches manifest
-$ validate_manifest.py manifests/task-013.manifest.json
+$ maid validate manifests/task-013.manifest.json
 ✓ Validation PASSED
 
 # Validate behavioral tests USE artifacts
-$ validate_manifest.py manifests/task-013.manifest.json --validation-mode behavioral
+$ maid validate manifests/task-013.manifest.json --validation-mode behavioral
 ✓ Behavioral test validation PASSED
 
 # Full validation with manifest chain (recommended)
-$ validate_manifest.py manifests/task-013.manifest.json --use-manifest-chain
+$ maid validate manifests/task-013.manifest.json --use-manifest-chain
 ✓ Validation PASSED
 
 # Quiet mode for automation
-$ validate_manifest.py manifests/task-013.manifest.json --quiet
+$ maid validate manifests/task-013.manifest.json --quiet
 # Exit code 0 = success, no output
 ```
 
@@ -80,7 +128,7 @@ $ validate_manifest.py manifests/task-013.manifest.json --quiet
 
 ```bash
 # Generate snapshot manifest from existing code
-generate_snapshot.py <file_path> [options]
+maid snapshot <file_path> [options]
 
 # Options:
 #   --output-dir DIR    # Default: manifests/
@@ -94,23 +142,23 @@ generate_snapshot.py <file_path> [options]
 **Example:**
 
 ```bash
-$ generate_snapshot.py validators/manifest_validator.py --force
-Snapshot manifest created: manifests/task-009-snapshot-manifest_validator.manifest.json
+$ maid snapshot maid_runner/validators/manifest_validator.py --force
+Snapshot manifest generated successfully: manifests/task-009-snapshot-manifest_validator.manifest.json
 ```
 
 ## Optional Human Helper Tools
 
-For manual/interactive use, MAID Runner includes convenience wrappers:
+For manual/interactive use, MAID Runner includes convenience wrappers in `examples/maid_runner.py`:
 
 ```bash
 # Interactive manifest creation (optional helper)
-maid_runner.py plan --goal "Add user authentication"
+python examples/maid_runner.py plan --goal "Add user authentication"
 
 # Interactive validation loop (optional helper)
-maid_runner.py run manifests/task-013.manifest.json
+python examples/maid_runner.py run manifests/task-013.manifest.json
 ```
 
-**These are NOT required for automation.** External AI tools should use `validate_manifest.py` directly.
+**These are NOT required for automation.** External AI tools should use `maid validate` directly.
 
 ## Integration with AI Tools
 
@@ -124,7 +172,7 @@ from pathlib import Path
 def validate_manifest(manifest_path: str) -> dict:
     """Use MAID Runner to validate manifest."""
     result = subprocess.run(
-        ["python", "validate_manifest.py", manifest_path,
+        ["maid", "validate", manifest_path,
          "--use-manifest-chain", "--quiet"],
         capture_output=True,
         text=True
@@ -187,7 +235,7 @@ EOF
 # AI implements code...
 
 # Validate with MAID Runner
-if validate_manifest.py $MANIFEST --use-manifest-chain --quiet; then
+if maid validate $MANIFEST --use-manifest-chain --quiet; then
     echo "✓ Validation passed"
     exit 0
 else
@@ -200,13 +248,13 @@ fi
 
 | Validation Type | What It Checks | Command |
 |----------------|----------------|---------|
-| **Schema** | Manifest JSON structure | `validate_manifest.py` |
-| **Behavioral Tests** | Tests USE declared artifacts | `validate_manifest.py --validation-mode behavioral` |
-| **Implementation** | Code DEFINES declared artifacts | `validate_manifest.py` (default) |
-| **Type Hints** | Type annotations match manifest | `validate_manifest.py` (automatic) |
-| **Manifest Chain** | Historical consistency | `validate_manifest.py --use-manifest-chain` |
+| **Schema** | Manifest JSON structure | `maid validate` |
+| **Behavioral Tests** | Tests USE declared artifacts | `maid validate --validation-mode behavioral` |
+| **Implementation** | Code DEFINES declared artifacts | `maid validate` (default) |
+| **Type Hints** | Type annotations match manifest | `maid validate` (automatic) |
+| **Manifest Chain** | Historical consistency | `maid validate --use-manifest-chain` |
 
-## Installation
+## Development Setup
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
 
@@ -216,6 +264,9 @@ uv sync
 
 # Install development dependencies
 uv sync --group dev
+
+# Install package in editable mode (after initial setup)
+uv pip install -e .
 ```
 
 ## Manifest Structure
@@ -291,13 +342,13 @@ Define the high-level feature or bug fix.
 ### Phase 2: Planning Loop
 1. **Create manifest** (JSON file defining the task)
 2. **Create behavioral tests** (tests that USE the expected artifacts)
-3. **Validate structure**: `validate_manifest.py <manifest> --validation-mode behavioral`
+3. **Validate structure**: `maid validate <manifest> --validation-mode behavioral`
 4. **Iterate** until structural validation passes
 5. **Commit** manifest and tests
 
 ### Phase 3: Implementation Loop
 1. **Implement code** (create/modify files per manifest)
-2. **Validate implementation**: `validate_manifest.py <manifest> --use-manifest-chain`
+2. **Validate implementation**: `maid validate <manifest> --use-manifest-chain`
 3. **Run tests**: Execute `validationCommand` from manifest
 4. **Iterate** until all tests pass
 5. **Commit** implementation
@@ -338,13 +389,19 @@ maid-runner/
 ├── docs/                          # Documentation and specifications
 ├── manifests/                     # Task manifest files (chronological)
 ├── tests/                         # Test suite
-├── validators/                    # Core validation logic
-│   ├── manifest_validator.py      # Main validation engine
-│   ├── type_validator.py          # Type hint validation
-│   └── schemas/                   # JSON schemas
-├── validate_manifest.py           # CLI: Manifest validation (CORE TOOL)
-├── generate_snapshot.py           # CLI: Snapshot generation (CORE TOOL)
-├── maid_runner.py                 # CLI: Optional helpers (plan/run)
+├── maid_runner/                   # Main package
+│   ├── __init__.py                # Package exports
+│   ├── __version__.py             # Version information
+│   ├── cli/                        # CLI modules
+│   │   ├── main.py                # Main CLI entry point (maid command)
+│   │   ├── validate.py            # Validate subcommand
+│   │   └── snapshot.py            # Snapshot subcommand
+│   └── validators/                # Core validation logic
+│       ├── manifest_validator.py  # Main validation engine
+│       ├── type_validator.py      # Type hint validation
+│       └── schemas/               # JSON schemas
+├── examples/                      # Example scripts
+│   └── maid_runner.py             # Optional helpers (plan/run)
 └── .claude/                       # Claude Code configuration
 ```
 
