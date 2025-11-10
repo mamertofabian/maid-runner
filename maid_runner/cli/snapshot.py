@@ -214,7 +214,14 @@ def _aggregate_validation_commands_from_superseded(
                         # No filtering - include all commands
                         seen_commands.add(cmd_tuple)
                         aggregated_commands.append(cmd_array)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, IOError) as e:
+            # Log error but continue processing other manifests
+            # This prevents one malformed manifest from breaking the entire aggregation
+            if __debug__:  # Only log in debug mode to avoid noise
+                print(
+                    f"⚠️  Skipping invalid manifest {superseded_path.name}: {e}",
+                    file=sys.stderr,
+                )
             continue
 
     return aggregated_commands

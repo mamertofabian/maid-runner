@@ -17,8 +17,9 @@ def validate_manifest_version(
     Raises:
         SystemExit: Exits with code 1 if version is invalid
     """
-    version = manifest_data.get("version")
-    if version is not None and version != "1":
+    # Default to "1" if version is missing or None (per schema default)
+    version = manifest_data.get("version", "1")
+    if version != "1":
         print(
             f"✗ Error: Invalid schema version '{version}'. "
             f"Only version '1' is currently supported. "
@@ -64,6 +65,8 @@ def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:
         return [shlex.split(validation_command)]
 
     if isinstance(validation_command, list):
+        # Check for multiple string commands format: ["pytest test1.py", "pytest test2.py"]
+        # This format requires ALL elements to be strings with spaces (command strings)
         if len(validation_command) > 1 and all(
             isinstance(cmd, str) and " " in cmd for cmd in validation_command
         ):
