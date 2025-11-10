@@ -3,8 +3,16 @@
 This module provides the core orchestration logic for executing the MAID workflow.
 """
 
+import json
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Optional
+
+from maid_agents.agents.manifest_architect import ManifestArchitect
+from maid_agents.agents.test_designer import TestDesigner
+from maid_agents.claude.cli_wrapper import ClaudeWrapper
+from maid_agents.core.validation_runner import ValidationRunner
 
 
 class WorkflowState(Enum):
@@ -30,9 +38,31 @@ class WorkflowResult:
 class MAIDOrchestrator:
     """Orchestrates the complete MAID workflow."""
 
-    def __init__(self):
-        """Initialize orchestrator."""
+    def __init__(
+        self,
+        claude: Optional[ClaudeWrapper] = None,
+        manifest_architect: Optional[ManifestArchitect] = None,
+        test_designer: Optional[TestDesigner] = None,
+        validation_runner: Optional[ValidationRunner] = None,
+    ):
+        """Initialize orchestrator.
+
+        Args:
+            claude: Claude wrapper (creates default if None)
+            manifest_architect: Manifest architect agent (creates default if None)
+            test_designer: Test designer agent (creates default if None)
+            validation_runner: Validation runner (creates default if None)
+        """
         self._state = WorkflowState.INIT
+
+        # Create default Claude wrapper if not provided
+        if claude is None:
+            claude = ClaudeWrapper(mock_mode=True)
+
+        # Create agents with provided or default Claude wrapper
+        self.manifest_architect = manifest_architect or ManifestArchitect(claude)
+        self.test_designer = test_designer or TestDesigner(claude)
+        self.validation_runner = validation_runner or ValidationRunner()
 
     def run_full_workflow(self, goal: str) -> WorkflowResult:
         """Execute complete MAID workflow from goal to integration.
@@ -68,18 +98,114 @@ class MAIDOrchestrator:
         """
         self._state = WorkflowState.PLANNING
 
-        # TODO: Implement full planning loop
-        # 1. Create manifest using ManifestArchitect
-        # 2. Create tests using TestDesigner
-        # 3. Run structural validation
-        # 4. Iterate if validation fails
+        # Determine next task number by counting existing manifests
+        task_number = self._get_next_task_number()
 
+        iteration = 0
+        last_error = None
+
+        while iteration < max_iterations:
+            iteration += 1
+
+            # Step 1: Create manifest using ManifestArchitect
+            manifest_result = self.manifest_architect.create_manifest(
+                goal=goal, task_number=task_number
+            )
+
+            if not manifest_result["success"]:
+                last_error = f"Manifest creation failed: {manifest_result['error']}"
+                continue
+
+            manifest_path = manifest_result["manifest_path"]
+            manifest_data = manifest_result["manifest_data"]
+
+            # Save manifest to disk
+            try:
+                manifest_file = Path(manifest_path)
+                manifest_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(manifest_file, "w") as f:
+                    json.dump(manifest_data, f, indent=2)
+            except Exception as e:
+                last_error = f"Failed to save manifest: {e}"
+                continue
+
+            # Step 2: Create tests using TestDesigner
+            test_result = self.test_designer.create_tests(
+                manifest_path=str(manifest_file)
+            )
+
+            if not test_result["success"]:
+                last_error = f"Test generation failed: {test_result['error']}"
+                continue
+
+            test_paths = test_result["test_paths"]
+            test_code = test_result["test_code"]
+
+            # Save test files to disk
+            try:
+                for test_path in test_paths:
+                    test_file = Path(test_path)
+                    test_file.parent.mkdir(parents=True, exist_ok=True)
+                    with open(test_file, "w") as f:
+                        f.write(test_code)
+            except Exception as e:
+                last_error = f"Failed to save test files: {e}"
+                continue
+
+            # Step 3: Run structural validation
+            validation_result = self.validation_runner.validate_manifest(
+                manifest_path=str(manifest_file), use_chain=True
+            )
+
+            if validation_result.success:
+                # Planning loop succeeded!
+                return {
+                    "success": True,
+                    "manifest_path": str(manifest_file),
+                    "test_paths": [str(p) for p in test_paths],
+                    "iterations": iteration,
+                    "error": None,
+                }
+            else:
+                # Validation failed - prepare error feedback for next iteration
+                last_error = f"Validation failed:\n{validation_result.stderr}\nErrors: {validation_result.errors}"
+
+        # Max iterations reached without success
         return {
             "success": False,
             "manifest_path": None,
             "test_paths": [],
-            "error": "Not yet implemented",
+            "iterations": iteration,
+            "error": f"Planning loop failed after {max_iterations} iterations. Last error: {last_error}",
         }
+
+    def _get_next_task_number(self) -> int:
+        """Determine next task number by counting existing manifests.
+
+        Returns:
+            Next available task number
+        """
+        manifests_dir = Path("manifests")
+        if not manifests_dir.exists():
+            return 1
+
+        # Find all task-*.manifest.json files
+        manifest_files = list(manifests_dir.glob("task-*.manifest.json"))
+
+        if not manifest_files:
+            return 1
+
+        # Extract task numbers and find max
+        task_numbers = []
+        for manifest_file in manifest_files:
+            # Extract number from filename like "task-042.manifest.json"
+            try:
+                num_str = manifest_file.stem.split("-")[1].split(".")[0]
+                task_numbers.append(int(num_str))
+            except (IndexError, ValueError):
+                continue
+
+        return max(task_numbers) + 1 if task_numbers else 1
 
     def run_implementation_loop(
         self, manifest_path: str, max_iterations: int = 20
