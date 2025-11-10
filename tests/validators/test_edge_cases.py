@@ -13,7 +13,7 @@ This module tests how the validator handles:
 
 import pytest
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast, AlignmentError
+from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 def test_empty_parameter_list_vs_none(tmp_path: Path):

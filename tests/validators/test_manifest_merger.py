@@ -4,7 +4,7 @@ import pytest
 import json
 import tempfile
 from pathlib import Path
-from validators.manifest_validator import (
+from maid_runner.validators.manifest_validator import (
     discover_related_manifests,
     _merge_expected_artifacts,
     validate_with_ast,
@@ -15,7 +15,7 @@ from validators.manifest_validator import (
 def testdiscover_related_manifests():
     """Test that we can discover manifests that touched a specific file."""
     # This test uses the real manifests in the project
-    target_file = "validators/manifest_validator.py"
+    target_file = "maid_runner/validators/manifest_validator.py"
 
     manifests = discover_related_manifests(target_file)
 
@@ -97,7 +97,7 @@ def test_discover_manifests_chronological_order():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory for the function
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -277,7 +277,7 @@ def validate_with_ast(manifest_data, test_file_path):
         json.dump(content2, f)
 
     # Mock the manifest directory
-    import validators.manifest_validator as mv
+    import maid_runner.validators.manifest_validator as mv
 
     original_path = mv.Path
     mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -325,7 +325,7 @@ def test_discover_manifests_with_four_digit_numbers():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory for the function
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)

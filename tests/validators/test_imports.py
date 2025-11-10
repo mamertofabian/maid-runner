@@ -10,7 +10,7 @@ This module tests how the validator processes various import patterns:
 """
 
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast
+from maid_runner.validators.manifest_validator import validate_with_ast
 
 
 def test_import_regular_modules(tmp_path: Path):
@@ -69,7 +69,7 @@ def test_import_from_local_modules(tmp_path: Path):
     code = """
 from .models import User, Product
 from ..services import OrderService
-from validators import AlignmentError
+from maid_runner.validators import AlignmentError
 
 class MyClass:
     pass

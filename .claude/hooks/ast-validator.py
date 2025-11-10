@@ -37,7 +37,7 @@ def validate_manifest_implementation():
             return
 
         # Check if validator exists
-        if not Path("validators/manifest_validator.py").exists():
+        if not Path("maid_runner/validators/manifest_validator.py").exists():
             print("❌ AST validator not found - skipping validation")
             return
 
@@ -66,7 +66,7 @@ def validate_manifest_implementation():
 
                 # Import and run validation
                 sys.path.insert(0, ".")
-                from validators.manifest_validator import validate_with_ast
+                from maid_runner.validators.manifest_validator import validate_with_ast
 
                 try:
                     validate_with_ast(manifest_data, impl_file, use_manifest_chain=True)

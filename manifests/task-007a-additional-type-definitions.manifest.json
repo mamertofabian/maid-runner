@@ -3,10 +3,10 @@
   "taskType": "edit",
   "supersedes": [],
   "creatableFiles": [],
-  "editableFiles": ["validators/types.py"],
+  "editableFiles": ["maid_runner/validators/types.py"],
   "readonlyFiles": ["tests/test_task_007a_additional_type_definitions.py"],
   "expectedArtifacts": {
-    "file": "validators/types.py",
+    "file": "maid_runner/validators/types.py",
     "contains": [
       {
         "type": "attribute",

@@ -13,13 +13,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 
-# Import manifest discovery function from validators
-# Using public API function instead of sys.path manipulation
-sys.path.insert(0, str(Path(__file__).parent))
-try:
-    from validators.manifest_validator import discover_related_manifests
-finally:
-    sys.path.pop(0)
+from maid_runner.validators.manifest_validator import discover_related_manifests
 
 
 def extract_artifacts_from_code(file_path: str) -> dict:

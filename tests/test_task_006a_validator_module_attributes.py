@@ -4,13 +4,13 @@ Test Task-006a: Validator module-level attribute detection.
 Tests the enhanced _ArtifactCollector class to ensure it properly detects
 module-level attributes like type aliases and constants, not just class attributes.
 
-These tests USE the _ArtifactCollector class from validators.manifest_validator
+These tests USE the _ArtifactCollector class from maid_runner.validators.manifest_validator
 to verify its behavioral enhancement for detecting module-level assignments.
 """
 
 import ast
 
-from validators.manifest_validator import _ArtifactCollector
+from maid_runner.validators.manifest_validator import _ArtifactCollector
 
 
 def test_detects_module_level_type_alias():

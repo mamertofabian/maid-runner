@@ -8,8 +8,8 @@
   ],
   "readonlyFiles": [
     "tests/test_task_012_planning_loop_orchestrator.py",
-    "validators/manifest_validator.py",
-    "validators/schemas/manifest.schema.json"
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
     "file": "maid_runner.py",

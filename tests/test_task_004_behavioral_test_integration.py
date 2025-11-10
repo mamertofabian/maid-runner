@@ -15,7 +15,7 @@ from unittest.mock import patch
 # Add parent directory to path to import validate_manifest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validate_manifest import (
+from maid_runner.cli.validate import (
     extract_test_files_from_command,
     validate_behavioral_tests,
     main,
@@ -617,7 +617,9 @@ class OrderService:
         ):
             call_order.append((file_path, validation_mode))
             # Call the actual validation
-            from validators.manifest_validator import validate_with_ast as real_validate
+            from maid_runner.validators.manifest_validator import (
+                validate_with_ast as real_validate,
+            )
 
             return real_validate(
                 manifest_data, file_path, use_manifest_chain, validation_mode
@@ -625,7 +627,7 @@ class OrderService:
 
         with patch("sys.argv", test_args):
             with patch(
-                "validate_manifest.validate_with_ast",
+                "maid_runner.cli.validate.validate_with_ast",
                 side_effect=track_validation_calls,
             ):
                 with patch("sys.exit") as mock_exit:

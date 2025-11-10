@@ -15,13 +15,23 @@ import sys
 # Add parent directory to path to import maid_runner
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from maid_runner import (
-    run_planning_loop,
-    get_next_task_number,
-    prompt_for_manifest_details,
-    create_draft_manifest,
-    run_structural_validation,
+import sys
+import importlib.util
+from pathlib import Path
+
+# Import from maid_runner.py script (not the package)
+spec = importlib.util.spec_from_file_location(
+    "maid_runner_script", Path(__file__).parent.parent / "maid_runner.py"
 )
+maid_runner_script = importlib.util.module_from_spec(spec)
+sys.modules["maid_runner_script"] = maid_runner_script
+spec.loader.exec_module(maid_runner_script)
+
+run_planning_loop = maid_runner_script.run_planning_loop
+get_next_task_number = maid_runner_script.get_next_task_number
+prompt_for_manifest_details = maid_runner_script.prompt_for_manifest_details
+create_draft_manifest = maid_runner_script.create_draft_manifest
+run_structural_validation = maid_runner_script.run_structural_validation
 
 
 class TestGetNextTaskNumber:

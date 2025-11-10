@@ -11,7 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-from validators.manifest_validator import validate_with_ast
+from maid_runner.validators.manifest_validator import validate_with_ast
 
 
 def extract_test_files_from_command(validation_command) -> list:
@@ -146,7 +146,10 @@ def validate_behavioral_tests(
 
     # Collect usage data from all test files
     import ast
-    from validators.manifest_validator import _ArtifactCollector
+    from maid_runner.validators.manifest_validator import (
+        _ArtifactCollector,
+        should_skip_behavioral_validation,
+    )
 
     all_used_classes = set()
     all_used_methods = {}
@@ -180,9 +183,6 @@ def validate_behavioral_tests(
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
-        # Import and use the should_skip_behavioral_validation function
-        from validators.manifest_validator import should_skip_behavioral_validation
-
         # Skip type-only artifacts in behavioral validation
         if should_skip_behavioral_validation(artifact):
             continue
@@ -192,10 +192,9 @@ def validate_behavioral_tests(
 
         if artifact_type == "class":
             if artifact_name not in all_used_classes:
-                # Import locally to avoid detection by AST validator
-                import validators.manifest_validator as mv
+                from maid_runner.validators.manifest_validator import AlignmentError
 
-                raise mv.AlignmentError(
+                raise AlignmentError(
                     f"Class '{artifact_name}' not used in behavioral tests"
                 )
 
@@ -207,23 +206,25 @@ def validate_behavioral_tests(
                 # It's a method
                 if parent_class in all_used_methods:
                     if artifact_name not in all_used_methods[parent_class]:
-                        import validators.manifest_validator as mv
+                        from maid_runner.validators.manifest_validator import (
+                            AlignmentError,
+                        )
 
-                        raise mv.AlignmentError(
+                        raise AlignmentError(
                             f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
                         )
                 else:
-                    import validators.manifest_validator as mv
+                    from maid_runner.validators.manifest_validator import AlignmentError
 
-                    raise mv.AlignmentError(
+                    raise AlignmentError(
                         f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
                     )
             else:
                 # It's a standalone function
                 if artifact_name not in all_used_functions:
-                    import validators.manifest_validator as mv
+                    from maid_runner.validators.manifest_validator import AlignmentError
 
-                    raise mv.AlignmentError(
+                    raise AlignmentError(
                         f"Function '{artifact_name}' not called in behavioral tests"
                     )
 
@@ -239,9 +240,11 @@ def validate_behavioral_tests(
                             param_name not in all_used_arguments
                             and "__positional__" not in all_used_arguments
                         ):
-                            import validators.manifest_validator as mv
+                            from maid_runner.validators.manifest_validator import (
+                                AlignmentError,
+                            )
 
-                            raise mv.AlignmentError(
+                            raise AlignmentError(
                                 f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
                             )
 
@@ -363,9 +366,9 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
             print(f"  Target:   {file_path}")
 
     except Exception as e:
-        import validators.manifest_validator as mv
+        from maid_runner.validators.manifest_validator import AlignmentError
 
-        if isinstance(e, mv.AlignmentError):
+        if isinstance(e, AlignmentError):
             print(f"✗ Validation FAILED: {e}")
             if not args.quiet:
                 print(f"  Manifest: {args.manifest_path}")

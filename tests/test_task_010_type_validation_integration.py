@@ -15,7 +15,7 @@ import sys
 # Add parent directory to path to import validators
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.manifest_validator import validate_with_ast, AlignmentError
+from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 class TestTypeValidationIntegration:

@@ -6,10 +6,13 @@ from pathlib import Path
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.manifest_validator import validate_schema, validate_with_ast
-from validate_manifest import extract_test_files_from_command, validate_behavioral_tests
+from maid_runner.validators.manifest_validator import validate_schema, validate_with_ast
+from maid_runner.cli.validate import (
+    extract_test_files_from_command,
+    validate_behavioral_tests,
+)
 
-SCHEMA_PATH = Path("validators/schemas/manifest.schema.json")
+SCHEMA_PATH = Path("maid_runner/validators/schemas/manifest.schema.json")
 MANIFESTS_DIR = Path("manifests/")
 
 

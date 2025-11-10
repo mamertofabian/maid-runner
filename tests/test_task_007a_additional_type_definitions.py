@@ -11,7 +11,7 @@ from typing import get_args, get_origin
 # Add parent directory to path to import validators module
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.types import (
+from maid_runner.validators.types import (
     ValidationMode,
     ParameterInfo,
     FunctionTypeInfo,

@@ -9,7 +9,9 @@ import pytest
 
 # Import with fallback for Red phase testing
 try:
-    from validators.manifest_validator import should_skip_behavioral_validation
+    from maid_runner.validators.manifest_validator import (
+        should_skip_behavioral_validation,
+    )
 except ImportError as e:
     # In Red phase, this function won't exist yet
     pytest.skip(f"Implementation not ready: {e}", allow_module_level=True)

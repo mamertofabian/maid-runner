@@ -15,7 +15,7 @@ from pathlib import Path
 
 def test_uses_manifest_data_type_alias():
     """Test that ManifestData type alias is imported and used in type annotations"""
-    from validators.types import ManifestData
+    from maid_runner.validators.types import ManifestData
 
     # Use ManifestData in a function signature - natural type annotation usage
     def process_manifest(data: ManifestData) -> bool:
@@ -44,7 +44,7 @@ def test_uses_manifest_data_type_alias():
 
 def test_uses_file_path_type_alias():
     """Test that FilePath type alias is imported and used in type annotations"""
-    from validators.types import FilePath
+    from maid_runner.validators.types import FilePath
 
     # Use FilePath in function signatures and variable annotations
     def validate_file_exists(path: FilePath) -> bool:
@@ -81,7 +81,7 @@ def test_uses_file_path_type_alias():
 
 def test_uses_test_command_type_alias():
     """Test that TestCommand type alias is imported and used in type annotations"""
-    from validators.types import TestCommand
+    from maid_runner.validators.types import TestCommand
 
     # Use TestCommand in function signature - represents command line arguments
     def execute_validation_command(command: TestCommand) -> Dict[str, Any]:
@@ -121,7 +121,7 @@ def test_uses_test_command_type_alias():
 
 def test_validation_result_typed_dict_structure():
     """Test ValidationResult TypedDict through runtime inspection and usage"""
-    from validators.types import ValidationResult
+    from maid_runner.validators.types import ValidationResult
 
     # Test TypedDict structure through introspection
     assert hasattr(ValidationResult, "__annotations__")
@@ -158,7 +158,7 @@ def test_validation_result_typed_dict_structure():
 
 def test_artifact_dict_typed_dict_structure():
     """Test ArtifactDict TypedDict through runtime inspection and usage"""
-    from validators.types import ArtifactDict
+    from maid_runner.validators.types import ArtifactDict
 
     # Test TypedDict metadata
     assert hasattr(ArtifactDict, "__annotations__")
@@ -208,7 +208,7 @@ def test_artifact_dict_typed_dict_structure():
 
 def test_expected_artifacts_typed_dict_structure():
     """Test ExpectedArtifacts TypedDict through runtime inspection and usage"""
-    from validators.types import ExpectedArtifacts
+    from maid_runner.validators.types import ExpectedArtifacts
 
     # Test TypedDict metadata
     assert hasattr(ExpectedArtifacts, "__annotations__")
@@ -247,7 +247,7 @@ def test_expected_artifacts_typed_dict_structure():
 
 def test_type_mismatch_typed_dict_structure():
     """Test TypeMismatch TypedDict through runtime inspection and usage"""
-    from validators.types import TypeMismatch
+    from maid_runner.validators.types import TypeMismatch
 
     # Test TypedDict metadata
     assert hasattr(TypeMismatch, "__annotations__")
@@ -298,7 +298,7 @@ def test_type_mismatch_typed_dict_structure():
 
 def test_implementation_artifacts_typed_dict_structure():
     """Test ImplementationArtifacts TypedDict through runtime inspection and usage"""
-    from validators.types import ImplementationArtifacts, ExpectedArtifacts
+    from maid_runner.validators.types import ImplementationArtifacts, ExpectedArtifacts
 
     # Test TypedDict metadata
     assert hasattr(ImplementationArtifacts, "__annotations__")
@@ -350,7 +350,7 @@ def test_implementation_artifacts_typed_dict_structure():
 
 def test_integration_with_existing_validation_patterns():
     """Test how type definitions integrate with existing validation patterns"""
-    from validators.types import (
+    from maid_runner.validators.types import (
         ManifestData,
         FilePath,
         TestCommand,
@@ -414,7 +414,7 @@ def test_integration_with_existing_validation_patterns():
 def test_type_definitions_imported_successfully():
     """Verify all type definitions can be imported (basic smoke test)"""
     # This test ensures the module structure is correct and all types are exportable
-    from validators.types import (
+    from maid_runner.validators.types import (
         ManifestData,  # Type alias
         FilePath,  # Type alias
         TestCommand,  # Type alias

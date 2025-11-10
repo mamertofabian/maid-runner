@@ -11,11 +11,11 @@
   ],
   "creatableFiles": [],
   "editableFiles": [
-    "validators/manifest_validator.py"
+    "maid_runner/validators/manifest_validator.py"
   ],
   "readonlyFiles": [],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "class",

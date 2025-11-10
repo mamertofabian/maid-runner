@@ -8,7 +8,7 @@ import pytest
 
 # Import with fallback for Red phase testing
 try:
-    from validators.manifest_validator import (
+    from maid_runner.validators.manifest_validator import (
         validate_type_hints,
         extract_type_annotation,
         compare_types,

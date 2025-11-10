@@ -1,7 +1,7 @@
 # tests/test_ast_validator_structure.py
 import pytest
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast, AlignmentError
+from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 # We'll use a more complex dummy file now
 DUMMY_TEST_CODE = """
