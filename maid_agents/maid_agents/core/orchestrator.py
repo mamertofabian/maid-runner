@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Optional
 
 from maid_agents.agents.manifest_architect import ManifestArchitect
+from maid_agents.agents.refiner import Refiner
 from maid_agents.agents.test_designer import TestDesigner
 from maid_agents.claude.cli_wrapper import ClaudeWrapper
 from maid_agents.core.validation_runner import ValidationRunner
@@ -440,6 +441,95 @@ class MAIDOrchestrator:
             "success": False,
             "iterations": iteration,
             "error": f"Implementation loop failed after {max_iterations} iterations. Last error: {last_error}",
+        }
+
+    def run_refinement_loop(
+        self, manifest_path: str, refinement_goal: str, max_iterations: int = 5
+    ) -> dict:
+        """Execute refinement loop: refine manifest and tests with validation.
+
+        Args:
+            manifest_path: Path to manifest file to refine
+            refinement_goal: User's refinement objectives/goals
+            max_iterations: Maximum refinement iterations
+
+        Returns:
+            Dict with refinement loop results
+        """
+        # Lazy-initialize refiner if needed
+        if not hasattr(self, "refiner"):
+            self.refiner = Refiner(self.claude)
+
+        iteration = 0
+        last_error = ""
+
+        while iteration < max_iterations:
+            iteration += 1
+
+            # Step 1: Refine manifest and tests
+            refine_result = self.refiner.refine(
+                manifest_path=manifest_path,
+                refinement_goal=refinement_goal,
+                validation_feedback=last_error,
+            )
+
+            if not refine_result["success"]:
+                last_error = f"Refinement failed: {refine_result['error']}"
+                continue
+
+            manifest_data = refine_result["manifest_data"]
+            test_code_dict = refine_result["test_code"]
+
+            # Step 2: Write refined files to disk (skip in dry_run mode)
+            if not self.dry_run:
+                try:
+                    # Write manifest
+                    manifest_file = Path(manifest_path)
+                    manifest_file.parent.mkdir(parents=True, exist_ok=True)
+                    with open(manifest_file, "w") as f:
+                        json.dump(manifest_data, f, indent=2)
+
+                    # Write test files
+                    for test_path, test_code in test_code_dict.items():
+                        test_file = Path(test_path)
+                        test_file.parent.mkdir(parents=True, exist_ok=True)
+                        with open(test_file, "w") as f:
+                            f.write(test_code)
+
+                except Exception as e:
+                    last_error = f"Failed to write refined files: {e}"
+                    continue
+
+            # Step 3: Structural validation
+            validation_result = self.validation_runner.validate_manifest(
+                manifest_path, use_chain=True
+            )
+
+            if not validation_result.success:
+                last_error = f"Structural validation failed: {validation_result.stderr}"
+                continue
+
+            # Step 4: Behavioral test validation
+            behavioral_result = self._validate_behavioral_tests(manifest_path)
+
+            if behavioral_result["success"]:
+                # Refinement complete - both validations pass!
+                return {
+                    "success": True,
+                    "iterations": iteration,
+                    "improvements": refine_result.get("improvements", []),
+                    "error": None,
+                }
+            else:
+                # Behavioral validation failed - provide feedback for next iteration
+                last_error = behavioral_result["output"]
+                continue
+
+        # Max iterations reached without success
+        return {
+            "success": False,
+            "iterations": iteration,
+            "error": f"Refinement loop failed after {max_iterations} iterations. Last error: {last_error}",
         }
 
     def _handle_error(self, error: Exception) -> dict:

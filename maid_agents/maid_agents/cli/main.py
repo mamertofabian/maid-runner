@@ -70,6 +70,24 @@ def main() -> None:
     )
     refactor_parser.add_argument("manifest_path", help="Path to manifest file")
 
+    # Refine subcommand
+    refine_parser = subparsers.add_parser(
+        "refine",
+        help="Refine manifest and tests with validation loop (Phase 2 quality gate)",
+    )
+    refine_parser.add_argument("manifest_path", help="Path to manifest file")
+    refine_parser.add_argument(
+        "--goal",
+        required=True,
+        help="Refinement goals/objectives",
+    )
+    refine_parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=5,
+        help="Maximum refinement iterations (default: 5)",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -145,6 +163,31 @@ def main() -> None:
             sys.exit(0)
         else:
             print("❌ Refactoring failed")
+            print(f"Error: {result['error']}")
+            sys.exit(1)
+
+    elif args.command == "refine":
+        manifest_path = args.manifest_path
+        if not Path(manifest_path).exists():
+            print(f"❌ Manifest not found: {manifest_path}")
+            sys.exit(1)
+
+        print(f"🔍 Refining: {manifest_path}")
+        print(f"🎯 Goal: {args.goal}")
+        result = orchestrator.run_refinement_loop(
+            manifest_path=manifest_path,
+            refinement_goal=args.goal,
+            max_iterations=args.max_iterations,
+        )
+
+        if result["success"]:
+            print(f"✅ Refinement complete in {result['iterations']} iteration(s)!")
+            print(f"💡 Improvements ({len(result.get('improvements', []))}):")
+            for i, improvement in enumerate(result.get("improvements", []), 1):
+                print(f"   {i}. {improvement}")
+            sys.exit(0)
+        else:
+            print(f"❌ Refinement failed after {result['iterations']} iteration(s)")
             print(f"Error: {result['error']}")
             sys.exit(1)
 

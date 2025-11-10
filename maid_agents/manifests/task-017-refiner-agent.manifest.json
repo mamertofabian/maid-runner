@@ -1,0 +1,58 @@
+{
+  "goal": "Create Refiner agent that accepts refinement goals, updates manifest and test files, and validates changes through an orchestrated refinement loop",
+  "taskType": "edit",
+  "creatableFiles": [
+    "maid_agents/maid_agents/agents/refiner.py"
+  ],
+  "editableFiles": [
+    "maid_agents/maid_agents/core/orchestrator.py",
+    "maid_agents/maid_agents/agents/__init__.py",
+    "maid_agents/maid_agents/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_017_refiner_agent.py",
+    "maid_agents/maid_agents/agents/base_agent.py",
+    "maid_agents/maid_agents/agents/refactorer.py",
+    "maid_agents/maid_agents/core/validation_runner.py",
+    "maid_agents/maid_agents/claude/cli_wrapper.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/agents/refiner.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "Refiner"
+      },
+      {
+        "type": "function",
+        "name": "refine",
+        "class": "Refiner",
+        "args": [
+          {"name": "manifest_path", "type": "str"},
+          {"name": "refinement_goal", "type": "str"},
+          {"name": "validation_feedback", "type": "str"}
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "additionalArtifacts": [
+    {
+      "file": "maid_agents/maid_agents/core/orchestrator.py",
+      "contains": [
+        {
+          "type": "function",
+          "name": "run_refinement_loop",
+          "class": "MAIDOrchestrator",
+          "args": [
+            {"name": "manifest_path", "type": "str"},
+            {"name": "refinement_goal", "type": "str"},
+            {"name": "max_iterations", "type": "int"}
+          ],
+          "returns": "dict"
+        }
+      ]
+    }
+  ],
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_017_refiner_agent.py", "-v"]
+}
