@@ -1,7 +1,7 @@
 # tests/test_ast_validator_strict.py
 import pytest
 from pathlib import Path
-from validators.manifest_validator import validate_with_ast, AlignmentError
+from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 # Test cases for strict validation (no unexpected public artifacts)

@@ -2,11 +2,11 @@
   "goal": "Create validators/types.py with comprehensive type definitions for the MAID validation system",
   "taskType": "create",
   "supersedes": [],
-  "creatableFiles": ["validators/types.py"],
+  "creatableFiles": ["maid_runner/validators/types.py"],
   "editableFiles": [],
   "readonlyFiles": ["tests/test_task_007_type_definitions_module.py"],
   "expectedArtifacts": {
-    "file": "validators/types.py",
+    "file": "maid_runner/validators/types.py",
     "contains": [
       {
         "type": "attribute",

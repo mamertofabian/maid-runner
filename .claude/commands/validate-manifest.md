@@ -36,12 +36,12 @@ Create and run a validation script:
 import json
 import sys
 from pathlib import Path
-from validators.manifest_validator import validate_schema, validate_with_ast
+from maid_runner.validators.manifest_validator import validate_schema, validate_with_ast
 
 def validate_manifest(manifest_path, use_chain=False):
     """Validate a manifest against schema and implementation."""
     manifest_path = Path(manifest_path)
-    schema_path = Path("validators/schemas/manifest.schema.json")
+    schema_path = Path("maid_runner/validators/schemas/manifest.schema.json")
 
     if not manifest_path.exists():
         print(f"❌ Manifest not found: {manifest_path}")

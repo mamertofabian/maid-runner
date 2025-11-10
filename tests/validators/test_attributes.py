@@ -16,7 +16,7 @@ from pathlib import Path
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from validators.manifest_validator import validate_with_ast, AlignmentError
+from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 
 def test_variable_to_class_tracking(tmp_path: Path):

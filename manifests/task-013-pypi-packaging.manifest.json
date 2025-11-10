@@ -1,0 +1,38 @@
+{
+  "goal": "Complete PyPI packaging preparation by enhancing pyproject.toml metadata, exporting Python API functions from maid_runner/__init__.py, and adding comprehensive packaging tests to enable local editable installs and prepare for future PyPI publishing",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [
+    "tests/test_task_013_packaging.py"
+  ],
+  "editableFiles": [
+    "pyproject.toml",
+    "maid_runner/__init__.py",
+    "README.md"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/__init__.py",
+    "maid_runner/cli/snapshot.py",
+    "maid_runner/__version__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/__init__.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "__all__"
+      },
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "artifactKind": "type"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_013_packaging.py",
+    "-v"
+  ]
+}
+

@@ -1058,6 +1058,39 @@ def validate_with_ast(
             raise AlignmentError(f"Type validation failed:\n{formatted_errors}")
 
 
+def collect_behavioral_artifacts(file_path: str) -> dict:
+    """Collect artifacts used in a Python file for behavioral validation.
+
+    This is a public wrapper around _ArtifactCollector for behavioral validation.
+    It analyzes a Python file and returns information about what classes, functions,
+    and methods are used/called in the code.
+
+    Args:
+        file_path: Path to the Python file to analyze
+
+    Returns:
+        Dictionary containing:
+        - used_classes: Set of class names that are instantiated
+        - used_functions: Set of function names that are called
+        - used_methods: Dict mapping class names to sets of method names called
+        - used_arguments: Set of argument names used in function calls
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        SyntaxError: If the file contains invalid Python syntax
+    """
+    tree = _parse_file(file_path)
+    collector = _ArtifactCollector(validation_mode=_VALIDATION_MODE_BEHAVIORAL)
+    collector.visit(tree)
+
+    return {
+        "used_classes": collector.used_classes,
+        "used_functions": collector.used_functions,
+        "used_methods": collector.used_methods,
+        "used_arguments": collector.used_arguments,
+    }
+
+
 def _parse_file(file_path: str) -> ast.AST:
     """Parse a Python file into an AST.
 
@@ -1758,7 +1791,8 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
 
     Type-only artifacts (like TypedDict classes, type aliases) are compile-time
     constructs that shouldn't be behaviorally validated as they don't have runtime
-    behavior that can be tested.
+    behavior that can be tested. Private artifacts (starting with _) are also skipped
+    as they are implementation details, not part of the public API.
 
     Args:
         artifact: Dictionary containing artifact metadata
@@ -1768,6 +1802,16 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
     """
     if not artifact:
         return False
+
+    # Skip private artifacts (implementation details, not public API)
+    artifact_name = artifact.get("name", "")
+    if artifact_name.startswith("_"):
+        return True
+
+    # Skip methods/attributes on private classes (implementation details)
+    parent_class = artifact.get("class", "")
+    if parent_class and parent_class.startswith("_"):
+        return True
 
     # Check explicit artifact kind first
     skip_by_kind = _should_skip_by_artifact_kind(artifact)

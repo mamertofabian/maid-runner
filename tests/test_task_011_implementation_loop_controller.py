@@ -15,14 +15,24 @@ import sys
 # Add parent directory to path to import maid_runner
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from maid_runner import (
-    main,
-    run_implementation_loop,
-    load_manifest_context,
-    execute_validation,
-    display_agent_context,
-    display_validation_results,
+import sys
+import importlib.util
+from pathlib import Path
+
+# Import from maid_runner.py script (not the package)
+spec = importlib.util.spec_from_file_location(
+    "maid_runner_script", Path(__file__).parent.parent / "examples" / "maid_runner.py"
 )
+maid_runner_script = importlib.util.module_from_spec(spec)
+sys.modules["maid_runner_script"] = maid_runner_script
+spec.loader.exec_module(maid_runner_script)
+
+main = maid_runner_script.main
+run_implementation_loop = maid_runner_script.run_implementation_loop
+load_manifest_context = maid_runner_script.load_manifest_context
+execute_validation = maid_runner_script.execute_validation
+display_agent_context = maid_runner_script.display_agent_context
+display_validation_results = maid_runner_script.display_validation_results
 
 
 class TestImplementationLoopController:

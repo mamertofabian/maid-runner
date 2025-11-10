@@ -11,7 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-from validators.manifest_validator import validate_with_ast
+from maid_runner.validators.manifest_validator import validate_with_ast
 
 
 def extract_test_files_from_command(validation_command) -> list:
@@ -145,8 +145,10 @@ def validate_behavioral_tests(
             raise FileNotFoundError(f"Test file not found: {test_file}")
 
     # Collect usage data from all test files
-    import ast
-    from validators.manifest_validator import _ArtifactCollector
+    from maid_runner.validators.manifest_validator import (
+        collect_behavioral_artifacts,
+        should_skip_behavioral_validation,
+    )
 
     all_used_classes = set()
     all_used_methods = {}
@@ -154,19 +156,14 @@ def validate_behavioral_tests(
     all_used_arguments = set()
 
     for test_file in test_files:
-        with open(test_file, "r") as f:
-            test_code = f.read()
-
-        tree = ast.parse(test_code)
-        collector = _ArtifactCollector(validation_mode="behavioral")
-        collector.visit(tree)
+        artifacts = collect_behavioral_artifacts(test_file)
 
         # Merge usage data
-        all_used_classes.update(collector.used_classes)
-        all_used_functions.update(collector.used_functions)
-        all_used_arguments.update(collector.used_arguments)
+        all_used_classes.update(artifacts["used_classes"])
+        all_used_functions.update(artifacts["used_functions"])
+        all_used_arguments.update(artifacts["used_arguments"])
 
-        for class_name, methods in collector.used_methods.items():
+        for class_name, methods in artifacts["used_methods"].items():
             if class_name not in all_used_methods:
                 all_used_methods[class_name] = set()
             all_used_methods[class_name].update(methods)
@@ -180,9 +177,6 @@ def validate_behavioral_tests(
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
-        # Import and use the should_skip_behavioral_validation function
-        from validators.manifest_validator import should_skip_behavioral_validation
-
         # Skip type-only artifacts in behavioral validation
         if should_skip_behavioral_validation(artifact):
             continue
@@ -192,10 +186,9 @@ def validate_behavioral_tests(
 
         if artifact_type == "class":
             if artifact_name not in all_used_classes:
-                # Import locally to avoid detection by AST validator
-                import validators.manifest_validator as mv
+                from maid_runner.validators.manifest_validator import AlignmentError
 
-                raise mv.AlignmentError(
+                raise AlignmentError(
                     f"Class '{artifact_name}' not used in behavioral tests"
                 )
 
@@ -207,23 +200,25 @@ def validate_behavioral_tests(
                 # It's a method
                 if parent_class in all_used_methods:
                     if artifact_name not in all_used_methods[parent_class]:
-                        import validators.manifest_validator as mv
+                        from maid_runner.validators.manifest_validator import (
+                            AlignmentError,
+                        )
 
-                        raise mv.AlignmentError(
+                        raise AlignmentError(
                             f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
                         )
                 else:
-                    import validators.manifest_validator as mv
+                    from maid_runner.validators.manifest_validator import AlignmentError
 
-                    raise mv.AlignmentError(
+                    raise AlignmentError(
                         f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
                     )
             else:
                 # It's a standalone function
                 if artifact_name not in all_used_functions:
-                    import validators.manifest_validator as mv
+                    from maid_runner.validators.manifest_validator import AlignmentError
 
-                    raise mv.AlignmentError(
+                    raise AlignmentError(
                         f"Function '{artifact_name}' not called in behavioral tests"
                     )
 
@@ -239,9 +234,11 @@ def validate_behavioral_tests(
                             param_name not in all_used_arguments
                             and "__positional__" not in all_used_arguments
                         ):
-                            import validators.manifest_validator as mv
+                            from maid_runner.validators.manifest_validator import (
+                                AlignmentError,
+                            )
 
-                            raise mv.AlignmentError(
+                            raise AlignmentError(
                                 f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
                             )
 
@@ -249,6 +246,125 @@ def validate_behavioral_tests(
             # For attributes, we'd need to check attribute access patterns
             # This is more complex and may not be needed for the current use case
             pass
+
+
+def run_validation(
+    manifest_path: str,
+    validation_mode: str = "implementation",
+    use_manifest_chain: bool = False,
+    quiet: bool = False,
+) -> None:
+    """Core validation logic accepting parsed arguments.
+
+    Args:
+        manifest_path: Path to the manifest JSON file
+        validation_mode: Validation mode ('implementation' or 'behavioral')
+        use_manifest_chain: If True, use manifest chain to merge related manifests
+        quiet: If True, suppress success messages
+
+    Raises:
+        SystemExit: Exits with code 0 on success, 1 on failure
+    """
+
+    try:
+        # Validate manifest file exists
+        manifest_path_obj = Path(manifest_path)
+        if not manifest_path_obj.exists():
+            print(f"✗ Error: Manifest file not found: {manifest_path}")
+            sys.exit(1)
+
+        # Load the manifest
+        with open(manifest_path_obj, "r") as f:
+            manifest_data = json.load(f)
+
+        # Snapshot manifests must have comprehensive validationCommands
+        # Check this early, before file validation
+        validation_command = manifest_data.get("validationCommand", [])
+        if manifest_data.get("taskType") == "snapshot" and not validation_command:
+            print(
+                f"✗ Error: Snapshot manifest {manifest_path_obj.name} must have a comprehensive "
+                f"validationCommand that tests all artifacts. Snapshot manifests document the "
+                f"complete current state and must validate all artifacts."
+            )
+            sys.exit(1)
+
+        # Get the file to validate from the manifest
+        file_path = manifest_data.get("expectedArtifacts", {}).get("file")
+        if not file_path:
+            print("✗ Error: No file specified in manifest's expectedArtifacts.file")
+            sys.exit(1)
+
+        # Validate target file exists
+        if not Path(file_path).exists():
+            print(f"✗ Error: Target file not found: {file_path}")
+            sys.exit(1)
+
+        # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
+        # Check if manifest has a validationCommand that contains test files
+
+        if validation_command:
+            test_files = extract_test_files_from_command(validation_command)
+            if test_files:
+                if not quiet:
+                    print("Running behavioral test validation...")
+                validate_behavioral_tests(
+                    manifest_data,
+                    test_files,
+                    use_manifest_chain=use_manifest_chain,
+                    quiet=quiet,
+                )
+                if not quiet:
+                    print("✓ Behavioral test validation PASSED")
+
+        # IMPLEMENTATION VALIDATION (after behavioral tests)
+        validate_with_ast(
+            manifest_data,
+            file_path,
+            use_manifest_chain=use_manifest_chain,
+            validation_mode=validation_mode,
+        )
+
+        # Success message
+        if not quiet:
+            print(f"✓ Validation PASSED ({validation_mode} mode)")
+            if use_manifest_chain:
+                # Check if this is a snapshot (snapshots skip chain merging)
+                is_snapshot = manifest_data.get("taskType") == "snapshot"
+                if is_snapshot:
+                    print("  Snapshot manifest (chain skipped)")
+                else:
+                    print("  Used manifest chain for validation")
+            print(f"  Manifest: {manifest_path}")
+            print(f"  Target:   {file_path}")
+
+    except Exception as e:
+        from maid_runner.validators.manifest_validator import AlignmentError
+
+        if isinstance(e, AlignmentError):
+            print(f"✗ Validation FAILED: {e}")
+            if not quiet:
+                print(f"  Manifest: {manifest_path}")
+                print(f"  Mode:     {validation_mode}")
+            sys.exit(1)
+        else:
+            # Re-raise if it's not an AlignmentError
+            raise
+
+    except json.JSONDecodeError as e:
+        print(f"✗ Error: Invalid JSON in manifest file: {e}")
+        sys.exit(1)
+
+    except FileNotFoundError as e:
+        print(f"✗ Error: File not found: {e}")
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"✗ Unexpected error: {e}")
+        if not quiet:
+            import traceback
+
+            traceback.print_exc()
+        sys.exit(1)
 
 
 def main():
@@ -301,95 +417,12 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
     )
 
     args = parser.parse_args()
-
-    try:
-        # Validate manifest file exists
-        manifest_path = Path(args.manifest_path)
-        if not manifest_path.exists():
-            print(f"✗ Error: Manifest file not found: {args.manifest_path}")
-            sys.exit(1)
-
-        # Load the manifest
-        with open(manifest_path, "r") as f:
-            manifest_data = json.load(f)
-
-        # Get the file to validate from the manifest
-        file_path = manifest_data.get("expectedArtifacts", {}).get("file")
-        if not file_path:
-            print("✗ Error: No file specified in manifest's expectedArtifacts.file")
-            sys.exit(1)
-
-        # Validate target file exists
-        if not Path(file_path).exists():
-            print(f"✗ Error: Target file not found: {file_path}")
-            sys.exit(1)
-
-        # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
-        # Check if manifest has a validationCommand that contains test files
-        validation_command = manifest_data.get("validationCommand", [])
-        if validation_command:
-            test_files = extract_test_files_from_command(validation_command)
-            if test_files:
-                if not args.quiet:
-                    print("Running behavioral test validation...")
-                validate_behavioral_tests(
-                    manifest_data,
-                    test_files,
-                    use_manifest_chain=args.use_manifest_chain,
-                    quiet=args.quiet,
-                )
-                if not args.quiet:
-                    print("✓ Behavioral test validation PASSED")
-
-        # IMPLEMENTATION VALIDATION (after behavioral tests)
-        validate_with_ast(
-            manifest_data,
-            file_path,
-            use_manifest_chain=args.use_manifest_chain,
-            validation_mode=args.validation_mode,
-        )
-
-        # Success message
-        if not args.quiet:
-            print(f"✓ Validation PASSED ({args.validation_mode} mode)")
-            if args.use_manifest_chain:
-                # Check if this is a snapshot (snapshots skip chain merging)
-                is_snapshot = manifest_data.get("taskType") == "snapshot"
-                if is_snapshot:
-                    print("  Snapshot manifest (chain skipped)")
-                else:
-                    print("  Used manifest chain for validation")
-            print(f"  Manifest: {args.manifest_path}")
-            print(f"  Target:   {file_path}")
-
-    except Exception as e:
-        import validators.manifest_validator as mv
-
-        if isinstance(e, mv.AlignmentError):
-            print(f"✗ Validation FAILED: {e}")
-            if not args.quiet:
-                print(f"  Manifest: {args.manifest_path}")
-                print(f"  Mode:     {args.validation_mode}")
-            sys.exit(1)
-        else:
-            # Re-raise if it's not an AlignmentError
-            raise
-
-    except json.JSONDecodeError as e:
-        print(f"✗ Error: Invalid JSON in manifest file: {e}")
-        sys.exit(1)
-
-    except FileNotFoundError as e:
-        print(f"✗ Error: File not found: {e}")
-        sys.exit(1)
-
-    except Exception as e:
-        print(f"✗ Unexpected error: {e}")
-        if not args.quiet:
-            import traceback
-
-            traceback.print_exc()
-        sys.exit(1)
+    run_validation(
+        args.manifest_path,
+        args.validation_mode,
+        args.use_manifest_chain,
+        args.quiet,
+    )
 
 
 if __name__ == "__main__":

@@ -3,16 +3,16 @@
   "taskType": "create",
   "supersedes": [],
   "creatableFiles": [
-    "maid_runner.py"
+    "examples/maid_runner.py"
   ],
   "editableFiles": [],
   "readonlyFiles": [
     "tests/test_task_011_implementation_loop_controller.py",
-    "validators/manifest_validator.py",
-    "validators/schemas/manifest.schema.json"
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
-    "file": "maid_runner.py",
+    "file": "examples/maid_runner.py",
     "contains": [
       {
         "type": "function",

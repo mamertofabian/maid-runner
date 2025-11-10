@@ -23,7 +23,7 @@ test:
 validate:
 	@for manifest in manifests/task-*.manifest.json; do \
 		echo "Validating $$manifest..."; \
-		uv run python validate_manifest.py $$manifest --quiet --use-manifest-chain || exit 1; \
+		uv run maid validate $$manifest --quiet --use-manifest-chain || exit 1; \
 	done
 	@echo "✅ All manifests valid"
 
@@ -61,19 +61,19 @@ install-dev:
 
 # Quick validation commands for common tasks
 validate-001:
-	uv run python validate_manifest.py manifests/task-001-add-schema-validation.manifest.json
+	uv run maid validate manifests/task-001-add-schema-validation.manifest.json
 
 validate-002:
-	uv run python validate_manifest.py manifests/task-002-add-ast-alignment-validation.manifest.json
+	uv run maid validate manifests/task-002-add-ast-alignment-validation.manifest.json
 
 validate-003:
-	uv run python validate_manifest.py manifests/task-003-behavioral-validation.manifest.json
+	uv run maid validate manifests/task-003-behavioral-validation.manifest.json
 
 validate-004:
-	uv run python validate_manifest.py manifests/task-004-behavioral-test-integration.manifest.json
+	uv run maid validate manifests/task-004-behavioral-test-integration.manifest.json
 
 validate-005:
-	uv run python validate_manifest.py manifests/task-005-type-validation.manifest.json
+	uv run maid validate manifests/task-005-type-validation.manifest.json
 
 # Run specific test files
 test-schema:

@@ -83,7 +83,13 @@ class MAIDDevRunner:
         print("\n🔍 Running structural validation...")
         try:
             result = subprocess.run(
-                ["python", "validate_manifest.py", str(self.manifest_path), "--quiet"],
+                [
+                    "maid",
+                    "validate",
+                    str(self.manifest_path),
+                    "--quiet",
+                    "--use-manifest-chain",
+                ],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -206,8 +212,9 @@ def main():
         watch_mode(runner)
     else:
         # Run once
-        runner.run_structural_validation()
-        success = runner.run_validation()
+        structural_valid = runner.run_structural_validation()
+        behavioral_valid = runner.run_validation()
+        success = structural_valid and behavioral_valid
         sys.exit(0 if success else 1)
 
 

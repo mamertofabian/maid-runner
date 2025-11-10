@@ -1,8 +1,8 @@
 import pytest
 from jsonschema import ValidationError
-from validators.manifest_validator import validate_schema
+from maid_runner.validators.manifest_validator import validate_schema
 
-SCHEMA_PATH = "validators/schemas/manifest.schema.json"
+SCHEMA_PATH = "maid_runner/validators/schemas/manifest.schema.json"
 
 
 def test_validate_schema_with_valid_manifest():

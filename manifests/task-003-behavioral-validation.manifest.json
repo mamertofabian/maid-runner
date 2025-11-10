@@ -3,10 +3,10 @@
   "taskType": "edit",
   "supersedes": [],
   "creatableFiles": [],
-  "editableFiles": ["validators/manifest_validator.py"],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
   "readonlyFiles": ["tests/test_task_003_behavioral_validation.py"],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "class",

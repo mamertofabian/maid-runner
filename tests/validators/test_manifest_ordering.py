@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from validators.manifest_validator import discover_related_manifests
+from maid_runner.validators.manifest_validator import discover_related_manifests
 
 
 def test_four_digit_task_numbers():
@@ -31,7 +31,7 @@ def test_four_digit_task_numbers():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -78,7 +78,7 @@ def test_mixed_digit_lengths():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -128,7 +128,7 @@ def test_descriptive_names_with_numbers():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -175,7 +175,7 @@ def test_non_task_files_sorted_last():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -224,7 +224,7 @@ def test_malformed_task_names():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -268,7 +268,7 @@ def test_backward_compatibility_three_digit():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -293,7 +293,7 @@ def test_empty_manifest_directory():
         manifest_dir.mkdir()
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)
@@ -331,7 +331,7 @@ def test_mixed_formats():
                 json.dump(manifest_content, f)
 
         # Mock the manifest directory
-        import validators.manifest_validator as mv
+        import maid_runner.validators.manifest_validator as mv
 
         original_path = mv.Path
         mv.Path = lambda x: manifest_dir if x == "manifests" else original_path(x)

@@ -13,13 +13,235 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 
-# Import manifest discovery function from validators
-# Using public API function instead of sys.path manipulation
-sys.path.insert(0, str(Path(__file__).parent))
-try:
-    from validators.manifest_validator import discover_related_manifests
-finally:
-    sys.path.pop(0)
+from maid_runner.validators.manifest_validator import discover_related_manifests
+
+
+def _test_file_references_artifacts(
+    test_file_path: Path, expected_artifacts: List[dict], target_file: str
+) -> bool:
+    """
+    Check if a test file references any of the expected artifacts.
+
+    This is used to filter out tests that reference artifacts removed during refactoring.
+    Only tests that reference artifacts present in the snapshot should be included.
+
+    Args:
+        test_file_path: Path to the test file to check
+        expected_artifacts: List of artifacts expected in the snapshot
+        target_file: Path to the target file being tested (for import detection)
+
+    Returns:
+        True if test file references at least one expected artifact, False otherwise
+    """
+    if not test_file_path.exists():
+        return False
+
+    try:
+        from maid_runner.validators.manifest_validator import (
+            collect_behavioral_artifacts,
+        )
+
+        artifacts = collect_behavioral_artifacts(str(test_file_path))
+
+        # Extract artifact names from expected artifacts
+        expected_class_names = set()
+        expected_function_names = set()
+        expected_method_names = {}  # class_name -> set of method names
+
+        for artifact in expected_artifacts:
+            artifact_type = artifact.get("type")
+            artifact_name = artifact.get("name")
+
+            if artifact_type == "class":
+                expected_class_names.add(artifact_name)
+            elif artifact_type == "function":
+                parent_class = artifact.get("class")
+                if parent_class:
+                    if parent_class not in expected_method_names:
+                        expected_method_names[parent_class] = set()
+                    expected_method_names[parent_class].add(artifact_name)
+                else:
+                    expected_function_names.add(artifact_name)
+
+        # Check if test uses any expected classes
+        if expected_class_names and artifacts["used_classes"].intersection(
+            expected_class_names
+        ):
+            return True
+
+        # Check if test uses any expected functions
+        if expected_function_names and artifacts["used_functions"].intersection(
+            expected_function_names
+        ):
+            return True
+
+        # Check if test uses any expected methods
+        for class_name, methods in expected_method_names.items():
+            if class_name in artifacts["used_methods"]:
+                if artifacts["used_methods"][class_name].intersection(methods):
+                    return True
+
+        # If no expected artifacts match, this test likely references removed artifacts
+        return False
+
+    except Exception:
+        # If we can't parse the test file, include it to be safe
+        # (better to have a test that might fail than to silently exclude it)
+        # Catches SyntaxError, IOError, and other parsing/IO errors
+        return True
+
+
+def _aggregate_validation_commands_from_superseded(
+    superseded_manifests: List[str],
+    manifest_dir: Path,
+    expected_artifacts: Optional[List[dict]] = None,
+    target_file: Optional[str] = None,
+) -> List[str]:
+    """
+    Aggregate validation commands from superseded manifests for snapshot generation.
+
+    Collects all validation commands from superseded manifests and returns them
+    as a list of command strings. Deduplicates identical commands.
+
+    Optionally filters out tests that don't reference artifacts in the snapshot,
+    which handles the case where refactoring removed artifacts tested by old tests.
+
+    Args:
+        superseded_manifests: List of manifest paths (may be relative or absolute)
+        manifest_dir: Directory containing manifests (for resolving relative paths)
+        expected_artifacts: Optional list of artifacts in the snapshot (for filtering)
+        target_file: Optional path to target file being tested (for import detection)
+
+    Returns:
+        List of aggregated validation command strings
+    """
+    aggregated_commands = []
+    seen_commands = set()  # Deduplicate commands
+
+    # Determine project root for path validation
+    # Assume project root is manifest_dir's parent (typical structure)
+    project_root = manifest_dir.parent.resolve()
+
+    for superseded_path_str in superseded_manifests:
+        superseded_path = Path(superseded_path_str)
+        # Resolve relative paths
+        if not superseded_path.is_absolute():
+            # If path already includes "manifests/", resolve from manifest_dir's parent
+            # Otherwise resolve relative to manifest_dir
+            if str(superseded_path).startswith("manifests/"):
+                # Resolve from manifest_dir's parent (project root)
+                superseded_path = manifest_dir.parent / superseded_path
+            else:
+                # Resolve relative to manifest_dir
+                superseded_path = manifest_dir / superseded_path
+
+        # Resolve to absolute path and validate it's within project root
+        try:
+            superseded_path = superseded_path.resolve()
+            # Check if resolved path is within project root to prevent path traversal
+            if not str(superseded_path).startswith(str(project_root)):
+                # Path traversal detected - skip this manifest
+                continue
+        except (OSError, ValueError):
+            # Invalid path - skip this manifest
+            continue
+
+        if not superseded_path.exists():
+            continue
+
+        try:
+            with open(superseded_path, "r") as f:
+                superseded_data = json.load(f)
+
+            superseded_cmd = superseded_data.get("validationCommand", [])
+            if superseded_cmd:
+                # Extract test files from commands
+                from maid_runner.cli.validate import extract_test_files_from_command
+
+                # Normalize command to list format for extraction
+                if isinstance(superseded_cmd, list):
+                    if len(superseded_cmd) > 0 and superseded_cmd[0] == "pytest":
+                        # Single command as list: ["pytest", "test.py", "-v"]
+                        cmd_list = [superseded_cmd]
+                    else:
+                        # Multiple commands: ["pytest test1.py", "pytest test2.py"]
+                        cmd_list = superseded_cmd
+                else:
+                    # Single command as string
+                    cmd_list = [superseded_cmd]
+
+                # Extract test files and filter if expected_artifacts provided
+                for cmd_item in cmd_list:
+                    # Normalize to string for extraction
+                    if isinstance(cmd_item, list):
+                        cmd_str = " ".join(cmd_item)
+                    else:
+                        cmd_str = str(cmd_item)
+
+                    if not cmd_str or cmd_str in seen_commands:
+                        continue
+
+                    # Extract test files from this command
+                    test_files = extract_test_files_from_command([cmd_str])
+
+                    # Filter tests if expected_artifacts provided
+                    if expected_artifacts and target_file:
+                        filtered_test_files = []
+                        for test_file in test_files:
+                            test_path = Path(test_file)
+                            if not test_path.is_absolute():
+                                # Resolve relative to project root
+                                test_path = manifest_dir.parent / test_file
+
+                            if _test_file_references_artifacts(
+                                test_path, expected_artifacts, target_file
+                            ):
+                                filtered_test_files.append(test_file)
+
+                        # Only include command if it has valid test files
+                        if filtered_test_files:
+                            # Reconstruct command with filtered test files
+                            # Try to preserve original format
+                            if isinstance(cmd_item, list):
+                                # Rebuild command preserving flags
+                                pytest_index = (
+                                    cmd_item.index("pytest")
+                                    if "pytest" in cmd_item
+                                    else 0
+                                )
+                                flags = [
+                                    arg
+                                    for arg in cmd_item[pytest_index + 1 :]
+                                    if arg.startswith("-")
+                                ]
+                                new_cmd = ["pytest"] + filtered_test_files + flags
+                                cmd_str = " ".join(new_cmd)
+                            else:
+                                # For string commands, rebuild with filtered files
+                                parts = cmd_str.split()
+                                pytest_index = next(
+                                    (i for i, p in enumerate(parts) if p == "pytest"),
+                                    -1,
+                                )
+                                if pytest_index >= 0:
+                                    flags = [
+                                        p
+                                        for p in parts[pytest_index + 1 :]
+                                        if p.startswith("-")
+                                    ]
+                                    new_parts = ["pytest"] + filtered_test_files + flags
+                                    cmd_str = " ".join(new_parts)
+
+                            seen_commands.add(cmd_str)
+                            aggregated_commands.append(cmd_str)
+                    else:
+                        # No filtering - include all commands
+                        seen_commands.add(cmd_str)
+                        aggregated_commands.append(cmd_str)
+        except (json.JSONDecodeError, IOError):
+            continue
+
+    return aggregated_commands
 
 
 def extract_artifacts_from_code(file_path: str) -> dict:
@@ -338,6 +560,7 @@ def create_snapshot_manifest(
     file_path: str,
     artifacts: Union[List[Dict[str, Any]], Dict[str, Any]],
     superseded_manifests: List[str],
+    manifest_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """Create a snapshot manifest structure.
 
@@ -346,6 +569,7 @@ def create_snapshot_manifest(
         artifacts: Either a list of artifacts OR the full extraction dict from
                    extract_artifacts_from_code() (with "artifacts" key)
         superseded_manifests: List of manifest paths that this snapshot supersedes
+        manifest_dir: Directory containing manifests (for resolving relative paths)
 
     Returns:
         Dictionary containing the complete manifest structure
@@ -355,6 +579,17 @@ def create_snapshot_manifest(
         artifact_list = artifacts["artifacts"]
     else:
         artifact_list = artifacts
+
+    # Aggregate validation commands from superseded manifests
+    # Filter out tests that reference artifacts removed during refactoring
+    validation_command = []
+    if superseded_manifests and manifest_dir:
+        validation_command = _aggregate_validation_commands_from_superseded(
+            superseded_manifests,
+            manifest_dir,
+            expected_artifacts=artifact_list,
+            target_file=file_path,
+        )
 
     # Create the manifest structure
     manifest = {
@@ -368,7 +603,7 @@ def create_snapshot_manifest(
             "file": file_path,
             "contains": artifact_list,
         },
-        "validationCommand": [],
+        "validationCommand": validation_command,
     }
 
     return manifest
@@ -469,7 +704,9 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     superseded_manifests = [m for m in superseded_manifests if m != snapshot_path_str]
 
     # Create the snapshot manifest
-    manifest = create_snapshot_manifest(file_path, artifacts, superseded_manifests)
+    manifest = create_snapshot_manifest(
+        file_path, artifacts, superseded_manifests, manifest_dir=output_path
+    )
 
     # Check if file exists (unlikely with sequential numbering, but safety check)
     if manifest_path.exists() and not force:
@@ -486,6 +723,42 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
         json.dump(manifest, f, indent=2)
 
     return str(manifest_path)
+
+
+def run_snapshot(
+    file_path: str, output_dir: str = "manifests", force: bool = False
+) -> None:
+    """Core snapshot generation logic accepting parsed arguments.
+
+    Args:
+        file_path: Path to the Python file to snapshot
+        output_dir: Directory to write the manifest (default: manifests)
+        force: If True, overwrite existing manifests without prompting
+
+    Raises:
+        SystemExit: Exits with code 0 on success, 1 on failure
+    """
+    # Validate that the file exists
+    if not Path(file_path).exists():
+        print(f"Error: File not found: {file_path}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        # Generate the snapshot
+        manifest_path = generate_snapshot(file_path, output_dir, force)
+
+        # Print success message
+        print(f"Snapshot manifest generated successfully: {manifest_path}")
+
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except SyntaxError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def main() -> None:
@@ -506,28 +779,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-
-    # Validate that the file exists
-    if not Path(args.file_path).exists():
-        print(f"Error: File not found: {args.file_path}", file=sys.stderr)
-        sys.exit(1)
-
-    try:
-        # Generate the snapshot
-        manifest_path = generate_snapshot(args.file_path, args.output_dir, args.force)
-
-        # Print success message
-        print(f"Snapshot manifest generated successfully: {manifest_path}")
-
-    except FileNotFoundError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except SyntaxError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}", file=sys.stderr)
-        sys.exit(1)
+    run_snapshot(args.file_path, args.output_dir, args.force)
 
 
 if __name__ == "__main__":

@@ -15,11 +15,12 @@ from unittest.mock import patch
 # Add parent directory to path to import validate_manifest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validate_manifest import (
+from maid_runner.cli.validate import (
     extract_test_files_from_command,
     validate_behavioral_tests,
     main,
 )
+from maid_runner.validators.manifest_validator import collect_behavioral_artifacts
 
 
 class TestExtractTestFilesFromCommand:
@@ -342,6 +343,70 @@ def test_create_order_with_user():
         )
 
 
+class TestCollectBehavioralArtifacts:
+    """Test the collect_behavioral_artifacts public API function."""
+
+    def test_collects_used_classes_from_test_file(self, tmp_path: Path):
+        """Test that collect_behavioral_artifacts detects class instantiation."""
+        test_code = """
+import pytest
+from services.user_service import UserService
+from models.user import User
+
+def test_user_service():
+    service = UserService()  # Class instantiation
+    user = User()  # Class instantiation
+    assert service is not None
+    assert user is not None
+"""
+        test_file = tmp_path / "test_collect.py"
+        test_file.write_text(test_code)
+
+        artifacts = collect_behavioral_artifacts(str(test_file))
+
+        assert "UserService" in artifacts["used_classes"]
+        assert "User" in artifacts["used_classes"]
+
+    def test_collects_used_functions_from_test_file(self, tmp_path: Path):
+        """Test that collect_behavioral_artifacts detects function calls."""
+        test_code = """
+from utils.helpers import calculate_total, format_currency
+
+def test_helpers():
+    total = calculate_total([10, 20, 30])  # Function call
+    formatted = format_currency(total)  # Function call
+    assert formatted is not None
+"""
+        test_file = tmp_path / "test_functions.py"
+        test_file.write_text(test_code)
+
+        artifacts = collect_behavioral_artifacts(str(test_file))
+
+        assert "calculate_total" in artifacts["used_functions"]
+        assert "format_currency" in artifacts["used_functions"]
+
+    def test_collects_used_methods_from_test_file(self, tmp_path: Path):
+        """Test that collect_behavioral_artifacts detects method calls."""
+        test_code = """
+from services.order_service import OrderService
+
+def test_order_service():
+    service = OrderService()
+    order = service.create_order(items=["item1"])  # Method call
+    service.cancel_order(order.id)  # Method call
+    assert order is not None
+"""
+        test_file = tmp_path / "test_methods.py"
+        test_file.write_text(test_code)
+
+        artifacts = collect_behavioral_artifacts(str(test_file))
+
+        assert "OrderService" in artifacts["used_classes"]
+        assert "OrderService" in artifacts["used_methods"]
+        assert "create_order" in artifacts["used_methods"]["OrderService"]
+        assert "cancel_order" in artifacts["used_methods"]["OrderService"]
+
+
 class TestMainFunctionIntegration:
     """Test integration of behavioral test validation into main validation flow."""
 
@@ -617,7 +682,9 @@ class OrderService:
         ):
             call_order.append((file_path, validation_mode))
             # Call the actual validation
-            from validators.manifest_validator import validate_with_ast as real_validate
+            from maid_runner.validators.manifest_validator import (
+                validate_with_ast as real_validate,
+            )
 
             return real_validate(
                 manifest_data, file_path, use_manifest_chain, validation_mode
@@ -625,7 +692,7 @@ class OrderService:
 
         with patch("sys.argv", test_args):
             with patch(
-                "validate_manifest.validate_with_ast",
+                "maid_runner.cli.validate.validate_with_ast",
                 side_effect=track_validation_calls,
             ):
                 with patch("sys.exit") as mock_exit:

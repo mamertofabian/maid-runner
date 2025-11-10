@@ -11,11 +11,11 @@
   ],
   "creatableFiles": [],
   "editableFiles": [
-    "validators/manifest_validator.py"
+    "maid_runner/validators/manifest_validator.py"
   ],
   "readonlyFiles": [],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "class",
@@ -353,6 +353,17 @@
             "name": "validation_mode"
           }
         ]
+      },
+      {
+        "type": "function",
+        "name": "collect_behavioral_artifacts",
+        "parameters": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
       },
       {
         "type": "function",
@@ -1234,5 +1245,21 @@
       }
     ]
   },
-  "validationCommand": []
+  "validationCommand": [
+    "pytest tests/test_validate_schema.py",
+    "pytest tests/validators/test_imports.py",
+    "pytest tests/validators/test_attributes.py",
+    "pytest tests/validators/test_inheritance.py",
+    "pytest tests/validators/test_edge_cases.py",
+    "pytest tests/validators/test_ast_validator_structure.py",
+    "pytest tests/validators/test_ast_validator_strict.py",
+    "pytest tests/validators/test_manifest_merger.py",
+    "pytest tests/validators/test_manifest_ordering.py",
+    "pytest tests/test_task_003_behavioral_validation.py",
+    "pytest tests/test_task_004_behavioral_test_integration.py",
+    "pytest tests/test_task_005_type_validation.py -v",
+    "pytest tests/test_task_006_artifact_kind_metadata.py -v",
+    "pytest tests/test_task_006a_validator_module_attributes.py -v",
+    "pytest tests/test_task_010_type_validation_integration.py -v"
+  ]
 }

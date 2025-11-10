@@ -10,7 +10,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.manifest_validator import (
+from maid_runner.validators.manifest_validator import (
     validate_with_ast,
     AlignmentError,
     validate_schema,

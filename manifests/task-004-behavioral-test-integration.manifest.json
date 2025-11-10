@@ -3,10 +3,10 @@
   "taskType": "edit",
   "supersedes": [],
   "creatableFiles": [],
-  "editableFiles": ["validate_manifest.py"],
+  "editableFiles": ["maid_runner/cli/validate.py"],
   "readonlyFiles": ["tests/test_task_004_behavioral_test_integration.py"],
   "expectedArtifacts": {
-    "file": "validate_manifest.py",
+    "file": "maid_runner/cli/validate.py",
     "contains": [
       {
         "type": "function",
@@ -29,6 +29,23 @@
       {
         "type": "function",
         "name": "main"
+      },
+      {
+        "type": "function",
+        "name": "run_validation",
+        "parameters": [
+          {"name": "manifest_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"},
+          {"name": "quiet", "type": "bool"}
+        ],
+        "returns": "None",
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "artifactKind": "type"
       }
     ]
   },

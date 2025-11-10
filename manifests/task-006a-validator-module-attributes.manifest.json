@@ -3,13 +3,13 @@
   "taskType": "edit",
   "supersedes": [],
   "creatableFiles": [],
-  "editableFiles": ["validators/manifest_validator.py"],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
   "readonlyFiles": [
     "tests/test_task_006a_validator_module_attributes.py",
-    "validators/schemas/manifest.schema.json"
+    "maid_runner/validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "class",

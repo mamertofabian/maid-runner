@@ -4,13 +4,48 @@ version = "0.1.0"
 description = "Tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. Validates that code artifacts align with declarative manifests."
 readme = "README.md"
 requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Mamerto Fabian Jr.", email = "mamerto@codefrost.com"}
+]
+keywords = ["maid", "validation", "ai", "development", "manifest", "tdd", "architecture"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "jsonschema>=4.25.1",
     "pytest>=8.4.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mamertofabian/maid-runner"
+Repository = "https://github.com/mamertofabian/maid-runner"
+Issues = "https://github.com/mamertofabian/maid-runner/issues"
+Documentation = "https://github.com/mamertofabian/maid-runner#readme"
 
 [dependency-groups]
 dev = [
     "black>=25.1.0",
     "ruff>=0.13.0",
 ]
+
+[project.scripts]
+maid = "maid_runner.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["maid_runner*"]
+exclude = ["tests*", "manifests*", "docs*", "examples*"]
+
+[tool.setuptools.package-data]
+maid_runner = ["py.typed"]

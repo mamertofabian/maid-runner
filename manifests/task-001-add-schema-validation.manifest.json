@@ -1,13 +1,13 @@
 {
   "goal": "Implement the `validate_schema` function in a new file. This function takes manifest data (as a dict) and a path to a schema file, and uses the `jsonschema` library to validate the data against the schema. It should raise `jsonschema.ValidationError` on failure.",
   "taskType": "create",
-  "creatableFiles": ["validators/manifest_validator.py"],
+  "creatableFiles": ["maid_runner/validators/manifest_validator.py"],
   "readonlyFiles": [
     "tests/test_validate_schema.py",
-    "validators/schemas/manifest.schema.json"
+    "maid_runner/validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "function",

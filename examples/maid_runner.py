@@ -10,7 +10,7 @@ Provides optional interactive helpers for manual MAID workflow:
 - Implementation loop: Manual validation iteration
 
 **Note:** This is an EXAMPLE implementation showing how to use MAID Runner.
-The core validation tools are `validate_manifest.py` and `generate_snapshot.py`.
+The core validation tools are `maid validate` and `maid snapshot`.
 External automation tools should use those validation tools directly.
 
 This demonstrates how an external tool can:
@@ -604,8 +604,8 @@ def run_structural_validation(manifest_path: str, timeout: int = 60) -> Dict[str
     try:
         result = subprocess.run(
             [
-                sys.executable,
-                "validate_manifest.py",
+                "maid",
+                "validate",
                 manifest_path,
                 "--use-manifest-chain",
             ],

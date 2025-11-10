@@ -1,13 +1,13 @@
 {
   "goal": "Implement the `validate_with_ast` function in the existing manifest_validator.py file. This function will parse a given Python test file into an Abstract Syntax Tree (AST) to verify that the artifacts listed in `expectedArtifacts` are actually referenced in the code. If an expected artifact is not found, it must raise a custom `AlignmentError`.",
   "taskType": "edit",
-  "editableFiles": ["validators/manifest_validator.py"],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
   "readonlyFiles": [
     "tests/test_ast_validator_strict.py",
     "tests/test_ast_validator_structure.py"
   ],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "class",

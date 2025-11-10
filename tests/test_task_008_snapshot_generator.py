@@ -16,16 +16,13 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 
-# Add parent directory to path to import generate_snapshot module
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 
 class TestExtractArtifactsFromCode:
     """Test artifact extraction from Python source files using AST."""
 
     def test_extracts_simple_function(self, tmp_path: Path):
         """Test extraction of a simple standalone function."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Create a Python file with a simple function
         code = """
@@ -48,7 +45,7 @@ def simple_function(arg1: str, arg2: int) -> bool:
 
     def test_extracts_class_with_methods(self, tmp_path: Path):
         """Test extraction of class with methods and attributes."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Create a Python file with a class
         code = """
@@ -80,7 +77,7 @@ class UserService:
 
     def test_extracts_multiple_classes(self, tmp_path: Path):
         """Test extraction of multiple classes from same file."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         code = """
 class User:
@@ -111,7 +108,7 @@ class Order:
 
     def test_extracts_function_parameters(self, tmp_path: Path):
         """Test that function parameters are correctly extracted."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         code = """
 def complex_function(
@@ -136,7 +133,7 @@ def complex_function(
 
     def test_handles_nonexistent_file(self):
         """Test error handling for non-existent files."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Should raise FileNotFoundError for missing file
         with pytest.raises(FileNotFoundError):
@@ -144,7 +141,7 @@ def complex_function(
 
     def test_handles_invalid_python_syntax(self, tmp_path: Path):
         """Test error handling for invalid Python syntax."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Create file with invalid Python syntax
         bad_code = """
@@ -160,7 +157,7 @@ def broken_function(
 
     def test_filters_self_parameter_from_methods(self, tmp_path: Path):
         """Test that 'self' parameter is excluded from method artifacts."""
-        from generate_snapshot import extract_artifacts_from_code
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Create a class with methods that have self parameter
         code = """
@@ -214,8 +211,7 @@ class MyClass:
 
     def test_extracts_pep604_union_types(self, tmp_path: Path):
         """Test extraction of PEP 604 union type syntax (Python 3.10+)."""
-        from generate_snapshot import extract_artifacts_from_code
-        import sys
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
 
         # Skip test if Python version doesn't support PEP 604
         if sys.version_info < (3, 10):
@@ -259,7 +255,7 @@ class TestCreateSnapshotManifest:
 
     def test_creates_basic_manifest_structure(self):
         """Test creation of basic manifest with required fields."""
-        from generate_snapshot import create_snapshot_manifest
+        from maid_runner.cli.snapshot import create_snapshot_manifest
 
         # Create snapshot manifest with minimal data
         artifacts = [
@@ -279,7 +275,7 @@ class TestCreateSnapshotManifest:
 
     def test_includes_expected_artifacts_section(self):
         """Test that expectedArtifacts section is properly populated."""
-        from generate_snapshot import create_snapshot_manifest
+        from maid_runner.cli.snapshot import create_snapshot_manifest
 
         artifacts = [
             {
@@ -303,7 +299,7 @@ class TestCreateSnapshotManifest:
 
     def test_includes_supersedes_array(self):
         """Test that supersedes array is properly included."""
-        from generate_snapshot import create_snapshot_manifest
+        from maid_runner.cli.snapshot import create_snapshot_manifest
 
         artifacts = [{"type": "class", "name": "Service"}]
         superseded_manifests = [
@@ -324,7 +320,7 @@ class TestCreateSnapshotManifest:
 
     def test_sets_proper_file_categorization(self):
         """Test that files are categorized as editableFiles for snapshots."""
-        from generate_snapshot import create_snapshot_manifest
+        from maid_runner.cli.snapshot import create_snapshot_manifest
 
         artifacts = [{"type": "function", "name": "helper"}]
 
@@ -337,7 +333,7 @@ class TestCreateSnapshotManifest:
 
     def test_creates_validation_command(self):
         """Test that a validation command is included in the manifest."""
-        from generate_snapshot import create_snapshot_manifest
+        from maid_runner.cli.snapshot import create_snapshot_manifest
 
         artifacts = [{"type": "class", "name": "Parser"}]
 
@@ -346,9 +342,75 @@ class TestCreateSnapshotManifest:
         # Should include validationCommand
         assert "validationCommand" in result
         assert isinstance(result["validationCommand"], list)
-        # Snapshots may have empty validation commands (they document existing code)
-        # Just verify it's a list, not that it has content
-        assert len(result["validationCommand"]) >= 0
+        # Snapshots without superseded manifests should have empty validation commands
+        assert len(result["validationCommand"]) == 0
+
+    def test_aggregates_validation_commands_from_superseded(self):
+        """Test that validation commands are aggregated from superseded manifests."""
+        from maid_runner.cli.snapshot import create_snapshot_manifest
+        from pathlib import Path
+
+        # Use artifacts that are actually tested by the superseded manifests
+        # task-001 tests validate_schema, task-002 tests validate_with_ast and AlignmentError
+        artifacts = [
+            {"type": "function", "name": "validate_schema"},
+            {"type": "function", "name": "validate_with_ast"},
+            {"type": "class", "name": "AlignmentError"},
+        ]
+        superseded = [
+            "manifests/task-001-add-schema-validation.manifest.json",
+            "manifests/task-002-add-ast-alignment-validation.manifest.json",
+        ]
+
+        manifest_dir = Path(__file__).parent.parent / "manifests"
+        result = create_snapshot_manifest(
+            "maid_runner/validators/manifest_validator.py",
+            artifacts,
+            superseded,
+            manifest_dir=manifest_dir,
+        )
+
+        # Should aggregate validation commands from superseded manifests
+        assert "validationCommand" in result
+        assert isinstance(result["validationCommand"], list)
+        assert len(result["validationCommand"]) > 0
+        # Should deduplicate commands
+        assert len(result["validationCommand"]) == len(set(result["validationCommand"]))
+
+    def test_filters_out_tests_for_removed_artifacts(self):
+        """Test that tests referencing removed artifacts are filtered out."""
+        from maid_runner.cli.snapshot import create_snapshot_manifest
+        from pathlib import Path
+
+        # Simulate a refactoring: snapshot removes validate_schema
+        # Only keep validate_with_ast
+        artifacts = [
+            {"type": "function", "name": "validate_with_ast"},
+            {"type": "class", "name": "AlignmentError"},
+        ]
+        superseded = [
+            "manifests/task-001-add-schema-validation.manifest.json",
+        ]
+
+        manifest_dir = Path(__file__).parent.parent / "manifests"
+        result = create_snapshot_manifest(
+            "maid_runner/validators/manifest_validator.py",
+            artifacts,
+            superseded,
+            manifest_dir=manifest_dir,
+        )
+
+        # Should filter out test_validate_schema.py since validate_schema was removed
+        assert "validationCommand" in result
+        validation_commands = result["validationCommand"]
+
+        # test_validate_schema.py should NOT be in the commands
+        test_validate_schema_cmd = any(
+            "test_validate_schema.py" in cmd for cmd in validation_commands
+        )
+        assert (
+            not test_validate_schema_cmd
+        ), "test_validate_schema.py should be filtered out when validate_schema is removed"
 
 
 class TestGenerateSnapshot:
@@ -356,7 +418,7 @@ class TestGenerateSnapshot:
 
     def test_generates_snapshot_for_simple_file(self, tmp_path: Path):
         """Test complete snapshot generation workflow."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         # Create a test Python file
         code = """
@@ -391,7 +453,7 @@ class Calculator:
 
     def test_snapshot_includes_all_extracted_artifacts(self, tmp_path: Path):
         """Test that all artifacts from file are included in snapshot."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         code = """
 def function_one():
@@ -426,7 +488,7 @@ class ClassOne:
 
     def test_snapshot_discovers_superseded_manifests(self, tmp_path: Path):
         """Test that snapshot discovers and includes superseded manifests."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         # Create a test file
         code = """
@@ -474,7 +536,7 @@ class TestService:
 
     def test_generates_unique_manifest_filename(self, tmp_path: Path):
         """Test that generated manifest has a unique, descriptive filename."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         code = "def test(): pass"
         test_file = tmp_path / "unique.py"
@@ -492,7 +554,7 @@ class TestService:
 
     def test_validates_generated_manifest_against_schema(self, tmp_path: Path):
         """Test that generated manifest conforms to the manifest schema."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
         import jsonschema
 
         code = """
@@ -512,13 +574,14 @@ class Validator:
         with open(result_path, "r") as f:
             manifest = json.load(f)
 
-        # Load the schema
-        schema_path = (
-            Path(__file__).parent.parent
-            / "validators"
-            / "schemas"
-            / "manifest.schema.json"
-        )
+            # Load the schema
+            schema_path = (
+                Path(__file__).parent.parent
+                / "maid_runner"
+                / "validators"
+                / "schemas"
+                / "manifest.schema.json"
+            )
         with open(schema_path, "r") as f:
             schema = json.load(f)
 
@@ -527,7 +590,7 @@ class Validator:
 
     def test_handles_output_directory_creation(self, tmp_path: Path):
         """Test that output directory is created if it doesn't exist."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         code = "def func(): pass"
         test_file = tmp_path / "test.py"
@@ -550,7 +613,7 @@ class TestMainCLI:
 
     def test_main_accepts_file_path_argument(self, tmp_path: Path):
         """Test that main function accepts file path via CLI arguments."""
-        from generate_snapshot import main
+        from maid_runner.cli.snapshot import main
 
         code = "def cli_test(): pass"
         test_file = tmp_path / "cli.py"
@@ -561,7 +624,7 @@ class TestMainCLI:
 
         # Mock sys.argv to simulate CLI call
         test_args = [
-            "generate_snapshot.py",
+            "snapshot",
             str(test_file),
             "--output-dir",
             str(output_dir),
@@ -577,7 +640,7 @@ class TestMainCLI:
 
     def test_main_uses_default_output_directory(self, tmp_path: Path):
         """Test that main uses default output directory when not specified."""
-        from generate_snapshot import main
+        from maid_runner.cli.snapshot import main
 
         code = "def default_test(): pass"
         test_file = tmp_path / "default.py"
@@ -605,13 +668,13 @@ class TestMainCLI:
 
     def test_main_prints_helpful_error_for_missing_file(self, tmp_path: Path):
         """Test that main provides clear error message for missing input file."""
-        from generate_snapshot import main
+        from maid_runner.cli.snapshot import main
 
         nonexistent_file = tmp_path / "does_not_exist.py"
         output_dir = tmp_path / "output"
 
         test_args = [
-            "generate_snapshot.py",
+            "snapshot",
             str(nonexistent_file),
             "--output-dir",
             str(output_dir),
@@ -624,7 +687,7 @@ class TestMainCLI:
 
     def test_main_displays_success_message(self, tmp_path: Path, capsys):
         """Test that main displays success message with output path."""
-        from generate_snapshot import main
+        from maid_runner.cli.snapshot import main
 
         code = "def success_test(): pass"
         test_file = tmp_path / "success.py"
@@ -634,7 +697,7 @@ class TestMainCLI:
         output_dir.mkdir()
 
         test_args = [
-            "generate_snapshot.py",
+            "snapshot",
             str(test_file),
             "--output-dir",
             str(output_dir),
@@ -652,7 +715,7 @@ class TestMainCLI:
 
     def test_main_handles_multiple_file_formats(self, tmp_path: Path):
         """Test that main can handle different Python file structures."""
-        from generate_snapshot import main
+        from maid_runner.cli.snapshot import main
 
         # Test with a complex file
         code = """
@@ -684,7 +747,7 @@ def module_function(param: str) -> Dict:
         output_dir.mkdir()
 
         test_args = [
-            "generate_snapshot.py",
+            "snapshot",
             str(test_file),
             "--output-dir",
             str(output_dir),
@@ -703,7 +766,7 @@ class TestIntegrationWorkflow:
 
     def test_full_workflow_from_file_to_validated_manifest(self, tmp_path: Path):
         """Test complete workflow: file -> extract -> create -> validate."""
-        from generate_snapshot import (
+        from maid_runner.cli.snapshot import (
             extract_artifacts_from_code,
             create_snapshot_manifest,
             generate_snapshot,
@@ -770,6 +833,7 @@ def create_default_user() -> User:
         # Load schema
         schema_path = (
             Path(__file__).parent.parent
+            / "maid_runner"
             / "validators"
             / "schemas"
             / "manifest.schema.json"
@@ -787,7 +851,7 @@ def create_default_user() -> User:
 
     def test_snapshot_can_be_used_for_validation(self, tmp_path: Path):
         """Test that generated snapshot can be used for manifest validation."""
-        from generate_snapshot import generate_snapshot
+        from maid_runner.cli.snapshot import generate_snapshot
 
         # Create implementation
         code = """
@@ -814,8 +878,7 @@ class DataProcessor:
         assert snapshot_manifest["expectedArtifacts"]["file"] == str(impl_file)
 
         # Import validator to test the snapshot
-        sys.path.insert(0, str(Path(__file__).parent.parent))
-        from validators.manifest_validator import validate_with_ast
+        from maid_runner.validators.manifest_validator import validate_with_ast
 
         # Validate the implementation against the snapshot
         # Should pass since snapshot was generated from the implementation

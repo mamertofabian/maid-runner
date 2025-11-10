@@ -4,13 +4,13 @@
   "supersedes": [],
   "creatableFiles": [],
   "editableFiles": [
-    "validators/manifest_validator.py"
+    "maid_runner/validators/manifest_validator.py"
   ],
   "readonlyFiles": [
     "tests/test_task_010_type_validation_integration.py"
   ],
   "expectedArtifacts": {
-    "file": "validators/manifest_validator.py",
+    "file": "maid_runner/validators/manifest_validator.py",
     "contains": [
       {
         "type": "function",
