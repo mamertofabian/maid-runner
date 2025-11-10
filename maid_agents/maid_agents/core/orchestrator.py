@@ -263,14 +263,90 @@ class MAIDOrchestrator:
         """
         self._state = WorkflowState.IMPLEMENTING
 
-        # TODO: Implement full implementation loop
-        # 1. Run tests (should fail initially - red phase)
-        # 2. Generate code using Developer agent
-        # 3. Run tests again
-        # 4. If failed, extract errors and iterate
-        # 5. Validate manifest compliance
+        # Step 1: Run tests initially (should fail - red phase of TDD)
+        test_result = self.validation_runner.run_behavioral_tests(manifest_path)
+        test_errors = test_result.stderr if not test_result.success else ""
 
-        return {"success": False, "iterations": 0, "error": "Not yet implemented"}
+        iteration = 0
+        last_error = None
+
+        while iteration < max_iterations:
+            iteration += 1
+
+            # Step 2: Generate code using Developer agent
+            # Pass test errors from previous iteration (if any)
+            from maid_agents.agents.developer import Developer
+
+            developer = Developer(ClaudeWrapper(mock_mode=True))
+            impl_result = developer.implement(
+                manifest_path=manifest_path, test_errors=test_errors
+            )
+
+            if not impl_result["success"]:
+                last_error = f"Code generation failed: {impl_result['error']}"
+                continue
+
+            # Step 3: Write generated code to files
+            generated_code = impl_result.get("code", "")
+            files_modified = impl_result.get("files_modified", [])
+
+            if not generated_code:
+                last_error = "No code generated"
+                continue
+
+            if not files_modified:
+                last_error = "No files to modify"
+                continue
+
+            # Write code to the target file(s)
+            # Developer returns single code block for the primary file
+            try:
+                # Write to the first file in the list (primary target)
+                target_file = Path(files_modified[0])
+                target_file.parent.mkdir(parents=True, exist_ok=True)
+
+                with open(target_file, "w") as f:
+                    f.write(generated_code)
+
+            except Exception as e:
+                last_error = f"Failed to write code to {files_modified[0]}: {e}"
+                continue
+
+            # Step 4: Run tests again
+            test_result = self.validation_runner.run_behavioral_tests(manifest_path)
+
+            if test_result.success:
+                # Tests pass! Now validate manifest compliance
+                validation_result = self.validation_runner.validate_manifest(
+                    manifest_path, use_chain=True
+                )
+
+                if validation_result.success:
+                    # Success! Tests pass and manifest validates
+                    return {
+                        "success": True,
+                        "iterations": iteration,
+                        "files_modified": files_modified,
+                        "error": None,
+                    }
+                else:
+                    # Tests pass but manifest validation fails
+                    last_error = (
+                        f"Manifest validation failed: {validation_result.stderr}"
+                    )
+                    continue
+            else:
+                # Tests still failing - extract errors for next iteration
+                test_errors = f"{test_result.stdout}\n{test_result.stderr}"
+                last_error = f"Tests failed: {'; '.join(test_result.errors)}"
+                continue
+
+        # Max iterations reached without success
+        return {
+            "success": False,
+            "iterations": iteration,
+            "error": f"Implementation loop failed after {max_iterations} iterations. Last error: {last_error}",
+        }
 
     def _handle_error(self, error: Exception) -> dict:
         """Handle errors during workflow execution.
