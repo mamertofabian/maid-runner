@@ -1,0 +1,47 @@
+{
+  "goal": "Create Developer agent class that implements code to pass behavioral tests using Claude Code",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_agents/maid_agents/agents/developer.py"
+  ],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_008_developer.py",
+    "maid_agents/maid_agents/agents/base_agent.py",
+    "maid_agents/maid_agents/claude/cli_wrapper.py",
+    "maid_agents/maid_agents/core/context_builder.py",
+    "maid_agents/maid_agents/core/validation_runner.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/agents/developer.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "Developer",
+        "bases": [
+          "BaseAgent"
+        ]
+      },
+      {
+        "type": "function",
+        "name": "implement",
+        "class": "Developer",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "str"
+          },
+          {
+            "name": "test_errors",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "maid_agents/tests/test_task_008_developer.py",
+    "-v"
+  ]
+}

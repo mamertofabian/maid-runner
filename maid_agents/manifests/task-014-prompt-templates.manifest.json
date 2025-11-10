@@ -1,0 +1,15 @@
+{
+  "goal": "Create reusable prompt templates for manifest creation, test generation, and implementation",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_agents/maid_agents/config/templates/manifest_creation.txt",
+    "maid_agents/maid_agents/config/templates/test_generation.txt",
+    "maid_agents/maid_agents/config/templates/implementation.txt"
+  ],
+  "readonlyFiles": ["maid_agents/tests/test_task_014_prompt_templates.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/config/templates/manifest_creation.txt",
+    "contains": []
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_014_prompt_templates.py", "-v"]
+}

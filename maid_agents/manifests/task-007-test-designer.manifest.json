@@ -1,0 +1,34 @@
+{
+  "goal": "Create TestDesigner agent class that generates behavioral tests from MAID manifests using Claude Code",
+  "taskType": "edit",
+  "editableFiles": ["maid_agents/maid_agents/agents/test_designer.py"],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_007_test_designer.py",
+    "maid_agents/maid_agents/agents/base_agent.py",
+    "maid_agents/maid_agents/claude/cli_wrapper.py",
+    "maid_agents/maid_agents/core/context_builder.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/agents/test_designer.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "TestDesigner",
+        "bases": ["BaseAgent"]
+      },
+      {
+        "type": "function",
+        "name": "create_tests",
+        "class": "TestDesigner",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_007_test_designer.py", "-v"]
+}

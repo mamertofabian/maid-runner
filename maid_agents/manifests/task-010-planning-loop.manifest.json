@@ -1,0 +1,33 @@
+{
+  "goal": "Implement planning loop orchestration in MAIDOrchestrator that iterates manifest creation and test generation with validation",
+  "taskType": "edit",
+  "editableFiles": ["maid_agents/maid_agents/core/orchestrator.py"],
+  "readonlyFiles": [
+    "maid_agents/tests/test_task_010_planning_loop.py",
+    "maid_agents/maid_agents/agents/manifest_architect.py",
+    "maid_agents/maid_agents/agents/test_designer.py",
+    "maid_agents/maid_agents/core/validation_runner.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/core/orchestrator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_planning_loop",
+        "class": "MAIDOrchestrator",
+        "args": [
+          {
+            "name": "goal",
+            "type": "str"
+          },
+          {
+            "name": "max_iterations",
+            "type": "int"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_010_planning_loop.py", "-v"]
+}

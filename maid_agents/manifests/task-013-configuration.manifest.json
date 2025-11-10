@@ -1,0 +1,16 @@
+{
+  "goal": "Create configuration system with AgentConfig, ClaudeConfig, and MAIDConfig classes",
+  "taskType": "edit",
+  "editableFiles": ["maid_agents/maid_agents/config/settings.py"],
+  "readonlyFiles": ["maid_agents/tests/test_task_013_configuration.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/maid_agents/config/settings.py",
+    "contains": [
+      {"type": "class", "name": "ClaudeConfig"},
+      {"type": "class", "name": "MAIDConfig"},
+      {"type": "class", "name": "AgentConfig"},
+      {"type": "function", "name": "default", "class": "AgentConfig", "args": [], "returns": "AgentConfig"}
+    ]
+  },
+  "validationCommand": ["pytest", "maid_agents/tests/test_task_013_configuration.py", "-v"]
+}
