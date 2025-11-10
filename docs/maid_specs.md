@@ -63,6 +63,7 @@ The development process is broken down into distinct phases, characterized by tw
     **Example (Enhanced Format):**
     ```json
     {
+      "version": "1",
       "goal": "Refactor the UserService to add a method for finding a user by ID.",
       "taskType": "edit",
       "supersedes": [],
