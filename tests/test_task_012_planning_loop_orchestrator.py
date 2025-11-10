@@ -21,7 +21,7 @@ from pathlib import Path
 
 # Import from maid_runner.py script (not the package)
 spec = importlib.util.spec_from_file_location(
-    "maid_runner_script", Path(__file__).parent.parent / "maid_runner.py"
+    "maid_runner_script", Path(__file__).parent.parent / "examples" / "maid_runner.py"
 )
 maid_runner_script = importlib.util.module_from_spec(spec)
 sys.modules["maid_runner_script"] = maid_runner_script

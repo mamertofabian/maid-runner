@@ -4,7 +4,7 @@
   "supersedes": [],
   "creatableFiles": [],
   "editableFiles": [
-    "maid_runner.py"
+    "examples/maid_runner.py"
   ],
   "readonlyFiles": [
     "tests/test_task_012_planning_loop_orchestrator.py",
@@ -12,7 +12,7 @@
     "maid_runner/validators/schemas/manifest.schema.json"
   ],
   "expectedArtifacts": {
-    "file": "maid_runner.py",
+    "file": "examples/maid_runner.py",
     "contains": [
       {
         "type": "function",
