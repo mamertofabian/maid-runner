@@ -6,22 +6,38 @@
   "readonlyFiles": [
     "tests/test_task_014_validation_command_utils.py"
   ],
-  "expectedArtifacts": {
-    "file": "maid_runner/utils.py",
-    "contains": [
-      {
-        "type": "function",
-        "name": "normalize_validation_commands",
-        "args": [
+      "expectedArtifacts": {
+        "file": "maid_runner/utils.py",
+        "contains": [
           {
-            "name": "manifest_data",
-            "type": "dict"
+            "type": "function",
+            "name": "normalize_validation_commands",
+            "args": [
+              {
+                "name": "manifest_data",
+                "type": "dict"
+              }
+            ],
+            "returns": "List[List[str]]"
+          },
+          {
+            "type": "function",
+            "name": "validate_manifest_version",
+            "args": [
+              {
+                "name": "manifest_data",
+                "type": "dict"
+              },
+              {
+                "name": "manifest_name",
+                "type": "str",
+                "default": "\"manifest\""
+              }
+            ],
+            "returns": "None"
           }
-        ],
-        "returns": "List[List[str]]"
-      }
-    ]
-  },
+        ]
+      },
   "validationCommand": ["pytest", "tests/test_task_014_validation_command_utils.py", "-v"]
 }
 

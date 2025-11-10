@@ -153,6 +153,11 @@ def _aggregate_validation_commands_from_superseded(
             with open(superseded_path, "r") as f:
                 superseded_data = json.load(f)
 
+            # Validate version field
+            from maid_runner.utils import validate_manifest_version
+
+            validate_manifest_version(superseded_data, superseded_path.name)
+
             # Normalize validation commands to consistent format
             from maid_runner.utils import normalize_validation_commands
             from maid_runner.cli.validate import extract_test_files_from_command

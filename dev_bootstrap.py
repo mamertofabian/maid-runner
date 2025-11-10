@@ -43,7 +43,14 @@ class MAIDDevRunner:
     def _load_manifest(self) -> Dict:
         """Load and parse manifest JSON."""
         with open(self.manifest_path, "r") as f:
-            return json.load(f)
+            manifest_data = json.load(f)
+
+        # Validate version field
+        from maid_runner.utils import validate_manifest_version
+
+        validate_manifest_version(manifest_data, self.manifest_path.name)
+
+        return manifest_data
 
     def run_validation(self) -> bool:
         """Run the validation command(s) and return success status.

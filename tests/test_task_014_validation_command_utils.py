@@ -1,6 +1,8 @@
 """Behavioral tests for validation command utilities."""
 
-from maid_runner.utils import normalize_validation_commands
+from unittest.mock import patch
+
+from maid_runner.utils import normalize_validation_commands, validate_manifest_version
 
 
 def test_normalizes_enhanced_validation_commands_format():
@@ -131,3 +133,25 @@ def test_normalize_handles_file_paths_with_spaces():
     manifest_data = {"validationCommand": 'pytest "tests/test file with spaces.py" -v'}
     result = normalize_validation_commands(manifest_data)
     assert result == [["pytest", "tests/test file with spaces.py", "-v"]]
+
+
+def test_validate_manifest_version_accepts_valid_version():
+    """Test that validate_manifest_version accepts version '1'."""
+    manifest_data = {"version": "1"}
+    # Should not raise
+    validate_manifest_version(manifest_data, "test.manifest.json")
+
+
+def test_validate_manifest_version_accepts_missing_version():
+    """Test that validate_manifest_version accepts manifests without version field."""
+    manifest_data = {}
+    # Should not raise (defaults to "1")
+    validate_manifest_version(manifest_data, "test.manifest.json")
+
+
+def test_validate_manifest_version_rejects_invalid_version():
+    """Test that validate_manifest_version rejects invalid versions."""
+    manifest_data = {"version": "2"}
+    with patch("sys.exit") as mock_exit:
+        validate_manifest_version(manifest_data, "test.manifest.json")
+        mock_exit.assert_called_once_with(1)

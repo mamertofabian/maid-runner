@@ -16,10 +16,10 @@ def extract_validation_commands(manifest_path: Path):
 
         return normalize_validation_commands(manifest_data)
     except json.JSONDecodeError as e:
-        print(f"⚠️  Warning: Invalid JSON in {manifest_path.name}: {e}")
+        print(f"⚠️  Warning: Invalid JSON in {manifest_path.name}: {e}", file=sys.stderr)
         return []
     except KeyError as e:
-        print(f"⚠️  Warning: Missing key in {manifest_path.name}: {e}")
+        print(f"⚠️  Warning: Missing key in {manifest_path.name}: {e}", file=sys.stderr)
         return []
 
 

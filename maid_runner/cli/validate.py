@@ -306,15 +306,10 @@ def run_validation(
         with open(manifest_path_obj, "r") as f:
             manifest_data = json.load(f)
 
-        # Validate version field if present
-        version = manifest_data.get("version")
-        if version is not None and version != "1":
-            print(
-                f"✗ Error: Invalid schema version '{version}'. "
-                f"Only version '1' is currently supported. "
-                f"Manifest: {manifest_path_obj.name}"
-            )
-            sys.exit(1)
+        # Validate version field
+        from maid_runner.utils import validate_manifest_version
+
+        validate_manifest_version(manifest_data, manifest_path_obj.name)
 
         # Snapshot manifests must have comprehensive validationCommands
         # Check this early, before file validation
