@@ -1,361 +1,337 @@
-# MAID v1.3 Implementation Roadmap
+# MAID Runner Roadmap
 
-**Status:** Planning
-**Target Version:** 1.3
+**Project:** MAID Runner - Tool-Agnostic Validation Framework
+**Status:** Active Development
 **Current Version:** 1.2
-**Estimated Timeline:** 6-8 months (assumes 2-3 FTE engineers)
-**Last Updated:** October 30, 2025
+**Target Version:** 1.3
+**Last Updated:** 2025-01-10
 
-## Executive Summary
+## Vision
 
-This roadmap outlines the path from MAID v1.2 to v1.3, introducing advanced automation, tooling, and intelligence features that transform MAID from a methodology with validator tooling into a comprehensive AI-assisted development platform.
+MAID Runner is a **validation-only framework** that ensures code artifacts align with declarative manifests. It does NOT create files, generate code, or automate development. Instead, it provides robust validation that external tools (AI agents, IDEs, CI/CD) can integrate with.
 
-### Key Objectives
+## Core Principles
 
-1. **Enhanced Manifest System**: Upgrade to v2.0 schema with richer metadata and snapshot support
-2. **Intelligent Automation**: Implement dependency graph analysis and autonomous agents
-3. **Developer Experience**: Create IDE integrations and real-time validation tools
-4. **Production Readiness**: Establish comprehensive documentation and migration paths
+1. **Validation Only** - No file creation, no code generation
+2. **Tool-Agnostic** - Works with any development tool via CLI
+3. **Exit Code Driven** - Clear 0/1 signals for automation
+4. **No Interactive Prompts** (in core tools) - Automation-friendly
+5. **Focused Responsibility** - Do one thing exceptionally well
 
-## Gap Analysis: v1.2 → v1.3
+## Current State (v1.2)
 
-### Current State (v1.2)
+### ✅ Completed Features
 
-**Implemented:**
-- ✅ Core manifest schema (v1.2)
-- ✅ AST-based structural validation
-- ✅ Behavioral test validation
-- ✅ Merging validator for manifest history
-- ✅ Superseding manifest support
-- ✅ Context-aware validation modes (strict/permissive)
-- ✅ Basic CLI validation tool
+**Core Validation:**
+- Schema validation (manifest JSON structure)
+- AST-based implementation validation
+- Behavioral test validation (tests USE artifacts)
+- Type hint validation
+- Manifest chain merging
+- Supersedes relationship handling
+- Snapshot generation from existing code
 
-**Limitations:**
-- Manual manifest creation
-- No IDE integration
-- Limited dependency analysis
-- No automated task generation
-- Manual snapshot creation for legacy code
+**CLI Tools:**
+- `validate_manifest.py` - Core validation CLI
+- `generate_snapshot.py` - Snapshot generation
+- `maid_runner.py plan/run` - Optional human helpers
 
-### Target State (v1.3)
+**Validation Modes:**
+- Strict mode (creatableFiles - exact match)
+- Permissive mode (editableFiles - contains at least)
+- Implementation mode (code DEFINES artifacts)
+- Behavioral mode (tests USE artifacts)
 
-**New Capabilities:**
-- 🎯 Manifest schema v2.0
-- 🎯 Consolidated snapshot generation
-- 🎯 Dependency graph (DAG) analysis
-- 🎯 IDE integration (Guardian Watcher)
-- 🎯 Guardian Agent framework
-- 🎯 Automated manifest generation
-- 🎯 Real-time validation feedback
-- 🎯 Scaffold and Fill tooling
+**Test Coverage:**
+- 344+ comprehensive tests
+- All core validation paths covered
+- Integration tests for all features
 
-## Implementation Tracks
+## Roadmap to v1.3
 
-### Track 1: Core Infrastructure
+### Phase 1: Core Enhancements (Q1 2025)
 
-**Priority:** HIGH
-**Estimated Duration:** 8-10 weeks
-**Dependencies:** None
+**Goal:** Improve validation accuracy and developer feedback
 
 #### Milestone 1.1: Manifest Schema v2.0
-- **Duration:** 2 weeks
-- **Effort:** 1 engineer
-- **Tasks:**
-  - Design extended schema with metadata fields
-  - Add support for multiple validation commands
-  - Implement schema migration tooling
-  - Update validator to support v2.0
-  - Backward compatibility layer for v1.2
+**Status:** Planned
+**Duration:** 2-3 weeks
 
-#### Milestone 1.2: Consolidated Snapshots
-- **Duration:** 3 weeks
-- **Effort:** 1-2 engineers
-- **Tasks:**
-  - Design snapshot manifest format
-  - Implement snapshot generator algorithm
-  - Add merge validation for snapshots
-  - Create snapshot verification tools
-  - Build legacy code onboarding workflow
-
-#### Milestone 1.3: Enhanced Merging Validator
-- **Duration:** 3 weeks
-- **Effort:** 1 engineer
-- **Tasks:**
-  - Optimize manifest chain resolution
-  - Add caching for large histories
-  - Implement incremental validation
-  - Performance profiling and optimization
-  - Support for snapshot manifests
-
-### Track 2: Automation & Intelligence
-
-**Priority:** HIGH
-**Estimated Duration:** 10-12 weeks
-**Dependencies:** Track 1 (Milestone 1.1)
-
-#### Milestone 2.1: Dependency Graph Analysis
-- **Duration:** 4 weeks
-- **Effort:** 2 engineers
-- **Tasks:**
-  - Implement AST-based import analyzer
-  - Build DAG construction algorithm
-  - Create dependency visualization tools
-  - Implement auto-detection of readonlyFiles
-  - Parallel task execution planning
-
-#### Milestone 2.2: Guardian Agent Framework
-- **Duration:** 4 weeks
-- **Effort:** 2 engineers
-- **Tasks:**
-  - Design agent architecture and interfaces
-  - Implement test suite monitoring
-  - Build automatic manifest generation
-  - Create fix dispatch system
-  - Integrate with CI/CD pipelines
-
-#### Milestone 2.3: Automated Manifest Generation
-- **Duration:** 4 weeks
-- **Effort:** 1-2 engineers
-- **Tasks:**
-  - Implement code-to-manifest reverse engineering
-  - Build intent-based manifest scaffolding
-  - Create interactive manifest builder CLI
-  - Add AI-assisted artifact detection
-  - Template library for common patterns
-
-### Track 3: Tooling & Integration
-
-**Priority:** MEDIUM
-**Estimated Duration:** 12-14 weeks
-**Dependencies:** Track 1 (Milestone 1.1, 1.2)
-
-#### Milestone 3.1: Language Server Protocol (LSP) Implementation
-- **Duration:** 5 weeks
-- **Effort:** 2 engineers
-- **Tasks:**
-  - Implement MAID LSP server
-  - Real-time manifest validation
-  - Diagnostic reporting
-  - Code actions for quick fixes
-  - Hover information for artifacts
-
-#### Milestone 3.2: VS Code Extension (Guardian Watcher)
-- **Duration:** 4 weeks
-- **Effort:** 1-2 engineers
-- **Tasks:**
-  - Extension scaffold and packaging
-  - LSP client integration
-  - Manifest explorer view
-  - Test execution integration
-  - Inline validation indicators
-
-#### Milestone 3.3: Scaffold and Fill Tooling
-- **Duration:** 3 weeks
-- **Effort:** 1 engineer
-- **Tasks:**
-  - Signature generation from manifests
-  - Empty implementation scaffolding
-  - Type hint propagation
-  - Documentation stub generation
-  - Integration with manifest workflow
-
-#### Milestone 3.4: CI/CD Integration
-- **Duration:** 2 weeks
-- **Effort:** 1 engineer
-- **Tasks:**
-  - GitHub Actions workflow templates
-  - Pre-commit hook integration
-  - Validation gate for PRs
-  - Automated reporting
-  - Badge generation for compliance
-
-### Track 4: Documentation & Developer Experience
-
-**Priority:** MEDIUM
-**Estimated Duration:** 6-8 weeks
-**Dependencies:** All tracks (ongoing)
-
-#### Milestone 4.1: Comprehensive Documentation
-- **Duration:** 3 weeks
-- **Effort:** 1 engineer + technical writer
-- **Tasks:**
-  - Update specification to v1.3
-  - Create getting started guide
-  - Write migration guide (v1.2 → v1.3)
-  - Build API reference documentation
-  - Create video tutorials
-
-#### Milestone 4.2: Example Projects
-- **Duration:** 3 weeks
-- **Effort:** 1-2 engineers
-- **Tasks:**
-  - Simple CRUD application example
-  - Microservice architecture example
-  - Legacy code onboarding example
-  - Real-world refactoring case study
-  - Best practices showcase
-
-#### Milestone 4.3: Developer Onboarding
-- **Duration:** 2 weeks
-- **Effort:** 1 engineer
-- **Tasks:**
-  - Interactive tutorial
-  - Quick reference cheat sheets
-  - Troubleshooting guide
-  - FAQ documentation
-  - Community resources
-
-## Phased Rollout Strategy
-
-### Phase 1: Foundation (Weeks 1-10)
-**Focus:** Core infrastructure upgrades
-
-- Complete Track 1 (all milestones)
-- Begin Track 2 (Milestone 2.1)
-- Start Track 4 (Milestone 4.1)
+**Features:**
+- Enhanced schema with richer metadata
+- Support for class inheritance (`bases` field)
+- Multiple validation command support
+- Explicit version field
+- Migration tooling from v1.2 to v2.0
 
 **Deliverables:**
-- Manifest schema v2.0
-- Snapshot generation tool
-- Enhanced validator
-- Updated specification
+- `validators/schemas/manifest.schema.v2.json`
+- Migration script: `migrate_manifests.py`
+- Backward compatibility with v1.2
+- Documentation updates
 
-### Phase 2: Intelligence (Weeks 11-20)
-**Focus:** Automation and smart tooling
+#### Milestone 1.2: Enhanced Snapshot Support
+**Status:** In Progress
+**Duration:** 2 weeks
 
-- Complete Track 2 (all milestones)
-- Begin Track 3 (Milestone 3.1, 3.2)
-- Continue Track 4 (Milestone 4.2)
-
-**Deliverables:**
-- Dependency graph analyzer
-- Guardian Agent framework
-- Auto-manifest generation
-- LSP server
-- VS Code extension (beta)
-
-### Phase 3: Integration (Weeks 21-26)
-**Focus:** Ecosystem and developer experience
-
-- Complete Track 3 (all milestones)
-- Complete Track 4 (all milestones)
+**Features:**
+- Improved snapshot generation algorithm
+- Better handling of snapshot supersedes chains
+- Validation optimization for snapshot-heavy histories
+- Snapshot verification tools
 
 **Deliverables:**
-- Production-ready VS Code extension
-- Scaffold and Fill tooling
-- CI/CD integrations
-- Complete documentation
-- Example projects
+- Enhanced `generate_snapshot.py`
+- Snapshot validation tests
+- Performance improvements for large chains
 
-### Phase 4: Refinement (Weeks 27-32)
-**Focus:** Polish, performance, and feedback incorporation
+#### Milestone 1.3: Validation Performance
+**Status:** Planned
+**Duration:** 2 weeks
 
-- Beta testing with early adopters
-- Performance optimization
-- Bug fixes and refinements
-- Community feedback integration
-
-**Deliverables:**
-- MAID v1.3 stable release
+**Features:**
+- Caching for manifest chain resolution
+- Incremental validation support
+- Parallel validation for multiple manifests
 - Performance benchmarks
-- Case studies
-- Community engagement plan
 
-## Resource Requirements
+**Deliverables:**
+- 50%+ performance improvement for large chains
+- <100ms validation for typical manifests
+- Benchmark suite
 
-### Engineering Team
-- **Core Team:** 2-3 senior engineers (full-time)
-- **Tooling Specialists:** 1-2 engineers (part-time)
-- **Documentation:** 1 technical writer (part-time)
-- **Total Effort:** ~65-75 person-weeks
+### Phase 2: Developer Experience (Q2 2025)
 
-### Infrastructure
-- **CI/CD:** GitHub Actions (existing)
-- **Package Registry:** PyPI (existing)
-- **VS Code Marketplace:** Registration required
-- **Documentation Hosting:** GitHub Pages or similar
+**Goal:** Make validation feedback immediate and actionable
 
-### Tools & Services
-- Python 3.11+
-- TypeScript/Node.js (for VS Code extension)
-- pytest, mypy, black (existing)
-- LSP libraries (pygls)
-- VS Code Extension API
+#### Milestone 2.1: Language Server Protocol (LSP)
+**Status:** Planned
+**Duration:** 4-5 weeks
+
+**Features:**
+- Real-time manifest validation in editors
+- Diagnostic reporting with precise locations
+- Hover information for artifacts
+- Quick fixes for common errors
+- Document synchronization
+
+**Deliverables:**
+- `maid_lsp/` - LSP server implementation
+- Integration with pygls library
+- Documentation for IDE integration
+
+**Why LSP?**
+- Tool-agnostic (works with any LSP-compatible editor)
+- Real-time feedback without manual validation
+- Maintains validation-only principle (no code generation)
+
+#### Milestone 2.2: VS Code Extension
+**Status:** Planned
+**Duration:** 3-4 weeks
+**Dependencies:** Milestone 2.1
+
+**Features:**
+- Manifest explorer view
+- Inline validation indicators
+- Test execution integration (run validationCommand)
+- Status bar with validation status
+- Quick navigation to errors
+
+**Deliverables:**
+- VS Code extension (marketplace)
+- Extension documentation
+- Screenshots and tutorials
+
+**Scope:**
+- Visualization and feedback ONLY
+- No code generation or automation
+- Leverages LSP server for validation
+
+#### Milestone 2.3: Validation Reporting
+**Status:** Planned
+**Duration:** 2 weeks
+
+**Features:**
+- JSON report output
+- Markdown report generation
+- CI-friendly output format
+- Historical validation tracking
+- Validation badges for READMEs
+
+**Deliverables:**
+- Enhanced `--output-format` flag
+- Report templates
+- CI integration examples
+
+### Phase 3: Integration & Ecosystem (Q3 2025)
+
+**Goal:** Make MAID Runner easy to integrate with external tools
+
+#### Milestone 3.1: CI/CD Templates
+**Status:** Planned
+**Duration:** 2 weeks
+
+**Features:**
+- GitHub Actions workflow templates
+- GitLab CI configuration examples
+- Pre-commit hook templates
+- Validation gates for pull requests
+- Automated reporting in CI
+
+**Deliverables:**
+- `.github/workflows/maid-validation.yml`
+- Pre-commit hook scripts
+- Integration documentation
+
+#### Milestone 3.2: External Tool Integration Guides
+**Status:** Planned
+**Duration:** 2 weeks
+
+**Features:**
+- Integration guide for Claude Code
+- Integration guide for Aider
+- Integration guide for Cursor
+- Generic integration template
+- Best practices documentation
+
+**Deliverables:**
+- Integration documentation
+- Code examples for each tool
+- Troubleshooting guides
+
+#### Milestone 3.3: Python API
+**Status:** Planned
+**Duration:** 1 week
+
+**Features:**
+- Clean Python API for validation
+- Programmatic access to all features
+- Type hints and documentation
+- API stability guarantees
+
+**Deliverables:**
+- `maid_runner` Python package
+- API documentation
+- Usage examples
+
+### Phase 4: Polish & Production Readiness (Q4 2025)
+
+#### Milestone 4.1: Documentation
+**Status:** Ongoing
+
+**Features:**
+- Complete API reference
+- Integration tutorials
+- Migration guides
+- Video demonstrations
+- Best practices guide
+
+#### Milestone 4.2: Performance & Stability
+**Status:** Ongoing
+
+**Features:**
+- Performance profiling and optimization
+- Edge case handling
+- Error message improvements
+- Stability testing
+
+## Features We Will NOT Implement
+
+The following features belong in **external tools** (like MAID Agent, Claude Code, etc.):
+
+❌ **Automated Manifest Generation** - External tools create manifests
+❌ **Guardian Agent Framework** - External tools implement agents
+❌ **Scaffold and Fill** - External tools generate code
+❌ **Fix Dispatch System** - External tools orchestrate fixes
+❌ **Workflow Automation** - External tools manage development flow
+❌ **AI Integration** - External tools integrate with LLMs
+
+**Rationale:** MAID Runner validates. External tools automate.
 
 ## Success Metrics
 
 ### Technical Metrics
-- **Validation Performance:** <100ms for typical manifest validation
-- **Snapshot Generation:** <5s for modules with <100 manifests
-- **DAG Construction:** <1s for codebases with <1000 files
-- **IDE Responsiveness:** <50ms for real-time validation feedback
+- **Validation Accuracy:** >99% precision on artifact detection
+- **Performance:** <100ms for typical manifest validation
+- **Reliability:** 0 critical bugs in production
+- **Coverage:** >90% test coverage maintained
 
 ### Adoption Metrics
-- **VS Code Extension:** 100+ active installs in first month
-- **Documentation:** <5% bounce rate on getting started guide
+- **External Tool Integrations:** 3+ tools using MAID Runner
+- **VS Code Extension:** 100+ active installs (6 months)
+- **Documentation:** <5% bounce rate on getting started
 - **Community:** 10+ external contributors
-- **Projects:** 5+ production projects using MAID v1.3
 
 ### Quality Metrics
-- **Test Coverage:** >90% for all new components
-- **Bug Density:** <1 critical bug per 1000 LOC
-- **Documentation:** 100% API coverage
-- **Migration:** 100% backward compatibility with v1.2
+- **API Stability:** Semantic versioning, no breaking changes in minor versions
+- **Documentation:** 100% public API documented
+- **Error Messages:** >80% of users can self-resolve errors
 
-## Risk Assessment
+## External Tool Integration
 
-### High-Priority Risks
+MAID Runner is designed to be **used** by other tools:
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| LSP performance issues | HIGH | MEDIUM | Early profiling, incremental validation, caching |
-| Complex DAG edge cases | HIGH | MEDIUM | Comprehensive test suite, gradual rollout |
-| VS Code extension adoption | MEDIUM | HIGH | Beta program, documentation, tutorials |
-| Schema migration breaking changes | HIGH | LOW | Strict backward compatibility, migration tooling |
+```
+┌─────────────────────────────────┐
+│   External Tools                │
+│   - MAID Agent (future)         │
+│   - Claude Code                 │
+│   - Aider                       │
+│   - Cursor                      │
+│   - Custom scripts              │
+└─────────────────────────────────┘
+              │
+              │ subprocess.run()
+              ▼
+┌─────────────────────────────────┐
+│   MAID Runner                   │
+│   validate_manifest.py          │
+│   generate_snapshot.py          │
+└─────────────────────────────────┘
+```
 
-### Medium-Priority Risks
+**Integration is simple:**
+```python
+import subprocess
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Guardian Agent false positives | MEDIUM | MEDIUM | Conservative fix generation, manual review gates |
-| Snapshot generation edge cases | MEDIUM | MEDIUM | Extensive testing, validation verification |
-| Documentation completeness | MEDIUM | MEDIUM | Technical writer, community feedback |
+result = subprocess.run([
+    "python", "validate_manifest.py",
+    "manifests/task-013.manifest.json",
+    "--use-manifest-chain",
+    "--quiet"
+], capture_output=True)
 
-## Dependencies & Prerequisites
-
-### External Dependencies
-- **Python ecosystem:** Python 3.11+, pytest, mypy
-- **VS Code platform:** Extension API, LSP protocol
-- **CI/CD:** GitHub Actions (or equivalent)
-
-### Internal Dependencies
-- **MAID v1.2:** Must be stable and well-tested
-- **Existing validators:** AST-based validation, merging logic
-- **Test infrastructure:** Comprehensive test suite
+if result.returncode == 0:
+    print("✓ Valid")
+else:
+    print(f"✗ Errors: {result.stderr}")
+```
 
 ## Post-v1.3 Vision
 
 ### Future Enhancements (v1.4+)
 - Multi-language support (TypeScript, Go, Rust)
-- Cloud-based Guardian Agent service
-- Machine learning for manifest generation
-- Cross-repository dependency analysis
-- Enterprise features (teams, permissions, audit logs)
-- IDE support beyond VS Code (IntelliJ, Neovim)
+- Advanced static analysis integration
+- Formal verification of manifest chains
+- Plugin system for custom validators
 
 ### Research Areas
-- Formal verification of manifest chains
-- AI-assisted refactoring recommendations
-- Predictive testing based on manifest patterns
-- Automated architecture documentation generation
+- Machine learning for validation accuracy
+- Predictive validation (detect issues before implementation)
+- Cross-repository validation
+- Performance optimizations for massive codebases
 
 ## Conclusion
 
-MAID v1.3 represents a significant evolution from a validation-focused methodology to a comprehensive AI-assisted development platform. The phased approach ensures stability while delivering incremental value. Success depends on maintaining the core principles of explicitness, isolation, and verifiability while enhancing developer experience through intelligent tooling.
+MAID Runner v1.3 will be a **production-ready validation framework** that external tools can confidently integrate with. By staying focused on validation, we ensure:
 
-**Next Steps:**
-1. Review and approve this roadmap
-2. Create GitHub issues for all milestones (see ISSUES.md)
-3. Establish engineering team and allocate resources
-4. Begin Phase 1 implementation
-5. Set up community feedback channels
+1. **Universal Compatibility** - Any tool can use MAID Runner
+2. **Single Responsibility** - One thing done exceptionally well
+3. **Long-term Stability** - Focused scope means fewer breaking changes
+4. **Tool Innovation** - External tools compete on automation quality
+
+**MAID Runner validates. External tools innovate.**
+
+---
+
+**Note:** For automation features (Guardian Agent, automated manifest generation, etc.), see `docs/future/maid-agent/` - these will be built as separate tools that **use** MAID Runner for validation.
