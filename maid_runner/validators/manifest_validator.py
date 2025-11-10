@@ -1753,7 +1753,12 @@ def _validate_return_type(
 
     impl_return = impl_info.get("returns")
     if not impl_return:
-        return None
+        # Manifest specifies return type but implementation doesn't have one
+        entity_type = "method" if parent_class else "function"
+        return (
+            f"Missing return type annotation in {entity_type} '{artifact_name}': "
+            f"manifest expects '{manifest_return}' but implementation has no return type"
+        )
 
     if not compare_types(manifest_return, impl_return):
         entity_type = "method" if parent_class else "function"
