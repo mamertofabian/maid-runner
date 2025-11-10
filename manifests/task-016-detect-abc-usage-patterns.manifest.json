@@ -1,0 +1,38 @@
+{
+  "goal": "Enhance behavioral validator to detect abstract base class usage patterns (isinstance, issubclass, hasattr, base class inheritance)",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_abc_usage.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "bases": ["ast.NodeVisitor"]
+      },
+      {
+        "type": "function",
+        "name": "visit_Call",
+        "class": "_ArtifactCollector",
+        "args": [
+          {"name": "node"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "visit_ClassDef",
+        "class": "_ArtifactCollector",
+        "args": [
+          {"name": "node"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_abc_usage.py", "-v"]
+}

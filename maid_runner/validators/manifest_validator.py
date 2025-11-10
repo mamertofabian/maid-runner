@@ -706,6 +706,9 @@ class _ArtifactCollector(ast.NodeVisitor):
         for base in node.bases:
             if isinstance(base, ast.Name):
                 base_names.append(base.id)
+                # In behavioral mode, track base classes as "used"
+                if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+                    self.used_classes.add(base.id)
             elif isinstance(base, ast.Attribute):
                 # Handle cases like module.ClassName (e.g., ast.NodeVisitor)
                 # Build the full qualified name
@@ -744,6 +747,10 @@ class _ArtifactCollector(ast.NodeVisitor):
         # Track variable-to-class mappings
         self._track_class_instantiations(node)
 
+        # In behavioral mode, track when classes are assigned to variables
+        if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+            self._track_class_name_assignments(node)
+
         self.generic_visit(node)
 
     def _process_class_assignments(self, node):
@@ -780,6 +787,34 @@ class _ArtifactCollector(ast.NodeVisitor):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self.variable_to_class[target.id] = class_name
+
+    def _track_class_name_assignments(self, node):
+        """Track when a class name itself is assigned to a variable (e.g., base_ref = BaseClass)."""
+        # Check if the value being assigned is a simple Name (not a Call)
+        if isinstance(node.value, ast.Name):
+            value_name = node.value.id
+            # Check if it's a known class or follows class naming conventions
+            if value_name in self.found_classes or (
+                value_name and value_name[0].isupper()
+            ):
+                self.used_classes.add(value_name)
+
+    def _track_method_call_with_inheritance(self, class_name: str, method_name: str):
+        """Track a method call on a class and propagate to base classes.
+
+        When a method is called on a class, it should also count as using
+        the method on all parent classes (for inherited methods).
+        """
+        # Track for the immediate class
+        if class_name not in self.used_methods:
+            self.used_methods[class_name] = set()
+        self.used_methods[class_name].add(method_name)
+
+        # Also track for all base classes
+        if class_name in self.found_class_bases:
+            for base_class in self.found_class_bases[class_name]:
+                # Recursively track for base classes
+                self._track_method_call_with_inheritance(base_class, method_name)
 
     def _is_self_attribute(self, target):
         """Check if target is a self.attribute assignment."""
@@ -842,9 +877,9 @@ class _ArtifactCollector(ast.NodeVisitor):
                     var_name = node.func.value.id
                     if var_name in self.variable_to_class:
                         class_name = self.variable_to_class[var_name]
-                        if class_name not in self.used_methods:
-                            self.used_methods[class_name] = set()
-                        self.used_methods[class_name].add(method_name)
+                        self._track_method_call_with_inheritance(
+                            class_name, method_name
+                        )
                 # Handle direct method calls on instantiated objects
                 elif isinstance(node.func.value, ast.Call) and isinstance(
                     node.func.value.func, ast.Name
@@ -862,9 +897,9 @@ class _ArtifactCollector(ast.NodeVisitor):
                             )
                         )
                     ):
-                        if class_name not in self.used_methods:
-                            self.used_methods[class_name] = set()
-                        self.used_methods[class_name].add(method_name)
+                        self._track_method_call_with_inheritance(
+                            class_name, method_name
+                        )
                         self.used_classes.add(class_name)
 
                 # For chained calls, also track intermediate methods
@@ -897,6 +932,26 @@ class _ArtifactCollector(ast.NodeVisitor):
                 if func_name == "isinstance" and len(node.args) >= 2:
                     if isinstance(node.args[1], ast.Name):
                         self.used_classes.add(node.args[1].id)
+
+                # Handle issubclass checks
+                if func_name == "issubclass" and len(node.args) >= 2:
+                    # First argument is the subclass being checked
+                    if isinstance(node.args[0], ast.Name):
+                        self.used_classes.add(node.args[0].id)
+                    # Second argument is the base class to check against
+                    if isinstance(node.args[1], ast.Name):
+                        self.used_classes.add(node.args[1].id)
+
+                # Handle hasattr checks - first argument is the class
+                if func_name == "hasattr" and len(node.args) >= 1:
+                    if isinstance(node.args[0], ast.Name):
+                        # Could be a class name or instance variable
+                        arg_name = node.args[0].id
+                        # Check if it's a known class
+                        if arg_name in self.found_classes or (
+                            arg_name and arg_name[0].isupper()
+                        ):
+                            self.used_classes.add(arg_name)
 
             # Track keyword arguments
             for keyword in node.keywords:
