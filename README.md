@@ -198,6 +198,11 @@ manifest_path.write_text(json.dumps({
         ]
     },
     "validationCommand": ["pytest", "tests/test_email_validation.py", "-v"]
+    // Enhanced format also supported:
+    // "validationCommands": [
+    //   ["pytest", "tests/test_email_validation.py", "-v"],
+    //   ["mypy", "validators/email_validator.py"]
+    // ]
 }, indent=2))
 
 # AI tool generates tests...

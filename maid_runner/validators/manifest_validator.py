@@ -1250,7 +1250,8 @@ def _validate_function_artifact(
         AlignmentError: If function/method is not found or invalid
     """
     artifact_name = artifact.get("name")
-    parameters = artifact.get("parameters", [])
+    # Support both args (enhanced) and parameters (legacy)
+    parameters = artifact.get("args") or artifact.get("parameters", [])
     parent_class = artifact.get("class")
 
     if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
@@ -1659,7 +1660,8 @@ def _validate_parameter_types(
         List of validation error messages
     """
     errors = []
-    manifest_params = artifact.get("parameters", [])
+    # Support both args (enhanced) and parameters (legacy)
+    manifest_params = artifact.get("args") or artifact.get("parameters", [])
     impl_params = impl_info.get("parameters", [])
 
     # Create lookup for implementation parameters

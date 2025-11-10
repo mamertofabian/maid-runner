@@ -96,12 +96,12 @@ def _aggregate_validation_commands_from_superseded(
     manifest_dir: Path,
     expected_artifacts: Optional[List[dict]] = None,
     target_file: Optional[str] = None,
-) -> List[str]:
+) -> List[List[str]]:
     """
     Aggregate validation commands from superseded manifests for snapshot generation.
 
     Collects all validation commands from superseded manifests and returns them
-    as a list of command strings. Deduplicates identical commands.
+    as a list of command arrays (enhanced format). Deduplicates identical commands.
 
     Optionally filters out tests that don't reference artifacts in the snapshot,
     which handles the case where refactoring removed artifacts tested by old tests.
@@ -113,10 +113,10 @@ def _aggregate_validation_commands_from_superseded(
         target_file: Optional path to target file being tested (for import detection)
 
     Returns:
-        List of aggregated validation command strings
+        List of command arrays: [["pytest", "test1.py"], ["pytest", "test2.py"]]
     """
     aggregated_commands = []
-    seen_commands = set()  # Deduplicate commands
+    seen_commands = set()  # Deduplicate commands (as tuples for hashing)
 
     # Determine project root for path validation
     # Assume project root is manifest_dir's parent (typical structure)
@@ -153,13 +153,21 @@ def _aggregate_validation_commands_from_superseded(
             with open(superseded_path, "r") as f:
                 superseded_data = json.load(f)
 
-            superseded_cmd = superseded_data.get("validationCommand", [])
+            # Support both validationCommand (legacy) and validationCommands (enhanced)
+            superseded_cmd = superseded_data.get("validationCommands", [])
+            if not superseded_cmd:
+                superseded_cmd = superseded_data.get("validationCommand", [])
+
             if superseded_cmd:
                 # Extract test files from commands
                 from maid_runner.cli.validate import extract_test_files_from_command
 
-                # Normalize command to list format for extraction
-                if isinstance(superseded_cmd, list):
+                # Handle enhanced format (array of arrays)
+                if superseded_cmd and isinstance(superseded_cmd[0], list):
+                    # Enhanced format: [["pytest", "test1.py"], ["pytest", "test2.py"]]
+                    cmd_list = superseded_cmd
+                # Handle legacy format
+                elif isinstance(superseded_cmd, list):
                     if len(superseded_cmd) > 0 and superseded_cmd[0] == "pytest":
                         # Single command as list: ["pytest", "test.py", "-v"]
                         cmd_list = [superseded_cmd]
@@ -172,17 +180,24 @@ def _aggregate_validation_commands_from_superseded(
 
                 # Extract test files and filter if expected_artifacts provided
                 for cmd_item in cmd_list:
-                    # Normalize to string for extraction
+                    # Normalize to list format
                     if isinstance(cmd_item, list):
-                        cmd_str = " ".join(cmd_item)
+                        cmd_array = cmd_item
                     else:
-                        cmd_str = str(cmd_item)
+                        # Convert string to array
+                        cmd_array = (
+                            cmd_item.split()
+                            if isinstance(cmd_item, str)
+                            else [str(cmd_item)]
+                        )
 
-                    if not cmd_str or cmd_str in seen_commands:
+                    # Create tuple for deduplication
+                    cmd_tuple = tuple(cmd_array)
+                    if not cmd_array or cmd_tuple in seen_commands:
                         continue
 
                     # Extract test files from this command
-                    test_files = extract_test_files_from_command([cmd_str])
+                    test_files = extract_test_files_from_command(cmd_array)
 
                     # Filter tests if expected_artifacts provided
                     if expected_artifacts and target_file:
@@ -200,44 +215,25 @@ def _aggregate_validation_commands_from_superseded(
 
                         # Only include command if it has valid test files
                         if filtered_test_files:
-                            # Reconstruct command with filtered test files
-                            # Try to preserve original format
-                            if isinstance(cmd_item, list):
-                                # Rebuild command preserving flags
-                                pytest_index = (
-                                    cmd_item.index("pytest")
-                                    if "pytest" in cmd_item
-                                    else 0
-                                )
-                                flags = [
-                                    arg
-                                    for arg in cmd_item[pytest_index + 1 :]
-                                    if arg.startswith("-")
-                                ]
-                                new_cmd = ["pytest"] + filtered_test_files + flags
-                                cmd_str = " ".join(new_cmd)
-                            else:
-                                # For string commands, rebuild with filtered files
-                                parts = cmd_str.split()
-                                pytest_index = next(
-                                    (i for i, p in enumerate(parts) if p == "pytest"),
-                                    -1,
-                                )
-                                if pytest_index >= 0:
-                                    flags = [
-                                        p
-                                        for p in parts[pytest_index + 1 :]
-                                        if p.startswith("-")
-                                    ]
-                                    new_parts = ["pytest"] + filtered_test_files + flags
-                                    cmd_str = " ".join(new_parts)
-
-                            seen_commands.add(cmd_str)
-                            aggregated_commands.append(cmd_str)
+                            # Rebuild command preserving flags
+                            pytest_index = (
+                                cmd_array.index("pytest")
+                                if "pytest" in cmd_array
+                                else 0
+                            )
+                            flags = [
+                                arg
+                                for arg in cmd_array[pytest_index + 1 :]
+                                if arg.startswith("-")
+                            ]
+                            new_cmd = ["pytest"] + filtered_test_files + flags
+                            cmd_tuple = tuple(new_cmd)
+                            seen_commands.add(cmd_tuple)
+                            aggregated_commands.append(new_cmd)
                     else:
                         # No filtering - include all commands
-                        seen_commands.add(cmd_str)
-                        aggregated_commands.append(cmd_str)
+                        seen_commands.add(cmd_tuple)
+                        aggregated_commands.append(cmd_array)
         except (json.JSONDecodeError, IOError):
             continue
 
@@ -429,6 +425,8 @@ class _ArtifactExtractor(ast.NodeVisitor):
             params.append(param)
 
         if params:
+            # Output both args (enhanced) and parameters (legacy) for backward compatibility
+            func_info["args"] = params
             func_info["parameters"] = params
 
         # Extract return type annotation
@@ -582,9 +580,9 @@ def create_snapshot_manifest(
 
     # Aggregate validation commands from superseded manifests
     # Filter out tests that reference artifacts removed during refactoring
-    validation_command = []
+    validation_commands = []
     if superseded_manifests and manifest_dir:
-        validation_command = _aggregate_validation_commands_from_superseded(
+        validation_commands = _aggregate_validation_commands_from_superseded(
             superseded_manifests,
             manifest_dir,
             expected_artifacts=artifact_list,
@@ -592,6 +590,8 @@ def create_snapshot_manifest(
         )
 
     # Create the manifest structure
+    # Use validationCommands (enhanced format) if we have multiple commands,
+    # otherwise use validationCommand (legacy format) for single command
     manifest = {
         "goal": f"Snapshot of existing code in {file_path}",
         "taskType": "snapshot",
@@ -603,8 +603,19 @@ def create_snapshot_manifest(
             "file": file_path,
             "contains": artifact_list,
         },
-        "validationCommand": validation_command,
     }
+
+    # Output validation commands
+    # Use validationCommand (legacy) for single command or empty, validationCommands (enhanced) for multiple
+    if not validation_commands:
+        # Empty - use legacy format for backward compatibility
+        manifest["validationCommand"] = []
+    elif len(validation_commands) == 1:
+        # Single command - use legacy format for backward compatibility
+        manifest["validationCommand"] = validation_commands[0]
+    else:
+        # Multiple commands - use enhanced format
+        manifest["validationCommands"] = validation_commands
 
     return manifest
 
