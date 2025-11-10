@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from maid_agents.agents.refactorer import Refactorer
 from maid_agents.claude.cli_wrapper import ClaudeWrapper
 from maid_agents.core.orchestrator import MAIDOrchestrator
 
@@ -62,6 +63,13 @@ def main() -> None:
         help="Maximum implementation iterations (default: 20)",
     )
 
+    # Refactor subcommand
+    refactor_parser = subparsers.add_parser(
+        "refactor",
+        help="Refactor code to improve quality (Phase 3.5)",
+    )
+    refactor_parser.add_argument("manifest_path", help="Path to manifest file")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -70,7 +78,7 @@ def main() -> None:
 
     # Create Claude wrapper and orchestrator
     # Default to REAL Claude (mock_mode=False) unless --mock flag is used
-    claude = ClaudeWrapper(mock_mode=getattr(args, 'mock', False))
+    claude = ClaudeWrapper(mock_mode=getattr(args, "mock", False))
     orchestrator = MAIDOrchestrator(claude=claude)
 
     if args.command == "run":
@@ -115,6 +123,28 @@ def main() -> None:
             sys.exit(0)
         else:
             print(f"❌ Implementation failed after {result['iterations']} iteration(s)")
+            print(f"Error: {result['error']}")
+            sys.exit(1)
+
+    elif args.command == "refactor":
+        manifest_path = args.manifest_path
+        if not Path(manifest_path).exists():
+            print(f"❌ Manifest not found: {manifest_path}")
+            sys.exit(1)
+
+        print(f"✨ Refactoring: {manifest_path}")
+        refactorer = Refactorer(claude)
+        result = refactorer.refactor(manifest_path=manifest_path)
+
+        if result["success"]:
+            print("✅ Refactoring complete!")
+            print(f"📝 Files affected: {', '.join(result['files_affected'])}")
+            print(f"💡 Improvements ({len(result['improvements'])}):")
+            for i, improvement in enumerate(result["improvements"], 1):
+                print(f"   {i}. {improvement}")
+            sys.exit(0)
+        else:
+            print("❌ Refactoring failed")
             print(f"Error: {result['error']}")
             sys.exit(1)
 
