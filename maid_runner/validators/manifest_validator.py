@@ -610,6 +610,7 @@ class _ArtifactCollector(ast.NodeVisitor):
             "os",
             "sys",
             "re",
+            "enum",
             "jsonschema",
         )
         return node.module and not node.module.startswith(stdlib_modules)

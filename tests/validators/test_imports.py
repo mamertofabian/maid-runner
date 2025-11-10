@@ -148,3 +148,31 @@ def main():
     }
     # Should pass - only uppercase names are tracked as classes
     validate_with_ast(manifest, str(test_file))
+
+
+def test_enum_import_not_tracked_as_local_class(tmp_path: Path):
+    """Test that enum.Enum imports are not tracked as local classes."""
+    code = """
+from enum import Enum
+
+class Status(Enum):
+    ACTIVE = 1
+    INACTIVE = 2
+
+def get_status():
+    return Status.ACTIVE
+"""
+    test_file = tmp_path / "enum_test.py"
+    test_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "Status"},
+                {"type": "function", "name": "get_status"},
+                # Enum should NOT be tracked as a local class
+            ]
+        }
+    }
+    # Should pass - enum.Enum is a stdlib import, not a local class
+    validate_with_ast(manifest, str(test_file))
