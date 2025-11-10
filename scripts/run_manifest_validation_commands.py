@@ -23,8 +23,25 @@ def extract_validation_commands(manifest_path: Path):
         return []
 
 
+def get_superseded_manifests(manifests_dir: Path) -> set:
+    """Find all manifests that are superseded by snapshots."""
+    import importlib.util
+    import sys
+
+    # Import the function from the other script
+    script_path = Path(__file__).parent / "get_superseded_manifests.py"
+    spec = importlib.util.spec_from_file_location(
+        "get_superseded_manifests", script_path
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["get_superseded_manifests"] = module
+    spec.loader.exec_module(module)
+
+    return module.get_superseded_manifests(manifests_dir)
+
+
 def run_validation_commands():
-    """Run all validation commands from manifests."""
+    """Run all validation commands from active manifests (excluding superseded)."""
     manifests_dir = Path("manifests")
     if not manifests_dir.exists():
         print("⚠️  No manifests directory found")
@@ -35,11 +52,22 @@ def run_validation_commands():
         print("⚠️  No manifest files found")
         return 0
 
+    # Get superseded manifests and filter them out
+    superseded = get_superseded_manifests(manifests_dir)
+    active_manifests = [m for m in manifest_files if m not in superseded]
+
+    if not active_manifests:
+        print("⚠️  No active manifest files found")
+        return 0
+
+    if superseded:
+        print(f"⏭️  Skipping {len(superseded)} superseded manifest(s)")
+
     all_passed = True
     total_commands = 0
     passed_commands = 0
 
-    for manifest_path in manifest_files:
+    for manifest_path in active_manifests:
         validation_commands = extract_validation_commands(manifest_path)
         if not validation_commands:
             continue

@@ -19,14 +19,20 @@ help:
 test:
 	uv run python -m pytest tests/ -v
 	@echo ""
-	@echo "🔍 Running structural validation for all manifests..."
-	@for manifest in manifests/task-*.manifest.json; do \
+	@echo "🔍 Running structural validation for active manifests (excluding superseded)..."
+	@uv run python -c "import sys; sys.path.insert(0, 'scripts'); from get_superseded_manifests import get_superseded_manifests; from pathlib import Path; superseded = get_superseded_manifests(Path('manifests')); print('\\n'.join(str(p) for p in sorted(superseded)))" > /tmp/superseded_manifests.txt || true; \
+	for manifest in manifests/task-*.manifest.json; do \
+		if grep -q "$$manifest" /tmp/superseded_manifests.txt 2>/dev/null; then \
+			echo "⏭️  Skipping superseded manifest: $$manifest"; \
+			continue; \
+		fi; \
 		echo "Validating $$manifest..."; \
 		uv run maid validate $$manifest --quiet --use-manifest-chain || exit 1; \
-	done
-	@echo "✅ All manifests structurally valid"
+	done; \
+	rm -f /tmp/superseded_manifests.txt
+	@echo "✅ All active manifests structurally valid"
 	@echo ""
-	@echo "🧪 Running validation commands from manifests..."
+	@echo "🧪 Running validation commands from active manifests..."
 	@uv run python scripts/run_manifest_validation_commands.py
 
 # Validate all manifests
