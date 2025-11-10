@@ -48,7 +48,11 @@ class MAIDDevRunner:
         # Validate version field
         from maid_runner.utils import validate_manifest_version
 
-        validate_manifest_version(manifest_data, self.manifest_path.name)
+        try:
+            validate_manifest_version(manifest_data, self.manifest_path.name)
+        except ValueError as e:
+            print(f"✗ Error: {e}", file=sys.stderr)
+            sys.exit(1)
 
         return manifest_data
 

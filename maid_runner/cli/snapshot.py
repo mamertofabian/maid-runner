@@ -156,7 +156,11 @@ def _aggregate_validation_commands_from_superseded(
             # Validate version field
             from maid_runner.utils import validate_manifest_version
 
-            validate_manifest_version(superseded_data, superseded_path.name)
+            try:
+                validate_manifest_version(superseded_data, superseded_path.name)
+            except ValueError:
+                # Skip invalid manifests - version validation failed
+                continue
 
             # Normalize validation commands to consistent format
             from maid_runner.utils import normalize_validation_commands
@@ -169,9 +173,13 @@ def _aggregate_validation_commands_from_superseded(
                 for cmd_array in cmd_list:
 
                     # Create tuple for deduplication
-                    # Note: Deduplication is based on the full command array, including flags.
-                    # Commands with different flags (e.g., ['pytest', 'test.py', '-v'] vs
-                    # ['pytest', 'test.py', '-vv']) are considered different and both will be kept.
+                    # Deduplication is based on the full command array, including flags.
+                    # This means commands with different flags are considered different and
+                    # both will be kept. For example:
+                    #   ['pytest', 'test.py', '-v'] and ['pytest', 'test.py', '-vv']
+                    #   are treated as different commands and both preserved.
+                    # This is intentional: different verbosity levels or flags may indicate
+                    # different test scenarios or requirements.
                     cmd_tuple = tuple(cmd_array)
                     if not cmd_array or cmd_tuple in seen_commands:
                         continue
@@ -215,13 +223,12 @@ def _aggregate_validation_commands_from_superseded(
                         seen_commands.add(cmd_tuple)
                         aggregated_commands.append(cmd_array)
         except (json.JSONDecodeError, IOError) as e:
-            # Log error but continue processing other manifests
+            # Always log warnings - users should know about invalid manifests
             # This prevents one malformed manifest from breaking the entire aggregation
-            if __debug__:  # Only log in debug mode to avoid noise
-                print(
-                    f"⚠️  Skipping invalid manifest {superseded_path.name}: {e}",
-                    file=sys.stderr,
-                )
+            print(
+                f"⚠️  Skipping invalid manifest {superseded_path.name}: {e}",
+                file=sys.stderr,
+            )
             continue
 
     return aggregated_commands

@@ -1,6 +1,6 @@
 """Behavioral tests for validation command utilities."""
 
-from unittest.mock import patch
+import pytest
 
 from maid_runner.utils import normalize_validation_commands, validate_manifest_version
 
@@ -150,26 +150,25 @@ def test_validate_manifest_version_accepts_missing_version():
 
 
 def test_validate_manifest_version_rejects_invalid_version():
-    """Test that validate_manifest_version rejects invalid versions."""
+    """Test that validate_manifest_version raises ValueError for invalid versions."""
     manifest_data = {"version": "2"}
-    with patch("sys.exit") as mock_exit:
+    with pytest.raises(ValueError, match="Invalid schema version '2'"):
         validate_manifest_version(manifest_data, "test.manifest.json")
-        mock_exit.assert_called_once_with(1)
 
 
 def test_validate_manifest_version_rejects_null_version():
-    """Test that validate_manifest_version rejects null version."""
+    """Test that validate_manifest_version raises ValueError for null version."""
     manifest_data = {"version": None}
-    with patch("sys.exit") as mock_exit:
+    with pytest.raises(ValueError, match="Invalid schema version 'None'"):
         validate_manifest_version(manifest_data, "test.manifest.json")
-        mock_exit.assert_called_once_with(1)
 
 
 def test_validate_manifest_version_rejects_invalid_version_strings():
-    """Test that validate_manifest_version rejects various invalid version strings."""
+    """Test that validate_manifest_version raises ValueError for various invalid version strings."""
     invalid_versions = ["1.0", "2", "v1", "latest", "foo"]
     for invalid_version in invalid_versions:
         manifest_data = {"version": invalid_version}
-        with patch("sys.exit") as mock_exit:
+        with pytest.raises(
+            ValueError, match=f"Invalid schema version '{invalid_version}'"
+        ):
             validate_manifest_version(manifest_data, "test.manifest.json")
-            mock_exit.assert_called_once_with(1)

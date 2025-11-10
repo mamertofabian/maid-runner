@@ -309,7 +309,11 @@ def run_validation(
         # Validate version field
         from maid_runner.utils import validate_manifest_version
 
-        validate_manifest_version(manifest_data, manifest_path_obj.name)
+        try:
+            validate_manifest_version(manifest_data, manifest_path_obj.name)
+        except ValueError as e:
+            print(f"✗ Error: {e}", file=sys.stderr)
+            sys.exit(1)
 
         # Snapshot manifests must have comprehensive validationCommands
         # Check this early, before file validation

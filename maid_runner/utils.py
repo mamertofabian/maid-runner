@@ -1,7 +1,6 @@
 """Utility functions for MAID Runner."""
 
 import shlex
-import sys
 from typing import List
 
 
@@ -15,18 +14,16 @@ def validate_manifest_version(
         manifest_name: Name of the manifest file for error messages
 
     Raises:
-        SystemExit: Exits with code 1 if version is invalid
+        ValueError: If version is invalid (not "1")
     """
     # Default to "1" if version is missing or None (per schema default)
     version = manifest_data.get("version", "1")
     if version != "1":
-        print(
-            f"✗ Error: Invalid schema version '{version}'. "
+        raise ValueError(
+            f"Invalid schema version '{version}'. "
             f"Only version '1' is currently supported. "
-            f"Manifest: {manifest_name}",
-            file=sys.stderr,
+            f"Manifest: {manifest_name}"
         )
-        sys.exit(1)
 
 
 def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:
