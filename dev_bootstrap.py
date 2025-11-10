@@ -46,25 +46,18 @@ class MAIDDevRunner:
             return json.load(f)
 
     def run_validation(self) -> bool:
-        """Run the validation command(s) and return success status."""
-        # Determine which format to use: prefer validationCommands, fall back to validationCommand
-        commands_to_run = []
-        if self.validation_commands:
-            # Enhanced format: array of command arrays
-            commands_to_run = self.validation_commands
-        elif self.validation_command:
-            # Legacy format: could be single command array or multiple string commands
-            # Check if it's multiple string commands (each element is a string with spaces)
-            if len(self.validation_command) > 1 and all(
-                isinstance(cmd, str) and " " in cmd for cmd in self.validation_command
-            ):
-                # Multiple string commands: ["pytest test1.py", "pytest test2.py"]
-                # Convert each string to a command array
-                commands_to_run = [cmd.split() for cmd in self.validation_command]
-            else:
-                # Single command array: ["pytest", "test.py", "-v"]
-                commands_to_run = [self.validation_command]
-        else:
+        """Run the validation command(s) and return success status.
+
+        Supports multiple validation command formats:
+        - Enhanced: validationCommands (array of command arrays)
+        - Legacy: validationCommand (single array or multiple string commands)
+
+        Timeout: 300 seconds (5 minutes) per command to allow for comprehensive test suites.
+        """
+        from maid_runner.utils import normalize_validation_commands
+
+        commands_to_run = normalize_validation_commands(self.manifest_data)
+        if not commands_to_run:
             print("❌ No validation command in manifest")
             return False
 
@@ -80,6 +73,7 @@ class MAIDDevRunner:
             print(f"{'='*60}")
 
             try:
+                # Timeout: 300 seconds (5 minutes) to allow for comprehensive test suites
                 result = subprocess.run(
                     cmd, capture_output=True, text=True, timeout=300
                 )

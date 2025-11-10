@@ -153,45 +153,20 @@ def _aggregate_validation_commands_from_superseded(
             with open(superseded_path, "r") as f:
                 superseded_data = json.load(f)
 
-            # Support both validationCommand (legacy) and validationCommands (enhanced)
-            superseded_cmd = superseded_data.get("validationCommands", [])
-            if not superseded_cmd:
-                superseded_cmd = superseded_data.get("validationCommand", [])
+            # Normalize validation commands to consistent format
+            from maid_runner.utils import normalize_validation_commands
+            from maid_runner.cli.validate import extract_test_files_from_command
 
-            if superseded_cmd:
-                # Extract test files from commands
-                from maid_runner.cli.validate import extract_test_files_from_command
+            cmd_list = normalize_validation_commands(superseded_data)
 
-                # Handle enhanced format (array of arrays)
-                if superseded_cmd and isinstance(superseded_cmd[0], list):
-                    # Enhanced format: [["pytest", "test1.py"], ["pytest", "test2.py"]]
-                    cmd_list = superseded_cmd
-                # Handle legacy format
-                elif isinstance(superseded_cmd, list):
-                    if len(superseded_cmd) > 0 and superseded_cmd[0] == "pytest":
-                        # Single command as list: ["pytest", "test.py", "-v"]
-                        cmd_list = [superseded_cmd]
-                    else:
-                        # Multiple commands: ["pytest test1.py", "pytest test2.py"]
-                        cmd_list = superseded_cmd
-                else:
-                    # Single command as string
-                    cmd_list = [superseded_cmd]
-
+            if cmd_list:
                 # Extract test files and filter if expected_artifacts provided
-                for cmd_item in cmd_list:
-                    # Normalize to list format
-                    if isinstance(cmd_item, list):
-                        cmd_array = cmd_item
-                    else:
-                        # Convert string to array
-                        cmd_array = (
-                            cmd_item.split()
-                            if isinstance(cmd_item, str)
-                            else [str(cmd_item)]
-                        )
+                for cmd_array in cmd_list:
 
                     # Create tuple for deduplication
+                    # Note: Deduplication is based on the full command array, including flags.
+                    # Commands with different flags (e.g., ['pytest', 'test.py', '-v'] vs
+                    # ['pytest', 'test.py', '-vv']) are considered different and both will be kept.
                     cmd_tuple = tuple(cmd_array)
                     if not cmd_array or cmd_tuple in seen_commands:
                         continue

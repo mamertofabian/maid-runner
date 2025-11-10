@@ -12,40 +12,14 @@ def extract_validation_commands(manifest_path: Path):
         with open(manifest_path, "r") as f:
             manifest_data = json.load(f)
 
-        # Support both validationCommand (legacy) and validationCommands (enhanced)
-        validation_commands = manifest_data.get("validationCommands", [])
-        if not validation_commands:
-            validation_command = manifest_data.get("validationCommand", [])
-            if validation_command:
-                # Handle different formats
-                if isinstance(validation_command, str):
-                    # Single string command: "pytest tests/test.py"
-                    validation_commands = [validation_command.split()]
-                elif isinstance(validation_command, list):
-                    if len(validation_command) > 1 and all(
-                        isinstance(cmd, str) and " " in cmd
-                        for cmd in validation_command
-                    ):
-                        # Multiple string commands: ["pytest test1.py", "pytest test2.py"]
-                        validation_commands = [
-                            cmd.split() for cmd in validation_command
-                        ]
-                    elif len(validation_command) > 0 and isinstance(
-                        validation_command[0], str
-                    ):
-                        # Check if first element is a string with spaces (single string command)
-                        if " " in validation_command[0]:
-                            # Single string command in array: ["pytest tests/test.py"]
-                            validation_commands = [validation_command[0].split()]
-                        else:
-                            # Single command array: ["pytest", "test.py", "-v"]
-                            validation_commands = [validation_command]
-                    else:
-                        # Single command array: ["pytest", "test.py", "-v"]
-                        validation_commands = [validation_command]
+        from maid_runner.utils import normalize_validation_commands
 
-        return validation_commands
-    except (json.JSONDecodeError, KeyError):
+        return normalize_validation_commands(manifest_data)
+    except json.JSONDecodeError as e:
+        print(f"⚠️  Warning: Invalid JSON in {manifest_path.name}: {e}")
+        return []
+    except KeyError as e:
+        print(f"⚠️  Warning: Missing key in {manifest_path.name}: {e}")
         return []
 
 

@@ -10,7 +10,8 @@
     "properties": {
       "version": {
         "type": "string",
-        "description": "Schema version (defaults to '1' if not specified)",
+        "enum": ["1"],
+        "description": "Schema version (defaults to '1' if not specified). Currently only version '1' is supported.",
         "default": "1"
       },
       "goal": { "type": "string" },

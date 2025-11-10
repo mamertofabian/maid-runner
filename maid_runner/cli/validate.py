@@ -372,19 +372,19 @@ def run_validation(
                 else:
                     print("  Used manifest chain for validation")
 
-            # Display metadata if present
-            metadata = manifest_data.get("metadata")
-            if metadata:
-                if metadata.get("author"):
-                    print(f"  Author:   {metadata['author']}")
-                if metadata.get("tags"):
-                    tags_str = ", ".join(metadata["tags"])
-                    print(f"  Tags:     {tags_str}")
-                if metadata.get("priority"):
-                    print(f"  Priority: {metadata['priority']}")
-
             print(f"  Manifest: {manifest_path}")
             print(f"  Target:   {file_path}")
+
+        # Display metadata if present (outside conditional for consistent display)
+        metadata = manifest_data.get("metadata")
+        if metadata:
+            if metadata.get("author"):
+                print(f"  Author:   {metadata['author']}")
+            if metadata.get("tags"):
+                tags_str = ", ".join(metadata["tags"])
+                print(f"  Tags:     {tags_str}")
+            if metadata.get("priority"):
+                print(f"  Priority: {metadata['priority']}")
 
     except Exception as e:
         from maid_runner.validators.manifest_validator import AlignmentError
