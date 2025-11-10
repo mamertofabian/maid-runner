@@ -28,7 +28,7 @@ Homepage = "https://github.com/mamertofabian/maid-runner"
 Repository = "https://github.com/mamertofabian/maid-runner"
 Issues = "https://github.com/mamertofabian/maid-runner/issues"
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "black>=25.1.0",
     "ruff>=0.13.0",

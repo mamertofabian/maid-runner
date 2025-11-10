@@ -4,6 +4,7 @@ This module provides the core orchestration logic for executing the MAID workflo
 """
 
 import json
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -13,6 +14,11 @@ from maid_agents.agents.manifest_architect import ManifestArchitect
 from maid_agents.agents.test_designer import TestDesigner
 from maid_agents.claude.cli_wrapper import ClaudeWrapper
 from maid_agents.core.validation_runner import ValidationRunner
+
+logger = logging.getLogger(__name__)
+
+# Maximum file size for generated code (1MB)
+MAX_FILE_SIZE = 1_000_000
 
 
 class WorkflowState(Enum):
@@ -60,7 +66,20 @@ class MAIDOrchestrator:
 
         # Create default Claude wrapper if not provided
         if claude is None:
-            claude = ClaudeWrapper(mock_mode=True)
+            if dry_run:
+                # In dry_run mode, mock is appropriate for testing
+                claude = ClaudeWrapper(mock_mode=True)
+                logger.info(
+                    "🧪 TEST MODE: Using mock Claude wrapper (dry_run=True). "
+                    "No real API calls will be made."
+                )
+            else:
+                # In production mode, require explicit Claude instance
+                raise ValueError(
+                    "Production mode requires explicit Claude instance. "
+                    "Pass a ClaudeWrapper with mock_mode=False to __init__(), "
+                    "or use dry_run=True for testing without API calls."
+                )
 
         # Store Claude wrapper for use by dynamically created agents
         self.claude = claude
@@ -69,6 +88,31 @@ class MAIDOrchestrator:
         self.manifest_architect = manifest_architect or ManifestArchitect(claude)
         self.test_designer = test_designer or TestDesigner(claude)
         self.validation_runner = validation_runner or ValidationRunner()
+
+    def _validate_safe_path(self, path: str) -> Path:
+        """Validate that a path is safe and within the project directory.
+
+        Args:
+            path: Path string to validate
+
+        Returns:
+            Resolved Path object
+
+        Raises:
+            ValueError: If path is outside project directory
+        """
+        resolved_path = Path(path).resolve()
+        project_dir = Path.cwd().resolve()
+
+        try:
+            # Check if the path is relative to the project directory
+            resolved_path.relative_to(project_dir)
+            return resolved_path
+        except ValueError:
+            raise ValueError(
+                f"Path '{path}' is outside project directory. "
+                f"Only paths within {project_dir} are allowed."
+            )
 
     def run_full_workflow(self, goal: str) -> WorkflowResult:
         """Execute complete MAID workflow from goal to integration.
@@ -227,12 +271,18 @@ class MAIDOrchestrator:
         """
         import subprocess
 
+        # Validate path before using it in subprocess
+        try:
+            validated_path = self._validate_safe_path(manifest_path)
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
+
         # Run maid validate with behavioral mode
         # This validates tests USE artifacts without requiring implementation to exist
         cmd = [
             "maid",
             "validate",
-            manifest_path,
+            str(validated_path),
             "--validation-mode",
             "behavioral",
             "--use-manifest-chain",
@@ -334,13 +384,24 @@ class MAIDOrchestrator:
             # Developer returns single code block for the primary file
             if not self.dry_run:
                 try:
-                    # Write to the first file in the list (primary target)
-                    target_file = Path(files_modified[0])
+                    # Check file size before writing
+                    if len(generated_code) > MAX_FILE_SIZE:
+                        last_error = (
+                            f"Generated code exceeds maximum file size "
+                            f"({len(generated_code)} > {MAX_FILE_SIZE} bytes)"
+                        )
+                        continue
+
+                    # Validate path before writing
+                    target_file = self._validate_safe_path(files_modified[0])
                     target_file.parent.mkdir(parents=True, exist_ok=True)
 
                     with open(target_file, "w") as f:
                         f.write(generated_code)
 
+                except ValueError as e:
+                    last_error = f"Invalid path {files_modified[0]}: {e}"
+                    continue
                 except Exception as e:
                     last_error = f"Failed to write code to {files_modified[0]}: {e}"
                     continue

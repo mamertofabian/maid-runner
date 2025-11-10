@@ -7,6 +7,7 @@ import json
 import sys
 import os
 import subprocess
+import shlex
 from pathlib import Path
 
 
@@ -44,15 +45,15 @@ def run_tests():
                     ) or manifest_data.get("validationCommands", [{}])[0].get("command")
 
                     if validation_cmd:
-                        # Convert list to string if needed
-                        if isinstance(validation_cmd, list):
-                            validation_cmd = " ".join(validation_cmd)
+                        # Convert string to list if needed (safely)
+                        if isinstance(validation_cmd, str):
+                            validation_cmd = shlex.split(validation_cmd)
 
                         print(f"🧪 Running tests for {manifest_path.name}")
 
                         result = subprocess.run(
                             validation_cmd,
-                            shell=True,
+                            shell=False,
                             capture_output=True,
                             text=True,
                             timeout=120,  # 2 minute timeout

@@ -97,8 +97,20 @@ class ManifestArchitect(BaseAgent):
         matches = re.findall(json_object_pattern, response, re.DOTALL)
 
         if matches:
-            # Return the first/largest JSON object
-            return max(matches, key=len).strip()
+            # Validate each match by attempting to parse as JSON
+            # Return the first valid one (prioritizing longer valid JSON)
+            sorted_matches = sorted(matches, key=len, reverse=True)
+            for candidate in sorted_matches:
+                candidate = candidate.strip()
+                # Quick sanity check: must start with '{' and end with '}'
+                if not (candidate.startswith("{") and candidate.endswith("}")):
+                    continue
+                try:
+                    # Validate it parses as JSON
+                    json.loads(candidate)
+                    return candidate
+                except json.JSONDecodeError:
+                    continue  # Try next match
 
         # If nothing found, return original (will likely fail JSON parsing)
         return response.strip()
