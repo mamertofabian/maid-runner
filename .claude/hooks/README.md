@@ -1,6 +1,8 @@
 # MAID Stop Hooks
 
-This directory contains Claude Code stop hooks that automatically validate MAID projects when Claude finishes responding.
+**Note:** These hooks are for **developing MAID Runner with Claude Code**, not part of the MAID Runner product itself. They help ensure MAID Runner development follows MAID methodology (dogfooding).
+
+This directory contains Claude Code stop hooks that automatically validate MAID Runner's own development when Claude finishes responding.
 
 ## Hooks Overview
 

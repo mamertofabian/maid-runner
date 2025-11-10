@@ -32,27 +32,22 @@ Confirm the high-level goal with user before proceeding.
 ### Phase 4: Integration
 Verify complete chain: `uv run python -m pytest tests/ -v`
 
-## MAID Subagents
+## External MAID Automation Examples
 
-**Specialized Claude Code subagents are available for each MAID phase.** See `.claude/agents/README.md` for detailed information.
+**Note:** MAID Runner is a validation-only tool. The automation examples below are external tools that use MAID Runner for validation. They are NOT part of MAID Runner itself.
 
-### Available Agents:
+Example Claude Code configurations demonstrating MAID automation are available in `docs/future/claude-code-integration/`. These show how external tools can build automation on top of MAID Runner:
+
+### Example Automation Agents (External):
 1. **maid-manifest-architect** - Phase 1: Creates and validates manifests
 2. **maid-test-designer** - Phase 2: Creates behavioral tests from manifests
 3. **maid-developer** - Phase 3: Implements code to pass tests
 4. **maid-refactorer** - Phase 3.5: Improves code quality (completes TDD cycle)
 5. **maid-auditor** - Cross-cutting: Enforces strict MAID compliance across all phases
 
-### Invoking Agents:
-```bash
-# These agents will be invoked PROACTIVELY by Claude Code when appropriate
-# You can also explicitly request them:
-> Use the maid-manifest-architect to create a manifest for feature X
-> Have the maid-test-designer create tests for task-005
-> Get the maid-developer to implement task-005
-> Use the maid-refactorer to improve code quality for task-005
-> Run the maid-auditor to check for MAID compliance violations
-```
+**These are examples only.** MAID Runner itself provides validation tools (`validate_manifest.py`, `generate_snapshot.py`). External tools (Claude Code, custom agents, IDEs) use these validation tools to build automation workflows.
+
+See `docs/future/claude-code-integration/README.md` for details on building your own automation.
 
 **Note:** The MAID workflow embodies TDD at two levels:
 - **Planning Loop**: Iterative test-manifest refinement (micro TDD)

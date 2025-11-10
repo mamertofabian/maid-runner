@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """
-MAID Runner CLI - Implementation Loop Controller
+MAID Runner CLI - Example Implementation Helper
 
-Orchestrates Phase 3 of MAID workflow by loading manifests, preparing agent
-context, executing validation commands, and supporting iteration until tests pass.
+This is a sample/example implementation demonstrating how external tools
+can build automation on top of MAID Runner's validation tools.
 
-This is a MANUAL implementation loop where the developer reviews validation
-failures and makes code changes between iterations. It does NOT automatically
-generate or modify code - that AI integration will come in a future phase.
+Provides optional interactive helpers for manual MAID workflow:
+- Planning loop: Interactive manifest creation
+- Implementation loop: Manual validation iteration
+
+**Note:** This is an EXAMPLE implementation showing how to use MAID Runner.
+The core validation tools are `validate_manifest.py` and `generate_snapshot.py`.
+External automation tools should use those validation tools directly.
+
+This demonstrates how an external tool can:
+- Load manifests and prepare context for AI agents
+- Execute validation commands
+- Display context information
+- Orchestrate iteration loops
 """
 
 import argparse
