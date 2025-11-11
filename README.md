@@ -31,6 +31,7 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 │   ✓ Validate implementation          │
 │   ✓ Validate type hints              │
 │   ✓ Validate manifest chain          │
+│   ✓ Track file compliance            │
 │                                      │
 │   ✗ No file creation                 │
 │   ✗ No code generation               │
@@ -123,6 +124,50 @@ $ maid validate manifests/task-013.manifest.json --use-manifest-chain
 $ maid validate manifests/task-013.manifest.json --quiet
 # Exit code 0 = success, no output
 ```
+
+**File Tracking Analysis:**
+
+When using `--use-manifest-chain` in implementation mode, MAID Runner performs automatic file tracking analysis to detect files not properly tracked in manifests:
+
+```bash
+$ maid validate manifests/task-013.manifest.json --use-manifest-chain
+
+✓ Validation PASSED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE TRACKING ANALYSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔴 UNDECLARED FILES (3 files)
+  Files exist in codebase but are not tracked in any manifest
+
+  - scripts/helper.py
+    → Not found in any manifest
+
+  Action: Add these files to creatableFiles or editableFiles
+
+🟡 REGISTERED FILES (5 files)
+  Files are tracked but not fully MAID-compliant
+
+  - utils/config.py
+    ⚠️  In editableFiles but no expectedArtifacts
+    Manifests: task-010
+
+  Action: Add expectedArtifacts and validationCommand
+
+✓ TRACKED (42 files)
+  All other source files are fully MAID-compliant
+
+Summary: 3 UNDECLARED, 5 REGISTERED, 42 TRACKED
+```
+
+**File Status Levels:**
+
+- **🔴 UNDECLARED**: Files not in any manifest (high priority) - no audit trail
+- **🟡 REGISTERED**: Files tracked but incomplete compliance (medium priority) - missing artifacts/tests
+- **✓ TRACKED**: Files with full MAID compliance - properly documented and tested
+
+This progressive compliance system helps teams migrate existing codebases to MAID while clearly identifying accountability gaps.
 
 ### 2. Snapshot Generation
 

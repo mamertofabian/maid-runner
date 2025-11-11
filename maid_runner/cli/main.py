@@ -50,7 +50,7 @@ def main():
     validate_parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests (automatically enabled for directory validation)",
+        help="Use manifest chain to merge all related manifests (enables file tracking analysis; automatically enabled for directory validation)",
     )
     validate_parser.add_argument(
         "--quiet",

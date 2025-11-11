@@ -100,8 +100,26 @@ The `maid validate` command performs validation in this order:
 1. **Schema Validation**: Ensures manifest follows the JSON schema
 2. **Behavioral Test Validation**: Verifies test files USE the declared artifacts (AST-based)
 3. **Implementation Validation**: Verifies implementation DEFINES the artifacts
+4. **File Tracking Analysis** (when using `--use-manifest-chain`): Detects undeclared and partially compliant files
 
 Note: Behavioral validation only checks artifacts from the current manifest, not the merged chain.
+
+### File Tracking Analysis
+
+When using `--use-manifest-chain` in implementation mode, MAID Runner performs automatic file tracking analysis with a two-level warning system:
+
+- **🔴 UNDECLARED** (High Priority): Files exist in codebase but not in any manifest
+  - No audit trail of when/why created
+  - **Action**: Add to `creatableFiles` or `editableFiles` in a manifest
+
+- **🟡 REGISTERED** (Medium Priority): Files in manifests but incomplete compliance
+  - Issues: Missing `expectedArtifacts`, no tests, or only in `readonlyFiles`
+  - **Action**: Add `expectedArtifacts` and `validationCommand` for full compliance
+
+- **✓ TRACKED** (Clean): Files with full MAID compliance
+  - Properly documented with artifacts and behavioral tests
+
+This progressive compliance system helps identify accountability gaps and supports gradual migration to MAID.
 
 ## Validation Modes (MAID v1.2)
 

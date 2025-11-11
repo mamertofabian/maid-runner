@@ -798,6 +798,17 @@ Validation Modes:
   implementation  - Validates that code DEFINES the expected artifacts (default)
   behavioral      - Validates that tests USE/CALL the expected artifacts
 
+File Tracking Analysis:
+  When using --use-manifest-chain in implementation mode, MAID Runner automatically
+  analyzes file tracking compliance across the codebase:
+
+  🔴 UNDECLARED - Files not in any manifest (high priority)
+  🟡 REGISTERED - Files tracked but incomplete compliance (medium priority)
+  ✓ TRACKED     - Files with full MAID compliance
+
+  This helps identify accountability gaps and ensures all source files are properly
+  documented in manifests.
+
 This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         """,
     )
@@ -818,7 +829,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
     parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests",
+        help="Use manifest chain to merge all related manifests (enables file tracking analysis)",
     )
 
     parser.add_argument(
