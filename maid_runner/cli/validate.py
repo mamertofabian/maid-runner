@@ -168,15 +168,17 @@ def validate_behavioral_tests(
     if not test_files:
         return  # No test files to validate
 
-    # Normalize test file paths: strip redundant project directory prefix
-    project_name = Path.cwd().name
+    # Normalize test file paths: strip redundant project directory prefix if needed
+    # This handles cases where paths might have redundant directory prefixes
     normalized_test_files = []
     for test_file in test_files:
-        if "/" in test_file and test_file.startswith(f"{project_name}/"):
-            # Check if there's a redundant prefix
-            potential_normalized = test_file[len(project_name) + 1 :]
-            if Path(potential_normalized).exists() and not Path(test_file).exists():
-                test_file = potential_normalized
+        # Only normalize if the file doesn't exist as-is
+        if "/" in test_file and not Path(test_file).exists():
+            project_name = Path.cwd().name
+            if test_file.startswith(f"{project_name}/"):
+                potential_normalized = test_file[len(project_name) + 1 :]
+                if Path(potential_normalized).exists():
+                    test_file = potential_normalized
         normalized_test_files.append(test_file)
 
     test_files = normalized_test_files
@@ -476,15 +478,16 @@ def run_validation(
             print("✗ Error: No file specified in manifest's expectedArtifacts.file")
             sys.exit(1)
 
-        # Normalize file path: strip redundant project directory prefix
-        # E.g., if we're in maid_agents and path is "maid_agents/maid_agents/core/...",
-        # strip one "maid_agents/" prefix to make it "maid_agents/core/..."
-        project_name = Path.cwd().name
-        if "/" in file_path and file_path.startswith(f"{project_name}/"):
-            # Check if there's a redundant prefix by seeing if the file exists without it
-            potential_normalized = file_path[len(project_name) + 1 :]
-            if Path(potential_normalized).exists() and not Path(file_path).exists():
-                file_path = potential_normalized
+        # Normalize file path: strip redundant project directory prefix if it exists
+        # This handles cases where paths might have redundant directory prefixes
+        # Check if the file exists as-is first, then try without the first directory component
+        if "/" in file_path and not Path(file_path).exists():
+            # Try removing the first directory component if it matches the current directory name
+            project_name = Path.cwd().name
+            if file_path.startswith(f"{project_name}/"):
+                potential_normalized = file_path[len(project_name) + 1 :]
+                if Path(potential_normalized).exists():
+                    file_path = potential_normalized
 
         # BEHAVIORAL TEST VALIDATION
         # In behavioral mode, we validate test structure, not implementation
@@ -492,6 +495,9 @@ def run_validation(
         validation_commands = manifest_data.get("validationCommands", [])
         if not validation_commands:
             validation_commands = manifest_data.get("validationCommand", [])
+
+        # Initialize test_files to empty list for use in both behavioral and implementation modes
+        test_files = []
 
         if validation_mode == "behavioral":
             # Behavioral mode: Check test files exist and USE artifacts

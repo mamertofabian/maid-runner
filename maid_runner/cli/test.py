@@ -50,65 +50,40 @@ def execute_validation_commands(
     # Get project directory name for path normalization
     project_name = project_root.name
 
-    # Set up environment with PYTHONPATH for local dependencies
-    # This handles cases like maid_agents depending on maid-runner in development
+    # Set up environment
     import os
 
     env_additions = os.environ.copy()
 
-    # Look for maid-runner installation (could be parent or sibling)
-    has_local_deps = False
-    maid_runner_root = None
-
-    # Check if parent directory is maid-runner (e.g., we're maid_agents inside maid-runner)
-    parent_dir = project_root.parent
-    if (parent_dir / "maid_runner").exists() and parent_dir.name == "maid-runner":
-        maid_runner_root = parent_dir
-        has_local_deps = True
-    else:
-        # Check for sibling maid-runner directory
-        sibling_maid_runner = parent_dir / "maid-runner"
-        if (
-            sibling_maid_runner.exists()
-            and (sibling_maid_runner / "maid_runner").exists()
-            and sibling_maid_runner.resolve() != project_root.resolve()
-        ):
-            maid_runner_root = sibling_maid_runner
-            has_local_deps = True
-
-    if has_local_deps and maid_runner_root:
-        # Found local maid-runner, add it to PYTHONPATH
-        current_pythonpath = env_additions.get("PYTHONPATH", "")
-        pythonpath_additions = [str(maid_runner_root)]
-
-        # Also add the current project root to PYTHONPATH
-        pythonpath_additions.append(str(project_root))
-
-        if current_pythonpath:
-            pythonpath_additions.append(current_pythonpath)
-
-        env_additions["PYTHONPATH"] = ":".join(pythonpath_additions)
+    # Add current project root to PYTHONPATH to ensure local imports work
+    current_pythonpath = env_additions.get("PYTHONPATH", "")
+    pythonpath_additions = [str(project_root)]
+    if current_pythonpath:
+        pythonpath_additions.append(current_pythonpath)
+    env_additions["PYTHONPATH"] = ":".join(pythonpath_additions)
 
     # Check if we should auto-prefix pytest commands with 'uv run'
-    # Only do this if:
-    # 1. Project has pyproject.toml (uv project)
-    # 2. Project doesn't have problematic local dependencies
+    # Only do this if project has pyproject.toml (uv project)
     pyproject_path = project_root / "pyproject.toml"
-    auto_prefix_uv_run = pyproject_path.exists() and not has_local_deps
+    auto_prefix_uv_run = pyproject_path.exists()
 
     for i, cmd in enumerate(validation_commands):
         if not cmd:
             continue
 
-        # Normalize command paths: strip redundant project directory prefix
-        # E.g., if project_root is /path/to/maid_agents and command has maid_agents/tests/...,
-        # strip the maid_agents/ prefix so it becomes tests/...
+        # Normalize command paths: strip redundant project directory prefix if needed
+        # This handles cases where paths might have redundant directory prefixes
         normalized_cmd = []
         for arg in cmd:
+            # Only normalize if the path doesn't exist as-is and starts with project name
             if "/" in arg and arg.startswith(f"{project_name}/"):
-                # Strip the redundant project directory prefix
+                # Check if removing the prefix would make the path exist
                 normalized_arg = arg[len(project_name) + 1 :]
-                normalized_cmd.append(normalized_arg)
+                # Use normalized path if original doesn't exist but normalized does
+                if not Path(arg).exists() and Path(normalized_arg).exists():
+                    normalized_cmd.append(normalized_arg)
+                else:
+                    normalized_cmd.append(arg)
             else:
                 normalized_cmd.append(arg)
 
