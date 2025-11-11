@@ -571,19 +571,9 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
-        """Collect imported class names from local modules only."""
-        if not node.names:
-            self.generic_visit(node)
-            return
-
-        # Determine if this is a local import
-        is_local = self._is_local_import(node)
-
-        # Process each imported name
-        for alias in node.names:
-            if is_local and self._is_class_name(alias.name):
-                self.found_classes.add(alias.name)
-
+        """Track import statements without treating them as defined artifacts."""
+        # Don't add imports to found_classes - they are dependencies, not artifacts
+        # found_classes should only contain classes DEFINED via visit_ClassDef()
         self.generic_visit(node)
 
     def _is_local_import(self, node):
@@ -783,7 +773,8 @@ class _ArtifactCollector(ast.NodeVisitor):
             return
 
         class_name = node.value.func.id
-        if class_name in self.found_classes:
+        # Check if it's a known class or follows class naming conventions
+        if class_name in self.found_classes or (class_name and class_name[0].isupper()):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self.variable_to_class[target.id] = class_name

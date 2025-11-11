@@ -65,7 +65,7 @@ def process_data():
 
 
 def test_import_from_local_modules(tmp_path: Path):
-    """Test that local module imports with uppercase names are tracked as classes."""
+    """Test that local module imports are NOT tracked as defined classes."""
     code = """
 from .models import User, Product
 from ..services import OrderService
@@ -83,21 +83,22 @@ def process():
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "User"},
-                {"type": "class", "name": "Product"},
-                {"type": "class", "name": "OrderService"},
-                {"type": "class", "name": "AlignmentError"},
-                {"type": "class", "name": "MyClass"},
-                {"type": "function", "name": "process"},
+                # Imported classes should NOT be in manifest (they're dependencies)
+                # {"type": "class", "name": "User"},  # IMPORTED, not defined
+                # {"type": "class", "name": "Product"},  # IMPORTED, not defined
+                # {"type": "class", "name": "OrderService"},  # IMPORTED, not defined
+                # {"type": "class", "name": "AlignmentError"},  # IMPORTED, not defined
+                {"type": "class", "name": "MyClass"},  # DEFINED in this file
+                {"type": "function", "name": "process"},  # DEFINED in this file
             ]
         }
     }
-    # Should pass - local uppercase imports are tracked as classes
+    # Should pass - only defined artifacts are tracked, not imports
     validate_with_ast(manifest, str(test_file))
 
 
 def test_relative_imports(tmp_path: Path):
-    """Test relative imports at various levels."""
+    """Test that relative imports are NOT tracked as defined classes."""
     code = """
 from . import DatabaseConnection
 from .. import ConfigManager
@@ -112,19 +113,20 @@ def setup():
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "DatabaseConnection"},
-                {"type": "class", "name": "ConfigManager"},
-                {"type": "class", "name": "Logger"},
-                {"type": "function", "name": "setup"},
+                # Relative imports should NOT be in manifest (they're dependencies)
+                # {"type": "class", "name": "DatabaseConnection"},  # IMPORTED
+                # {"type": "class", "name": "ConfigManager"},  # IMPORTED
+                # {"type": "class", "name": "Logger"},  # IMPORTED
+                {"type": "function", "name": "setup"},  # DEFINED in this file
             ]
         }
     }
-    # Should pass - relative imports with uppercase names are tracked
+    # Should pass - only defined artifacts are tracked, not imports
     validate_with_ast(manifest, str(test_file))
 
 
 def test_mixed_case_imports(tmp_path: Path):
-    """Test that only uppercase-starting names are treated as classes."""
+    """Test that imports are NOT tracked as defined classes regardless of case."""
     code = """
 from .models import User, user_factory, CONSTANTS, _private
 from ..services import process_order, OrderProcessor
@@ -138,15 +140,16 @@ def main():
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                {"type": "class", "name": "User"},
-                {"type": "class", "name": "CONSTANTS"},
-                {"type": "class", "name": "OrderProcessor"},
-                {"type": "function", "name": "main"},
-                # user_factory, process_order, _private should NOT be tracked as classes
+                # All imports should be excluded (regardless of case)
+                # {"type": "class", "name": "User"},  # IMPORTED
+                # {"type": "class", "name": "CONSTANTS"},  # IMPORTED
+                # {"type": "class", "name": "OrderProcessor"},  # IMPORTED
+                {"type": "function", "name": "main"},  # DEFINED in this file
+                # user_factory, process_order, _private are not classes anyway
             ]
         }
     }
-    # Should pass - only uppercase names are tracked as classes
+    # Should pass - imports are not tracked, only defined artifacts
     validate_with_ast(manifest, str(test_file))
 
 

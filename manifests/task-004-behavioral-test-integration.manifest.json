@@ -41,11 +41,6 @@
         ],
         "returns": "None",
         "artifactKind": "type"
-      },
-      {
-        "type": "class",
-        "name": "AlignmentError",
-        "artifactKind": "type"
       }
     ]
   },

@@ -3,10 +3,19 @@ import pytest
 from pathlib import Path
 from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
-# We'll use a more complex dummy file now
+# We'll use a more complex dummy file with DEFINED classes (not imported)
 DUMMY_TEST_CODE = """
 import pytest
-from my_app.models import User, Product
+
+class User:
+    def __init__(self, name, user_id):
+        self.name = name
+        self.user_id = user_id
+
+class Product:
+    def __init__(self, sku, price):
+        self.sku = sku
+        self.price = price
 
 def test_user_creation():
     # Using a standard variable name
