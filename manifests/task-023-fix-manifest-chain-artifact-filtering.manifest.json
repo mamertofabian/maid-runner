@@ -1,0 +1,36 @@
+{
+  "goal": "Fix manifest chain artifact merging to filter by target file - only merge artifacts where expectedArtifacts.file matches the file being validated",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_023_fix_manifest_chain_artifact_filtering.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_merge_expected_artifacts",
+        "args": [
+          {"name": "manifest_paths", "type": "List[str]"},
+          {"name": "target_file", "type": "str"}
+        ],
+        "returns": "List[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_get_expected_artifacts",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "test_file_path", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"}
+        ],
+        "returns": "List[dict]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_023_fix_manifest_chain_artifact_filtering.py", "-v"]
+}

@@ -333,6 +333,9 @@
         "parameters": [
           {
             "name": "manifest_paths"
+          },
+          {
+            "name": "target_file"
           }
         ]
       },

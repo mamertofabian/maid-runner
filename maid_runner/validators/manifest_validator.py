@@ -1030,12 +1030,15 @@ def discover_related_manifests(target_file):
     return manifests
 
 
-def _merge_expected_artifacts(manifest_paths):
+def _merge_expected_artifacts(
+    manifest_paths: List[str], target_file: str
+) -> List[dict]:
     """
-    Merge expected artifacts from multiple manifests.
+    Merge expected artifacts from multiple manifests, filtering by target file.
 
     Args:
         manifest_paths: List of paths to manifest files
+        target_file: Only include artifacts where expectedArtifacts.file matches this path
 
     Returns:
         Merged list of expected artifacts
@@ -1047,7 +1050,15 @@ def _merge_expected_artifacts(manifest_paths):
         with open(path, "r") as f:
             data = json.load(f)
 
-        artifacts = data.get("expectedArtifacts", {}).get("contains", [])
+        # Only include artifacts if expectedArtifacts.file matches target_file
+        expected_artifacts = data.get("expectedArtifacts", {})
+        artifacts_file = expected_artifacts.get("file")
+
+        # Skip this manifest if its artifacts are for a different file
+        if artifacts_file != target_file:
+            continue
+
+        artifacts = expected_artifacts.get("contains", [])
 
         for artifact in artifacts:
             # Use (type, name) as unique key
@@ -1200,7 +1211,7 @@ def _get_expected_artifacts(
             "file", test_file_path
         )
         related_manifests = discover_related_manifests(target_file)
-        return _merge_expected_artifacts(related_manifests)
+        return _merge_expected_artifacts(related_manifests, target_file)
     else:
         expected_artifacts = manifest_data.get("expectedArtifacts", {})
         return expected_artifacts.get("contains", [])
