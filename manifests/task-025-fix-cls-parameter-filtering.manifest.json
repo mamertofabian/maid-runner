@@ -1,0 +1,29 @@
+{
+  "goal": "Fix validator to filter both 'self' and 'cls' parameters from method validation, allowing classmethods to validate correctly",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_025_fix_cls_parameter.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_validate_method_parameters",
+        "args": [
+          {"name": "method_name", "type": "str"},
+          {"name": "parameters", "type": "List[dict]"},
+          {"name": "class_name", "type": "str"},
+          {"name": "collector", "type": "_ArtifactCollector"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_025_fix_cls_parameter.py", "-v"]
+}

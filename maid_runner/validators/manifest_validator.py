@@ -1427,9 +1427,8 @@ def _validate_method_parameters(
     """Validate method parameters match expectations."""
     actual_parameters = collector.found_methods[class_name][method_name]
 
-    # Skip 'self' parameter for methods
-    if "self" in actual_parameters:
-        actual_parameters = [p for p in actual_parameters if p != "self"]
+    # Skip 'self' and 'cls' parameters for methods and classmethods
+    actual_parameters = [p for p in actual_parameters if p not in ("self", "cls")]
 
     expected_param_names = [p["name"] for p in parameters]
 
