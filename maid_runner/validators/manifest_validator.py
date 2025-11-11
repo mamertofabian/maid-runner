@@ -767,14 +767,25 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def _track_class_instantiations(self, node):
         """Track variable assignments to class instances."""
-        if not (
-            isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
-        ):
+        if not isinstance(node.value, ast.Call):
             return
 
-        class_name = node.value.func.id
+        class_name = None
+
+        # Handle direct instantiation: service = UserService()
+        if isinstance(node.value.func, ast.Name):
+            class_name = node.value.func.id
+        # Handle classmethod calls: service = ProductService.create_default()
+        elif isinstance(node.value.func, ast.Attribute) and isinstance(
+            node.value.func.value, ast.Name
+        ):
+            # Assume classmethod returns instance of the class
+            class_name = node.value.func.value.id
+
         # Check if it's a known class or follows class naming conventions
-        if class_name in self.found_classes or (class_name and class_name[0].isupper()):
+        if class_name and (
+            class_name in self.found_classes or (class_name and class_name[0].isupper())
+        ):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self.variable_to_class[target.id] = class_name
@@ -866,7 +877,23 @@ class _ArtifactCollector(ast.NodeVisitor):
                 # Track the object's class if known
                 if isinstance(node.func.value, ast.Name):
                     var_name = node.func.value.id
-                    if var_name in self.variable_to_class:
+
+                    # Check if it's a known class being called directly (classmethod/staticmethod)
+                    if var_name in self.found_classes or (
+                        var_name
+                        and (
+                            var_name[0].isupper()
+                            or (
+                                var_name.startswith("_")
+                                and len(var_name) > 1
+                                and var_name[1].isupper()
+                            )
+                        )
+                    ):
+                        self._track_method_call_with_inheritance(var_name, method_name)
+                        self.used_classes.add(var_name)
+                    # Existing logic for variables
+                    elif var_name in self.variable_to_class:
                         class_name = self.variable_to_class[var_name]
                         self._track_method_call_with_inheritance(
                             class_name, method_name

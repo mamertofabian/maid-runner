@@ -1,0 +1,26 @@
+{
+  "goal": "Fix validator to detect classmethod calls made directly on the class name (e.g., ConfigService.create_default())",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_026_detect_classmethod_calls.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "visit_Call",
+        "class": "_ArtifactCollector",
+        "args": [
+          {"name": "node"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_026_detect_classmethod_calls.py", "-v"]
+}
