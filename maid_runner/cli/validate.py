@@ -382,6 +382,19 @@ def run_validation(
             # Implementation mode: Check implementation file exists and DEFINES artifacts
             if not Path(file_path).exists():
                 print(f"✗ Error: Target file not found: {file_path}")
+                print()
+                print(
+                    "⚠️  Hint: If you're validating a manifest before implementing the code (MAID Phase 2),"
+                )
+                print(
+                    "   you should use behavioral validation to check the test structure:"
+                )
+                print()
+                print(
+                    f"   uv run maid validate {manifest_path} --validation-mode behavioral"
+                )
+                print()
+                print("   Implementation validation requires the target file to exist.")
                 sys.exit(1)
 
             # Also run behavioral test validation if validation commands are present

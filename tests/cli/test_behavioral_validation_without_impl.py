@@ -197,3 +197,60 @@ def test_default_mode_is_implementation(tmp_path: Path):
 
     # Should fail because default mode is implementation and file doesn't exist
     assert result.returncode != 0
+
+
+def test_implementation_validation_shows_helpful_hint_for_missing_file(tmp_path: Path):
+    """Test that implementation validation shows helpful hint when file doesn't exist."""
+    manifest = {
+        "goal": "Test helpful error message for missing implementation",
+        "taskType": "create",
+        "creatableFiles": ["src/missing_impl.py"],
+        "readonlyFiles": ["tests/test_missing_impl.py"],
+        "expectedArtifacts": {
+            "file": "src/missing_impl.py",
+            "contains": [{"type": "function", "name": "my_func", "args": []}],
+        },
+        "validationCommand": ["pytest", "tests/test_missing_impl.py", "-v"],
+    }
+
+    manifest_file = tmp_path / "test-manifest.json"
+    manifest_file.write_text(json.dumps(manifest, indent=2))
+
+    # Create test file
+    test_dir = tmp_path / "tests"
+    test_dir.mkdir()
+    test_file = test_dir / "test_missing_impl.py"
+    test_file.write_text(
+        """
+from src.missing_impl import my_func
+
+def test_my_func():
+    result = my_func()
+    assert result is not None
+"""
+    )
+
+    # The implementation file does NOT exist
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    # Run implementation validation (default mode) - should FAIL with helpful hint
+    result = subprocess.run(
+        ["maid", "validate", str(manifest_file)],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+
+    # Should fail because implementation file doesn't exist
+    assert result.returncode != 0
+    assert (
+        "Target file not found" in result.stdout
+        or "Target file not found" in result.stderr
+    )
+
+    # Should show helpful hint about using behavioral validation
+    combined_output = result.stdout + result.stderr
+    assert "Hint:" in combined_output or "hint" in combined_output.lower()
+    assert "behavioral" in combined_output.lower()
+    assert "--validation-mode behavioral" in combined_output
