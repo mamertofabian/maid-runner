@@ -1276,7 +1276,10 @@ def _check_unexpected_artifacts(
 
     if expected_items and not is_test_file:
         _validate_no_unexpected_artifacts(
-            expected_items, collector.found_classes, collector.found_functions
+            expected_items,
+            collector.found_classes,
+            collector.found_functions,
+            collector.found_methods,
         )
 
 
@@ -1526,15 +1529,28 @@ def _validate_function(function_name, expected_parameters, found_functions):
             )
 
 
-def _validate_no_unexpected_artifacts(expected_items, found_classes, found_functions):
+def _validate_no_unexpected_artifacts(
+    expected_items, found_classes, found_functions, found_methods
+):
     """Validate that no unexpected public artifacts exist in the code."""
     # Build sets of expected names
     expected_classes = {
         item["name"] for item in expected_items if item.get("type") == "class"
     }
     expected_functions = {
-        item["name"] for item in expected_items if item.get("type") == "function"
+        item["name"]
+        for item in expected_items
+        if item.get("type") == "function" and "class" not in item
     }
+    # Build expected methods: class_name -> set of method names
+    expected_methods = {}
+    for item in expected_items:
+        if item.get("type") == "function" and "class" in item:
+            class_name = item["class"]
+            method_name = item["name"]
+            if class_name not in expected_methods:
+                expected_methods[class_name] = set()
+            expected_methods[class_name].add(method_name)
 
     # Check for unexpected public classes (exclude private ones starting with _)
     public_classes = {cls for cls in found_classes if not cls.startswith("_")}
@@ -1551,6 +1567,22 @@ def _validate_no_unexpected_artifacts(expected_items, found_classes, found_funct
         raise AlignmentError(
             f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}"
         )
+
+    # Check for unexpected public methods in each class
+    for class_name, methods in found_methods.items():
+        # Skip private classes (starting with _)
+        if class_name.startswith("_"):
+            continue
+        # Get public methods (exclude private ones starting with _)
+        public_methods = {m for m in methods.keys() if not m.startswith("_")}
+        # Get expected methods for this class
+        expected_for_class = expected_methods.get(class_name, set())
+        # Find unexpected methods
+        unexpected = public_methods - expected_for_class
+        if unexpected:
+            raise AlignmentError(
+                f"Unexpected public method(s) in class '{class_name}': {', '.join(sorted(unexpected))}"
+            )
 
 
 def validate_type_hints(

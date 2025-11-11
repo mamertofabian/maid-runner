@@ -637,6 +637,9 @@
           },
           {
             "name": "found_functions"
+          },
+          {
+            "name": "found_methods"
           }
         ]
       },

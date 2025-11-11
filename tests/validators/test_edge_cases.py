@@ -222,8 +222,8 @@ def module_function():
         "expectedArtifacts": {
             "contains": [
                 {"type": "class", "name": "MyClass"},
+                {"type": "function", "name": "value", "class": "MyClass"},
                 {"type": "function", "name": "module_function"},
-                # Property methods should not be module functions
             ]
         }
     }
