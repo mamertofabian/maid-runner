@@ -26,7 +26,7 @@ def test_refine_method_signature():
     result = refiner.refine(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
         refinement_goal="Add edge case tests",
-        validation_feedback=""
+        validation_feedback="",
     )
 
     assert isinstance(result, dict)
@@ -41,7 +41,7 @@ def test_refine_returns_expected_structure():
     result = refiner.refine(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
         refinement_goal="Improve test coverage",
-        validation_feedback=""
+        validation_feedback="",
     )
 
     # Verify response has expected structure
@@ -59,7 +59,7 @@ def test_refine_handles_nonexistent_manifest():
     result = refiner.refine(
         manifest_path="nonexistent/manifest.json",
         refinement_goal="Improve tests",
-        validation_feedback=""
+        validation_feedback="",
     )
 
     assert isinstance(result, dict)
@@ -76,7 +76,7 @@ def test_refine_with_validation_feedback():
     result = refiner.refine(
         manifest_path="maid_agents/manifests/task-005-base-agent.manifest.json",
         refinement_goal="Fix validation errors",
-        validation_feedback="Artifact 'foo' not found in tests"
+        validation_feedback="Artifact 'foo' not found in tests",
     )
 
     assert isinstance(result, dict)
@@ -101,7 +101,7 @@ def test_orchestrator_run_refinement_loop_exists():
     result = orchestrator.run_refinement_loop(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
         refinement_goal="Add more comprehensive tests",
-        max_iterations=2
+        max_iterations=2,
     )
 
     assert isinstance(result, dict)
@@ -115,7 +115,7 @@ def test_orchestrator_run_refinement_loop_returns_structure():
     result = orchestrator.run_refinement_loop(
         manifest_path="maid_agents/manifests/task-005-base-agent.manifest.json",
         refinement_goal="Improve test quality",
-        max_iterations=3
+        max_iterations=3,
     )
 
     assert isinstance(result, dict)
@@ -130,13 +130,13 @@ def test_orchestrator_run_refinement_loop_with_different_iterations():
     result1 = orchestrator.run_refinement_loop(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
         refinement_goal="Test goal 1",
-        max_iterations=1
+        max_iterations=1,
     )
 
     result2 = orchestrator.run_refinement_loop(
         manifest_path="maid_agents/manifests/task-001-orchestrator-skeleton.manifest.json",
         refinement_goal="Test goal 2",
-        max_iterations=5
+        max_iterations=5,
     )
 
     assert isinstance(result1, dict)
