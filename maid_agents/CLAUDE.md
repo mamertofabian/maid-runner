@@ -8,7 +8,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MAID Agents is a Claude Code automation layer for the MAID (Manifest-driven AI Development) methodology. It provides CLI tools and agents that automate the four phases of MAID workflow by invoking Claude Code in headless mode.
 
-This package was built using MAID itself - it's a self-referential implementation that demonstrates the methodology it automates.
+### Self-Improvement Architecture
+
+**CRITICAL: This project uses itself to improve itself.**
+
+Both tools are installed globally in miniconda and available system-wide:
+- **maid-runner** (CLI: `maid`) - Validation engine for manifests
+- **maid_agents** (CLI: `ccmaid`) - This package, the automation layer
+
+**This means `ccmaid` can be used to develop `ccmaid` itself.** This self-referential architecture enables rapid iteration but has important implications:
+
+⚠️ **Potential Gotchas:**
+1. **Version Confusion** - Are you running the installed `ccmaid` or developing it?
+2. **Infinite Recursion** - `ccmaid` could theoretically invoke itself recursively
+3. **Bootstrap Paradox** - Changes to agents may affect their ability to develop themselves
+4. **Debugging Complexity** - The tool being debugged might be the tool doing the debugging
+
+**Best Practices:**
+- When manually developing: Work directly in this codebase with tests
+- When using `ccmaid` to develop `ccmaid`: Be explicit about which version you're running
+- Always test changes to agents thoroughly before using them to develop themselves
+- Use `--mock` mode when testing to avoid recursive API calls
+- Be aware that agent behavior changes can affect subsequent development iterations
 
 ## Key Commands
 
