@@ -13,6 +13,85 @@ from pathlib import Path
 from typing import Optional
 
 from maid_runner.validators.manifest_validator import validate_with_ast
+from maid_runner.validators.file_tracker import analyze_file_tracking
+
+
+def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
+    """Format and print file tracking analysis warnings (internal helper).
+
+    Args:
+        analysis: FileTrackingAnalysis dictionary with undeclared, registered, tracked
+        quiet: If True, only show summary
+    """
+    undeclared = analysis.get("undeclared", [])
+    registered = analysis.get("registered", [])
+    tracked = analysis.get("tracked", [])
+
+    total_files = len(undeclared) + len(registered) + len(tracked)
+
+    if total_files == 0:
+        return  # No files to report
+
+    # Only show if there are warnings
+    if undeclared or registered:
+        print()
+        print("━" * 80)
+        print("FILE TRACKING ANALYSIS")
+        print("━" * 80)
+        print()
+
+    # UNDECLARED files (high priority)
+    if undeclared:
+        print(f"🔴 UNDECLARED FILES ({len(undeclared)} files)")
+        print("  Files exist in codebase but are not tracked in any manifest")
+        print()
+
+        if not quiet:
+            for file_info in undeclared[:10]:  # Limit to 10 for readability
+                print(f"  - {file_info['file']}")
+                for issue in file_info["issues"]:
+                    print(f"    → {issue}")
+
+            if len(undeclared) > 10:
+                print(f"  ... and {len(undeclared) - 10} more")
+
+        print()
+        print(
+            "  Action: Add these files to creatableFiles or editableFiles in a manifest"
+        )
+        print()
+
+    # REGISTERED files (medium priority)
+    if registered:
+        print(f"🟡 REGISTERED FILES ({len(registered)} files)")
+        print("  Files are tracked but not fully MAID-compliant")
+        print()
+
+        if not quiet:
+            for file_info in registered[:10]:  # Limit to 10 for readability
+                print(f"  - {file_info['file']}")
+                for issue in file_info["issues"]:
+                    print(f"    ⚠️  {issue}")
+                print(f"    Manifests: {', '.join(file_info['manifests'][:3])}")
+
+            if len(registered) > 10:
+                print(f"  ... and {len(registered) - 10} more")
+
+        print()
+        print(
+            "  Action: Add expectedArtifacts and validationCommand for full compliance"
+        )
+        print()
+
+    # Summary
+    if undeclared or registered:
+        print(f"✓ TRACKED ({len(tracked)} files)")
+        print("  All other source files are fully MAID-compliant")
+        print()
+        print(
+            f"Summary: {len(undeclared)} UNDECLARED, {len(registered)} REGISTERED, {len(tracked)} TRACKED"
+        )
+        print()
 
 
 def extract_test_files_from_command(validation_command) -> list:
@@ -376,6 +455,7 @@ def _run_directory_validation(
                     use_manifest_chain=use_manifest_chain,
                     quiet=True,  # Suppress individual success messages
                     manifest_dir=None,  # Prevent recursion
+                    skip_file_tracking=True,  # Skip per-manifest tracking
                 )
                 total_passed += 1
                 if not quiet:
@@ -404,6 +484,28 @@ def _run_directory_validation(
     if manifests_with_failures:
         print(f"   ❌ Failed manifests: {', '.join(manifests_with_failures)}")
 
+    # FILE TRACKING ANALYSIS (once for all manifests)
+    # Run only if using manifest chain and in implementation mode
+    if use_manifest_chain and validation_mode == "implementation":
+        try:
+            # Load all manifests
+            manifest_chain = []
+            for manifest_file in sorted(manifests_dir.glob("task-*.manifest.json")):
+                with open(manifest_file, "r") as f:
+                    manifest_chain.append(json.load(f))
+
+            # Analyze file tracking
+            source_root = str(project_root)
+            analysis = analyze_file_tracking(manifest_chain, source_root)
+
+            # Display warnings
+            _format_file_tracking_output(analysis, quiet=quiet)
+
+        except Exception as e:
+            # Don't fail validation if file tracking has issues
+            if not quiet:
+                print(f"\n⚠️  File tracking analysis failed: {e}")
+
     # Exit with appropriate code
     if total_failed > 0:
         sys.exit(1)
@@ -417,6 +519,7 @@ def run_validation(
     use_manifest_chain: bool = False,
     quiet: bool = False,
     manifest_dir: Optional[str] = None,
+    skip_file_tracking: bool = False,
 ) -> None:
     """Core validation logic accepting parsed arguments.
 
@@ -426,6 +529,7 @@ def run_validation(
         use_manifest_chain: If True, use manifest chain to merge related manifests
         quiet: If True, suppress success messages
         manifest_dir: Path to directory containing manifests to validate all at once
+        skip_file_tracking: If True, skip file tracking analysis (used in batch mode)
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
@@ -595,6 +699,37 @@ def run_validation(
 
             print(f"  Manifest: {manifest_path}")
             print(f"  Target:   {file_path}")
+
+        # FILE TRACKING ANALYSIS
+        # Run file tracking analysis when using manifest chain in implementation mode
+        # Skip if in batch mode (will be shown once at the end)
+        if (
+            use_manifest_chain
+            and validation_mode == "implementation"
+            and not skip_file_tracking
+        ):
+            try:
+                # Load all manifests from manifests directory
+                manifests_dir = Path("manifests")
+                if manifests_dir.exists():
+                    manifest_chain = []
+                    for manifest_file in sorted(
+                        manifests_dir.glob("task-*.manifest.json")
+                    ):
+                        with open(manifest_file, "r") as f:
+                            manifest_chain.append(json.load(f))
+
+                    # Analyze file tracking
+                    source_root = str(Path.cwd())
+                    analysis = analyze_file_tracking(manifest_chain, source_root)
+
+                    # Display warnings
+                    _format_file_tracking_output(analysis, quiet=quiet)
+
+            except Exception as e:
+                # Don't fail validation if file tracking has issues
+                if not quiet:
+                    print(f"\n⚠️  File tracking analysis failed: {e}")
 
         # Display metadata if present (outside conditional for consistent display)
         metadata = manifest_data.get("metadata")

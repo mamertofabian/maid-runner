@@ -1,0 +1,82 @@
+{
+  "goal": "Add file tracking validation to detect UNDECLARED files (not in manifests) and REGISTERED files (incomplete compliance)",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_task_028_file_tracking.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "FILE_STATUS_UNDECLARED",
+        "artifactKind": "runtime"
+      },
+      {
+        "type": "attribute",
+        "name": "FILE_STATUS_REGISTERED",
+        "artifactKind": "runtime"
+      },
+      {
+        "type": "attribute",
+        "name": "FILE_STATUS_TRACKED",
+        "artifactKind": "runtime"
+      },
+      {
+        "type": "class",
+        "name": "FileInfo",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "class",
+        "name": "FileTrackingAnalysis",
+        "bases": ["TypedDict"],
+        "artifactKind": "type"
+      },
+      {
+        "type": "function",
+        "name": "find_source_files",
+        "parameters": [
+          {"name": "root_dir", "type": "str"},
+          {"name": "exclude_patterns", "type": "List[str]"}
+        ],
+        "returns": "Set[str]"
+      },
+      {
+        "type": "function",
+        "name": "collect_tracked_files",
+        "parameters": [
+          {"name": "manifest_chain", "type": "List[dict]"}
+        ],
+        "returns": "Dict[str, dict]"
+      },
+      {
+        "type": "function",
+        "name": "classify_file_status",
+        "parameters": [
+          {"name": "file_path", "type": "str"},
+          {"name": "tracked_info", "type": "Optional[dict]"}
+        ],
+        "returns": "tuple"
+      },
+      {
+        "type": "function",
+        "name": "analyze_file_tracking",
+        "parameters": [
+          {"name": "manifest_chain", "type": "List[dict]"},
+          {"name": "source_root", "type": "str"}
+        ],
+        "returns": "FileTrackingAnalysis"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_task_028_file_tracking.py", "-v"]
+}

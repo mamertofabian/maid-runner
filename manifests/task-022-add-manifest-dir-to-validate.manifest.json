@@ -37,6 +37,10 @@
           {
             "name": "manifest_dir",
             "type": "Optional[str]"
+          },
+          {
+            "name": "skip_file_tracking",
+            "type": "bool"
           }
         ],
         "returns": "None"
