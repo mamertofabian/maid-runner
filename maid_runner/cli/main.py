@@ -75,6 +75,46 @@ def main():
         help="Overwrite existing manifests without prompting",
     )
 
+    # Test subcommand
+    test_parser = subparsers.add_parser(
+        "test",
+        help="Run validation commands from all non-superseded manifests",
+        description="Run validation commands from all non-superseded manifests",
+    )
+    test_parser.add_argument(
+        "--manifest",
+        "-m",
+        help="Run validation commands for a single manifest (filename relative to manifest-dir or absolute path)",
+    )
+    test_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+    test_parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop execution on first failure",
+    )
+    test_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show detailed command output",
+    )
+    test_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Only show summary (suppress per-manifest output)",
+    )
+    test_parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Command timeout in seconds (default: 300)",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -94,6 +134,17 @@ def main():
         from maid_runner.cli.snapshot import run_snapshot
 
         run_snapshot(args.file_path, args.output_dir, args.force)
+    elif args.command == "test":
+        from maid_runner.cli.test import run_test
+
+        run_test(
+            args.manifest_dir,
+            args.fail_fast,
+            args.verbose,
+            args.quiet,
+            args.timeout,
+            args.manifest,
+        )
     else:
         parser.print_help()
         sys.exit(1)

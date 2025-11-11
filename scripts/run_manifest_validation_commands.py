@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from maid_runner.utils import get_superseded_manifests
+
 
 def extract_validation_commands(manifest_path: Path):
     """Extract validation commands from a manifest file."""
@@ -21,23 +23,6 @@ def extract_validation_commands(manifest_path: Path):
     except KeyError as e:
         print(f"⚠️  Warning: Missing key in {manifest_path.name}: {e}", file=sys.stderr)
         return []
-
-
-def get_superseded_manifests(manifests_dir: Path) -> set:
-    """Find all manifests that are superseded by snapshots."""
-    import importlib.util
-    import sys
-
-    # Import the function from the other script
-    script_path = Path(__file__).parent / "get_superseded_manifests.py"
-    spec = importlib.util.spec_from_file_location(
-        "get_superseded_manifests", script_path
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["get_superseded_manifests"] = module
-    spec.loader.exec_module(module)
-
-    return module.get_superseded_manifests(manifests_dir)
 
 
 def run_validation_commands():
