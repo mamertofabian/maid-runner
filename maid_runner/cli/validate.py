@@ -205,6 +205,23 @@ def validate_behavioral_tests(
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
+        # Check for 'self' parameter before skipping artifacts
+        # This validation must occur even for private methods like __init__
+        if artifact.get("type") == "function":
+            parameters = artifact.get("args") or artifact.get("parameters", [])
+            if parameters:
+                for param in parameters:
+                    if param.get("name") == "self":
+                        from maid_runner.validators.manifest_validator import (
+                            AlignmentError,
+                        )
+
+                        raise AlignmentError(
+                            f"Manifest error: Parameter 'self' should not be explicitly declared "
+                            f"in method '{artifact.get('name')}'. In Python, 'self' is implicit for instance methods "
+                            f"and is not included in artifact declarations. Remove 'self' from the parameters list."
+                        )
+
         # Skip type-only artifacts in behavioral validation
         if should_skip_behavioral_validation(artifact):
             continue

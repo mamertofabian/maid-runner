@@ -1310,6 +1310,18 @@ def _validate_function_artifact(
     parameters = artifact.get("args") or artifact.get("parameters", [])
     parent_class = artifact.get("class")
 
+    # Reject manifests that explicitly declare 'self' as a parameter
+    # In Python, 'self' is implicit for instance methods and not included in artifact declarations
+    if parameters:
+        for param in parameters:
+            param_name = param.get("name")
+            if param_name == "self":
+                raise AlignmentError(
+                    f"Manifest error: Parameter 'self' should not be explicitly declared "
+                    f"in method '{artifact_name}'. In Python, 'self' is implicit for instance methods "
+                    f"and is not included in artifact declarations. Remove 'self' from the parameters list."
+                )
+
     if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
         _validate_function_behavioral(
             artifact_name, parameters, parent_class, artifact, collector
