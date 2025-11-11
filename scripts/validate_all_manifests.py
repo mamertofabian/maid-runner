@@ -11,19 +11,10 @@ from pathlib import Path
 
 
 def get_superseded_manifests(manifests_dir: Path):
-    """Find all manifests that are superseded by snapshots."""
-    import importlib.util
+    """Find all manifests that are superseded by other manifests."""
+    from maid_runner.utils import get_superseded_manifests as get_superseded
 
-    # Import the function from the other script
-    script_path = Path(__file__).parent / "get_superseded_manifests.py"
-    spec = importlib.util.spec_from_file_location(
-        "get_superseded_manifests", script_path
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["get_superseded_manifests"] = module
-    spec.loader.exec_module(module)
-
-    return module.get_superseded_manifests(manifests_dir)
+    return get_superseded(manifests_dir)
 
 
 def run_structural_validation(manifest_path: Path) -> bool:
