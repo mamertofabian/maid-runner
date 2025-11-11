@@ -69,7 +69,7 @@
           },
           {
             "name": "manifest_path",
-            "type": "str"
+            "type": "Optional[str]"
           }
         ],
         "returns": "None"

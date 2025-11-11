@@ -89,7 +89,7 @@ def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:
 
 
 def get_superseded_manifests(manifests_dir: Path) -> set:
-    """Find all manifests that are superseded by snapshots.
+    """Find all manifests that are superseded by any other manifests.
 
     Args:
         manifests_dir: Path to the manifests directory
@@ -99,16 +99,16 @@ def get_superseded_manifests(manifests_dir: Path) -> set:
     """
     superseded = set()
 
-    # Find all snapshot manifests
-    snapshot_manifests = manifests_dir.glob("task-*-snapshot-*.manifest.json")
+    # Check ALL manifests for supersedes declarations (not just snapshots)
+    all_manifests = manifests_dir.glob("task-*.manifest.json")
 
-    for snapshot_path in snapshot_manifests:
+    for manifest_path in all_manifests:
         try:
-            with open(snapshot_path, "r") as f:
-                snapshot_data = json.load(f)
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
 
-            # Get the supersedes list from the snapshot
-            supersedes_list = snapshot_data.get("supersedes", [])
+            # Get the supersedes list
+            supersedes_list = manifest_data.get("supersedes", [])
             for superseded_path_str in supersedes_list:
                 # Convert to Path and resolve relative to manifests_dir
                 superseded_path = Path(superseded_path_str)

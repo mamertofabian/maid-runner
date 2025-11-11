@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 from maid_runner.validators.manifest_validator import validate_with_ast
 
@@ -167,6 +168,19 @@ def validate_behavioral_tests(
     if not test_files:
         return  # No test files to validate
 
+    # Normalize test file paths: strip redundant project directory prefix
+    project_name = Path.cwd().name
+    normalized_test_files = []
+    for test_file in test_files:
+        if "/" in test_file and test_file.startswith(f"{project_name}/"):
+            # Check if there's a redundant prefix
+            potential_normalized = test_file[len(project_name) + 1 :]
+            if Path(potential_normalized).exists() and not Path(test_file).exists():
+                test_file = potential_normalized
+        normalized_test_files.append(test_file)
+
+    test_files = normalized_test_files
+
     # Validate each test file exists
     for test_file in test_files:
         if not Path(test_file).exists():
@@ -294,16 +308,16 @@ def validate_behavioral_tests(
             pass
 
 
-def run_validation(
-    manifest_path: str,
-    validation_mode: str = "implementation",
-    use_manifest_chain: bool = False,
-    quiet: bool = False,
+def _run_directory_validation(
+    manifest_dir: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    quiet: bool,
 ) -> None:
-    """Core validation logic accepting parsed arguments.
+    """Validate all manifests in a directory.
 
     Args:
-        manifest_path: Path to the manifest JSON file
+        manifest_dir: Path to directory containing manifests
         validation_mode: Validation mode ('implementation' or 'behavioral')
         use_manifest_chain: If True, use manifest chain to merge related manifests
         quiet: If True, suppress success messages
@@ -311,6 +325,115 @@ def run_validation(
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
     """
+    import os
+    from maid_runner.utils import get_superseded_manifests
+
+    manifests_dir = Path(manifest_dir).resolve()
+
+    if not manifests_dir.exists():
+        print(f"⚠️  Manifests directory not found: {manifest_dir}")
+        sys.exit(1)
+
+    manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
+    if not manifest_files:
+        print("⚠️  No manifest files found")
+        sys.exit(0)
+
+    # Get superseded manifests and filter them out
+    superseded = get_superseded_manifests(manifests_dir)
+    active_manifests = [m for m in manifest_files if m not in superseded]
+
+    if not active_manifests:
+        print("⚠️  No active manifest files found")
+        sys.exit(0)
+
+    if superseded and not quiet:
+        print(f"⏭️  Skipping {len(superseded)} superseded manifest(s)\n")
+
+    # Change to project root directory for validation
+    # This ensures relative paths in manifests are resolved correctly
+    project_root = manifests_dir.parent
+    original_cwd = os.getcwd()
+    os.chdir(project_root)
+
+    total_passed = 0
+    total_failed = 0
+    manifests_with_failures = []
+
+    try:
+        for manifest_path in active_manifests:
+            if not quiet:
+                print(f"📋 Validating {manifest_path.name}...")
+
+            # Validate this manifest using the single-manifest validation logic
+            # We'll capture the exit by catching SystemExit
+            try:
+                run_validation(
+                    manifest_path=str(manifest_path),
+                    validation_mode=validation_mode,
+                    use_manifest_chain=use_manifest_chain,
+                    quiet=True,  # Suppress individual success messages
+                    manifest_dir=None,  # Prevent recursion
+                )
+                total_passed += 1
+                if not quiet:
+                    print("  ✅ PASSED\n")
+            except SystemExit as e:
+                if e.code == 0:
+                    total_passed += 1
+                    if not quiet:
+                        print("  ✅ PASSED\n")
+                else:
+                    total_failed += 1
+                    manifests_with_failures.append(manifest_path.name)
+                    if not quiet:
+                        print("  ❌ FAILED\n")
+    finally:
+        # Restore original working directory
+        os.chdir(original_cwd)
+
+    # Print summary
+    total_manifests = total_passed + total_failed
+    percentage = (total_passed / total_manifests * 100) if total_manifests > 0 else 0
+    print(
+        f"📊 Summary: {total_passed}/{total_manifests} manifest(s) passed ({percentage:.1f}%)"
+    )
+
+    if manifests_with_failures:
+        print(f"   ❌ Failed manifests: {', '.join(manifests_with_failures)}")
+
+    # Exit with appropriate code
+    if total_failed > 0:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+
+def run_validation(
+    manifest_path: Optional[str] = None,
+    validation_mode: str = "implementation",
+    use_manifest_chain: bool = False,
+    quiet: bool = False,
+    manifest_dir: Optional[str] = None,
+) -> None:
+    """Core validation logic accepting parsed arguments.
+
+    Args:
+        manifest_path: Path to the manifest JSON file (mutually exclusive with manifest_dir)
+        validation_mode: Validation mode ('implementation' or 'behavioral')
+        use_manifest_chain: If True, use manifest chain to merge related manifests
+        quiet: If True, suppress success messages
+        manifest_dir: Path to directory containing manifests to validate all at once
+
+    Raises:
+        SystemExit: Exits with code 0 on success, 1 on failure
+    """
+    # Handle --manifest-dir mode
+    if manifest_dir:
+        _run_directory_validation(
+            manifest_dir, validation_mode, use_manifest_chain, quiet
+        )
+        return
 
     try:
         # Validate manifest file exists
@@ -352,6 +475,16 @@ def run_validation(
         if not file_path:
             print("✗ Error: No file specified in manifest's expectedArtifacts.file")
             sys.exit(1)
+
+        # Normalize file path: strip redundant project directory prefix
+        # E.g., if we're in maid_agents and path is "maid_agents/maid_agents/core/...",
+        # strip one "maid_agents/" prefix to make it "maid_agents/core/..."
+        project_name = Path.cwd().name
+        if "/" in file_path and file_path.startswith(f"{project_name}/"):
+            # Check if there's a redundant prefix by seeing if the file exists without it
+            potential_normalized = file_path[len(project_name) + 1 :]
+            if Path(potential_normalized).exists() and not Path(file_path).exists():
+                file_path = potential_normalized
 
         # BEHAVIORAL TEST VALIDATION
         # In behavioral mode, we validate test structure, not implementation
@@ -430,12 +563,18 @@ def run_validation(
                         print("✓ Behavioral test validation PASSED")
 
             # IMPLEMENTATION VALIDATION
-            validate_with_ast(
-                manifest_data,
-                file_path,
-                use_manifest_chain=use_manifest_chain,
-                validation_mode=validation_mode,
-            )
+            # Only run AST validation for Python files
+            if file_path.endswith(".py"):
+                validate_with_ast(
+                    manifest_data,
+                    file_path,
+                    use_manifest_chain=use_manifest_chain,
+                    validation_mode=validation_mode,
+                )
+            else:
+                # For non-Python files, just verify they exist (already done above)
+                if not quiet:
+                    print(f"⚠ Skipping AST validation for non-Python file: {file_path}")
 
         # Success message
         if not quiet:
@@ -492,15 +631,18 @@ def run_validation(
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         description="Validate manifest against implementation or behavioral test files",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Validate implementation (default mode)
+  # Validate single manifest (implementation mode)
   %(prog)s manifests/task-001.manifest.json
+
+  # Validate all manifests in directory
+  %(prog)s --manifest-dir manifests
 
   # Validate behavioral test usage
   %(prog)s manifests/task-001.manifest.json --validation-mode behavioral
@@ -508,8 +650,8 @@ Examples:
   # Use manifest chain for complex validation
   %(prog)s manifests/task-001.manifest.json --use-manifest-chain
 
-  # Combined behavioral + manifest chain
-  %(prog)s manifests/task-001.manifest.json --validation-mode behavioral --use-manifest-chain
+  # Validate all manifests with behavioral mode
+  %(prog)s --manifest-dir manifests --validation-mode behavioral
 
 Validation Modes:
   implementation  - Validates that code DEFINES the expected artifacts (default)
@@ -519,7 +661,11 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         """,
     )
 
-    parser.add_argument("manifest_path", help="Path to the manifest JSON file")
+    parser.add_argument(
+        "manifest_path",
+        nargs="?",
+        help="Path to the manifest JSON file (mutually exclusive with --manifest-dir)",
+    )
 
     parser.add_argument(
         "--validation-mode",
@@ -541,12 +687,28 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         help="Only output errors (suppress success messages)",
     )
 
+    parser.add_argument(
+        "--manifest-dir",
+        help="Directory containing manifests to validate (mutually exclusive with manifest_path)",
+    )
+
     args = parser.parse_args()
+
+    # Check for mutual exclusivity
+    if args.manifest_path and args.manifest_dir:
+        parser.error(
+            "Cannot specify both manifest_path and --manifest-dir. Use one or the other."
+        )
+
+    if not args.manifest_path and not args.manifest_dir:
+        parser.error("Must specify either manifest_path or --manifest-dir")
+
     run_validation(
         args.manifest_path,
         args.validation_mode,
         args.use_manifest_chain,
         args.quiet,
+        args.manifest_dir,
     )
 
 

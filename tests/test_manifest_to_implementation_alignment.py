@@ -17,22 +17,22 @@ MANIFESTS_DIR = Path("manifests/")
 
 
 def get_superseded_manifests():
-    """Find all manifests that are superseded by snapshots.
+    """Find all manifests that are superseded by any other manifests.
 
     Returns:
-        set: Set of manifest paths that are superseded by snapshot manifests
+        set: Set of manifest paths that are superseded by other manifests
     """
     superseded = set()
 
-    # Find all snapshot manifests
-    snapshot_manifests = MANIFESTS_DIR.glob("task-*-snapshot-*.manifest.json")
+    # Check ALL manifests for supersedes declarations (not just snapshots)
+    all_manifests = MANIFESTS_DIR.glob("task-*.manifest.json")
 
-    for snapshot_path in snapshot_manifests:
-        with open(snapshot_path, "r") as f:
-            snapshot_data = json.load(f)
+    for manifest_path in all_manifests:
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
 
-        # Get the supersedes list from the snapshot
-        supersedes_list = snapshot_data.get("supersedes", [])
+        # Get the supersedes list
+        supersedes_list = manifest_data.get("supersedes", [])
         for superseded_path in supersedes_list:
             # Convert to Path and add to set
             superseded.add(Path(superseded_path))
@@ -43,8 +43,8 @@ def get_superseded_manifests():
 def find_manifest_files():
     """Scans the manifests directory and returns a list of all task manifests.
 
-    Excludes manifests that are superseded by snapshots, as those are historical
-    records and may not match current implementation after refactoring.
+    Excludes manifests that are superseded by other manifests, as those are historical
+    records and may not match current implementation after being superseded.
     """
     all_manifests = sorted(MANIFESTS_DIR.glob("task-*.manifest.json"))
     superseded = get_superseded_manifests()

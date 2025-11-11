@@ -50,6 +50,52 @@ def execute_validation_commands(
     # Get project directory name for path normalization
     project_name = project_root.name
 
+    # Set up environment with PYTHONPATH for local dependencies
+    # This handles cases like maid_agents depending on maid-runner in development
+    import os
+
+    env_additions = os.environ.copy()
+
+    # Look for maid-runner installation (could be parent or sibling)
+    has_local_deps = False
+    maid_runner_root = None
+
+    # Check if parent directory is maid-runner (e.g., we're maid_agents inside maid-runner)
+    parent_dir = project_root.parent
+    if (parent_dir / "maid_runner").exists() and parent_dir.name == "maid-runner":
+        maid_runner_root = parent_dir
+        has_local_deps = True
+    else:
+        # Check for sibling maid-runner directory
+        sibling_maid_runner = parent_dir / "maid-runner"
+        if (
+            sibling_maid_runner.exists()
+            and (sibling_maid_runner / "maid_runner").exists()
+            and sibling_maid_runner.resolve() != project_root.resolve()
+        ):
+            maid_runner_root = sibling_maid_runner
+            has_local_deps = True
+
+    if has_local_deps and maid_runner_root:
+        # Found local maid-runner, add it to PYTHONPATH
+        current_pythonpath = env_additions.get("PYTHONPATH", "")
+        pythonpath_additions = [str(maid_runner_root)]
+
+        # Also add the current project root to PYTHONPATH
+        pythonpath_additions.append(str(project_root))
+
+        if current_pythonpath:
+            pythonpath_additions.append(current_pythonpath)
+
+        env_additions["PYTHONPATH"] = ":".join(pythonpath_additions)
+
+    # Check if we should auto-prefix pytest commands with 'uv run'
+    # Only do this if:
+    # 1. Project has pyproject.toml (uv project)
+    # 2. Project doesn't have problematic local dependencies
+    pyproject_path = project_root / "pyproject.toml"
+    auto_prefix_uv_run = pyproject_path.exists() and not has_local_deps
+
     for i, cmd in enumerate(validation_commands):
         if not cmd:
             continue
@@ -66,6 +112,12 @@ def execute_validation_commands(
             else:
                 normalized_cmd.append(arg)
 
+        # Auto-prefix pytest commands with 'uv run' if appropriate
+        # This ensures tests run in the correct environment for maid-runner itself
+        # but avoids dependency resolution issues for projects with local deps
+        if auto_prefix_uv_run and normalized_cmd and normalized_cmd[0] == "pytest":
+            normalized_cmd = ["uv", "run"] + normalized_cmd
+
         cmd_str = " ".join(normalized_cmd)
         print(f"  [{i+1}/{total}] {cmd_str}")
 
@@ -76,6 +128,7 @@ def execute_validation_commands(
                 text=True,
                 timeout=timeout,
                 cwd=project_root,
+                env=env_additions,
             )
 
             if result.returncode == 0:

@@ -36,7 +36,11 @@ def main():
         help="Validate manifest against implementation or behavioral test files",
         description="Validate manifest against implementation or behavioral test files",
     )
-    validate_parser.add_argument("manifest_path", help="Path to the manifest JSON file")
+    validate_parser.add_argument(
+        "manifest_path",
+        nargs="?",
+        help="Path to the manifest JSON file (mutually exclusive with --manifest-dir)",
+    )
     validate_parser.add_argument(
         "--validation-mode",
         choices=["implementation", "behavioral"],
@@ -46,13 +50,17 @@ def main():
     validate_parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests",
+        help="Use manifest chain to merge all related manifests (automatically enabled for directory validation)",
     )
     validate_parser.add_argument(
         "--quiet",
         "-q",
         action="store_true",
         help="Only output errors (suppress success messages)",
+    )
+    validate_parser.add_argument(
+        "--manifest-dir",
+        help="Directory containing manifests to validate (mutually exclusive with manifest_path)",
     )
 
     # Snapshot subcommand
@@ -124,11 +132,32 @@ def main():
     if args.command == "validate":
         from maid_runner.cli.validate import run_validation
 
+        # Check for mutual exclusivity
+        if args.manifest_path and args.manifest_dir:
+            parser.error(
+                "Cannot specify both manifest_path and --manifest-dir. Use one or the other."
+            )
+
+        # Default to manifests directory if neither is provided
+        manifest_dir = args.manifest_dir
+        if not args.manifest_path and not args.manifest_dir:
+            manifest_dir = "manifests"
+
+        # When validating a directory, always use manifest chain
+        # This is the expected behavior for directory validation
+        # For single-file validation, respect the user's flag
+        use_manifest_chain = args.use_manifest_chain
+        if manifest_dir:
+            # Directory validation: use chain by default
+            # User can still force it off by explicitly passing the flag for single files
+            use_manifest_chain = True
+
         run_validation(
             args.manifest_path,
             args.validation_mode,
-            args.use_manifest_chain,
+            use_manifest_chain,
             args.quiet,
+            manifest_dir,
         )
     elif args.command == "snapshot":
         from maid_runner.cli.snapshot import run_snapshot
