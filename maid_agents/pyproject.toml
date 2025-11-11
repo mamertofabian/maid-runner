@@ -24,9 +24,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mamertofabian/maid-runner"
-Repository = "https://github.com/mamertofabian/maid-runner"
-Issues = "https://github.com/mamertofabian/maid-runner/issues"
+Homepage = "https://github.com/mamertofabian/maid-agents"
+Repository = "https://github.com/mamertofabian/maid-agents"
+Issues = "https://github.com/mamertofabian/maid-agents/issues"
 
 [project.optional-dependencies]
 dev = [

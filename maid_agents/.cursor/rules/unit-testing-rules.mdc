@@ -1,0 +1,6 @@
+---
+description: This rule is required to be followed when creating unit tests
+alwaysApply: false
+---
+
+Follow the @docs/unit-testing-rules.md

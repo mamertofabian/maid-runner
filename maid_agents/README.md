@@ -15,7 +15,6 @@ MAID Agents is a Claude Code-based automation layer for the MAID methodology. It
 
 ```bash
 # Install from source
-cd maid_agents/
 uv pip install -e .
 
 # Verify installation

@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+docs/key_learnings_*.md
+
+.idea/
+.claude/tdd-guard/
+
+backup/
+.claude/conversations/temp/*
+
