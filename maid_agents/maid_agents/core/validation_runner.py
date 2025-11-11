@@ -1,8 +1,10 @@
 """Validation Runner - Wraps maid-runner CLI calls."""
 
 import json
+import os
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
 
 
@@ -85,8 +87,12 @@ class ValidationRunner:
                     errors=["Missing validationCommand"],
                 )
 
+            # Set PYTHONPATH to current directory so tests can import local modules
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(Path.cwd())
+
             result = subprocess.run(
-                validation_cmd, capture_output=True, text=True, timeout=300
+                validation_cmd, capture_output=True, text=True, timeout=300, env=env
             )
 
             return ValidationResult(
