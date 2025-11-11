@@ -349,17 +349,6 @@ class MAIDOrchestrator:
         # Step 1: Run tests initially (should fail - red phase of TDD)
         test_result = self.validation_runner.run_behavioral_tests(manifest_path)
 
-        # Check for systemic errors before entering the loop
-        if not test_result.success:
-            test_output = f"{test_result.stdout}\n{test_result.stderr}"
-            is_systemic, systemic_msg = self._is_systemic_error(test_output)
-            if is_systemic:
-                return {
-                    "success": False,
-                    "iterations": 0,
-                    "error": f"Systemic error detected before implementation:\n{systemic_msg}",
-                }
-
         test_errors = test_result.stderr if not test_result.success else ""
 
         iteration = 0
