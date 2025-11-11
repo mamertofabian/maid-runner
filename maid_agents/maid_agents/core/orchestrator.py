@@ -348,6 +348,18 @@ class MAIDOrchestrator:
 
         # Step 1: Run tests initially (should fail - red phase of TDD)
         test_result = self.validation_runner.run_behavioral_tests(manifest_path)
+
+        # Check for systemic errors before entering the loop
+        if not test_result.success:
+            test_output = f"{test_result.stdout}\n{test_result.stderr}"
+            is_systemic, systemic_msg = self._is_systemic_error(test_output)
+            if is_systemic:
+                return {
+                    "success": False,
+                    "iterations": 0,
+                    "error": f"Systemic error detected before implementation:\n{systemic_msg}",
+                }
+
         test_errors = test_result.stderr if not test_result.success else ""
 
         iteration = 0
@@ -409,6 +421,18 @@ class MAIDOrchestrator:
 
             # Step 4: Run tests again
             test_result = self.validation_runner.run_behavioral_tests(manifest_path)
+
+            # Check for systemic errors that cannot be fixed by changing implementation
+            if not test_result.success:
+                test_output = f"{test_result.stdout}\n{test_result.stderr}"
+                is_systemic, systemic_msg = self._is_systemic_error(test_output)
+                if is_systemic:
+                    # Bail out immediately - this is not an implementation issue
+                    return {
+                        "success": False,
+                        "iterations": iteration,
+                        "error": f"Systemic error detected (cannot be fixed by changing implementation):\n{systemic_msg}",
+                    }
 
             if test_result.success:
                 # Tests pass! Now validate manifest compliance
@@ -531,6 +555,47 @@ class MAIDOrchestrator:
             "iterations": iteration,
             "error": f"Refinement loop failed after {max_iterations} iterations. Last error: {last_error}",
         }
+
+    def _is_systemic_error(self, test_output: str) -> tuple[bool, str]:
+        """Detect if test failure is due to systemic issues, not implementation.
+
+        Systemic errors include test framework failures, import errors, missing files,
+        etc. that cannot be fixed by changing the implementation code.
+
+        Args:
+            test_output: Combined stdout and stderr from test execution
+
+        Returns:
+            Tuple of (is_systemic, error_message)
+        """
+        # Patterns that indicate systemic issues, not implementation problems
+        systemic_patterns = [
+            (
+                "ERROR collecting",
+                "Test collection failed - check test file imports and syntax",
+            ),
+            (
+                "ModuleNotFoundError",
+                "Module import failed - check PYTHONPATH or missing dependencies",
+            ),
+            ("ImportError", "Import failed - check module availability"),
+            ("INTERNALERROR", "pytest internal error - check test framework setup"),
+            ("SyntaxError", "Syntax error in test file - fix test file syntax"),
+            ("pytest: error:", "pytest configuration error - check pytest setup"),
+            (
+                "No module named 'pytest'",
+                "pytest not installed - install test framework",
+            ),
+        ]
+
+        for pattern, message in systemic_patterns:
+            if pattern in test_output:
+                return (
+                    True,
+                    f"Systemic error detected: {message}\n\nFull output:\n{test_output[:500]}",
+                )
+
+        return False, ""
 
     def _handle_error(self, error: Exception) -> dict:
         """Handle errors during workflow execution.

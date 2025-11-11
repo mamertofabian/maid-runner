@@ -222,3 +222,71 @@ def test_orchestrator_workflow_integration():
     ]
     assert initial_state in valid_states
     assert final_state in valid_states
+
+
+def test_is_systemic_error_detects_collection_errors():
+    """Test _is_systemic_error detects test collection failures."""
+    orchestrator = MAIDOrchestrator(dry_run=True)
+
+    # Test output with collection error
+    test_output = """
+==================================== ERRORS ====================================
+___________ ERROR collecting tests/test_file.py ___________
+ImportError while importing test module
+"""
+
+    is_systemic, message = orchestrator._is_systemic_error(test_output)
+
+    assert isinstance(is_systemic, bool)
+    assert is_systemic is True
+    assert isinstance(message, str)
+    assert "Systemic error detected" in message
+
+
+def test_is_systemic_error_detects_import_errors():
+    """Test _is_systemic_error detects ModuleNotFoundError."""
+    orchestrator = MAIDOrchestrator(dry_run=True)
+
+    # Test output with import error
+    test_output = """
+tests/test_file.py:4: in <module>
+    from maid_agents.utils.logging import AgentLogger
+E   ModuleNotFoundError: No module named 'maid_agents'
+"""
+
+    is_systemic, message = orchestrator._is_systemic_error(test_output)
+
+    assert is_systemic is True
+    assert "Systemic error detected" in message
+    assert "Module import failed" in message
+
+
+def test_is_systemic_error_returns_false_for_normal_failures():
+    """Test _is_systemic_error returns False for normal test failures."""
+    orchestrator = MAIDOrchestrator(dry_run=True)
+
+    # Normal test failure output
+    test_output = """
+tests/test_file.py::test_example FAILED
+AssertionError: assert False
+"""
+
+    is_systemic, message = orchestrator._is_systemic_error(test_output)
+
+    assert is_systemic is False
+    assert message == ""
+
+
+def test_is_systemic_error_method_signature():
+    """Test _is_systemic_error has correct signature and returns tuple."""
+    orchestrator = MAIDOrchestrator(dry_run=True)
+
+    result = orchestrator._is_systemic_error("test output")
+
+    # Should return a tuple
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+
+    # First element is bool, second is str
+    assert isinstance(result[0], bool)
+    assert isinstance(result[1], str)
