@@ -136,11 +136,20 @@ Note: Behavioral validation only checks artifacts from the current manifest, not
 
 ## MAID CLI Commands
 
-**IMPORTANT: Always use the `maid` CLI for validation and snapshots, NOT direct Python scripts.**
+**IMPORTANT: Always use the `maid` CLI for validation, testing, and snapshots, NOT direct Python scripts.**
 
 ```bash
-# Validate a manifest (with optional manifest chain)
+# Validate single manifest (with optional manifest chain)
 uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
+
+# Validate all manifests in directory (automatically uses manifest chain)
+uv run maid validate [--manifest-dir <dir>] [--quiet]
+
+# Run validation commands from manifests (executes tests)
+uv run maid test [--manifest-dir <dir>] [--quiet]
+
+# Run tests for single manifest only
+uv run maid test --manifest <manifest-file> [--quiet]
 
 # Generate a snapshot manifest from existing code
 uv run maid snapshot <file-path> [--output-dir <dir>]
@@ -148,8 +157,15 @@ uv run maid snapshot <file-path> [--output-dir <dir>]
 # Get help
 uv run maid --help
 uv run maid validate --help
+uv run maid test --help
 uv run maid snapshot --help
 ```
+
+**Key Features:**
+- `maid validate` defaults to validating all manifests in `manifests/` directory
+- Directory validation automatically enables `--use-manifest-chain`
+- `maid test` runs validation commands and skips superseded manifests
+- Both commands work from any directory (auto-detect project root)
 
 ## Quick Commands
 
@@ -173,9 +189,17 @@ uv run maid validate manifests/task-XXX.manifest.json --use-manifest-chain
 
 # 3. Behavioral test execution (run actual tests)
 uv run python -m pytest tests/test_task_XXX_*.py -v
+# Or use maid test for single manifest:
+uv run maid test --manifest manifests/task-XXX.manifest.json
+
+# Validate all manifests (automatically uses chain)
+uv run maid validate
+
+# Run all validation commands (tests from all manifests)
+uv run maid test
 
 # Full test suite
-make test  # or: uv run python -m pytest tests/ -v
+make test  # Runs: pytest + maid validate + maid test
 
 # Code quality
 make lint        # Run black formatter

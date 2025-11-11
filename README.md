@@ -91,12 +91,16 @@ generate_snapshot("path/to/file.py", output_dir="manifests")
 ### 1. Manifest Validation
 
 ```bash
-# Validate manifest structure and implementation
+# Validate single manifest
 maid validate <manifest_path> [options]
 
+# Validate all manifests in directory (default: manifests/)
+maid validate [--manifest-dir DIR] [options]
+
 # Options:
+#   --manifest-dir DIR                            # Validate all manifests in directory
 #   --validation-mode {implementation,behavioral}  # Default: implementation
-#   --use-manifest-chain                          # Merge related manifests
+#   --use-manifest-chain                          # Merge related manifests (auto-enabled for directories)
 #   --quiet, -q                                    # Suppress success messages
 
 # Exit Codes:
@@ -107,24 +111,82 @@ maid validate <manifest_path> [options]
 **Examples:**
 
 ```bash
-# Validate implementation matches manifest
-$ maid validate manifests/task-013.manifest.json
+# Validate all manifests in default directory (with automatic manifest chain)
+$ maid validate
+📊 Summary: 15/15 manifest(s) passed (100.0%)
+
+# Validate all manifests in custom directory
+$ maid validate --manifest-dir custom-manifests
+
+# Validate single manifest with chain
+$ maid validate manifests/task-013.manifest.json --use-manifest-chain
 ✓ Validation PASSED
 
 # Validate behavioral tests USE artifacts
 $ maid validate manifests/task-013.manifest.json --validation-mode behavioral
 ✓ Behavioral test validation PASSED
 
-# Full validation with manifest chain (recommended)
-$ maid validate manifests/task-013.manifest.json --use-manifest-chain
-✓ Validation PASSED
-
 # Quiet mode for automation
-$ maid validate manifests/task-013.manifest.json --quiet
+$ maid validate --quiet
 # Exit code 0 = success, no output
 ```
 
-### 2. Snapshot Generation
+### 2. Test Execution
+
+Run validation commands from manifests across all active (non-superseded) manifests:
+
+```bash
+# Run all validation commands
+maid test [options]
+
+# Run validation commands for single manifest
+maid test --manifest <manifest_path> [options]
+
+# Options:
+#   --manifest-dir DIR     # Directory containing manifests (default: manifests)
+#   --manifest, -m FILE    # Run tests for single manifest only
+#   --fail-fast            # Stop on first failure
+#   --verbose, -v          # Show detailed output
+#   --quiet, -q            # Only show summary
+#   --timeout SECONDS      # Command timeout (default: 300)
+
+# Exit Codes:
+#   0 = All tests passed
+#   1 = One or more tests failed
+```
+
+**Examples:**
+
+```bash
+# Run all validation commands from active manifests
+$ maid test
+📋 task-001.manifest.json: Running 1 validation command(s)
+  [1/1] pytest tests/test_task_001.py -v
+    ✅ PASSED
+...
+📊 Summary: 29/29 validation commands passed (100.0%)
+
+# Run validation commands for single manifest
+$ maid test --manifest task-013.manifest.json
+
+# Stop on first failure
+$ maid test --fail-fast
+
+# Show detailed output
+$ maid test --verbose
+
+# Quiet mode for CI/CD
+$ maid test --quiet
+📊 Summary: 29/29 validation commands passed (100.0%)
+```
+
+**Key Features:**
+- Automatically skips superseded manifests
+- Detects and handles local dependencies (e.g., `maid_agents` depending on local `maid-runner`)
+- Normalizes paths for cross-directory execution
+- Auto-detects UV projects and sets up proper Python environment
+
+### 3. Snapshot Generation
 
 ```bash
 # Generate snapshot manifest from existing code
@@ -180,6 +242,34 @@ def validate_manifest(manifest_path: str) -> dict:
 
     return {
         "success": result.returncode == 0,
+        "errors": result.stderr if result.returncode != 0 else None
+    }
+
+def validate_all_manifests(manifest_dir: str = "manifests") -> dict:
+    """Validate all manifests in directory."""
+    result = subprocess.run(
+        ["maid", "validate", "--manifest-dir", manifest_dir, "--quiet"],
+        capture_output=True,
+        text=True
+    )
+
+    return {
+        "success": result.returncode == 0,
+        "output": result.stdout,
+        "errors": result.stderr if result.returncode != 0 else None
+    }
+
+def run_tests(manifest_dir: str = "manifests") -> dict:
+    """Run all validation commands from manifests."""
+    result = subprocess.run(
+        ["maid", "test", "--manifest-dir", manifest_dir, "--quiet"],
+        capture_output=True,
+        text=True
+    )
+
+    return {
+        "success": result.returncode == 0,
+        "output": result.stdout,
         "errors": result.stderr if result.returncode != 0 else None
     }
 
@@ -242,11 +332,30 @@ EOF
 # Validate with MAID Runner
 if maid validate $MANIFEST --use-manifest-chain --quiet; then
     echo "✓ Validation passed"
-    exit 0
 else
     echo "✗ Validation failed"
     exit 1
 fi
+
+# Run all validation commands
+if maid test --quiet; then
+    echo "✓ All tests passed"
+    exit 0
+else
+    echo "✗ Tests failed"
+    exit 1
+fi
+```
+
+**Cross-Directory Execution:**
+
+Both `maid validate` and `maid test` work from any directory:
+
+```bash
+# Run from anywhere - automatically changes to project root
+cd /tmp
+maid validate --manifest-dir ~/my-project/manifests
+maid test --manifest-dir ~/my-project/manifests
 ```
 
 ## What MAID Runner Validates
@@ -257,7 +366,8 @@ fi
 | **Behavioral Tests** | Tests USE declared artifacts | `maid validate --validation-mode behavioral` |
 | **Implementation** | Code DEFINES declared artifacts | `maid validate` (default) |
 | **Type Hints** | Type annotations match manifest | `maid validate` (automatic) |
-| **Manifest Chain** | Historical consistency | `maid validate --use-manifest-chain` |
+| **Manifest Chain** | Historical consistency | `maid validate` (auto-enabled for directories) |
+| **Test Execution** | Run validation commands | `maid test` |
 
 ## Development Setup
 
@@ -364,14 +474,23 @@ Verify complete chain: All manifests validate successfully.
 ## Testing
 
 ```bash
-# Run all tests
+# Run all tests (pytest + validation + manifest tests)
+make test
+
+# Run pytest suite only
 uv run python -m pytest tests/ -v
 
-# Run validation tests
-uv run python -m pytest tests/test_manifest_to_implementation_alignment.py -v
+# Run validation commands from all manifests
+uv run maid test
+
+# Run tests for single manifest
+uv run maid test --manifest manifests/task-013.manifest.json
+
+# Validate all manifests
+uv run maid validate
 
 # Run specific task tests
-uv run python -m pytest tests/test_task_011_implementation_loop_controller.py -v
+uv run python -m pytest tests/test_task_022_validate_manifest_dir.py -v
 ```
 
 ## Code Quality
@@ -400,7 +519,9 @@ maid-runner/
 │   ├── cli/                        # CLI modules
 │   │   ├── main.py                # Main CLI entry point (maid command)
 │   │   ├── validate.py            # Validate subcommand
+│   │   ├── test.py                # Test subcommand
 │   │   └── snapshot.py            # Snapshot subcommand
+│   ├── utils.py                   # Utility functions
 │   └── validators/                # Core validation logic
 │       ├── manifest_validator.py  # Main validation engine
 │       ├── type_validator.py      # Type hint validation
