@@ -2,6 +2,7 @@
 """
 AST Validator Stop Hook
 Validates manifest alignment with implementation using MAID CLI.
+Parses the transcript to find manifests modified during the session.
 """
 import json
 import sys
@@ -10,8 +11,66 @@ import subprocess
 from pathlib import Path
 
 
-def validate_manifest_implementation():
-    """Run AST validation for all manifests using maid CLI."""
+def get_modified_manifests_from_transcript(transcript_path):
+    """Parse transcript to find manifest files that were modified during the session."""
+    try:
+        modified_manifests = set()
+
+        with open(transcript_path, "r") as f:
+            for line in f:
+                try:
+                    entry = json.loads(line.strip())
+
+                    # Look for assistant messages with tool use content
+                    if entry.get("type") == "assistant":
+                        # Check if content is in 'message.content' or directly in 'content'
+                        content = entry.get("message", {}).get("content") or entry.get(
+                            "content"
+                        )
+
+                        if content:
+                            for content_block in content:
+                                # Check for Edit or Write tool uses
+                                if (
+                                    isinstance(content_block, dict)
+                                    and content_block.get("type") == "tool_use"
+                                ):
+                                    tool_name = content_block.get("name", "")
+
+                                    if tool_name in ["Edit", "Write"]:
+                                        tool_input = content_block.get("input", {})
+                                        file_path = tool_input.get("file_path")
+
+                                        if file_path:
+                                            # Check if this is a manifest file
+                                            if file_path.startswith(
+                                                "manifests/"
+                                            ) and file_path.endswith(".json"):
+                                                modified_manifests.add(Path(file_path))
+                                            elif (
+                                                "/manifests/" in file_path
+                                                and file_path.endswith(".json")
+                                            ):
+                                                # Handle absolute paths
+                                                rel_path = file_path.split(
+                                                    "/manifests/"
+                                                )[-1]
+                                                modified_manifests.add(
+                                                    Path("manifests") / rel_path
+                                                )
+
+                except json.JSONDecodeError:
+                    continue
+
+        return list(modified_manifests) if modified_manifests else []
+
+    except Exception as e:
+        print(f"⚠️  Unable to parse transcript for modified manifests: {e}")
+        return None
+
+
+def main():
+    """Main entry point for Stop hook."""
     try:
         # Read hook input from stdin
         input_data = json.load(sys.stdin)
@@ -24,15 +83,38 @@ def validate_manifest_implementation():
         if input_data.get("stop_hook_active", False):
             return
 
-        print("🔍 Running MAID Validation using CLI...")
+        # Get transcript path from hook input
+        transcript_path = input_data.get("transcript_path")
+        if not transcript_path:
+            print("⚠️  No transcript path provided - skipping validation")
+            return
 
-        # Find all manifests
+        # Find all manifests directory
         manifests_dir = Path("manifests")
         if not manifests_dir.exists():
             print("📋 No manifests directory found - skipping validation")
             return
 
-        manifest_files = sorted(manifests_dir.glob("*.json"))
+        # Get modified manifests from transcript
+        modified_manifests = get_modified_manifests_from_transcript(transcript_path)
+
+        if modified_manifests is None:
+            # Fall back to validating all manifests if transcript parsing failed
+            print("🔍 Running MAID Validation for all manifests...")
+            manifest_files = sorted(manifests_dir.glob("*.json"))
+        elif not modified_manifests:
+            # No modified manifests - skip validation
+            print(
+                "✨ No manifest changes detected in this session - skipping validation"
+            )
+            return
+        else:
+            # Only validate modified manifests
+            print(
+                f"🔍 Running MAID Validation for {len(modified_manifests)} modified manifest(s)..."
+            )
+            manifest_files = sorted(modified_manifests)
+
         if not manifest_files:
             print("📋 No manifest files found - skipping validation")
             return
@@ -107,4 +189,4 @@ def validate_manifest_implementation():
 
 
 if __name__ == "__main__":
-    validate_manifest_implementation()
+    main()
