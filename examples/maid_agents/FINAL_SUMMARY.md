@@ -128,24 +128,29 @@ claude --print "[500 tokens: task details]" \
    - Key insights
    - Next actions
 
-### 📁 Split Templates (11 files)
+### 📁 Split Templates (16 files)
 
-**System Prompts (behavioral - 4 files):**
-- `system/manifest_creation_system.txt` (~500 tokens)
-- `system/implementation_system.txt` (~500 tokens)
-- `system/test_generation_system.txt` (~500 tokens)
-- `system/refactor_system.txt` (~500 tokens)
+**System Prompts (behavioral - 6 files):**
+- `system/manifest_creation_system.txt` (~500 tokens) - ManifestArchitect
+- `system/test_generation_system.txt` (~500 tokens) - TestDesigner (TDD)
+- `system/implementation_system.txt` (~500 tokens) - Developer
+- `system/refactor_system.txt` (~500 tokens) - Refactorer
+- `system/refine_system.txt` (~500 tokens) - Refiner (Quality Gate)
+- `system/test_generation_from_implementation_system.txt` (~500 tokens) - TestGenerator
 
-**User Messages (task-specific - 4 files):**
+**User Messages (task-specific - 6 files):**
 - `user/manifest_creation_user.txt` (~500 tokens)
-- `user/implementation_user.txt` (~500 tokens)
 - `user/test_generation_user.txt` (~500 tokens)
+- `user/implementation_user.txt` (~500 tokens)
 - `user/refactor_user.txt` (~500 tokens)
+- `user/refine_user.txt` (~500 tokens)
+- `user/test_generation_from_implementation_user.txt` (~500 tokens)
 
-**Documentation (3 files):**
+**Documentation (4 files):**
 - `split_templates/README.md` - Template structure guide
-- `split_templates/USAGE_EXAMPLES.md` - Code examples (22 KB!)
-- Templates use clear separation of behavioral vs task-specific content
+- `split_templates/USAGE_EXAMPLES.md` - Concrete code examples (22 KB!)
+- `split_templates/AGENTS_OVERVIEW.md` - All 6 agents explained (20 KB!)
+- `SYSTEM_PROMPT_IMPLEMENTATION.md` - Implementation plan (26 KB!)
 
 ---
 
@@ -156,9 +161,11 @@ claude --print "[500 tokens: task details]" \
 | Agent | System Prompt | User Message |
 |-------|--------------|--------------|
 | **ManifestArchitect** | "How to create valid MAID manifests" | "Create manifest for task-042: Add auth" |
+| **TestDesigner** | "How to write TDD tests (test first)" | "Create tests for task-042 artifacts..." |
+| **Refiner** | "How to improve manifest + test quality" | "Fix validation errors in task-042..." |
 | **Developer** | "How to implement code that passes tests" | "Implement for task-042 with these test failures..." |
-| **TestDesigner** | "How to write behavioral tests" | "Create tests for task-042 artifacts..." |
 | **Refactorer** | "How to improve code quality" | "Refactor task-042 files..." |
+| **TestGenerator** | "How to generate tests from existing code" | "Create tests for existing code in auth.py..." |
 
 ### Agent Flow
 
