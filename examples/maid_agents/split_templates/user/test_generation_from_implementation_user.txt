@@ -1,0 +1,121 @@
+# Template: test_generation_from_implementation_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Create behavioral tests for existing implementation code.
+
+**Implementation File:** ${implementation_file}
+**Manifest:** ${manifest_path}
+**Test File to Create:** ${test_file_path}
+
+## Context
+
+This is a **reverse workflow** - the implementation already exists and you need to create tests that verify its actual behavior. This complements the `maid snapshot` command for documenting existing codebases.
+
+## Your Task
+
+1. **Read the implementation file** at `${implementation_file}` to understand:
+   - What public APIs exist
+   - How they actually behave
+   - What parameters they accept
+   - What they return
+   - How they handle errors
+
+2. **Create comprehensive tests** that document the actual behavior:
+   - Test all public functions and classes
+   - Verify actual behavior (not idealized behavior)
+   - Use keyword arguments to verify parameter names
+   - Test edge cases and error handling
+   - Mock external dependencies if needed
+
+3. **Use your Write tool** to create the test file at: `${test_file_path}`
+
+## Test Mode: ${test_mode}
+
+${test_mode_instructions}
+
+## Expected Artifacts from Manifest
+
+${artifacts_summary}
+
+## Test Structure
+
+Your test file should include:
+
+```python
+"""Behavioral tests for existing implementation: ${implementation_file}
+
+This test file documents the actual behavior of the existing code.
+"""
+
+import pytest
+from module_path import ClassName, function_name
+
+
+class TestClassName:
+    """Tests for existing ClassName implementation."""
+
+    def test_class_initialization(self):
+        """Test class can be initialized with actual parameters."""
+        # Use parameters the code ACTUALLY accepts
+        instance = ClassName(param="value")
+        assert instance is not None
+        assert isinstance(instance, ClassName)
+
+    def test_method_actual_behavior(self):
+        """Test method's actual behavior."""
+        instance = ClassName(param="value")
+        # Use keyword args to verify parameter names
+        result = instance.method(arg1="test", arg2=42)
+
+        # Assert what code ACTUALLY returns
+        assert isinstance(result, dict)
+        assert "expected_key" in result
+
+    def test_method_edge_cases(self):
+        """Test how method handles edge cases."""
+        instance = ClassName(param="value")
+        # Test with empty input
+        result = instance.method(arg1="", arg2=0)
+        # Document actual behavior
+        assert result is not None
+
+    def test_method_error_handling(self):
+        """Test actual error handling."""
+        instance = ClassName(param="value")
+        # Test what code DOES with invalid input
+        with pytest.raises(ValueError):  # or assert error dict if that's what it does
+            instance.method(arg1="test", arg2=-1)
+```
+
+## Important Notes
+
+- **Document actual behavior** - Test what the code DOES, not what you think it SHOULD do
+- **Tests should pass immediately** - The implementation exists, tests verify it
+- **Flag discrepancies** - If implementation differs from manifest, note it in test docstrings
+- **Include edge cases** - Test None, empty strings, boundary values
+- **Mock externals** - Use mocks for API calls, file I/O, database access
+
+## Handling Discrepancies
+
+If you find the implementation differs from the manifest:
+- Document it in test docstrings with "NOTE: ..."
+- Test the actual behavior (don't modify implementation)
+- Flag for review (manifest may need updating)
+
+Example:
+```python
+def test_actual_signature(self):
+    """Test actual method signature.
+
+    NOTE: Manifest declares method(arg1: str, arg2: int) -> dict
+    but implementation is method(arg1: str) -> str
+
+    Tests document actual behavior. Manifest may need updating.
+    """
+    result = instance.method(arg1="test")
+    assert isinstance(result, str)  # Actual return type
+```
+
+Please create the comprehensive tests now based on the existing implementation.

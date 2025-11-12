@@ -1,0 +1,438 @@
+# MAID Agents Overview and Template Mapping
+
+This document explains all 6 MAID agents and their corresponding prompt templates.
+
+---
+
+## Agent Architecture
+
+MAID workflow has 4 phases, supported by 6 specialized agents:
+
+```
+Phase 1: Goal Definition → [User provides goal]
+
+Phase 2: Planning Loop → ManifestArchitect + TestDesigner + Refiner
+                         (iterative refinement until validation passes)
+
+Phase 3: Implementation → Developer
+                         (code generation until tests pass)
+
+Phase 3.5: Refactoring → Refactorer
+                         (quality improvement while maintaining behavior)
+
+Reverse Workflow: → TestGenerator
+                   (generate tests from existing code, complements maid snapshot)
+```
+
+---
+
+## The 6 Agents
+
+### 1. ManifestArchitect (Phase 1)
+
+**Purpose:** Create MAID manifests from high-level goals
+
+**Template:** `manifest_creation`
+- System: `system/manifest_creation_system.txt`
+- User: `user/manifest_creation_user.txt`
+
+**Input:**
+- Goal description (e.g., "Add user authentication")
+- Task number (e.g., 042)
+
+**Output:**
+- Manifest file (e.g., `manifests/task-042-user-auth.manifest.json`)
+
+**Key Responsibilities:**
+- Analyze goal to determine task type (create/edit/refactor)
+- Identify files to touch (creatableFiles or editableFiles)
+- Declare all public APIs in expectedArtifacts
+- Specify validation command (pytest)
+
+---
+
+### 2. TestDesigner (Phase 2 - TDD)
+
+**Purpose:** Generate behavioral tests BEFORE implementation (Test-Driven Development)
+
+**Template:** `test_generation`
+- System: `system/test_generation_system.txt`
+- User: `user/test_generation_user.txt`
+
+**Input:**
+- Manifest path
+- Expected artifacts to test
+
+**Output:**
+- Test file (e.g., `tests/test_task_042_user_auth.py`)
+
+**Key Responsibilities:**
+- Test artifact existence (imports, instantiation)
+- Test artifact signatures (parameters, return types)
+- Test expected behavior (happy path, edge cases, errors)
+- Tests should FAIL initially (red phase of TDD)
+
+**Important:** Tests are written BEFORE implementation exists.
+
+---
+
+### 3. Developer (Phase 3)
+
+**Purpose:** Implement code to make failing tests pass
+
+**Template:** `implementation`
+- System: `system/implementation_system.txt`
+- User: `user/implementation_user.txt`
+
+**Input:**
+- Manifest path
+- Test failures (pytest output)
+- Expected artifacts
+
+**Output:**
+- Implementation files (e.g., `auth/user_auth.py`)
+
+**Key Responsibilities:**
+- Read test failures to understand requirements
+- Implement code matching manifest signatures exactly
+- Make ALL tests pass
+- Handle errors appropriately
+- Follow Python conventions (PEP 8, type hints, docstrings)
+
+---
+
+### 4. Refactorer (Phase 3.5)
+
+**Purpose:** Improve code quality while maintaining behavior
+
+**Template:** `refactor`
+- System: `system/refactor_system.txt`
+- User: `user/refactor_user.txt`
+
+**Input:**
+- Manifest path
+- Files to refactor
+- Test file (must continue passing)
+
+**Output:**
+- Improved implementation files
+
+**Key Responsibilities:**
+- Extract complex logic into helper methods
+- Improve variable names
+- Better error handling
+- Enhanced type hints and docstrings
+- **NO behavior changes** (tests must still pass)
+- **NO public API changes**
+
+**Constraint:** Tests must continue passing after refactoring.
+
+---
+
+### 5. Refiner (Phase 2 - Quality Gate)
+
+**Purpose:** Iteratively improve manifest and test quality in Planning Loop
+
+**Template:** `refine`
+- System: `system/refine_system.txt`
+- User: `user/refine_user.txt`
+
+**Input:**
+- Manifest path
+- Test file path
+- Validation errors (structural and behavioral)
+
+**Output:**
+- Improved manifest file
+- Improved test file
+
+**Key Responsibilities:**
+- Fix structural validation errors (manifest schema)
+- Fix behavioral validation errors (test coverage)
+- Ensure all expectedArtifacts are tested
+- Add missing tests (edge cases, error handling)
+- Improve test quality and clarity
+
+**Loop:** Refiner runs in Planning Loop until both manifest validation and behavioral validation pass.
+
+---
+
+### 6. TestGenerator (Reverse Workflow)
+
+**Purpose:** Generate tests from existing implementation (complements `maid snapshot`)
+
+**Template:** `test_generation_from_implementation`
+- System: `system/test_generation_from_implementation_system.txt`
+- User: `user/test_generation_from_implementation_user.txt`
+
+**Input:**
+- Implementation file path (existing code)
+- Manifest path
+- Test mode (create new / enhance stub / improve existing)
+
+**Output:**
+- Test file documenting actual behavior
+
+**Key Responsibilities:**
+- Read existing implementation
+- Document ACTUAL behavior (not idealized)
+- Test all public APIs
+- Flag discrepancies with manifest
+- Tests should PASS immediately (code exists)
+
+**Use Cases:**
+1. After `maid snapshot` creates manifest from existing code
+2. Enhancing stub tests generated by snapshot
+3. Improving incomplete test coverage
+
+**Important:** This is the OPPOSITE of TDD - implementation exists first, tests document it.
+
+---
+
+## Workflow Comparison
+
+### Standard MAID Workflow (TDD)
+
+```
+1. ManifestArchitect → Creates manifest
+2. TestDesigner → Creates tests (FAIL initially)
+3. Refiner → Improves manifest + tests until validation passes
+4. Developer → Implements code to pass tests
+5. Refactorer → Improves code quality
+```
+
+**Order:** Manifest → Tests → Implementation → Refactoring
+
+### Reverse Workflow (Existing Code)
+
+```
+1. maid snapshot → Creates manifest from existing code
+2. TestGenerator → Creates tests from implementation
+3. Refiner → Improves manifest + tests if needed
+```
+
+**Order:** Implementation (exists) → Manifest → Tests
+
+---
+
+## Template Files Summary
+
+### System Prompts (Behavioral Guidance)
+
+Located in `system/`:
+
+1. `manifest_creation_system.txt` - MAID principles, tool usage, manifest rules
+2. `test_generation_system.txt` - Test philosophy, TDD approach, coverage requirements
+3. `implementation_system.txt` - Code quality standards, manifest compliance
+4. `refactor_system.txt` - Refactoring patterns, quality improvements
+5. `refine_system.txt` - Refinement goals, validation rules, iteration approach
+6. `test_generation_from_implementation_system.txt` - Reverse workflow, document actual behavior
+
+### User Messages (Task-Specific)
+
+Located in `user/`:
+
+1. `manifest_creation_user.txt` - Goal, task number, examples
+2. `test_generation_user.txt` - Artifacts to test, test file path
+3. `implementation_user.txt` - Test failures, files to modify, artifacts
+4. `refactor_user.txt` - Files to refactor, test file (must pass)
+5. `refine_user.txt` - Validation errors, manifest + test paths
+6. `test_generation_from_implementation_user.txt` - Implementation file, test mode
+
+---
+
+## Agent Interaction Flow
+
+### Planning Loop (Phase 2)
+
+```
+┌─────────────────────────────────────────┐
+│ ManifestArchitect                       │
+│ Creates initial manifest                │
+└───────────────┬─────────────────────────┘
+                │
+                v
+┌─────────────────────────────────────────┐
+│ TestDesigner                            │
+│ Creates behavioral tests                │
+└───────────────┬─────────────────────────┘
+                │
+                v
+┌─────────────────────────────────────────┐
+│ Structural Validation                   │
+│ maid validate (manifest schema)         │
+└───────────────┬─────────────────────────┘
+                │
+        ┌───────┴────────┐
+        │                │
+       PASS             FAIL
+        │                │
+        v                v
+┌────────────────┐  ┌──────────────────┐
+│ Behavioral     │  │ Refiner          │
+│ Validation     │  │ Fix manifest     │
+└───────┬────────┘  └───────┬──────────┘
+        │                   │
+       PASS                FAIL
+        │                   │
+        v                   │
+    [Continue]             [Loop back]
+        │                   │
+        └───────────────────┘
+```
+
+### Implementation Loop (Phase 3)
+
+```
+┌─────────────────────────────────────────┐
+│ Run Tests (pytest)                      │
+│ Should FAIL initially (red phase)       │
+└───────────────┬─────────────────────────┘
+                │
+                v
+┌─────────────────────────────────────────┐
+│ Developer                               │
+│ Implements code to pass tests           │
+└───────────────┬─────────────────────────┘
+                │
+                v
+┌─────────────────────────────────────────┐
+│ Run Tests Again                         │
+└───────────────┬─────────────────────────┘
+                │
+        ┌───────┴────────┐
+        │                │
+       PASS             FAIL
+        │                │
+        v                v
+┌────────────────┐  ┌──────────────────┐
+│ Manifest       │  │ Developer        │
+│ Validation     │  │ Fix code         │
+└───────┬────────┘  └───────┬──────────┘
+        │                   │
+       PASS                FAIL
+        │                   │
+        v                   │
+    [Continue]             [Loop back]
+        │                   │
+        └───────────────────┘
+```
+
+---
+
+## Template Variables Reference
+
+### ManifestArchitect (manifest_creation)
+- `${goal}` - Task goal
+- `${task_number}` - Zero-padded task number (e.g., "042")
+
+### TestDesigner (test_generation)
+- `${manifest_path}` - Path to manifest
+- `${goal}` - Task goal
+- `${artifacts_summary}` - Formatted list of artifacts
+- `${files_to_test}` - Files being tested
+- `${test_file_path}` - Where to create test file
+
+### Developer (implementation)
+- `${manifest_path}` - Path to manifest
+- `${goal}` - Task goal
+- `${test_output}` - pytest failure output
+- `${artifacts_summary}` - Expected artifacts
+- `${files_to_modify}` - Files to write/edit
+
+### Refactorer (refactor)
+- `${manifest_path}` - Path to manifest
+- `${goal}` - Refactoring goal
+- `${files_to_refactor}` - Files to improve
+- `${test_file}` - Test file that must pass
+
+### Refiner (refine)
+- `${manifest_path}` - Path to manifest
+- `${test_file_path}` - Path to test file
+- `${goal}` - Task goal
+- `${validation_errors}` - Validation feedback
+
+### TestGenerator (test_generation_from_implementation)
+- `${implementation_file}` - Existing implementation path
+- `${manifest_path}` - Path to manifest
+- `${test_file_path}` - Where to create test file
+- `${test_mode}` - create_new | enhance_stub | improve_existing
+- `${test_mode_instructions}` - Mode-specific guidance
+- `${artifacts_summary}` - Expected artifacts from manifest
+
+---
+
+## Usage Examples
+
+### Standard TDD Workflow
+
+```python
+# 1. Create manifest
+architect = ManifestArchitect(claude)
+result = architect.create_manifest("Add user authentication", 42)
+
+# 2. Generate tests
+designer = TestDesigner(claude)
+designer.generate_tests("manifests/task-042-user-auth.manifest.json")
+
+# 3. Refine until valid
+refiner = Refiner(claude)
+while not validation_passes:
+    refiner.refine_manifest_and_tests(
+        "manifests/task-042-user-auth.manifest.json",
+        "tests/test_task_042_user_auth.py",
+        validation_errors
+    )
+
+# 4. Implement code
+developer = Developer(claude)
+while tests_failing:
+    developer.implement(
+        "manifests/task-042-user-auth.manifest.json",
+        test_errors
+    )
+
+# 5. Refactor for quality
+refactorer = Refactorer(claude)
+refactorer.refactor(
+    "manifests/task-042-user-auth.manifest.json",
+    ["auth/user_auth.py"]
+)
+```
+
+### Reverse Workflow (Existing Code)
+
+```python
+# 1. Create manifest from existing code
+# maid snapshot auth/existing_auth.py
+
+# 2. Generate tests from implementation
+generator = TestGenerator(claude)
+generator.generate_tests_from_implementation(
+    implementation_file="auth/existing_auth.py",
+    manifest_path="manifests/task-050-existing-auth.manifest.json",
+    test_mode="create_new"
+)
+
+# 3. Refine if needed
+refiner = Refiner(claude)
+refiner.refine_manifest_and_tests(
+    "manifests/task-050-existing-auth.manifest.json",
+    "tests/test_task_050_existing_auth.py",
+    validation_errors
+)
+```
+
+---
+
+## See Also
+
+- `README.md` - Template structure and overview
+- `USAGE_EXAMPLES.md` - Code examples for implementation
+- `../SYSTEM_PROMPT_IMPLEMENTATION.md` - Implementation plan
+
+---
+
+**Version:** 1.0.0
+**Last Updated:** 2025-01-15
+**Agents Covered:** 6 (ManifestArchitect, TestDesigner, Developer, Refactorer, Refiner, TestGenerator)

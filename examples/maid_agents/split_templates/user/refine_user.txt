@@ -1,0 +1,53 @@
+# Template: refine_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Refine the manifest and tests to improve quality and fix validation errors.
+
+**Manifest:** ${manifest_path}
+**Test File:** ${test_file_path}
+**Goal:** ${goal}
+
+## Current Issues
+
+${validation_errors}
+
+## Your Task
+
+Improve the manifest and tests to fix these issues:
+
+1. **For structural validation errors:**
+   - Fix manifest schema issues
+   - Add missing artifact fields
+   - Correct file categorization
+
+2. **For behavioral validation errors:**
+   - Ensure all artifacts are USED in tests
+   - Add missing test coverage
+   - Verify tests import and call artifacts
+
+3. **For test quality issues:**
+   - Add edge case tests
+   - Add error handling tests
+   - Use keyword arguments in calls
+   - Improve test organization
+
+## Files to Edit
+
+Use your Edit tool to modify:
+- **Manifest:** ${manifest_path}
+- **Tests:** ${test_file_path}
+
+## Refinement Focus
+
+Based on the validation feedback, focus on:
+- Fixing any schema validation errors
+- Ensuring all expectedArtifacts are tested
+- Improving test coverage (existence, signatures, behavior)
+- Adding edge cases and error handling tests
+- Using keyword arguments to verify parameter names
+
+The goal is to have both structural validation (manifest) and behavioral validation (tests) pass completely.
+
+Please refine the manifest and tests now to address these issues.
