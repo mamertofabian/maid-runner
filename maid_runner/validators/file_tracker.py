@@ -92,6 +92,20 @@ def _matches_pattern(file_path: str, pattern: str) -> bool:
     return file_path == pattern
 
 
+def _normalize_path(path: str) -> str:
+    """Normalize file path by stripping ./ prefix.
+
+    Args:
+        path: File path to normalize
+
+    Returns:
+        Normalized path without ./ prefix
+    """
+    if path.startswith("./"):
+        return path[2:]
+    return path
+
+
 def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
     """Collect all tracked files from manifest chain.
 
@@ -108,8 +122,9 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
 
         # Collect from creatableFiles
         for file_path in manifest.get("creatableFiles", []):
-            if file_path not in tracked_files:
-                tracked_files[file_path] = {
+            normalized_path = _normalize_path(file_path)
+            if normalized_path not in tracked_files:
+                tracked_files[normalized_path] = {
                     "created": False,
                     "edited": False,
                     "readonly": False,
@@ -117,13 +132,14 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "has_tests": False,
                     "manifests": [],
                 }
-            tracked_files[file_path]["created"] = True
-            tracked_files[file_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["created"] = True
+            tracked_files[normalized_path]["manifests"].append(manifest_goal)
 
         # Collect from editableFiles
         for file_path in manifest.get("editableFiles", []):
-            if file_path not in tracked_files:
-                tracked_files[file_path] = {
+            normalized_path = _normalize_path(file_path)
+            if normalized_path not in tracked_files:
+                tracked_files[normalized_path] = {
                     "created": False,
                     "edited": False,
                     "readonly": False,
@@ -131,13 +147,14 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "has_tests": False,
                     "manifests": [],
                 }
-            tracked_files[file_path]["edited"] = True
-            tracked_files[file_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["edited"] = True
+            tracked_files[normalized_path]["manifests"].append(manifest_goal)
 
         # Collect from readonlyFiles
         for file_path in manifest.get("readonlyFiles", []):
-            if file_path not in tracked_files:
-                tracked_files[file_path] = {
+            normalized_path = _normalize_path(file_path)
+            if normalized_path not in tracked_files:
+                tracked_files[normalized_path] = {
                     "created": False,
                     "edited": False,
                     "readonly": False,
@@ -145,15 +162,17 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "has_tests": False,
                     "manifests": [],
                 }
-            tracked_files[file_path]["readonly"] = True
-            tracked_files[file_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["readonly"] = True
+            tracked_files[normalized_path]["manifests"].append(manifest_goal)
 
         # Check if this manifest has expectedArtifacts
         expected_artifacts = manifest.get("expectedArtifacts", {})
         if expected_artifacts:
             artifact_file = expected_artifacts.get("file")
-            if artifact_file and artifact_file in tracked_files:
-                tracked_files[artifact_file]["has_artifacts"] = True
+            if artifact_file:
+                normalized_artifact_file = _normalize_path(artifact_file)
+                if normalized_artifact_file in tracked_files:
+                    tracked_files[normalized_artifact_file]["has_artifacts"] = True
 
         # Check if this manifest has validationCommand (implies tests)
         if manifest.get("validationCommand") or manifest.get("validationCommands"):
@@ -161,8 +180,9 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
             for file_path in manifest.get("creatableFiles", []) + manifest.get(
                 "editableFiles", []
             ):
-                if file_path in tracked_files:
-                    tracked_files[file_path]["has_tests"] = True
+                normalized_path = _normalize_path(file_path)
+                if normalized_path in tracked_files:
+                    tracked_files[normalized_path]["has_tests"] = True
 
     return tracked_files
 
