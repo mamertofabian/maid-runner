@@ -191,6 +191,51 @@ $ maid snapshot maid_runner/validators/manifest_validator.py --force
 Snapshot manifest generated successfully: manifests/task-009-snapshot-manifest_validator.manifest.json
 ```
 
+### 3. List Manifests by File
+
+```bash
+# List all manifests that reference a file
+maid manifests <file_path> [options]
+
+# Options:
+#   --manifest-dir DIR  # Default: manifests/
+#   --quiet, -q         # Show minimal output (just manifest names)
+
+# Exit Codes:
+#   0 = Success (found or not found)
+```
+
+**Examples:**
+
+```bash
+# Find which manifests reference a file
+$ maid manifests maid_runner/cli/main.py
+
+Manifests referencing: maid_runner/cli/main.py
+Total: 2 manifest(s)
+
+================================================================================
+
+✏️  EDITED BY (2 manifest(s)):
+  - task-021-maid-test-command.manifest.json
+  - task-029-list-manifests-command.manifest.json
+
+================================================================================
+
+# Quiet mode for scripting
+$ maid manifests maid_runner/validators/manifest_validator.py --quiet
+created: task-001-add-schema-validation.manifest.json
+edited: task-002-add-ast-alignment-validation.manifest.json
+edited: task-003-behavioral-validation.manifest.json
+read: task-008-snapshot-generator.manifest.json
+```
+
+**Use Cases:**
+- **Dependency Analysis**: Find which tasks touched a file
+- **Impact Assessment**: Understand file's role in the project (created vs edited vs read)
+- **Manifest Discovery**: Quickly locate relevant manifests when investigating code
+- **Audit Trail**: See the complete history of changes to a file through manifests
+
 ## Optional Human Helper Tools
 
 For manual/interactive use, MAID Runner includes convenience wrappers in `examples/maid_runner.py`:
@@ -303,6 +348,7 @@ fi
 | **Implementation** | Code DEFINES declared artifacts | `maid validate` (default) |
 | **Type Hints** | Type annotations match manifest | `maid validate` (automatic) |
 | **Manifest Chain** | Historical consistency | `maid validate --use-manifest-chain` |
+| **File References** | Which manifests touch a file | `maid manifests <file_path>` |
 
 ## Development Setup
 
@@ -445,10 +491,13 @@ maid-runner/
 │   ├── cli/                        # CLI modules
 │   │   ├── main.py                # Main CLI entry point (maid command)
 │   │   ├── validate.py            # Validate subcommand
-│   │   └── snapshot.py            # Snapshot subcommand
+│   │   ├── snapshot.py            # Snapshot subcommand
+│   │   ├── list_manifests.py      # Manifests subcommand
+│   │   └── test.py                # Test subcommand
 │   └── validators/                # Core validation logic
 │       ├── manifest_validator.py  # Main validation engine
 │       ├── type_validator.py      # Type hint validation
+│       ├── file_tracker.py        # File tracking analysis
 │       └── schemas/               # JSON schemas
 ├── examples/                      # Example scripts
 │   └── maid_runner.py             # Optional helpers (plan/run)
