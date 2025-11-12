@@ -10,7 +10,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Set, Any
 
 import jsonschema
 
@@ -137,9 +137,8 @@ def _format_file_tracking_output(
         print()
 
 
-def extract_test_files_from_command(validation_command) -> list:
-    """
-    Extract test file paths from pytest validation commands.
+def extract_test_files_from_command(validation_command: List[Any]) -> list:
+    """Extract test file paths from pytest validation commands.
 
     Handles various pytest command formats:
     - ["pytest tests/test_file.py -v"] (single string)
@@ -154,167 +153,212 @@ def extract_test_files_from_command(validation_command) -> list:
                           OR array of command arrays (enhanced format)
 
     Returns:
-        list: List of test file paths extracted from the command(s)
+        List of test file paths extracted from the command(s)
     """
     if not validation_command:
         return []
 
-    all_test_files = []
-
     # Check if this is the enhanced format (array of arrays)
-    if validation_command and isinstance(validation_command[0], list):
-        # Enhanced format: validationCommands = [["pytest", "test1.py"], ["pytest", "test2.py"]]
-        for cmd_array in validation_command:
-            test_files = _extract_from_single_command(cmd_array)
-            all_test_files.extend(test_files)
-        return all_test_files
+    if _is_enhanced_command_format(validation_command):
+        return _extract_from_multiple_commands(validation_command)
     else:
         # Legacy format: validationCommand = ["pytest", "test.py", "-v"]
         return _extract_from_single_command(validation_command)
 
 
-def _extract_from_single_command(command) -> list:
+def _is_enhanced_command_format(validation_command: List[Any]) -> bool:
+    """Check if validation command uses enhanced format (array of arrays).
+
+    Args:
+        validation_command: Command to check
+
+    Returns:
+        True if enhanced format, False otherwise
     """
-    Extract test files from a single command array.
+    return bool(validation_command and isinstance(validation_command[0], list))
+
+
+def _extract_from_multiple_commands(commands: List[List[str]]) -> List[str]:
+    """Extract test files from multiple command arrays (enhanced format).
+
+    Args:
+        commands: List of command arrays
+
+    Returns:
+        Combined list of test file paths from all commands
+    """
+    all_test_files = []
+    for cmd_array in commands:
+        test_files = _extract_from_single_command(cmd_array)
+        all_test_files.extend(test_files)
+    return all_test_files
+
+
+def _extract_from_single_command(command: List[str]) -> list:
+    """Extract test files from a single command array.
 
     Args:
         command: List of command components (e.g., ["pytest", "test.py", "-v"])
 
     Returns:
-        list: List of test file paths
+        List of test file paths
     """
     if not command:
         return []
 
-    test_files = []
-
-    # Handle multiple pytest commands as strings (e.g., ["pytest test1.py", "pytest test2.py"])
-    for cmd in command:
-        if isinstance(cmd, str) and "pytest" in cmd:
-            # Split if it's a single string command
-            cmd_parts = cmd.split() if " " in cmd else [cmd]
-
-            # Find pytest index in this command
-            pytest_index = -1
-            for i, part in enumerate(cmd_parts):
-                if part == "pytest":
-                    pytest_index = i
-                    break
-
-            if pytest_index != -1:
-                # Extract arguments after pytest
-                pytest_args = cmd_parts[pytest_index + 1 :]
-
-                # Extract test files from this command's args
-                for arg in pytest_args:
-                    # Skip pytest flags (start with -)
-                    if arg.startswith("-"):
-                        continue
-
-                    # Skip common pytest options that take values
-                    if arg in ["--tb", "--cov", "--maxfail", "--timeout"]:
-                        continue
-
-                    # Extract file path from node IDs (file::class::method)
-                    if "::" in arg:
-                        file_path = arg.split("::")[0]
-                        test_files.append(file_path)
-                    else:
-                        # Regular file or directory path
-                        test_files.append(arg)
-
-    # If we found test files from string commands, return them
+    # Handle multiple pytest commands as strings
+    test_files = _extract_from_string_commands(command)
     if test_files:
         return test_files
 
-    # Otherwise, try the original logic for single command format
-    # (e.g., ["pytest", "test.py", "-v"])
-    if len(command) > 1:
-        # Find the pytest command index
-        pytest_index = -1
-        for i, part in enumerate(command):
-            if part == "pytest":
-                pytest_index = i
-                break
-
-        # If no pytest found, return empty
-        if pytest_index == -1:
-            return []
-
-        # Extract arguments after pytest command
-        pytest_args = command[pytest_index + 1 :]
-
-        # Filter out pytest flags and options, keep only file/directory paths
-        test_files = []
-        for arg in pytest_args:
-            # Skip pytest flags (start with -)
-            if arg.startswith("-"):
-                continue
-
-            # Skip common pytest options that take values
-            if arg in ["--tb", "--cov", "--maxfail", "--timeout"]:
-                continue
-
-            # Extract file path from node IDs (file::class::method)
-            if "::" in arg:
-                file_path = arg.split("::")[0]
-                test_files.append(file_path)
-            else:
-                # Regular file or directory path
-                test_files.append(arg)
-
-        return test_files
-
-    return []
+    # Otherwise, try the standard list format
+    return _extract_from_list_command(command)
 
 
-def validate_behavioral_tests(
-    manifest_data, test_files, use_manifest_chain=False, quiet=False
-):
-    """
-    Validate that behavioral test files use the expected artifacts from the manifest.
+def _extract_from_string_commands(command: List[str]) -> List[str]:
+    """Extract test files from string-based pytest commands.
 
-    This function validates that test files collectively use all expected artifacts,
-    allowing different test files to exercise different parts of the API.
+    Handles formats like: ["pytest test1.py", "pytest test2.py"]
 
     Args:
-        manifest_data: Dictionary containing the manifest with expectedArtifacts
-        test_files: List of test file paths to validate
-        use_manifest_chain: If True, use manifest chain for validation
-        quiet: If True, suppress success messages
+        command: List of command strings
 
-    Raises:
-        AlignmentError: If test files don't exercise the expected artifacts
-        FileNotFoundError: If test files don't exist
+    Returns:
+        List of test file paths
     """
-    if not test_files:
-        return  # No test files to validate
+    test_files = []
 
-    # Normalize test file paths: strip redundant project directory prefix if needed
-    # This handles cases where paths might have redundant directory prefixes
+    for cmd in command:
+        if not isinstance(cmd, str) or "pytest" not in cmd:
+            continue
+
+        cmd_parts = cmd.split() if " " in cmd else [cmd]
+        pytest_index = _find_pytest_index(cmd_parts)
+
+        if pytest_index != -1:
+            pytest_args = cmd_parts[pytest_index + 1 :]
+            test_files.extend(_filter_test_paths_from_args(pytest_args))
+
+    return test_files
+
+
+def _extract_from_list_command(command: List[str]) -> List[str]:
+    """Extract test files from list-based pytest command.
+
+    Handles formats like: ["pytest", "test.py", "-v"]
+
+    Args:
+        command: List of command parts
+
+    Returns:
+        List of test file paths
+    """
+    if len(command) <= 1:
+        return []
+
+    pytest_index = _find_pytest_index(command)
+    if pytest_index == -1:
+        return []
+
+    pytest_args = command[pytest_index + 1 :]
+    return _filter_test_paths_from_args(pytest_args)
+
+
+def _find_pytest_index(command_parts: List[str]) -> int:
+    """Find the index of 'pytest' in command parts.
+
+    Args:
+        command_parts: List of command components
+
+    Returns:
+        Index of 'pytest' or -1 if not found
+    """
+    for i, part in enumerate(command_parts):
+        if part == "pytest":
+            return i
+    return -1
+
+
+def _filter_test_paths_from_args(pytest_args: List[str]) -> List[str]:
+    """Filter test file/directory paths from pytest arguments.
+
+    Args:
+        pytest_args: List of pytest arguments
+
+    Returns:
+        List of test file/directory paths
+    """
+    PYTEST_OPTIONS_WITH_VALUES = {"--tb", "--cov", "--maxfail", "--timeout"}
+    test_files = []
+
+    for arg in pytest_args:
+        # Skip pytest flags
+        if arg.startswith("-"):
+            continue
+
+        # Skip common pytest options that take values
+        if arg in PYTEST_OPTIONS_WITH_VALUES:
+            continue
+
+        # Extract file path from node IDs (file::class::method)
+        if "::" in arg:
+            file_path = arg.split("::")[0]
+            test_files.append(file_path)
+        else:
+            # Regular file or directory path
+            test_files.append(arg)
+
+    return test_files
+
+
+def _normalize_test_file_paths(test_files: List[str]) -> List[str]:
+    """Normalize test file paths by removing redundant directory prefixes.
+
+    Args:
+        test_files: List of test file paths to normalize
+
+    Returns:
+        List of normalized test file paths
+    """
     normalized_test_files = []
+    project_name = Path.cwd().name
+
     for test_file in test_files:
         # Only normalize if the file doesn't exist as-is
         if "/" in test_file and not Path(test_file).exists():
-            project_name = Path.cwd().name
             if test_file.startswith(f"{project_name}/"):
                 potential_normalized = test_file[len(project_name) + 1 :]
                 if Path(potential_normalized).exists():
                     test_file = potential_normalized
         normalized_test_files.append(test_file)
 
-    test_files = normalized_test_files
+    return normalized_test_files
 
-    # Validate each test file exists
+
+def _validate_test_files_exist(test_files: List[str]) -> None:
+    """Validate that all test files exist on disk.
+
+    Args:
+        test_files: List of test file paths to check
+
+    Raises:
+        FileNotFoundError: If any test file doesn't exist
+    """
     for test_file in test_files:
         if not Path(test_file).exists():
             raise FileNotFoundError(f"Test file not found: {test_file}")
 
-    # Collect usage data from all test files
-    from maid_runner.validators.manifest_validator import (
-        collect_behavioral_artifacts,
-        should_skip_behavioral_validation,
-    )
+
+def _collect_artifact_usage_from_tests(test_files: List[str]) -> Dict[str, Any]:
+    """Collect artifact usage data from all test files.
+
+    Args:
+        test_files: List of test file paths to analyze
+
+    Returns:
+        Dictionary with usage data for classes, methods, functions, and arguments
+    """
+    from maid_runner.validators.manifest_validator import collect_behavioral_artifacts
 
     all_used_classes = set()
     all_used_methods = {}
@@ -334,31 +378,49 @@ def validate_behavioral_tests(
                 all_used_methods[class_name] = set()
             all_used_methods[class_name].update(methods)
 
-    # For behavioral validation, we only validate artifacts from the current manifest
-    # NOT the merged artifacts from the manifest chain
-    # The tests for each task should only use the artifacts that task declares
-    # The use_manifest_chain parameter is ignored for behavioral validation
+    return {
+        "used_classes": all_used_classes,
+        "used_methods": all_used_methods,
+        "used_functions": all_used_functions,
+        "used_arguments": all_used_arguments,
+    }
+
+
+def _get_expected_artifacts(manifest_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Extract expected artifacts from manifest data.
+
+    Args:
+        manifest_data: Dictionary containing the manifest
+
+    Returns:
+        List of expected artifact definitions
+    """
     expected_artifacts = manifest_data.get("expectedArtifacts", {})
-    expected_items = expected_artifacts.get("contains", [])
+    return expected_artifacts.get("contains", [])
 
-    # Manually validate each expected artifact is used across all test files
+
+def _validate_artifacts_usage(
+    expected_items: List[Dict[str, Any]],
+    usage_data: Dict[str, Any],
+    should_skip_behavioral_validation,
+) -> None:
+    """Validate that all expected artifacts are used in tests.
+
+    Args:
+        expected_items: List of expected artifact definitions
+        usage_data: Dictionary with usage data from tests
+        should_skip_behavioral_validation: Function to check if artifact should be skipped
+
+    Raises:
+        AlignmentError: If any expected artifact is not used in tests
+    """
+    all_used_classes = usage_data["used_classes"]
+    all_used_methods = usage_data["used_methods"]
+    all_used_functions = usage_data["used_functions"]
+    all_used_arguments = usage_data["used_arguments"]
+
     for artifact in expected_items:
-        # Check for 'self' parameter before skipping artifacts
-        # This validation must occur even for private methods like __init__
-        if artifact.get("type") == "function":
-            parameters = artifact.get("args") or artifact.get("parameters", [])
-            if parameters:
-                for param in parameters:
-                    if param.get("name") == "self":
-                        from maid_runner.validators.manifest_validator import (
-                            AlignmentError,
-                        )
-
-                        raise AlignmentError(
-                            f"Manifest error: Parameter 'self' should not be explicitly declared "
-                            f"in method '{artifact.get('name')}'. In Python, 'self' is implicit for instance methods "
-                            f"and is not included in artifact declarations. Remove 'self' from the parameters list."
-                        )
+        _validate_no_self_parameter(artifact)
 
         # Skip type-only artifacts in behavioral validation
         if should_skip_behavioral_validation(artifact):
@@ -368,68 +430,205 @@ def validate_behavioral_tests(
         artifact_name = artifact.get("name")
 
         if artifact_type == "class":
-            if artifact_name not in all_used_classes:
-                from maid_runner.validators.manifest_validator import AlignmentError
-
-                raise AlignmentError(
-                    f"Class '{artifact_name}' not used in behavioral tests"
-                )
-
+            _validate_class_usage(artifact_name, all_used_classes)
         elif artifact_type == "function":
-            parent_class = artifact.get("class")
-            # Support both args (enhanced) and parameters (legacy)
-            parameters = artifact.get("args") or artifact.get("parameters", [])
+            _validate_function_usage(
+                artifact,
+                artifact_name,
+                all_used_methods,
+                all_used_functions,
+                all_used_arguments,
+            )
 
-            if parent_class:
-                # It's a method
-                if parent_class in all_used_methods:
-                    if artifact_name not in all_used_methods[parent_class]:
-                        from maid_runner.validators.manifest_validator import (
-                            AlignmentError,
-                        )
 
-                        raise AlignmentError(
-                            f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
-                        )
-                else:
-                    from maid_runner.validators.manifest_validator import AlignmentError
+def _validate_no_self_parameter(artifact: Dict[str, Any]) -> None:
+    """Validate that 'self' parameter is not explicitly declared in methods.
 
-                    raise AlignmentError(
-                        f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
-                    )
-            else:
-                # It's a standalone function
-                if artifact_name not in all_used_functions:
-                    from maid_runner.validators.manifest_validator import AlignmentError
+    Args:
+        artifact: Artifact definition to check
 
-                    raise AlignmentError(
-                        f"Function '{artifact_name}' not called in behavioral tests"
-                    )
+    Raises:
+        AlignmentError: If 'self' is explicitly declared
+    """
+    from maid_runner.validators.manifest_validator import AlignmentError
 
-            # Validate parameters were used (if specified)
-            if parameters:
-                # Check if any of the expected parameters were used as keyword arguments
-                for param in parameters:
-                    param_name = param.get("name")
-                    if param_name:
-                        # Check if this specific parameter was used as a keyword argument
-                        # Or if positional arguments were provided (which we can't verify individually)
-                        if (
-                            param_name not in all_used_arguments
-                            and "__positional__" not in all_used_arguments
-                        ):
-                            from maid_runner.validators.manifest_validator import (
-                                AlignmentError,
-                            )
+    if artifact.get("type") != "function":
+        return
 
-                            raise AlignmentError(
-                                f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
-                            )
+    parameters = artifact.get("args") or artifact.get("parameters", [])
+    if not parameters:
+        return
 
-        elif artifact_type == "attribute":
-            # For attributes, we'd need to check attribute access patterns
-            # This is more complex and may not be needed for the current use case
-            pass
+    for param in parameters:
+        if param.get("name") == "self":
+            raise AlignmentError(
+                f"Manifest error: Parameter 'self' should not be explicitly declared "
+                f"in method '{artifact.get('name')}'. In Python, 'self' is implicit for instance methods "
+                f"and is not included in artifact declarations. Remove 'self' from the parameters list."
+            )
+
+
+def _validate_class_usage(artifact_name: str, all_used_classes: Set[str]) -> None:
+    """Validate that a class artifact is used in tests.
+
+    Args:
+        artifact_name: Name of the class artifact
+        all_used_classes: Set of classes used in tests
+
+    Raises:
+        AlignmentError: If class is not used in tests
+    """
+    from maid_runner.validators.manifest_validator import AlignmentError
+
+    if artifact_name not in all_used_classes:
+        raise AlignmentError(f"Class '{artifact_name}' not used in behavioral tests")
+
+
+def _validate_function_usage(
+    artifact: Dict[str, Any],
+    artifact_name: str,
+    all_used_methods: Dict[str, Set[str]],
+    all_used_functions: Set[str],
+    all_used_arguments: Set[str],
+) -> None:
+    """Validate that a function/method artifact is used in tests.
+
+    Args:
+        artifact: Artifact definition
+        artifact_name: Name of the function/method
+        all_used_methods: Dictionary of methods used per class
+        all_used_functions: Set of standalone functions used
+        all_used_arguments: Set of arguments used in calls
+
+    Raises:
+        AlignmentError: If function/method is not used correctly in tests
+    """
+    parent_class = artifact.get("class")
+    parameters = artifact.get("args") or artifact.get("parameters", [])
+
+    if parent_class:
+        _validate_method_usage(artifact_name, parent_class, all_used_methods)
+    else:
+        _validate_standalone_function_usage(artifact_name, all_used_functions)
+
+    # Validate parameters were used (if specified)
+    if parameters:
+        _validate_parameters_usage(parameters, artifact_name, all_used_arguments)
+
+
+def _validate_method_usage(
+    artifact_name: str, parent_class: str, all_used_methods: Dict[str, Set[str]]
+) -> None:
+    """Validate that a method is called on its class in tests.
+
+    Args:
+        artifact_name: Name of the method
+        parent_class: Name of the parent class
+        all_used_methods: Dictionary of methods used per class
+
+    Raises:
+        AlignmentError: If method is not called on class in tests
+    """
+    from maid_runner.validators.manifest_validator import AlignmentError
+
+    if parent_class in all_used_methods:
+        if artifact_name not in all_used_methods[parent_class]:
+            raise AlignmentError(
+                f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
+            )
+    else:
+        raise AlignmentError(
+            f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
+        )
+
+
+def _validate_standalone_function_usage(
+    artifact_name: str, all_used_functions: Set[str]
+) -> None:
+    """Validate that a standalone function is called in tests.
+
+    Args:
+        artifact_name: Name of the function
+        all_used_functions: Set of standalone functions used
+
+    Raises:
+        AlignmentError: If function is not called in tests
+    """
+    from maid_runner.validators.manifest_validator import AlignmentError
+
+    if artifact_name not in all_used_functions:
+        raise AlignmentError(
+            f"Function '{artifact_name}' not called in behavioral tests"
+        )
+
+
+def _validate_parameters_usage(
+    parameters: List[Dict[str, Any]], artifact_name: str, all_used_arguments: Set[str]
+) -> None:
+    """Validate that function parameters are used in test calls.
+
+    Args:
+        parameters: List of parameter definitions
+        artifact_name: Name of the function/method
+        all_used_arguments: Set of arguments used in calls
+
+    Raises:
+        AlignmentError: If parameter is not used in test calls
+    """
+    from maid_runner.validators.manifest_validator import AlignmentError
+
+    for param in parameters:
+        param_name = param.get("name")
+        if not param_name:
+            continue
+
+        # Check if parameter was used as keyword argument or positionally
+        if (
+            param_name not in all_used_arguments
+            and "__positional__" not in all_used_arguments
+        ):
+            raise AlignmentError(
+                f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
+            )
+
+
+def validate_behavioral_tests(
+    manifest_data: Dict[str, Any],
+    test_files: List[str],
+    use_manifest_chain: bool = False,
+    quiet: bool = False,
+) -> None:
+    """Validate that behavioral test files use the expected artifacts from the manifest.
+
+    This function validates that test files collectively use all expected artifacts,
+    allowing different test files to exercise different parts of the API.
+
+    Args:
+        manifest_data: Dictionary containing the manifest with expectedArtifacts
+        test_files: List of test file paths to validate
+        use_manifest_chain: If True, use manifest chain for validation
+        quiet: If True, suppress success messages
+
+    Raises:
+        AlignmentError: If test files don't exercise the expected artifacts
+        FileNotFoundError: If test files don't exist
+    """
+    if not test_files:
+        return
+
+    test_files = _normalize_test_file_paths(test_files)
+    _validate_test_files_exist(test_files)
+
+    from maid_runner.validators.manifest_validator import (
+        should_skip_behavioral_validation,
+    )
+
+    usage_data = _collect_artifact_usage_from_tests(test_files)
+
+    expected_items = _get_expected_artifacts(manifest_data)
+    _validate_artifacts_usage(
+        expected_items, usage_data, should_skip_behavioral_validation
+    )
 
 
 def _run_directory_validation(

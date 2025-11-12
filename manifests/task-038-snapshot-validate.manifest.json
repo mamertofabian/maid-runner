@@ -1,0 +1,218 @@
+{
+  "goal": "Snapshot of existing code in ./maid_runner/cli/validate.py",
+  "taskType": "snapshot",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "./maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "./maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_format_file_tracking_output",
+        "args": [
+          {
+            "name": "analysis",
+            "type": "dict"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "validation_summary",
+            "type": "Optional[str]"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis",
+            "type": "dict"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "validation_summary",
+            "type": "Optional[str]"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "extract_test_files_from_command",
+        "args": [
+          {
+            "name": "validation_command"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "validation_command"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_extract_from_single_command",
+        "args": [
+          {
+            "name": "command"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "command"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "validate_behavioral_tests",
+        "args": [
+          {
+            "name": "manifest_data"
+          },
+          {
+            "name": "test_files"
+          },
+          {
+            "name": "use_manifest_chain"
+          },
+          {
+            "name": "quiet"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "manifest_data"
+          },
+          {
+            "name": "test_files"
+          },
+          {
+            "name": "use_manifest_chain"
+          },
+          {
+            "name": "quiet"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_run_directory_validation",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "skip_file_tracking",
+            "type": "bool"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "skip_file_tracking",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_038_snapshot_validate.py",
+    "-v"
+  ]
+}
