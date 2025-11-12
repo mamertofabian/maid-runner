@@ -407,17 +407,21 @@ def _run_directory_validation(
         SystemExit: Exits with code 0 on success, 1 on failure
     """
     import os
-    from maid_runner.utils import get_superseded_manifests
+    from maid_runner.utils import (
+        get_superseded_manifests,
+        print_maid_not_enabled_message,
+        print_no_manifests_found_message,
+    )
 
     manifests_dir = Path(manifest_dir).resolve()
 
     if not manifests_dir.exists():
-        print(f"⚠️  Manifests directory not found: {manifest_dir}")
-        sys.exit(1)
+        print_maid_not_enabled_message(str(manifest_dir))
+        sys.exit(0)
 
     manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
     if not manifest_files:
-        print("⚠️  No manifest files found")
+        print_no_manifests_found_message(str(manifest_dir))
         sys.exit(0)
 
     # Get superseded manifests and filter them out

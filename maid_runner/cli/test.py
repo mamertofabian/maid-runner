@@ -15,6 +15,8 @@ from typing import Optional
 from maid_runner.utils import (
     get_superseded_manifests,
     normalize_validation_commands,
+    print_maid_not_enabled_message,
+    print_no_manifests_found_message,
     validate_manifest_version,
 )
 
@@ -159,7 +161,7 @@ def run_test(
     project_root = manifests_dir.parent
 
     if not manifests_dir.exists():
-        print(f"⚠️  Manifests directory not found: {manifest_dir}")
+        print_maid_not_enabled_message(str(manifest_dir))
         sys.exit(0)
 
     # If a specific manifest is requested, use only that one
@@ -178,7 +180,7 @@ def run_test(
         # Default behavior: process all non-superseded manifests
         manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
         if not manifest_files:
-            print("⚠️  No manifest files found")
+            print_no_manifests_found_message(str(manifest_dir))
             sys.exit(0)
 
         # Get superseded manifests and filter them out

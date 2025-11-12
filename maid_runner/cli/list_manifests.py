@@ -9,6 +9,11 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.utils import (
+    print_maid_not_enabled_message,
+    print_no_manifests_found_message,
+)
+
 
 def _categorize_manifest_by_file(manifest_data: dict, file_path: str) -> Optional[str]:
     """Categorize how a manifest references a file.
@@ -107,14 +112,14 @@ def run_list_manifests(file_path: str, manifest_dir: str, quiet: bool) -> None:
 
     # Validate manifest directory exists
     if not manifest_dir_path.exists():
-        print(f"Error: Manifest directory not found: {manifest_dir}", file=sys.stderr)
+        print_maid_not_enabled_message(manifest_dir, use_stderr=True)
         sys.exit(1)
 
     # Find all manifest files
     manifest_files = sorted(manifest_dir_path.glob("task-*.manifest.json"))
 
     if not manifest_files:
-        print(f"No manifest files found in: {manifest_dir}")
+        print_no_manifests_found_message(manifest_dir)
         return
 
     # Categorize manifests
