@@ -10,8 +10,88 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 from maid_runner.validators.manifest_validator import validate_with_ast
+from maid_runner.validators.file_tracker import analyze_file_tracking
+
+
+def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
+    """Format and print file tracking analysis warnings (internal helper).
+
+    Args:
+        analysis: FileTrackingAnalysis dictionary with undeclared, registered, tracked
+        quiet: If True, only show summary
+    """
+    undeclared = analysis.get("undeclared", [])
+    registered = analysis.get("registered", [])
+    tracked = analysis.get("tracked", [])
+
+    total_files = len(undeclared) + len(registered) + len(tracked)
+
+    if total_files == 0:
+        return  # No files to report
+
+    # Only show if there are warnings
+    if undeclared or registered:
+        print()
+        print("━" * 80)
+        print("FILE TRACKING ANALYSIS")
+        print("━" * 80)
+        print()
+
+    # UNDECLARED files (high priority)
+    if undeclared:
+        print(f"🔴 UNDECLARED FILES ({len(undeclared)} files)")
+        print("  Files exist in codebase but are not tracked in any manifest")
+        print()
+
+        if not quiet:
+            for file_info in undeclared[:10]:  # Limit to 10 for readability
+                print(f"  - {file_info['file']}")
+                for issue in file_info["issues"]:
+                    print(f"    → {issue}")
+
+            if len(undeclared) > 10:
+                print(f"  ... and {len(undeclared) - 10} more")
+
+        print()
+        print(
+            "  Action: Add these files to creatableFiles or editableFiles in a manifest"
+        )
+        print()
+
+    # REGISTERED files (medium priority)
+    if registered:
+        print(f"🟡 REGISTERED FILES ({len(registered)} files)")
+        print("  Files are tracked but not fully MAID-compliant")
+        print()
+
+        if not quiet:
+            for file_info in registered[:10]:  # Limit to 10 for readability
+                print(f"  - {file_info['file']}")
+                for issue in file_info["issues"]:
+                    print(f"    ⚠️  {issue}")
+                print(f"    Manifests: {', '.join(file_info['manifests'][:3])}")
+
+            if len(registered) > 10:
+                print(f"  ... and {len(registered) - 10} more")
+
+        print()
+        print(
+            "  Action: Add expectedArtifacts and validationCommand for full compliance"
+        )
+        print()
+
+    # Summary
+    if undeclared or registered:
+        print(f"✓ TRACKED ({len(tracked)} files)")
+        print("  All other source files are fully MAID-compliant")
+        print()
+        print(
+            f"Summary: {len(undeclared)} UNDECLARED, {len(registered)} REGISTERED, {len(tracked)} TRACKED"
+        )
+        print()
 
 
 def extract_test_files_from_command(validation_command) -> list:
@@ -167,6 +247,21 @@ def validate_behavioral_tests(
     if not test_files:
         return  # No test files to validate
 
+    # Normalize test file paths: strip redundant project directory prefix if needed
+    # This handles cases where paths might have redundant directory prefixes
+    normalized_test_files = []
+    for test_file in test_files:
+        # Only normalize if the file doesn't exist as-is
+        if "/" in test_file and not Path(test_file).exists():
+            project_name = Path.cwd().name
+            if test_file.startswith(f"{project_name}/"):
+                potential_normalized = test_file[len(project_name) + 1 :]
+                if Path(potential_normalized).exists():
+                    test_file = potential_normalized
+        normalized_test_files.append(test_file)
+
+    test_files = normalized_test_files
+
     # Validate each test file exists
     for test_file in test_files:
         if not Path(test_file).exists():
@@ -205,6 +300,23 @@ def validate_behavioral_tests(
 
     # Manually validate each expected artifact is used across all test files
     for artifact in expected_items:
+        # Check for 'self' parameter before skipping artifacts
+        # This validation must occur even for private methods like __init__
+        if artifact.get("type") == "function":
+            parameters = artifact.get("args") or artifact.get("parameters", [])
+            if parameters:
+                for param in parameters:
+                    if param.get("name") == "self":
+                        from maid_runner.validators.manifest_validator import (
+                            AlignmentError,
+                        )
+
+                        raise AlignmentError(
+                            f"Manifest error: Parameter 'self' should not be explicitly declared "
+                            f"in method '{artifact.get('name')}'. In Python, 'self' is implicit for instance methods "
+                            f"and is not included in artifact declarations. Remove 'self' from the parameters list."
+                        )
+
         # Skip type-only artifacts in behavioral validation
         if should_skip_behavioral_validation(artifact):
             continue
@@ -277,16 +389,16 @@ def validate_behavioral_tests(
             pass
 
 
-def run_validation(
-    manifest_path: str,
-    validation_mode: str = "implementation",
-    use_manifest_chain: bool = False,
-    quiet: bool = False,
+def _run_directory_validation(
+    manifest_dir: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    quiet: bool,
 ) -> None:
-    """Core validation logic accepting parsed arguments.
+    """Validate all manifests in a directory.
 
     Args:
-        manifest_path: Path to the manifest JSON file
+        manifest_dir: Path to directory containing manifests
         validation_mode: Validation mode ('implementation' or 'behavioral')
         use_manifest_chain: If True, use manifest chain to merge related manifests
         quiet: If True, suppress success messages
@@ -294,6 +406,144 @@ def run_validation(
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
     """
+    import os
+    from maid_runner.utils import (
+        get_superseded_manifests,
+        print_maid_not_enabled_message,
+        print_no_manifests_found_message,
+    )
+
+    manifests_dir = Path(manifest_dir).resolve()
+
+    if not manifests_dir.exists():
+        print_maid_not_enabled_message(str(manifest_dir))
+        sys.exit(0)
+
+    manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
+    if not manifest_files:
+        print_no_manifests_found_message(str(manifest_dir))
+        sys.exit(0)
+
+    # Get superseded manifests and filter them out
+    superseded = get_superseded_manifests(manifests_dir)
+    active_manifests = [m for m in manifest_files if m not in superseded]
+
+    if not active_manifests:
+        print("⚠️  No active manifest files found")
+        sys.exit(0)
+
+    if superseded and not quiet:
+        print(f"⏭️  Skipping {len(superseded)} superseded manifest(s)\n")
+
+    # Change to project root directory for validation
+    # This ensures relative paths in manifests are resolved correctly
+    project_root = manifests_dir.parent
+    original_cwd = os.getcwd()
+    os.chdir(project_root)
+
+    total_passed = 0
+    total_failed = 0
+    manifests_with_failures = []
+
+    try:
+        for manifest_path in active_manifests:
+            if not quiet:
+                print(f"📋 Validating {manifest_path.name}...")
+
+            # Validate this manifest using the single-manifest validation logic
+            # We'll capture the exit by catching SystemExit
+            try:
+                run_validation(
+                    manifest_path=str(manifest_path),
+                    validation_mode=validation_mode,
+                    use_manifest_chain=use_manifest_chain,
+                    quiet=True,  # Suppress individual success messages
+                    manifest_dir=None,  # Prevent recursion
+                    skip_file_tracking=True,  # Skip per-manifest tracking
+                )
+                total_passed += 1
+                if not quiet:
+                    print("  ✅ PASSED\n")
+            except SystemExit as e:
+                if e.code == 0:
+                    total_passed += 1
+                    if not quiet:
+                        print("  ✅ PASSED\n")
+                else:
+                    total_failed += 1
+                    manifests_with_failures.append(manifest_path.name)
+                    if not quiet:
+                        print("  ❌ FAILED\n")
+    finally:
+        # Restore original working directory
+        os.chdir(original_cwd)
+
+    # Print summary
+    total_manifests = total_passed + total_failed
+    percentage = (total_passed / total_manifests * 100) if total_manifests > 0 else 0
+    print(
+        f"📊 Summary: {total_passed}/{total_manifests} manifest(s) passed ({percentage:.1f}%)"
+    )
+
+    if manifests_with_failures:
+        print(f"   ❌ Failed manifests: {', '.join(manifests_with_failures)}")
+
+    # FILE TRACKING ANALYSIS (once for all manifests)
+    # Run only if using manifest chain and in implementation mode
+    if use_manifest_chain and validation_mode == "implementation":
+        try:
+            # Load all manifests
+            manifest_chain = []
+            for manifest_file in sorted(manifests_dir.glob("task-*.manifest.json")):
+                with open(manifest_file, "r") as f:
+                    manifest_chain.append(json.load(f))
+
+            # Analyze file tracking
+            source_root = str(project_root)
+            analysis = analyze_file_tracking(manifest_chain, source_root)
+
+            # Display warnings
+            _format_file_tracking_output(analysis, quiet=quiet)
+
+        except Exception as e:
+            # Don't fail validation if file tracking has issues
+            if not quiet:
+                print(f"\n⚠️  File tracking analysis failed: {e}")
+
+    # Exit with appropriate code
+    if total_failed > 0:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+
+def run_validation(
+    manifest_path: Optional[str] = None,
+    validation_mode: str = "implementation",
+    use_manifest_chain: bool = False,
+    quiet: bool = False,
+    manifest_dir: Optional[str] = None,
+    skip_file_tracking: bool = False,
+) -> None:
+    """Core validation logic accepting parsed arguments.
+
+    Args:
+        manifest_path: Path to the manifest JSON file (mutually exclusive with manifest_dir)
+        validation_mode: Validation mode ('implementation' or 'behavioral')
+        use_manifest_chain: If True, use manifest chain to merge related manifests
+        quiet: If True, suppress success messages
+        manifest_dir: Path to directory containing manifests to validate all at once
+        skip_file_tracking: If True, skip file tracking analysis (used in batch mode)
+
+    Raises:
+        SystemExit: Exits with code 0 on success, 1 on failure
+    """
+    # Handle --manifest-dir mode
+    if manifest_dir:
+        _run_directory_validation(
+            manifest_dir, validation_mode, use_manifest_chain, quiet
+        )
+        return
 
     try:
         # Validate manifest file exists
@@ -336,39 +586,109 @@ def run_validation(
             print("✗ Error: No file specified in manifest's expectedArtifacts.file")
             sys.exit(1)
 
-        # Validate target file exists
-        if not Path(file_path).exists():
-            print(f"✗ Error: Target file not found: {file_path}")
-            sys.exit(1)
+        # Normalize file path: strip redundant project directory prefix if it exists
+        # This handles cases where paths might have redundant directory prefixes
+        # Check if the file exists as-is first, then try without the first directory component
+        if "/" in file_path and not Path(file_path).exists():
+            # Try removing the first directory component if it matches the current directory name
+            project_name = Path.cwd().name
+            if file_path.startswith(f"{project_name}/"):
+                potential_normalized = file_path[len(project_name) + 1 :]
+                if Path(potential_normalized).exists():
+                    file_path = potential_normalized
 
-        # BEHAVIORAL TEST VALIDATION (BEFORE implementation validation)
-        # Check if manifest has a validationCommand or validationCommands that contains test files
+        # BEHAVIORAL TEST VALIDATION
+        # In behavioral mode, we validate test structure, not implementation
         # Support both legacy (validationCommand) and enhanced (validationCommands) formats
         validation_commands = manifest_data.get("validationCommands", [])
         if not validation_commands:
             validation_commands = manifest_data.get("validationCommand", [])
 
-        if validation_commands:
-            test_files = extract_test_files_from_command(validation_commands)
-            if test_files:
-                if not quiet:
-                    print("Running behavioral test validation...")
-                validate_behavioral_tests(
-                    manifest_data,
-                    test_files,
-                    use_manifest_chain=use_manifest_chain,
-                    quiet=quiet,
-                )
-                if not quiet:
-                    print("✓ Behavioral test validation PASSED")
+        # Initialize test_files to empty list for use in both behavioral and implementation modes
+        test_files = []
 
-        # IMPLEMENTATION VALIDATION (after behavioral tests)
-        validate_with_ast(
-            manifest_data,
-            file_path,
-            use_manifest_chain=use_manifest_chain,
-            validation_mode=validation_mode,
-        )
+        if validation_mode == "behavioral":
+            # Behavioral mode: Check test files exist and USE artifacts
+            if validation_commands:
+                test_files = extract_test_files_from_command(validation_commands)
+                if test_files:
+                    # Validate test files exist
+                    missing_test_files = []
+                    for test_file in test_files:
+                        if not Path(test_file).exists():
+                            missing_test_files.append(test_file)
+
+                    if missing_test_files:
+                        print(
+                            f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
+                        )
+                        sys.exit(1)
+
+                    if not quiet:
+                        print("Running behavioral test validation...")
+                    validate_behavioral_tests(
+                        manifest_data,
+                        test_files,
+                        use_manifest_chain=use_manifest_chain,
+                        quiet=quiet,
+                    )
+                    if not quiet:
+                        print("✓ Behavioral test validation PASSED")
+                else:
+                    if not quiet:
+                        print("⚠ Warning: No test files found in validationCommand")
+            else:
+                if not quiet:
+                    print(
+                        "⚠ Warning: No validationCommand specified for behavioral validation"
+                    )
+        else:
+            # Implementation mode: Check implementation file exists and DEFINES artifacts
+            if not Path(file_path).exists():
+                print(f"✗ Error: Target file not found: {file_path}")
+                print()
+                print(
+                    "⚠️  Hint: If you're validating a manifest before implementing the code (MAID Phase 2),"
+                )
+                print(
+                    "   you should use behavioral validation to check the test structure:"
+                )
+                print()
+                print(
+                    f"   uv run maid validate {manifest_path} --validation-mode behavioral"
+                )
+                print()
+                print("   Implementation validation requires the target file to exist.")
+                sys.exit(1)
+
+            # Also run behavioral test validation if validation commands are present
+            if validation_commands:
+                test_files = extract_test_files_from_command(validation_commands)
+                if test_files:
+                    if not quiet:
+                        print("Running behavioral test validation...")
+                    validate_behavioral_tests(
+                        manifest_data,
+                        test_files,
+                        use_manifest_chain=use_manifest_chain,
+                        quiet=quiet,
+                    )
+                    if not quiet:
+                        print("✓ Behavioral test validation PASSED")
+
+            # IMPLEMENTATION VALIDATION
+            # Only run AST validation for Python files
+            if file_path.endswith(".py"):
+                validate_with_ast(
+                    manifest_data,
+                    file_path,
+                    use_manifest_chain=use_manifest_chain,
+                    validation_mode=validation_mode,
+                )
+            else:
+                # For non-Python files, just verify they exist (already done above)
+                if not quiet:
+                    print(f"⚠ Skipping AST validation for non-Python file: {file_path}")
 
         # Success message
         if not quiet:
@@ -383,6 +703,37 @@ def run_validation(
 
             print(f"  Manifest: {manifest_path}")
             print(f"  Target:   {file_path}")
+
+        # FILE TRACKING ANALYSIS
+        # Run file tracking analysis when using manifest chain in implementation mode
+        # Skip if in batch mode (will be shown once at the end)
+        if (
+            use_manifest_chain
+            and validation_mode == "implementation"
+            and not skip_file_tracking
+        ):
+            try:
+                # Load all manifests from manifests directory
+                manifests_dir = Path("manifests")
+                if manifests_dir.exists():
+                    manifest_chain = []
+                    for manifest_file in sorted(
+                        manifests_dir.glob("task-*.manifest.json")
+                    ):
+                        with open(manifest_file, "r") as f:
+                            manifest_chain.append(json.load(f))
+
+                    # Analyze file tracking
+                    source_root = str(Path.cwd())
+                    analysis = analyze_file_tracking(manifest_chain, source_root)
+
+                    # Display warnings
+                    _format_file_tracking_output(analysis, quiet=quiet)
+
+            except Exception as e:
+                # Don't fail validation if file tracking has issues
+                if not quiet:
+                    print(f"\n⚠️  File tracking analysis failed: {e}")
 
         # Display metadata if present (outside conditional for consistent display)
         metadata = manifest_data.get("metadata")
@@ -425,15 +776,18 @@ def run_validation(
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         description="Validate manifest against implementation or behavioral test files",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Validate implementation (default mode)
+  # Validate single manifest (implementation mode)
   %(prog)s manifests/task-001.manifest.json
+
+  # Validate all manifests in directory
+  %(prog)s --manifest-dir manifests
 
   # Validate behavioral test usage
   %(prog)s manifests/task-001.manifest.json --validation-mode behavioral
@@ -441,18 +795,33 @@ Examples:
   # Use manifest chain for complex validation
   %(prog)s manifests/task-001.manifest.json --use-manifest-chain
 
-  # Combined behavioral + manifest chain
-  %(prog)s manifests/task-001.manifest.json --validation-mode behavioral --use-manifest-chain
+  # Validate all manifests with behavioral mode
+  %(prog)s --manifest-dir manifests --validation-mode behavioral
 
 Validation Modes:
   implementation  - Validates that code DEFINES the expected artifacts (default)
   behavioral      - Validates that tests USE/CALL the expected artifacts
 
+File Tracking Analysis:
+  When using --use-manifest-chain in implementation mode, MAID Runner automatically
+  analyzes file tracking compliance across the codebase:
+
+  🔴 UNDECLARED - Files not in any manifest (high priority)
+  🟡 REGISTERED - Files tracked but incomplete compliance (medium priority)
+  ✓ TRACKED     - Files with full MAID compliance
+
+  This helps identify accountability gaps and ensures all source files are properly
+  documented in manifests.
+
 This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         """,
     )
 
-    parser.add_argument("manifest_path", help="Path to the manifest JSON file")
+    parser.add_argument(
+        "manifest_path",
+        nargs="?",
+        help="Path to the manifest JSON file (mutually exclusive with --manifest-dir)",
+    )
 
     parser.add_argument(
         "--validation-mode",
@@ -464,7 +833,7 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
     parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests",
+        help="Use manifest chain to merge all related manifests (enables file tracking analysis)",
     )
 
     parser.add_argument(
@@ -474,12 +843,28 @@ This enables MAID Phase 2 validation: manifest ↔ behavioral test alignment!
         help="Only output errors (suppress success messages)",
     )
 
+    parser.add_argument(
+        "--manifest-dir",
+        help="Directory containing manifests to validate (mutually exclusive with manifest_path)",
+    )
+
     args = parser.parse_args()
+
+    # Check for mutual exclusivity
+    if args.manifest_path and args.manifest_dir:
+        parser.error(
+            "Cannot specify both manifest_path and --manifest-dir. Use one or the other."
+        )
+
+    if not args.manifest_path and not args.manifest_dir:
+        parser.error("Must specify either manifest_path or --manifest-dir")
+
     run_validation(
         args.manifest_path,
         args.validation_mode,
         args.use_manifest_chain,
         args.quiet,
+        args.manifest_dir,
     )
 
 

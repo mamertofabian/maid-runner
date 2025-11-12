@@ -31,27 +31,30 @@ def run_tests():
         # 1. Run tests from manifests
         manifests_dir = Path("manifests")
         if manifests_dir.exists():
-            manifest_files = list(manifests_dir.glob("*.json"))
+            manifest_files = sorted(manifests_dir.glob("*.json"))
 
-            for manifest_path in sorted(manifest_files):
+            for manifest_path in manifest_files:
                 try:
                     with open(manifest_path, "r") as f:
                         manifest_data = json.load(f)
 
-                    validation_cmd = manifest_data.get("validationCommand")
-                    if validation_cmd:
-                        print(
-                            f"🧪 Running tests for {manifest_path.name}: {validation_cmd}"
-                        )
+                    # Get validation command (supports both formats)
+                    validation_cmd = manifest_data.get(
+                        "validationCommand"
+                    ) or manifest_data.get("validationCommands", [{}])[0].get("command")
 
-                        env = os.environ.copy()
+                    if validation_cmd:
+                        # Convert list to string if needed
+                        if isinstance(validation_cmd, list):
+                            validation_cmd = " ".join(validation_cmd)
+
+                        print(f"🧪 Running tests for {manifest_path.name}")
 
                         result = subprocess.run(
                             validation_cmd,
                             shell=True,
                             capture_output=True,
                             text=True,
-                            env=env,
                             timeout=120,  # 2 minute timeout
                         )
 
@@ -60,14 +63,15 @@ def run_tests():
                             test_results.append((manifest_path.name, True, None))
                         else:
                             print(f"❌ {manifest_path.name}: Tests failed")
-                            print(f"   stdout: {result.stdout}")
-                            print(f"   stderr: {result.stderr}")
+                            error_output = (
+                                result.stderr.strip() or result.stdout.strip()
+                            )
+                            if error_output:
+                                # Only show last 10 lines to avoid clutter
+                                error_lines = error_output.split("\n")[-10:]
+                                print(f"   {chr(10).join(error_lines)}")
                             test_results.append(
-                                (
-                                    manifest_path.name,
-                                    False,
-                                    result.stderr or result.stdout,
-                                )
+                                (manifest_path.name, False, error_output)
                             )
                     else:
                         print(
@@ -87,22 +91,22 @@ def run_tests():
                     test_results.append((manifest_path.name, False, str(e)))
 
         # 2. Run integration tests
-        integration_tests = list(Path("tests").glob("test_*_integration.py"))
+        integration_tests = (
+            list(Path("tests").glob("test_*_integration.py"))
+            if Path("tests").exists()
+            else []
+        )
         if integration_tests:
             print(f"\n🔗 Running {len(integration_tests)} integration test file(s)")
 
             for test_file in sorted(integration_tests):
                 print(f"🧪 Running {test_file.name}")
 
-                env = os.environ.copy()
-
                 try:
                     result = subprocess.run(
-                        f"uv run pytest {test_file} -v",
-                        shell=True,
+                        ["uv", "run", "pytest", str(test_file), "-v"],
                         capture_output=True,
                         text=True,
-                        env=env,
                         timeout=120,
                     )
 
@@ -113,9 +117,9 @@ def run_tests():
                         )
                     else:
                         print(f"❌ {test_file.name}: Integration tests failed")
-                        print(f"   stderr: {result.stderr}")
+                        error_output = result.stderr.strip() or result.stdout.strip()
                         test_results.append(
-                            (f"integration:{test_file.name}", False, result.stderr)
+                            (f"integration:{test_file.name}", False, error_output)
                         )
 
                 except subprocess.TimeoutExpired:
@@ -129,19 +133,15 @@ def run_tests():
                         (f"integration:{test_file.name}", False, str(e))
                     )
 
-        # 3. Run all tests together for comprehensive check
+        # 3. Run comprehensive test suite
         if Path("tests").exists():
             print("\n🧪 Running comprehensive test suite")
 
-            env = os.environ.copy()
-
             try:
                 result = subprocess.run(
-                    "uv run pytest tests/ -v",
-                    shell=True,
+                    ["uv", "run", "pytest", "tests/", "-q"],
                     capture_output=True,
                     text=True,
-                    env=env,
                     timeout=180,  # 3 minute timeout for all tests
                 )
 
@@ -150,8 +150,8 @@ def run_tests():
                     test_results.append(("comprehensive", True, None))
                 else:
                     print("❌ Comprehensive test suite: Some tests failed")
-                    print(f"   stderr: {result.stderr}")
-                    test_results.append(("comprehensive", False, result.stderr))
+                    error_output = result.stderr.strip() or result.stdout.strip()
+                    test_results.append(("comprehensive", False, error_output))
 
             except subprocess.TimeoutExpired:
                 print("⏰ Comprehensive test suite: Timed out")
@@ -172,7 +172,10 @@ def run_tests():
                 print("❌ Failed test suites:")
                 for name, success, error in test_results:
                     if not success:
-                        print(f"   • {name}: {error}")
+                        error_preview = (
+                            error[:100] + "..." if error and len(error) > 100 else error
+                        )
+                        print(f"   • {name}: {error_preview}")
 
                 # Block Claude from stopping if tests fail
                 output = {

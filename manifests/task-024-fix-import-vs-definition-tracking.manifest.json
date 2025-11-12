@@ -1,0 +1,22 @@
+{
+  "goal": "Fix validator to distinguish between imported classes (dependencies) and defined classes (artifacts). Imports should not be added to found_classes.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
+  "readonlyFiles": [
+    "tests/test_task_024_import_vs_definition.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "description": "AST visitor that collects artifacts. Imports are tracked separately from definitions - only defined classes populate found_classes."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_024_import_vs_definition.py", "-v"]
+}

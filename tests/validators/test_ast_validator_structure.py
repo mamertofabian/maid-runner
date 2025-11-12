@@ -3,10 +3,19 @@ import pytest
 from pathlib import Path
 from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
-# We'll use a more complex dummy file now
+# We'll use a more complex dummy file with DEFINED classes (not imported)
 DUMMY_TEST_CODE = """
 import pytest
-from my_app.models import User, Product
+
+class User:
+    def __init__(self, name, user_id):
+        self.name = name
+        self.user_id = user_id
+
+class Product:
+    def __init__(self, sku, price):
+        self.sku = sku
+        self.price = price
 
 def test_user_creation():
     # Using a standard variable name
@@ -117,7 +126,13 @@ class Calculator:
                 {
                     "type": "class",
                     "name": "Calculator",
-                },  # Include the class in manifest
+                },
+                {
+                    "type": "function",
+                    "name": "add",
+                    "class": "Calculator",
+                    "parameters": [{"name": "a"}, {"name": "b"}],
+                },
             ]
         }
     }
@@ -203,7 +218,18 @@ class Dog(Animal):
             "contains": [
                 {"type": "class", "name": "CustomError", "bases": ["Exception"]},
                 {"type": "class", "name": "ValidationError", "bases": ["ValueError"]},
+                {
+                    "type": "function",
+                    "name": "__init__",
+                    "class": "ValidationError",
+                    "parameters": [{"name": "message"}],
+                },
                 {"type": "class", "name": "Dog", "bases": ["Animal"]},
+                {
+                    "type": "function",
+                    "name": "bark",
+                    "class": "Dog",
+                },
                 {"type": "class", "name": "Animal"},  # No base specified
             ]
         }
@@ -394,7 +420,10 @@ class Calculator:
             "contains": [
                 {"type": "function", "name": "module_func"},
                 {"type": "class", "name": "Calculator"},
-                # Methods (add, subtract, multiply, from_string) should NOT be in functions
+                {"type": "function", "name": "add", "class": "Calculator"},
+                {"type": "function", "name": "subtract", "class": "Calculator"},
+                {"type": "function", "name": "multiply", "class": "Calculator"},
+                {"type": "function", "name": "from_string", "class": "Calculator"},
             ]
         }
     }
@@ -428,9 +457,11 @@ class OuterClass:
             "contains": [
                 {"type": "function", "name": "top_level"},
                 {"type": "class", "name": "OuterClass"},
+                {"type": "function", "name": "outer_method", "class": "OuterClass"},
                 {"type": "class", "name": "InnerClass"},  # Nested classes ARE collected
+                {"type": "function", "name": "inner_method", "class": "InnerClass"},
                 {"type": "class", "name": "DeepClass"},  # Even deeply nested ones
-                # Methods inside classes are correctly NOT collected as module functions
+                {"type": "function", "name": "deep_method", "class": "DeepClass"},
             ]
         }
     }
@@ -478,8 +509,10 @@ def standalone_function():
         "expectedArtifacts": {
             "contains": [
                 {"type": "class", "name": "Service"},
+                {"type": "function", "name": "static_method", "class": "Service"},
+                {"type": "function", "name": "class_method", "class": "Service"},
+                {"type": "function", "name": "instance_method", "class": "Service"},
                 {"type": "function", "name": "standalone_function"},
-                # Decorated methods should NOT be module functions
             ]
         }
     }

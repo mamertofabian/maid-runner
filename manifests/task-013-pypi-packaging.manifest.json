@@ -21,11 +21,6 @@
       {
         "type": "attribute",
         "name": "__all__"
-      },
-      {
-        "type": "class",
-        "name": "AlignmentError",
-        "artifactKind": "type"
       }
     ]
   },

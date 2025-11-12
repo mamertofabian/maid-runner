@@ -2,6 +2,12 @@
 
 A tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with their declarative manifests, ensuring architectural integrity in AI-assisted development.
 
+## Project Journey & Re-energizer
+
+**Getting Back on Track**: After several months away from this project due to life priorities, returning to a codebase can feel overwhelming. This video serves as a personal re-energizer—a way to reconnect with the project's vision, remember why it matters, and reignite the passion for building tools that make AI-assisted development more reliable and maintainable.
+
+If you're picking up this project after a break, or if you're curious about the motivation behind MAID Runner, [watch this video](https://www.loom.com/share/4f6b18b097984a10baeb96b1da505989) to understand the journey and the excitement that drives this work forward.
+
 ## Architecture Philosophy
 
 **MAID Runner is a validation-only tool.** It does NOT create files, generate code, or automate development. Instead, it validates that manifests, tests, and implementations comply with MAID methodology.
@@ -31,6 +37,7 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 │   ✓ Validate implementation          │
 │   ✓ Validate type hints              │
 │   ✓ Validate manifest chain          │
+│   ✓ Track file compliance            │
 │                                      │
 │   ✗ No file creation                 │
 │   ✗ No code generation               │
@@ -124,6 +131,50 @@ $ maid validate manifests/task-013.manifest.json --quiet
 # Exit code 0 = success, no output
 ```
 
+**File Tracking Analysis:**
+
+When using `--use-manifest-chain` in implementation mode, MAID Runner performs automatic file tracking analysis to detect files not properly tracked in manifests:
+
+```bash
+$ maid validate manifests/task-013.manifest.json --use-manifest-chain
+
+✓ Validation PASSED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE TRACKING ANALYSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔴 UNDECLARED FILES (3 files)
+  Files exist in codebase but are not tracked in any manifest
+
+  - scripts/helper.py
+    → Not found in any manifest
+
+  Action: Add these files to creatableFiles or editableFiles
+
+🟡 REGISTERED FILES (5 files)
+  Files are tracked but not fully MAID-compliant
+
+  - utils/config.py
+    ⚠️  In editableFiles but no expectedArtifacts
+    Manifests: task-010
+
+  Action: Add expectedArtifacts and validationCommand
+
+✓ TRACKED (42 files)
+  All other source files are fully MAID-compliant
+
+Summary: 3 UNDECLARED, 5 REGISTERED, 42 TRACKED
+```
+
+**File Status Levels:**
+
+- **🔴 UNDECLARED**: Files not in any manifest (high priority) - no audit trail
+- **🟡 REGISTERED**: Files tracked but incomplete compliance (medium priority) - missing artifacts/tests
+- **✓ TRACKED**: Files with full MAID compliance - properly documented and tested
+
+This progressive compliance system helps teams migrate existing codebases to MAID while clearly identifying accountability gaps.
+
 ### 2. Snapshot Generation
 
 ```bash
@@ -145,6 +196,51 @@ maid snapshot <file_path> [options]
 $ maid snapshot maid_runner/validators/manifest_validator.py --force
 Snapshot manifest generated successfully: manifests/task-009-snapshot-manifest_validator.manifest.json
 ```
+
+### 3. List Manifests by File
+
+```bash
+# List all manifests that reference a file
+maid manifests <file_path> [options]
+
+# Options:
+#   --manifest-dir DIR  # Default: manifests/
+#   --quiet, -q         # Show minimal output (just manifest names)
+
+# Exit Codes:
+#   0 = Success (found or not found)
+```
+
+**Examples:**
+
+```bash
+# Find which manifests reference a file
+$ maid manifests maid_runner/cli/main.py
+
+Manifests referencing: maid_runner/cli/main.py
+Total: 2 manifest(s)
+
+================================================================================
+
+✏️  EDITED BY (2 manifest(s)):
+  - task-021-maid-test-command.manifest.json
+  - task-029-list-manifests-command.manifest.json
+
+================================================================================
+
+# Quiet mode for scripting
+$ maid manifests maid_runner/validators/manifest_validator.py --quiet
+created: task-001-add-schema-validation.manifest.json
+edited: task-002-add-ast-alignment-validation.manifest.json
+edited: task-003-behavioral-validation.manifest.json
+read: task-008-snapshot-generator.manifest.json
+```
+
+**Use Cases:**
+- **Dependency Analysis**: Find which tasks touched a file
+- **Impact Assessment**: Understand file's role in the project (created vs edited vs read)
+- **Manifest Discovery**: Quickly locate relevant manifests when investigating code
+- **Audit Trail**: See the complete history of changes to a file through manifests
 
 ## Optional Human Helper Tools
 
@@ -258,6 +354,7 @@ fi
 | **Implementation** | Code DEFINES declared artifacts | `maid validate` (default) |
 | **Type Hints** | Type annotations match manifest | `maid validate` (automatic) |
 | **Manifest Chain** | Historical consistency | `maid validate --use-manifest-chain` |
+| **File References** | Which manifests touch a file | `maid manifests <file_path>` |
 
 ## Development Setup
 
@@ -400,10 +497,13 @@ maid-runner/
 │   ├── cli/                        # CLI modules
 │   │   ├── main.py                # Main CLI entry point (maid command)
 │   │   ├── validate.py            # Validate subcommand
-│   │   └── snapshot.py            # Snapshot subcommand
+│   │   ├── snapshot.py            # Snapshot subcommand
+│   │   ├── list_manifests.py      # Manifests subcommand
+│   │   └── test.py                # Test subcommand
 │   └── validators/                # Core validation logic
 │       ├── manifest_validator.py  # Main validation engine
 │       ├── type_validator.py      # Type hint validation
+│       ├── file_tracker.py        # File tracking analysis
 │       └── schemas/               # JSON schemas
 ├── examples/                      # Example scripts
 │   └── maid_runner.py             # Optional helpers (plan/run)

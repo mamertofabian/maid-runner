@@ -1,0 +1,57 @@
+{
+  "version": "1",
+  "goal": "Add --manifest-dir option to 'maid validate' command to validate all manifests in a directory",
+  "taskType": "edit",
+  "supersedes": ["manifests/task-004-behavioral-test-integration.manifest.json"],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/utils.py",
+    "tests/test_task_022_validate_manifest_dir.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "skip_file_tracking",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "args": [],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_022_validate_manifest_dir.py", "-v"]
+}

@@ -1,0 +1,86 @@
+{
+  "version": "1",
+  "goal": "Implement 'maid test' CLI command to execute validation commands across all non-superseded manifests",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/test.py"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/utils.py",
+    "tests/test_task_021_maid_test_command.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/test.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "execute_validation_commands",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Path"
+          },
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          },
+          {
+            "name": "project_root",
+            "type": "Path"
+          }
+        ],
+        "returns": "tuple"
+      },
+      {
+        "type": "function",
+        "name": "run_test",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "fail_fast",
+            "type": "bool"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "args": [],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_021_maid_test_command.py", "-v"]
+}

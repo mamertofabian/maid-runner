@@ -15,3 +15,6 @@ docs/key_learnings_*.md
 .claude/tdd-guard/
 
 backup/
+.claude/conversations/temp/*
+
+maid_agents/.claude/tdd-guard/data/test.json

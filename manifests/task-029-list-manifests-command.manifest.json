@@ -1,0 +1,73 @@
+{
+  "goal": "Add CLI command to list manifests related to a given implementation file",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/list_manifests.py"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_029_list_manifests.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/list_manifests.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_list_manifests",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_categorize_manifest_by_file",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_format_manifest_list_output",
+        "args": [
+          {
+            "name": "categorized_manifests",
+            "type": "dict"
+          },
+          {
+            "name": "file_path",
+            "type": "str"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_029_list_manifests.py", "-v"]
+}

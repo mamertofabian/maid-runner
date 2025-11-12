@@ -1,6 +1,9 @@
 """Utility functions for MAID Runner."""
 
+import json
 import shlex
+import sys
+from pathlib import Path
 from typing import List
 
 
@@ -84,3 +87,118 @@ def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:
             return [validation_command]
 
     return []
+
+
+def get_superseded_manifests(manifests_dir: Path) -> set:
+    """Find all manifests that are superseded by any other manifests.
+
+    Args:
+        manifests_dir: Path to the manifests directory
+
+    Returns:
+        set: Set of manifest paths (as Path objects) that are superseded
+    """
+    superseded = set()
+
+    # Check ALL manifests for supersedes declarations (not just snapshots)
+    all_manifests = manifests_dir.glob("task-*.manifest.json")
+
+    for manifest_path in all_manifests:
+        try:
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+
+            # Get the supersedes list
+            supersedes_list = manifest_data.get("supersedes", [])
+            for superseded_path_str in supersedes_list:
+                # Convert to Path and resolve relative to manifests_dir
+                superseded_path = Path(superseded_path_str)
+                if not superseded_path.is_absolute():
+                    # If path includes "manifests/", resolve from manifests_dir's parent
+                    if str(superseded_path).startswith("manifests/"):
+                        superseded_path = manifests_dir.parent / superseded_path
+                    else:
+                        # Resolve relative to manifests_dir
+                        superseded_path = manifests_dir / superseded_path
+
+                # Normalize to relative path from manifests_dir for comparison
+                try:
+                    resolved = superseded_path.resolve()
+                    # Get relative path from manifests_dir
+                    try:
+                        relative_path = resolved.relative_to(manifests_dir.resolve())
+                        superseded.add(manifests_dir / relative_path)
+                    except ValueError:
+                        # Path is outside manifests_dir, skip
+                        pass
+                except (OSError, ValueError):
+                    # Invalid path, skip
+                    pass
+        except (json.JSONDecodeError, IOError):
+            # Skip invalid manifests
+            continue
+
+    return superseded
+
+
+def print_maid_not_enabled_message(manifest_dir: str, use_stderr: bool = False) -> None:
+    """Print a friendly message when MAID manifests directory is not found.
+
+    Args:
+        manifest_dir: Path to the manifests directory that was not found
+        use_stderr: If True, print to stderr instead of stdout
+    """
+    output_stream = sys.stderr if use_stderr else sys.stdout
+    print(file=output_stream)
+    print("⚠️  This repository does not appear to be MAID-enabled.", file=output_stream)
+    print(file=output_stream)
+    print(
+        f"   The manifests directory was not found: {manifest_dir}", file=output_stream
+    )
+    print(file=output_stream)
+    print(
+        "   MAID (Manifest-driven AI Development) requires a 'manifests' directory",
+        file=output_stream,
+    )
+    print(
+        "   containing task manifest files (task-*.manifest.json).", file=output_stream
+    )
+    print(file=output_stream)
+    print("   To get started with MAID:", file=output_stream)
+    print(
+        "   - Create a 'manifests' directory in your project root", file=output_stream
+    )
+    print("   - Generate manifests using: maid snapshot <file.py>", file=output_stream)
+    print(
+        "   - Or create manifests manually following the MAID specification",
+        file=output_stream,
+    )
+    print(file=output_stream)
+
+
+def print_no_manifests_found_message(
+    manifest_dir: str, use_stderr: bool = False
+) -> None:
+    """Print a friendly message when no manifest files are found in the directory.
+
+    Args:
+        manifest_dir: Path to the manifests directory
+        use_stderr: If True, print to stderr instead of stdout
+    """
+    output_stream = sys.stderr if use_stderr else sys.stdout
+    print(file=output_stream)
+    print("⚠️  No manifest files found in this repository.", file=output_stream)
+    print(file=output_stream)
+    print(f"   The manifests directory exists: {manifest_dir}", file=output_stream)
+    print(
+        "   but it does not contain any task manifest files (task-*.manifest.json).",
+        file=output_stream,
+    )
+    print(file=output_stream)
+    print("   To create manifest files:", file=output_stream)
+    print("   - Generate manifests using: maid snapshot <file.py>", file=output_stream)
+    print(
+        "   - Or create manifests manually following the MAID specification",
+        file=output_stream,
+    )
+    print(file=output_stream)

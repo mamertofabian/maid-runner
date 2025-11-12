@@ -1,0 +1,52 @@
+{
+  "version": "1",
+  "goal": "Add user-friendly error messages for CLI commands when manifests directory or manifest files are not found",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/utils.py",
+    "maid_runner/cli/validate.py",
+    "maid_runner/cli/test.py",
+    "maid_runner/cli/list_manifests.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_030_user_friendly_error_messages.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/utils.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "print_maid_not_enabled_message",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "use_stderr",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "print_no_manifests_found_message",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "use_stderr",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_030_user_friendly_error_messages.py", "-v"]
+}

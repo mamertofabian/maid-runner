@@ -1,0 +1,39 @@
+{
+  "goal": "Add validation to detect undeclared public methods in classes (currently only checks classes and functions)",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [
+    "tests/validators/test_task_027_validate_unexpected_methods.py"
+  ],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_task_027_validate_unexpected_methods.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_check_unexpected_artifacts",
+        "parameters": [
+          {"name": "expected_items", "type": "List[dict]"},
+          {"name": "collector", "type": "_ArtifactCollector"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_no_unexpected_artifacts",
+        "parameters": [
+          {"name": "expected_items"},
+          {"name": "found_classes"},
+          {"name": "found_functions"},
+          {"name": "found_methods"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_task_027_validate_unexpected_methods.py", "-v"]
+}

@@ -1,0 +1,32 @@
+{
+  "version": "1",
+  "goal": "Refactor get_superseded_manifests() from scripts/ to maid_runner/utils.py for better reusability by CLI commands",
+  "taskType": "refactor",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/utils.py",
+    "scripts/run_manifest_validation_commands.py"
+  ],
+  "readonlyFiles": [
+    "scripts/get_superseded_manifests.py",
+    "tests/test_task_020_refactor_superseded_utils.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/utils.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "get_superseded_manifests",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "set"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_020_refactor_superseded_utils.py", "-v"]
+}

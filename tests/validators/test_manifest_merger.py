@@ -122,13 +122,15 @@ def test_merge_expected_artifacts():
         # First manifest with validate_schema function
         content1 = {
             "expectedArtifacts": {
-                "contains": [{"type": "function", "name": "validate_schema"}]
+                "file": "validator.py",
+                "contains": [{"type": "function", "name": "validate_schema"}],
             }
         }
 
         # Second manifest with AlignmentError class and validate_with_ast function
         content2 = {
             "expectedArtifacts": {
+                "file": "validator.py",
                 "contains": [
                     {"type": "class", "name": "AlignmentError", "bases": ["Exception"]},
                     {
@@ -139,7 +141,7 @@ def test_merge_expected_artifacts():
                             {"name": "test_file_path"},
                         ],
                     },
-                ]
+                ],
             }
         }
 
@@ -149,7 +151,9 @@ def test_merge_expected_artifacts():
             json.dump(content2, f)
 
         # Merge artifacts
-        merged = _merge_expected_artifacts([str(manifest1), str(manifest2)])
+        merged = _merge_expected_artifacts(
+            [str(manifest1), str(manifest2)], target_file="validator.py"
+        )
 
         # Should have all three artifacts
         assert len(merged) == 3
@@ -180,20 +184,22 @@ def test_merge_handles_duplicates():
         # Both manifests declare the same function but with different detail levels
         content1 = {
             "expectedArtifacts": {
-                "contains": [{"type": "function", "name": "process_data"}]
+                "file": "processor.py",
+                "contains": [{"type": "function", "name": "process_data"}],
             }
         }
 
         # Second manifest adds parameters
         content2 = {
             "expectedArtifacts": {
+                "file": "processor.py",
                 "contains": [
                     {
                         "type": "function",
                         "name": "process_data",
                         "parameters": [{"name": "data"}, {"name": "options"}],
                     }
-                ]
+                ],
             }
         }
 
@@ -203,7 +209,9 @@ def test_merge_handles_duplicates():
             json.dump(content2, f)
 
         # Merge artifacts
-        merged = _merge_expected_artifacts([str(manifest1), str(manifest2)])
+        merged = _merge_expected_artifacts(
+            [str(manifest1), str(manifest2)], target_file="processor.py"
+        )
 
         # Should have only one function (not duplicated)
         assert len(merged) == 1
@@ -298,7 +306,7 @@ def test_empty_manifest_chain():
     manifests = discover_related_manifests("non_existent_file.py")
     assert manifests == []
 
-    merged = _merge_expected_artifacts([])
+    merged = _merge_expected_artifacts([], target_file="non_existent_file.py")
     assert merged == []
 
 

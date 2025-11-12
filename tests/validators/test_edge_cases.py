@@ -9,6 +9,7 @@ This module tests how the validator handles:
 - Properties
 - Empty manifests
 - Minimal and full field specifications
+- Explicit 'self' parameter declarations (invalid)
 """
 
 import pytest
@@ -221,8 +222,8 @@ def module_function():
         "expectedArtifacts": {
             "contains": [
                 {"type": "class", "name": "MyClass"},
+                {"type": "function", "name": "value", "class": "MyClass"},
                 {"type": "function", "name": "module_function"},
-                # Property methods should not be module functions
             ]
         }
     }
@@ -321,3 +322,75 @@ def use_container():
     }
     # Should pass - all optional fields work correctly
     validate_with_ast(manifest, str(test_file))
+
+
+def test_self_parameter_rejected_in_manifest(tmp_path: Path):
+    """Test that manifests declaring 'self' as explicit parameter are rejected."""
+    code = """
+class TestClass:
+    def __init__(self, name: str):
+        self.name = name
+
+    def method(self, value: int):
+        return value * 2
+"""
+    test_file = tmp_path / "self_param.py"
+    test_file.write_text(code)
+
+    # Manifest incorrectly declares 'self' as parameter
+    manifest_with_self = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "TestClass"},
+                {
+                    "type": "function",
+                    "name": "__init__",
+                    "class": "TestClass",
+                    "args": [
+                        {"name": "self", "type": "TestClass"},  # Invalid
+                        {"name": "name", "type": "str"},
+                    ],
+                },
+                {
+                    "type": "function",
+                    "name": "method",
+                    "class": "TestClass",
+                    "args": [
+                        {"name": "self", "type": "TestClass"},  # Invalid
+                        {"name": "value", "type": "int"},
+                    ],
+                },
+            ]
+        }
+    }
+
+    # Should fail - 'self' should not be in manifest
+    with pytest.raises(
+        AlignmentError,
+        match="Parameter 'self' should not be explicitly declared",
+    ):
+        validate_with_ast(manifest_with_self, str(test_file))
+
+    # Correct manifest without 'self'
+    manifest_correct = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "class", "name": "TestClass"},
+                {
+                    "type": "function",
+                    "name": "__init__",
+                    "class": "TestClass",
+                    "args": [{"name": "name", "type": "str"}],
+                },
+                {
+                    "type": "function",
+                    "name": "method",
+                    "class": "TestClass",
+                    "args": [{"name": "value", "type": "int"}],
+                },
+            ]
+        }
+    }
+
+    # Should pass - 'self' is implicit
+    validate_with_ast(manifest_correct, str(test_file))

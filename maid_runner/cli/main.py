@@ -3,8 +3,11 @@
 
 Provides a unified command-line interface with subcommands:
 - maid --version
+- maid init ...
 - maid validate ...
 - maid snapshot ...
+- maid test ...
+- maid manifests ...
 """
 
 import argparse
@@ -36,7 +39,11 @@ def main():
         help="Validate manifest against implementation or behavioral test files",
         description="Validate manifest against implementation or behavioral test files",
     )
-    validate_parser.add_argument("manifest_path", help="Path to the manifest JSON file")
+    validate_parser.add_argument(
+        "manifest_path",
+        nargs="?",
+        help="Path to the manifest JSON file (mutually exclusive with --manifest-dir)",
+    )
     validate_parser.add_argument(
         "--validation-mode",
         choices=["implementation", "behavioral"],
@@ -46,13 +53,17 @@ def main():
     validate_parser.add_argument(
         "--use-manifest-chain",
         action="store_true",
-        help="Use manifest chain to merge all related manifests",
+        help="Use manifest chain to merge all related manifests (enables file tracking analysis; automatically enabled for directory validation)",
     )
     validate_parser.add_argument(
         "--quiet",
         "-q",
         action="store_true",
         help="Only output errors (suppress success messages)",
+    )
+    validate_parser.add_argument(
+        "--manifest-dir",
+        help="Directory containing manifests to validate (mutually exclusive with manifest_path)",
     )
 
     # Snapshot subcommand
@@ -75,6 +86,84 @@ def main():
         help="Overwrite existing manifests without prompting",
     )
 
+    # Test subcommand
+    test_parser = subparsers.add_parser(
+        "test",
+        help="Run validation commands from all non-superseded manifests",
+        description="Run validation commands from all non-superseded manifests",
+    )
+    test_parser.add_argument(
+        "--manifest",
+        "-m",
+        help="Run validation commands for a single manifest (filename relative to manifest-dir or absolute path)",
+    )
+    test_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+    test_parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop execution on first failure",
+    )
+    test_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show detailed command output",
+    )
+    test_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Only show summary (suppress per-manifest output)",
+    )
+    test_parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Command timeout in seconds (default: 300)",
+    )
+
+    # List-manifests subcommand
+    list_manifests_parser = subparsers.add_parser(
+        "manifests",
+        help="List all manifests that reference a given file",
+        description="List all manifests that reference a given file, categorized by how they reference it (created, edited, or read)",
+    )
+    list_manifests_parser.add_argument(
+        "file_path", help="Path to the file to search for in manifests"
+    )
+    list_manifests_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+    list_manifests_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Show minimal output (just manifest names)",
+    )
+
+    # Init subcommand
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize MAID methodology in an existing repository",
+        description="Initialize MAID methodology by creating directory structure and documentation",
+    )
+    init_parser.add_argument(
+        "--target-dir",
+        default=".",
+        help="Target directory to initialize (default: current directory)",
+    )
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing files without prompting",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -84,16 +173,56 @@ def main():
     if args.command == "validate":
         from maid_runner.cli.validate import run_validation
 
+        # Check for mutual exclusivity
+        if args.manifest_path and args.manifest_dir:
+            parser.error(
+                "Cannot specify both manifest_path and --manifest-dir. Use one or the other."
+            )
+
+        # Default to manifests directory if neither is provided
+        manifest_dir = args.manifest_dir
+        if not args.manifest_path and not args.manifest_dir:
+            manifest_dir = "manifests"
+
+        # When validating a directory, always use manifest chain
+        # This is the expected behavior for directory validation
+        # For single-file validation, respect the user's flag
+        use_manifest_chain = args.use_manifest_chain
+        if manifest_dir:
+            # Directory validation: use chain by default
+            # User can still force it off by explicitly passing the flag for single files
+            use_manifest_chain = True
+
         run_validation(
             args.manifest_path,
             args.validation_mode,
-            args.use_manifest_chain,
+            use_manifest_chain,
             args.quiet,
+            manifest_dir,
         )
     elif args.command == "snapshot":
         from maid_runner.cli.snapshot import run_snapshot
 
         run_snapshot(args.file_path, args.output_dir, args.force)
+    elif args.command == "test":
+        from maid_runner.cli.test import run_test
+
+        run_test(
+            args.manifest_dir,
+            args.fail_fast,
+            args.verbose,
+            args.quiet,
+            args.timeout,
+            args.manifest,
+        )
+    elif args.command == "manifests":
+        from maid_runner.cli.list_manifests import run_list_manifests
+
+        run_list_manifests(args.file_path, args.manifest_dir, args.quiet)
+    elif args.command == "init":
+        from maid_runner.cli.init import run_init
+
+        run_init(args.target_dir, args.force)
     else:
         parser.print_help()
         sys.exit(1)

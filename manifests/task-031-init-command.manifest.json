@@ -1,0 +1,69 @@
+{
+  "goal": "Add 'maid init' CLI command to initialize MAID methodology in existing repositories",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init.py"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_031_init_command.py",
+    "maid_runner/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_init",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_directories",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_example_manifest",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_maid_specs",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "generate_claude_md_content",
+        "args": [],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "handle_claude_md",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_031_init_command.py", "-v"]
+}

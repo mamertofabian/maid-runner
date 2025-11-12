@@ -37,14 +37,11 @@
           {"name": "manifest_path", "type": "str"},
           {"name": "validation_mode", "type": "str"},
           {"name": "use_manifest_chain", "type": "bool"},
-          {"name": "quiet", "type": "bool"}
+          {"name": "quiet", "type": "bool"},
+          {"name": "manifest_dir", "type": "Optional[str]"},
+          {"name": "skip_file_tracking", "type": "bool"}
         ],
         "returns": "None",
-        "artifactKind": "type"
-      },
-      {
-        "type": "class",
-        "name": "AlignmentError",
         "artifactKind": "type"
       }
     ]

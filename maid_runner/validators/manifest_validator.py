@@ -571,19 +571,9 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
-        """Collect imported class names from local modules only."""
-        if not node.names:
-            self.generic_visit(node)
-            return
-
-        # Determine if this is a local import
-        is_local = self._is_local_import(node)
-
-        # Process each imported name
-        for alias in node.names:
-            if is_local and self._is_class_name(alias.name):
-                self.found_classes.add(alias.name)
-
+        """Track import statements without treating them as defined artifacts."""
+        # Don't add imports to found_classes - they are dependencies, not artifacts
+        # found_classes should only contain classes DEFINED via visit_ClassDef()
         self.generic_visit(node)
 
     def _is_local_import(self, node):
@@ -610,6 +600,7 @@ class _ArtifactCollector(ast.NodeVisitor):
             "os",
             "sys",
             "re",
+            "enum",
             "jsonschema",
         )
         return node.module and not node.module.startswith(stdlib_modules)
@@ -705,6 +696,9 @@ class _ArtifactCollector(ast.NodeVisitor):
         for base in node.bases:
             if isinstance(base, ast.Name):
                 base_names.append(base.id)
+                # In behavioral mode, track base classes as "used"
+                if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+                    self.used_classes.add(base.id)
             elif isinstance(base, ast.Attribute):
                 # Handle cases like module.ClassName (e.g., ast.NodeVisitor)
                 # Build the full qualified name
@@ -743,6 +737,10 @@ class _ArtifactCollector(ast.NodeVisitor):
         # Track variable-to-class mappings
         self._track_class_instantiations(node)
 
+        # In behavioral mode, track when classes are assigned to variables
+        if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
+            self._track_class_name_assignments(node)
+
         self.generic_visit(node)
 
     def _process_class_assignments(self, node):
@@ -769,16 +767,56 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def _track_class_instantiations(self, node):
         """Track variable assignments to class instances."""
-        if not (
-            isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
-        ):
+        if not isinstance(node.value, ast.Call):
             return
 
-        class_name = node.value.func.id
-        if class_name in self.found_classes:
+        class_name = None
+
+        # Handle direct instantiation: service = UserService()
+        if isinstance(node.value.func, ast.Name):
+            class_name = node.value.func.id
+        # Handle classmethod calls: service = ProductService.create_default()
+        elif isinstance(node.value.func, ast.Attribute) and isinstance(
+            node.value.func.value, ast.Name
+        ):
+            # Assume classmethod returns instance of the class
+            class_name = node.value.func.value.id
+
+        # Check if it's a known class or follows class naming conventions
+        if class_name and (
+            class_name in self.found_classes or (class_name and class_name[0].isupper())
+        ):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self.variable_to_class[target.id] = class_name
+
+    def _track_class_name_assignments(self, node):
+        """Track when a class name itself is assigned to a variable (e.g., base_ref = BaseClass)."""
+        # Check if the value being assigned is a simple Name (not a Call)
+        if isinstance(node.value, ast.Name):
+            value_name = node.value.id
+            # Check if it's a known class or follows class naming conventions
+            if value_name in self.found_classes or (
+                value_name and value_name[0].isupper()
+            ):
+                self.used_classes.add(value_name)
+
+    def _track_method_call_with_inheritance(self, class_name: str, method_name: str):
+        """Track a method call on a class and propagate to base classes.
+
+        When a method is called on a class, it should also count as using
+        the method on all parent classes (for inherited methods).
+        """
+        # Track for the immediate class
+        if class_name not in self.used_methods:
+            self.used_methods[class_name] = set()
+        self.used_methods[class_name].add(method_name)
+
+        # Also track for all base classes
+        if class_name in self.found_class_bases:
+            for base_class in self.found_class_bases[class_name]:
+                # Recursively track for base classes
+                self._track_method_call_with_inheritance(base_class, method_name)
 
     def _is_self_attribute(self, target):
         """Check if target is a self.attribute assignment."""
@@ -839,11 +877,27 @@ class _ArtifactCollector(ast.NodeVisitor):
                 # Track the object's class if known
                 if isinstance(node.func.value, ast.Name):
                     var_name = node.func.value.id
-                    if var_name in self.variable_to_class:
+
+                    # Check if it's a known class being called directly (classmethod/staticmethod)
+                    if var_name in self.found_classes or (
+                        var_name
+                        and (
+                            var_name[0].isupper()
+                            or (
+                                var_name.startswith("_")
+                                and len(var_name) > 1
+                                and var_name[1].isupper()
+                            )
+                        )
+                    ):
+                        self._track_method_call_with_inheritance(var_name, method_name)
+                        self.used_classes.add(var_name)
+                    # Existing logic for variables
+                    elif var_name in self.variable_to_class:
                         class_name = self.variable_to_class[var_name]
-                        if class_name not in self.used_methods:
-                            self.used_methods[class_name] = set()
-                        self.used_methods[class_name].add(method_name)
+                        self._track_method_call_with_inheritance(
+                            class_name, method_name
+                        )
                 # Handle direct method calls on instantiated objects
                 elif isinstance(node.func.value, ast.Call) and isinstance(
                     node.func.value.func, ast.Name
@@ -861,9 +915,9 @@ class _ArtifactCollector(ast.NodeVisitor):
                             )
                         )
                     ):
-                        if class_name not in self.used_methods:
-                            self.used_methods[class_name] = set()
-                        self.used_methods[class_name].add(method_name)
+                        self._track_method_call_with_inheritance(
+                            class_name, method_name
+                        )
                         self.used_classes.add(class_name)
 
                 # For chained calls, also track intermediate methods
@@ -896,6 +950,26 @@ class _ArtifactCollector(ast.NodeVisitor):
                 if func_name == "isinstance" and len(node.args) >= 2:
                     if isinstance(node.args[1], ast.Name):
                         self.used_classes.add(node.args[1].id)
+
+                # Handle issubclass checks
+                if func_name == "issubclass" and len(node.args) >= 2:
+                    # First argument is the subclass being checked
+                    if isinstance(node.args[0], ast.Name):
+                        self.used_classes.add(node.args[0].id)
+                    # Second argument is the base class to check against
+                    if isinstance(node.args[1], ast.Name):
+                        self.used_classes.add(node.args[1].id)
+
+                # Handle hasattr checks - first argument is the class
+                if func_name == "hasattr" and len(node.args) >= 1:
+                    if isinstance(node.args[0], ast.Name):
+                        # Could be a class name or instance variable
+                        arg_name = node.args[0].id
+                        # Check if it's a known class
+                        if arg_name in self.found_classes or (
+                            arg_name and arg_name[0].isupper()
+                        ):
+                            self.used_classes.add(arg_name)
 
             # Track keyword arguments
             for keyword in node.keywords:
@@ -974,12 +1048,15 @@ def discover_related_manifests(target_file):
     return manifests
 
 
-def _merge_expected_artifacts(manifest_paths):
+def _merge_expected_artifacts(
+    manifest_paths: List[str], target_file: str
+) -> List[dict]:
     """
-    Merge expected artifacts from multiple manifests.
+    Merge expected artifacts from multiple manifests, filtering by target file.
 
     Args:
         manifest_paths: List of paths to manifest files
+        target_file: Only include artifacts where expectedArtifacts.file matches this path
 
     Returns:
         Merged list of expected artifacts
@@ -991,7 +1068,15 @@ def _merge_expected_artifacts(manifest_paths):
         with open(path, "r") as f:
             data = json.load(f)
 
-        artifacts = data.get("expectedArtifacts", {}).get("contains", [])
+        # Only include artifacts if expectedArtifacts.file matches target_file
+        expected_artifacts = data.get("expectedArtifacts", {})
+        artifacts_file = expected_artifacts.get("file")
+
+        # Skip this manifest if its artifacts are for a different file
+        if artifacts_file != target_file:
+            continue
+
+        artifacts = expected_artifacts.get("contains", [])
 
         for artifact in artifacts:
             # Use (type, name) as unique key
@@ -1144,7 +1229,7 @@ def _get_expected_artifacts(
             "file", test_file_path
         )
         related_manifests = discover_related_manifests(target_file)
-        return _merge_expected_artifacts(related_manifests)
+        return _merge_expected_artifacts(related_manifests, target_file)
     else:
         expected_artifacts = manifest_data.get("expectedArtifacts", {})
         return expected_artifacts.get("contains", [])
@@ -1191,7 +1276,10 @@ def _check_unexpected_artifacts(
 
     if expected_items and not is_test_file:
         _validate_no_unexpected_artifacts(
-            expected_items, collector.found_classes, collector.found_functions
+            expected_items,
+            collector.found_classes,
+            collector.found_functions,
+            collector.found_methods,
         )
 
 
@@ -1253,6 +1341,18 @@ def _validate_function_artifact(
     # Support both args (enhanced) and parameters (legacy)
     parameters = artifact.get("args") or artifact.get("parameters", [])
     parent_class = artifact.get("class")
+
+    # Reject manifests that explicitly declare 'self' as a parameter
+    # In Python, 'self' is implicit for instance methods and not included in artifact declarations
+    if parameters:
+        for param in parameters:
+            param_name = param.get("name")
+            if param_name == "self":
+                raise AlignmentError(
+                    f"Manifest error: Parameter 'self' should not be explicitly declared "
+                    f"in method '{artifact_name}'. In Python, 'self' is implicit for instance methods "
+                    f"and is not included in artifact declarations. Remove 'self' from the parameters list."
+                )
 
     if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
         _validate_function_behavioral(
@@ -1357,9 +1457,8 @@ def _validate_method_parameters(
     """Validate method parameters match expectations."""
     actual_parameters = collector.found_methods[class_name][method_name]
 
-    # Skip 'self' parameter for methods
-    if "self" in actual_parameters:
-        actual_parameters = [p for p in actual_parameters if p != "self"]
+    # Skip 'self' and 'cls' parameters for methods and classmethods
+    actual_parameters = [p for p in actual_parameters if p not in ("self", "cls")]
 
     expected_param_names = [p["name"] for p in parameters]
 
@@ -1430,15 +1529,28 @@ def _validate_function(function_name, expected_parameters, found_functions):
             )
 
 
-def _validate_no_unexpected_artifacts(expected_items, found_classes, found_functions):
+def _validate_no_unexpected_artifacts(
+    expected_items, found_classes, found_functions, found_methods
+):
     """Validate that no unexpected public artifacts exist in the code."""
     # Build sets of expected names
     expected_classes = {
         item["name"] for item in expected_items if item.get("type") == "class"
     }
     expected_functions = {
-        item["name"] for item in expected_items if item.get("type") == "function"
+        item["name"]
+        for item in expected_items
+        if item.get("type") == "function" and "class" not in item
     }
+    # Build expected methods: class_name -> set of method names
+    expected_methods = {}
+    for item in expected_items:
+        if item.get("type") == "function" and "class" in item:
+            class_name = item["class"]
+            method_name = item["name"]
+            if class_name not in expected_methods:
+                expected_methods[class_name] = set()
+            expected_methods[class_name].add(method_name)
 
     # Check for unexpected public classes (exclude private ones starting with _)
     public_classes = {cls for cls in found_classes if not cls.startswith("_")}
@@ -1455,6 +1567,22 @@ def _validate_no_unexpected_artifacts(expected_items, found_classes, found_funct
         raise AlignmentError(
             f"Unexpected public function(s) found: {', '.join(sorted(unexpected_functions))}"
         )
+
+    # Check for unexpected public methods in each class
+    for class_name, methods in found_methods.items():
+        # Skip private classes (starting with _)
+        if class_name.startswith("_"):
+            continue
+        # Get public methods (exclude private ones starting with _)
+        public_methods = {m for m in methods.keys() if not m.startswith("_")}
+        # Get expected methods for this class
+        expected_for_class = expected_methods.get(class_name, set())
+        # Find unexpected methods
+        unexpected = public_methods - expected_for_class
+        if unexpected:
+            raise AlignmentError(
+                f"Unexpected public method(s) in class '{class_name}': {', '.join(sorted(unexpected))}"
+            )
 
 
 def validate_type_hints(
