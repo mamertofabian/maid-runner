@@ -4,10 +4,10 @@
   "supersedes": [],
   "creatableFiles": [],
   "editableFiles": [
-    "maid_runner/cli/snapshot.py",
-    "maid_runner/cli/main.py"
+    "maid_runner/cli/snapshot.py"
   ],
   "readonlyFiles": [
+    "maid_runner/cli/main.py",
     "maid_runner/validators/schemas/manifest.schema.json",
     "tests/test_task_032_test_stub_generation.py"
   ],

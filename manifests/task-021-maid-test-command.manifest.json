@@ -6,10 +6,9 @@
   "creatableFiles": [
     "maid_runner/cli/test.py"
   ],
-  "editableFiles": [
-    "maid_runner/cli/main.py"
-  ],
+  "editableFiles": [],
   "readonlyFiles": [
+    "maid_runner/cli/main.py",
     "maid_runner/utils.py",
     "tests/test_task_021_maid_test_command.py"
   ],

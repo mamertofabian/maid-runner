@@ -1,0 +1,31 @@
+{
+  "goal": "Close loophole: validate ALL files in editableFiles for undeclared public artifacts, not just expectedArtifacts.file",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
+  "readonlyFiles": ["tests/test_task_034_validate_editable_files.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_validate_editable_files",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "validation_mode", "type": "str"}
+        ],
+        "returns": "None",
+        "raises": ["AlignmentError"]
+      },
+      {
+        "type": "function",
+        "name": "_has_undeclared_public_artifacts",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_034_validate_editable_files.py", "-v"]
+}

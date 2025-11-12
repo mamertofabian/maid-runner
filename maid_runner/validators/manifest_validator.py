@@ -1142,6 +1142,110 @@ def validate_with_ast(
             formatted_errors = "\n".join(f"  - {err}" for err in type_errors)
             raise AlignmentError(f"Type validation failed:\n{formatted_errors}")
 
+    # Validate all editableFiles for undeclared public artifacts (close loophole)
+    if validation_mode == _VALIDATION_MODE_IMPLEMENTATION:
+        _validate_editable_files(manifest_data, validation_mode)
+
+
+def _has_undeclared_public_artifacts(file_path: str) -> bool:
+    """Check if a file has any undeclared public artifacts.
+
+    Args:
+        file_path: Path to the Python file to check
+
+    Returns:
+        True if file contains public (non-private) classes or functions
+    """
+    try:
+        tree = _parse_file(file_path)
+        collector = _collect_artifacts_from_ast(tree, _VALIDATION_MODE_IMPLEMENTATION)
+
+        # Check for public artifacts (not starting with _)
+        has_public_classes = any(
+            not cls.startswith("_") for cls in collector.found_classes
+        )
+        has_public_functions = any(
+            not func.startswith("_") for func in collector.found_functions
+        )
+
+        return has_public_classes or has_public_functions
+
+    except (FileNotFoundError, SyntaxError):
+        # If file doesn't exist or has syntax errors, skip validation
+        # (other validation will catch these issues)
+        return False
+
+
+def _validate_editable_files(manifest_data: dict, validation_mode: str) -> None:
+    """Validate that files in editableFiles don't have undeclared public artifacts.
+
+    This closes the loophole where you could add multiple files to editableFiles
+    but only the expectedArtifacts.file would be checked for unexpected artifacts.
+
+    This validation checks files against the manifest chain to allow incremental
+    development - artifacts declared in previous manifests are considered valid.
+
+    Args:
+        manifest_data: The manifest dictionary
+        validation_mode: The validation mode (implementation or behavioral)
+
+    Raises:
+        AlignmentError: If any editableFile has undeclared public artifacts
+    """
+    # Only validate in implementation mode
+    if validation_mode != _VALIDATION_MODE_IMPLEMENTATION:
+        return
+
+    editable_files = manifest_data.get("editableFiles", [])
+    if not editable_files:
+        return
+
+    expected_file = manifest_data.get("expectedArtifacts", {}).get("file")
+
+    # Check each editableFile that's NOT the expectedArtifacts file
+    for file_path in editable_files:
+        # Skip the file that's being explicitly validated
+        if file_path == expected_file:
+            continue
+
+        # Check if this file has any public artifacts
+        if not _has_undeclared_public_artifacts(file_path):
+            continue  # No public artifacts, skip
+
+        # File has public artifacts - check if they're declared in manifest chain
+        try:
+            # Discover manifests that touch this file
+            manifests_for_file = discover_related_manifests(file_path)
+
+            if not manifests_for_file:
+                # No manifests declare this file - it has undeclared artifacts
+                raise AlignmentError(
+                    f"File '{file_path}' in editableFiles has undeclared public artifacts. "
+                    f"MAID requires one manifest per file for new public APIs. "
+                    f"Either: (1) Create a separate manifest for '{file_path}', or "
+                    f"(2) Make the artifacts private (prefix with _), or "
+                    f"(3) Move '{file_path}' to readonlyFiles if you're only using existing APIs."
+                )
+
+            # Get merged artifacts from all manifests for this file
+            merged_artifacts = _merge_expected_artifacts(manifests_for_file, file_path)
+
+            # If no artifacts declared but file has public artifacts, it's undeclared
+            if not merged_artifacts:
+                raise AlignmentError(
+                    f"File '{file_path}' in editableFiles has undeclared public artifacts. "
+                    f"This file appears in manifests but has no expectedArtifacts declared. "
+                    f"MAID requires one manifest per file for new public APIs. "
+                    f"Either: (1) Add expectedArtifacts for '{file_path}' in a manifest, or "
+                    f"(2) Make the artifacts private (prefix with _), or "
+                    f"(3) Move '{file_path}' to readonlyFiles if you're only using existing APIs."
+                )
+
+        except FileNotFoundError:
+            # Manifest directory doesn't exist - skip validation
+            # (This can happen in test scenarios or before MAID is initialized)
+            pass
+
 
 def collect_behavioral_artifacts(file_path: str) -> dict:
     """Collect artifacts used in a Python file for behavioral validation.

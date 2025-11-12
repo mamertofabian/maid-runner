@@ -5,10 +5,9 @@
   "creatableFiles": [
     "maid_runner/cli/list_manifests.py"
   ],
-  "editableFiles": [
-    "maid_runner/cli/main.py"
-  ],
+  "editableFiles": [],
   "readonlyFiles": [
+    "maid_runner/cli/main.py",
     "tests/test_task_029_list_manifests.py"
   ],
   "expectedArtifacts": {

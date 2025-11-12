@@ -5,10 +5,10 @@
   "supersedes": [],
   "creatableFiles": [],
   "editableFiles": [
-    "maid_runner/utils.py",
-    "scripts/run_manifest_validation_commands.py"
+    "maid_runner/utils.py"
   ],
   "readonlyFiles": [
+    "scripts/run_manifest_validation_commands.py",
     "scripts/get_superseded_manifests.py",
     "tests/test_task_020_refactor_superseded_utils.py"
   ],
