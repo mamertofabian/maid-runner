@@ -123,6 +123,27 @@ def main():
         help="Command timeout in seconds (default: 300)",
     )
 
+    # List-manifests subcommand
+    list_manifests_parser = subparsers.add_parser(
+        "manifests",
+        help="List all manifests that reference a given file",
+        description="List all manifests that reference a given file, categorized by how they reference it (created, edited, or read)",
+    )
+    list_manifests_parser.add_argument(
+        "file_path", help="Path to the file to search for in manifests"
+    )
+    list_manifests_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+    list_manifests_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Show minimal output (just manifest names)",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -174,6 +195,10 @@ def main():
             args.timeout,
             args.manifest,
         )
+    elif args.command == "manifests":
+        from maid_runner.cli.list_manifests import run_list_manifests
+
+        run_list_manifests(args.file_path, args.manifest_dir, args.quiet)
     else:
         parser.print_help()
         sys.exit(1)
