@@ -22,12 +22,17 @@ from maid_runner.validators.semantic_validator import (
 from maid_runner.validators.file_tracker import analyze_file_tracking
 
 
-def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
+def _format_file_tracking_output(
+    analysis: dict,
+    quiet: bool = False,
+    validation_summary: Optional[str] = None,
+) -> None:
     """Format and print file tracking analysis warnings (internal helper).
 
     Args:
         analysis: FileTrackingAnalysis dictionary with undeclared, registered, tracked
         quiet: If True, only show summary
+        validation_summary: Optional validation summary to display at the top
     """
     undeclared = analysis.get("undeclared", [])
     registered = analysis.get("registered", [])
@@ -125,6 +130,9 @@ def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
             summary_parts.append(f"{len(untracked_tests)} UNTRACKED TESTS")
         summary_parts.append(f"{len(tracked)} TRACKED")
 
+        # Show validation summary if provided
+        if validation_summary:
+            print(validation_summary)
         print(f"Summary: {', '.join(summary_parts)}")
         print()
 
@@ -537,8 +545,16 @@ def _run_directory_validation(
             source_root = str(project_root)
             analysis = analyze_file_tracking(manifest_chain, source_root)
 
+            # Build validation summary
+            validation_summary = (
+                f"📊 Validation: {total_passed}/{total_manifests} manifest(s) passed "
+                f"({percentage:.1f}%)"
+            )
+
             # Display warnings
-            _format_file_tracking_output(analysis, quiet=quiet)
+            _format_file_tracking_output(
+                analysis, quiet=quiet, validation_summary=validation_summary
+            )
 
         except Exception as e:
             # Don't fail validation if file tracking has issues
