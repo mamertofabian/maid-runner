@@ -651,7 +651,9 @@ def _get_next_manifest_number(manifest_dir: Path) -> int:
     return max_number + 1
 
 
-def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> str:
+def generate_snapshot(
+    file_path: str, output_dir: str, force: bool = False, skip_test_stub: bool = False
+) -> str:
     """Generate a complete snapshot manifest for a Python file.
 
     This function orchestrates the full snapshot generation workflow:
@@ -659,11 +661,13 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
     2. Discover existing manifests that touch this file
     3. Create a snapshot manifest that supersedes them
     4. Write the manifest to the output directory
+    5. Optionally generate a test stub (by default)
 
     Args:
         file_path: Path to the Python file to snapshot
         output_dir: Directory where the manifest should be written
         force: If True, overwrite existing manifests without prompting
+        skip_test_stub: If True, skip test stub generation (default: False)
 
     Returns:
         Path to the generated manifest file
@@ -723,15 +727,299 @@ def generate_snapshot(file_path: str, output_dir: str, force: bool = False) -> s
             print("Operation cancelled.", file=sys.stderr)
             sys.exit(1)
 
+    # Add test stub to validationCommand if generating stubs
+    if not skip_test_stub:
+        # Get the stub path that will be generated
+        stub_path = get_test_stub_path(str(manifest_path))
+
+        # Add stub to validationCommand
+        # Handle both single command (legacy) and multiple commands (enhanced) formats
+        if "validationCommands" in manifest:
+            # Enhanced format - add to the list
+            manifest["validationCommands"].append(["pytest", stub_path, "-v"])
+        elif "validationCommand" in manifest and manifest["validationCommand"]:
+            # Legacy format with existing command - convert to enhanced
+            manifest["validationCommands"] = [
+                manifest["validationCommand"],
+                ["pytest", stub_path, "-v"],
+            ]
+            del manifest["validationCommand"]
+        else:
+            # No existing commands - use legacy format for simplicity
+            manifest["validationCommand"] = ["pytest", stub_path, "-v"]
+
     # Write the manifest to file
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
+    # Generate test stub unless skipped
+    if not skip_test_stub:
+        try:
+            stub_path = generate_test_stub(manifest, str(manifest_path))
+            print(f"Test stub generated: {stub_path}", file=sys.stderr)
+        except Exception as e:
+            # Don't fail the entire operation if stub generation fails
+            print(f"Warning: Test stub generation failed: {e}", file=sys.stderr)
+
     return str(manifest_path)
 
 
+def get_test_stub_path(manifest_path: str) -> str:
+    """Derive test stub file path from manifest filename.
+
+    Args:
+        manifest_path: Path to the manifest file
+
+    Returns:
+        Path to the test stub file in tests/ directory
+    """
+    manifest_file = Path(manifest_path)
+    stem = manifest_file.stem
+
+    # Remove .manifest suffix if present
+    if stem.endswith(".manifest"):
+        stem = stem[:-9]
+
+    # Convert manifest name to test name
+    # task-032-feature.manifest.json -> test_task_032_feature.py
+    # snapshot-example.manifest.json -> test_snapshot_example.py
+    test_name = f"test_{stem.replace('-', '_')}.py"
+
+    # Place in tests directory
+    return str(Path("tests") / test_name)
+
+
+def generate_test_stub(manifest_data: Dict[str, Any], manifest_path: str) -> str:
+    """Generate a failing test stub from manifest data.
+
+    Creates a test file with:
+    - Import statements for artifacts
+    - Test class/function shells
+    - Assertion placeholders (commented examples)
+    - Docstring templates
+    - pytest.fail() calls to ensure tests fail until implemented
+
+    Args:
+        manifest_data: The manifest dictionary
+        manifest_path: Path to the manifest file (for deriving test path)
+
+    Returns:
+        Path to the generated test stub file
+    """
+    # Get test file path
+    stub_path = get_test_stub_path(manifest_path)
+    stub_file = Path(stub_path)
+
+    # Ensure tests directory exists
+    stub_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Extract information from manifest
+    goal = manifest_data.get("goal", "Test implementation")
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+    artifacts = expected_artifacts.get("contains", [])
+
+    # Build import statements
+    imports = ["import pytest\n"]
+
+    if target_file and artifacts:
+        # Normalize the file path first (remove leading ./, ../, etc.)
+        normalized_path = str(Path(target_file).as_posix())
+        # Remove leading ./ or .\
+        if normalized_path.startswith("./") or normalized_path.startswith(".\\"):
+            normalized_path = normalized_path[2:]
+
+        # Convert file path to module path
+        # e.g., "maid_runner/cli/snapshot.py" -> "maid_runner.cli.snapshot"
+        module_path = normalized_path.replace("/", ".").replace("\\", ".")
+        if module_path.endswith(".py"):
+            module_path = module_path[:-3]
+
+        # Test if the module is actually importable
+        is_importable = False
+        try:
+            # Try to import the module to verify it exists
+            import importlib
+
+            importlib.import_module(module_path)
+            is_importable = True
+        except (ImportError, ModuleNotFoundError, ValueError, AttributeError):
+            # Module doesn't exist or isn't importable
+            is_importable = False
+
+        # Group artifacts by type for import
+        classes = [a["name"] for a in artifacts if a.get("type") == "class"]
+        functions = [
+            a["name"]
+            for a in artifacts
+            if a.get("type") == "function" and not a.get("class")
+        ]
+
+        # Generate import statement only if module is importable
+        import_items = classes + functions
+        if import_items and is_importable:
+            if len(import_items) <= 3:
+                imports.append(f"from {module_path} import {', '.join(import_items)}\n")
+            else:
+                # Multi-line import for readability
+                imports.append(f"from {module_path} import (\n")
+                for item in import_items:
+                    imports.append(f"    {item},\n")
+                imports.append(")\n")
+        elif import_items and not is_importable:
+            # Add a comment explaining why imports are skipped
+            imports.append(
+                f"# NOTE: Module '{module_path}' is not currently importable\n"
+            )
+            imports.append(
+                "# This may be because the file doesn't exist yet or isn't in the Python path\n"
+            )
+            imports.append(
+                "# Import the artifacts manually once the module is available:\n"
+            )
+            if len(import_items) <= 3:
+                imports.append(
+                    f"# from {module_path} import {', '.join(import_items)}\n"
+                )
+            else:
+                imports.append(f"# from {module_path} import (\n")
+                for item in import_items:
+                    imports.append(f"#     {item},\n")
+                imports.append("#  )\n")
+
+    # Build test content
+    lines = []
+
+    # Module docstring
+    lines.append('"""\n')
+    lines.append(f"Behavioral tests for {Path(manifest_path).stem}\n")
+    lines.append("\n")
+    lines.append(f"Goal: {goal}\n")
+    lines.append("\n")
+    lines.append(
+        "These tests verify that the implementation matches the manifest specification.\n"
+    )
+    lines.append("TODO: Implement the actual test logic.\n")
+    lines.append('"""\n')
+    lines.append("\n")
+
+    # Add imports
+    lines.extend(imports)
+    lines.append("\n\n")
+
+    # Generate test classes/functions for each artifact
+    for artifact in artifacts:
+        artifact_type = artifact.get("type")
+        artifact_name = artifact.get("name")
+        parent_class = artifact.get("class")
+
+        if not artifact_name:
+            continue
+
+        # Create test class name
+        if parent_class:
+            test_class_name = (
+                f"Test{parent_class}{artifact_name.title().replace('_', '')}"
+            )
+        else:
+            test_class_name = f"Test{artifact_name.title().replace('_', '')}"
+
+        # Generate test class
+        lines.append(f"class {test_class_name}:\n")
+        lines.append('    """\n')
+        if artifact_type == "class":
+            lines.append(f"    Test the {artifact_name} class.\n")
+            lines.append("    \n")
+            lines.append("    TODO: Implement tests to verify:\n")
+            lines.append(f"    - {artifact_name} class is defined\n")
+            lines.append("    - Class has expected methods and attributes\n")
+            lines.append("    - Class behavior meets requirements\n")
+        elif artifact_type == "function":
+            if parent_class:
+                lines.append(
+                    f"    Test the {artifact_name} method of {parent_class}.\n"
+                )
+            else:
+                lines.append(f"    Test the {artifact_name} function.\n")
+            lines.append("    \n")
+            lines.append("    TODO: Implement tests to verify:\n")
+            lines.append(f"    - {artifact_name} is defined and callable\n")
+
+            # Add parameter hints if available
+            params = artifact.get("parameters", artifact.get("args", []))
+            if params:
+                param_names = ", ".join([p.get("name", "?") for p in params])
+                lines.append(
+                    f"    - Function accepts expected parameters: {param_names}\n"
+                )
+
+            returns = artifact.get("returns")
+            if returns:
+                lines.append(f"    - Function returns expected type: {returns}\n")
+
+            lines.append("    - Function behavior meets requirements\n")
+        else:
+            lines.append(f"    Test the {artifact_name} {artifact_type}.\n")
+
+        lines.append('    """\n')
+        lines.append("    \n")
+
+        # Generate test method - existence check
+        lines.append(f"    def test_{artifact_name}_exists(self):\n")
+        lines.append(f'        """Verify {artifact_name} is defined."""\n')
+        lines.append(
+            f'        pytest.fail("TODO: Implement test - verify {artifact_name} exists")\n'
+        )
+        lines.append("        # Example assertion:\n")
+        if artifact_type == "class":
+            lines.append(f"        # assert {artifact_name} is not None\n")
+            lines.append(f"        # instance = {artifact_name}()\n")
+            lines.append("        # assert instance is not None\n")
+        else:
+            lines.append(f"        # assert callable({artifact_name})\n")
+        lines.append("    \n")
+
+        # Generate test method - behavior check
+        lines.append(f"    def test_{artifact_name}_behavior(self):\n")
+        lines.append(f'        """Test {artifact_name} behavior with test inputs."""\n')
+        lines.append(
+            f'        pytest.fail("TODO: Implement test - verify {artifact_name} behavior")\n'
+        )
+        lines.append("        # Example assertion:\n")
+        if artifact_type == "class":
+            lines.append(f"        # instance = {artifact_name}()\n")
+            lines.append("        # result = instance.some_method()\n")
+            lines.append("        # assert result == expected_value\n")
+        elif artifact_type == "function":
+            params = artifact.get("parameters", artifact.get("args", []))
+            if params:
+                param_str = ", ".join(
+                    [f"{p.get('name', 'arg')}=test_value" for p in params[:2]]
+                )
+                lines.append(f"        # result = {artifact_name}({param_str})\n")
+            else:
+                lines.append(f"        # result = {artifact_name}()\n")
+
+            returns = artifact.get("returns")
+            if returns:
+                lines.append("        # assert result == expected_value\n")
+            else:
+                lines.append("        # assert result is not None\n")
+        lines.append("\n\n")
+
+    # Write the stub file
+    content = "".join(lines)
+    with open(stub_file, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    return str(stub_file)
+
+
 def run_snapshot(
-    file_path: str, output_dir: str = "manifests", force: bool = False
+    file_path: str,
+    output_dir: str = "manifests",
+    force: bool = False,
+    skip_test_stub: bool = False,
 ) -> None:
     """Core snapshot generation logic accepting parsed arguments.
 
@@ -739,6 +1027,7 @@ def run_snapshot(
         file_path: Path to the Python file to snapshot
         output_dir: Directory to write the manifest (default: manifests)
         force: If True, overwrite existing manifests without prompting
+        skip_test_stub: If True, skip test stub generation (default: False)
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
@@ -750,7 +1039,7 @@ def run_snapshot(
 
     try:
         # Generate the snapshot
-        manifest_path = generate_snapshot(file_path, output_dir, force)
+        manifest_path = generate_snapshot(file_path, output_dir, force, skip_test_stub)
 
         # Print success message
         print(f"Snapshot manifest generated successfully: {manifest_path}")
@@ -782,9 +1071,14 @@ def main() -> None:
         action="store_true",
         help="Overwrite existing manifests without prompting",
     )
+    parser.add_argument(
+        "--skip-test-stub",
+        action="store_true",
+        help="Skip test stub generation (stubs are generated by default)",
+    )
 
     args = parser.parse_args()
-    run_snapshot(args.file_path, args.output_dir, args.force)
+    run_snapshot(args.file_path, args.output_dir, args.force, args.skip_test_stub)
 
 
 if __name__ == "__main__":
