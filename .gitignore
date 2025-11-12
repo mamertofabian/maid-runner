@@ -18,3 +18,5 @@ backup/
 .claude/conversations/temp/*
 
 maid_agents/.claude/tdd-guard/data/test.json
+
+.ccmaid.toml
