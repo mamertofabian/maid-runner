@@ -1,0 +1,125 @@
+# Template: manifest_creation_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Create a MAID v1.2 manifest for this task:
+
+**Task Number:** task-${task_number}
+**Goal:** ${goal}
+
+## Your Task
+
+Use your Write tool to create the manifest file at:
+`manifests/task-${task_number}-[slug].manifest.json`
+
+(Generate an appropriate slug from the goal - lowercase, hyphens, max 50 chars)
+
+## Manifest Format
+
+```json
+{
+  "goal": "${goal}",
+  "taskType": "create|edit|refactor",
+  "creatableFiles": ["path/to/new/file.py"],
+  "readonlyFiles": ["tests/test_task_${task_number}_*.py"],
+  "expectedArtifacts": {
+    "file": "path/to/main/file.py",
+    "contains": [
+      {
+        "type": "class|function|attribute",
+        "name": "ArtifactName",
+        "args": [{"name": "param", "type": "str"}],
+        "returns": "ReturnType"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_${task_number}_description.py", "-v"]
+}
+```
+
+## Examples
+
+### Example 1: Create Task (New File)
+
+Goal: "Create validation runner for executing maid CLI commands"
+
+```json
+{
+  "goal": "Create validation runner for executing maid CLI commands",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/core/validation_runner.py"],
+  "readonlyFiles": ["tests/test_task_002_validation_runner.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/core/validation_runner.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ValidationRunner"
+      },
+      {
+        "type": "function",
+        "name": "validate_manifest",
+        "class": "ValidationRunner",
+        "args": [{"name": "manifest_path", "type": "str"}],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "run_behavioral_tests",
+        "class": "ValidationRunner",
+        "args": [{"name": "validation_command", "type": "List[str]"}],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_002_validation_runner.py", "-v"]
+}
+```
+
+### Example 2: Edit Task (Modify Existing)
+
+Goal: "Add logging to orchestrator and agents"
+
+```json
+{
+  "goal": "Add comprehensive logging to orchestrator and agents",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_agents/core/orchestrator.py",
+    "maid_agents/agents/base_agent.py"
+  ],
+  "readonlyFiles": ["tests/test_task_016_logging.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/utils/logging.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "log_phase_start",
+        "args": [{"name": "phase_name", "type": "str"}],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "log_phase_end",
+        "args": [
+          {"name": "phase_name", "type": "str"},
+          {"name": "success", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_016_logging.py", "-v"]
+}
+```
+
+## Key Reminders
+
+- Determine if this is creating NEW files (→ creatableFiles) or editing EXISTING files (→ editableFiles)
+- List ALL public functions, classes, methods that will be created
+- Include full signatures: parameter names with types, return types
+- Generate appropriate slug for filename from the goal
+- Use Write tool to create the manifest file
+
+Please create the manifest now.

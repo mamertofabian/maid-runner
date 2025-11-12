@@ -1,0 +1,43 @@
+# Template: implementation_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Implement code to make the failing tests pass for this task.
+
+**Manifest:** ${manifest_path}
+**Goal:** ${goal}
+
+## Current Test Output
+
+```
+${test_output}
+```
+
+## Expected Artifacts
+
+You need to implement these artifacts with exact signatures:
+
+${artifacts_summary}
+
+## Files to Modify
+
+Use your Write or Edit tools to modify these files:
+
+${files_to_modify}
+
+## Your Task
+
+1. Review the test failures above to understand what's expected
+2. Implement the code to match manifest signatures exactly
+3. Use your Write tool for new files or Edit tool for existing files
+4. Ensure all type hints and docstrings are included
+5. Make sure all tests pass
+
+The implementation should:
+- Match all artifact signatures from the manifest
+- Handle errors appropriately (don't crash on invalid input)
+- Follow Python conventions (PEP 8, type hints, docstrings)
+- Be the simplest code that satisfies the tests
+
+Please implement the code now.

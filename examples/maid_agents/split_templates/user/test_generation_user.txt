@@ -1,0 +1,88 @@
+# Template: test_generation_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Create behavioral tests for the artifacts defined in this manifest.
+
+**Manifest:** ${manifest_path}
+**Goal:** ${goal}
+
+## Artifacts to Test
+
+${artifacts_summary}
+
+## Files Context
+
+**Files being tested:** ${files_to_test}
+**Test file to create:** ${test_file_path}
+
+## Your Task
+
+Create comprehensive pytest tests that verify:
+1. Artifact existence - Classes, functions, methods exist
+2. Artifact signatures - Parameters and return types match manifest
+3. Artifact behavior - Implementation works correctly
+
+Use your Write tool to create the test file at: `${test_file_path}`
+
+## Test Structure
+
+Your test file should include:
+
+```python
+"""Behavioral tests for task-XXX: [description].
+
+This test file verifies the implementation matches manifest specifications.
+"""
+
+import pytest
+from module_path import ClassName, function_name
+
+
+class TestClassName:
+    """Tests for ClassName class."""
+
+    def test_class_exists(self):
+        """Test that ClassName exists and can be instantiated."""
+        instance = ClassName(param="value")
+        assert instance is not None
+        assert isinstance(instance, ClassName)
+
+    def test_method_signature(self):
+        """Test method has correct signature."""
+        instance = ClassName(param="value")
+        # Use keyword args to verify parameter names
+        result = instance.method_name(arg1="test", arg2=42)
+        assert isinstance(result, dict)
+
+    def test_method_behavior_happy_path(self):
+        """Test method with valid inputs."""
+        instance = ClassName(param="value")
+        result = instance.method_name(arg1="test", arg2=42)
+        assert result["status"] == "success"
+
+    def test_method_edge_cases(self):
+        """Test method with edge cases."""
+        instance = ClassName(param="value")
+        # Empty string
+        result = instance.method_name(arg1="", arg2=0)
+        assert isinstance(result, dict)
+
+    def test_method_error_handling(self):
+        """Test method handles errors."""
+        instance = ClassName(param="value")
+        with pytest.raises(ValueError):
+            instance.method_name(arg1="test", arg2=-1)
+```
+
+## Key Requirements
+
+- Import all artifacts from correct module paths
+- Test existence of all classes and functions
+- Use keyword arguments to verify parameter names
+- Test return types with isinstance()
+- Include happy path, edge cases, and error handling tests
+- Add clear docstrings to each test function
+
+Please create the test file now.

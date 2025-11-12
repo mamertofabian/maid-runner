@@ -1,0 +1,53 @@
+# Template: refactor_user
+# Version: 3.0.0
+# Type: user
+# MAID Spec: v1.2
+
+Refactor the code to improve quality while maintaining behavior.
+
+**Manifest:** ${manifest_path}
+**Goal:** ${goal}
+
+## Current Status
+
+All tests are currently PASSING. Your job is to improve code quality without breaking any tests.
+
+**Files to refactor:**
+${files_to_refactor}
+
+**Test file (must continue passing):**
+${test_file}
+
+## Your Task
+
+Refactor the implementation to improve code quality while ensuring:
+1. All tests still pass
+2. Public API unchanged
+3. Same behavior (inputs → outputs unchanged)
+
+Focus on these improvements:
+- Extract complex logic into private helper methods
+- Use more descriptive variable names
+- Improve error handling with specific exceptions
+- Add better docstrings and type hints
+- Reduce method complexity (~15-20 lines max)
+
+## Refactoring Approach
+
+1. Read the current implementation to understand it
+2. Identify opportunities for improvement:
+   - Long methods → Extract smaller helpers
+   - Unclear names → More descriptive names
+   - Generic exceptions → Specific exception types
+   - Missing docstrings → Add documentation
+   - Complex logic → Simplify with early returns
+3. Use your Edit tool to apply improvements
+4. Verify the improvements maintain behavior
+
+**Important Constraints:**
+- Do NOT change public API signatures
+- Do NOT change behavior (tests must pass)
+- Do NOT add new features
+- Do NOT modify test files
+
+Please refactor the code now to improve quality while maintaining all existing behavior.
