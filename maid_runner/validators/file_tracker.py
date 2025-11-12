@@ -106,6 +106,24 @@ def _normalize_path(path: str) -> str:
     return path
 
 
+def _is_test_file(file_path: str) -> bool:
+    """Check if a file is a test file.
+
+    Test files are identified by:
+    - Being in a 'tests/' directory, or
+    - Having a filename that starts with 'test_'
+
+    Args:
+        file_path: Path to check
+
+    Returns:
+        True if file is a test file, False otherwise
+    """
+    return file_path.startswith("tests/") or file_path.split("/")[-1].startswith(
+        "test_"
+    )
+
+
 def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
     """Collect all tracked files from manifest chain.
 
@@ -205,10 +223,12 @@ def classify_file_status(file_path: str, tracked_info: Optional[dict]) -> tuple:
     issues = []
 
     # Issue: Only in readonlyFiles (no creation/edit record)
+    # Note: Test files are naturally in readonlyFiles, so exclude them from this warning
     if (
         tracked_info["readonly"]
         and not tracked_info["created"]
         and not tracked_info["edited"]
+        and not _is_test_file(file_path)
     ):
         issues.append("Only in readonlyFiles (no creation/edit record)")
 

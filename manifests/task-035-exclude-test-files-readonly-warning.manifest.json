@@ -1,0 +1,35 @@
+{
+  "goal": "Exclude test files from 'Only in readonlyFiles' warning in file tracking analysis, as test files are naturally and correctly placed in readonlyFiles",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_task_035_exclude_test_files_readonly.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "classify_file_status",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "tracked_info", "type": "Optional[dict]"}
+        ],
+        "returns": "tuple"
+      },
+      {
+        "type": "function",
+        "name": "_is_test_file",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_task_035_exclude_test_files_readonly.py", "-v"]
+}
