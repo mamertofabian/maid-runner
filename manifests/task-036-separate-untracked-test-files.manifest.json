@@ -1,0 +1,28 @@
+{
+  "goal": "Separate untracked test files into informational category instead of high-priority UNDECLARED, reducing noise while maintaining transparency",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/file_tracker.py",
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/validators/test_task_036_separate_untracked_tests.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "analyze_file_tracking",
+        "args": [
+          {"name": "manifest_chain", "type": "List[dict]"},
+          {"name": "source_root", "type": "str"}
+        ],
+        "returns": "FileTrackingAnalysis"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/validators/test_task_036_separate_untracked_tests.py", "-v"]
+}

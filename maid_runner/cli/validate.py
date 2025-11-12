@@ -32,14 +32,17 @@ def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
     undeclared = analysis.get("undeclared", [])
     registered = analysis.get("registered", [])
     tracked = analysis.get("tracked", [])
+    untracked_tests = analysis.get("untracked_tests", [])
 
-    total_files = len(undeclared) + len(registered) + len(tracked)
+    total_files = (
+        len(undeclared) + len(registered) + len(tracked) + len(untracked_tests)
+    )
 
     if total_files == 0:
         return  # No files to report
 
     # Only show if there are warnings
-    if undeclared or registered:
+    if undeclared or registered or untracked_tests:
         print()
         print("━" * 80)
         print("FILE TRACKING ANALYSIS")
@@ -89,14 +92,40 @@ def _format_file_tracking_output(analysis: dict, quiet: bool = False) -> None:
         )
         print()
 
+    # UNTRACKED TEST FILES (informational)
+    if untracked_tests:
+        print(f"🔵 UNTRACKED TEST FILES ({len(untracked_tests)} files)")
+        print("  Test files not referenced in any manifest")
+        print()
+
+        if not quiet:
+            for test_file in untracked_tests[:10]:  # Limit to 10 for readability
+                print(f"  - {test_file}")
+
+            if len(untracked_tests) > 10:
+                print(f"  ... and {len(untracked_tests) - 10} more")
+
+        print()
+        print("  Note: Consider adding to readonlyFiles for reference tracking")
+        print()
+
     # Summary
-    if undeclared or registered:
+    if undeclared or registered or untracked_tests:
         print(f"✓ TRACKED ({len(tracked)} files)")
         print("  All other source files are fully MAID-compliant")
         print()
-        print(
-            f"Summary: {len(undeclared)} UNDECLARED, {len(registered)} REGISTERED, {len(tracked)} TRACKED"
-        )
+
+        # Build summary string
+        summary_parts = []
+        if undeclared:
+            summary_parts.append(f"{len(undeclared)} UNDECLARED")
+        if registered:
+            summary_parts.append(f"{len(registered)} REGISTERED")
+        if untracked_tests:
+            summary_parts.append(f"{len(untracked_tests)} UNTRACKED TESTS")
+        summary_parts.append(f"{len(tracked)} TRACKED")
+
+        print(f"Summary: {', '.join(summary_parts)}")
         print()
 
 

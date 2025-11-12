@@ -34,6 +34,7 @@ class FileTrackingAnalysis(TypedDict):
     undeclared: List[FileInfo]
     registered: List[FileInfo]
     tracked: List[str]
+    untracked_tests: List[str]
 
 
 def find_source_files(root_dir: str, exclude_patterns: List[str]) -> Set[str]:
@@ -284,15 +285,25 @@ def analyze_file_tracking(
     undeclared = []
     registered = []
     tracked = []
+    untracked_tests = []
 
     for file_path in sorted(all_files):
         tracked_info = tracked_files.get(file_path)
         status, issues = classify_file_status(file_path, tracked_info)
 
         if status == FILE_STATUS_UNDECLARED:
-            undeclared.append(
-                {"file": file_path, "status": status, "issues": issues, "manifests": []}
-            )
+            # Separate test files from implementation files
+            if _is_test_file(file_path):
+                untracked_tests.append(file_path)
+            else:
+                undeclared.append(
+                    {
+                        "file": file_path,
+                        "status": status,
+                        "issues": issues,
+                        "manifests": [],
+                    }
+                )
         elif status == FILE_STATUS_REGISTERED:
             registered.append(
                 {
@@ -305,4 +316,9 @@ def analyze_file_tracking(
         elif status == FILE_STATUS_TRACKED:
             tracked.append(file_path)
 
-    return {"undeclared": undeclared, "registered": registered, "tracked": tracked}
+    return {
+        "undeclared": undeclared,
+        "registered": registered,
+        "tracked": tracked,
+        "untracked_tests": untracked_tests,
+    }
