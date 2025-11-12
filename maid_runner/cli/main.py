@@ -3,8 +3,11 @@
 
 Provides a unified command-line interface with subcommands:
 - maid --version
+- maid init ...
 - maid validate ...
 - maid snapshot ...
+- maid test ...
+- maid manifests ...
 """
 
 import argparse
@@ -144,6 +147,23 @@ def main():
         help="Show minimal output (just manifest names)",
     )
 
+    # Init subcommand
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize MAID methodology in an existing repository",
+        description="Initialize MAID methodology by creating directory structure and documentation",
+    )
+    init_parser.add_argument(
+        "--target-dir",
+        default=".",
+        help="Target directory to initialize (default: current directory)",
+    )
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing files without prompting",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -199,6 +219,10 @@ def main():
         from maid_runner.cli.list_manifests import run_list_manifests
 
         run_list_manifests(args.file_path, args.manifest_dir, args.quiet)
+    elif args.command == "init":
+        from maid_runner.cli.init import run_init
+
+        run_init(args.target_dir, args.force)
     else:
         parser.print_help()
         sys.exit(1)
