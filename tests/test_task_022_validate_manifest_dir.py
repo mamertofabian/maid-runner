@@ -32,10 +32,12 @@ def test_maid_validate_with_manifest_dir_flag(tmp_path: Path):
         "goal": "test 1",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest1_file = manifests_dir / "task-001.manifest.json"
     manifest1_file.write_text(json.dumps(manifest1))
@@ -70,10 +72,12 @@ def test_maid_validate_manifest_dir_skips_superseded(tmp_path: Path):
         "goal": "task 1",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest1_file = manifests_dir / "task-001.manifest.json"
     manifest1_file.write_text(json.dumps(manifest1))
@@ -84,6 +88,7 @@ def test_maid_validate_manifest_dir_skips_superseded(tmp_path: Path):
         "goal": "snapshot",
         "taskType": "snapshot",
         "editableFiles": ["test.py"],
+        "readonlyFiles": [],
         "supersedes": ["manifests/task-001.manifest.json"],
         "expectedArtifacts": {
             "file": "test.py",
@@ -118,10 +123,12 @@ def test_maid_validate_with_single_manifest_still_works(tmp_path: Path):
         "goal": "test",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest_file = tmp_path / "test.manifest.json"
     manifest_file.write_text(json.dumps(manifest))
@@ -156,10 +163,12 @@ def test_run_validation_with_manifest_dir_parameter(tmp_path: Path):
         "goal": "test",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest_file = manifests_dir / "task-001.manifest.json"
     manifest_file.write_text(json.dumps(manifest))
@@ -206,10 +215,12 @@ def test_maid_validate_manifest_dir_shows_summary(tmp_path: Path):
         "goal": "test",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest_file = manifests_dir / "task-001.manifest.json"
     manifest_file.write_text(json.dumps(manifest))
@@ -273,10 +284,12 @@ def test_main_function_works_as_cli_entry_point(tmp_path: Path, monkeypatch):
         "goal": "test",
         "taskType": "create",
         "creatableFiles": ["test.py"],
+        "readonlyFiles": [],
         "expectedArtifacts": {
             "file": "test.py",
             "contains": [{"type": "function", "name": "hello"}],
         },
+        "validationCommand": ["echo", "test"],
     }
     manifest_file = manifests_dir / "task-001.manifest.json"
     manifest_file.write_text(json.dumps(manifest))

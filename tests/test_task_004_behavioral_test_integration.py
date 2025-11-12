@@ -420,6 +420,7 @@ class TestMainFunctionIntegration:
             "taskType": "edit",
             "creatableFiles": [],
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {
                 "file": "src/example.py",
                 "contains": [{"type": "class", "name": "ExampleService"}],
@@ -474,6 +475,7 @@ class ExampleService:
             "goal": "Test extraction",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {"file": "src/example.py", "contains": []},
             "validationCommand": [
                 "pytest",
@@ -520,8 +522,10 @@ class ExampleService:
             "goal": "Test without validation command",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {"file": "src/example.py", "contains": []},
-            # No validationCommand specified
+            # No validationCommand specified - using validationCommands instead
+            "validationCommands": [[]],
         }
 
         impl_file = tmp_path / "example.py"
@@ -545,6 +549,7 @@ class ExampleService:
             "goal": "Test behavioral failure",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {
                 "file": "src/example.py",
                 "contains": [{"type": "class", "name": "RequiredService"}],
@@ -591,6 +596,7 @@ class RequiredService:
             "goal": "Test chain integration",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {
                 "file": "src/example.py",
                 "contains": [{"type": "class", "name": "ChainService"}],
@@ -639,6 +645,7 @@ class ChainService:
             "goal": "Test processing order",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {
                 "file": "src/example.py",
                 "contains": [{"type": "class", "name": "OrderService"}],
@@ -746,7 +753,9 @@ class TestErrorHandlingAndEdgeCases:
             "goal": "Test quiet mode",
             "taskType": "edit",
             "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
             "expectedArtifacts": {"file": "src/example.py", "contains": []},
+            "validationCommand": ["echo", "test"],
         }
 
         impl_file = tmp_path / "example.py"

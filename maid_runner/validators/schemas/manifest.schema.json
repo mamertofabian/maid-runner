@@ -16,6 +16,7 @@
       },
       "goal": { "type": "string" },
       "taskType": { "type": "string" },
+      "supersedes": { "type": "array", "items": { "type": "string" }, "description": "Paths to manifests that this one replaces/obsoletes" },
       "creatableFiles": { "type": "array", "items": { "type": "string" } },
       "editableFiles": { "type": "array", "items": { "type": "string" } },
       "readonlyFiles": { "type": "array", "items": { "type": "string" } },
@@ -26,7 +27,8 @@
           "created": { "type": "string" },
           "tags": { "type": "array", "items": { "type": "string" } },
           "priority": { "type": "string" }
-        }
+        },
+        "additionalProperties": false
       },
       "expectedArtifacts": {
         "type": "object",
@@ -39,6 +41,8 @@
               "properties": {
                 "type": { "enum": ["class", "function", "attribute", "parameter"] },
                 "name": { "type": "string" },
+                "description": { "type": "string", "description": "Optional description of what this artifact does" },
+                "artifactKind": { "type": "string", "description": "Optional semantic kind of artifact (e.g., 'type', 'interface', 'utility')" },
                 "class": { "type": "string", "description": "The parent class for attributes or methods" },
                 "bases": { "type": "array", "items": { "type": "string" }, "description": "The base classes for a class (optional)" },
                 "function": { "type": "string", "description": "The parent function for parameters" },
@@ -50,7 +54,8 @@
                       "name": { "type": "string" },
                       "type": { "type": "string" }
                     },
-                    "required": ["name"]
+                    "required": ["name"],
+                    "additionalProperties": false
                   },
                   "description": "List of parameter names for a function (legacy format)"
                 },
@@ -63,7 +68,8 @@
                       "type": { "type": "string" },
                       "default": { "type": "string" }
                     },
-                    "required": ["name"]
+                    "required": ["name"],
+                    "additionalProperties": false
                   },
                   "description": "List of function arguments (enhanced format)"
                 },
@@ -76,6 +82,7 @@
                         "type": { "type": "string" }
                       },
                       "required": ["type"],
+                      "additionalProperties": false,
                       "description": "The return type of a function (object format)"
                     }
                   ],
@@ -87,11 +94,13 @@
                   "description": "List of exception types that may be raised (optional)"
                 }
               },
-              "required": ["type", "name"]
+              "required": ["type", "name"],
+              "additionalProperties": false
             }
           }
         },
-        "required": ["file", "contains"]
+        "required": ["file", "contains"],
+        "additionalProperties": false
       },
       "validationCommand": {
         "type": "array",
@@ -106,5 +115,6 @@
         },
         "description": "Multiple validation commands (enhanced format)"
       }
-    }
+    },
+    "additionalProperties": false
   }

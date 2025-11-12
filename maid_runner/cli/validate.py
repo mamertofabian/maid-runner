@@ -12,7 +12,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from maid_runner.validators.manifest_validator import validate_with_ast
+import jsonschema
+
+from maid_runner.validators.manifest_validator import validate_with_ast, validate_schema
 from maid_runner.validators.file_tracker import analyze_file_tracking
 
 
@@ -555,6 +557,26 @@ def run_validation(
         # Load the manifest
         with open(manifest_path_obj, "r") as f:
             manifest_data = json.load(f)
+
+        # Validate against JSON schema
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
+        try:
+            validate_schema(manifest_data, str(schema_path))
+        except jsonschema.ValidationError as e:
+            print("✗ Error: Manifest validation failed", file=sys.stderr)
+            print(f"  {e.message}", file=sys.stderr)
+            if e.path:
+                path_str = ".".join(str(p) for p in e.path)
+                print(f"  Location: {path_str}", file=sys.stderr)
+            sys.exit(1)
+        except FileNotFoundError:
+            print(f"✗ Error: Schema file not found at {schema_path}", file=sys.stderr)
+            sys.exit(1)
 
         # Validate version field
         from maid_runner.utils import validate_manifest_version
