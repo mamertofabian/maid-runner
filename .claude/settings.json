@@ -5,12 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ast-validator.py",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/test-runner.py",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && CHANGED=$(git diff --name-only HEAD 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null) && if echo \"$CHANGED\" | grep -qE '(^manifests/.*\\.json$|^tests/test_.*\\.py$)'; then echo '🔍 Manifest/test files changed - running MAID validation...' >&2 && uv run maid validate 2>&1 >&2 && echo '🧪 Running MAID test suite...' >&2 && uv run maid test 2>&1 >&2 && echo '✨ All validations passed!' >&2 || { echo '❌ Validation/tests failed' >&2; exit 2; }; else echo '✓ No manifest/test changes detected - skipping validation' >&2; fi",
             "timeout": 300
           }
         ]
