@@ -1,0 +1,341 @@
+# Template: implementation
+# Version: 2.0.0
+# MAID Spec: v1.2
+
+I need you to implement code to make the failing tests pass for this task.
+
+## Task Context
+
+**Manifest:** ${manifest_path}
+**Goal:** ${goal}
+
+## Test Failures
+
+The current test output is:
+```
+${test_output}
+```
+
+## Expected Artifacts
+
+According to the manifest, you need to implement these artifacts with **exact signatures**:
+
+${artifacts_summary}
+
+## Files to Modify
+
+You should use your file editing tools to modify these files:
+
+${files_to_modify}
+
+## Your Task
+
+Implement the code needed to make ALL tests pass. Focus on the simplest implementation that satisfies the tests while matching the manifest specifications exactly.
+
+### Requirements
+
+1. **Make ALL tests pass** - Every test must succeed
+2. **Match manifest signatures EXACTLY:**
+   - Correct class names, method names, function names
+   - Correct parameter names and types
+   - Correct return types
+3. **Only edit files listed in manifest** (creatableFiles or editableFiles)
+4. **Handle errors appropriately** - Don't crash on invalid input
+5. **Write clean, readable code** with proper docstrings
+6. **Use type hints** for all parameters and return values
+
+### Implementation Approach
+
+1. **Read the test file** to understand what behavior is expected
+2. **For each test that's failing:**
+   - Understand what the test is checking
+   - Implement the minimal code to make it pass
+   - Ensure your implementation matches the manifest signature
+3. **Use your Edit tool** to modify existing files or **Write tool** to create new files
+4. **Follow Python conventions** (PEP 8)
+
+### Code Style Guidelines
+
+**Module Structure:**
+```python
+"""Module docstring describing the purpose of this module."""
+
+from typing import Dict, Any, Optional, List
+
+# Module-level constants or type aliases (if needed)
+DEFAULT_VALUE = "example"
+
+
+class ClassName:
+    """Class docstring explaining what this class does."""
+
+    def __init__(self, param1: str):
+        """Initialize the instance.
+
+        Args:
+            param1: Description of param1
+        """
+        self.param1 = param1
+
+    def public_method(self, arg1: str, arg2: int) -> dict:
+        """Method docstring explaining what this method does.
+
+        Args:
+            arg1: Description of arg1
+            arg2: Description of arg2
+
+        Returns:
+            Dict with result data
+
+        Raises:
+            ValueError: If arg2 is negative
+        """
+        if arg2 < 0:
+            raise ValueError("arg2 must be non-negative")
+
+        # Implementation
+        return {"status": "success", "arg1": arg1, "arg2": arg2}
+
+
+def standalone_function(param: str) -> str:
+    """Function docstring explaining what this function does.
+
+    Args:
+        param: Description of param
+
+    Returns:
+        Processed result
+    """
+    # Implementation
+    return f"processed: {param}"
+```
+
+### Error Handling Pattern
+
+For operations that can fail, use this pattern:
+
+```python
+def operation_that_might_fail(param: str) -> dict:
+    """Perform operation that might fail.
+
+    Args:
+        param: Input parameter
+
+    Returns:
+        Dict with success status and result or error
+    """
+    try:
+        # Perform the risky operation
+        result = process(param)
+        return {
+            "success": True,
+            "result": result,
+            "error": None
+        }
+    except ValueError as e:
+        return {
+            "success": False,
+            "result": None,
+            "error": str(e)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "result": None,
+            "error": f"Unexpected error: {e}"
+        }
+```
+
+### Understanding Test Failures
+
+Look for these patterns in test output:
+
+- **`ModuleNotFoundError` or `ImportError`**: Module/file doesn't exist yet - create it
+- **`AttributeError: module has no attribute 'X'`**: Function/class X is missing - add it
+- **`AttributeError: 'ClassName' object has no attribute 'Y'`**: Method/attribute Y is missing - add it
+- **`AssertionError`**: Logic is wrong or return value doesn't match expectation
+- **`TypeError: X() takes N positional arguments but M were given`**: Wrong number of parameters
+- **`TypeError: X() missing required argument 'Y'`**: Missing required parameter
+
+### Examples from MAID Agents Codebase
+
+**Example 1 - Simple Class with Methods:**
+
+```python
+"""Validation runner for executing maid CLI commands."""
+
+import subprocess
+from typing import Dict, Any, List
+
+
+class ValidationRunner:
+    """Runs validation commands from MAID manifests."""
+
+    def __init__(self):
+        """Initialize validation runner."""
+        pass
+
+    def validate_manifest(self, manifest_path: str) -> dict:
+        """Validate manifest using maid CLI.
+
+        Args:
+            manifest_path: Path to manifest file
+
+        Returns:
+            Dict with validation results including success status,
+            output, and error message if validation failed
+        """
+        try:
+            result = subprocess.run(
+                ["maid", "validate", manifest_path],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            return {
+                "success": result.returncode == 0,
+                "output": result.stdout,
+                "error": result.stderr if result.returncode != 0 else None
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "success": False,
+                "output": "",
+                "error": "Validation timed out after 30 seconds"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "output": "",
+                "error": str(e)
+            }
+
+    def run_behavioral_tests(self, validation_command: List[str]) -> dict:
+        """Run behavioral tests from manifest validation command.
+
+        Args:
+            validation_command: Command to run tests (e.g., ["pytest", "tests/test_*.py", "-v"])
+
+        Returns:
+            Dict with test execution results
+        """
+        try:
+            result = subprocess.run(
+                validation_command,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            return {
+                "success": result.returncode == 0,
+                "output": result.stdout,
+                "error": result.stderr if result.returncode != 0 else None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "output": "",
+                "error": str(e)
+            }
+```
+
+**Example 2 - Module with Helper Functions:**
+
+```python
+"""Template manager for loading and rendering prompt templates."""
+
+from pathlib import Path
+from string import Template
+from typing import Optional, Dict, Any
+
+
+class TemplateManager:
+    """Manages loading and rendering of prompt templates."""
+
+    def __init__(self, templates_dir: Optional[Path] = None):
+        """Initialize template manager.
+
+        Args:
+            templates_dir: Directory containing template files.
+                          Defaults to templates/ subdirectory.
+        """
+        if templates_dir is None:
+            templates_dir = Path(__file__).parent / "templates"
+        self.templates_dir = Path(templates_dir)
+
+    def load_template(self, template_name: str) -> Template:
+        """Load template from file.
+
+        Args:
+            template_name: Name of template (without .txt extension)
+
+        Returns:
+            Template object ready for substitution
+
+        Raises:
+            FileNotFoundError: If template file doesn't exist
+        """
+        template_path = self.templates_dir / f"{template_name}.txt"
+        if not template_path.exists():
+            raise FileNotFoundError(
+                f"Template not found: {template_path}"
+            )
+
+        content = template_path.read_text(encoding="utf-8")
+        return Template(content)
+
+    def render(self, template_name: str, **kwargs: Any) -> str:
+        """Load and render a template with variable substitution.
+
+        Args:
+            template_name: Name of template to render
+            **kwargs: Variables to substitute in template
+
+        Returns:
+            Rendered template string
+
+        Raises:
+            FileNotFoundError: If template doesn't exist
+            KeyError: If required template variables are missing
+        """
+        template = self.load_template(template_name)
+        return template.substitute(**kwargs)
+
+
+def get_template_manager() -> TemplateManager:
+    """Get default template manager instance.
+
+    Returns:
+        TemplateManager with default templates directory
+    """
+    return TemplateManager()
+```
+
+## Common Mistakes to Avoid
+
+- ❌ **Wrong parameter names**: Match manifest exactly (`manifest_path`, not `path`)
+- ❌ **Wrong return type**: If manifest says `dict`, return dict, not list
+- ❌ **Missing type hints**: All functions should have parameter and return type hints
+- ❌ **Missing docstrings**: Every public class/function needs a docstring
+- ❌ **Adding extra public APIs**: Don't add public methods not in manifest
+- ❌ **Changing existing signatures**: Don't modify existing public API signatures
+- ❌ **Missing imports**: Import all necessary modules at the top
+
+## File Access Boundaries
+
+For this implementation phase, you should:
+- **Read:** Test files, manifest, and any readonly files listed
+- **Write/Edit:** Only files listed in `creatableFiles` or `editableFiles`
+- **Do NOT modify:** Test files or files not listed in the manifest
+
+This ensures proper isolation and traceability in the MAID methodology.
+
+## Next Steps
+
+1. Review the test failures to understand what's expected
+2. Read the test file if you need more context
+3. Implement the code to match manifest signatures exactly
+4. Use your Write or Edit tools to create/modify the necessary files
+5. Ensure all type hints and docstrings are included
+
+Please proceed with the implementation!

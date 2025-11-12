@@ -1,0 +1,203 @@
+# Template: manifest_creation
+# Version: 2.0.0
+# MAID Spec: v1.2
+
+I need you to create a MAID v1.2 manifest for the following task:
+
+**Task Number:** task-${task_number}
+**Goal:** ${goal}
+
+## Your Task
+
+Create a complete MAID manifest file that defines this task. Use your **Write tool** to create the manifest at:
+`manifests/task-${task_number}-[slug].manifest.json`
+
+(Generate an appropriate slug from the goal for the filename)
+
+## Manifest Requirements
+
+The manifest must follow MAID v1.2 specification:
+
+1. **Determine task type:**
+   - `create` - For new files (use `creatableFiles`)
+   - `edit` - For modifying existing files (use `editableFiles`)
+   - `refactor` - For improving existing code without changing behavior
+
+2. **List files to touch:**
+   - `creatableFiles`: New files this task will create (Strict validation mode)
+   - `editableFiles`: Existing files this task will modify (Permissive mode)
+   - `readonlyFiles`: Test files and dependencies (for context only)
+
+3. **Declare ALL public artifacts:**
+   - Every public function, class, method must be listed
+   - Private artifacts (prefixed with `_`) are optional
+   - Include precise signatures: parameters, types, return types
+
+4. **Specify validation command:**
+   - Should be a pytest command like: `["pytest", "tests/test_task_XXX_description.py", "-v"]`
+
+5. **Be atomic:**
+   - Touch minimal files
+   - Single, focused goal
+   - Small, testable changes
+
+6. **Be explicit:**
+   - Declare all public APIs
+   - Tests will verify these artifacts exist
+
+## Manifest Schema
+
+```json
+{
+  "goal": "Concise description of what this task accomplishes",
+  "taskType": "create" | "edit" | "refactor",
+  "creatableFiles": ["path/to/new/file.py"],        // For new files
+  "editableFiles": ["path/to/existing/file.py"],    // For existing files
+  "readonlyFiles": ["tests/test_*.py"],             // Test files
+  "expectedArtifacts": {
+    "file": "path/to/main/file.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ClassName",
+        "inherits": "BaseClass"  // optional
+      },
+      {
+        "type": "function",
+        "name": "function_name",
+        "class": "ClassName",     // optional - include if this is a method
+        "args": [
+          {"name": "param1", "type": "str"},
+          {"name": "param2", "type": "int"}
+        ],
+        "returns": "ReturnType"
+      },
+      {
+        "type": "attribute",
+        "name": "attribute_name",
+        "class": "ClassName"      // optional - include if class attribute
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_XXX_description.py", "-v"]
+}
+```
+
+## Examples from MAID Agents Codebase
+
+### Example 1 - Create Task (New File)
+
+```json
+{
+  "goal": "Create validation runner for executing maid CLI commands",
+  "taskType": "create",
+  "creatableFiles": ["maid_agents/core/validation_runner.py"],
+  "readonlyFiles": ["tests/test_task_002_validation_runner.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/core/validation_runner.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ValidationRunner"
+      },
+      {
+        "type": "function",
+        "name": "validate_manifest",
+        "class": "ValidationRunner",
+        "args": [
+          {"name": "manifest_path", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "run_behavioral_tests",
+        "class": "ValidationRunner",
+        "args": [
+          {"name": "validation_command", "type": "List[str]"}
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_002_validation_runner.py", "-v"]
+}
+```
+
+### Example 2 - Edit Task (Modify Existing Files)
+
+```json
+{
+  "goal": "Add comprehensive logging to orchestrator and agents",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_agents/core/orchestrator.py",
+    "maid_agents/agents/base_agent.py",
+    "maid_agents/claude/cli_wrapper.py"
+  ],
+  "readonlyFiles": ["tests/test_task_016_logging.py"],
+  "expectedArtifacts": {
+    "file": "maid_agents/utils/logging.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "log_phase_start",
+        "args": [
+          {"name": "phase_name", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "log_phase_end",
+        "args": [
+          {"name": "phase_name", "type": "str"},
+          {"name": "success", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_016_logging.py", "-v"]
+}
+```
+
+## Important Guidelines
+
+### Task Numbering
+- Use zero-padded 3-digit format: `task-001`, `task-002`, `task-042`
+- Test files follow pattern: `test_task_NNN_description.py`
+- Manifest files: `task-NNN-description.manifest.json`
+
+### Common Mistakes to Avoid
+- ❌ Don't include private methods (with `_` prefix) in expectedArtifacts
+- ❌ Don't declare `__init__` unless it has non-standard parameters
+- ❌ Don't mix `taskType="create"` with `editableFiles`
+- ❌ Don't forget to specify return types (`"returns": "dict"`, not missing)
+- ❌ Don't forget to include ALL public APIs that tests will verify
+
+### What to Include
+- ✅ All public functions, classes, methods
+- ✅ Module-level attributes that are part of the public API
+- ✅ Precise parameter names and types
+- ✅ Return types for all functions/methods
+- ✅ Base classes for class inheritance
+
+## File Access Boundaries
+
+For this task, you should:
+- **Create:** The manifest file at `manifests/task-${task_number}-[slug].manifest.json`
+- **Read (optional):** Existing manifests for reference if needed
+- **Do NOT modify:** Any other files in this phase
+
+This ensures proper isolation and traceability in the MAID methodology.
+
+## Next Steps
+
+1. Analyze the goal and determine the appropriate task type
+2. Identify which files need to be created or modified
+3. List all public artifacts that will be created
+4. Use your Write tool to create the manifest JSON file
+5. Confirm the file was created successfully
+
+Please proceed with creating the manifest!
