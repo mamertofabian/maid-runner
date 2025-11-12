@@ -1,0 +1,45 @@
+{
+  "goal": "Add semantic validation to detect multi-file modification attempts and suggest splitting into separate manifests",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/validators/semantic_validator.py"],
+  "editableFiles": ["maid_runner/cli/validate.py"],
+  "readonlyFiles": [
+    "tests/test_task_033_semantic_validation.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/semantic_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ManifestSemanticError"
+      },
+      {
+        "type": "function",
+        "name": "validate_manifest_semantics",
+        "args": [
+          {"name": "manifest_data", "type": "dict"}
+        ],
+        "returns": "None",
+        "raises": ["ManifestSemanticError"]
+      },
+      {
+        "type": "function",
+        "name": "_detect_multi_file_intent",
+        "args": [
+          {"name": "manifest_data", "type": "dict"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_build_multi_file_suggestion",
+        "args": [
+          {"name": "invalid_properties", "type": "List[str]"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_033_semantic_validation.py", "-v"]
+}

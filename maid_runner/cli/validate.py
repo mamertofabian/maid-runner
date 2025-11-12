@@ -15,6 +15,10 @@ from typing import Optional
 import jsonschema
 
 from maid_runner.validators.manifest_validator import validate_with_ast, validate_schema
+from maid_runner.validators.semantic_validator import (
+    validate_manifest_semantics,
+    ManifestSemanticError,
+)
 from maid_runner.validators.file_tracker import analyze_file_tracking
 
 
@@ -576,6 +580,14 @@ def run_validation(
             sys.exit(1)
         except FileNotFoundError:
             print(f"✗ Error: Schema file not found at {schema_path}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate MAID semantics (methodology compliance)
+        try:
+            validate_manifest_semantics(manifest_data)
+        except ManifestSemanticError as e:
+            print("✗ Error: Manifest semantic validation failed", file=sys.stderr)
+            print(f"\n{e}", file=sys.stderr)
             sys.exit(1)
 
         # Validate version field
