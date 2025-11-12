@@ -8,6 +8,7 @@ Provides a unified command-line interface with subcommands:
 - maid snapshot ...
 - maid test ...
 - maid manifests ...
+- maid schema
 """
 
 import argparse
@@ -179,6 +180,13 @@ def main():
         "manifest_path", help="Path to the manifest file"
     )
 
+    # Schema subcommand
+    subparsers.add_parser(
+        "schema",
+        help="Output the manifest JSON schema",
+        description="Output the manifest JSON schema for agent consumption",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -272,6 +280,10 @@ def main():
         except Exception as e:
             print(f"Error generating stub: {e}", file=sys.stderr)
             sys.exit(1)
+    elif args.command == "schema":
+        from maid_runner.cli.schema import run_schema
+
+        run_schema()
     else:
         parser.print_help()
         sys.exit(1)

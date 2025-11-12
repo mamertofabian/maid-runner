@@ -1,0 +1,24 @@
+{
+  "goal": "Add 'maid schema' CLI command to output the manifest JSON schema for agent consumption",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/cli/schema.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/validators/schemas/manifest.schema.json",
+    "tests/test_task_040_schema_command.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/schema.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_schema",
+        "args": []
+      }
+    ]
+  },
+  "validationCommand": ["python", "-m", "pytest", "tests/test_task_040_schema_command.py", "-v"]
+}
