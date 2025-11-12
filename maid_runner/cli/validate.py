@@ -539,7 +539,10 @@ def _run_directory_validation(
             manifest_chain = []
             for manifest_file in sorted(manifests_dir.glob("task-*.manifest.json")):
                 with open(manifest_file, "r") as f:
-                    manifest_chain.append(json.load(f))
+                    manifest_data = json.load(f)
+                    # Add filename to manifest data for tracking purposes
+                    manifest_data["_filename"] = manifest_file.name
+                    manifest_chain.append(manifest_data)
 
             # Analyze file tracking
             source_root = str(project_root)
@@ -800,7 +803,10 @@ def run_validation(
                         manifests_dir.glob("task-*.manifest.json")
                     ):
                         with open(manifest_file, "r") as f:
-                            manifest_chain.append(json.load(f))
+                            manifest_data = json.load(f)
+                            # Add filename to manifest data for tracking purposes
+                            manifest_data["_filename"] = manifest_file.name
+                            manifest_chain.append(manifest_data)
 
                     # Analyze file tracking
                     source_root = str(Path.cwd())

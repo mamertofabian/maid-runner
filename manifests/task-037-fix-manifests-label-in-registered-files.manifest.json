@@ -1,0 +1,29 @@
+{
+  "goal": "Change registered files output to show manifest filenames instead of goals using the 'Manifests:' label",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py",
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "readonlyFiles": [
+    "tests/cli/test_task_037_fix_manifests_label.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_format_file_tracking_output",
+        "args": [
+          {"name": "analysis", "type": "dict"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "validation_summary", "type": "Optional[str]"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/cli/test_task_037_fix_manifests_label.py", "-v"]
+}

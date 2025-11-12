@@ -137,7 +137,8 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
     tracked_files = {}
 
     for manifest in manifest_chain:
-        manifest_goal = manifest.get("goal", "unknown")
+        # Use filename if available (from CLI), otherwise fall back to goal
+        manifest_id = manifest.get("_filename", manifest.get("goal", "unknown"))
 
         # Collect from creatableFiles
         for file_path in manifest.get("creatableFiles", []):
@@ -152,7 +153,7 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "manifests": [],
                 }
             tracked_files[normalized_path]["created"] = True
-            tracked_files[normalized_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["manifests"].append(manifest_id)
 
         # Collect from editableFiles
         for file_path in manifest.get("editableFiles", []):
@@ -167,7 +168,7 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "manifests": [],
                 }
             tracked_files[normalized_path]["edited"] = True
-            tracked_files[normalized_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["manifests"].append(manifest_id)
 
         # Collect from readonlyFiles
         for file_path in manifest.get("readonlyFiles", []):
@@ -182,7 +183,7 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                     "manifests": [],
                 }
             tracked_files[normalized_path]["readonly"] = True
-            tracked_files[normalized_path]["manifests"].append(manifest_goal)
+            tracked_files[normalized_path]["manifests"].append(manifest_id)
 
         # Check if this manifest has expectedArtifacts
         expected_artifacts = manifest.get("expectedArtifacts", {})
