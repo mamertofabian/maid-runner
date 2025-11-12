@@ -14,12 +14,35 @@
         "description": "Schema version (defaults to '1' if not specified). Currently only version '1' is supported.",
         "default": "1"
       },
-      "goal": { "type": "string" },
-      "taskType": { "type": "string" },
+      "goal": { 
+        "type": "string",
+        "description": "A concise description of what this task aims to achieve. This should be a clear, single-sentence statement of the task's primary objective."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional detailed description of the task, providing additional context, rationale, or implementation notes beyond the goal statement."
+      },
+      "taskType": { 
+        "type": "string",
+        "enum": ["create", "edit", "refactor", "snapshot"],
+        "description": "The type of task being performed. 'create' for new files/features, 'edit' for modifying existing code, 'refactor' for restructuring without changing behavior."
+      },
       "supersedes": { "type": "array", "items": { "type": "string" }, "description": "Paths to manifests that this one replaces/obsoletes" },
-      "creatableFiles": { "type": "array", "items": { "type": "string" } },
-      "editableFiles": { "type": "array", "items": { "type": "string" } },
-      "readonlyFiles": { "type": "array", "items": { "type": "string" } },
+      "creatableFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of new files to be created by this task. Files in this list are subject to strict validation - implementation must exactly match expectedArtifacts with no additional public APIs."
+      },
+      "editableFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of existing files to be modified by this task. Files in this list are subject to permissive validation - implementation must contain at least the expectedArtifacts but may include additional existing code."
+      },
+      "readonlyFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of files that can be read for context but must not be modified. Typically includes test files, dependencies, and reference documentation."
+      },
       "metadata": {
         "type": "object",
         "properties": {
@@ -32,10 +55,15 @@
       },
       "expectedArtifacts": {
         "type": "object",
+        "description": "Specification of the code artifacts (functions, classes, attributes) that must be present in the implementation. This serves as the contract between the manifest and the actual code.",
         "properties": {
-          "file": { "type": "string" },
+          "file": { 
+            "type": "string",
+            "description": "Path to the file containing the expected artifacts, relative to the project root."
+          },
           "contains": {
             "type": "array",
+            "description": "List of code artifacts (functions, classes, attributes, parameters) that must be implemented in the specified file.",
             "items": {
               "type": "object",
               "properties": {

@@ -1,0 +1,19 @@
+{
+  "goal": "add a description aside from goal in the manifest schema and also some description or docs for each of the properties in the expected artifacts so this will help with the implementation of the artifacts to be created",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_039_enhance_schema_descriptions.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/schemas/manifest.schema.json",
+    "contains": []
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_039_enhance_schema_descriptions.py",
+    "-v"
+  ]
+}
