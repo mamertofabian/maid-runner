@@ -783,7 +783,15 @@ def get_test_stub_path(manifest_path: str) -> str:
     # Convert manifest name to test name
     # task-032-feature.manifest.json -> test_task_032_feature.py
     # snapshot-example.manifest.json -> test_snapshot_example.py
-    test_name = f"test_{stem.replace('-', '_')}.py"
+    # Handle edge cases: consecutive hyphens, leading/trailing hyphens
+    # Replace hyphens with underscores
+    test_stem = stem.replace("-", "_")
+    # Sanitize: collapse multiple consecutive underscores into one
+    test_stem = re.sub(r"_+", "_", test_stem)
+    # Remove leading/trailing underscores
+    test_stem = test_stem.strip("_")
+
+    test_name = f"test_{test_stem}.py"
 
     # Place in tests directory
     return str(Path("tests") / test_name)
@@ -823,17 +831,28 @@ def generate_test_stub(manifest_data: Dict[str, Any], manifest_path: str) -> str
     imports = ["import pytest\n"]
 
     if target_file and artifacts:
-        # Normalize the file path first (remove leading ./, ../, etc.)
+        # Normalize the file path using PurePosixPath for consistent handling
+        # as_posix() always returns forward slashes, so backslash check is unnecessary
         normalized_path = str(Path(target_file).as_posix())
-        # Remove leading ./ or .\
-        if normalized_path.startswith("./") or normalized_path.startswith(".\\"):
+        # Remove leading ./
+        if normalized_path.startswith("./"):
             normalized_path = normalized_path[2:]
 
-        # Convert file path to module path
-        # e.g., "maid_runner/cli/snapshot.py" -> "maid_runner.cli.snapshot"
-        module_path = normalized_path.replace("/", ".").replace("\\", ".")
-        if module_path.endswith(".py"):
-            module_path = module_path[:-3]
+        # Convert file path to module path properly
+        # Handle __init__.py specially (maps to parent package)
+        # Handle files with dots in names (e.g., my.config.py)
+        path_obj = Path(normalized_path)
+
+        # For __init__.py, use the parent directory as the module
+        if path_obj.name == "__init__.py":
+            # e.g., "maid_runner/cli/__init__.py" -> "maid_runner.cli"
+            module_path = ".".join(path_obj.parent.parts)
+        else:
+            # Use Path.stem to properly remove .py suffix (handles my.config.py correctly)
+            # e.g., "maid_runner/cli/snapshot.py" -> "maid_runner.cli.snapshot"
+            # e.g., "config/my.config.py" -> "config.my.config"
+            parts = list(path_obj.parent.parts) + [path_obj.stem]
+            module_path = ".".join(parts)
 
         # Test if the module is actually importable
         is_importable = False

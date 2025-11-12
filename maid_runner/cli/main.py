@@ -260,6 +260,15 @@ def main():
         except json.JSONDecodeError as e:
             print(f"Error: Invalid JSON in manifest: {e}", file=sys.stderr)
             sys.exit(1)
+        except KeyError as e:
+            print(f"Error: Missing required field in manifest: {e}", file=sys.stderr)
+            sys.exit(1)
+        except FileNotFoundError as e:
+            print(f"Error: File not found: {e}", file=sys.stderr)
+            sys.exit(1)
+        except PermissionError as e:
+            print(f"Error: Permission denied: {e}", file=sys.stderr)
+            sys.exit(1)
         except Exception as e:
             print(f"Error generating stub: {e}", file=sys.stderr)
             sys.exit(1)

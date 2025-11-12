@@ -20,40 +20,28 @@ import pytest
 @pytest.fixture(scope="module", autouse=True)
 def cleanup_generated_stubs():
     """Cleanup generated test stubs after all tests in this module."""
+    # Track existing test files before running tests
+    tests_dir = Path("tests")
+    existing_files = set()
+    if tests_dir.exists():
+        existing_files = set(tests_dir.glob("test_*.py"))
+
     yield
 
-    # After all tests, clean up any generated stubs
-    # These are recognizable by their naming pattern from our tests
-    tests_dir = Path("tests")
+    # After all tests, clean up any newly created test files
     if not tests_dir.exists():
         return
 
-    # Known patterns of generated stubs from this test file
-    patterns = [
-        "test_task_001_test.py",  # From test_generates_stub_with_pytest_fail
-        "test_task_002_test.py",  # From test_generates_imports_for_artifacts
-        "test_task_003_test.py",  # From test_generates_test_class_shells
-        "test_task_004_test.py",  # From test_generates_assertion_placeholders
-        "test_task_005_test.py",  # From test_generates_docstring_templates
-        "test_task_006_test.py",  # From test_handles_multiple_artifacts
-        "test_task_007_test.py",  # From test_generated_stub_fails_when_run
-        "test_task_001_snapshot_*.py",  # From snapshot tests
-        "test_task_003_snapshot_*.py",  # From snapshot discover tests
-        "test_task_100_new_feature.py",  # From generate-stubs CLI test
-        "test_task_200_complete.py",  # From stub content test
-        "test_task_300_syntax.py",  # From syntax validation test
-        "test_task_importable.py",  # From import validation test
-        "test_task_nonimportable.py",  # From import validation test
-        "test_task_dotslash.py",  # From path normalization test
-        "test_test.py",  # From run_snapshot test
-    ]
+    # Find all test files that exist now
+    current_files = set(tests_dir.glob("test_*.py"))
 
-    for pattern in patterns:
-        for stub_file in tests_dir.glob(pattern):
-            try:
-                stub_file.unlink()
-            except Exception:
-                pass  # Best effort cleanup
+    # Delete only the files that were created during testing
+    new_files = current_files - existing_files
+    for stub_file in new_files:
+        try:
+            stub_file.unlink()
+        except Exception:
+            pass  # Best effort cleanup
 
 
 class TestGenerateTestStub:
