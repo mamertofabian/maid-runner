@@ -243,7 +243,7 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
     if choice == "a":
         # Append to existing file
         existing_content = claude_md_path.read_text()
-        combined_content = existing_content + "\n\n" + "# " * 40 + "\n\n" + content
+        combined_content = existing_content + "\n\n" + "=" * 40 + "\n\n" + content
         claude_md_path.write_text(combined_content)
         print(f"✓ Appended MAID documentation to: {claude_md_path}")
     elif choice == "o":
