@@ -15,6 +15,20 @@ from maid_runner.utils import (
 )
 
 
+def _normalize_path(path: str) -> str:
+    """Normalize file path by stripping ./ prefix.
+
+    Args:
+        path: File path to normalize
+
+    Returns:
+        Normalized path without ./ prefix
+    """
+    if path.startswith("./"):
+        return path[2:]
+    return path
+
+
 def _categorize_manifest_by_file(manifest_data: dict, file_path: str) -> Optional[str]:
     """Categorize how a manifest references a file.
 
@@ -32,12 +46,25 @@ def _categorize_manifest_by_file(manifest_data: dict, file_path: str) -> Optiona
         Priority order: created > edited > read
         If a file appears in multiple lists, the highest priority category is returned.
     """
-    # Check in priority order
-    if file_path in manifest_data.get("creatableFiles", []):
+    # Normalize the input file path
+    normalized_file_path = _normalize_path(file_path)
+
+    # Check in priority order (normalize manifest paths too)
+    creatable_files = [
+        _normalize_path(f) for f in manifest_data.get("creatableFiles", [])
+    ]
+    editable_files = [
+        _normalize_path(f) for f in manifest_data.get("editableFiles", [])
+    ]
+    readonly_files = [
+        _normalize_path(f) for f in manifest_data.get("readonlyFiles", [])
+    ]
+
+    if normalized_file_path in creatable_files:
         return "created"
-    if file_path in manifest_data.get("editableFiles", []):
+    if normalized_file_path in editable_files:
         return "edited"
-    if file_path in manifest_data.get("readonlyFiles", []):
+    if normalized_file_path in readonly_files:
         return "read"
 
     return None
