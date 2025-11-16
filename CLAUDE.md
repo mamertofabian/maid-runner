@@ -93,6 +93,26 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
 **ALWAYS:** Manifest first → Tests → Implementation → Validate
 
+## Documentation Standards
+
+**Focus on current state, not temporal comparisons:**
+
+**NEVER use in documentation or code:**
+- ❌ Temporal markers: "NEW", "⭐", "UPDATED", "ADDED", "LATEST"
+- ❌ Temporal comparisons: "Before/After", "What's Missing", "What We Currently Have"
+- ❌ Marketing language: "Exciting new feature", "Now available", "Just released"
+- ❌ Date-based qualifiers: "As of today", "Recently added", "Coming soon"
+
+**ALWAYS:**
+- ✅ State facts clearly: "System supports X", "Feature Y validates Z"
+- ✅ Use present tense: "This validates", not "This will validate"
+- ✅ Document current capabilities: "The system provides", not "We've added"
+- ✅ Let git history track changes
+
+**Rationale:** Git history handles temporal tracking. Documentation should describe the current state objectively. We're building technical documentation, not marketing pages.
+
+**If temporal context is needed:** User will explicitly request it. Otherwise, omit it.
+
 ## Validation Flow
 
 The `maid validate` command performs validation in this order:

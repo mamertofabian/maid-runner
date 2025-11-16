@@ -1,19 +1,19 @@
 # GitHub Issues Created for MAID Runner
 
-**Date:** 2025-11-13
-**Last Updated:** 2025-11-13 (Evening)
-**Total Issues Created:** 57 (7 epics + 50 feature/task issues)
+**Date:** 2025-11-17
+**Total Issues Created:** 62 (8 epics + 54 feature/task issues)
 **Labels Created:** 34
 
 ---
 
 ## Summary
 
-All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, and Visual Architecture Studio have been successfully created. Issues are organized by epic and properly labeled for tracking and filtering.
+All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, Visual Architecture Studio, and System Architecture Mapping have been successfully created. Issues are organized by epic and properly labeled for tracking and filtering.
 
 **Important Notes:**
-- MAID Agent issues will be implemented in a separate `maid-agents` repository
-- Visual Architecture Studio issues will be implemented in a separate `maid-studio` repository
+- **System Architecture Mapping** issues will be implemented in `maid-runner` (this repository) - rule-based, no AI
+- **MAID Agent** issues will be implemented in a separate `maid-agents` repository
+- **Visual Architecture Studio** issues will be implemented in a separate `maid-studio` repository
 - All issues are tracked here in the parent repository
 
 ---
@@ -50,19 +50,37 @@ All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, 
 **Priority:** Medium
 **Child Issues:** 6 issues (#52, #53, #54, #55, #56, #57)
 
+### Epic #83: System Architecture Mapping (v1.3+)
+**URL:** https://github.com/mamertofabian/maid-runner/issues/83
+**Timeline:** v1.3+ (Q1 2025 and beyond)
+**Priority:** High
+**Child Issues:** 3 issues (#84, #85, #86)
+
+**Important:** Implemented in `maid-runner` (this repository). Rule-based analysis, no AI required.
+
+**Purpose:** System-wide manifest aggregation and architectural coherence validation. Makes the manifest chain queryable as a knowledge graph.
+
+**Key Features:**
+- System-wide manifest snapshot generator
+- Manifest knowledge graph builder
+- Architectural coherence validator
+
+**Note:** All issues extend existing `maid snapshot` and `maid validate` functionality.
+
 ### Epic #58: MAID Agent Automation (Future)
 **URL:** https://github.com/mamertofabian/maid-runner/issues/58
 **Timeline:** Future (post v1.4)
 **Priority:** Low
-**Child Issues:** 17 issues
+**Child Issues:** 18 issues
 - Dependency Graph Analysis: #67, #70, #72, #74, #75
 - Guardian Agent Framework: #64, #66, #69, #71, #73
 - Automated Manifest Generation: #61, #62, #63, #65, #68
 - Scaffold and Fill Tooling: #59, #60
+- Context-Aware Generation: #87
 
 **Note:** All issues will be implemented in the separate `maid-agents` repository.
 
-### Epic #76: Visual Architecture Studio (v2.0+) ⭐ NEW
+### Epic #76: Visual Architecture Studio (v2.0+)
 **URL:** https://github.com/mamertofabian/maid-runner/issues/76
 **Timeline:** v2.0+ (Q2 2025 and beyond)
 **Priority:** Medium
@@ -348,6 +366,39 @@ All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, 
 
 ---
 
+## System Architecture Mapping Issues (Epic #83)
+
+**Important:** Implemented in `maid-runner` (this repository). Rule-based structural analysis, no AI required.
+
+**Purpose:** Make the manifest chain queryable as a knowledge graph. Enable system-wide architectural awareness and coherence validation.
+
+**Integration:** Extends existing `maid snapshot` and `maid validate` commands.
+
+### Issue #84: System-Wide Manifest Snapshot Generator
+**URL:** https://github.com/mamertofabian/maid-runner/issues/84
+**Priority:** High
+**Effort:** 2-3 weeks
+**Labels:** `type: feature`, `category: validation`, `version: v1.3`, `priority: high`, `impl: maid-runner`
+**Goal:** Generate system-wide manifest snapshot from ALL manifests (follows manifest schema, validatable)
+
+### Issue #85: Manifest Knowledge Graph Builder
+**URL:** https://github.com/mamertofabian/maid-runner/issues/85
+**Priority:** High
+**Effort:** 3-4 weeks
+**Dependencies:** #84
+**Labels:** `type: feature`, `category: validation`, `version: v1.3`, `priority: high`, `impl: maid-runner`
+**Goal:** Build queryable knowledge graph from manifests (manifest = knowledge graph)
+
+### Issue #86: Architectural Coherence Validator
+**URL:** https://github.com/mamertofabian/maid-runner/issues/86
+**Priority:** High
+**Effort:** 2 weeks
+**Dependencies:** #84, #85
+**Labels:** `type: feature`, `category: validation`, `version: v1.3`, `priority: high`, `impl: maid-runner`
+**Goal:** Validate new manifests against existing architecture (prevent duplicates, ensure coherence)
+
+---
+
 ## MAID Agent Automation Issues (Epic #58)
 
 **Important:** All issues in this epic will be implemented in the separate `maid-agents` repository. MAID Runner remains validation-only. MAID Agent provides intelligent automation on top of MAID Runner.
@@ -500,7 +551,21 @@ All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, 
 
 ---
 
-## Visual Architecture Studio Issues (Epic #76) ⭐ NEW
+### Context-Aware Generation
+
+#### Issue #87: Context-Aware Manifest Generator (Enhanced)
+**URL:** https://github.com/mamertofabian/maid-runner/issues/87
+**Priority:** Medium
+**Effort:** 2-3 weeks
+**Dependencies:** #84, #85, #86, #69
+**Labels:** `type: feature`, `version: v1.4+`, `priority: medium`, `impl: maid-agents`
+**Goal:** Enhance manifest generator with system-wide architectural awareness (uses system snapshot and knowledge graph)
+
+**Key Innovation:** Generates manifests that FIT existing architecture, not just from test failures.
+
+---
+
+## Visual Architecture Studio Issues (Epic #76)
 
 **Important:** This is a **professional developer tool** for creating custom system architectures, NOT a no-code platform with pre-built components.
 
@@ -574,7 +639,7 @@ All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, 
 ### By Implementation Location
 - **maid-runner (this repo):** 13 issues
 - **maid-agents (automation repo):** 17 issues
-- **maid-studio (visual architecture):** 6 issues ⭐ NEW
+- **maid-studio (visual architecture):** 6 issues
 - **separate-repo (other new repos):** 14 issues
 
 ### By Epic
@@ -588,7 +653,7 @@ All GitHub issues from the MAID Runner roadmap, MAID Agent automation features, 
   - Guardian Agent Framework: 5 issues
   - Automated Manifest Generation: 5 issues
   - Scaffold and Fill Tooling: 2 issues
-- **Epic #76 (Visual Architecture Studio):** 6 issues ⭐ NEW
+- **Epic #76 (Visual Architecture Studio):** 6 issues
   - Core Visualization: 3 issues
   - Development Tools: 3 issues
 
@@ -677,7 +742,7 @@ Issue #81: Real-time Impact Analysis
 - **MAID Agent Issues:** Filter by `impl: maid-agents`
 - **Visual Architecture Studio Issues:** Filter by `impl: separate-repo` + `category: ide-integration`
 - **Epic #58 (MAID Agent):** https://github.com/mamertofabian/maid-runner/issues/58
-- **Epic #76 (Visual Architecture Studio):** https://github.com/mamertofabian/maid-runner/issues/76 ⭐ NEW
+- **Epic #76 (Visual Architecture Studio):** https://github.com/mamertofabian/maid-runner/issues/76
 - **Roadmap Document:** `docs/ROADMAP.md`
 - **MAID Agent Roadmap:** `docs/future/maid-agent/ROADMAP.md`
 - **Planning Documents:** `docs/planning/`
@@ -699,7 +764,7 @@ Issue #81: Real-time Impact Analysis
 
 - **Tool-Agnostic:** MAID Runner remains validation-only; external tools build automation on top
 - **MAID Agent:** 17 automation issues tracked here but will be implemented in separate `maid-agents` repository
-- **MAID Studio:** 6 visual architecture issues tracked here but will be implemented in separate `maid-studio` repository ⭐ NEW
+- **MAID Studio:** 6 visual architecture issues tracked here but will be implemented in separate `maid-studio` repository
 - **Separate Repos:** Many features (LSP, VS Code, language plugins, MAID Agent, MAID Studio) will have their own repositories
 - **Dependencies:** Some issues are blocked by dependencies; check `status: blocked` label
 - **Flexibility:** Priorities and timelines may adjust based on user feedback and community needs
@@ -722,4 +787,3 @@ Issue #81: Real-time Impact Analysis
 
 ---
 
-**Last Updated:** 2025-11-13 (Evening)
