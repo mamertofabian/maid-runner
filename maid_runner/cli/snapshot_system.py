@@ -211,6 +211,91 @@ def aggregate_validation_commands(manifest_paths: List[Path]) -> List[List[str]]
     return deduplicated
 
 
+def run_snapshot_system(output_path: str, manifest_dir: str, quiet: bool) -> None:
+    """Orchestrate system-wide manifest snapshot generation.
+
+    Main entry point for the snapshot-system CLI command. Discovers active
+    manifests, aggregates artifacts and validation commands, creates a
+    system manifest, and writes it to the specified output file.
+
+    Args:
+        output_path: Path where the system manifest should be written
+        manifest_dir: Directory containing manifest files to aggregate
+        quiet: If True, suppress informational output (errors still shown)
+
+    Raises:
+        FileNotFoundError: If manifest_dir doesn't exist
+        OSError: If unable to write to output_path
+
+    Example:
+        >>> run_snapshot_system("system.manifest.json", "manifests", quiet=False)
+        Discovering active manifests...
+        Found 42 active manifests
+        Aggregating artifacts...
+        Aggregating validation commands...
+        Creating system manifest...
+        Writing to system.manifest.json...
+        ✓ System snapshot created successfully
+    """
+    from maid_runner.cli.snapshot_system import (
+        discover_active_manifests,
+        aggregate_system_artifacts,
+        aggregate_validation_commands,
+        create_system_manifest,
+    )
+
+    manifest_dir_path = Path(manifest_dir)
+
+    # Ensure manifest directory exists
+    if not manifest_dir_path.exists():
+        raise FileNotFoundError(f"Manifest directory not found: {manifest_dir}")
+
+    if not quiet:
+        print("Discovering active manifests...")
+
+    # Discover active manifests
+    active_manifests = discover_active_manifests(manifest_dir_path)
+
+    if not quiet:
+        print(f"Found {len(active_manifests)} active manifests")
+        print("Aggregating artifacts...")
+
+    # Aggregate artifacts
+    artifact_blocks = aggregate_system_artifacts(active_manifests)
+
+    if not quiet:
+        total_files = len(artifact_blocks)
+        total_artifacts = sum(len(block["contains"]) for block in artifact_blocks)
+        print(f"  {total_files} files, {total_artifacts} artifacts")
+        print("Aggregating validation commands...")
+
+    # Aggregate validation commands
+    validation_commands = aggregate_validation_commands(active_manifests)
+
+    if not quiet:
+        print(f"  {len(validation_commands)} unique commands")
+        print("Creating system manifest...")
+
+    # Create system manifest
+    system_manifest = create_system_manifest(artifact_blocks, validation_commands)
+
+    if not quiet:
+        print(f"Writing to {output_path}...")
+
+    # Ensure output directory exists
+    output_path_obj = Path(output_path)
+    output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write to file
+    with open(output_path_obj, "w") as f:
+        json.dump(system_manifest, f, indent=2)
+        f.write("\n")  # Add trailing newline
+
+    if not quiet:
+        print("✓ System snapshot created successfully")
+        print(f"  Output: {output_path}")
+
+
 def create_system_manifest(
     artifact_blocks: List[Dict[str, Any]], validation_commands: List[List[str]]
 ) -> Dict[str, Any]:

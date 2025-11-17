@@ -1,0 +1,41 @@
+{
+  "version": "1",
+  "goal": "Implement CLI integration for maid snapshot-system command",
+  "description": "Add snapshot-system subcommand to CLI that orchestrates system-wide manifest generation. The command calls discover_active_manifests(), aggregate_system_artifacts(), aggregate_validation_commands(), create_system_manifest(), and writes the result to a file. Add corresponding run_snapshot_system() orchestration function to snapshot_system.py.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_046_snapshot_system_cli.py",
+    "maid_runner/cli/main.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot_system.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_snapshot_system",
+        "args": [
+          {
+            "name": "output_path",
+            "type": "str"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "returns": "None",
+        "description": "Orchestrate system-wide manifest snapshot generation and write to file"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_046_snapshot_system_cli.py", "-v"]
+}
