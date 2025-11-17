@@ -1,0 +1,19 @@
+{
+  "version": "1",
+  "goal": "Extend manifest schema to support systemArtifacts field for system-wide manifest snapshots",
+  "description": "Add systemArtifacts field to manifest schema to support aggregating artifacts from multiple files in system-wide snapshots. This field should only be used in system manifests (taskType: system-snapshot) and is mutually exclusive with expectedArtifacts to prevent regular manifests from using it for multi-file features.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_041_system_artifacts_schema.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/schemas/manifest.schema.json",
+    "contains": []
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_041_system_artifacts_schema.py", "-v"]
+}
