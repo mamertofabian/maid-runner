@@ -6,7 +6,8 @@ that aggregate artifacts from all active manifests in the project.
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
+from collections import defaultdict
 import re
 import json
 
@@ -68,3 +69,80 @@ def discover_active_manifests(manifest_dir: Path) -> List[Path]:
     active_manifests.sort(key=_extract_task_number)
 
     return active_manifests
+
+
+def aggregate_system_artifacts(manifest_paths: List[Path]) -> List[Dict[str, Any]]:
+    """Aggregate artifacts from multiple manifests into system-wide artifact blocks.
+
+    Loads each manifest, extracts its expectedArtifacts, and groups all artifacts
+    by their source file. Returns a list of artifact blocks suitable for the
+    systemArtifacts field in system-wide snapshot manifests.
+
+    Args:
+        manifest_paths: List of paths to manifest files to aggregate
+
+    Returns:
+        List of artifact blocks, where each block is a dict with:
+        - 'file': Path to the source file (str)
+        - 'contains': List of artifact definitions (list of dicts)
+
+        Example return value:
+        [
+            {
+                "file": "module/file1.py",
+                "contains": [
+                    {"type": "function", "name": "func1", "args": [...]},
+                    {"type": "class", "name": "Class1"}
+                ]
+            },
+            {
+                "file": "module/file2.py",
+                "contains": [
+                    {"type": "function", "name": "func2"}
+                ]
+            }
+        ]
+
+    Note:
+        - Manifests without expectedArtifacts (e.g., system snapshots) are skipped
+        - Invalid JSON files are skipped with a warning
+        - Artifacts from the same file across multiple manifests are combined
+        - Duplicate artifacts are preserved (no deduplication at this level)
+    """
+    # Group artifacts by file path
+    artifacts_by_file: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+
+    for manifest_path in manifest_paths:
+        try:
+            # Load manifest JSON
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+
+            # Skip manifests without expectedArtifacts
+            # (e.g., system snapshots with systemArtifacts instead)
+            if "expectedArtifacts" not in manifest_data:
+                continue
+
+            expected_artifacts = manifest_data["expectedArtifacts"]
+
+            # Extract file path and artifacts
+            file_path = expected_artifacts.get("file")
+            contains = expected_artifacts.get("contains", [])
+
+            if file_path:
+                # Add all artifacts from this manifest to the file's list
+                artifacts_by_file[file_path].extend(contains)
+
+        except (json.JSONDecodeError, IOError, KeyError):
+            # Skip invalid or malformed manifests
+            # In production, might want to log this
+            continue
+
+    # Convert grouped artifacts to list of artifact blocks
+    artifact_blocks = []
+    for file_path in sorted(artifacts_by_file.keys()):
+        artifact_blocks.append(
+            {"file": file_path, "contains": artifacts_by_file[file_path]}
+        )
+
+    return artifact_blocks

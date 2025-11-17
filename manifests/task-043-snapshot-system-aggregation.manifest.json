@@ -1,0 +1,32 @@
+{
+  "version": "1",
+  "goal": "Implement artifact aggregation for system-wide snapshots",
+  "description": "Create aggregate_system_artifacts() function that loads active manifests, extracts expectedArtifacts from each, groups artifacts by source file, and returns a list of artifact blocks suitable for systemArtifacts field in system manifests.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_043_snapshot_system_aggregation.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot_system.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "aggregate_system_artifacts",
+        "args": [
+          {
+            "name": "manifest_paths",
+            "type": "List[Path]"
+          }
+        ],
+        "returns": "List[Dict[str, Any]]",
+        "description": "Aggregate artifacts from multiple manifests into system-wide artifact blocks grouped by file"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_043_snapshot_system_aggregation.py", "-v"]
+}
