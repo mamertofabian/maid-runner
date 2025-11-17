@@ -209,3 +209,61 @@ def aggregate_validation_commands(manifest_paths: List[Path]) -> List[List[str]]
             deduplicated.append(command)
 
     return deduplicated
+
+
+def create_system_manifest(
+    artifact_blocks: List[Dict[str, Any]], validation_commands: List[List[str]]
+) -> Dict[str, Any]:
+    """Create a complete system manifest structure following the extended schema.
+
+    Constructs a manifest dictionary with all required fields for a system-wide
+    snapshot. Uses systemArtifacts for aggregated artifact blocks and
+    validationCommands for deduplicated commands.
+
+    Args:
+        artifact_blocks: List of artifact blocks from aggregate_system_artifacts(),
+                        where each block has 'file' and 'contains' fields
+        validation_commands: List of validation commands from
+                            aggregate_validation_commands()
+
+    Returns:
+        Dictionary representing a complete system manifest that follows the
+        extended manifest schema and can be validated with `maid validate`.
+
+        Example return value:
+        {
+            "version": "1",
+            "goal": "System-wide manifest snapshot...",
+            "taskType": "system-snapshot",
+            "readonlyFiles": [],
+            "systemArtifacts": [
+                {"file": "file1.py", "contains": [...]},
+                {"file": "file2.py", "contains": [...]}
+            ],
+            "validationCommands": [
+                ["pytest", "tests/"],
+                ["make", "lint"]
+            ]
+        }
+
+    Note:
+        - Uses taskType: "system-snapshot"
+        - Uses systemArtifacts instead of expectedArtifacts
+        - Uses validationCommands (enhanced format)
+        - Includes all required schema fields
+        - Generated manifest validates against manifest.schema.json
+    """
+    # Count total number of files and artifacts for descriptive goal
+    num_files = len(artifact_blocks)
+    num_artifacts = sum(len(block.get("contains", [])) for block in artifact_blocks)
+
+    manifest = {
+        "version": "1",
+        "goal": f"System-wide manifest snapshot aggregated from all active manifests ({num_files} files, {num_artifacts} artifacts)",
+        "taskType": "system-snapshot",
+        "readonlyFiles": [],
+        "systemArtifacts": artifact_blocks,
+        "validationCommands": validation_commands,
+    }
+
+    return manifest

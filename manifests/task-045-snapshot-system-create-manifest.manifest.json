@@ -1,0 +1,37 @@
+{
+  "version": "1",
+  "goal": "Implement system manifest creation for system-wide snapshots",
+  "description": "Create create_system_manifest() function that constructs a complete system manifest structure with goal, taskType: system-snapshot, systemArtifacts (from aggregated artifact blocks), validationCommands (from deduplicated commands), and other required fields following the extended manifest schema.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_045_snapshot_system_create_manifest.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot_system.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "create_system_manifest",
+        "args": [
+          {
+            "name": "artifact_blocks",
+            "type": "List[Dict[str, Any]]"
+          },
+          {
+            "name": "validation_commands",
+            "type": "List[List[str]]"
+          }
+        ],
+        "returns": "Dict[str, Any]",
+        "description": "Create a complete system manifest structure following the extended schema with systemArtifacts"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_045_snapshot_system_create_manifest.py", "-v"]
+}
