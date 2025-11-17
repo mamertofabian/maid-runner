@@ -846,6 +846,24 @@ def run_validation(
             print(f"✗ Error: {e}", file=sys.stderr)
             sys.exit(1)
 
+        # Check if this is a system manifest - they skip behavioral/implementation validation
+        from maid_runner.validators.manifest_validator import (
+            _should_skip_behavioral_validation,
+            _should_skip_implementation_validation,
+        )
+
+        skip_behavioral = _should_skip_behavioral_validation(manifest_data)
+        skip_implementation = _should_skip_implementation_validation(manifest_data)
+
+        # System manifests only undergo schema validation
+        if skip_behavioral and skip_implementation:
+            if not quiet:
+                print("✓ System manifest validation PASSED (schema validation only)")
+                print(
+                    "  System manifests aggregate multiple files; no single implementation to validate"
+                )
+            return
+
         # Snapshot manifests must have comprehensive validationCommands
         # Check this early, before file validation
         # Support both legacy (validationCommand) and enhanced (validationCommands) formats

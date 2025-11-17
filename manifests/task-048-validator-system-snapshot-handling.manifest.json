@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "goal": "Add special validation handling for system-snapshot taskType manifests",
+  "description": "Add _should_skip_behavioral_validation() and _should_skip_implementation_validation() helper functions to skip validation for system-snapshot manifests, since they aggregate multiple files and have no single implementation to validate. System snapshots only undergo schema validation and systemArtifacts structure validation (already done in task-047). This allows 'maid validate system.manifest.json' to work correctly.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_048_validator_system_snapshot_handling.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_should_skip_behavioral_validation",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool",
+        "description": "Determine if behavioral validation should be skipped for this manifest"
+      },
+      {
+        "type": "function",
+        "name": "_should_skip_implementation_validation",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool",
+        "description": "Determine if implementation validation should be skipped for this manifest"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_048_validator_system_snapshot_handling.py", "-v"]
+}

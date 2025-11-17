@@ -166,6 +166,60 @@ def _validate_system_artifacts_structure(manifest_data: dict) -> None:
                 )
 
 
+def _should_skip_behavioral_validation(manifest_data: dict) -> bool:
+    """Determine if behavioral validation should be skipped for this manifest.
+
+    Behavioral validation checks that test files exist and properly USE the
+    declared artifacts. For system manifests, there is no single test file
+    to validate - they aggregate artifacts from multiple files. Therefore,
+    behavioral validation should be skipped for system manifests.
+
+    Args:
+        manifest_data: Dictionary containing the manifest data
+
+    Returns:
+        True if behavioral validation should be skipped (system manifest),
+        False otherwise (regular manifest should undergo behavioral validation)
+
+    Example:
+        >>> system_manifest = {"systemArtifacts": [{...}]}
+        >>> _should_skip_behavioral_validation(system_manifest)
+        True
+
+        >>> regular_manifest = {"expectedArtifacts": {...}}
+        >>> _should_skip_behavioral_validation(regular_manifest)
+        False
+    """
+    return _is_system_manifest(manifest_data)
+
+
+def _should_skip_implementation_validation(manifest_data: dict) -> bool:
+    """Determine if implementation validation should be skipped for this manifest.
+
+    Implementation validation checks that code files exist and properly DEFINE
+    the declared artifacts. For system manifests, there is no single implementation
+    file to validate - they aggregate artifacts from multiple existing files.
+    Therefore, implementation validation should be skipped for system manifests.
+
+    Args:
+        manifest_data: Dictionary containing the manifest data
+
+    Returns:
+        True if implementation validation should be skipped (system manifest),
+        False otherwise (regular manifest should undergo implementation validation)
+
+    Example:
+        >>> system_manifest = {"systemArtifacts": [{...}]}
+        >>> _should_skip_implementation_validation(system_manifest)
+        True
+
+        >>> regular_manifest = {"expectedArtifacts": {...}}
+        >>> _should_skip_implementation_validation(regular_manifest)
+        False
+    """
+    return _is_system_manifest(manifest_data)
+
+
 def extract_type_annotation(
     node: ast.AST, annotation_attr: str = "annotation"
 ) -> Optional[str]:
