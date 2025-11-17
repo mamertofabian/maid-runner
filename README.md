@@ -197,7 +197,40 @@ $ maid snapshot maid_runner/validators/manifest_validator.py --force
 Snapshot manifest generated successfully: manifests/task-009-snapshot-manifest_validator.manifest.json
 ```
 
-### 3. List Manifests by File
+### 3. System-Wide Snapshot
+
+```bash
+# Generate system-wide manifest aggregating all active manifests
+maid snapshot-system [options]
+
+# Options:
+#   --output FILE           # Default: system.manifest.json
+#   --manifest-dir DIR      # Default: manifests/
+#   --quiet, -q            # Suppress informational output
+
+# Exit Codes:
+#   0 = Snapshot created
+#   1 = Error
+```
+
+**Example:**
+
+```bash
+$ maid snapshot-system --output system.manifest.json
+Discovered 48 active manifests (excluding 12 superseded)
+Aggregated 16 files with artifacts
+Deduplicated 54 validation commands
+
+System manifest generated: system.manifest.json
+```
+
+**Use Cases:**
+- **Knowledge Graph Construction**: Aggregate all artifacts for system-wide analysis
+- **Documentation Generation**: Create comprehensive artifact catalog
+- **Migration Support**: Generate baseline snapshot when adopting MAID for existing projects
+- **System Validation**: Validate that generated system manifest is schema-compliant
+
+### 4. List Manifests by File
 
 ```bash
 # List all manifests that reference a file

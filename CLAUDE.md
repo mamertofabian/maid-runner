@@ -183,6 +183,9 @@ uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
 # Generate a snapshot manifest from existing code
 uv run maid snapshot <file-path> [--output-dir <dir>]
 
+# Generate system-wide manifest aggregating all active manifests
+uv run maid snapshot-system [--output <file>] [--manifest-dir <dir>] [--quiet]
+
 # List manifests that reference a file
 uv run maid manifests <file-path> [--manifest-dir <dir>] [--quiet]
 
@@ -193,6 +196,7 @@ uv run maid test [--manifest-dir <dir>] [--fail-fast] [--verbose]
 uv run maid --help
 uv run maid validate --help
 uv run maid snapshot --help
+uv run maid snapshot-system --help
 uv run maid manifests --help
 uv run maid test --help
 ```
