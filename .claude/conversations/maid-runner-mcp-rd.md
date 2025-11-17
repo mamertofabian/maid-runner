@@ -3,8 +3,7 @@
 🎯 Project Overview
 
 Repository: maid-runner-mcp
-Purpose: Expose MAID Runner validation tools via Model Context Protocol (MCP) for seamless
-  integration with AI agents and development tools.
+Purpose: Expose MAID Runner validation tools via Model Context Protocol (MCP) for seamless integration with AI agents and development tools.
 
 Core Value Proposition:
 - Replace subprocess-based MAID CLI invocations with structured MCP tool calls
@@ -19,8 +18,7 @@ Model Context Protocol (MCP)
 
 - Architecture: Client-server protocol using JSON-RPC 2.0
 - Transports: stdio (default), SSE, WebSocket
-- Components: Tools (executable functions), Resources (data exposure), Prompts
-(interaction templates)
+- Components: Tools (executable functions), Resources (data exposure), Prompts (interaction templates)
 - Python SDK: mcp package with FastMCP for rapid server development
 - Official Spec: High reputation, 92.7 benchmark score for Python SDK
 
@@ -28,8 +26,7 @@ MAID Runner
 
 - Philosophy: Validation-only, tool-agnostic framework
 - CLI Commands: validate, snapshot, test, manifests, init, generate-stubs, schema
-- Core Features: Schema validation, AST-based implementation checking, manifest chain
-merging, file tracking analysis
+- Core Features: Schema validation, AST-based implementation checking, manifest chain merging, file tracking analysis
 - Current Integration: Subprocess calls from external tools (Claude Code, Aider, etc.)
 - Future Plans: LSP server (v1.3), VS Code extension, enhanced reporting
 
@@ -959,9 +956,7 @@ Result: ✅ Validation passed!
 ---
 🎬 Conclusion
 
-This implementation plan provides a comprehensive roadmap for creating maid-runner-mcp, an
-  MCP server that exposes MAID Runner validation tools to AI agents in a structured,
-protocol-based manner.
+This implementation plan provides a comprehensive roadmap for creating maid-runner-mcp, an MCP server that exposes MAID Runner validation tools to AI agents in a structured, protocol-based manner.
 
 Key Benefits:
 1. Structured Access: Replace subprocess calls with typed tool invocations
@@ -977,25 +972,21 @@ Next Steps:
 4. Iterate based on feedback
 5. Document and publish
 
-This project bridges the gap between MAID Runner's validation-only philosophy and the
-growing ecosystem of AI development tools using MCP! 🚀
+This project bridges the gap between MAID Runner's validation-only philosophy and the growing ecosystem of AI development tools using MCP! 🚀
 
 =============
 
 > Make sure to check the @docs/planning/GITHUB_ISSUES_CREATED.md as well 
   ⎿  Read docs/planning/GITHUB_ISSUES_CREATED.md (790 lines)
 
-● Excellent point! I've reviewed the GitHub issues document. Let me enhance the 
-  implementation plan to show how maid-runner-mcp fits into the existing MAID Runner roadmap
-   and complements planned features.
+● Excellent point! I've reviewed the GitHub issues document. Let me enhance the implementation plan to show how maid-runner-mcp fits into the existing MAID Runner roadmap and complements planned features.
 
   ---
   🔄 UPDATED: Integration with Existing Roadmap
 
   Positioning in the MAID Ecosystem
 
-  The maid-runner-mcp project fits naturally into the existing roadmap as a new integration 
-  epic alongside:
+  The maid-runner-mcp project fits naturally into the existing roadmap as a new integration epic alongside:
 
   - Epic #27: IDE Integration (LSP, VS Code)
   - Epic #28: CI/CD Integration (GitHub Actions, pre-commit hooks)
@@ -1289,8 +1280,7 @@ growing ecosystem of AI development tools using MCP! 🚀
 
   ## Goal
 
-  Expose MAID Runner validation tools via Model Context Protocol (MCP) to enable seamless
-  integration with AI development tools (Claude Code, Aider, custom agents).
+  Expose MAID Runner validation tools via Model Context Protocol (MCP) to enable seamless integration with AI development tools (Claude Code, Aider, custom agents).
 
   ## Motivation
 
@@ -1346,9 +1336,160 @@ growing ecosystem of AI development tools using MCP! 🚀
   4. Complement CI/CD Work: Another form of programmatic access (Epic #28)
   5. Demonstrate MAID Value: Show how MAID methodology works with modern AI tools
 
-  Recommended Priority: High - Start after core v1.3 performance work (Issues #34, #40) and
-  run in parallel with System Architecture Mapping (Issues #84, #85).
+  Recommended Priority: High - Start after core v1.3 performance work (Issues #34, #40) and run in parallel with System Architecture Mapping (Issues #84, #85).
 
-  This positions MAID Runner as the validation framework for AI-assisted development with
-  multiple integration paths (CLI, Python API, MCP, LSP, CI/CD). 🚀
-  
+  This positions MAID Runner as the validation framework for AI-assisted development with multiple integration paths (CLI, Python API, MCP, LSP, CI/CD). 🚀
+
+====================
+
+📊 Created Issues Summary
+
+Epic Issue
+
+✅ #88: Epic: MCP Integration (v1.3.5)
+- URL: https://github.com/mamertofabian/maid-runner/issues/88
+- Priority: High
+- Timeline: Q1/Q2 2025 (between v1.3 and v2.0)
+- Estimated Effort: 5 weeks total
+- Repository: maid-runner-mcp (new separate repo)
+
+---
+Child Issues (5 issues)
+
+Phase 1: Foundation
+
+✅ #89: MCP Server Foundation
+- URL: https://github.com/mamertofabian/maid-runner/issues/89
+- Priority: High
+- Effort: 1 week
+- Scope:
+  - Repository setup with FastMCP
+  - 6 core tools: maid_validate, maid_snapshot, maid_test, maid_list_manifests, maid_init, maid_get_schema
+  - Error handling and output parsing
+  - Unit tests (>80% coverage)
+
+---
+Phase 2: Resources
+
+✅ #90: MCP Resource Implementation
+- URL: https://github.com/mamertofabian/maid-runner/issues/90
+- Priority: High
+- Effort: 1 week
+- Dependencies: #89
+- Scope:
+  - 6 resource types: manifest://, schema://manifest, validation://, snapshot://system, graph://query, file-tracking://analysis
+  - Resource discovery
+  - Caching strategy
+  - Performance optimization
+
+---
+Phase 3: Prompts
+
+✅ #91: MCP Prompt Templates
+- URL: https://github.com/mamertofabian/maid-runner/issues/91
+- Priority: Medium
+- Effort: 1 week
+- Dependencies: #89
+- Scope:
+  - 4 prompts: plan-task, implement-task, refactor-code, review-manifest
+  - Argument validation
+  - Dynamic context injection
+  - Template rendering
+
+---
+Phase 4: Integration
+
+✅ #92: MCP Integration with System Architecture Mapping
+- URL: https://github.com/mamertofabian/maid-runner/issues/92
+- Priority: High
+- Effort: 1 week
+- Dependencies: #89, assumes #84 & #85 complete
+- Scope:
+  - Enhanced snapshot://system resource
+  - Enhanced graph:// resources (query, dependencies, artifacts, stats)
+  - maid_validate with coherence checking
+  - New maid_system_snapshot tool
+  - Showcases System Architecture Mapping to AI agents
+
+---
+Phase 5: Documentation
+
+✅ #93: MCP Integration Documentation
+- URL: https://github.com/mamertofabian/maid-runner/issues/93
+- Priority: Medium
+- Effort: 1 week
+- Dependencies: #89-#92
+- Scope:
+  - Complete documentation (README, setup, tools, resources, prompts, integration)
+  - Integration guides (Claude Code, Aider, custom agents)
+  - 4+ example workflows
+  - API reference (auto-generated)
+  - Best practices guide
+
+---
+🏷️ Labels Used
+
+All issues properly labeled with:
+- Type: type: feature or type: documentation
+- Category: category:integration (some also category: validation)
+- Version: version:v1.3.5
+- Priority: priority: high or priority: medium
+- Implementation: impl: separate-repo
+- Epic: epic:mcp-integration
+
+---
+📈 Project Statistics
+
+- Total Issues Created: 6 (1 epic + 5 child issues)
+- High Priority: 4 issues (#88, #89, #90, #92)
+- Medium Priority: 2 issues (#91, #93)
+- Total Estimated Effort: 5 weeks
+- New Repository: maid-runner-mcp
+- Integration Points: Epic #28 (CI/CD), Epic #83 (System Architecture Mapping), Epic #58 (MAID Agent)
+
+---
+🎯 Success Criteria (from Epic #88)
+
+- All MAID CLI commands available as MCP tools
+- Works with Claude Code (example configuration provided)
+- System snapshot and knowledge graph exposed as resources
+- Documentation with integration guides
+- Published to PyPI as maid-runner-mcp
+- Test coverage >80%
+- Type hints throughout
+
+---
+🔗 Quick Links
+
+- Epic Issue: https://github.com/mamertofabian/maid-runner/issues/88
+- All MCP Issues: https://github.com/mamertofabian/maid-runner/issues?q=is%3Aissue+label%3
+Aepic%3Amcp-integration
+- v1.3.5 Milestone: Filter by version:v1.3.5
+
+---
+🚀 Next Steps
+
+1. Review Issues: Review all created issues for accuracy
+2. Create Repository: Set up maid-runner-mcp repository
+3. Start Phase 1: Begin with Issue #89 (MCP Server Foundation)
+4. Coordinate with Epic #83: Ensure System Architecture Mapping features are available for #92
+5. Track Progress: Use GitHub Projects or similar for kanban tracking
+
+---
+💡 Key Integration Points
+
+Complements Existing Roadmap
+
+- Epic #28 (CI/CD): MCP provides protocol-based access
+- Epic #83 (System Architecture Mapping): Exposes via MCP resources
+- Epic #27 (IDE Integration): Coexists with LSP (MCP for AI, LSP for humans)
+- Epic #58 (MAID Agent): Future MAID Agent can consume as MCP client
+
+Positioning
+
+- Between v1.3 and v2.0: Bridges core features and IDE integration
+- Immediate Value: Works with Claude Code TODAY
+- Future Foundation: Enables MAID Agent automation layer
+
+---
+All issues are now tracked in the maid-runner repository and ready for implementation! 🎉
