@@ -1,0 +1,33 @@
+{
+  "version": "1",
+  "goal": "Implement manifest discovery and filtering for system-wide snapshots",
+  "description": "Create snapshot_system.py module with discover_active_manifests() function that scans all manifests, filters out superseded ones using get_superseded_manifests(), and returns active manifests in chronological order.",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_042_snapshot_system_discovery.py",
+    "maid_runner/utils.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot_system.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "discover_active_manifests",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "List[Path]",
+        "description": "Discover all active (non-superseded) manifests in chronological order"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_042_snapshot_system_discovery.py", "-v"]
+}
