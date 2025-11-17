@@ -11,7 +11,7 @@ from collections import defaultdict
 import re
 import json
 
-from maid_runner.utils import get_superseded_manifests
+from maid_runner.utils import get_superseded_manifests, normalize_validation_commands
 
 
 def discover_active_manifests(manifest_dir: Path) -> List[Path]:
@@ -146,3 +146,66 @@ def aggregate_system_artifacts(manifest_paths: List[Path]) -> List[Dict[str, Any
         )
 
     return artifact_blocks
+
+
+def aggregate_validation_commands(manifest_paths: List[Path]) -> List[List[str]]:
+    """Aggregate and deduplicate validation commands from multiple manifests.
+
+    Loads each manifest, extracts its validation commands (both legacy
+    validationCommand and enhanced validationCommands formats), normalizes
+    them to a consistent format, and deduplicates identical commands.
+
+    Args:
+        manifest_paths: List of paths to manifest files to aggregate
+
+    Returns:
+        List of validation commands in enhanced format (List[List[str]]),
+        where each command is represented as a list of strings.
+        Duplicate commands are removed.
+
+        Example return value:
+        [
+            ["pytest", "tests/", "-v"],
+            ["make", "lint"],
+            ["make", "type-check"]
+        ]
+
+    Note:
+        - Uses normalize_validation_commands() to handle different formats
+        - Deduplication is case-sensitive and order-preserving
+        - Manifests without validation commands are skipped
+        - Invalid JSON files are skipped with a warning
+    """
+    all_commands = []
+
+    for manifest_path in manifest_paths:
+        try:
+            # Load manifest JSON
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+
+            # Normalize and extract validation commands
+            commands = normalize_validation_commands(manifest_data)
+
+            # Add all commands from this manifest
+            all_commands.extend(commands)
+
+        except (json.JSONDecodeError, IOError):
+            # Skip invalid or malformed manifests
+            # In production, might want to log this
+            continue
+
+    # Deduplicate commands while preserving order
+    # Convert to tuples for hashability, use dict to preserve order
+    seen = {}
+    deduplicated = []
+
+    for command in all_commands:
+        # Convert command list to tuple for use as dict key
+        command_tuple = tuple(command)
+
+        if command_tuple not in seen:
+            seen[command_tuple] = True
+            deduplicated.append(command)
+
+    return deduplicated

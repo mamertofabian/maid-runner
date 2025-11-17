@@ -1,0 +1,33 @@
+{
+  "version": "1",
+  "goal": "Implement validation command aggregation for system-wide snapshots",
+  "description": "Create aggregate_validation_commands() function that collects all validation commands from active manifests, normalizes them using normalize_validation_commands(), deduplicates identical commands, and returns a list suitable for validationCommands field in system manifests.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_044_snapshot_system_validation_commands.py",
+    "maid_runner/utils.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot_system.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "aggregate_validation_commands",
+        "args": [
+          {
+            "name": "manifest_paths",
+            "type": "List[Path]"
+          }
+        ],
+        "returns": "List[List[str]]",
+        "description": "Aggregate and deduplicate validation commands from multiple manifests"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_044_snapshot_system_validation_commands.py", "-v"]
+}
