@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "goal": "Update validator to gracefully handle system manifests with systemArtifacts",
+  "description": "Modify manifest_validator.py to check for systemArtifacts field and handle system manifests without errors. Update functions like _get_expected_artifacts and validate_with_ast to detect when a manifest is a system manifest (has systemArtifacts instead of expectedArtifacts) and handle it appropriately without crashing.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_047_validator_system_manifest_support.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_is_system_manifest",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool",
+        "description": "Check if a manifest is a system manifest (has systemArtifacts)"
+      },
+      {
+        "type": "function",
+        "name": "_validate_system_artifacts_structure",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate structure of systemArtifacts blocks"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_047_validator_system_manifest_support.py", "-v"]
+}
