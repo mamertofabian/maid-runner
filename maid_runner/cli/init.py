@@ -73,10 +73,10 @@ def copy_maid_specs(target_dir: str) -> None:
         target_dir: Target directory containing .maid/docs subdirectory
     """
     # Get the path to maid_specs.md in the maid-runner installation
-    # We'll look for it relative to this module's location
+    # The docs directory is inside the maid_runner package
     current_file = Path(__file__)
-    maid_runner_root = current_file.parent.parent.parent
-    source_specs = maid_runner_root / "docs" / "maid_specs.md"
+    maid_runner_package = current_file.parent.parent
+    source_specs = maid_runner_package / "docs" / "maid_specs.md"
 
     if not source_specs.exists():
         print(

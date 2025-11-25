@@ -1,5 +1,9 @@
 # MAID Runner
 
+[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)
+[![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with their declarative manifests, ensuring architectural integrity in AI-assisted development.
 
 ## Architecture Philosophy
@@ -41,9 +45,21 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 
 ## Installation
 
+### From PyPI (Recommended)
+
+Install MAID Runner from PyPI using pip or uv:
+
+```bash
+# Using pip
+pip install maid-runner
+
+# Using uv (recommended)
+uv pip install maid-runner
+```
+
 ### Local Development (Editable Install)
 
-For local development, install the package in editable mode:
+For local development, clone the repository and install in editable mode:
 
 ```bash
 # Using pip
