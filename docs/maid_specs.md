@@ -23,6 +23,35 @@ The MAID methodology is founded on five core principles:
 
 #### **The MAID Workflow**
 
+```mermaid
+---
+title: MAID Workflow - Human to AI Handoff
+---
+flowchart LR
+      subgraph Human["👤 Human Architect"]
+          A[Goal] --> B[Manifest]
+          B --> C[Tests]
+          C --> D{Valid?}
+          D -->|No| B
+      end
+      subgraph AI["🤖 Developer Agent"]
+          E[Load Context] --> F[Implement]
+          F --> G{Pass?}
+          G -->|No| F
+      end
+      subgraph TDD["🔄 Code Quality"]
+          H[Refactor] --> I{Green?}
+          I -->|No| H
+      end
+      D -->|Yes| E
+      G -->|Yes| H
+      I -->|Yes| J[✅ Commit]
+      style Human fill:#e3f2fd,stroke:#1565c0,color:#1565c0
+      style AI fill:#fff3e0,stroke:#ef6c00,color:#ef6c00
+      style TDD fill:#f3e5f5,stroke:#7b1fa2,color:#7b1fa2
+      linkStyle 0,1,2,3,4,5,6,7,8 stroke:#000000
+```
+
 The development process is broken down into distinct phases, characterized by two main loops: a **Planning Loop** for the human architect and an **Implementation Loop** for the AI agent.
 
 1.  **Phase 1: Goal Definition (Human Architect)**
