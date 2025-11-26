@@ -6,6 +6,10 @@
 
 A tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with their declarative manifests, ensuring architectural integrity in AI-assisted development.
 
+## Introduction Video
+
+📹 **[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)** to learn about MAID Runner and the MAID methodology.
+
 ## Architecture Philosophy
 
 **MAID Runner is a validation-only tool.** It does NOT create files, generate code, or automate development. Instead, it validates that manifests, tests, and implementations comply with MAID methodology.
