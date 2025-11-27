@@ -83,6 +83,28 @@ maid --version
 maid --help
 ```
 
+## The MAID Ecosystem
+
+MAID Runner provides **validation-only** capabilities for manifest-driven development. For **full workflow automation** (planning → testing → implementing → validating), check out:
+
+**[MAID Agents](https://github.com/mamertofabian/maid-agents)** - Automated orchestration using Claude Code agents. Handles the complete development lifecycle from idea to validated implementation.
+
+### How They Work Together
+
+- **MAID Runner** (this tool) = Validation layer
+  - Validates manifest schemas
+  - Validates implementation matches contracts
+  - Validates behavioral tests
+  - Tool-agnostic (use with any AI tool, IDE, or manually)
+
+- **MAID Agents** = Orchestration + execution layer
+  - Automates manifest creation
+  - Generates behavioral tests
+  - Implements code via Claude Code
+  - Uses MAID Runner for validation
+
+Most users start with MAID Runner for validation, then add MAID Agents for full automation.
+
 ### Python API
 
 You can also use MAID Runner as a Python library:
