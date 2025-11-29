@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "goal": "Verify snapshot-system TypeScript support with integration tests",
+  "description": "Add comprehensive integration tests to verify that snapshot-system correctly aggregates TypeScript manifests alongside Python manifests. The snapshot-system implementation is already language-agnostic (it reads manifests, not source code), so this task focuses on verification and testing rather than new implementation.",
+  "taskType": "create",
+  "creatableFiles": [
+    "tests/test_task_057_snapshot_system_typescript.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/cli/snapshot_system.py",
+    "maid_runner/cli/snapshot.py"
+  ],
+  "expectedArtifacts": {
+    "file": "tests/test_task_057_snapshot_system_typescript.py",
+    "contains": []
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_057_snapshot_system_typescript.py",
+    "-v"
+  ]
+}
