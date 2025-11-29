@@ -13,15 +13,17 @@ Confirm the high-level goal with user before proceeding.
 **Before ANY implementation - iterative refinement:**
 1. Draft manifest (`manifests/task-XXX.manifest.json`) - **PRIMARY CONTRACT**
 2. Draft behavioral tests (`tests/test_task_XXX_*.py`) to support and verify the manifest
-3. Run structural validation (checks manifest↔tests AND implementation↔history):
-   `uv run maid validate manifests/task-XXX.manifest.json --use-manifest-chain`
+3. Run behavioral validation (checks that tests USE declared artifacts):
+   `uv run maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain`
 4. Refine BOTH tests & manifest together until validation passes
 
 ### Phase 3: Implementation
 1. Load ONLY files from manifest (`editableFiles` + `readonlyFiles`)
 2. Implement code to pass tests
-3. Run behavioral validation (from `validationCommand`)
-4. Iterate until all tests pass
+3. Run implementation validation (checks that code DEFINES declared artifacts):
+   `uv run maid validate manifests/task-XXX.manifest.json --validation-mode implementation --use-manifest-chain`
+4. Run behavioral tests (from `validationCommand`)
+5. Iterate until all validations and tests pass
 
 ### Phase 3.5: Refactoring
 1. After tests pass, improve code quality
@@ -30,7 +32,9 @@ Confirm the high-level goal with user before proceeding.
 4. Validate tests still pass after each change
 
 ### Phase 4: Integration
-Verify complete chain: `uv run python -m pytest tests/ -v`
+1. Verify all manifests: `uv run maid validate`
+2. Run all MAID tests: `uv run maid test`
+3. Run full test suite: `uv run python -m pytest tests/ -v`
 
 ## External MAID Automation Examples
 
@@ -115,14 +119,22 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 ## Validation Flow
 
-The `maid validate` command performs validation in this order:
+The `maid validate` command supports two validation modes:
+
+### Behavioral Mode (`--validation-mode behavioral`)
+**Use during Phase 2 (Planning Loop) when writing tests**
 
 1. **Schema Validation**: Ensures manifest follows the JSON schema
 2. **Behavioral Test Validation**: Verifies test files USE the declared artifacts (AST-based)
-3. **Implementation Validation**: Verifies implementation DEFINES the artifacts
-4. **File Tracking Analysis** (when using `--use-manifest-chain`): Detects undeclared and partially compliant files
 
 Note: Behavioral validation only checks artifacts from the current manifest, not the merged chain.
+
+### Implementation Mode (`--validation-mode implementation`, default)
+**Use during Phase 3 (Implementation) when writing code**
+
+1. **Schema Validation**: Ensures manifest follows the JSON schema
+2. **Implementation Validation**: Verifies code DEFINES the declared artifacts
+3. **File Tracking Analysis** (when using `--use-manifest-chain`): Detects undeclared and partially compliant files
 
 ### File Tracking Analysis
 
@@ -176,8 +188,24 @@ This progressive compliance system helps identify accountability gaps and suppor
 
 **IMPORTANT: Always use the `maid` CLI for validation and snapshots, NOT direct Python scripts.**
 
+### Whole-Codebase Validation (Recommended)
+
 ```bash
-# Validate a manifest (with optional manifest chain)
+# Validate ALL active manifests with proper chaining
+# Automatically excludes superseded manifests and uses manifest chain
+uv run maid validate
+
+# Run ALL validation commands from all active manifests
+# Intelligent enough to exclude inactive manifests
+uv run maid test
+```
+
+**These commands are the primary way to verify complete MAID compliance across the entire codebase.**
+
+### Individual Commands
+
+```bash
+# Validate a specific manifest (with optional manifest chain)
 uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
 
 # Generate a snapshot manifest from existing code
@@ -189,7 +217,7 @@ uv run maid snapshot-system [--output <file>] [--manifest-dir <dir>] [--quiet]
 # List manifests that reference a file
 uv run maid manifests <file-path> [--manifest-dir <dir>] [--quiet]
 
-# Run validation commands from all manifests
+# Run validation commands from specific manifests
 uv run maid test [--manifest-dir <dir>] [--fail-fast] [--verbose]
 
 # Get help
@@ -204,6 +232,11 @@ uv run maid test --help
 ## Quick Commands
 
 ```bash
+# Whole-Codebase Validation (Primary Commands)
+uv run maid validate     # Validate ALL active manifests with proper chaining
+uv run maid test         # Run ALL validation commands from active manifests
+make test                # Run full pytest suite
+
 # Bootstrap Development (TDD workflow)
 make dev TASK=005        # Run tests once for task-005
 make watch TASK=005      # Watch mode with auto-test for task-005
@@ -212,20 +245,19 @@ make validate            # Validate all manifests with chain
 # Find next manifest number
 ls manifests/task-*.manifest.json | tail -1
 
-# Validation Flow
-# 1. Structural validation (pre-implementation)
-uv run maid validate manifests/task-XXX.manifest.json --use-manifest-chain
+# Individual Task Validation Flow
+# 1. During Planning: Behavioral validation (checks tests USE artifacts)
+uv run maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain
 
-# 2. The validator now runs THREE checks:
-#    a) Schema validation (manifest structure)
-#    b) Behavioral validation (tests USE artifacts)
-#    c) Implementation validation (code DEFINES artifacts)
+# 2. During Implementation: Implementation validation (checks code DEFINES artifacts)
+uv run maid validate manifests/task-XXX.manifest.json --validation-mode implementation --use-manifest-chain
 
 # 3. Behavioral test execution (run actual tests)
 uv run python -m pytest tests/test_task_XXX_*.py -v
 
-# Full test suite
-make test  # or: uv run python -m pytest tests/ -v
+# Note: Each validation mode runs schema validation first, then:
+#   - behavioral mode: Verifies test files USE the declared artifacts
+#   - implementation mode: Verifies code DEFINES the artifacts + file tracking analysis
 
 # Code quality
 make lint        # Run black formatter
@@ -328,18 +360,21 @@ This pattern ensures every task contributes to a stronger, more capable system.
 
 Before ANY commit, you MUST:
 
-1. **Run ALL code quality checks:**
+1. **Run ALL validation and quality checks:**
    ```bash
-   make lint          # Check code style
-   make type-check    # Check TypeScript types
-   make test          # Run tests
-   make format        # Format code
+   uv run maid validate    # Validate all MAID manifests
+   uv run maid test        # Run all MAID validation commands
+   make lint               # Check code style
+   make type-check         # Check type hints
+   make test               # Run full pytest suite
+   make format             # Format code
    ```
 
-2. **Fix ALL errors and type issues** - Do NOT commit if there are ANY:
+2. **Fix ALL errors and issues** - Do NOT commit if there are ANY:
+   - MAID validation errors
+   - Test failures
    - Type errors
    - Linting errors
-   - Test failures
    - Build errors
 
 3. **Wait for explicit user direction** - Even if the user mentioned committing earlier in the conversation, ALWAYS:
