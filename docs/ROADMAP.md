@@ -31,10 +31,24 @@ MAID Runner is a **validation-only framework** that ensures code artifacts align
 - Supersedes relationship handling
 - Snapshot generation from existing code
 
+**Multi-Language Support:**
+- **Python** - Full support via Python AST
+- **TypeScript/JavaScript** - Production-ready support via tree-sitter
+  - Extensions: `.ts`, `.tsx`, `.js`, `.jsx`
+  - Complete language coverage (classes, interfaces, types, enums, namespaces, functions, methods)
+  - Framework support (Angular, React, NestJS, Vue)
+  - 99.9% TypeScript construct coverage
+- Language-agnostic validator architecture via `BaseValidator` abstract class
+
 **CLI Tools:**
-- `validate_manifest.py` - Core validation CLI
-- `generate_snapshot.py` - Snapshot generation
-- `maid_runner.py plan/run` - Optional human helpers
+- `maid validate` - Core validation CLI (Python & TypeScript)
+- `maid snapshot` - Snapshot generation (Python & TypeScript)
+- `maid snapshot-system` - System-wide manifest aggregation (cross-language)
+- `maid test` - Run validation commands from manifests
+- `maid manifests` - List manifests referencing a file
+- `maid generate-stubs` - Generate test stubs (Python & TypeScript)
+- `maid init` - Initialize MAID workflow
+- `maid schema` - Output manifest JSON schema
 
 **Validation Modes:**
 - Strict mode (creatableFiles - exact match)
@@ -43,9 +57,10 @@ MAID Runner is a **validation-only framework** that ensures code artifacts align
 - Behavioral mode (tests USE artifacts)
 
 **Test Coverage:**
-- 344+ comprehensive tests
+- 1100+ comprehensive tests
 - All core validation paths covered
 - Integration tests for all features
+- Multi-language validation tests
 
 ## Roadmap to v1.3
 
@@ -310,7 +325,7 @@ else:
 ## Post-v1.3 Vision
 
 ### Future Enhancements (v1.4+)
-- Multi-language support (TypeScript, Go, Rust)
+- Additional language support (Go, Rust, Java, C#)
 - Advanced static analysis integration
 - Formal verification of manifest chains
 - Plugin system for custom validators

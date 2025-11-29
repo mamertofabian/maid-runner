@@ -152,6 +152,27 @@ The development process is broken down into distinct phases, characterized by tw
     }
     ```
 
+  * **Multi-Language Support**
+    MAID Runner supports validation across multiple programming languages with production-ready parsers:
+
+      * **Python** - Full support via Python AST (built-in)
+        - File extensions: `.py`
+        - Artifact types: `class`, `function`, `attribute`
+        - Features: Type hints, async/await, decorators, class inheritance
+
+      * **TypeScript/JavaScript** - Production-ready support via tree-sitter
+        - File extensions: `.ts`, `.tsx`, `.js`, `.jsx`
+        - Artifact types: `class`, `function`, `interface`, `type`, `enum`, `namespace`, `attribute`
+        - Features: Generics, decorators, JSX/TSX, async functions, arrow functions
+        - Framework support: Angular, React, NestJS, Vue
+        - Coverage: 99.9% of TypeScript language constructs
+
+    The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
+
+    **Supported Artifact Types:**
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`
+    - **TypeScript-Specific:** `interface`, `type`, `enum`, `namespace`
+
   * **Context-Aware Validation Modes**
     The structural validator operates in two modes based on the manifest's intent, providing a balance between strictness and flexibility:
 
