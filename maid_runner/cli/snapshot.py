@@ -16,6 +16,139 @@ from typing import Dict, List, Any, Optional, Union
 from maid_runner.validators.manifest_validator import discover_related_manifests
 
 
+def detect_file_language(file_path: str) -> str:
+    """Detect the programming language of a file based on its extension.
+
+    Args:
+        file_path: Path to the file
+
+    Returns:
+        Language identifier: "python", "typescript", or "unknown"
+    """
+    if file_path.endswith(".py"):
+        return "python"
+    elif file_path.endswith((".ts", ".tsx", ".js", ".jsx")):
+        return "typescript"
+    else:
+        # Default to python for backward compatibility with unknown extensions
+        return "python"
+
+
+def extract_typescript_artifacts(file_path: str) -> dict:
+    """Extract artifacts from a TypeScript/JavaScript source file.
+
+    Args:
+        file_path: Path to the TypeScript/JavaScript file to analyze
+
+    Returns:
+        Dictionary containing extracted artifacts with structure:
+        {
+            "artifacts": [...]  # List of artifacts in manifest format
+        }
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+    """
+    from pathlib import Path
+
+    # Validate file exists
+    file_path_obj = Path(file_path)
+    if not file_path_obj.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    # Use TypeScript validator to collect artifacts
+    from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+    validator = TypeScriptValidator()
+    artifacts_data = validator.collect_artifacts(file_path, "implementation")
+
+    # Convert validator output to manifest format
+    manifest_artifacts = _convert_typescript_artifacts_to_manifest(
+        artifacts_data, file_path
+    )
+
+    return {
+        "artifacts": manifest_artifacts,
+    }
+
+
+def _convert_typescript_artifacts_to_manifest(
+    artifacts_data: dict, file_path: str
+) -> list:
+    """Convert TypeScript validator output to manifest artifact format.
+
+    Args:
+        artifacts_data: Output from TypeScriptValidator.collect_artifacts()
+        file_path: Path to the TypeScript file (for re-parsing to differentiate types)
+
+    Returns:
+        List of artifacts in manifest format
+    """
+    from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+    manifest_artifacts = []
+
+    # To differentiate between class/interface/type/enum/namespace, we need to
+    # re-parse using the validator's internal methods since it combines them all
+    validator = TypeScriptValidator()
+    tree, source_code = validator._parse_typescript_file(file_path)
+
+    # Extract each type separately to properly categorize
+    classes = validator._extract_classes(tree, source_code)
+    interfaces = validator._extract_interfaces(tree, source_code)
+    type_aliases = validator._extract_type_aliases(tree, source_code)
+    enums = validator._extract_enums(tree, source_code)
+    namespaces = validator._extract_namespaces(tree, source_code)
+
+    # Add classes
+    for class_name in sorted(classes):
+        manifest_artifacts.append({"type": "class", "name": class_name})
+
+    # Add interfaces
+    for interface_name in sorted(interfaces):
+        manifest_artifacts.append({"type": "interface", "name": interface_name})
+
+    # Add type aliases
+    for type_name in sorted(type_aliases):
+        manifest_artifacts.append({"type": "type", "name": type_name})
+
+    # Add enums
+    for enum_name in sorted(enums):
+        manifest_artifacts.append({"type": "enum", "name": enum_name})
+
+    # Add namespaces
+    for namespace_name in sorted(namespaces):
+        manifest_artifacts.append({"type": "namespace", "name": namespace_name})
+
+    # Extract standalone functions
+    found_functions = artifacts_data.get("found_functions", {})
+    for func_name, params in sorted(found_functions.items()):
+        artifact = {
+            "type": "function",
+            "name": func_name,
+        }
+        if params:
+            args = [{"name": param} for param in params]
+            artifact["args"] = args
+        manifest_artifacts.append(artifact)
+
+    # Extract methods
+    found_methods = artifacts_data.get("found_methods", {})
+    for class_name, methods_dict in sorted(found_methods.items()):
+        for method_name, params in sorted(methods_dict.items()):
+            artifact = {
+                "type": "function",
+                "name": method_name,
+                "class": class_name,
+            }
+            if params:
+                args = [{"name": param} for param in params]
+                artifact["args"] = args
+            manifest_artifacts.append(artifact)
+
+    return manifest_artifacts
+
+
 def _test_file_references_artifacts(
     test_file_path: Path, expected_artifacts: List[dict], target_file: str
 ) -> bool:
@@ -235,6 +368,41 @@ def _aggregate_validation_commands_from_superseded(
 
 
 def extract_artifacts_from_code(file_path: str) -> dict:
+    """Extract artifacts from a source file using appropriate parser.
+
+    Detects file type and routes to the appropriate artifact extractor:
+    - Python files (.py): Uses Python AST parser
+    - TypeScript/JavaScript files (.ts, .tsx, .js, .jsx): Uses TypeScript validator
+
+    Args:
+        file_path: Path to the file to analyze
+
+    Returns:
+        Dictionary containing extracted artifacts with structure:
+        {
+            "functions": [...],
+            "classes": [...],
+            "methods": {...},
+            "attributes": {...},
+            "artifacts": [...]  # Manifest-ready artifact list
+        }
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        SyntaxError: If the file contains invalid syntax
+    """
+    # Detect file language and route to appropriate extractor
+    language = detect_file_language(file_path)
+
+    if language == "typescript":
+        # Use TypeScript extractor
+        return extract_typescript_artifacts(file_path)
+    else:
+        # Use Python extractor (default for backward compatibility)
+        return _extract_python_artifacts(file_path)
+
+
+def _extract_python_artifacts(file_path: str) -> dict:
     """Extract artifacts from a Python source file using AST analysis.
 
     Args:
@@ -246,7 +414,8 @@ def extract_artifacts_from_code(file_path: str) -> dict:
             "functions": [...],
             "classes": [...],
             "methods": {...},
-            "attributes": {...}
+            "attributes": {...},
+            "artifacts": [...]
         }
 
     Raises:

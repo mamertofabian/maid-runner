@@ -1,0 +1,36 @@
+{
+  "version": "1",
+  "goal": "Enable TypeScript/JavaScript snapshot generation",
+  "description": "Extends the snapshot generator to support TypeScript and JavaScript files by detecting file types and routing to the appropriate validator. Converts TypeScript validator output to manifest artifact format while reusing existing snapshot infrastructure.",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/typescript_validator.py",
+    "maid_runner/validators/base_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "detect_file_language",
+        "args": [{"name": "file_path"}],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "extract_typescript_artifacts",
+        "args": [{"name": "file_path"}],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_056_typescript_snapshot.py",
+    "-v"
+  ]
+}
