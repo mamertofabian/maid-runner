@@ -369,26 +369,31 @@ def _private_module_function():
                     "type": "function",
                     "name": "module_function",
                     "parameters": [{"name": "a"}, {"name": "b"}],
-                }
-                # Async functions are not collected by the validator
+                },
+                {
+                    "type": "function",
+                    "name": "async_module_function",
+                    "parameters": [],
+                },
+                # Async functions ARE now collected (fixed in task-049)
                 # _private_module_function is private, handled by strict validation
             ]
         }
     }
-    # Should pass - module-level functions are collected
+    # Should pass - module-level functions (including async) are collected
     validate_with_ast(manifest, str(test_file))
 
-    # Verify async functions are not collected
+    # Verify async functions ARE now tracked alongside regular functions
     manifest_with_async = {
         "expectedArtifacts": {
-            "contains": [{"type": "function", "name": "async_module_function"}]
+            "contains": [
+                {"type": "function", "name": "module_function"},
+                {"type": "function", "name": "async_module_function"},
+            ]
         }
     }
-    # Should fail - async functions are not tracked
-    with pytest.raises(
-        AlignmentError, match="Artifact 'async_module_function' not found"
-    ):
-        validate_with_ast(manifest_with_async, str(test_file))
+    # Should pass - async functions are now supported (task-049)
+    validate_with_ast(manifest_with_async, str(test_file))
 
 
 def test_class_methods_not_collected_as_functions(tmp_path: Path):

@@ -832,6 +832,9 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
         self.current_function = old_function
 
+    # Alias for async function definitions - treat them the same as regular functions
+    visit_AsyncFunctionDef = visit_FunctionDef
+
     def _extract_parameter_types(self, args):
         """Extract type information for function parameters.
 

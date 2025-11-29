@@ -163,37 +163,31 @@ async def async_no_params():
     test_file = tmp_path / "async.py"
     test_file.write_text(code)
 
-    # Async functions are not collected by the validator
+    # Async functions ARE now collected by the validator (fixed in task-049)
     manifest = {
         "expectedArtifacts": {
             "contains": [
-                # Only sync functions are collected
-                {
-                    "type": "function",
-                    "name": "sync_function",
-                    "parameters": [{"name": "data"}],
-                }
-            ]
-        }
-    }
-    # Should pass - only sync functions are collected
-    validate_with_ast(manifest, str(test_file))
-
-    # Verify async functions are not tracked
-    manifest_with_async = {
-        "expectedArtifacts": {
-            "contains": [
+                # Both async and sync functions are collected
                 {
                     "type": "function",
                     "name": "async_function",
                     "parameters": [{"name": "data"}],
-                }
+                },
+                {
+                    "type": "function",
+                    "name": "sync_function",
+                    "parameters": [{"name": "data"}],
+                },
+                {
+                    "type": "function",
+                    "name": "async_no_params",
+                    "parameters": [],
+                },
             ]
         }
     }
-    # Should fail - async functions not supported
-    with pytest.raises(AlignmentError, match="Artifact 'async_function' not found"):
-        validate_with_ast(manifest_with_async, str(test_file))
+    # Should pass - async functions are now supported
+    validate_with_ast(manifest, str(test_file))
 
 
 def test_properties(tmp_path: Path):

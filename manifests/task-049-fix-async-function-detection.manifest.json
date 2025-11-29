@@ -1,0 +1,22 @@
+{
+  "version": "1",
+  "goal": "Fix validator to detect async function definitions (AsyncFunctionDef AST nodes)",
+  "description": "The manifest validator's AST collector only implements visit_FunctionDef but not visit_AsyncFunctionDef, causing it to miss async functions in implementation validation. This results in false negatives where async functions are not detected as artifacts. The fix follows the existing pattern from snapshot.py where visit_AsyncFunctionDef is aliased to visit_FunctionDef.",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/snapshot.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": []
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_049_async_function_detection.py",
+    "-v"
+  ]
+}
