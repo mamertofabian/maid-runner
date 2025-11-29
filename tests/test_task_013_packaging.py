@@ -11,7 +11,6 @@ These tests USE the functions and classes exported from maid_runner package.
 """
 
 import pytest
-import subprocess
 from pathlib import Path
 from unittest.mock import patch
 from io import StringIO
@@ -88,7 +87,6 @@ class TestCLICommands:
     def test_maid_version_command(self):
         """Test that 'maid --version' command works."""
         from maid_runner.cli.main import main
-        import sys
 
         # Capture stdout
         test_args = ["maid", "--version"]
