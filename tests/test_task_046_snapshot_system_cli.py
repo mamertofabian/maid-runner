@@ -12,6 +12,8 @@ Tests verify that:
 import json
 import pytest
 from pathlib import Path
+from unittest.mock import patch
+from io import StringIO
 
 from maid_runner.cli.snapshot_system import run_snapshot_system
 
@@ -282,25 +284,27 @@ class TestCLIIntegration:
 
     def test_cli_command_accessible(self):
         """Verify snapshot-system command is accessible from CLI."""
-        import subprocess
+        from maid_runner.cli.main import main
 
-        result = subprocess.run(
-            ["uv", "run", "maid", "snapshot-system", "--help"],
-            capture_output=True,
-            text=True,
-        )
+        # Capture stdout
+        test_args = ["maid", "snapshot-system", "--help"]
+        captured_output = StringIO()
 
-        # Should not error
-        assert result.returncode == 0
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", captured_output):
+                try:
+                    main()
+                except SystemExit as e:
+                    # --help typically exits with 0
+                    assert e.code == 0
+
+        output = captured_output.getvalue()
         # Help text should mention snapshot-system
-        assert (
-            "snapshot-system" in result.stdout.lower()
-            or "system" in result.stdout.lower()
-        )
+        assert "snapshot-system" in output.lower() or "system" in output.lower()
 
     def test_cli_end_to_end(self, temp_manifest_dir, tmp_path, create_test_manifest):
         """Verify CLI command works end-to-end."""
-        import subprocess
+        from maid_runner.cli.main import main
 
         # Create test manifests
         create_test_manifest("task-001.manifest.json", "file1.py")
@@ -308,24 +312,18 @@ class TestCLIIntegration:
 
         output_file = tmp_path / "system.manifest.json"
 
-        result = subprocess.run(
-            [
-                "uv",
-                "run",
-                "maid",
-                "snapshot-system",
-                "--output",
-                str(output_file),
-                "--manifest-dir",
-                str(temp_manifest_dir),
-                "--quiet",
-            ],
-            capture_output=True,
-            text=True,
-        )
+        test_args = [
+            "maid",
+            "snapshot-system",
+            "--output",
+            str(output_file),
+            "--manifest-dir",
+            str(temp_manifest_dir),
+            "--quiet",
+        ]
 
-        # Should succeed
-        assert result.returncode == 0
+        with patch("sys.argv", test_args):
+            main()  # Should execute without raising
 
         # Output file should exist and be valid
         assert output_file.exists()

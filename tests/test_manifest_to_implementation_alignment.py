@@ -15,6 +15,9 @@ from maid_runner.cli.validate import (
 SCHEMA_PATH = Path("maid_runner/validators/schemas/manifest.schema.json")
 MANIFESTS_DIR = Path("manifests/")
 
+# Cache superseded manifests to avoid re-parsing all manifests multiple times
+_SUPERSEDED_CACHE = None
+
 
 def get_superseded_manifests():
     """Find all manifests that are superseded by any other manifests.
@@ -22,6 +25,12 @@ def get_superseded_manifests():
     Returns:
         set: Set of manifest paths that are superseded by other manifests
     """
+    global _SUPERSEDED_CACHE
+
+    # Return cached result if available
+    if _SUPERSEDED_CACHE is not None:
+        return _SUPERSEDED_CACHE
+
     superseded = set()
 
     # Check ALL manifests for supersedes declarations (not just snapshots)
@@ -37,6 +46,8 @@ def get_superseded_manifests():
             # Convert to Path and add to set
             superseded.add(Path(superseded_path))
 
+    # Cache the result
+    _SUPERSEDED_CACHE = superseded
     return superseded
 
 

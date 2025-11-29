@@ -408,6 +408,8 @@ class TestCLIIntegration:
 
     def test_snapshot_command_accepts_skip_test_stub_flag(self, tmp_path: Path):
         """Test that snapshot command accepts --skip-test-stub flag."""
+        from maid_runner.cli.snapshot import main
+
         code = "def cli_test(): pass"
         test_file = tmp_path / "cli_test.py"
         test_file.write_text(code)
@@ -415,27 +417,22 @@ class TestCLIIntegration:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        # Test with --skip-test-stub flag
-        result = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "maid_runner.cli.main",
-                "snapshot",
-                str(test_file),
-                "--output-dir",
-                str(output_dir),
-                "--skip-test-stub",
-            ],
-            capture_output=True,
-            text=True,
-        )
+        # Test with --skip-test-stub flag using direct call instead of subprocess
+        test_args = [
+            "snapshot",
+            str(test_file),
+            "--output-dir",
+            str(output_dir),
+            "--skip-test-stub",
+        ]
 
-        # Command should succeed
-        assert result.returncode == 0
+        with patch("sys.argv", test_args):
+            main()  # Should execute without error
 
     def test_generate_stubs_subcommand_exists(self, tmp_path: Path):
         """Test that generate-stubs subcommand is available."""
+        from maid_runner.cli.main import main
+
         # Create a minimal manifest
         manifest_data = {
             "goal": "Test subcommand",
@@ -452,22 +449,15 @@ class TestCLIIntegration:
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
         try:
-            # Test generate-stubs command
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "maid_runner.cli.main",
-                    "generate-stubs",
-                    str(manifest_file),
-                ],
-                capture_output=True,
-                text=True,
-            )
+            # Test generate-stubs command using direct call instead of subprocess
+            test_args = [
+                "maid",
+                "generate-stubs",
+                str(manifest_file),
+            ]
 
-            # Should execute (may succeed or fail with specific error)
-            # Main test is that the command is recognized
-            assert "unrecognized arguments" not in result.stderr.lower()
+            with patch("sys.argv", test_args):
+                main()  # Should execute without raising
         finally:
             # Cleanup generated stub files
             for stub_file in Path("tests").glob("test_test.py"):
@@ -475,6 +465,8 @@ class TestCLIIntegration:
 
     def test_generate_stubs_creates_stub_from_manifest(self, tmp_path: Path):
         """Test that generate-stubs creates stub from existing manifest."""
+        from maid_runner.cli.main import main
+
         manifest_data = {
             "goal": "Generate stub test",
             "taskType": "create",
@@ -496,21 +488,15 @@ class TestCLIIntegration:
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
         try:
-            # Run generate-stubs
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "maid_runner.cli.main",
-                    "generate-stubs",
-                    str(manifest_file),
-                ],
-                capture_output=True,
-                text=True,
-            )
+            # Run generate-stubs using direct call instead of subprocess
+            test_args = [
+                "maid",
+                "generate-stubs",
+                str(manifest_file),
+            ]
 
-            # Should succeed
-            assert result.returncode == 0
+            with patch("sys.argv", test_args):
+                main()  # Should execute without raising
 
             # Stub should be created (check for test file)
             # The exact location depends on implementation
