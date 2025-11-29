@@ -126,37 +126,37 @@ class TestGenerateClaudeMdContent:
 
     def test_returns_string_content(self):
         """Verify function returns a string."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert isinstance(content, str)
         assert len(content) > 0
 
     def test_includes_maid_workflow_phases(self):
         """Verify content includes MAID workflow phases."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert "Phase 1" in content or "Goal Definition" in content
         assert "Phase 2" in content or "Planning Loop" in content
         assert "Phase 3" in content or "Implementation" in content
 
     def test_includes_manifest_template(self):
         """Verify content includes manifest template."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert "goal" in content
         assert "expectedArtifacts" in content
         assert "validationCommand" in content
 
     def test_includes_validation_commands(self):
         """Verify content includes MAID CLI commands."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert "maid validate" in content
 
     def test_mentions_ai_agents(self):
         """Verify content mentions MAID-compatible AI agents."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert "AI" in content or "agent" in content.lower()
 
     def test_references_local_maid_specs(self):
         """Verify content references .maid/docs/maid_specs.md."""
-        content = generate_claude_md_content()
+        content = generate_claude_md_content("python")
         assert ".maid/docs/maid_specs.md" in content
 
 
@@ -244,8 +244,7 @@ class TestRunInit:
         assert (tmp_path / "tests").exists()
         assert (tmp_path / ".maid" / "docs").exists()
 
-        # Check files
-        assert (tmp_path / "manifests" / "example.manifest.json").exists()
+        # Check files (example.manifest.json no longer created - use maid snapshot)
         assert (tmp_path / ".maid" / "docs" / "maid_specs.md").exists()
         assert (tmp_path / "CLAUDE.md").exists()
 

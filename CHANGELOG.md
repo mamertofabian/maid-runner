@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `maid generate-stubs` creates `.spec.ts` files with Jest syntax
   - Handles TypeScript-specific constructs (interfaces, types, enums)
   - Automatic import statement generation for TypeScript modules
+- Language-specific `maid init` - Automatically generates Python or TypeScript-specific CLAUDE.md documentation based on project type (Task-059)
 
 ### Changed
 - Refactored validation architecture for language extensibility (Tasks 051-052)
