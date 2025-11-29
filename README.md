@@ -32,6 +32,8 @@ All validation features (behavioral tests, implementation validation, snapshot g
 
 **MAID Runner is a validation-only tool.** It does NOT create files, generate code, or automate development. Instead, it validates that manifests, tests, and implementations comply with MAID methodology.
 
+MAID Runner works with any development approach—from fully manual to fully automated. See [Usage Modes](#usage-modes) for details.
+
 ```
 ┌──────────────────────────────────────┐
 │   External Tools (Your Choice)       │
@@ -64,6 +66,29 @@ All validation features (behavioral tests, implementation validation, snapshot g
 │   ✗ Tool-agnostic design             │
 └──────────────────────────────────────┘
 ```
+
+## Usage Modes
+
+MAID Runner supports three development approaches, differing only in **who creates the files**:
+
+**1. Manual Development**
+- Humans write manifests, tests, and implementation
+- MAID Runner validates compliance at each step
+- Best for: Learning MAID, small teams, strict oversight requirements
+
+**2. Interactive AI-Assisted**
+- AI tools suggest code, humans review and approve
+- MAID Runner validates during collaboration
+- Tools: Claude Code CLI, Cursor, Aider, GitHub Copilot (MCP server coming soon)
+- Best for: Faster iteration with human control
+
+**3. Fully Automated**
+- AI agents orchestrate entire workflow with human review checkpoints
+- MAID Runner validates automatically
+- Tools: Claude Code CLI (headless mode), custom AI agents, MAID Agents framework
+- Best for: Large-scale development, established MAID practices
+
+**In all modes, MAID Runner provides identical validation.** The workflow (manifest → tests → implementation → validation) remains the same regardless of who performs each step.
 
 ## Installation
 
@@ -345,6 +370,8 @@ python examples/maid_runner.py run manifests/task-013.manifest.json
 
 ## Integration with AI Tools
 
+MAID Runner integrates seamlessly with AI development tools in all three usage modes (see [How MAID Runner Can Be Used](#how-maid-runner-can-be-used)). The examples below show how to programmatically call MAID Runner from automation scripts, AI agents, or custom tools.
+
 ### Python Integration Example
 
 ```python
@@ -530,7 +557,9 @@ This project implements the MAID (Manifest-driven AI Development) methodology, w
 
 For detailed methodology documentation, see `docs/maid_specs.md`.
 
-## Development Workflow (Manual or AI-Assisted)
+## Development Workflow
+
+This workflow applies to all [usage modes](#usage-modes)—the phases remain the same regardless of who performs them.
 
 ### Phase 1: Goal Definition
 Define the high-level feature or bug fix.
