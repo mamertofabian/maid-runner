@@ -2,9 +2,8 @@
 
 **Project:** MAID Runner - Tool-Agnostic Validation Framework
 **Status:** Active Development
-**Current Version:** 1.2
-**Target Version:** 1.3
-**Last Updated:** 2025-01-10
+**Current Version:** 1.3
+**Last Updated:** 2025-11-30
 
 ## Vision
 
@@ -18,7 +17,7 @@ MAID Runner is a **validation-only framework** that ensures code artifacts align
 4. **No Interactive Prompts** (in core tools) - Automation-friendly
 5. **Focused Responsibility** - Do one thing exceptionally well
 
-## Current State (v1.2)
+## Current State (v1.3)
 
 ### ✅ Completed Features
 
@@ -62,7 +61,7 @@ MAID Runner is a **validation-only framework** that ensures code artifacts align
 - Integration tests for all features
 - Multi-language validation tests
 
-## Roadmap to v1.3
+## Roadmap
 
 ### Phase 1: Core Enhancements (Q1 2025)
 

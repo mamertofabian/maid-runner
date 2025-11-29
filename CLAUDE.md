@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**⚠️ CRITICAL: This project dogfoods MAID v1.2. Every code change MUST follow the MAID workflow.**
+**⚠️ CRITICAL: This project dogfoods MAID v1.3. Every code change MUST follow the MAID workflow.**
 
 **Note on Documentation Changes:** Pure documentation changes (modifying only `.md` files with no code artifacts) may be exempt from the full MAID workflow, but should still be reviewed for accuracy and consistency. When in doubt, create a manifest.
 
@@ -153,7 +153,7 @@ When using `--use-manifest-chain` in implementation mode, MAID Runner performs a
 
 This progressive compliance system helps identify accountability gaps and supports gradual migration to MAID.
 
-## Validation Modes (MAID v1.2)
+## Validation Modes (MAID v1.3)
 
 - **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
 - **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
