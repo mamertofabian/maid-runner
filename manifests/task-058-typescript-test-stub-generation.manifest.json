@@ -1,0 +1,57 @@
+{
+  "goal": "Add TypeScript/Jest test stub generation support to generate-stubs command - detects file language, generates .spec.ts files with Jest syntax, handles TypeScript-specific artifacts (interfaces, types, enums, namespaces)",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/validators/typescript_validator.py",
+    "tests/test_task_058_typescript_test_stub_generation.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "generate_test_stub",
+        "parameters": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "manifest_path", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "get_test_stub_path",
+        "parameters": [
+          {"name": "manifest_path", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_generate_typescript_test_stub",
+        "parameters": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "manifest_path", "type": "str"},
+          {"name": "stub_path", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_generate_python_test_stub",
+        "parameters": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "manifest_path", "type": "str"},
+          {"name": "stub_path", "type": "str"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_058_typescript_test_stub_generation.py", "-v"]
+}

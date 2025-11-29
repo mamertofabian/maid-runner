@@ -901,21 +901,30 @@ def generate_snapshot(
         # Get the stub path that will be generated
         stub_path = get_test_stub_path(str(manifest_path))
 
+        # Detect file language to determine test runner
+        target_language = detect_file_language(file_path)
+        if target_language == "typescript":
+            # Use Jest for TypeScript/JavaScript files
+            test_command = ["npx", "jest", stub_path]
+        else:
+            # Use pytest for Python files
+            test_command = ["pytest", stub_path, "-v"]
+
         # Add stub to validationCommand
         # Handle both single command (legacy) and multiple commands (enhanced) formats
         if "validationCommands" in manifest:
             # Enhanced format - add to the list
-            manifest["validationCommands"].append(["pytest", stub_path, "-v"])
+            manifest["validationCommands"].append(test_command)
         elif "validationCommand" in manifest and manifest["validationCommand"]:
             # Legacy format with existing command - convert to enhanced
             manifest["validationCommands"] = [
                 manifest["validationCommand"],
-                ["pytest", stub_path, "-v"],
+                test_command,
             ]
             del manifest["validationCommand"]
         else:
             # No existing commands - use legacy format for simplicity
-            manifest["validationCommand"] = ["pytest", stub_path, "-v"]
+            manifest["validationCommand"] = test_command
 
     # Write the manifest to file
     with open(manifest_path, "w", encoding="utf-8") as f:
@@ -936,6 +945,10 @@ def generate_snapshot(
 def get_test_stub_path(manifest_path: str) -> str:
     """Derive test stub file path from manifest filename.
 
+    Detects the target file language from the manifest and returns appropriate extension:
+    - TypeScript/JavaScript files (.ts, .tsx, .js, .jsx) -> .spec.ts
+    - Python files (.py) -> .py
+
     Args:
         manifest_path: Path to the manifest file
 
@@ -949,18 +962,35 @@ def get_test_stub_path(manifest_path: str) -> str:
     if stem.endswith(".manifest"):
         stem = stem[:-9]
 
-    # Convert manifest name to test name
-    # task-032-feature.manifest.json -> test_task_032_feature.py
-    # snapshot-example.manifest.json -> test_snapshot_example.py
-    # Handle edge cases: consecutive hyphens, leading/trailing hyphens
-    # Replace hyphens with underscores
-    test_stem = stem.replace("-", "_")
-    # Sanitize: collapse multiple consecutive underscores into one
-    test_stem = re.sub(r"_+", "_", test_stem)
-    # Remove leading/trailing underscores
-    test_stem = test_stem.strip("_")
+    # Detect target file language from manifest
+    target_language = "python"  # Default
+    try:
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
+            target_file = manifest_data.get("expectedArtifacts", {}).get("file", "")
+            if target_file:
+                target_language = detect_file_language(target_file)
+    except (json.JSONDecodeError, IOError, KeyError):
+        # If we can't read the manifest, default to Python for backward compatibility
+        pass
 
-    test_name = f"test_{test_stem}.py"
+    # Convert manifest name to test name
+    # task-032-feature.manifest.json -> test_task_032_feature.py or task-032-feature.spec.ts
+    # snapshot-example.manifest.json -> test_snapshot_example.py or snapshot-example.spec.ts
+
+    if target_language == "typescript":
+        # TypeScript: use .spec.ts extension with original stem (with hyphens)
+        test_name = f"{stem}.spec.ts"
+    else:
+        # Python: use test_ prefix and .py extension (with underscores)
+        # Handle edge cases: consecutive hyphens, leading/trailing hyphens
+        # Replace hyphens with underscores
+        test_stem = stem.replace("-", "_")
+        # Sanitize: collapse multiple consecutive underscores into one
+        test_stem = re.sub(r"_+", "_", test_stem)
+        # Remove leading/trailing underscores
+        test_stem = test_stem.strip("_")
+        test_name = f"test_{test_stem}.py"
 
     # Place in tests directory
     return str(Path("tests") / test_name)
@@ -968,6 +998,37 @@ def get_test_stub_path(manifest_path: str) -> str:
 
 def generate_test_stub(manifest_data: Dict[str, Any], manifest_path: str) -> str:
     """Generate a failing test stub from manifest data.
+
+    Detects the target file language and generates appropriate test stubs:
+    - Python files: pytest syntax with .py extension
+    - TypeScript/JavaScript files: Jest syntax with .spec.ts extension
+
+    Args:
+        manifest_data: The manifest dictionary
+        manifest_path: Path to the manifest file (for deriving test path)
+
+    Returns:
+        Path to the generated test stub file
+    """
+    # Get test file path (already detects language and returns correct extension)
+    stub_path = get_test_stub_path(manifest_path)
+
+    # Detect target file language
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+    target_language = detect_file_language(target_file) if target_file else "python"
+
+    # Route to appropriate generator
+    if target_language == "typescript":
+        return _generate_typescript_test_stub(manifest_data, manifest_path, stub_path)
+    else:
+        return _generate_python_test_stub(manifest_data, manifest_path, stub_path)
+
+
+def _generate_python_test_stub(
+    manifest_data: Dict[str, Any], manifest_path: str, stub_path: str
+) -> str:
+    """Generate a Python/pytest test stub.
 
     Creates a test file with:
     - Import statements for artifacts
@@ -978,13 +1039,12 @@ def generate_test_stub(manifest_data: Dict[str, Any], manifest_path: str) -> str
 
     Args:
         manifest_data: The manifest dictionary
-        manifest_path: Path to the manifest file (for deriving test path)
+        manifest_path: Path to the manifest file (for context)
+        stub_path: Path where the stub should be written
 
     Returns:
         Path to the generated test stub file
     """
-    # Get test file path
-    stub_path = get_test_stub_path(manifest_path)
     stub_file = Path(stub_path)
 
     # Ensure tests directory exists
@@ -1194,6 +1254,230 @@ def generate_test_stub(manifest_data: Dict[str, Any], manifest_path: str) -> str
             else:
                 lines.append("        # assert result is not None\n")
         lines.append("\n\n")
+
+    # Write the stub file
+    content = "".join(lines)
+    with open(stub_file, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    return str(stub_file)
+
+
+def _generate_typescript_test_stub(
+    manifest_data: Dict[str, Any], manifest_path: str, stub_path: str
+) -> str:
+    """Generate a TypeScript/Jest test stub.
+
+    Creates a test file with:
+    - ES6 import statements for artifacts
+    - Jest describe/it blocks
+    - Type checking for compile-time artifacts (interfaces/types)
+    - Runtime tests for classes, functions, enums, namespaces
+    - expect().toBe() assertions that intentionally fail
+
+    Args:
+        manifest_data: The manifest dictionary
+        manifest_path: Path to the manifest file (for context)
+        stub_path: Path where the stub should be written
+
+    Returns:
+        Path to the generated test stub file
+    """
+    stub_file = Path(stub_path)
+
+    # Ensure tests directory exists
+    stub_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Extract information from manifest
+    goal = manifest_data.get("goal", "Test implementation")
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+    artifacts = expected_artifacts.get("contains", [])
+
+    # Build content
+    lines = []
+
+    # File header comment
+    lines.append("/**\n")
+    lines.append(f" * Behavioral tests for {Path(manifest_path).stem}\n")
+    lines.append(" *\n")
+    lines.append(f" * Goal: {goal}\n")
+    lines.append(" *\n")
+    lines.append(
+        " * These tests verify that the implementation matches the manifest specification.\n"
+    )
+    lines.append(" * TODO: Implement the actual test logic.\n")
+    lines.append(" */\n\n")
+
+    # Build import statements
+    if target_file and artifacts:
+        # Normalize the file path
+        normalized_path = str(Path(target_file).as_posix())
+        # Remove leading ./
+        if normalized_path.startswith("./"):
+            normalized_path = normalized_path[2:]
+
+        # Convert to relative import path from tests/ directory
+        # e.g., "src/calculator.ts" -> "../src/calculator"
+        path_obj = Path(normalized_path)
+        # Remove extension for TypeScript imports
+        import_path = str(path_obj.parent / path_obj.stem)
+        # Make it a relative import
+        import_path = f"../{import_path}"
+
+        # Group artifacts by type for import
+        # Runtime-testable artifacts (can be imported and tested)
+        classes = [a["name"] for a in artifacts if a.get("type") == "class"]
+        functions = [
+            a["name"]
+            for a in artifacts
+            if a.get("type") == "function" and not a.get("class")
+        ]
+        enums = [a["name"] for a in artifacts if a.get("type") == "enum"]
+        namespaces = [a["name"] for a in artifacts if a.get("type") == "namespace"]
+
+        # Compile-time only artifacts (for type checking, not runtime testing)
+        interfaces = [a["name"] for a in artifacts if a.get("type") == "interface"]
+        types = [a["name"] for a in artifacts if a.get("type") == "type"]
+
+        # Generate import statement
+        import_items = classes + functions + enums + namespaces
+        type_items = interfaces + types
+
+        if import_items or type_items:
+            lines.append("import { ")
+            if import_items:
+                lines.append(", ".join(import_items))
+                if type_items:
+                    lines.append(", ")
+            if type_items:
+                lines.append("type " + ", type ".join(type_items))
+            lines.append(f" }} from '{import_path}';\n\n")
+
+    # Generate test suites for each artifact
+    for artifact in artifacts:
+        artifact_type = artifact.get("type")
+        artifact_name = artifact.get("name")
+        parent_class = artifact.get("class")
+
+        if not artifact_name:
+            continue
+
+        # Create describe block name
+        if parent_class:
+            describe_name = f"{parent_class}.{artifact_name}"
+        else:
+            describe_name = artifact_name
+
+        lines.append(f"describe('{describe_name}', () => {{\n")
+
+        # Handle different artifact types
+        if artifact_type in ["interface", "type"]:
+            # Interfaces and types are compile-time only
+            lines.append(
+                "  // NOTE: Interfaces and type aliases are compile-time constructs\n"
+            )
+            lines.append("  // They cannot be tested at runtime in TypeScript\n")
+            lines.append("  // Type checking is performed by the TypeScript compiler\n")
+            lines.append("  it('should be defined for type checking', () => {\n")
+            lines.append("    // This test ensures the file compiles successfully\n")
+            lines.append(
+                "    expect(true).toBe(false); // TODO: Remove once implementation is complete\n"
+            )
+            lines.append("  });\n")
+
+        elif artifact_type == "class":
+            # Test class instantiation
+            lines.append("  it('should be defined', () => {\n")
+            lines.append(f"    expect({artifact_name}).toBeDefined();\n")
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n\n")
+
+            lines.append("  it('should be instantiable', () => {\n")
+            lines.append("    // TODO: Provide appropriate constructor arguments\n")
+            lines.append(f"    // const instance = new {artifact_name}();\n")
+            lines.append(
+                "    // expect(instance).toBeInstanceOf(" + artifact_name + ");\n"
+            )
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n")
+
+        elif artifact_type == "function":
+            # Test function existence and behavior
+            if parent_class:
+                # Method of a class
+                lines.append(f"  it('should exist on {parent_class}', () => {{\n")
+                lines.append(
+                    f"    // TODO: Create instance of {parent_class} and verify method\n"
+                )
+                lines.append(f"    // const instance = new {parent_class}();\n")
+                lines.append(
+                    f"    // expect(typeof instance.{artifact_name}).toBe('function');\n"
+                )
+            else:
+                # Standalone function
+                lines.append("  it('should be defined', () => {\n")
+                lines.append(f"    expect({artifact_name}).toBeDefined();\n")
+                lines.append(f"    expect(typeof {artifact_name}).toBe('function');\n")
+
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n\n")
+
+            # Test function behavior
+            params = artifact.get("parameters", artifact.get("args", []))
+            lines.append("  it('should work correctly', () => {\n")
+            if params:
+                param_names = ", ".join([p.get("name", "arg") for p in params])
+                lines.append(
+                    f"    // TODO: Provide appropriate test values for: {param_names}\n"
+                )
+                if parent_class:
+                    lines.append(f"    // const instance = new {parent_class}();\n")
+                    lines.append(
+                        f"    // const result = instance.{artifact_name}(/* args */);\n"
+                    )
+                else:
+                    lines.append(
+                        f"    // const result = {artifact_name}(/* args */);\n"
+                    )
+            else:
+                if parent_class:
+                    lines.append(f"    // const instance = new {parent_class}();\n")
+                    lines.append(f"    // const result = instance.{artifact_name}();\n")
+                else:
+                    lines.append(f"    // const result = {artifact_name}();\n")
+            lines.append("    // expect(result).toBe(/* expected value */);\n")
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n")
+
+        elif artifact_type == "enum":
+            # Test enum values
+            lines.append("  it('should have expected values', () => {\n")
+            lines.append(f"    expect({artifact_name}).toBeDefined();\n")
+            lines.append("    // TODO: Verify enum values\n")
+            lines.append(f"    // expect({artifact_name}.SomeValue).toBeDefined();\n")
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n")
+
+        elif artifact_type == "namespace":
+            # Test namespace exports
+            lines.append("  it('should export expected members', () => {\n")
+            lines.append(f"    expect({artifact_name}).toBeDefined();\n")
+            lines.append("    // TODO: Verify namespace exports\n")
+            lines.append(
+                f"    // expect(typeof {artifact_name}.someFunction).toBe('function');\n"
+            )
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n")
+
+        else:
+            # Generic test for other artifact types
+            lines.append("  it('should be defined', () => {\n")
+            lines.append(f"    // TODO: Implement test for {artifact_type}\n")
+            lines.append("    expect(true).toBe(false); // TODO: Implement test\n")
+            lines.append("  });\n")
+
+        lines.append("});\n\n")
 
     # Write the stub file
     content = "".join(lines)
