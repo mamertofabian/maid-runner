@@ -1,0 +1,22 @@
+{
+  "version": "1",
+  "goal": "Extend manifest schema to support TypeScript artifact types",
+  "description": "Adds TypeScript-specific artifact types (interface, type, enum, namespace) to the manifest schema while maintaining full backward compatibility with existing Python manifests. Enables proper representation of TypeScript code in MAID manifests without breaking existing functionality.",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/schemas/manifest.schema.json",
+    "contains": []
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_055_schema_typescript_types.py",
+    "-v"
+  ]
+}
