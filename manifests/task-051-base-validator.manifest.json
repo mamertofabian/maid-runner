@@ -1,0 +1,51 @@
+{
+  "version": "1",
+  "goal": "Create BaseValidator abstract class for language-agnostic validation",
+  "description": "Defines the abstract interface that all language-specific validators must implement. This establishes the contract for artifact collection and validation. The base class provides the interface while deferring language-specific AST parsing to subclasses.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validators/base_validator.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/validators/types.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/base_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ArtifactCollection"
+      },
+      {
+        "type": "class",
+        "name": "BaseValidator",
+        "bases": ["ABC"]
+      },
+      {
+        "type": "function",
+        "name": "collect_artifacts",
+        "class": "BaseValidator",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "supports_file",
+        "class": "BaseValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_051_base_validator.py",
+    "-v"
+  ]
+}

@@ -1282,6 +1282,32 @@ def _merge_expected_artifacts(
     return merged_artifacts
 
 
+def _get_validator_for_file(file_path: str):
+    """Get the appropriate validator for a file based on its extension.
+
+    Args:
+        file_path: Path to the file
+
+    Returns:
+        Validator instance (PythonValidator or TypeScriptValidator)
+
+    Raises:
+        ValueError: If file extension is not supported
+    """
+    from maid_runner.validators.python_validator import PythonValidator
+    from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+    # Try each validator
+    validators = [PythonValidator(), TypeScriptValidator()]
+
+    for validator in validators:
+        if validator.supports_file(file_path):
+            return validator
+
+    # Fallback to Python validator for backward compatibility
+    return PythonValidator()
+
+
 def validate_with_ast(
     manifest_data, test_file_path, use_manifest_chain=False, validation_mode=None
 ):
@@ -1290,17 +1316,37 @@ def validate_with_ast(
 
     Args:
         manifest_data: Dictionary containing the manifest with expectedArtifacts
-        test_file_path: Path to the Python test file to analyze
+        test_file_path: Path to the file to analyze (Python, TypeScript, JavaScript, etc.)
         use_manifest_chain: If True, discovers and merges all related manifests
         validation_mode: _VALIDATION_MODE_IMPLEMENTATION or _VALIDATION_MODE_BEHAVIORAL mode, auto-detected if None
 
     Raises:
         AlignmentError: If any expected artifact is not found in the code
     """
-    # Parse and collect artifacts from the code
-    tree = _parse_file(test_file_path)
+    # Get the appropriate validator for this file type
+    validator = _get_validator_for_file(test_file_path)
     validation_mode = validation_mode or _VALIDATION_MODE_IMPLEMENTATION
-    collector = _collect_artifacts_from_ast(tree, validation_mode)
+
+    # Collect artifacts using the language-specific validator
+    artifacts = validator.collect_artifacts(test_file_path, validation_mode)
+
+    # Convert to collector-like object for compatibility
+    class _CollectorShim:
+        def __init__(self, artifacts_dict):
+            self.found_classes = artifacts_dict.get("found_classes", set())
+            self.found_class_bases = artifacts_dict.get("found_class_bases", {})
+            self.found_attributes = artifacts_dict.get("found_attributes", {})
+            self.variable_to_class = artifacts_dict.get("variable_to_class", {})
+            self.found_functions = artifacts_dict.get("found_functions", {})
+            self.found_methods = artifacts_dict.get("found_methods", {})
+            self.found_function_types = artifacts_dict.get("found_function_types", {})
+            self.found_method_types = artifacts_dict.get("found_method_types", {})
+            self.used_classes = artifacts_dict.get("used_classes", set())
+            self.used_functions = artifacts_dict.get("used_functions", set())
+            self.used_methods = artifacts_dict.get("used_methods", {})
+            self.used_arguments = artifacts_dict.get("used_arguments", set())
+
+    collector = _CollectorShim(artifacts)
 
     # Get expected artifacts
     expected_items = _get_expected_artifacts(
@@ -1437,14 +1483,14 @@ def _validate_editable_files(manifest_data: dict, validation_mode: str) -> None:
 
 
 def collect_behavioral_artifacts(file_path: str) -> dict:
-    """Collect artifacts used in a Python file for behavioral validation.
+    """Collect artifacts used in a file for behavioral validation.
 
-    This is a public wrapper around _ArtifactCollector for behavioral validation.
-    It analyzes a Python file and returns information about what classes, functions,
+    This function uses the appropriate language-specific validator based on file extension.
+    It analyzes the file and returns information about what classes, functions,
     and methods are used/called in the code.
 
     Args:
-        file_path: Path to the Python file to analyze
+        file_path: Path to the file to analyze (Python, TypeScript, JavaScript, etc.)
 
     Returns:
         Dictionary containing:
@@ -1455,17 +1501,17 @@ def collect_behavioral_artifacts(file_path: str) -> dict:
 
     Raises:
         FileNotFoundError: If the file doesn't exist
-        SyntaxError: If the file contains invalid Python syntax
+        SyntaxError: If the file contains invalid syntax
     """
-    tree = _parse_file(file_path)
-    collector = _ArtifactCollector(validation_mode=_VALIDATION_MODE_BEHAVIORAL)
-    collector.visit(tree)
+    # Use the appropriate validator for this file type
+    validator = _get_validator_for_file(file_path)
+    artifacts = validator.collect_artifacts(file_path, _VALIDATION_MODE_BEHAVIORAL)
 
     return {
-        "used_classes": collector.used_classes,
-        "used_functions": collector.used_functions,
-        "used_methods": collector.used_methods,
-        "used_arguments": collector.used_arguments,
+        "used_classes": artifacts.get("used_classes", set()),
+        "used_functions": artifacts.get("used_functions", set()),
+        "used_methods": artifacts.get("used_methods", {}),
+        "used_arguments": artifacts.get("used_arguments", set()),
     }
 
 

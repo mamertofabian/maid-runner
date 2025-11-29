@@ -1,0 +1,48 @@
+{
+  "version": "1",
+  "goal": "Implement TypeScriptValidator for validating TypeScript/JavaScript code",
+  "description": "Creates TypeScriptValidator class that implements BaseValidator interface for TypeScript and JavaScript files. Supports .ts, .tsx, .js, .jsx files. Provides basic artifact collection for classes, functions, and interfaces. This completes the multi-language refactoring, enabling MAID to validate TypeScript/JavaScript projects alongside Python.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py",
+    "maid_runner/validators/python_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "TypeScriptValidator",
+        "bases": ["BaseValidator"]
+      },
+      {
+        "type": "function",
+        "name": "collect_artifacts",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "supports_file",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_053_typescript_validator.py",
+    "-v"
+  ]
+}

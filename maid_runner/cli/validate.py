@@ -977,17 +977,14 @@ def run_validation(
 
             # IMPLEMENTATION VALIDATION
             # Only run AST validation for Python files
-            if file_path.endswith(".py"):
-                validate_with_ast(
-                    manifest_data,
-                    file_path,
-                    use_manifest_chain=use_manifest_chain,
-                    validation_mode=validation_mode,
-                )
-            else:
-                # For non-Python files, just verify they exist (already done above)
-                if not quiet:
-                    print(f"⚠ Skipping AST validation for non-Python file: {file_path}")
+            # Validate using appropriate language validator (Python, TypeScript, etc.)
+            # The validator factory in manifest_validator.py routes to the correct validator
+            validate_with_ast(
+                manifest_data,
+                file_path,
+                use_manifest_chain=use_manifest_chain,
+                validation_mode=validation_mode,
+            )
 
         # Success message
         if not quiet:
