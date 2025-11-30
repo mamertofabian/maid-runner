@@ -5,7 +5,7 @@ argument-hint: [optional: specific error context]
 
 Fix errors: $ARGUMENTS
 
-Invokes maid-fixer agent to:
+Use the maid-fixer subagent to:
 
 1. Collect errors: `maid validate` and `maid test`
 2. Fix one issue at a time

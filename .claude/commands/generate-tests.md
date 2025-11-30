@@ -5,7 +5,7 @@ argument-hint: [manifest-path]
 
 Generate tests for manifest: $1
 
-Invokes maid-test-designer agent to:
+Use the maid-test-designer subagent to:
 
 1. Read manifest expectedArtifacts
 2. Create `tests/test_task_XXX_*.py`
