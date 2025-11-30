@@ -5,7 +5,7 @@ argument-hint: [optional: manifest-path or scope]
 
 Audit compliance: $ARGUMENTS
 
-Invokes maid-auditor agent to:
+Use the maid-auditor subagent to:
 
 1. **CRITICAL - Validate ALL (no arguments)**:
    ```

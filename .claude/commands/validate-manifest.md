@@ -5,7 +5,7 @@ argument-hint: [manifest-path]
 
 Validate manifest: $1
 
-Can invoke maid-plan-reviewer agent if tests exist.
+Can use the maid-plan-reviewer subagent if tests exist.
 
 Tasks:
 1. Validate manifest structure: `maid validate $1 --use-manifest-chain`

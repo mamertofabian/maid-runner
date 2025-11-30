@@ -5,7 +5,7 @@ argument-hint: [manifest-path]
 
 Implement: $1
 
-Invokes maid-developer agent to:
+Use the maid-developer subagent to:
 
 1. Confirm Red phase: tests fail
 2. Implement code to make tests pass

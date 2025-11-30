@@ -5,7 +5,7 @@ argument-hint: [goal description]
 
 Create manifest for: $ARGUMENTS
 
-Invokes maid-manifest-architect agent to:
+Use the maid-manifest-architect subagent to:
 
 1. Find next task number
 2. Create `manifests/task-XXX-description.manifest.json`

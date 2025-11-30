@@ -5,7 +5,7 @@ argument-hint: [goal description]
 
 Create complete plan for: $ARGUMENTS
 
-Invokes maid-manifest-architect + maid-test-designer agents to:
+Use the maid-manifest-architect and maid-test-designer subagents to:
 
 1. Phase 1: Create manifest
 2. Phase 2: Create behavioral tests that USE artifacts

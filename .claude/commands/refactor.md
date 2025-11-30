@@ -5,7 +5,7 @@ argument-hint: [file-path or task-number]
 
 Refactor: $1
 
-Invokes maid-refactorer agent to:
+Use the maid-refactorer subagent to:
 
 1. Ensure tests pass first
 2. Refactor (remove duplication, improve naming, etc.)
