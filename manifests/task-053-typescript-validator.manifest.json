@@ -1,0 +1,367 @@
+{
+  "version": "1",
+  "goal": "Implement production-ready TypeScriptValidator with tree-sitter for 99.9% TypeScript coverage",
+  "description": "Creates comprehensive TypeScriptValidator using tree-sitter-typescript for accurate AST parsing. Supports all TypeScript/JavaScript constructs: classes (abstract, generic, with decorators), interfaces, functions (async, arrow, generic), methods (static, private, getters/setters), type annotations, type aliases, enums, decorators, and complex patterns. Handles .ts, .tsx, .js, .jsx files with production-quality validation for real-world TypeScript projects including Angular, React, NestJS, and Vue.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "editableFiles": [
+    "pyproject.toml"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py",
+    "maid_runner/validators/python_validator.py",
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "TypeScriptValidator",
+        "bases": ["BaseValidator"]
+      },
+      {
+        "type": "function",
+        "name": "__init__",
+        "class": "TypeScriptValidator",
+        "args": []
+      },
+      {
+        "type": "function",
+        "name": "supports_file",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "collect_artifacts",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_parse_typescript_file",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_collect_implementation_artifacts",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_collect_behavioral_artifacts",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_traverse_tree",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"},
+          {"name": "callback"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_get_node_text",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_extract_identifier",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_extract_classes",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_interfaces",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_type_aliases",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_enums",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_namespaces",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_functions",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_extract_arrow_functions",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_extract_methods",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_extract_parameters",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "params_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_extract_class_bases",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "class_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_is_exported",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_extract_class_usage",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_function_calls",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_method_calls",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_get_class_name_from_node",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_get_function_name_from_node",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_find_class_methods",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "class_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_is_abstract_class",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_is_static_method",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_has_decorator",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_is_getter_or_setter",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_is_async",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_handle_optional_parameter",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "param_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_handle_rest_parameter",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "param_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_handle_destructured_parameter",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "param_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_get_language_for_file",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_053_typescript_validator.py",
+    "-v"
+  ]
+}

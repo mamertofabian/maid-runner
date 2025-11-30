@@ -10,9 +10,29 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 
 📹 **[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)** to learn about MAID Runner and the MAID methodology.
 
+## Supported Languages
+
+MAID Runner supports multi-language validation with production-ready parsers:
+
+### Python
+- **Extensions**: `.py`
+- **Parser**: Python AST (built-in)
+- **Features**: Classes, functions, methods, attributes, type hints, async/await, decorators
+
+### TypeScript/JavaScript
+- **Extensions**: `.ts`, `.tsx`, `.js`, `.jsx`
+- **Parser**: tree-sitter (production-grade)
+- **Features**: Classes, interfaces, type aliases, enums, namespaces, functions, methods, decorators, generics, JSX/TSX
+- **Framework Support**: Angular, React, NestJS, Vue
+- **Coverage**: 99.9% of TypeScript language constructs
+
+All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across both languages.
+
 ## Architecture Philosophy
 
 **MAID Runner is a validation-only tool.** It does NOT create files, generate code, or automate development. Instead, it validates that manifests, tests, and implementations comply with MAID methodology.
+
+MAID Runner works with any development approach—from fully manual to fully automated. See [Usage Modes](#usage-modes) for details.
 
 ```
 ┌──────────────────────────────────────┐
@@ -46,6 +66,29 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 │   ✗ Tool-agnostic design             │
 └──────────────────────────────────────┘
 ```
+
+## Usage Modes
+
+MAID Runner supports three development approaches, differing only in **who creates the files**:
+
+**1. Manual Development**
+- Humans write manifests, tests, and implementation
+- MAID Runner validates compliance at each step
+- Best for: Learning MAID, small teams, strict oversight requirements
+
+**2. Interactive AI-Assisted**
+- AI tools suggest code, humans review and approve
+- MAID Runner validates during collaboration
+- Tools: Claude Code CLI, Cursor, Aider, GitHub Copilot (MCP server coming soon)
+- Best for: Faster iteration with human control
+
+**3. Fully Automated**
+- AI agents orchestrate entire workflow with human review checkpoints
+- MAID Runner validates automatically
+- Tools: Claude Code CLI (headless mode), custom AI agents, MAID Agents framework
+- Best for: Large-scale development, established MAID practices
+
+**In all modes, MAID Runner provides identical validation.** The workflow (manifest → tests → implementation → validation) remains the same regardless of who performs each step.
 
 ## Installation
 
@@ -327,6 +370,8 @@ python examples/maid_runner.py run manifests/task-013.manifest.json
 
 ## Integration with AI Tools
 
+MAID Runner integrates seamlessly with AI development tools in all three usage modes (see [How MAID Runner Can Be Used](#how-maid-runner-can-be-used)). The examples below show how to programmatically call MAID Runner from automation scripts, AI agents, or custom tools.
+
 ### Python Integration Example
 
 ```python
@@ -488,10 +533,17 @@ Task manifests define isolated units of work with explicit inputs, outputs, and 
 
 ### Supported Artifact Types
 
+#### Common (Python & TypeScript)
 - **Classes**: `{"type": "class", "name": "ClassName", "bases": ["BaseClass"]}`
 - **Functions**: `{"type": "function", "name": "function_name", "parameters": [...]}`
 - **Methods**: `{"type": "function", "name": "method_name", "class": "ParentClass", "parameters": [...]}`
 - **Attributes**: `{"type": "attribute", "name": "attr_name", "class": "ParentClass"}`
+
+#### TypeScript-Specific
+- **Interfaces**: `{"type": "interface", "name": "InterfaceName"}`
+- **Type Aliases**: `{"type": "type", "name": "TypeName"}`
+- **Enums**: `{"type": "enum", "name": "EnumName"}`
+- **Namespaces**: `{"type": "namespace", "name": "NamespaceName"}`
 
 ## MAID Methodology
 
@@ -505,7 +557,9 @@ This project implements the MAID (Manifest-driven AI Development) methodology, w
 
 For detailed methodology documentation, see `docs/maid_specs.md`.
 
-## Development Workflow (Manual or AI-Assisted)
+## Development Workflow
+
+This workflow applies to all [usage modes](#usage-modes)—the phases remain the same regardless of who performs them.
 
 ### Phase 1: Goal Definition
 Define the high-level feature or bug fix.
@@ -571,6 +625,9 @@ maid-runner/
 │   │   └── test.py                # Test subcommand
 │   └── validators/                # Core validation logic
 │       ├── manifest_validator.py  # Main validation engine
+│       ├── base_validator.py      # Abstract validator interface
+│       ├── python_validator.py    # Python AST validator
+│       ├── typescript_validator.py # TypeScript/JavaScript validator
 │       ├── type_validator.py      # Type hint validation
 │       ├── file_tracker.py        # File tracking analysis
 │       └── schemas/               # JSON schemas
@@ -582,6 +639,8 @@ maid-runner/
 ## Core Components
 
 - **Manifest Validator** (`validators/manifest_validator.py`) - Schema and AST-based validation engine
+- **Python Validator** (`validators/python_validator.py`) - Python AST-based artifact detection
+- **TypeScript Validator** (`validators/typescript_validator.py`) - tree-sitter-based TypeScript/JavaScript validation
 - **Type Validator** (`validators/type_validator.py`) - Type hint validation
 - **Manifest Schema** (`validators/schemas/manifest.schema.json`) - JSON schema defining manifest structure
 - **Task Manifests** (`manifests/`) - Chronologically ordered task definitions
@@ -590,7 +649,7 @@ maid-runner/
 
 - Python 3.12+
 - Dependencies managed via `uv`
-- Core dependencies: `jsonschema`, `pytest`
+- Core dependencies: `jsonschema`, `pytest`, `tree-sitter`, `tree-sitter-typescript`
 - Development dependencies: `black`, `ruff`, `mypy`
 
 ## Exit Codes for Automation

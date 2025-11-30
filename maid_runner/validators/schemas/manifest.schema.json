@@ -71,7 +71,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "type": { "enum": ["class", "function", "attribute", "parameter"] },
+                "type": { "enum": ["class", "function", "attribute", "parameter", "interface", "type", "enum", "namespace"] },
                 "name": { "type": "string" },
                 "description": { "type": "string", "description": "Optional description of what this artifact does" },
                 "artifactKind": { "type": "string", "description": "Optional semantic kind of artifact (e.g., 'type', 'interface', 'utility')" },
@@ -151,7 +151,7 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "type": { "enum": ["class", "function", "attribute", "parameter"] },
+                  "type": { "enum": ["class", "function", "attribute", "parameter", "interface", "type", "enum", "namespace"] },
                   "name": { "type": "string" },
                   "description": { "type": "string", "description": "Optional description of what this artifact does" },
                   "artifactKind": { "type": "string", "description": "Optional semantic kind of artifact (e.g., 'type', 'interface', 'utility')" },

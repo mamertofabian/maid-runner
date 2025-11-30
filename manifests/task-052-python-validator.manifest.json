@@ -1,0 +1,48 @@
+{
+  "version": "1",
+  "goal": "Create PythonValidator with Python-specific AST logic from manifest_validator.py",
+  "description": "Extracts all private Python AST parsing logic from manifest_validator.py into PythonValidator class. This includes _ArtifactCollector (renamed to _PythonArtifactCollector), type string helpers, and all Python-specific validation functions. The public API in manifest_validator.py remains unchanged - it delegates to PythonValidator internally. This enables multi-language support while maintaining backward compatibility.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validators/python_validator.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/validators/base_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/python_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "PythonValidator",
+        "bases": ["BaseValidator"]
+      },
+      {
+        "type": "function",
+        "name": "collect_artifacts",
+        "class": "PythonValidator",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "validation_mode", "type": "str"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "supports_file",
+        "class": "PythonValidator",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_052_python_validator.py",
+    "-v"
+  ]
+}

@@ -461,8 +461,10 @@ class Calculator:
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
 
-        # Generate snapshot
-        result_path = generate_snapshot(str(test_file), str(output_dir))
+        # Generate snapshot (skip test stub to avoid side effects)
+        result_path = generate_snapshot(
+            str(test_file), str(output_dir), skip_test_stub=True
+        )
 
         # Validate the result
         assert isinstance(result_path, str)
@@ -498,7 +500,9 @@ class ClassOne:
         output_dir = tmp_path / "snapshots"
         output_dir.mkdir()
 
-        result_path = generate_snapshot(str(test_file), str(output_dir))
+        result_path = generate_snapshot(
+            str(test_file), str(output_dir), skip_test_stub=True
+        )
 
         # Load the manifest
         with open(result_path, "r") as f:
@@ -548,8 +552,10 @@ class TestService:
         manifest_2_path = manifests_dir / "task-002-update.manifest.json"
         manifest_2_path.write_text(json.dumps(manifest_2, indent=2))
 
-        # Generate snapshot
-        result_path = generate_snapshot(str(test_file), str(manifests_dir))
+        # Generate snapshot (skip test stub to avoid side effects)
+        result_path = generate_snapshot(
+            str(test_file), str(manifests_dir), skip_test_stub=True
+        )
 
         # Load and verify supersedes
         with open(result_path, "r") as f:
@@ -571,7 +577,9 @@ class TestService:
         output_dir = tmp_path / "out"
         output_dir.mkdir()
 
-        result_path = generate_snapshot(str(test_file), str(output_dir))
+        result_path = generate_snapshot(
+            str(test_file), str(output_dir), skip_test_stub=True
+        )
 
         # Filename should be unique and include "snapshot" or similar
         filename = Path(result_path).name
@@ -594,7 +602,9 @@ class Validator:
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
 
-        result_path = generate_snapshot(str(test_file), str(output_dir))
+        result_path = generate_snapshot(
+            str(test_file), str(output_dir), skip_test_stub=True
+        )
 
         # Load the manifest
         with open(result_path, "r") as f:
@@ -626,8 +636,10 @@ class Validator:
         output_dir = tmp_path / "new" / "nested" / "dir"
         assert not output_dir.exists()
 
-        # Generate snapshot - should create directory
-        result_path = generate_snapshot(str(test_file), str(output_dir))
+        # Generate snapshot - should create directory (skip test stub to avoid side effects)
+        result_path = generate_snapshot(
+            str(test_file), str(output_dir), skip_test_stub=True
+        )
 
         # Directory should now exist
         assert output_dir.exists()
@@ -654,6 +666,7 @@ class TestMainCLI:
             str(test_file),
             "--output-dir",
             str(output_dir),
+            "--skip-test-stub",
         ]
 
         with patch("sys.argv", test_args):
@@ -679,7 +692,7 @@ class TestMainCLI:
         try:
             os.chdir(tmp_path)
 
-            test_args = ["generate_snapshot.py", str(test_file)]
+            test_args = ["generate_snapshot.py", str(test_file), "--skip-test-stub"]
 
             with patch("sys.argv", test_args):
                 # Should execute with default output directory
@@ -727,6 +740,7 @@ class TestMainCLI:
             str(test_file),
             "--output-dir",
             str(output_dir),
+            "--skip-test-stub",
         ]
 
         with patch("sys.argv", test_args):
@@ -777,6 +791,7 @@ def module_function(param: str) -> Dict:
             str(test_file),
             "--output-dir",
             str(output_dir),
+            "--skip-test-stub",
         ]
 
         with patch("sys.argv", test_args):
@@ -847,10 +862,12 @@ def create_default_user() -> User:
         assert manifest is not None
         assert "expectedArtifacts" in manifest
 
-        # Step 4: Generate complete snapshot
+        # Step 4: Generate complete snapshot (skip test stub to avoid side effects)
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
-        manifest_path = generate_snapshot(str(source_file), str(output_dir))
+        manifest_path = generate_snapshot(
+            str(source_file), str(output_dir), skip_test_stub=True
+        )
 
         # Step 5: Validate the generated manifest
         with open(manifest_path, "r") as f:
@@ -891,10 +908,12 @@ class DataProcessor:
         impl_file = tmp_path / "processor.py"
         impl_file.write_text(code)
 
-        # Generate snapshot
+        # Generate snapshot (skip test stub to avoid side effects)
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
-        snapshot_path = generate_snapshot(str(impl_file), str(output_dir))
+        snapshot_path = generate_snapshot(
+            str(impl_file), str(output_dir), skip_test_stub=True
+        )
 
         # Load the snapshot
         with open(snapshot_path, "r") as f:

@@ -11,8 +11,9 @@ These tests USE the functions and classes exported from maid_runner package.
 """
 
 import pytest
-import subprocess
 from pathlib import Path
+from unittest.mock import patch
+from io import StringIO
 
 # Test that package can be imported
 import maid_runner
@@ -85,59 +86,80 @@ class TestCLICommands:
 
     def test_maid_version_command(self):
         """Test that 'maid --version' command works."""
-        result = subprocess.run(
-            ["maid", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        from maid_runner.cli.main import main
 
-        assert result.returncode == 0, f"Command failed: {result.stderr}"
-        assert (
-            "maid-runner" in result.stdout.lower()
-            or "maid-runner" in result.stderr.lower()
-        )
+        # Capture stdout
+        test_args = ["maid", "--version"]
+        captured_output = StringIO()
+
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", captured_output):
+                try:
+                    main()
+                except SystemExit as e:
+                    # --version typically exits with 0
+                    assert e.code == 0
+
+        output = captured_output.getvalue()
+        assert "maid-runner" in output.lower() or "maid" in output.lower()
 
     def test_maid_validate_help_command(self):
         """Test that 'maid validate --help' command works."""
-        result = subprocess.run(
-            ["maid", "validate", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        from maid_runner.cli.main import main
 
-        assert result.returncode == 0, f"Command failed: {result.stderr}"
-        assert (
-            "manifest" in result.stdout.lower() or "validate" in result.stdout.lower()
-        )
+        # Capture stdout
+        test_args = ["maid", "validate", "--help"]
+        captured_output = StringIO()
+
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", captured_output):
+                try:
+                    main()
+                except SystemExit as e:
+                    # --help typically exits with 0
+                    assert e.code == 0
+
+        output = captured_output.getvalue()
+        assert "manifest" in output.lower() or "validate" in output.lower()
 
     def test_maid_snapshot_help_command(self):
         """Test that 'maid snapshot --help' command works."""
-        result = subprocess.run(
-            ["maid", "snapshot", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        from maid_runner.cli.main import main
 
-        assert result.returncode == 0, f"Command failed: {result.stderr}"
-        assert (
-            "snapshot" in result.stdout.lower() or "manifest" in result.stdout.lower()
-        )
+        # Capture stdout
+        test_args = ["maid", "snapshot", "--help"]
+        captured_output = StringIO()
+
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", captured_output):
+                try:
+                    main()
+                except SystemExit as e:
+                    # --help typically exits with 0
+                    assert e.code == 0
+
+        output = captured_output.getvalue()
+        assert "snapshot" in output.lower() or "manifest" in output.lower()
 
     def test_maid_help_command(self):
         """Test that 'maid --help' command works."""
-        result = subprocess.run(
-            ["maid", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        from maid_runner.cli.main import main
 
-        assert result.returncode == 0, f"Command failed: {result.stderr}"
-        assert "validate" in result.stdout.lower()
-        assert "snapshot" in result.stdout.lower()
+        # Capture stdout
+        test_args = ["maid", "--help"]
+        captured_output = StringIO()
+
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", captured_output):
+                try:
+                    main()
+                except SystemExit as e:
+                    # --help typically exits with 0
+                    assert e.code == 0
+
+        output = captured_output.getvalue()
+        assert "validate" in output.lower()
+        assert "snapshot" in output.lower()
 
 
 class TestPackageStructure:

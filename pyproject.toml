@@ -21,6 +21,8 @@ classifiers = [
 ]
 dependencies = [
     "jsonschema>=4.25.1",
+    "tree-sitter>=0.23.2",
+    "tree-sitter-typescript>=0.23.2",
 ]
 
 [project.urls]
@@ -50,4 +52,4 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "validators/schemas/*.json", "docs/maid_specs.md"]
+maid_runner = ["py.typed", "validators/schemas/*.json", "docs/maid_specs.md", "claude/agents/*.md", "claude/commands/*.md"]

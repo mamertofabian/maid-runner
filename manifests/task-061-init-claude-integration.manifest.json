@@ -1,0 +1,60 @@
+{
+  "goal": "Add Claude Code integration files (.claude/agents and .claude/commands) to maid init command with user confirmation defaulting to Yes",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/init.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/claude/agents/maid-manifest-architect.md",
+    "maid_runner/claude/agents/maid-test-designer.md",
+    "maid_runner/claude/agents/maid-developer.md",
+    "maid_runner/claude/agents/maid-refactorer.md",
+    "maid_runner/claude/agents/maid-auditor.md",
+    "maid_runner/claude/agents/maid-plan-reviewer.md",
+    "maid_runner/claude/agents/maid-fixer.md",
+    "maid_runner/claude/agents/README.md",
+    "maid_runner/claude/commands/audit.md",
+    "maid_runner/claude/commands/enhance-manifest.md",
+    "maid_runner/claude/commands/fix.md",
+    "maid_runner/claude/commands/generate-manifest.md",
+    "maid_runner/claude/commands/generate-tests.md",
+    "maid_runner/claude/commands/implement.md",
+    "maid_runner/claude/commands/improve-tests.md",
+    "maid_runner/claude/commands/plan.md",
+    "maid_runner/claude/commands/pypi-release.md",
+    "maid_runner/claude/commands/refactor.md",
+    "maid_runner/claude/commands/run-validation.md",
+    "maid_runner/claude/commands/spike.md",
+    "maid_runner/claude/commands/validate-manifest.md"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "copy_claude_agents",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_claude_commands",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_061_init_claude_integration.py",
+    "-v"
+  ]
+}

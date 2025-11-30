@@ -1,0 +1,74 @@
+{
+  "version": "1",
+  "goal": "Enable TypeScript/JavaScript test execution in MAID validation commands",
+  "description": "Creates TypeScript test runner utilities that integrate with the existing 'maid test' command. Detects TypeScript project configuration (package.json), normalizes TypeScript test commands (npm/pnpm/yarn test, tsc --noEmit), and ensures proper execution environment. Supports common test runners (Jest, Vitest) and type checking tools.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validators/typescript_test_runner.py"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/test.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/utils.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_test_runner.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "detect_typescript_project",
+        "args": [
+          {"name": "project_root", "type": "Path"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "get_package_manager",
+        "args": [
+          {"name": "project_root", "type": "Path"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "is_typescript_command",
+        "args": [
+          {"name": "cmd", "type": "list"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "normalize_typescript_command",
+        "args": [
+          {"name": "cmd", "type": "list"},
+          {"name": "project_root", "type": "Path"}
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "get_test_script_from_package_json",
+        "args": [
+          {"name": "project_root", "type": "Path"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "has_typescript_installed",
+        "args": [
+          {"name": "project_root", "type": "Path"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_054_typescript_test_runner.py",
+    "-v"
+  ]
+}

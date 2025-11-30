@@ -1,0 +1,64 @@
+{
+  "goal": "Add Claude Code sync infrastructure for package distribution - create sync script, update build configuration, and ensure .claude/ files are bundled in PyPI package",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "scripts/sync_claude_files.py"
+  ],
+  "editableFiles": [
+    "pyproject.toml",
+    ".gitignore",
+    "Makefile"
+  ],
+  "readonlyFiles": [
+    ".claude/agents/maid-manifest-architect.md",
+    ".claude/agents/maid-test-designer.md",
+    ".claude/agents/maid-developer.md",
+    ".claude/agents/maid-refactorer.md",
+    ".claude/agents/maid-auditor.md",
+    ".claude/agents/maid-plan-reviewer.md",
+    ".claude/agents/maid-fixer.md",
+    ".claude/agents/README.md",
+    ".claude/commands/audit.md",
+    ".claude/commands/enhance-manifest.md",
+    ".claude/commands/fix.md",
+    ".claude/commands/generate-manifest.md",
+    ".claude/commands/generate-tests.md",
+    ".claude/commands/implement.md",
+    ".claude/commands/improve-tests.md",
+    ".claude/commands/plan.md",
+    ".claude/commands/pypi-release.md",
+    ".claude/commands/refactor.md",
+    ".claude/commands/run-validation.md",
+    ".claude/commands/spike.md",
+    ".claude/commands/validate-manifest.md"
+  ],
+  "expectedArtifacts": {
+    "file": "scripts/sync_claude_files.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "sync_agents",
+        "args": [],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "sync_commands",
+        "args": [],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "args": [],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_060_claude_sync_infrastructure.py",
+    "-v"
+  ]
+}

@@ -19,6 +19,10 @@ from maid_runner.utils import (
     print_no_manifests_found_message,
     validate_manifest_version,
 )
+from maid_runner.validators.typescript_test_runner import (
+    is_typescript_command,
+    normalize_typescript_command,
+)
 
 
 def execute_validation_commands(
@@ -94,6 +98,10 @@ def execute_validation_commands(
         # but avoids dependency resolution issues for projects with local deps
         if auto_prefix_uv_run and normalized_cmd and normalized_cmd[0] == "pytest":
             normalized_cmd = ["uv", "run"] + normalized_cmd
+
+        # Normalize TypeScript/JavaScript commands
+        if is_typescript_command(normalized_cmd):
+            normalized_cmd = normalize_typescript_command(normalized_cmd, project_root)
 
         cmd_str = " ".join(normalized_cmd)
         print(f"  [{i+1}/{total}] {cmd_str}")

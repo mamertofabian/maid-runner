@@ -1,0 +1,87 @@
+{
+  "goal": "Add language detection to 'maid init' and generate language-specific CLAUDE.md documentation",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/init.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/typescript_test_runner.py",
+    "tests/test_task_059_language_detection.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "detect_project_language",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "generate_claude_md_content",
+        "args": [
+          {"name": "language", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "generate_python_claude_md",
+        "args": [],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "generate_typescript_claude_md",
+        "args": [],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "generate_mixed_claude_md",
+        "args": [],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "run_init",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_directories",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_maid_specs",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "handle_claude_md",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_059_language_detection.py", "-v"]
+}

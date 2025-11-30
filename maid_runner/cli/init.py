@@ -19,21 +19,22 @@ def create_directories(target_dir: str) -> None:
     tests_dir = Path(target_dir) / "tests"
     maid_docs_dir = Path(target_dir) / ".maid" / "docs"
 
-    # Create manifests directory
     manifests_dir.mkdir(exist_ok=True)
     print(f"✓ Created directory: {manifests_dir}")
 
-    # Create tests directory
     tests_dir.mkdir(exist_ok=True)
     print(f"✓ Created directory: {tests_dir}")
 
-    # Create .maid/docs directory
     maid_docs_dir.mkdir(parents=True, exist_ok=True)
     print(f"✓ Created directory: {maid_docs_dir}")
 
 
 def create_example_manifest(target_dir: str) -> None:
     """Create an example manifest file to help users get started.
+
+    NOTE: This function exists for backward compatibility with Task-031.
+    As of Task-059, maid init no longer calls this function.
+    Users should use 'maid snapshot' to generate manifests from existing code.
 
     Args:
         target_dir: Target directory containing manifests/ subdirectory
@@ -72,8 +73,6 @@ def copy_maid_specs(target_dir: str) -> None:
     Args:
         target_dir: Target directory containing .maid/docs subdirectory
     """
-    # Get the path to maid_specs.md in the maid-runner installation
-    # The docs directory is inside the maid_runner package
     current_file = Path(__file__)
     maid_runner_package = current_file.parent.parent
     source_specs = maid_runner_package / "docs" / "maid_specs.md"
@@ -89,15 +88,45 @@ def copy_maid_specs(target_dir: str) -> None:
     print(f"✓ Copied MAID specification: {dest_specs}")
 
 
-def generate_claude_md_content() -> str:
-    """Generate MAID documentation content for CLAUDE.md.
+def detect_project_language(target_dir: str) -> str:
+    """Detect the primary language of the project.
+
+    Args:
+        target_dir: Target directory to analyze
 
     Returns:
-        String containing MAID workflow documentation
+        Language identifier: "python", "typescript", "mixed", or "unknown"
+    """
+    project_path = Path(target_dir)
+
+    has_package_json = (project_path / "package.json").exists()
+    has_tsconfig = (project_path / "tsconfig.json").exists()
+    is_typescript = has_package_json or has_tsconfig
+
+    has_pyproject = (project_path / "pyproject.toml").exists()
+    has_setup = (project_path / "setup.py").exists()
+    has_requirements = (project_path / "requirements.txt").exists()
+    is_python = has_pyproject or has_setup or has_requirements
+
+    if is_typescript and is_python:
+        return "mixed"
+    elif is_typescript:
+        return "typescript"
+    elif is_python:
+        return "python"
+    else:
+        return "unknown"
+
+
+def generate_python_claude_md() -> str:
+    """Generate Python-specific MAID documentation content.
+
+    Returns:
+        String containing Python-focused MAID workflow documentation
     """
     content = """# MAID Methodology
 
-**This project uses Manifest-driven AI Development (MAID) v1.2**
+**This project uses Manifest-driven AI Development (MAID) v1.3**
 
 MAID is a methodology for developing software with AI assistance by explicitly declaring:
 - What files can be modified for each task
@@ -125,7 +154,7 @@ Confirm the high-level goal before proceeding.
 4. Iterate until all tests pass
 
 ### Phase 4: Integration
-Verify complete chain: `pytest tests/ -v` (or your test command)
+Verify complete chain: `pytest tests/ -v`
 
 ## Manifest Template
 
@@ -205,29 +234,305 @@ maid --help
     return content
 
 
+def generate_typescript_claude_md() -> str:
+    """Generate TypeScript-specific MAID documentation content.
+
+    Returns:
+        String containing TypeScript-focused MAID workflow documentation
+    """
+    content = """# MAID Methodology
+
+**This project uses Manifest-driven AI Development (MAID) v1.3**
+
+MAID is a methodology for developing software with AI assistance by explicitly declaring:
+- What files can be modified for each task
+- What code artifacts (functions, classes, interfaces, types) should be created or modified
+- How to validate that the changes meet requirements
+
+This project is compatible with MAID-aware AI agents including Claude Code and other tools that understand the MAID workflow.
+
+## MAID Workflow
+
+### Phase 1: Goal Definition
+Confirm the high-level goal before proceeding.
+
+### Phase 2: Planning Loop
+**Before ANY implementation - iterative refinement:**
+1. Draft manifest (`manifests/task-XXX.manifest.json`)
+2. Draft behavioral tests (`tests/test_task_XXX_*.test.ts`)
+3. Run validation: `maid validate manifests/task-XXX.manifest.json --validation-mode behavioral`
+4. Refine both tests & manifest until validation passes
+
+### Phase 3: Implementation
+1. Load ONLY files from manifest (`editableFiles` + `readonlyFiles`)
+2. Implement code to pass tests
+3. Run behavioral validation (from `validationCommand`)
+4. Iterate until all tests pass
+
+### Phase 4: Integration
+Verify complete chain: `npm test` (or `pnpm test` / `yarn test`)
+
+## Manifest Template
+
+```json
+{
+  "goal": "Clear task description",
+  "taskType": "edit|create|refactor",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "path/to/file.ts",
+    "contains": [
+      {
+        "type": "function|class|interface",
+        "name": "artifactName",
+        "class": "ParentClass",
+        "args": [{"name": "arg1", "type": "string"}],
+        "returns": "ReturnType"
+      }
+    ]
+  },
+  "validationCommand": ["npm", "test", "--", "file.test.ts"]
+}
+```
+
+## MAID CLI Commands
+
+```bash
+# Validate a manifest
+maid validate <manifest-path> [--validation-mode behavioral|implementation]
+
+# Generate a snapshot manifest from existing code
+maid snapshot <file-path> [--output-dir <dir>]
+
+# List manifests that reference a file
+maid manifests <file-path> [--manifest-dir <dir>]
+
+# Run all validation commands
+maid test [--manifest-dir <dir>]
+
+# Get help
+maid --help
+```
+
+## Validation Modes
+
+- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
+- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
+
+## Key Rules
+
+**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
+**ALWAYS:** Manifest first → Tests → Implementation → Validate
+
+## Artifact Rules
+
+- **Public** (no `_` prefix): MUST be in manifest
+- **Private** (`_` prefix): Optional in manifest
+- **creatableFiles**: Strict validation (exact match)
+- **editableFiles**: Permissive validation (contains at least)
+
+## Getting Started
+
+1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
+2. Write behavioral tests in `tests/test_task_001_*.test.ts`
+3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
+4. Implement the code
+5. Run tests to verify: `maid test`
+
+## Additional Resources
+
+- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
+- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner
+"""
+    return content
+
+
+def generate_mixed_claude_md() -> str:
+    """Generate universal MAID documentation for mixed/unknown projects.
+
+    Returns:
+        String containing MAID workflow documentation for both Python and TypeScript
+    """
+    content = """# MAID Methodology
+
+**This project uses Manifest-driven AI Development (MAID) v1.3**
+
+MAID is a methodology for developing software with AI assistance by explicitly declaring:
+- What files can be modified for each task
+- What code artifacts (functions, classes, interfaces) should be created or modified
+- How to validate that the changes meet requirements
+
+This project is compatible with MAID-aware AI agents including Claude Code and other tools that understand the MAID workflow.
+
+**Supported Languages**: Python (`.py`) and TypeScript/JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`)
+
+## MAID Workflow
+
+### Phase 1: Goal Definition
+Confirm the high-level goal before proceeding.
+
+### Phase 2: Planning Loop
+**Before ANY implementation - iterative refinement:**
+1. Draft manifest (`manifests/task-XXX.manifest.json`)
+2. Draft behavioral tests (`tests/test_task_XXX_*.py` or `tests/test_task_XXX_*.test.ts`)
+3. Run validation: `maid validate manifests/task-XXX.manifest.json --validation-mode behavioral`
+4. Refine both tests & manifest until validation passes
+
+### Phase 3: Implementation
+1. Load ONLY files from manifest (`editableFiles` + `readonlyFiles`)
+2. Implement code to pass tests
+3. Run behavioral validation (from `validationCommand`)
+4. Iterate until all tests pass
+
+### Phase 4: Integration
+Verify complete chain: `pytest tests/ -v` or `npm test`
+
+## Manifest Template
+
+### Python Example
+```json
+{
+  "goal": "Clear task description",
+  "taskType": "edit|create|refactor",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "path/to/file.py",
+    "contains": [
+      {
+        "type": "function|class|attribute",
+        "name": "artifact_name",
+        "args": [{"name": "arg1", "type": "str"}],
+        "returns": "ReturnType"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_file.py", "-v"]
+}
+```
+
+### TypeScript Example
+```json
+{
+  "goal": "Clear task description",
+  "taskType": "edit|create|refactor",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "path/to/file.ts",
+    "contains": [
+      {
+        "type": "function|class|interface",
+        "name": "artifactName",
+        "args": [{"name": "arg1", "type": "string"}],
+        "returns": "ReturnType"
+      }
+    ]
+  },
+  "validationCommand": ["npm", "test", "--", "file.test.ts"]
+}
+```
+
+## MAID CLI Commands
+
+```bash
+# Validate a manifest
+maid validate <manifest-path> [--validation-mode behavioral|implementation]
+
+# Generate a snapshot manifest from existing code
+maid snapshot <file-path> [--output-dir <dir>]
+
+# List manifests that reference a file
+maid manifests <file-path> [--manifest-dir <dir>]
+
+# Run all validation commands
+maid test [--manifest-dir <dir>]
+
+# Get help
+maid --help
+```
+
+## Validation Modes
+
+- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
+- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
+
+## Key Rules
+
+**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
+**ALWAYS:** Manifest first → Tests → Implementation → Validate
+
+## Artifact Rules
+
+- **Public** (no `_` prefix): MUST be in manifest
+- **Private** (`_` prefix): Optional in manifest
+- **creatableFiles**: Strict validation (exact match)
+- **editableFiles**: Permissive validation (contains at least)
+
+## Getting Started
+
+1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
+2. Write behavioral tests in `tests/test_task_001_*.py` or `tests/test_task_001_*.test.ts`
+3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
+4. Implement the code
+5. Run tests to verify: `maid test`
+
+## Additional Resources
+
+- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
+- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner
+"""
+    return content
+
+
+def generate_claude_md_content(language: str) -> str:
+    """Generate MAID documentation content for CLAUDE.md based on project language.
+
+    Args:
+        language: Project language ("python", "typescript", "mixed", or "unknown")
+
+    Returns:
+        String containing MAID workflow documentation
+    """
+    if language == "python":
+        return generate_python_claude_md()
+    elif language == "typescript":
+        return generate_typescript_claude_md()
+    else:
+        # For mixed and unknown, generate comprehensive documentation
+        return generate_mixed_claude_md()
+
+
 def handle_claude_md(target_dir: str, force: bool) -> None:
     """Create or update CLAUDE.md file with MAID documentation.
+
+    Detects project language and generates appropriate documentation.
 
     Args:
         target_dir: Target directory for CLAUDE.md
         force: If True, overwrite without prompting
     """
     claude_md_path = Path(target_dir) / "CLAUDE.md"
-    content = generate_claude_md_content()
+    language = detect_project_language(target_dir)
+    content = generate_claude_md_content(language)
 
-    # If file doesn't exist, just create it
     if not claude_md_path.exists():
         claude_md_path.write_text(content)
         print(f"✓ Created CLAUDE.md: {claude_md_path}")
         return
 
-    # File exists - handle based on force flag
     if force:
         claude_md_path.write_text(content)
         print(f"✓ Overwrote CLAUDE.md: {claude_md_path}")
         return
 
-    # Prompt user for action
     print(f"\n⚠️  CLAUDE.md already exists at: {claude_md_path}")
     print("\nWhat would you like to do?")
     print("  [a] Append MAID documentation to existing file")
@@ -241,17 +546,93 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
         print("Invalid choice. Please enter 'a', 'o', or 's'.")
 
     if choice == "a":
-        # Append to existing file
         existing_content = claude_md_path.read_text()
         combined_content = existing_content + "\n\n" + "=" * 40 + "\n\n" + content
         claude_md_path.write_text(combined_content)
         print(f"✓ Appended MAID documentation to: {claude_md_path}")
     elif choice == "o":
-        # Overwrite
         claude_md_path.write_text(content)
         print(f"✓ Overwrote CLAUDE.md: {claude_md_path}")
-    else:  # skip
+    else:
         print("⊘ Skipped CLAUDE.md (existing file unchanged)")
+
+
+def copy_claude_agents(target_dir: str, force: bool) -> None:
+    """Copy Claude Code agent files to .claude/agents/ directory.
+
+    Args:
+        target_dir: Target directory for .claude/agents/
+        force: If True, copy without prompting
+    """
+    # Get source location from package
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    source_agents = maid_runner_package / "claude" / "agents"
+
+    if not source_agents.exists():
+        print(
+            f"⚠️  Warning: Could not find claude/agents at {source_agents}. Skipping copy."
+        )
+        return
+
+    # Prompt user if not forcing
+    if not force:
+        response = input(
+            "Copy Claude Code agent files (.claude/agents)? (Y/n): "
+        )
+        if response.lower() in ("n", "no"):
+            print("⊘ Skipped Claude Code agent files")
+            return
+
+    # Create destination directory
+    dest_agents = Path(target_dir) / ".claude" / "agents"
+    dest_agents.mkdir(parents=True, exist_ok=True)
+
+    # Copy all .md files
+    agent_files = list(source_agents.glob("*.md"))
+    for agent_file in agent_files:
+        shutil.copy2(agent_file, dest_agents / agent_file.name)
+
+    print(f"✓ Copied {len(agent_files)} Claude Code agent files to {dest_agents}")
+
+
+def copy_claude_commands(target_dir: str, force: bool) -> None:
+    """Copy Claude Code command files to .claude/commands/ directory.
+
+    Args:
+        target_dir: Target directory for .claude/commands/
+        force: If True, copy without prompting
+    """
+    # Get source location from package
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    source_commands = maid_runner_package / "claude" / "commands"
+
+    if not source_commands.exists():
+        print(
+            f"⚠️  Warning: Could not find claude/commands at {source_commands}. Skipping copy."
+        )
+        return
+
+    # Prompt user if not forcing
+    if not force:
+        response = input(
+            "Copy Claude Code command files (.claude/commands)? (Y/n): "
+        )
+        if response.lower() in ("n", "no"):
+            print("⊘ Skipped Claude Code command files")
+            return
+
+    # Create destination directory
+    dest_commands = Path(target_dir) / ".claude" / "commands"
+    dest_commands.mkdir(parents=True, exist_ok=True)
+
+    # Copy all .md files
+    command_files = list(source_commands.glob("*.md"))
+    for command_file in command_files:
+        shutil.copy2(command_file, dest_commands / command_file.name)
+
+    print(f"✓ Copied {len(command_files)} Claude Code command files to {dest_commands}")
 
 
 def run_init(target_dir: str, force: bool) -> None:
@@ -265,25 +646,19 @@ def run_init(target_dir: str, force: bool) -> None:
     print("Initializing MAID Methodology")
     print(f"{'=' * 60}\n")
 
-    # Create directory structure
     create_directories(target_dir)
-
-    # Create example manifest
-    create_example_manifest(target_dir)
-
-    # Copy MAID specification document
     copy_maid_specs(target_dir)
-
-    # Handle CLAUDE.md
     handle_claude_md(target_dir, force)
+    copy_claude_agents(target_dir, force)
+    copy_claude_commands(target_dir, force)
 
     print(f"\n{'=' * 60}")
     print("✓ MAID initialization complete!")
     print(f"{'=' * 60}\n")
     print("Next steps:")
-    print("1. Review the example manifest in manifests/example.manifest.json")
+    print("1. Generate a manifest from existing code: maid snapshot <file-path>")
     print(
-        "2. Create your first task manifest: manifests/task-001-<description>.manifest.json"
+        "2. Or create your first task manifest: manifests/task-001-<description>.manifest.json"
     )
     print("3. Write behavioral tests in tests/test_task_001_*.py")
     print(
