@@ -1,7 +1,7 @@
 # MAID Runner Development Makefile
 # Convenience commands for development workflow
 
-.PHONY: help test validate watch dev install-dev
+.PHONY: help test validate watch dev install-dev sync-claude build clean
 
 help:
 	@echo "MAID Runner Development Commands:"
@@ -14,6 +14,9 @@ help:
 	@echo "  make type-check    - Run type checking (alias for lint)"
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
+	@echo "  make sync-claude   - Sync Claude Code files for package distribution"
+	@echo "  make build         - Build package (includes sync-claude)"
+	@echo "  make clean         - Clean generated files"
 
 # Run all tests (including structural validation and validation commands from manifests)
 test:
@@ -102,3 +105,19 @@ type-check-fix:
 
 format:
 	uv run black .
+
+# Sync Claude Code integration files for package distribution
+sync-claude:
+	@echo "Syncing Claude Code integration files..."
+	@uv run python scripts/sync_claude_files.py
+
+# Build package (includes sync)
+build: sync-claude
+	@echo "Building package..."
+	@uv run python -m build
+
+# Clean generated files
+clean:
+	@echo "Cleaning generated files..."
+	@rm -rf maid_runner/claude/ dist/ build/ *.egg-info
+	@echo "✓ Clean complete"

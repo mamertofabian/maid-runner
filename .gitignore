@@ -6,6 +6,9 @@ dist/
 wheels/
 *.egg-info
 
+# Generated files for package distribution
+maid_runner/claude/
+
 # Virtual environments
 .venv
 

@@ -52,4 +52,4 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "validators/schemas/*.json", "docs/maid_specs.md"]
+maid_runner = ["py.typed", "validators/schemas/*.json", "docs/maid_specs.md", "claude/agents/*.md", "claude/commands/*.md"]
