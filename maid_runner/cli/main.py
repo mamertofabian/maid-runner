@@ -71,11 +71,11 @@ def main():
     # Snapshot subcommand
     snapshot_parser = subparsers.add_parser(
         "snapshot",
-        help="Generate MAID snapshot manifests from existing Python files",
-        description="Generate MAID snapshot manifests from existing Python files",
+        help="Generate MAID snapshot manifests from existing Python or TypeScript files",
+        description="Generate MAID snapshot manifests from existing Python or TypeScript files",
     )
     snapshot_parser.add_argument(
-        "file_path", help="Path to the Python file to snapshot"
+        "file_path", help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot"
     )
     snapshot_parser.add_argument(
         "--output-dir",

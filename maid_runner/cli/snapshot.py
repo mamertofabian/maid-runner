@@ -1,6 +1,6 @@
 """Snapshot Generator Tool for MAID Framework.
 
-This tool generates consolidated snapshot manifests for existing Python files,
+This tool generates consolidated snapshot manifests for existing Python or TypeScript files,
 enabling legacy code onboarding to MAID methodology. It extracts artifacts from
 code using AST analysis and creates properly structured manifests.
 """
@@ -823,7 +823,7 @@ def _get_next_manifest_number(manifest_dir: Path) -> int:
 def generate_snapshot(
     file_path: str, output_dir: str, force: bool = False, skip_test_stub: bool = False
 ) -> str:
-    """Generate a complete snapshot manifest for a Python file.
+    """Generate a complete snapshot manifest for a Python or TypeScript file.
 
     This function orchestrates the full snapshot generation workflow:
     1. Extract artifacts from the code
@@ -833,7 +833,7 @@ def generate_snapshot(
     5. Optionally generate a test stub (by default)
 
     Args:
-        file_path: Path to the Python file to snapshot
+        file_path: Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot
         output_dir: Directory where the manifest should be written
         force: If True, overwrite existing manifests without prompting
         skip_test_stub: If True, skip test stub generation (default: False)
@@ -843,7 +843,7 @@ def generate_snapshot(
 
     Raises:
         FileNotFoundError: If the input file doesn't exist
-        SyntaxError: If the file contains invalid Python syntax
+        SyntaxError: If the file contains invalid syntax
     """
     # Extract artifacts from the code
     artifacts = extract_artifacts_from_code(file_path)
@@ -1496,7 +1496,7 @@ def run_snapshot(
     """Core snapshot generation logic accepting parsed arguments.
 
     Args:
-        file_path: Path to the Python file to snapshot
+        file_path: Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot
         output_dir: Directory to write the manifest (default: manifests)
         force: If True, overwrite existing manifests without prompting
         skip_test_stub: If True, skip test stub generation (default: False)
@@ -1530,9 +1530,9 @@ def run_snapshot(
 def main() -> None:
     """CLI entry point for the snapshot generator."""
     parser = argparse.ArgumentParser(
-        description="Generate MAID snapshot manifests from existing Python files"
+        description="Generate MAID snapshot manifests from existing Python or TypeScript files"
     )
-    parser.add_argument("file_path", help="Path to the Python file to snapshot")
+    parser.add_argument("file_path", help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot")
     parser.add_argument(
         "--output-dir",
         default="manifests",
