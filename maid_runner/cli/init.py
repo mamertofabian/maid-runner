@@ -557,6 +557,84 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
         print("⊘ Skipped CLAUDE.md (existing file unchanged)")
 
 
+def copy_claude_agents(target_dir: str, force: bool) -> None:
+    """Copy Claude Code agent files to .claude/agents/ directory.
+
+    Args:
+        target_dir: Target directory for .claude/agents/
+        force: If True, copy without prompting
+    """
+    # Get source location from package
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    source_agents = maid_runner_package / "claude" / "agents"
+
+    if not source_agents.exists():
+        print(
+            f"⚠️  Warning: Could not find claude/agents at {source_agents}. Skipping copy."
+        )
+        return
+
+    # Prompt user if not forcing
+    if not force:
+        response = input(
+            "Copy Claude Code agent files (.claude/agents)? (Y/n): "
+        )
+        if response.lower() in ("n", "no"):
+            print("⊘ Skipped Claude Code agent files")
+            return
+
+    # Create destination directory
+    dest_agents = Path(target_dir) / ".claude" / "agents"
+    dest_agents.mkdir(parents=True, exist_ok=True)
+
+    # Copy all .md files
+    agent_files = list(source_agents.glob("*.md"))
+    for agent_file in agent_files:
+        shutil.copy2(agent_file, dest_agents / agent_file.name)
+
+    print(f"✓ Copied {len(agent_files)} Claude Code agent files to {dest_agents}")
+
+
+def copy_claude_commands(target_dir: str, force: bool) -> None:
+    """Copy Claude Code command files to .claude/commands/ directory.
+
+    Args:
+        target_dir: Target directory for .claude/commands/
+        force: If True, copy without prompting
+    """
+    # Get source location from package
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    source_commands = maid_runner_package / "claude" / "commands"
+
+    if not source_commands.exists():
+        print(
+            f"⚠️  Warning: Could not find claude/commands at {source_commands}. Skipping copy."
+        )
+        return
+
+    # Prompt user if not forcing
+    if not force:
+        response = input(
+            "Copy Claude Code command files (.claude/commands)? (Y/n): "
+        )
+        if response.lower() in ("n", "no"):
+            print("⊘ Skipped Claude Code command files")
+            return
+
+    # Create destination directory
+    dest_commands = Path(target_dir) / ".claude" / "commands"
+    dest_commands.mkdir(parents=True, exist_ok=True)
+
+    # Copy all .md files
+    command_files = list(source_commands.glob("*.md"))
+    for command_file in command_files:
+        shutil.copy2(command_file, dest_commands / command_file.name)
+
+    print(f"✓ Copied {len(command_files)} Claude Code command files to {dest_commands}")
+
+
 def run_init(target_dir: str, force: bool) -> None:
     """Initialize MAID methodology in a repository.
 
@@ -571,6 +649,8 @@ def run_init(target_dir: str, force: bool) -> None:
     create_directories(target_dir)
     copy_maid_specs(target_dir)
     handle_claude_md(target_dir, force)
+    copy_claude_agents(target_dir, force)
+    copy_claude_commands(target_dir, force)
 
     print(f"\n{'=' * 60}")
     print("✓ MAID initialization complete!")
