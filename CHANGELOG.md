@@ -5,45 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2025-11-30
 
 ### Added
-- **TypeScript/JavaScript Support** - Production-ready multi-language validation (Tasks 051-058)
+- **TypeScript/JavaScript Support** - Production-ready multi-language validation
   - TypeScript validator using tree-sitter for accurate AST parsing
   - Support for `.ts`, `.tsx`, `.js`, `.jsx` file extensions
   - Complete language coverage: classes, interfaces, type aliases, enums, namespaces
   - Function support: async, arrow, generic functions with full parameter detection
   - Method support: static, private, getters/setters, abstract, decorators
-  - Parameter properties, destructuring, rest/spread operators
-  - Framework support: Angular, React, NestJS, Vue
-  - JSX/TSX syntax support for React components
-  - 99.9% TypeScript language construct coverage
-- TypeScript test runner integration (Task-054)
-  - Automatic package manager detection (npm, pnpm, yarn)
-  - TypeScript command normalization for test execution
-  - Support for Jest, Vitest, and other TypeScript test runners
-- Extended manifest schema for TypeScript artifact types (Task-055)
-  - New artifact types: `interface`, `type`, `enum`, `namespace`
-  - Full compatibility with existing Python artifact types
-- TypeScript snapshot generation (Task-056)
-  - `maid snapshot` command supports TypeScript/JavaScript files
-  - Automatic language detection and validator routing
-  - Generates manifests with TypeScript-specific artifacts
-- System-wide TypeScript support (Task-057)
-  - `maid snapshot-system` aggregates TypeScript and Python artifacts
-  - Cross-language project support
-- TypeScript test stub generation (Task-058)
-  - `maid generate-stubs` creates `.spec.ts` files with Jest syntax
-  - Handles TypeScript-specific constructs (interfaces, types, enums)
-  - Automatic import statement generation for TypeScript modules
-- Language-specific `maid init` - Automatically generates Python or TypeScript-specific CLAUDE.md documentation based on project type (Task-059)
+  - Framework support: Angular, React, NestJS, Vue with JSX/TSX syntax
+- TypeScript test runner integration with automatic package manager detection (npm, pnpm, yarn)
+- Extended manifest schema with new artifact types: `interface`, `type`, `enum`, `namespace`
+- TypeScript snapshot generation via `maid snapshot` with automatic language detection
+- System-wide TypeScript support via `maid snapshot-system` for cross-language projects
+- TypeScript test stub generation via `maid generate-stubs` with Jest syntax
+- Language-specific `maid init` - Generates Python or TypeScript-specific CLAUDE.md based on project type
+- **Claude Code Integration** - Simplified MAID agents and slash commands for Claude Code workflows
+  - Pre-configured agents: manifest-architect, test-designer, developer, refactorer, auditor, fixer
+  - Slash commands: `/generate-manifest`, `/generate-tests`, `/implement`, `/refactor`, `/fix`, `/audit`
+  - Automatic sync infrastructure for PyPI package distribution
 
 ### Changed
-- Refactored validation architecture for language extensibility (Tasks 051-052)
+- Refactored validation architecture for language extensibility
   - Created `BaseValidator` abstract class for language-agnostic validation
   - Extracted `PythonValidator` from monolithic validator
   - Validator auto-detection based on file extensions
-  - Clean separation between language-specific and core validation logic
+- Optimized test suite by replacing subprocess calls with direct function calls
 
 ### Dependencies
 - Added `tree-sitter>=0.23.2` for TypeScript AST parsing
@@ -154,6 +142,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.0]: https://github.com/mamertofabian/maid-runner/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/mamertofabian/maid-runner/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/mamertofabian/maid-runner/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mamertofabian/maid-runner/compare/v0.1.0...v0.1.1

@@ -577,9 +577,7 @@ def copy_claude_agents(target_dir: str, force: bool) -> None:
 
     # Prompt user if not forcing
     if not force:
-        response = input(
-            "Copy Claude Code agent files (.claude/agents)? (Y/n): "
-        )
+        response = input("Copy Claude Code agent files (.claude/agents)? (Y/n): ")
         if response.lower() in ("n", "no"):
             print("⊘ Skipped Claude Code agent files")
             return
@@ -616,9 +614,7 @@ def copy_claude_commands(target_dir: str, force: bool) -> None:
 
     # Prompt user if not forcing
     if not force:
-        response = input(
-            "Copy Claude Code command files (.claude/commands)? (Y/n): "
-        )
+        response = input("Copy Claude Code command files (.claude/commands)? (Y/n): ")
         if response.lower() in ("n", "no"):
             print("⊘ Skipped Claude Code command files")
             return
