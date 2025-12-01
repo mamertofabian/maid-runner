@@ -528,3 +528,140 @@ def test_handler_stores_manifests_dir_for_refresh(tmp_path: Path):
     # The stored path should be used when refreshing
     # (This tests that the attribute is properly utilized)
     assert handler.manifests_dir.exists()
+
+
+def test_refresh_file_mappings_runs_validation_for_new_manifests(tmp_path: Path):
+    """Test that refresh_file_mappings runs validation for newly discovered manifests."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    # Create initial manifest
+    manifest1_data = {
+        "version": "1",
+        "goal": "task 1",
+        "taskType": "edit",
+        "editableFiles": ["src/file1.py"],
+        "validationCommand": ["echo", "test1"],
+    }
+    manifest1 = manifests_dir / "task-001.manifest.json"
+    manifest1.write_text(json.dumps(manifest1_data))
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Initialize known manifests with manifest1
+    handler._known_manifests = {manifest1}
+
+    # Now add a second manifest
+    manifest2_data = {
+        "version": "1",
+        "goal": "task 2",
+        "taskType": "edit",
+        "editableFiles": ["src/file2.py"],
+        "validationCommand": ["echo", "test2"],
+    }
+    manifest2 = manifests_dir / "task-002.manifest.json"
+    manifest2.write_text(json.dumps(manifest2_data))
+
+    # Mock execute_validation_commands
+    with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
+        mock_execute.return_value = (1, 0, 1)
+
+        # Refresh mappings - should detect and run validation for manifest2
+        handler.refresh_file_mappings(manifests_dir)
+
+        # Should have run validation for the new manifest
+        assert mock_execute.called
+        # Check that it was called with manifest2 (the new one)
+        call_args = mock_execute.call_args
+        assert call_args.kwargs.get("manifest_path") == manifest2
+
+
+def test_refresh_file_mappings_tracks_known_manifests(tmp_path: Path):
+    """Test that refresh_file_mappings tracks known manifests to detect new ones."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Verify _known_manifests attribute exists
+    assert hasattr(handler, "_known_manifests")
+    assert isinstance(handler._known_manifests, set)
+
+    # Create a manifest
+    manifest_data = {
+        "version": "1",
+        "goal": "task 1",
+        "taskType": "edit",
+        "editableFiles": ["src/file1.py"],
+        "validationCommand": ["echo", "test1"],
+    }
+    manifest = manifests_dir / "task-001.manifest.json"
+    manifest.write_text(json.dumps(manifest_data))
+
+    # Refresh mappings
+    handler.refresh_file_mappings(manifests_dir)
+
+    # _known_manifests should now contain the manifest
+    assert manifest in handler._known_manifests
+
+
+def test_refresh_file_mappings_does_not_rerun_existing_manifests(tmp_path: Path):
+    """Test that refresh_file_mappings does not re-run validation for existing manifests."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    # Create manifest
+    manifest_data = {
+        "version": "1",
+        "goal": "task 1",
+        "taskType": "edit",
+        "editableFiles": ["src/file1.py"],
+        "validationCommand": ["echo", "test1"],
+    }
+    manifest = manifests_dir / "task-001.manifest.json"
+    manifest.write_text(json.dumps(manifest_data))
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Pre-populate known manifests (as if initial watch setup happened)
+    handler._known_manifests = {manifest}
+
+    # Mock execute_validation_commands
+    with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
+        mock_execute.return_value = (1, 0, 1)
+
+        # Refresh mappings - should NOT run validation for already-known manifest
+        handler.refresh_file_mappings(manifests_dir)
+
+        # Should NOT have run validation
+        assert not mock_execute.called

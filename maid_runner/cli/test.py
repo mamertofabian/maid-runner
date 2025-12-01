@@ -223,6 +223,8 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         self.debounce_seconds = 2
         # Track watched directories to avoid duplicates
         self._watched_dirs: set = set()
+        # Track known manifests to detect new ones
+        self._known_manifests: set = set()
 
     def on_modified(self, event):
         """Run validation commands for affected manifests when watched files change."""
@@ -297,8 +299,9 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
     def refresh_file_mappings(self, manifests_dir: Path) -> None:
         """Rebuild file-to-manifests mapping from manifests directory.
 
-        Discovers all manifest files, rebuilds the mapping, and schedules
-        new directories with the observer.
+        Discovers all manifest files, rebuilds the mapping, schedules
+        new directories with the observer, and runs validation for
+        newly discovered manifests.
 
         Args:
             manifests_dir: Path to the manifests directory
@@ -309,6 +312,11 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         # Get superseded manifests and filter them out
         superseded = get_superseded_manifests(manifests_dir)
         active_manifests = [m for m in manifest_files if m not in superseded]
+
+        # Detect newly added manifests
+        current_manifest_set = set(active_manifests)
+        new_manifests = current_manifest_set - self._known_manifests
+        self._known_manifests = current_manifest_set
 
         # Rebuild file-to-manifests mapping
         new_mapping = build_file_to_manifests_map(manifests_dir, active_manifests)
@@ -328,6 +336,29 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
                     except Exception:
                         # Directory might already be watched or inaccessible
                         pass
+
+        # Run validation for newly discovered manifests
+        for manifest_path in sorted(new_manifests):
+            try:
+                with open(manifest_path, "r") as f:
+                    manifest_data = json.load(f)
+
+                if not self.quiet:
+                    print(
+                        f"\n📋 Running validation for new manifest: {manifest_path.name}"
+                    )
+
+                execute_validation_commands(
+                    manifest_path=manifest_path,
+                    manifest_data=manifest_data,
+                    timeout=self.timeout,
+                    verbose=self.verbose,
+                    project_root=self.project_root,
+                )
+
+            except (json.JSONDecodeError, IOError) as e:
+                if not self.quiet:
+                    print(f"⚠️  Error loading {manifest_path.name}: {e}")
 
 
 def watch_manifest(
@@ -491,8 +522,9 @@ def watch_all_manifests(
         observer.schedule(event_handler, str(manifests_dir), recursive=False)
         watched_dirs.add(manifests_dir)
 
-    # Initialize handler's watched_dirs set
+    # Initialize handler's watched_dirs set and known manifests
     event_handler._watched_dirs = watched_dirs
+    event_handler._known_manifests = set(active_manifests)
 
     try:
         observer.start()
