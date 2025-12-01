@@ -665,3 +665,141 @@ def test_refresh_file_mappings_does_not_rerun_existing_manifests(tmp_path: Path)
 
         # Should NOT have run validation
         assert not mock_execute.called
+
+
+def test_on_created_for_non_manifest_files_triggers_on_modified(tmp_path: Path):
+    """Test that on_created for non-manifest files delegates to on_modified."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock on_modified
+    handler.on_modified = MagicMock()
+
+    # Create mock event for non-manifest file
+    mock_event = MagicMock()
+    mock_event.is_directory = False
+    mock_event.src_path = str(tmp_path / "src" / "some_file.py")
+
+    handler.on_created(mock_event)
+
+    # Should have called on_modified
+    handler.on_modified.assert_called_once_with(mock_event)
+
+
+def test_on_moved_method_exists():
+    """Test that _MultiManifestFileChangeHandler has on_moved method."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    assert hasattr(_MultiManifestFileChangeHandler, "on_moved")
+
+
+def test_on_moved_handles_atomic_writes_for_manifest(tmp_path: Path):
+    """Test that on_moved handles atomic writes for manifest files."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock refresh_file_mappings
+    handler.refresh_file_mappings = MagicMock()
+
+    # Create mock move event (atomic write: temp -> final)
+    mock_event = MagicMock()
+    mock_event.is_directory = False
+    mock_event.src_path = str(tmp_path / ".tmp_manifest_xyz")
+    mock_event.dest_path = str(manifests_dir / "task-001.manifest.json")
+
+    handler.on_moved(mock_event)
+
+    # Should have triggered refresh for manifest files
+    handler.refresh_file_mappings.assert_called_once()
+
+
+def test_on_moved_handles_atomic_writes_for_regular_files(tmp_path: Path):
+    """Test that on_moved handles atomic writes for regular files by calling on_modified."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock on_modified
+    handler.on_modified = MagicMock()
+
+    # Create mock move event (atomic write: temp -> final)
+    mock_event = MagicMock()
+    mock_event.is_directory = False
+    mock_event.src_path = str(tmp_path / ".tmp_file_xyz")
+    mock_event.dest_path = str(tmp_path / "tests" / "test_file.py")
+
+    handler.on_moved(mock_event)
+
+    # Should have called on_modified with a fake event containing dest_path
+    assert handler.on_modified.called
+    call_args = handler.on_modified.call_args[0][0]
+    assert call_args.src_path == str(tmp_path / "tests" / "test_file.py")
+
+
+def test_on_moved_ignores_directory_events(tmp_path: Path):
+    """Test that on_moved ignores directory move events."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock on_modified
+    handler.on_modified = MagicMock()
+    handler.refresh_file_mappings = MagicMock()
+
+    # Create mock directory move event
+    mock_event = MagicMock()
+    mock_event.is_directory = True
+    mock_event.src_path = str(tmp_path / "old_dir")
+    mock_event.dest_path = str(tmp_path / "new_dir")
+
+    handler.on_moved(mock_event)
+
+    # Should NOT have called on_modified or refresh
+    handler.on_modified.assert_not_called()
+    handler.refresh_file_mappings.assert_not_called()

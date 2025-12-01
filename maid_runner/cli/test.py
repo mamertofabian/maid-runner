@@ -276,7 +276,8 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
     def on_created(self, event) -> None:
         """Handle file creation events for dynamic manifest discovery.
 
-        Triggers refresh_file_mappings when a new manifest file is created.
+        Triggers refresh_file_mappings when a new manifest file is created,
+        or treats new implementation/test files like modifications.
 
         Args:
             event: Filesystem event containing information about the created file
@@ -285,16 +286,54 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         if event.is_directory:
             return
 
-        # Only trigger for .manifest.json files
         src_path = str(event.src_path)
-        if not src_path.endswith(".manifest.json"):
+
+        # For manifest files, refresh mappings and run validation
+        if src_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(f"\n🔄 New manifest detected: {Path(src_path).name}")
+                self.refresh_file_mappings(self.manifests_dir)
             return
 
-        # Refresh file mappings when a new manifest is created
-        if self.manifests_dir is not None:
-            if not self.quiet:
-                print(f"\n🔄 New manifest detected: {Path(src_path).name}")
-            self.refresh_file_mappings(self.manifests_dir)
+        # For non-manifest files, treat as modified (editors often create new files)
+        # This handles the case where a new test/implementation file is created
+        # and we want to run validation if it's now tracked by a manifest
+        self.on_modified(event)
+
+    def on_moved(self, event) -> None:
+        """Handle file move/rename events for atomic write detection.
+
+        Many editors and tools (including Claude Code) use atomic writes:
+        write to temp file, then rename to final location. This triggers
+        on_moved instead of on_modified/on_created.
+
+        Args:
+            event: Filesystem event with src_path (old) and dest_path (new)
+        """
+        # Ignore directory events
+        if event.is_directory:
+            return
+
+        # Use the destination path (the final file location)
+        dest_path = str(event.dest_path)
+
+        # For manifest files, refresh mappings and run validation
+        if dest_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(f"\n🔄 New manifest detected: {Path(dest_path).name}")
+                self.refresh_file_mappings(self.manifests_dir)
+            return
+
+        # For non-manifest files, create a fake event for on_modified
+        # We need to handle this because atomic writes don't trigger on_modified
+        class _FakeEvent:
+            def __init__(self, path, is_dir=False):
+                self.src_path = path
+                self.is_directory = is_dir
+
+        self.on_modified(_FakeEvent(dest_path))
 
     def refresh_file_mappings(self, manifests_dir: Path) -> None:
         """Rebuild file-to-manifests mapping from manifests directory.
