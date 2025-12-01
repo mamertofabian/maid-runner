@@ -13,4 +13,9 @@ Quick exploratory spike (no manifest yet):
 4. Estimate complexity and scope
 5. Suggest whether this should be one task or multiple
 
+**⚠️ CRITICAL REMINDER for Manifest Creation:**
+- `expectedArtifacts` is an **OBJECT** (not an array) that defines artifacts for **ONE file only**
+- Structure: `{"file": "path/to/file.py", "contains": [...]}`
+- For multi-file features: Create **separate manifests** for each file
+
 Output: Brief summary and recommended next steps for manifest creation.

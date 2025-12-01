@@ -107,7 +107,7 @@ The development process is broken down into distinct phases, characterized by tw
         "priority": "high"
       },
       "expectedArtifacts": {
-        "file": "src/services/user_service.py",
+        "file": "src/services/user_service.py",  // ⚠️ OBJECT with "file" + "contains" (NOT an array!)
         "contains": [
           {
             "type": "class",
@@ -137,7 +137,7 @@ The development process is broken down into distinct phases, characterized by tw
       "goal": "Add a method to UserService",
       "readonlyFiles": [],
       "expectedArtifacts": {
-        "file": "src/services/user_service.py",
+        "file": "src/services/user_service.py",  // ⚠️ OBJECT with "file" + "contains" (NOT an array!)
         "contains": [
           {
             "type": "function",
@@ -151,6 +151,12 @@ The development process is broken down into distinct phases, characterized by tw
       "validationCommand": ["pytest", "tests/test_user_service.py"]
     }
     ```
+
+    **⚠️ IMPORTANT: `expectedArtifacts` Structure**
+    - `expectedArtifacts` is an **OBJECT**, not an array
+    - It defines artifacts for **ONE file only** (specified by the `file` field)
+    - For multi-file tasks: Create **separate manifests** for each file
+    - The `systemArtifacts` field (array) is only for system-snapshot manifests
 
   * **Multi-Language Support**
     MAID Runner supports validation across multiple programming languages with production-ready parsers:
