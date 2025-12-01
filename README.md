@@ -126,6 +126,15 @@ maid --version
 maid --help
 ```
 
+### Updating
+
+After upgrading maid-runner, re-run `maid init` to update Claude files:
+
+```bash
+pip install --upgrade maid-runner
+maid init --force  # Updates .claude/ files and CLAUDE.md
+```
+
 ## The MAID Ecosystem
 
 MAID Runner provides **validation-only** capabilities for manifest-driven development. For **full workflow automation** (planning → testing → implementing → validating), check out:

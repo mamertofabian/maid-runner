@@ -8,6 +8,63 @@ import json
 import shutil
 from pathlib import Path
 
+# MAID section markers for idempotent CLAUDE.md handling
+MAID_SECTION_START = "<!-- MAID-SECTION-START -->"
+MAID_SECTION_END = "<!-- MAID-SECTION-END -->"
+
+
+def has_maid_markers(content: str) -> bool:
+    """Check if content contains MAID section markers.
+
+    Args:
+        content: The text content to check
+
+    Returns:
+        True if both start and end markers are present, False otherwise
+    """
+    return MAID_SECTION_START in content and MAID_SECTION_END in content
+
+
+def replace_maid_section(existing_content: str, new_maid_content: str) -> str:
+    """Replace content between MAID markers with new content.
+
+    Args:
+        existing_content: The existing file content with MAID markers
+        new_maid_content: The new MAID documentation to insert
+
+    Returns:
+        Updated content with MAID section replaced, or original if markers
+        are missing or malformed (e.g., reversed order)
+    """
+    if not has_maid_markers(existing_content):
+        return existing_content
+
+    start_idx = existing_content.index(MAID_SECTION_START)
+    end_idx = existing_content.index(MAID_SECTION_END) + len(MAID_SECTION_END)
+
+    # Check for malformed markers (END before START)
+    if start_idx >= existing_content.index(MAID_SECTION_END):
+        return existing_content
+
+    before = existing_content[:start_idx]
+    after = existing_content[end_idx:]
+
+    wrapped_new = wrap_with_markers(new_maid_content)
+
+    return before + wrapped_new + after
+
+
+def wrap_with_markers(content: str) -> str:
+    """Wrap MAID documentation content with start and end markers.
+
+    Args:
+        content: The MAID documentation content to wrap
+
+    Returns:
+        Content wrapped with MAID section markers
+    """
+    return f"{MAID_SECTION_START}\n{content}\n{MAID_SECTION_END}"
+
 
 def create_directories(target_dir: str) -> None:
     """Create necessary directories for MAID methodology.
@@ -499,21 +556,24 @@ def generate_claude_md_content(language: str) -> str:
         language: Project language ("python", "typescript", "mixed", or "unknown")
 
     Returns:
-        String containing MAID workflow documentation
+        String containing MAID workflow documentation wrapped with markers
     """
     if language == "python":
-        return generate_python_claude_md()
+        raw_content = generate_python_claude_md()
     elif language == "typescript":
-        return generate_typescript_claude_md()
+        raw_content = generate_typescript_claude_md()
     else:
         # For mixed and unknown, generate comprehensive documentation
-        return generate_mixed_claude_md()
+        raw_content = generate_mixed_claude_md()
+
+    return wrap_with_markers(raw_content)
 
 
 def handle_claude_md(target_dir: str, force: bool) -> None:
     """Create or update CLAUDE.md file with MAID documentation.
 
     Detects project language and generates appropriate documentation.
+    Uses marker-based section management for idempotent updates.
 
     Args:
         target_dir: Target directory for CLAUDE.md
@@ -526,6 +586,22 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
     if not claude_md_path.exists():
         claude_md_path.write_text(content)
         print(f"✓ Created CLAUDE.md: {claude_md_path}")
+        return
+
+    existing_content = claude_md_path.read_text()
+
+    # If markers exist, automatically replace MAID section (idempotent update)
+    if has_maid_markers(existing_content):
+        # Extract just the raw content without markers for replacement
+        raw_maid_content = generate_python_claude_md()
+        if language == "typescript":
+            raw_maid_content = generate_typescript_claude_md()
+        elif language not in ("python", "typescript"):
+            raw_maid_content = generate_mixed_claude_md()
+
+        updated_content = replace_maid_section(existing_content, raw_maid_content)
+        claude_md_path.write_text(updated_content)
+        print(f"✓ Updated MAID section in: {claude_md_path}")
         return
 
     if force:
@@ -546,7 +622,6 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
         print("Invalid choice. Please enter 'a', 'o', or 's'.")
 
     if choice == "a":
-        existing_content = claude_md_path.read_text()
         combined_content = existing_content + "\n\n" + "=" * 40 + "\n\n" + content
         claude_md_path.write_text(combined_content)
         print(f"✓ Appended MAID documentation to: {claude_md_path}")

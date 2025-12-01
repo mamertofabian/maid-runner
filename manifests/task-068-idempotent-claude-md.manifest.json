@@ -1,0 +1,51 @@
+{
+  "goal": "Implement idempotent CLAUDE.md handling with marker-based section management for maid init",
+  "description": "Add marker-based section management to handle_claude_md() so that re-running maid init does not create duplicate MAID documentation. Use HTML comment markers to identify the MAID section, allowing intelligent updates that replace existing MAID content rather than appending duplicates.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/init.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_068_idempotent_claude_md.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "MAID_SECTION_START",
+        "description": "HTML comment marker for the start of MAID documentation section"
+      },
+      {
+        "type": "attribute",
+        "name": "MAID_SECTION_END",
+        "description": "HTML comment marker for the end of MAID documentation section"
+      },
+      {
+        "type": "function",
+        "name": "has_maid_markers",
+        "args": [{"name": "content", "type": "str"}],
+        "returns": "bool",
+        "description": "Check if content contains MAID section markers"
+      },
+      {
+        "type": "function",
+        "name": "replace_maid_section",
+        "args": [
+          {"name": "existing_content", "type": "str"},
+          {"name": "new_maid_content", "type": "str"}
+        ],
+        "returns": "str",
+        "description": "Replace content between MAID markers with new content"
+      },
+      {
+        "type": "function",
+        "name": "wrap_with_markers",
+        "args": [{"name": "content", "type": "str"}],
+        "returns": "str",
+        "description": "Wrap MAID documentation content with start and end markers"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_068_idempotent_claude_md.py", "-v"]
+}
