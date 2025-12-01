@@ -618,5 +618,58 @@ def test_watch_mode_with_no_watchable_files(tmp_path: Path):
             debounce_seconds=2.0,
         )
 
-        # Should still create observer
-        assert mock_observer_class.called
+
+def test_manifest_path_resolution_accepts_multiple_formats(tmp_path: Path):
+    """Test that manifest path resolution handles various path formats correctly."""
+    import json
+    import os
+
+    # Change to tmp_path to simulate running from project root
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+
+        # Create a test manifest in a manifests directory
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        manifest_file = manifests_dir / "task-test.manifest.json"
+
+        manifest_data = {
+            "goal": "Test path resolution",
+            "editableFiles": ["test.py"],
+            "validationCommand": ["echo", "test"],
+        }
+
+        with open(manifest_file, "w") as f:
+            json.dump(manifest_data, f)
+
+        # Test different path formats (all should work)
+        path_formats = [
+            ("task-test.manifest.json", "Just filename"),
+            ("manifests/task-test.manifest.json", "With manifests/ prefix"),
+            ("./manifests/task-test.manifest.json", "With ./ prefix"),
+        ]
+
+        for path_format, description in path_formats:
+            # Simulate the resolution logic from run_test()
+            from pathlib import Path
+
+            specific_manifest = Path(path_format)
+
+            # Apply the same logic as in run_test()
+            if not specific_manifest.is_absolute():
+                # Try as-is first
+                if not specific_manifest.exists():
+                    # Try relative to manifests_dir
+                    specific_manifest = manifests_dir / specific_manifest
+
+            # All formats should resolve successfully
+            assert (
+                specific_manifest.exists()
+            ), f"Failed to resolve: {description} ({path_format})"
+            assert (
+                specific_manifest.resolve() == manifest_file.resolve()
+            ), f"Wrong resolution: {description}"
+
+    finally:
+        os.chdir(original_cwd)

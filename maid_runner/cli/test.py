@@ -357,9 +357,12 @@ def run_test(
     # If a specific manifest is requested, use only that one
     if manifest_path:
         specific_manifest = Path(manifest_path)
-        # If path is relative, resolve it relative to manifests_dir
+        # If path is relative, try to find it
         if not specific_manifest.is_absolute():
-            specific_manifest = manifests_dir / specific_manifest
+            # Try as-is first (handles cases like "manifests/task-XXX.manifest.json")
+            if not specific_manifest.exists():
+                # Try relative to manifests_dir (handles cases like "task-XXX.manifest.json")
+                specific_manifest = manifests_dir / specific_manifest
 
         if not specific_manifest.exists():
             print(f"⚠️  Manifest file not found: {manifest_path}")
