@@ -15,8 +15,9 @@ Create behavioral tests from the manifest. See CLAUDE.md for MAID methodology de
 
 2. **Create tests**: `tests/test_task_XXX_*.py`
    - Import and USE each artifact (call functions, instantiate classes)
+   - **ASSERT on behavior** - no smoke tests (tests without assertions)
+   - Use `capsys` for stdout, verify return values, check state changes
    - Cover all parameters from manifest
-   - Use realistic scenarios, not just existence checks
 
 3. **CRITICAL - Validate tests USE artifacts (behavioral mode)**:
    ```bash
@@ -31,5 +32,8 @@ Create behavioral tests from the manifest. See CLAUDE.md for MAID methodology de
 
 ## Success
 ✓ Behavioral validation passes
+✓ Every test has assertions (no smoke tests)
 ✓ Tests fail appropriately (Red phase)
 ✓ Ready for developer
+
+See `docs/unit-testing-rules.md` for testing standards.

@@ -97,6 +97,17 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
 **ALWAYS:** Manifest first → Tests → Implementation → Validate
 
+## Testing Standards
+
+All tests must follow the unit testing rules defined in `docs/unit-testing-rules.md`. Key principles:
+- Test behavior, not implementation details
+- Minimize mocking to essential dependencies
+- Make tests deterministic and independent
+- Test for failure conditions, not just happy paths
+- Keep tests simple, readable, and maintainable
+
+See `docs/unit-testing-rules.md` for complete guidelines on writing effective unit tests.
+
 ## Documentation Standards
 
 **Focus on current state, not temporal comparisons:**
