@@ -7,7 +7,6 @@
     "maid_runner/cli/test.py"
   ],
   "readonlyFiles": [
-    "dev_bootstrap.py",
     "maid_runner/cli/main.py",
     "pyproject.toml"
   ],

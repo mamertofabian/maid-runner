@@ -44,7 +44,7 @@ watch:
 		exit 1; \
 	fi; \
 	echo "👁️  Watching task $(TASK): $$manifest"; \
-	uv run python dev_bootstrap.py $$manifest --watch
+	uv run maid test --manifest $$manifest --watch
 
 # Run once for specific task (e.g., make dev TASK=005)
 dev:
@@ -58,7 +58,7 @@ dev:
 		exit 1; \
 	fi; \
 	echo "🚀 Running task $(TASK): $$manifest"; \
-	uv run python dev_bootstrap.py $$manifest --once
+	uv run maid test --manifest $$manifest
 
 # Install development dependencies
 install-dev:

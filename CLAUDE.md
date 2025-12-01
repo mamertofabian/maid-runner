@@ -80,9 +80,9 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
    - Sequential naming: task-001, task-002, task-003, etc.
    - Each represents a single atomic change
 
-4. **Bootstrap Development Tools**
-   - `dev_bootstrap.py`: TDD runner for manifest-driven development
+4. **Development Tools**
    - `Makefile`: Convenience commands for development workflow
+   - `maid test`: TDD runner with watch mode support
    - Enables building MAID tools using MAID methodology
 
 ### Key MAID Principles in This Codebase
@@ -247,9 +247,9 @@ make test                # Run full pytest suite
 uv run maid test --manifest manifests/task-XXX.manifest.json --watch  # Single-manifest watch
 uv run maid test --watch-all                                          # Multi-manifest watch
 
-# Bootstrap Development (TDD workflow - legacy)
+# Development Shortcuts (Makefile)
 make dev TASK=005        # Run tests once for task-005
-make watch TASK=005      # Watch mode with auto-test for task-005 (legacy)
+make watch TASK=005      # Watch mode with auto-test for task-005
 make validate            # Validate all manifests with chain
 
 # Find next manifest number
