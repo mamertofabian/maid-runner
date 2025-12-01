@@ -131,6 +131,46 @@ def test_get_watchable_files_handles_missing_fields():
     assert len(watchable) == 0
 
 
+def test_get_watchable_files_extracts_test_files_from_validation_command():
+    """Test that get_watchable_files() also extracts test files from validationCommand."""
+    from maid_runner.cli.test import get_watchable_files
+
+    # Manifest with editableFiles and validationCommand containing test files
+    manifest_data = {
+        "editableFiles": ["src/file.py"],
+        "validationCommand": ["pytest", "tests/test_file.py", "-v"],
+    }
+    watchable = get_watchable_files(manifest_data)
+
+    # Should include both source files and test files
+    assert "src/file.py" in watchable
+    assert "tests/test_file.py" in watchable
+
+    # Test with validationCommands (multiple commands)
+    manifest_data = {
+        "editableFiles": ["src/file.py"],
+        "validationCommands": [
+            ["pytest", "tests/test_one.py", "-v"],
+            ["pytest", "tests/test_two.py", "-v"],
+        ],
+    }
+    watchable = get_watchable_files(manifest_data)
+
+    assert "src/file.py" in watchable
+    assert "tests/test_one.py" in watchable
+    assert "tests/test_two.py" in watchable
+
+    # Test deduplication (same test file mentioned twice)
+    manifest_data = {
+        "editableFiles": ["tests/test_file.py"],  # Test file also in editableFiles
+        "validationCommand": ["pytest", "tests/test_file.py", "-v"],
+    }
+    watchable = get_watchable_files(manifest_data)
+
+    # Should only appear once
+    assert watchable.count("tests/test_file.py") == 1
+
+
 def test_watch_manifest_monitors_files_and_reruns_validation(tmp_path: Path):
     """Test that watch_manifest() monitors files and re-runs validation on changes."""
     from maid_runner.cli.test import watch_manifest

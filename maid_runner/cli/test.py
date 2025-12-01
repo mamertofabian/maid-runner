@@ -36,7 +36,15 @@ except ImportError:
 
 
 def get_watchable_files(manifest_data: dict) -> List[str]:
-    """Extract and combine editableFiles and creatableFiles from a manifest.
+    """Extract and combine editableFiles, creatableFiles, and test files from a manifest.
+
+    This function extracts files that should be monitored in watch mode:
+    - editableFiles: Files being modified
+    - creatableFiles: New files being created
+    - Test files: Extracted from validationCommand/validationCommands
+
+    Including test files enables real-world TDD workflows where tests themselves
+    need corrections during implementation (typos, wrong assertions, edge cases).
 
     Args:
         manifest_data: Dictionary containing manifest data
@@ -44,6 +52,9 @@ def get_watchable_files(manifest_data: dict) -> List[str]:
     Returns:
         List of file paths that should be watched for changes
     """
+    from maid_runner.cli.validate import extract_test_files_from_command
+    from maid_runner.utils import normalize_validation_commands
+
     watchable_files = []
 
     # Get editable files
@@ -56,7 +67,21 @@ def get_watchable_files(manifest_data: dict) -> List[str]:
     if creatable_files:
         watchable_files.extend(creatable_files)
 
-    return watchable_files
+    # Get test files from validation commands
+    validation_commands = normalize_validation_commands(manifest_data)
+    for cmd in validation_commands:
+        test_files = extract_test_files_from_command(cmd)
+        watchable_files.extend(test_files)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_files = []
+    for f in watchable_files:
+        if f not in seen:
+            seen.add(f)
+            unique_files.append(f)
+
+    return unique_files
 
 
 class _FileChangeHandler(FileSystemEventHandler):
