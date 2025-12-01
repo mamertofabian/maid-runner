@@ -33,6 +33,10 @@ try:
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
+    # Provide a dummy base class to avoid NameError during module import
+    # This allows the module to be imported even when watchdog is not installed
+    FileSystemEventHandler = object  # type: ignore
+    Observer = None  # type: ignore
 
 
 def get_watchable_files(manifest_data: dict) -> List[str]:
