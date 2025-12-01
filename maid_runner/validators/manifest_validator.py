@@ -709,6 +709,61 @@ def _skip_spaces(text: str, start_idx: int) -> int:
     return idx
 
 
+def _extract_base_class_name(base: ast.AST) -> Optional[str]:
+    """Extract base class name from various AST node types.
+
+    Handles:
+    - ast.Name: Simple inheritance like class Foo(Bar)
+    - ast.Attribute: Qualified names like class Foo(module.Bar)
+    - ast.Subscript: Parameterized types like class Foo(Generic[T])
+
+    Args:
+        base: AST node representing a base class
+
+    Returns:
+        String name of the base class, or None if extraction fails
+
+    Examples:
+        >>> # For: class Foo(Bar)
+        >>> _extract_base_class_name(ast.Name(id='Bar'))
+        'Bar'
+
+        >>> # For: class Foo(Generic[T])
+        >>> _extract_base_class_name(ast.Subscript(value=ast.Name(id='Generic'), ...))
+        'Generic'
+
+        >>> # For: class Foo(typing.Generic[T])
+        >>> _extract_base_class_name(ast.Subscript(value=ast.Attribute(...), ...))
+        'typing.Generic'
+    """
+    if isinstance(base, ast.Name):
+        # Simple name: class Foo(Bar)
+        return base.id
+
+    elif isinstance(base, ast.Attribute):
+        # Qualified name: class Foo(module.ClassName)
+        parts = []
+        current = base
+        while isinstance(current, ast.Attribute):
+            parts.append(current.attr)
+            current = current.value
+        if isinstance(current, ast.Name):
+            parts.append(current.id)
+        return ".".join(reversed(parts))
+
+    elif isinstance(base, ast.Subscript):
+        # Parameterized type: class Foo(Generic[T]) or class Foo(List[str])
+        # Extract the base type from base.value
+        if isinstance(base.value, ast.Name):
+            # Simple generic: Generic[T]
+            return base.value.id
+        elif isinstance(base.value, ast.Attribute):
+            # Qualified generic: typing.Generic[T]
+            return _extract_base_class_name(base.value)
+
+    return None
+
+
 class _ArtifactCollector(ast.NodeVisitor):
     """AST visitor that collects class, function, and attribute references from Python code.
 
@@ -883,24 +938,12 @@ class _ArtifactCollector(ast.NodeVisitor):
         # Collect base classes
         base_names = []
         for base in node.bases:
-            if isinstance(base, ast.Name):
-                base_names.append(base.id)
+            base_name = _extract_base_class_name(base)
+            if base_name:
+                base_names.append(base_name)
                 # In behavioral mode, track base classes as "used"
                 if self.validation_mode == _VALIDATION_MODE_BEHAVIORAL:
-                    self.used_classes.add(base.id)
-            elif isinstance(base, ast.Attribute):
-                # Handle cases like module.ClassName (e.g., ast.NodeVisitor)
-                # Build the full qualified name
-                parts = []
-                current = base
-                while isinstance(current, ast.Attribute):
-                    parts.append(current.attr)
-                    current = current.value
-                if isinstance(current, ast.Name):
-                    parts.append(current.id)
-                # Reconstruct in correct order (reversed)
-                full_name = ".".join(reversed(parts))
-                base_names.append(full_name)
+                    self.used_classes.add(base_name)
 
         if base_names:
             self.found_class_bases[node.name] = base_names

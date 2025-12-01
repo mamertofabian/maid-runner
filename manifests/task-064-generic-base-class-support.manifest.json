@@ -1,0 +1,24 @@
+{
+  "goal": "Fix visit_ClassDef to handle ast.Subscript base classes like Generic[T]",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_base_class_name",
+        "args": [
+          {"name": "base", "type": "ast.AST"}
+        ],
+        "returns": "Optional[str]"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_064_generic_base_class_support.py", "-v"]
+}
