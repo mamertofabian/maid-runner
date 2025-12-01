@@ -77,21 +77,27 @@ def test_build_file_to_manifests_map_with_multiple_manifests_referencing_same_fi
     # Should return a dict
     assert isinstance(file_to_manifests, dict)
 
+    # Get absolute paths for comparison
+    project_root = tmp_path
+    shared_file_abs = (project_root / "src" / "shared_file.py").resolve()
+    file1_abs = (project_root / "src" / "file1.py").resolve()
+    file2_abs = (project_root / "src" / "file2.py").resolve()
+
     # shared_file.py should map to both manifests
-    assert "src/shared_file.py" in file_to_manifests
-    assert len(file_to_manifests["src/shared_file.py"]) == 2
-    assert manifest1 in file_to_manifests["src/shared_file.py"]
-    assert manifest2 in file_to_manifests["src/shared_file.py"]
+    assert shared_file_abs in file_to_manifests
+    assert len(file_to_manifests[shared_file_abs]) == 2
+    assert manifest1 in file_to_manifests[shared_file_abs]
+    assert manifest2 in file_to_manifests[shared_file_abs]
 
     # file1.py should only map to manifest1
-    assert "src/file1.py" in file_to_manifests
-    assert len(file_to_manifests["src/file1.py"]) == 1
-    assert manifest1 in file_to_manifests["src/file1.py"]
+    assert file1_abs in file_to_manifests
+    assert len(file_to_manifests[file1_abs]) == 1
+    assert manifest1 in file_to_manifests[file1_abs]
 
     # file2.py should only map to manifest2
-    assert "src/file2.py" in file_to_manifests
-    assert len(file_to_manifests["src/file2.py"]) == 1
-    assert manifest2 in file_to_manifests["src/file2.py"]
+    assert file2_abs in file_to_manifests
+    assert len(file_to_manifests[file2_abs]) == 1
+    assert manifest2 in file_to_manifests[file2_abs]
 
 
 def test_build_file_to_manifests_map_with_unique_files_per_manifest(tmp_path: Path):
@@ -128,12 +134,17 @@ def test_build_file_to_manifests_map_with_unique_files_per_manifest(tmp_path: Pa
     # Build the map
     file_to_manifests = build_file_to_manifests_map(manifests_dir, active_manifests)
 
-    # Each file should map to only one manifest
-    assert len(file_to_manifests["src/unique1.py"]) == 1
-    assert manifest1 in file_to_manifests["src/unique1.py"]
+    # Get absolute paths for comparison
+    project_root = tmp_path
+    unique1_abs = (project_root / "src" / "unique1.py").resolve()
+    unique2_abs = (project_root / "src" / "unique2.py").resolve()
 
-    assert len(file_to_manifests["src/unique2.py"]) == 1
-    assert manifest2 in file_to_manifests["src/unique2.py"]
+    # Each file should map to only one manifest
+    assert len(file_to_manifests[unique1_abs]) == 1
+    assert manifest1 in file_to_manifests[unique1_abs]
+
+    assert len(file_to_manifests[unique2_abs]) == 1
+    assert manifest2 in file_to_manifests[unique2_abs]
 
 
 def test_build_file_to_manifests_map_excludes_superseded_manifests(tmp_path: Path):
@@ -172,11 +183,15 @@ def test_build_file_to_manifests_map_excludes_superseded_manifests(tmp_path: Pat
     # Build the map
     file_to_manifests = build_file_to_manifests_map(manifests_dir, active_manifests)
 
+    # Get absolute paths for comparison
+    project_root = tmp_path
+    file_abs = (project_root / "src" / "file.py").resolve()
+
     # src/file.py should only map to manifest2, not manifest1
-    assert "src/file.py" in file_to_manifests
-    assert len(file_to_manifests["src/file.py"]) == 1
-    assert manifest2 in file_to_manifests["src/file.py"]
-    assert manifest1 not in file_to_manifests["src/file.py"]
+    assert file_abs in file_to_manifests
+    assert len(file_to_manifests[file_abs]) == 1
+    assert manifest2 in file_to_manifests[file_abs]
+    assert manifest1 not in file_to_manifests[file_abs]
 
 
 def test_build_file_to_manifests_map_with_empty_manifest_list(tmp_path: Path):
@@ -219,10 +234,16 @@ def test_build_file_to_manifests_map_includes_creatable_files(tmp_path: Path):
     # Build the map
     file_to_manifests = build_file_to_manifests_map(manifests_dir, active_manifests)
 
+    # Get absolute paths for comparison
+    project_root = tmp_path
+    new_file_abs = (project_root / "src" / "new_file.py").resolve()
+    another_new_abs = (project_root / "src" / "another_new.py").resolve()
+    existing_abs = (project_root / "src" / "existing.py").resolve()
+
     # Should include both creatable and editable files
-    assert "src/new_file.py" in file_to_manifests
-    assert "src/another_new.py" in file_to_manifests
-    assert "src/existing.py" in file_to_manifests
+    assert new_file_abs in file_to_manifests
+    assert another_new_abs in file_to_manifests
+    assert existing_abs in file_to_manifests
 
 
 def test_build_file_to_manifests_map_includes_test_files(tmp_path: Path):
@@ -247,9 +268,13 @@ def test_build_file_to_manifests_map_includes_test_files(tmp_path: Path):
     # Build the map
     file_to_manifests = build_file_to_manifests_map(manifests_dir, active_manifests)
 
+    # Get absolute paths for comparison
+    project_root = tmp_path
+    test_file_abs = (project_root / "tests" / "test_code.py").resolve()
+
     # Should include test files
-    assert "tests/test_code.py" in file_to_manifests
-    assert manifest in file_to_manifests["tests/test_code.py"]
+    assert test_file_abs in file_to_manifests
+    assert manifest in file_to_manifests[test_file_abs]
 
 
 def test_multi_manifest_file_change_handler_instantiation(tmp_path: Path):
@@ -344,9 +369,14 @@ def test_multi_manifest_file_change_handler_runs_affected_manifests(tmp_path: Pa
     manifest2 = manifests_dir / "task-002.manifest.json"
     manifest2.write_text(json.dumps(manifest2_data))
 
+    # Use absolute paths as keys (matching new implementation)
+    project_root = tmp_path
+    file1_abs = (project_root / "src" / "file1.py").resolve()
+    file2_abs = (project_root / "src" / "file2.py").resolve()
+
     file_to_manifests = {
-        "src/file1.py": [manifest1],
-        "src/file2.py": [manifest2],
+        file1_abs: [manifest1],
+        file2_abs: [manifest2],
     }
 
     # Mock execute_validation_commands
@@ -879,7 +909,11 @@ def test_multi_manifest_handler_runs_multiple_manifests_for_shared_file(tmp_path
     manifest2 = manifests_dir / "task-002.manifest.json"
     manifest2.write_text(json.dumps(manifest2_data))
 
-    file_to_manifests = {"src/shared.py": [manifest1, manifest2]}
+    # Use absolute paths as keys (matching new implementation)
+    project_root = tmp_path
+    shared_file_abs = (project_root / "src" / "shared.py").resolve()
+
+    file_to_manifests = {shared_file_abs: [manifest1, manifest2]}
 
     with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
         mock_execute.return_value = (1, 0, 1)

@@ -94,9 +94,10 @@ def build_file_to_manifests_map(
         active_manifests: List of paths to active (non-superseded) manifests
 
     Returns:
-        Dictionary mapping file paths to lists of manifest paths that reference them
+        Dictionary mapping absolute file paths to lists of manifest paths that reference them
     """
     file_to_manifests = {}
+    project_root = manifests_dir.parent
 
     for manifest_path in active_manifests:
         try:
@@ -107,10 +108,12 @@ def build_file_to_manifests_map(
             watchable_files = get_watchable_files(manifest_data)
 
             # Add this manifest to the mapping for each watchable file
+            # Use resolved absolute paths as keys for reliable matching
             for file_path in watchable_files:
-                if file_path not in file_to_manifests:
-                    file_to_manifests[file_path] = []
-                file_to_manifests[file_path].append(manifest_path)
+                absolute_path = (project_root / file_path).resolve()
+                if absolute_path not in file_to_manifests:
+                    file_to_manifests[absolute_path] = []
+                file_to_manifests[absolute_path].append(manifest_path)
 
         except (json.JSONDecodeError, IOError):
             # Skip invalid manifests
@@ -130,6 +133,15 @@ class _FileChangeHandler(FileSystemEventHandler):
         verbose: bool,
         project_root: Path,
     ):
+        """Initialize file change handler for single-manifest watch mode.
+
+        Args:
+            manifest_path: Path to the manifest file
+            manifest_data: Parsed manifest dictionary
+            timeout: Command timeout in seconds
+            verbose: Enable detailed output
+            project_root: Root directory for executing commands
+        """
         self.manifest_path = manifest_path
         self.manifest_data = manifest_data
         self.timeout = timeout
@@ -138,30 +150,38 @@ class _FileChangeHandler(FileSystemEventHandler):
         self.last_run = 0
         self.debounce_seconds = 2
 
+        # Cache watchable files as absolute paths for efficient comparison
+        watchable_files = get_watchable_files(manifest_data)
+        self.watchable_paths = {(project_root / f).resolve() for f in watchable_files}
+
     def on_modified(self, event):
         """Run validation commands when watched files change."""
         if event.is_directory:
             return
 
-        # Check if the modified file is in our watchable files
-        modified_path = Path(event.src_path)
-        watchable_files = get_watchable_files(self.manifest_data)
+        # Check if the modified file is in our watchable files using absolute path comparison
+        modified_path = Path(event.src_path).resolve()
 
-        for watchable_file in watchable_files:
-            if str(modified_path).endswith(watchable_file):
-                # Debounce to avoid multiple rapid triggers
-                current_time = time.time()
-                if current_time - self.last_run > self.debounce_seconds:
-                    self.last_run = current_time
-                    print(f"\n🔔 Detected change in {watchable_file}")
-                    execute_validation_commands(
-                        manifest_path=self.manifest_path,
-                        manifest_data=self.manifest_data,
-                        timeout=self.timeout,
-                        verbose=self.verbose,
-                        project_root=self.project_root,
-                    )
-                break
+        if modified_path in self.watchable_paths:
+            # Debounce to avoid multiple rapid triggers
+            current_time = time.time()
+            if current_time - self.last_run > self.debounce_seconds:
+                self.last_run = current_time
+
+                # Get relative path for display
+                try:
+                    display_path = modified_path.relative_to(self.project_root)
+                except ValueError:
+                    display_path = modified_path
+
+                print(f"\n🔔 Detected change in {display_path}")
+                execute_validation_commands(
+                    manifest_path=self.manifest_path,
+                    manifest_data=self.manifest_data,
+                    timeout=self.timeout,
+                    verbose=self.verbose,
+                    project_root=self.project_root,
+                )
 
 
 class _MultiManifestFileChangeHandler(FileSystemEventHandler):
@@ -175,6 +195,15 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         quiet: bool,
         project_root: Path,
     ):
+        """Initialize file change handler for multi-manifest watch mode.
+
+        Args:
+            file_to_manifests: Mapping from absolute file paths to lists of manifest paths
+            timeout: Command timeout in seconds
+            verbose: Enable detailed output
+            quiet: Suppress non-essential output
+            project_root: Root directory for executing commands
+        """
         self.file_to_manifests = file_to_manifests
         self.timeout = timeout
         self.verbose = verbose
@@ -193,15 +222,11 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         if current_time - self.last_run <= self.debounce_seconds:
             return
 
-        # Check if the modified file is in our file-to-manifests mapping
-        modified_path = Path(event.src_path)
+        # Check if the modified file is in our file-to-manifests mapping using absolute path
+        modified_path = Path(event.src_path).resolve()
 
         # Find which manifests reference this file
-        affected_manifests = []
-        for file_path, manifests in self.file_to_manifests.items():
-            if str(modified_path).endswith(file_path):
-                affected_manifests.extend(manifests)
-                break
+        affected_manifests = self.file_to_manifests.get(modified_path)
 
         if affected_manifests:
             self.last_run = current_time
