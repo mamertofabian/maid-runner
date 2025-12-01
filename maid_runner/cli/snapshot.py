@@ -1532,7 +1532,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate MAID snapshot manifests from existing Python or TypeScript files"
     )
-    parser.add_argument("file_path", help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot")
+    parser.add_argument(
+        "file_path",
+        help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot",
+    )
     parser.add_argument(
         "--output-dir",
         default="manifests",
