@@ -301,6 +301,29 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         # and we want to run validation if it's now tracked by a manifest
         self.on_modified(event)
 
+    def on_deleted(self, event) -> None:
+        """Handle file deletion events.
+
+        When a manifest file is deleted, refresh mappings to remove it.
+        For regular files, no action needed (validation will fail naturally
+        if test tries to run on deleted file).
+
+        Args:
+            event: Filesystem event containing information about the deleted file
+        """
+        # Ignore directory events
+        if event.is_directory:
+            return
+
+        src_path = str(event.src_path)
+
+        # For manifest files, refresh mappings to remove the deleted manifest
+        if src_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(f"\n🗑️  Manifest deleted: {Path(src_path).name}")
+                self.refresh_file_mappings(self.manifests_dir)
+
     def on_moved(self, event) -> None:
         """Handle file move/rename events for atomic write detection.
 

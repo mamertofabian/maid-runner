@@ -803,3 +803,103 @@ def test_on_moved_ignores_directory_events(tmp_path: Path):
     # Should NOT have called on_modified or refresh
     handler.on_modified.assert_not_called()
     handler.refresh_file_mappings.assert_not_called()
+
+
+def test_on_deleted_method_exists():
+    """Test that _MultiManifestFileChangeHandler has on_deleted method."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    assert hasattr(_MultiManifestFileChangeHandler, "on_deleted")
+
+
+def test_on_deleted_refreshes_mappings_for_manifest(tmp_path: Path):
+    """Test that on_deleted refreshes mappings when a manifest is deleted."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock refresh_file_mappings
+    handler.refresh_file_mappings = MagicMock()
+
+    # Create mock delete event for manifest
+    mock_event = MagicMock()
+    mock_event.is_directory = False
+    mock_event.src_path = str(manifests_dir / "task-001.manifest.json")
+
+    handler.on_deleted(mock_event)
+
+    # Should have triggered refresh
+    handler.refresh_file_mappings.assert_called_once()
+
+
+def test_on_deleted_ignores_non_manifest_files(tmp_path: Path):
+    """Test that on_deleted ignores non-manifest file deletions."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock refresh_file_mappings
+    handler.refresh_file_mappings = MagicMock()
+
+    # Create mock delete event for regular file
+    mock_event = MagicMock()
+    mock_event.is_directory = False
+    mock_event.src_path = str(tmp_path / "tests" / "test_file.py")
+
+    handler.on_deleted(mock_event)
+
+    # Should NOT have triggered refresh for non-manifest files
+    handler.refresh_file_mappings.assert_not_called()
+
+
+def test_on_deleted_ignores_directory_events(tmp_path: Path):
+    """Test that on_deleted ignores directory deletion events."""
+    from maid_runner.cli.test import _MultiManifestFileChangeHandler
+
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+
+    handler = _MultiManifestFileChangeHandler(
+        file_to_manifests={},
+        timeout=300,
+        verbose=False,
+        quiet=False,
+        project_root=tmp_path,
+        manifests_dir=manifests_dir,
+        observer=MagicMock(),
+    )
+
+    # Mock refresh_file_mappings
+    handler.refresh_file_mappings = MagicMock()
+
+    # Create mock directory delete event
+    mock_event = MagicMock()
+    mock_event.is_directory = True
+    mock_event.src_path = str(manifests_dir)
+
+    handler.on_deleted(mock_event)
+
+    # Should NOT have triggered refresh
+    handler.refresh_file_mappings.assert_not_called()
