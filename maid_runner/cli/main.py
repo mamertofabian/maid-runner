@@ -162,6 +162,11 @@ def main():
         action="store_true",
         help="Watch mode: automatically re-run validation commands when files change (requires --manifest)",
     )
+    test_parser.add_argument(
+        "--watch-all",
+        action="store_true",
+        help="Watch all manifests: automatically re-run affected validation commands when any tracked file changes",
+    )
 
     # List-manifests subcommand
     list_manifests_parser = subparsers.add_parser(
@@ -273,6 +278,7 @@ def main():
             args.timeout,
             args.manifest,
             args.watch,
+            args.watch_all,
         )
     elif args.command == "manifests":
         from maid_runner.cli.list_manifests import run_list_manifests

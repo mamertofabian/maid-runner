@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "goal": "Add explicit --watch-all flag for multi-manifest watch mode that watches all active manifests and intelligently runs only affected validation commands when files change",
+  "taskType": "edit",
+  "supersedes": [],
+  "editableFiles": [
+    "maid_runner/cli/test.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/cli/list_manifests.py",
+    "maid_runner/utils.py",
+    "tests/test_task_063_multi_manifest_watch_mode.py",
+    "tests/test_task_062_maid_test_watch_mode.py"
+  ],
+  "creatableFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/test.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "build_file_to_manifests_map",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "active_manifests",
+            "type": "List[Path]"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "class",
+        "name": "_MultiManifestFileChangeHandler"
+      },
+      {
+        "type": "function",
+        "name": "on_modified",
+        "class": "_MultiManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "event"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "watch_all_manifests",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "active_manifests",
+            "type": "List[Path]"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "project_root",
+            "type": "Path"
+          },
+          {
+            "name": "debounce_seconds",
+            "type": "float"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "run_test",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "fail_fast",
+            "type": "bool"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "watch",
+            "type": "bool"
+          },
+          {
+            "name": "watch_all",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_063_multi_manifest_watch_mode.py",
+    "-v"
+  ]
+}
