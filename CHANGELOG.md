@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Watch Mode for `maid test` Command** - Live test execution with file change detection
+  - Single-manifest watch mode (`maid test --manifest X --watch`)
+  - Multi-manifest watch mode (`maid test --watch-all`)
+  - Intelligent file-to-manifests mapping for targeted test runs
+  - Debounced file change detection (2-second delay)
+  - Automatic re-execution of validation commands on file changes
+  - Requires optional `watchdog` dependency
+- **CLI Enhancements**
+  - Added `--watch` flag to `maid test` for single-manifest watch mode
+  - Added `--watch-all` flag to `maid test` for multi-manifest watch mode
+  - Added validation: `--watch` requires `--manifest` to be specified
+  - Added mutual exclusivity check between `--watch` and `--watch-all` flags
+
+### Changed
+- Enhanced `maid test` command with watch mode capabilities for TDD workflows
+- Improved error messages to guide users between single and multi-manifest watch modes
+
 ## [0.2.0] - 2025-11-30
 
 ### Added
