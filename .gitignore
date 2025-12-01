@@ -12,6 +12,7 @@ maid_runner/claude/
 # Virtual environments
 .venv
 
+docs/planning/
 docs/key_learnings_*.md
 
 .idea/
