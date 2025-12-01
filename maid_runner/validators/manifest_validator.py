@@ -1280,6 +1280,37 @@ def discover_related_manifests(target_file):
     return manifests
 
 
+def _get_artifact_key(artifact: dict) -> tuple:
+    """Generate unique key for an artifact.
+
+    For methods and class attributes, the key includes the class name to distinguish
+    between artifacts with the same name in different classes.
+
+    Args:
+        artifact: Artifact dictionary with type, name, and optional class fields
+
+    Returns:
+        Tuple of (type, class_or_none, name) that uniquely identifies the artifact
+
+    Examples:
+        >>> _get_artifact_key({"type": "class", "name": "MyClass"})
+        ('class', None, 'MyClass')
+
+        >>> _get_artifact_key({"type": "function", "name": "get", "class": "LRUCache"})
+        ('function', 'LRUCache', 'get')
+
+        >>> _get_artifact_key({"type": "function", "name": "helper"})
+        ('function', None, 'helper')
+    """
+    artifact_type = artifact.get("type")
+    artifact_name = artifact.get("name")
+    artifact_class = artifact.get("class")  # None for module-level artifacts
+
+    # Key format: (type, class_or_none, name)
+    # This allows methods/attributes with same name in different classes to coexist
+    return (artifact_type, artifact_class, artifact_name)
+
+
 def _merge_expected_artifacts(
     manifest_paths: List[str], target_file: str
 ) -> List[dict]:
@@ -1294,7 +1325,7 @@ def _merge_expected_artifacts(
         Merged list of expected artifacts
     """
     merged_artifacts = []
-    seen_artifacts = {}  # Track (type, name) -> artifact
+    seen_artifacts = {}  # Track (type, class, name) -> artifact
 
     for path in manifest_paths:
         with open(path, "r") as f:
@@ -1311,10 +1342,9 @@ def _merge_expected_artifacts(
         artifacts = expected_artifacts.get("contains", [])
 
         for artifact in artifacts:
-            # Use (type, name) as unique key
-            artifact_type = artifact.get("type")
-            artifact_name = artifact.get("name")
-            key = (artifact_type, artifact_name)
+            # Use (type, class, name) as unique key
+            # This prevents methods with same name in different classes from overwriting each other
+            key = _get_artifact_key(artifact)
 
             # Add if not seen, or always update (later manifests override earlier ones)
             # This ensures that modifications in later tasks override earlier definitions

@@ -1,0 +1,24 @@
+{
+  "goal": "Fix _merge_expected_artifacts to use (type, class, name) key for methods instead of (type, name)",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_get_artifact_key",
+        "args": [
+          {"name": "artifact", "type": "dict"}
+        ],
+        "returns": "tuple"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_065_fix_artifact_merge_key.py", "-v"]
+}
