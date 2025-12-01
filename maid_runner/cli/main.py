@@ -223,6 +223,39 @@ def main():
         description="Output the manifest JSON schema for agent consumption",
     )
 
+    # Files subcommand
+    files_parser = subparsers.add_parser(
+        "files",
+        help="Show file-level tracking status without full validation",
+        description="Show which files are UNDECLARED, REGISTERED, or TRACKED in manifests",
+    )
+    files_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+    files_parser.add_argument(
+        "--issues-only",
+        action="store_true",
+        help="Only show undeclared and registered files (exclude tracked)",
+    )
+    files_parser.add_argument(
+        "--status",
+        choices=["undeclared", "registered", "tracked"],
+        help="Filter by status (undeclared, registered, tracked)",
+    )
+    files_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Machine-readable output (no decorative elements)",
+    )
+    files_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output as JSON",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -326,6 +359,16 @@ def main():
         from maid_runner.cli.schema import run_schema
 
         run_schema()
+    elif args.command == "files":
+        from maid_runner.cli.files import run_files
+
+        run_files(
+            args.manifest_dir,
+            args.issues_only,
+            args.status,
+            args.quiet,
+            args.json,
+        )
     else:
         parser.print_help()
         sys.exit(1)

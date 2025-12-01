@@ -1,0 +1,96 @@
+{
+  "version": "1",
+  "goal": "Create CLI module for 'maid files' command that shows file-level tracking status without full validation, supporting filtering by status and output formats",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/files.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/validators/file_tracker.py",
+    "maid_runner/cli/validate.py",
+    "maid_runner/cli/main.py",
+    "tests/test_task_067_maid_files_command.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/files.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_files",
+        "description": "Main entry point for the 'maid files' command",
+        "args": [
+          {
+            "name": "manifest_dir",
+            "type": "str"
+          },
+          {
+            "name": "issues_only",
+            "type": "bool"
+          },
+          {
+            "name": "status_filter",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "json_output",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "format_files_output",
+        "description": "Format file tracking results for human-readable output",
+        "args": [
+          {
+            "name": "analysis",
+            "type": "FileTrackingAnalysis"
+          },
+          {
+            "name": "issues_only",
+            "type": "bool"
+          },
+          {
+            "name": "status_filter",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "format_files_json",
+        "description": "Format file tracking results as JSON output",
+        "args": [
+          {
+            "name": "analysis",
+            "type": "FileTrackingAnalysis"
+          },
+          {
+            "name": "issues_only",
+            "type": "bool"
+          },
+          {
+            "name": "status_filter",
+            "type": "Optional[str]"
+          }
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_067_maid_files_command.py",
+    "-v"
+  ]
+}
