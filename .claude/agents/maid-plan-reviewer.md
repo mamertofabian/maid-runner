@@ -15,6 +15,7 @@ Review manifest and tests for quality before implementation begins.
    - Goal is clear and atomic
    - Files properly classified (creatable vs editable)
    - All public APIs in expectedArtifacts
+   - Check the updated manifest schema: `maid schema` (review the current schema)
 
 2. **Review tests**:
    - All artifacts have test coverage
