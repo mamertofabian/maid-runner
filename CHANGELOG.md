@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-01
+
 ### Added
 - **Watch Mode for `maid test` Command** - Live test execution with file change detection
   - Single-manifest watch mode (`maid test --manifest X --watch`)
@@ -20,10 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `--watch-all` flag to `maid test` for multi-manifest watch mode
   - Added validation: `--watch` requires `--manifest` to be specified
   - Added mutual exclusivity check between `--watch` and `--watch-all` flags
+- **Quality-Check-and-Commit Slash Command** - Custom command for running all quality checks and committing changes
 
 ### Changed
 - Enhanced `maid test` command with watch mode capabilities for TDD workflows
 - Improved error messages to guide users between single and multi-manifest watch modes
+- Improved watch mode file matching and performance
+
+### Fixed
+- Support for multiple manifest path formats in watch mode
+- Watch mode now monitors test files in addition to implementation files
+
+### Removed
+- Retired `dev_bootstrap.py` script in favor of `maid test` CLI command
 
 ## [0.2.0] - 2025-11-30
 
@@ -162,6 +173,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.1]: https://github.com/mamertofabian/maid-runner/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mamertofabian/maid-runner/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/mamertofabian/maid-runner/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/mamertofabian/maid-runner/compare/v0.1.1...v0.1.2
