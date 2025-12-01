@@ -645,6 +645,39 @@ maid-runner/
 - **Manifest Schema** (`validators/schemas/manifest.schema.json`) - JSON schema defining manifest structure
 - **Task Manifests** (`manifests/`) - Chronologically ordered task definitions
 
+## FAQs
+
+### Why is there no "snapshot all files" command?
+
+MAID is designed for **incremental adoption**, not mass conversion. A bulk snapshot command would:
+
+**Performance issues:**
+- Create thousands of manifest files (e.g., 1,317 manifests for 1,317 Python files)
+- Severely degrade all MAID operations (`maid validate` scans all manifests)
+- Generate massive git history noise
+
+**Philosophy mismatch:**
+- Files without manifests = files not yet touched under MAID (intentional)
+- Manifests should document actual development work, not create artificial coverage
+- Violates MAID's explicitness and isolation principles
+
+**How to snapshot multiple files:**
+
+```bash
+# Snapshot files incrementally as you work on them
+maid snapshot path/to/file.py
+
+# Batch snapshot a specific directory if needed
+for file in src/module_to_onboard/*.py; do
+  maid snapshot "$file" --force
+done
+
+# Discover which files lack manifests
+maid validate  # File tracking analysis shows undeclared files
+```
+
+The file tracking analysis (via `maid validate`) identifies undeclared files without creating manifests, supporting gradual MAID adoption.
+
 ## Requirements
 
 - Python 3.12+
