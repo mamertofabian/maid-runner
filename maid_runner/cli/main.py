@@ -75,7 +75,8 @@ def main():
         description="Generate MAID snapshot manifests from existing Python or TypeScript files",
     )
     snapshot_parser.add_argument(
-        "file_path", help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot"
+        "file_path",
+        help="Path to the Python (.py) or TypeScript (.ts, .tsx, .js, .jsx) file to snapshot",
     )
     snapshot_parser.add_argument(
         "--output-dir",
@@ -154,6 +155,17 @@ def main():
         type=int,
         default=300,
         help="Command timeout in seconds (default: 300)",
+    )
+    test_parser.add_argument(
+        "--watch",
+        "-w",
+        action="store_true",
+        help="Watch mode: automatically re-run validation commands when files change (requires --manifest)",
+    )
+    test_parser.add_argument(
+        "--watch-all",
+        action="store_true",
+        help="Watch all manifests: automatically re-run affected validation commands when any tracked file changes",
     )
 
     # List-manifests subcommand
@@ -265,6 +277,8 @@ def main():
             args.quiet,
             args.timeout,
             args.manifest,
+            args.watch,
+            args.watch_all,
         )
     elif args.command == "manifests":
         from maid_runner.cli.list_manifests import run_list_manifests

@@ -354,6 +354,92 @@ read: task-008-snapshot-generator.manifest.json
 - **Manifest Discovery**: Quickly locate relevant manifests when investigating code
 - **Audit Trail**: See the complete history of changes to a file through manifests
 
+### 5. Run Validation Commands with Watch Mode
+
+```bash
+# Run validation commands from manifests
+maid test [options]
+
+# Options:
+#   --manifest-dir DIR       # Default: manifests/
+#   --manifest PATH, -m PATH # Run single manifest only
+#   --fail-fast              # Stop on first failure
+#   --verbose, -v            # Show detailed output
+#   --quiet, -q              # Show minimal output
+#   --timeout SECONDS        # Command timeout (default: 300)
+#   --watch, -w              # Watch mode for single manifest (requires --manifest)
+#   --watch-all              # Watch all manifests and run affected tests on changes
+
+# Exit Codes:
+#   0 = All validation commands passed
+#   1 = One or more validation commands failed
+```
+
+**Examples:**
+
+```bash
+# Run all validation commands from all active manifests
+$ maid test
+📋 task-007-type-definitions-module.manifest.json: Running 1 validation command(s)
+  [1/1] pytest tests/test_task_007_type_definitions_module.py -v
+    ✅ PASSED
+...
+📊 Summary: 69/69 validation commands passed (100.0%)
+
+# Run validation commands from a single manifest
+$ maid test --manifest task-063-multi-manifest-watch-mode.manifest.json
+📋 task-063-multi-manifest-watch-mode.manifest.json: Running 1 validation command(s)
+  [1/1] pytest tests/test_task_063_multi_manifest_watch_mode.py -v
+    ✅ PASSED
+
+# Watch mode for single manifest (re-run on file changes)
+$ maid test --manifest task-063.manifest.json --watch
+👁️  Watch mode enabled. Press Ctrl+C to stop.
+👀 Watching 2 file(s) from manifest
+
+📋 Running initial validation...
+  ✅ PASSED
+
+# File change detected automatically re-runs tests...
+🔔 Detected change in maid_runner/cli/test.py
+📋 Re-running validation...
+  ✅ PASSED
+
+# Watch all manifests (multi-manifest watch mode)
+$ maid test --watch-all
+👁️  Multi-manifest watch mode enabled. Press Ctrl+C to stop.
+👀 Watching 67 file(s) across 55 manifest(s)
+
+📋 Running initial validation for all manifests:
+...
+📊 Summary: 69/69 validation commands passed (100.0%)
+
+# File change detected - only runs affected manifests...
+🔔 Detected change in maid_runner/cli/test.py
+📋 Running validation for task-062-maid-test-watch-mode.manifest.json
+  ✅ PASSED
+📋 Running validation for task-063-multi-manifest-watch-mode.manifest.json
+  ✅ PASSED
+```
+
+**Watch Mode Features:**
+- **Single-Manifest Watch** (`--watch --manifest X`): Watches files from one manifest
+  - Automatically re-runs validation commands when tracked files change
+  - Ideal for focused TDD workflow on a specific task
+  - Requires `watchdog` package: `pip install watchdog`
+
+- **Multi-Manifest Watch** (`--watch-all`): Watches all active manifests
+  - Intelligently runs only affected validation commands
+  - Maps file changes to manifests that reference them
+  - Debounces rapid changes (2-second delay)
+  - Perfect for integration testing across multiple tasks
+
+**Use Cases:**
+- **TDD Workflow**: Keep tests running while developing (`--watch --manifest`)
+- **Continuous Validation**: Monitor entire codebase for regressions (`--watch-all`)
+- **Quick Feedback**: Get immediate test results without manual re-runs
+- **Integration Testing**: Verify changes don't break dependent tasks
+
 ## Optional Human Helper Tools
 
 For manual/interactive use, MAID Runner includes convenience wrappers in `examples/maid_runner.py`:
