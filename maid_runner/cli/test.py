@@ -198,6 +198,8 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         verbose: bool,
         quiet: bool,
         project_root: Path,
+        manifests_dir: Optional[Path] = None,
+        observer: Optional["Observer"] = None,
     ):
         """Initialize file change handler for multi-manifest watch mode.
 
@@ -207,14 +209,20 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
             verbose: Enable detailed output
             quiet: Suppress non-essential output
             project_root: Root directory for executing commands
+            manifests_dir: Path to manifests directory for dynamic discovery
+            observer: Reference to the observer for dynamic scheduling
         """
         self.file_to_manifests = file_to_manifests
         self.timeout = timeout
         self.verbose = verbose
         self.quiet = quiet
         self.project_root = project_root
+        self.manifests_dir = manifests_dir
+        self.observer = observer
         self.last_run = 0
         self.debounce_seconds = 2
+        # Track watched directories to avoid duplicates
+        self._watched_dirs: set = set()
 
     def on_modified(self, event):
         """Run validation commands for affected manifests when watched files change."""
@@ -262,6 +270,64 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
                 except (json.JSONDecodeError, IOError) as e:
                     if not self.quiet:
                         print(f"⚠️  Error loading {manifest_path.name}: {e}")
+
+    def on_created(self, event) -> None:
+        """Handle file creation events for dynamic manifest discovery.
+
+        Triggers refresh_file_mappings when a new manifest file is created.
+
+        Args:
+            event: Filesystem event containing information about the created file
+        """
+        # Ignore directory events
+        if event.is_directory:
+            return
+
+        # Only trigger for .manifest.json files
+        src_path = str(event.src_path)
+        if not src_path.endswith(".manifest.json"):
+            return
+
+        # Refresh file mappings when a new manifest is created
+        if self.manifests_dir is not None:
+            if not self.quiet:
+                print(f"\n🔄 New manifest detected: {Path(src_path).name}")
+            self.refresh_file_mappings(self.manifests_dir)
+
+    def refresh_file_mappings(self, manifests_dir: Path) -> None:
+        """Rebuild file-to-manifests mapping from manifests directory.
+
+        Discovers all manifest files, rebuilds the mapping, and schedules
+        new directories with the observer.
+
+        Args:
+            manifests_dir: Path to the manifests directory
+        """
+        # Get all manifest files
+        manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
+
+        # Get superseded manifests and filter them out
+        superseded = get_superseded_manifests(manifests_dir)
+        active_manifests = [m for m in manifest_files if m not in superseded]
+
+        # Rebuild file-to-manifests mapping
+        new_mapping = build_file_to_manifests_map(manifests_dir, active_manifests)
+        self.file_to_manifests.clear()
+        self.file_to_manifests.update(new_mapping)
+
+        # Schedule new directories with the observer
+        if self.observer is not None:
+            for file_path in new_mapping.keys():
+                parent_dir = file_path.parent
+                if parent_dir not in self._watched_dirs:
+                    try:
+                        self.observer.schedule(self, str(parent_dir), recursive=False)
+                        self._watched_dirs.add(parent_dir)
+                        if not self.quiet:
+                            print(f"   👁️  Now watching: {parent_dir}")
+                    except Exception:
+                        # Directory might already be watched or inaccessible
+                        pass
 
 
 def watch_manifest(
@@ -396,27 +462,37 @@ def watch_all_manifests(
             if not quiet:
                 print(f"⚠️  Error loading {manifest_path.name}: {e}")
 
-    # Set up file watching
+    observer = Observer()
+
+    # Set up file watching with dynamic discovery support
     event_handler = _MultiManifestFileChangeHandler(
         file_to_manifests=file_to_manifests,
         timeout=timeout,
         verbose=verbose,
         quiet=quiet,
         project_root=project_root,
+        manifests_dir=manifests_dir,
+        observer=observer,
     )
     # Update debounce seconds from parameter
     event_handler.debounce_seconds = debounce_seconds
 
-    observer = Observer()
-
     # Watch the parent directories of all watchable files
+    watched_dirs = set()
     if all_watchable_files:
-        watched_dirs = set()
         for file_path in all_watchable_files:
             parent_dir = Path(file_path).parent
             if parent_dir not in watched_dirs:
                 observer.schedule(event_handler, str(parent_dir), recursive=False)
                 watched_dirs.add(parent_dir)
+
+    # Watch the manifests directory for dynamic manifest discovery
+    if manifests_dir not in watched_dirs:
+        observer.schedule(event_handler, str(manifests_dir), recursive=False)
+        watched_dirs.add(manifests_dir)
+
+    # Initialize handler's watched_dirs set
+    event_handler._watched_dirs = watched_dirs
 
     try:
         observer.start()

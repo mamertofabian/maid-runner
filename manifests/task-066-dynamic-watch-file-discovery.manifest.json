@@ -1,0 +1,57 @@
+{
+  "version": "1",
+  "goal": "Add dynamic file discovery in watch-all mode so new manifests and files are detected without restart by watching the manifests directory and refreshing file-to-manifests mappings",
+  "taskType": "edit",
+  "supersedes": [],
+  "editableFiles": [
+    "maid_runner/cli/test.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/utils.py",
+    "tests/test_task_066_dynamic_watch_file_discovery.py",
+    "tests/test_task_063_multi_manifest_watch_mode.py"
+  ],
+  "creatableFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/test.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "on_created",
+        "class": "_MultiManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "event"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "refresh_file_mappings",
+        "class": "_MultiManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          }
+        ]
+      },
+      {
+        "type": "attribute",
+        "name": "manifests_dir",
+        "class": "_MultiManifestFileChangeHandler"
+      },
+      {
+        "type": "attribute",
+        "name": "observer",
+        "class": "_MultiManifestFileChangeHandler"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_066_dynamic_watch_file_discovery.py",
+    "-v"
+  ]
+}
