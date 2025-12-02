@@ -8,6 +8,7 @@ or behavioral test files using the enhanced AST validator.
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -776,25 +777,36 @@ class _MultiManifestValidationHandler(FileSystemEventHandler):
 
     def _run_validation_for_manifest(self, manifest_path: Path) -> None:
         """Run dual mode validation and optionally tests for a manifest."""
-        success = run_dual_mode_validation(
+        results = run_dual_mode_validation(
             manifest_path=manifest_path,
             use_manifest_chain=self.use_manifest_chain,
             quiet=self.quiet,
         )
 
-        if success and not self.skip_tests:
+        # Check if all validations passed (ignoring None/skipped)
+        validations_passed = all(
+            v is True for k, v in results.items() if k != "tests" and v is not None
+        )
+
+        if validations_passed and not self.skip_tests:
             try:
                 with open(manifest_path, "r") as f:
                     manifest_data = json.load(f)
-                execute_validation_command(
+                test_success = execute_validation_command(
                     manifest_data=manifest_data,
                     project_root=self.project_root,
                     timeout=self.timeout,
                     verbose=self.verbose,
                 )
+                results["tests"] = test_success
             except (json.JSONDecodeError, IOError) as e:
+                results["tests"] = False
                 if not self.quiet:
                     print(f"⚠️  Error loading manifest: {e}", flush=True)
+
+        # Print summary
+        task_id = _extract_task_id(manifest_path)
+        _print_validation_summary(task_id, results, self.quiet)
 
     def on_modified(self, event) -> None:
         """Run validation for affected manifests when watched files change."""
@@ -1086,34 +1098,99 @@ class _ManifestFileChangeHandler(FileSystemEventHandler):
     def _run_validation(self) -> None:
         """Run dual mode validation and optionally execute tests."""
         # Run dual mode validation
-        success = run_dual_mode_validation(
+        results = run_dual_mode_validation(
             manifest_path=self.manifest_path,
             use_manifest_chain=self.use_manifest_chain,
             quiet=self.quiet,
         )
 
+        # Check if all validations passed (ignoring None/skipped)
+        validations_passed = all(
+            v is True for k, v in results.items() if k != "tests" and v is not None
+        )
+
         # Run validation command if enabled and validation passed
-        if success and not self.skip_tests:
+        if validations_passed and not self.skip_tests:
             try:
                 with open(self.manifest_path, "r") as f:
                     manifest_data = json.load(f)
 
-                execute_validation_command(
+                test_success = execute_validation_command(
                     manifest_data=manifest_data,
                     project_root=self.project_root,
                     timeout=self.timeout,
                     verbose=self.verbose,
                 )
+                results["tests"] = test_success
             except (json.JSONDecodeError, IOError) as e:
+                results["tests"] = False
                 if not self.quiet:
                     print(f"⚠️  Error loading manifest: {e}")
+
+        # Print summary
+        task_id = _extract_task_id(self.manifest_path)
+        _print_validation_summary(task_id, results, self.quiet)
+
+
+def _extract_task_id(manifest_path: Path) -> str:
+    """Extract task ID from manifest filename.
+
+    Args:
+        manifest_path: Path to the manifest file
+
+    Returns:
+        Task ID (e.g., "task-070") or empty string if not found
+    """
+    filename = manifest_path.name
+    match = re.match(r"(task-\d+)", filename)
+    return match.group(1) if match else ""
+
+
+def _print_validation_summary(
+    task_id: str,
+    results: Dict[str, Optional[bool]],
+    quiet: bool = False,
+) -> None:
+    """Print a summary of validation results.
+
+    Args:
+        task_id: Task identifier (e.g., "task-070")
+        results: Dict with keys 'schema', 'behavioral', 'implementation', 'tests'
+                 Values are True (passed), False (failed), or None (skipped)
+        quiet: If True, suppress output
+    """
+    if quiet:
+        return
+
+    # Status icons mapping
+    _icons = {True: "✅", False: "❌", None: "⏭️"}
+
+    task_prefix = f"[{task_id}] " if task_id else ""
+
+    # Count passed/total (only count non-None results)
+    active_results = {k: v for k, v in results.items() if v is not None}
+    passed = sum(1 for v in active_results.values() if v is True)
+    total = len(active_results)
+
+    # Build summary parts
+    parts = []
+    for key in ["schema", "behavioral", "implementation", "tests"]:
+        result = results.get(key)
+        icon = _icons.get(result, "⏭️")
+        label = key.capitalize()
+        parts.append(f"{icon} {label}")
+
+    print()
+    print("━" * 70, flush=True)
+    print(f"📊 {task_prefix}{passed}/{total} passed ({' | '.join(parts)})", flush=True)
+    print("━" * 70, flush=True)
 
 
 def run_dual_mode_validation(
     manifest_path: Path,
     use_manifest_chain: bool,
     quiet: bool,
-) -> bool:
+) -> Dict[str, Optional[bool]]:
     """Run schema, behavioral, and implementation validation on a manifest.
 
     Validates in three stages:
@@ -1127,13 +1204,22 @@ def run_dual_mode_validation(
         quiet: If True, suppress success messages
 
     Returns:
-        True if all validations pass, False otherwise
+        Dict with validation results: {'schema': bool, 'behavioral': bool,
+        'implementation': bool, 'tests': None}. 'tests' is always None
+        (to be filled by caller after running tests).
     """
-    all_passed = True
+    results: Dict[str, Optional[bool]] = {
+        "schema": None,
+        "behavioral": None,
+        "implementation": None,
+        "tests": None,
+    }
+    task_id = _extract_task_id(manifest_path)
+    task_prefix = f"[{task_id}] " if task_id else ""
 
     # Stage 1: Schema validation
     if not quiet:
-        print("\n📋 Running schema validation...", flush=True)
+        print(f"\n📋 {task_prefix}Running schema validation...", flush=True)
 
     try:
         # Load and validate manifest against schema
@@ -1148,13 +1234,14 @@ def run_dual_mode_validation(
         )
         validate_schema(manifest_data, str(schema_path))
 
+        results["schema"] = True
         if not quiet:
             print("  ✅ Schema validation PASSED", flush=True)
     except (json.JSONDecodeError, jsonschema.ValidationError, FileNotFoundError) as e:
-        all_passed = False
+        results["schema"] = False
         if not quiet:
             print(f"  ❌ Schema validation FAILED: {e}", flush=True)
-        return all_passed  # Can't continue without valid schema
+        return results  # Can't continue without valid schema
 
     # Stage 2 & 3: Behavioral and Implementation validation
     validation_modes = ["behavioral", "implementation"]
@@ -1162,7 +1249,7 @@ def run_dual_mode_validation(
     for mode in validation_modes:
         try:
             if not quiet:
-                print(f"\n📋 Running {mode} validation...", flush=True)
+                print(f"\n📋 {task_prefix}Running {mode} validation...", flush=True)
 
             run_validation(
                 manifest_path=str(manifest_path),
@@ -1173,24 +1260,26 @@ def run_dual_mode_validation(
                 skip_file_tracking=True,
             )
 
+            results[mode] = True
             if not quiet:
                 print(f"  ✅ {mode.capitalize()} validation PASSED", flush=True)
 
         except SystemExit as e:
             if e.code == 0:
+                results[mode] = True
                 if not quiet:
                     print(f"  ✅ {mode.capitalize()} validation PASSED", flush=True)
             else:
-                all_passed = False
+                results[mode] = False
                 if not quiet:
                     print(f"  ❌ {mode.capitalize()} validation FAILED", flush=True)
         except FileNotFoundError as e:
             # File not found - don't crash watch mode
-            all_passed = False
+            results[mode] = False
             if not quiet:
                 print(f"  ⚠️  {e}", flush=True)
 
-    return all_passed
+    return results
 
 
 def execute_validation_command(
@@ -1317,25 +1406,36 @@ def watch_manifest_validation(
 
     # Run initial validation
     print("\n📋 Running initial validation:", flush=True)
-    success = run_dual_mode_validation(
+    results = run_dual_mode_validation(
         manifest_path=manifest_path,
         use_manifest_chain=use_manifest_chain,
         quiet=quiet,
     )
 
-    if success and not skip_tests:
+    # Check if all validations passed (ignoring None/skipped)
+    validations_passed = all(
+        v is True for k, v in results.items() if k != "tests" and v is not None
+    )
+
+    if validations_passed and not skip_tests:
         try:
             with open(manifest_path, "r") as f:
                 manifest_data = json.load(f)
-            execute_validation_command(
+            test_success = execute_validation_command(
                 manifest_data=manifest_data,
                 project_root=project_root,
                 timeout=timeout,
                 verbose=verbose,
             )
+            results["tests"] = test_success
         except (json.JSONDecodeError, IOError) as e:
+            results["tests"] = False
             if not quiet:
                 print(f"⚠️  Error loading manifest: {e}")
+
+    # Print summary
+    task_id = _extract_task_id(manifest_path)
+    _print_validation_summary(task_id, results, quiet)
 
     # Set up file watching
     event_handler = _ManifestFileChangeHandler(
@@ -1447,25 +1547,36 @@ def watch_all_validations(
         if not quiet:
             print(f"\n📋 {manifest_path.name}", flush=True)
 
-        success = run_dual_mode_validation(
+        results = run_dual_mode_validation(
             manifest_path=manifest_path,
             use_manifest_chain=use_manifest_chain,
             quiet=quiet,
         )
 
-        if success and not skip_tests:
+        # Check if all validations passed (ignoring None/skipped)
+        validations_passed = all(
+            v is True for k, v in results.items() if k != "tests" and v is not None
+        )
+
+        if validations_passed and not skip_tests:
             try:
                 with open(manifest_path, "r") as f:
                     manifest_data = json.load(f)
-                execute_validation_command(
+                test_success = execute_validation_command(
                     manifest_data=manifest_data,
                     project_root=project_root,
                     timeout=timeout,
                     verbose=verbose,
                 )
+                results["tests"] = test_success
             except (json.JSONDecodeError, IOError) as e:
+                results["tests"] = False
                 if not quiet:
                     print(f"⚠️  Error loading {manifest_path.name}: {e}")
+
+        # Print summary for this manifest
+        task_id = _extract_task_id(manifest_path)
+        _print_validation_summary(task_id, results, quiet)
 
     # Create single handler with file-to-manifests mapping
     observer = Observer()

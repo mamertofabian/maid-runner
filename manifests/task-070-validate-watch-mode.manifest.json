@@ -97,7 +97,7 @@
             "type": "bool"
           }
         ],
-        "returns": "bool"
+        "returns": "Dict[str, Optional[bool]]"
       },
       {
         "type": "function",

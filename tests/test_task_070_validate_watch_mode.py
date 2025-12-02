@@ -85,7 +85,12 @@ class TestManifestFileChangeHandlerClass:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             # Create a fake event for the manifest file
             fake_event = MagicMock()
@@ -147,7 +152,12 @@ class TestManifestFileChangeHandlerClass:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             # Create a fake move event (temp file -> manifest file)
             fake_event = MagicMock()
@@ -306,6 +316,7 @@ class TestRunDualModeValidation:
     def test_run_dual_mode_validation_has_correct_signature(self):
         """Test that run_dual_mode_validation has the correct function signature."""
         from maid_runner.cli.validate import run_dual_mode_validation
+        from typing import Dict, Optional
 
         sig = inspect.signature(run_dual_mode_validation)
 
@@ -319,11 +330,11 @@ class TestRunDualModeValidation:
         assert sig.parameters["use_manifest_chain"].annotation is bool
         assert sig.parameters["quiet"].annotation is bool
 
-        # Check return type
-        assert sig.return_annotation is bool
+        # Check return type - now returns Dict[str, Optional[bool]]
+        assert sig.return_annotation == Dict[str, Optional[bool]]
 
     def test_run_dual_mode_validation_returns_true_on_success(self, tmp_path: Path):
-        """Test that run_dual_mode_validation returns True when validation succeeds."""
+        """Test that run_dual_mode_validation returns dict with True values when validation succeeds."""
         from maid_runner.cli.validate import run_dual_mode_validation
 
         # Create a valid manifest
@@ -369,13 +380,17 @@ def example_function():
                         quiet=True,
                     )
 
-                    # Should return True on success
-                    assert result is True
+                    # Should return dict with all True values for schema, behavioral, implementation
+                    assert isinstance(result, dict)
+                    assert result["schema"] is True
+                    assert result["behavioral"] is True
+                    assert result["implementation"] is True
+                    assert result["tests"] is None  # Tests not run by this function
                 finally:
                     os.chdir(original_cwd)
 
     def test_run_dual_mode_validation_returns_false_on_failure(self, tmp_path: Path):
-        """Test that run_dual_mode_validation returns False when validation fails."""
+        """Test that run_dual_mode_validation returns dict with False values when validation fails."""
         from maid_runner.cli.validate import run_dual_mode_validation
 
         manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
@@ -409,8 +424,10 @@ def example_function():
                         quiet=True,
                     )
 
-                    # Should return False on failure
-                    assert result is False
+                    # Should return dict with at least one False value on failure
+                    assert isinstance(result, dict)
+                    assert result["schema"] is True  # Schema passed
+                    assert result["behavioral"] is False  # Behavioral failed
                 finally:
                     os.chdir(original_cwd)
 
@@ -618,7 +635,12 @@ class TestWatchManifestValidation:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             with patch("maid_runner.cli.validate.Observer") as mock_observer_class:
                 mock_observer = MagicMock()
@@ -647,7 +669,12 @@ class TestWatchManifestValidation:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             with patch("maid_runner.cli.validate.Observer") as mock_observer_class:
                 mock_observer = MagicMock()
@@ -679,7 +706,12 @@ class TestWatchManifestValidation:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             with patch(
                 "maid_runner.cli.validate.execute_validation_command"
@@ -715,7 +747,12 @@ class TestWatchManifestValidation:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             with patch(
                 "maid_runner.cli.validate.execute_validation_command"
@@ -796,7 +833,12 @@ class TestWatchAllValidations:
         with patch(
             "maid_runner.cli.validate.run_dual_mode_validation"
         ) as mock_validate:
-            mock_validate.return_value = True
+            mock_validate.return_value = {
+                "schema": True,
+                "behavioral": True,
+                "implementation": True,
+                "tests": None,
+            }
 
             with patch("maid_runner.cli.validate.Observer") as mock_observer_class:
                 mock_observer = MagicMock()
@@ -921,7 +963,12 @@ class TestDebouncing:
             def count_calls(*_args, **_kwargs):
                 nonlocal validation_count
                 validation_count += 1
-                return True
+                return {
+                    "schema": True,
+                    "behavioral": True,
+                    "implementation": True,
+                    "tests": None,
+                }
 
             mock_validate.side_effect = count_calls
 
