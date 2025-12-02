@@ -8,8 +8,7 @@ This module provides validation to detect:
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Set
-from typing_extensions import TypedDict
+from typing import Dict, List, Optional, Set, TypedDict
 
 
 # File status constants
