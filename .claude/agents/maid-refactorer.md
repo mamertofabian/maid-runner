@@ -7,7 +7,9 @@ model: inherit
 
 # Phase 3.5: Refactoring
 
-Improve code quality while keeping tests green. See CLAUDE.md for details.
+**Important:** Refactoring private implementation (functions/classes with `_` prefix) does NOT require a new manifest, as long as tests pass and public API remains unchanged.
+
+Improve code quality while keeping tests green. See CLAUDE.md for complete guidelines.
 
 ## Your Task
 

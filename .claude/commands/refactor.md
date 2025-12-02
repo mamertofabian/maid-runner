@@ -5,6 +5,8 @@ argument-hint: [file-path or task-number]
 
 Refactor: $1
 
+**Note:** Refactoring private implementation (functions/classes with `_` prefix) does NOT require a new manifest, as long as tests pass and public API is unchanged.
+
 Use the maid-refactorer subagent to:
 
 1. Ensure tests pass first
@@ -17,4 +19,4 @@ Use the maid-refactorer subagent to:
    ```
 4. Run quality checks: `make lint` and `make format`
 
-Keep public API unchanged. See CLAUDE.md for refactoring patterns.
+Keep public API unchanged. See CLAUDE.md for complete refactoring guidelines.

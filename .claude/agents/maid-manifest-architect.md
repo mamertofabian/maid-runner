@@ -7,6 +7,8 @@ model: inherit
 
 # Phase 1: Manifest Creation
 
+**When to create a manifest:** Only for public API changes (functions, classes, methods without `_` prefix). Private implementation refactoring does NOT need a manifest.
+
 Create a manifest for the task. See CLAUDE.md and maid_specs.md for MAID methodology details.
 
 ## Your Task
@@ -28,6 +30,10 @@ Create a manifest for the task. See CLAUDE.md and maid_specs.md for MAID methodo
    ```
 
 5. **Iterate** until validation passes
+
+## Important
+- **DO NOT create behavioral tests** - that's Phase 2 (test designer's job)
+- Your task ends when manifest validation passes
 
 ## Success
 ✓ Manifest validation passes
