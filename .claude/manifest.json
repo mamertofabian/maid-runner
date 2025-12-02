@@ -1,0 +1,52 @@
+{
+  "agents": {
+    "distributable": [
+      "maid-manifest-architect.md",
+      "maid-plan-reviewer.md",
+      "maid-test-designer.md",
+      "maid-developer.md",
+      "maid-fixer.md",
+      "maid-refactorer.md",
+      "maid-auditor.md"
+    ],
+    "descriptions": {
+      "maid-manifest-architect.md": "Phase 1: Creates and validates manifests from goals",
+      "maid-plan-reviewer.md": "Phase 2 Quality Gate: Reviews manifest and tests before implementation",
+      "maid-test-designer.md": "Phase 2: Creates behavioral tests from manifests",
+      "maid-developer.md": "Phase 3: Implements code to pass tests (TDD)",
+      "maid-fixer.md": "Phase 3 Support: Fixes validation errors and test failures",
+      "maid-refactorer.md": "Phase 3.5: Improves code quality while maintaining compliance",
+      "maid-auditor.md": "Cross-cutting: Enforces MAID compliance across all phases"
+    }
+  },
+  "commands": {
+    "distributable": [
+      "spike.md",
+      "plan.md",
+      "generate-manifest.md",
+      "enhance-manifest.md",
+      "validate-manifest.md",
+      "generate-tests.md",
+      "implement.md",
+      "fix.md",
+      "refactor.md",
+      "audit.md",
+      "run-validation.md",
+      "improve-tests.md"
+    ],
+    "descriptions": {
+      "spike.md": "Explore and spike an idea before creating manifest",
+      "plan.md": "Complete Phase 1 & 2 (manifest + tests) from goal",
+      "generate-manifest.md": "Generate MAID manifest from goal (Phase 1)",
+      "enhance-manifest.md": "Enhance existing manifest with additional details",
+      "validate-manifest.md": "Validate and review manifest (Phase 1/2 quality gate)",
+      "generate-tests.md": "Generate behavioral tests from manifest (Phase 2)",
+      "implement.md": "Implement code from manifest (Phase 3)",
+      "fix.md": "Fix validation errors and test failures (Phase 3 support)",
+      "refactor.md": "Refactor code while maintaining compliance (Phase 3.5)",
+      "audit.md": "Audit MAID compliance (cross-cutting)",
+      "run-validation.md": "Run validation tests for a manifest or task number",
+      "improve-tests.md": "Enhance test coverage and quality"
+    }
+  }
+}

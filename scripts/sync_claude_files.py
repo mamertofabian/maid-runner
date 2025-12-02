@@ -75,6 +75,26 @@ def sync_commands() -> None:
     print(f"✓ Synced {len(command_files)} command files to {dest_commands}")
 
 
+def _sync_manifest() -> None:
+    """Copy .claude/manifest.json to maid_runner/claude/manifest.json."""
+    project_root = Path.cwd()
+    source_manifest = project_root / ".claude" / "manifest.json"
+    dest_root = project_root / "maid_runner" / "claude"
+    dest_manifest = dest_root / "manifest.json"
+
+    if not source_manifest.exists():
+        print(
+            f"⚠️  Warning: Source manifest not found: {source_manifest}. Skipping manifest sync."
+        )
+        return
+
+    # Ensure destination directory exists
+    dest_root.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy2(source_manifest, dest_manifest)
+    print(f"✓ Synced manifest.json to {dest_manifest}")
+
+
 def main() -> None:
     """Main entry point - orchestrate the full sync process."""
     print("=" * 60)
@@ -82,6 +102,7 @@ def main() -> None:
     print("=" * 60)
     print()
 
+    _sync_manifest()
     sync_agents()
     sync_commands()
 

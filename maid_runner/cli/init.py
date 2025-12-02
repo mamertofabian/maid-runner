@@ -8,6 +8,36 @@ import json
 import shutil
 from pathlib import Path
 
+
+def load_claude_manifest() -> dict:
+    """Load and parse the Claude files manifest.json.
+
+    Returns:
+        Dictionary containing agents and commands configuration
+    """
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    manifest_path = maid_runner_package / "claude" / "manifest.json"
+
+    with open(manifest_path) as f:
+        return json.load(f)
+
+
+def get_distributable_files(manifest: dict, file_type: str) -> list:
+    """Get list of distributable files from manifest for a given file type.
+
+    Args:
+        manifest: The loaded manifest dictionary
+        file_type: Either "agents" or "commands"
+
+    Returns:
+        List of filenames that should be distributed
+    """
+    if file_type not in manifest:
+        return []
+    return manifest[file_type].get("distributable", [])
+
+
 # MAID section markers for idempotent CLAUDE.md handling
 MAID_SECTION_START = "<!-- MAID-SECTION-START -->"
 MAID_SECTION_END = "<!-- MAID-SECTION-END -->"
@@ -661,12 +691,19 @@ def copy_claude_agents(target_dir: str, force: bool) -> None:
     dest_agents = Path(target_dir) / ".claude" / "agents"
     dest_agents.mkdir(parents=True, exist_ok=True)
 
-    # Copy all .md files
-    agent_files = list(source_agents.glob("*.md"))
-    for agent_file in agent_files:
-        shutil.copy2(agent_file, dest_agents / agent_file.name)
+    # Load manifest and get distributable files
+    manifest = load_claude_manifest()
+    distributable = get_distributable_files(manifest, "agents")
 
-    print(f"✓ Copied {len(agent_files)} Claude Code agent files to {dest_agents}")
+    # Copy only distributable agent files
+    copied_count = 0
+    for filename in distributable:
+        source_file = source_agents / filename
+        if source_file.exists():
+            shutil.copy2(source_file, dest_agents / filename)
+            copied_count += 1
+
+    print(f"✓ Copied {copied_count} Claude Code agent files to {dest_agents}")
 
 
 def copy_claude_commands(target_dir: str, force: bool) -> None:
@@ -698,12 +735,19 @@ def copy_claude_commands(target_dir: str, force: bool) -> None:
     dest_commands = Path(target_dir) / ".claude" / "commands"
     dest_commands.mkdir(parents=True, exist_ok=True)
 
-    # Copy all .md files
-    command_files = list(source_commands.glob("*.md"))
-    for command_file in command_files:
-        shutil.copy2(command_file, dest_commands / command_file.name)
+    # Load manifest and get distributable files
+    manifest = load_claude_manifest()
+    distributable = get_distributable_files(manifest, "commands")
 
-    print(f"✓ Copied {len(command_files)} Claude Code command files to {dest_commands}")
+    # Copy only distributable command files
+    copied_count = 0
+    for filename in distributable:
+        source_file = source_commands / filename
+        if source_file.exists():
+            shutil.copy2(source_file, dest_commands / filename)
+            copied_count += 1
+
+    print(f"✓ Copied {copied_count} Claude Code command files to {dest_commands}")
 
 
 def run_init(target_dir: str, force: bool) -> None:

@@ -1,0 +1,37 @@
+{
+  "goal": "Add Claude files manifest for selective distribution during maid init",
+  "description": "Create manifest.json listing distributable vs project-specific Claude files, and update init.py to use it for selective copying instead of copying all .md files.",
+  "taskType": "edit",
+  "creatableFiles": [
+    "maid_runner/claude/manifest.json"
+  ],
+  "editableFiles": [
+    "maid_runner/cli/init.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_069_claude_files_manifest.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "load_claude_manifest",
+        "description": "Load and parse the Claude files manifest.json",
+        "args": [],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "get_distributable_files",
+        "description": "Get list of distributable files from manifest for a given file type (agents or commands)",
+        "args": [
+          {"name": "manifest", "type": "dict"},
+          {"name": "file_type", "type": "str"}
+        ],
+        "returns": "list"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_069_claude_files_manifest.py", "-v"]
+}
