@@ -76,7 +76,8 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
    - Artifact types: class, function, attribute, parameter
 
 3. **Manifest Files** (`manifests/`)
-   - Chronologically ordered, immutable task records
+   - Chronologically ordered task records
+   - Current task's manifest can be modified during active development; all prior tasks' manifests are immutable
    - Sequential naming: task-001, task-002, task-003, etc.
    - Each represents a single atomic change
 
@@ -96,6 +97,24 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
 **ALWAYS:** Manifest first → Tests → Implementation → Validate
+
+## Refactoring Private Implementation
+
+MAID provides flexibility for refactoring private implementation details without requiring new manifests:
+
+- **Private code** (functions, classes, variables with `_` prefix) can be refactored freely
+- **Internal logic changes** that don't affect the public API are allowed
+- **Code quality improvements** (splitting functions, extracting helpers, renaming privates) are permitted
+
+**Requirements:**
+- All tests must continue to pass (`make test`, `uv run maid test`)
+- All validations must pass (`uv run maid validate`)
+- Public API must remain unchanged (no changes to public functions, classes, or signatures)
+- No MAID rules are violated
+
+This breathing room allows practical development without bureaucracy while maintaining accountability for public interface changes.
+
+**For complete methodology details**, see `docs/maid_specs.md`.
 
 ## Testing Standards
 
@@ -306,6 +325,8 @@ make format      # Auto-fix formatting issues
 - Manifest chain = source of truth for file state
 - Manifest = contract; tests support implementation and verification
 - Every change needs a manifest with sequential numbering
+- **Manifest immutability**: Current task's manifest can be modified during active development; all prior tasks' manifests are immutable
+- **One file per manifest**: `expectedArtifacts` defines artifacts for ONE file only; multi-file changes require separate manifests
 
 ## Lessons Learned: Handling Prerequisite Discovery
 

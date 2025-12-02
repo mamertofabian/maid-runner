@@ -197,6 +197,130 @@ def copy_unit_testing_rules(target_dir: str) -> None:
     print(f"Copied unit-testing-rules.md: {dest_rules}")
 
 
+def _generate_maid_cli_commands() -> str:
+    """Generate MAID CLI commands section (language-agnostic).
+
+    Returns:
+        String containing MAID CLI commands documentation
+    """
+    return """## MAID CLI Commands
+
+```bash
+# Validate a manifest
+maid validate <manifest-path> [--validation-mode behavioral|implementation]
+
+# Generate a snapshot manifest from existing code
+maid snapshot <file-path> [--output-dir <dir>]
+
+# List manifests that reference a file
+maid manifests <file-path> [--manifest-dir <dir>]
+
+# Run all validation commands
+maid test [--manifest-dir <dir>]
+
+# Get help
+maid --help
+```"""
+
+
+def _generate_validation_modes() -> str:
+    """Generate validation modes section.
+
+    Returns:
+        String containing validation modes documentation
+    """
+    return """## Validation Modes
+
+- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
+- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)"""
+
+
+def _generate_key_rules() -> str:
+    """Generate key rules section.
+
+    Returns:
+        String containing key rules documentation
+    """
+    return """## Key Rules
+
+**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
+**ALWAYS:** Manifest first → Tests → Implementation → Validate"""
+
+
+def _generate_manifest_rules() -> str:
+    """Generate manifest rules (CRITICAL) section.
+
+    Returns:
+        String containing manifest rules documentation
+    """
+    return """## Manifest Rules (CRITICAL)
+
+**These rules are non-negotiable for maintaining MAID compliance:**
+
+- **Manifest Immutability**: The current task's manifest (e.g., `task-050.manifest.json`) can be modified while actively working on that task. Once you move to the next task, ALL prior manifests become immutable and part of the permanent audit trail. NEVER modify completed task manifests—this breaks the chronological record of changes.
+
+- **One File Per Manifest**: `expectedArtifacts` is an OBJECT that defines artifacts for a SINGLE file only. It is NOT an array of files. This is a common mistake that will cause validation to fail.
+
+- **Multi-File Changes Require Multiple Manifests**: If your task modifies public APIs in multiple files (e.g., `utils.py` AND `handlers.py`), you MUST create separate sequential manifests—one per file:
+  - `task-050-update-utils.manifest.json` → modifies `utils.py`
+  - `task-051-update-handlers.manifest.json` → modifies `handlers.py`
+
+- **Definition of Done (Zero Tolerance)**: A task is NOT complete until BOTH validation commands pass with ZERO errors or warnings:
+  - `maid validate <manifest-path>` → Must pass 100%
+  - `maid test` → Must pass 100%
+
+  Partial completion is not acceptable. All errors must be fixed before proceeding to the next task."""
+
+
+def _generate_artifact_rules() -> str:
+    """Generate artifact rules section.
+
+    Returns:
+        String containing artifact rules documentation
+    """
+    return """## Artifact Rules
+
+- **Public** (no `_` prefix): MUST be in manifest
+- **Private** (`_` prefix): Optional in manifest
+- **creatableFiles**: Strict validation (exact match)
+- **editableFiles**: Permissive validation (contains at least)"""
+
+
+def _generate_refactoring_flexibility() -> str:
+    """Generate refactoring flexibility section.
+
+    Returns:
+        String containing refactoring flexibility documentation
+    """
+    return """## Refactoring Private Implementation
+
+MAID provides flexibility for refactoring private implementation details without requiring new manifests:
+
+- **Private code** (functions, classes, variables with `_` prefix) can be refactored freely
+- **Internal logic changes** that don't affect the public API are allowed
+- **Code quality improvements** (splitting functions, extracting helpers, renaming privates) are permitted
+
+**Requirements:**
+- All tests must continue to pass
+- All validations must pass (`maid validate`, `maid test`)
+- Public API must remain unchanged
+- No MAID rules are violated
+
+This breathing room allows practical development without bureaucracy while maintaining accountability for public interface changes."""
+
+
+def _generate_additional_resources() -> str:
+    """Generate additional resources section.
+
+    Returns:
+        String containing additional resources documentation
+    """
+    return """## Additional Resources
+
+- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
+- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner"""
+
+
 def detect_project_language(target_dir: str) -> str:
     """Detect the primary language of the project.
 
@@ -233,7 +357,7 @@ def generate_python_claude_md() -> str:
     Returns:
         String containing Python-focused MAID workflow documentation
     """
-    content = """# MAID Methodology
+    base_content = """# MAID Methodology
 
 **This project uses Manifest-driven AI Development (MAID) v1.3**
 
@@ -313,56 +437,26 @@ Verify complete chain: `pytest tests/ -v`
 }
 ```
 
-## MAID CLI Commands
-
-```bash
-# Validate a manifest
-maid validate <manifest-path> [--validation-mode behavioral|implementation]
-
-# Generate a snapshot manifest from existing code
-maid snapshot <file-path> [--output-dir <dir>]
-
-# List manifests that reference a file
-maid manifests <file-path> [--manifest-dir <dir>]
-
-# Run all validation commands
-maid test [--manifest-dir <dir>]
-
-# Get help
-maid --help
-```
-
-## Validation Modes
-
-- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
-- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
-
-## Key Rules
-
-**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
-**ALWAYS:** Manifest first → Tests → Implementation → Validate
-
-## Artifact Rules
-
-- **Public** (no `_` prefix): MUST be in manifest
-- **Private** (`_` prefix): Optional in manifest
-- **creatableFiles**: Strict validation (exact match)
-- **editableFiles**: Permissive validation (contains at least)
-
-## Getting Started
+"""
+    # Build content using helper functions
+    sections = [
+        base_content,
+        _generate_maid_cli_commands(),
+        _generate_validation_modes(),
+        _generate_key_rules(),
+        _generate_manifest_rules(),
+        _generate_artifact_rules(),
+        _generate_refactoring_flexibility(),
+        """## Getting Started
 
 1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
 2. Write behavioral tests in `tests/test_task_001_*.py`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
-5. Run tests to verify: `maid test`
-
-## Additional Resources
-
-- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
-- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner
-"""
-    return content
+5. Run tests to verify: `maid test`""",
+        _generate_additional_resources(),
+    ]
+    return "\n\n".join(sections)
 
 
 def generate_typescript_claude_md() -> str:
@@ -371,7 +465,7 @@ def generate_typescript_claude_md() -> str:
     Returns:
         String containing TypeScript-focused MAID workflow documentation
     """
-    content = """# MAID Methodology
+    base_content = """# MAID Methodology
 
 **This project uses Manifest-driven AI Development (MAID) v1.3**
 
@@ -455,56 +549,26 @@ Verify complete chain: `npm test` (or `pnpm test` / `yarn test`)
 }
 ```
 
-## MAID CLI Commands
-
-```bash
-# Validate a manifest
-maid validate <manifest-path> [--validation-mode behavioral|implementation]
-
-# Generate a snapshot manifest from existing code
-maid snapshot <file-path> [--output-dir <dir>]
-
-# List manifests that reference a file
-maid manifests <file-path> [--manifest-dir <dir>]
-
-# Run all validation commands
-maid test [--manifest-dir <dir>]
-
-# Get help
-maid --help
-```
-
-## Validation Modes
-
-- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
-- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
-
-## Key Rules
-
-**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
-**ALWAYS:** Manifest first → Tests → Implementation → Validate
-
-## Artifact Rules
-
-- **Public** (no `_` prefix): MUST be in manifest
-- **Private** (`_` prefix): Optional in manifest
-- **creatableFiles**: Strict validation (exact match)
-- **editableFiles**: Permissive validation (contains at least)
-
-## Getting Started
+"""
+    # Build content using helper functions
+    sections = [
+        base_content,
+        _generate_maid_cli_commands(),
+        _generate_validation_modes(),
+        _generate_key_rules(),
+        _generate_manifest_rules(),
+        _generate_artifact_rules(),
+        _generate_refactoring_flexibility(),
+        """## Getting Started
 
 1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
 2. Write behavioral tests in `tests/test_task_001_*.test.ts`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
-5. Run tests to verify: `maid test`
-
-## Additional Resources
-
-- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
-- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner
-"""
-    return content
+5. Run tests to verify: `maid test`""",
+        _generate_additional_resources(),
+    ]
+    return "\n\n".join(sections)
 
 
 def generate_mixed_claude_md() -> str:
@@ -513,7 +577,7 @@ def generate_mixed_claude_md() -> str:
     Returns:
         String containing MAID workflow documentation for both Python and TypeScript
     """
-    content = """# MAID Methodology
+    base_content = """# MAID Methodology
 
 **This project uses Manifest-driven AI Development (MAID) v1.3**
 
@@ -627,56 +691,26 @@ Verify complete chain: `pytest tests/ -v` or `npm test`
 }
 ```
 
-## MAID CLI Commands
-
-```bash
-# Validate a manifest
-maid validate <manifest-path> [--validation-mode behavioral|implementation]
-
-# Generate a snapshot manifest from existing code
-maid snapshot <file-path> [--output-dir <dir>]
-
-# List manifests that reference a file
-maid manifests <file-path> [--manifest-dir <dir>]
-
-# Run all validation commands
-maid test [--manifest-dir <dir>]
-
-# Get help
-maid --help
-```
-
-## Validation Modes
-
-- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
-- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
-
-## Key Rules
-
-**NEVER:** Modify code without manifest | Skip validation | Access unlisted files
-**ALWAYS:** Manifest first → Tests → Implementation → Validate
-
-## Artifact Rules
-
-- **Public** (no `_` prefix): MUST be in manifest
-- **Private** (`_` prefix): Optional in manifest
-- **creatableFiles**: Strict validation (exact match)
-- **editableFiles**: Permissive validation (contains at least)
-
-## Getting Started
+"""
+    # Build content using helper functions
+    sections = [
+        base_content,
+        _generate_maid_cli_commands(),
+        _generate_validation_modes(),
+        _generate_key_rules(),
+        _generate_manifest_rules(),
+        _generate_artifact_rules(),
+        _generate_refactoring_flexibility(),
+        """## Getting Started
 
 1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
 2. Write behavioral tests in `tests/test_task_001_*.py` or `tests/test_task_001_*.test.ts`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
-5. Run tests to verify: `maid test`
-
-## Additional Resources
-
-- **Full MAID Specification**: See `.maid/docs/maid_specs.md` for complete methodology details
-- **MAID Runner Repository**: https://github.com/mamertofabian/maid-runner
-"""
-    return content
+5. Run tests to verify: `maid test`""",
+        _generate_additional_resources(),
+    ]
+    return "\n\n".join(sections)
 
 
 def generate_claude_md_content(language: str) -> str:
