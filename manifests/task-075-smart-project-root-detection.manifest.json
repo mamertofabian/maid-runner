@@ -1,0 +1,35 @@
+{
+  "goal": "Add smart project root detection utility function that finds project root by locating markers (.git, pyproject.toml, package.json, .maid/) walking up from a given directory",
+  "description": "The current codebase assumes project_root = manifests_dir.parent which fails when manifests are in the project root or in non-standard locations. This adds a find_project_root() function that walks up the directory tree looking for project markers, falling back to current working directory if no marker is found.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/utils.py",
+    "maid_runner/cli/test.py",
+    "maid_runner/cli/validate.py",
+    "maid_runner/cli/snapshot.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_075_project_root_detection.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/utils.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "PROJECT_ROOT_MARKERS",
+        "description": "Tuple of file/directory names that indicate a project root (.git, pyproject.toml, package.json, .maid, setup.py, Cargo.toml, go.mod)"
+      },
+      {
+        "type": "function",
+        "name": "find_project_root",
+        "description": "Find the project root by walking up from start_path looking for marker files/directories. Returns the directory containing a marker, or falls back to cwd if no marker found.",
+        "args": [
+          {"name": "start_path", "type": "Path"},
+          {"name": "markers", "type": "Tuple[str, Ellipsis]", "default": "PROJECT_ROOT_MARKERS"}
+        ],
+        "returns": "Path"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_075_project_root_detection.py", "-v"]
+}

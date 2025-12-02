@@ -17,7 +17,7 @@ from typing import Optional, List, Dict, Set, Any
 
 import jsonschema
 
-from maid_runner.utils import normalize_validation_commands
+from maid_runner.utils import find_project_root, normalize_validation_commands
 
 # Try to import watchdog for watch mode
 try:
@@ -704,7 +704,7 @@ def build_file_to_manifests_map_for_validation(
         Dictionary mapping absolute file paths to lists of manifest paths
     """
     file_to_manifests: Dict[Path, List[Path]] = {}
-    project_root = manifests_dir.parent
+    project_root = find_project_root(manifests_dir)
 
     for manifest_path in active_manifests:
         try:
@@ -1389,7 +1389,7 @@ def watch_manifest_validation(
         print("❌ Watchdog not available. Install with: pip install watchdog")
         sys.exit(1)
 
-    project_root = manifest_path.parent.parent
+    project_root = find_project_root(manifest_path.parent)
 
     # Load manifest to get watchable files
     try:
@@ -1511,7 +1511,7 @@ def watch_all_validations(
 
     from maid_runner.utils import get_superseded_manifests
 
-    project_root = manifests_dir.parent
+    project_root = find_project_root(manifests_dir)
 
     # Get all active manifests
     manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
@@ -1671,7 +1671,7 @@ def _run_directory_validation(
 
     # Change to project root directory for validation
     # This ensures relative paths in manifests are resolved correctly
-    project_root = manifests_dir.parent
+    project_root = find_project_root(manifests_dir)
     original_cwd = os.getcwd()
     os.chdir(project_root)
 

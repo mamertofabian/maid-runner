@@ -4,7 +4,64 @@ import json
 import shlex
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
+
+# Tuple of file/directory names that indicate a project root
+# These are common markers for various project types
+PROJECT_ROOT_MARKERS: Tuple[str, ...] = (
+    ".git",
+    "pyproject.toml",
+    "package.json",
+    ".maid",
+    "setup.py",
+    "Cargo.toml",
+    "go.mod",
+)
+
+
+def find_project_root(
+    start_path: Path,
+    markers: Tuple[str, ...] = PROJECT_ROOT_MARKERS,
+) -> Path:
+    """Find the project root by walking up from start_path looking for marker files/directories.
+
+    Args:
+        start_path: The path to start searching from (can be a file or directory)
+        markers: Tuple of marker file/directory names to look for.
+                 Defaults to PROJECT_ROOT_MARKERS.
+
+    Returns:
+        The directory containing a marker, or start_path's parent if no marker found.
+    """
+
+    # Resolve the start path to get an absolute path
+    current = start_path.resolve()
+
+    # If start_path is a file, start from its parent directory
+    if current.is_file():
+        current = current.parent
+
+    # Save original directory for fallback
+    original_dir = current
+
+    # Walk up the directory tree looking for markers
+    while True:
+        # Check if any marker exists in the current directory
+        for marker in markers:
+            if (current / marker).exists():
+                return current
+
+        # Move to parent directory
+        parent = current.parent
+
+        # If we've reached the root (parent is same as current), stop
+        if parent == current:
+            break
+
+        current = parent
+
+    # No marker found, fall back to start_path's parent (original behavior)
+    return original_dir.parent
 
 
 def validate_manifest_version(
@@ -99,6 +156,7 @@ def get_superseded_manifests(manifests_dir: Path) -> set:
         set: Set of manifest paths (as Path objects) that are superseded
     """
     superseded = set()
+    project_root = find_project_root(manifests_dir)
 
     # Check ALL manifests for supersedes declarations (not just snapshots)
     all_manifests = manifests_dir.glob("task-*.manifest.json")
@@ -114,9 +172,9 @@ def get_superseded_manifests(manifests_dir: Path) -> set:
                 # Convert to Path and resolve relative to manifests_dir
                 superseded_path = Path(superseded_path_str)
                 if not superseded_path.is_absolute():
-                    # If path includes "manifests/", resolve from manifests_dir's parent
+                    # If path includes "manifests/", resolve from project root
                     if str(superseded_path).startswith("manifests/"):
-                        superseded_path = manifests_dir.parent / superseded_path
+                        superseded_path = project_root / superseded_path
                     else:
                         # Resolve relative to manifests_dir
                         superseded_path = manifests_dir / superseded_path

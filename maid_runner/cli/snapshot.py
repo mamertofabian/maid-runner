@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 
+from maid_runner.utils import find_project_root
 from maid_runner.validators.manifest_validator import discover_related_manifests
 
 
@@ -252,18 +253,17 @@ def _aggregate_validation_commands_from_superseded(
     seen_commands = set()  # Deduplicate commands (as tuples for hashing)
 
     # Determine project root for path validation
-    # Assume project root is manifest_dir's parent (typical structure)
-    project_root = manifest_dir.parent.resolve()
+    project_root = find_project_root(manifest_dir)
 
     for superseded_path_str in superseded_manifests:
         superseded_path = Path(superseded_path_str)
         # Resolve relative paths
         if not superseded_path.is_absolute():
-            # If path already includes "manifests/", resolve from manifest_dir's parent
+            # If path already includes "manifests/", resolve from project root
             # Otherwise resolve relative to manifest_dir
             if str(superseded_path).startswith("manifests/"):
-                # Resolve from manifest_dir's parent (project root)
-                superseded_path = manifest_dir.parent / superseded_path
+                # Resolve from project root
+                superseded_path = project_root / superseded_path
             else:
                 # Resolve relative to manifest_dir
                 superseded_path = manifest_dir / superseded_path
@@ -327,7 +327,7 @@ def _aggregate_validation_commands_from_superseded(
                             test_path = Path(test_file)
                             if not test_path.is_absolute():
                                 # Resolve relative to project root
-                                test_path = manifest_dir.parent / test_file
+                                test_path = project_root / test_file
 
                             if _test_file_references_artifacts(
                                 test_path, expected_artifacts, target_file

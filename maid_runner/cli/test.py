@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from maid_runner.utils import (
+    find_project_root,
     get_superseded_manifests,
     normalize_validation_commands,
     print_maid_not_enabled_message,
@@ -101,7 +102,7 @@ def build_file_to_manifests_map(
         Dictionary mapping absolute file paths to lists of manifest paths that reference them
     """
     file_to_manifests = {}
-    project_root = manifests_dir.parent
+    project_root = find_project_root(manifests_dir)
 
     for manifest_path in active_manifests:
         try:
@@ -768,7 +769,7 @@ def run_test(
         sys.exit(1)
 
     manifests_dir = Path(manifest_dir).resolve()
-    project_root = manifests_dir.parent
+    project_root = find_project_root(manifests_dir)
 
     if not manifests_dir.exists():
         print_maid_not_enabled_message(str(manifest_dir))
