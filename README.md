@@ -761,6 +761,67 @@ make lint    # or: uv run ruff check .
 make type-check
 ```
 
+## Git Pre-Commit Hooks
+
+MAID Runner includes pre-commit hooks to automatically validate code quality and MAID compliance before each commit.
+
+### Installation
+
+```bash
+# Install pre-commit framework (already in dev dependencies)
+uv sync --group dev
+
+# Install git hooks
+pre-commit install
+```
+
+**Note:** If you have a global git hooks path configured (e.g., `core.hooksPath`), you may see an error. In that case, integrate pre-commit into your global hooks script or run it manually:
+
+```bash
+# Run manually before commits
+pre-commit run
+
+# Or add to your global git hooks script:
+# if [ -f .pre-commit-config.yaml ]; then
+#     pre-commit run
+# fi
+```
+
+### What the Hooks Check
+
+On every commit, the following checks run automatically:
+
+1. **Code Formatting** (`black`) - Ensures consistent code style
+2. **Code Linting** (`ruff`) - Catches common errors and style issues
+3. **MAID Validation** (`maid validate`) - Validates all active manifests
+4. **MAID Tests** (`maid test`) - Runs validation commands from manifests
+5. **Claude Files Sync** (`make sync-claude`) - Syncs `.claude/` files when modified (smart detection)
+
+### Bypassing Hooks
+
+In exceptional cases, you can bypass hooks with:
+
+```bash
+git commit --no-verify
+```
+
+**Note:** Use sparingly. Hooks exist to prevent MAID violations and code quality issues from being committed.
+
+### Manual Hook Execution
+
+You can run hooks manually without committing:
+
+```bash
+# Run all hooks on staged files
+pre-commit run
+
+# Run all hooks on all files
+pre-commit run --all-files
+
+# Run specific hook
+pre-commit run black --all-files
+```
+
 ## Project Structure
 
 ```

@@ -1,0 +1,49 @@
+# Pre-commit hooks for MAID Runner
+# Install: uv pip install pre-commit && pre-commit install
+# Bypass: git commit --no-verify (use sparingly)
+
+repos:
+  - repo: local
+    hooks:
+      # Code formatting with Black
+      - id: black
+        name: Format code with Black
+        entry: uv run black
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      # Code linting with Ruff
+      - id: ruff
+        name: Lint code with Ruff
+        entry: uv run ruff check
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      # MAID validation - validates all active manifests
+      - id: maid-validate
+        name: MAID validation (all manifests)
+        entry: uv run maid validate
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      # MAID tests - runs validation commands from manifests
+      - id: maid-test
+        name: MAID tests (validation commands)
+        entry: uv run maid test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      # Smart sync-claude - only runs when .claude/ files change
+      - id: sync-claude
+        name: Sync Claude files for package distribution
+        entry: make sync-claude
+        language: system
+        files: '^\.claude/'
+        pass_filenames: false
+        stages: [pre-commit]
