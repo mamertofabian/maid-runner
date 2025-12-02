@@ -352,26 +352,27 @@ def example_function():
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        # Mock run_validation to succeed
+        # Mock run_validation and validate_schema to succeed
         with patch("maid_runner.cli.validate.run_validation") as mock_run:
-            # Don't raise SystemExit - just return normally
-            mock_run.return_value = None
+            with patch("maid_runner.cli.validate.validate_schema"):
+                # Don't raise SystemExit - just return normally
+                mock_run.return_value = None
 
-            import os
+                import os
 
-            original_cwd = os.getcwd()
-            try:
-                os.chdir(tmp_path)
-                result = run_dual_mode_validation(
-                    manifest_path=manifest_path,
-                    use_manifest_chain=False,
-                    quiet=True,
-                )
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    result = run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=True,
+                    )
 
-                # Should return True on success
-                assert result is True
-            finally:
-                os.chdir(original_cwd)
+                    # Should return True on success
+                    assert result is True
+                finally:
+                    os.chdir(original_cwd)
 
     def test_run_dual_mode_validation_returns_false_on_failure(self, tmp_path: Path):
         """Test that run_dual_mode_validation returns False when validation fails."""
@@ -392,25 +393,26 @@ def example_function():
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        # Mock run_validation to fail with SystemExit
+        # Mock run_validation to fail with SystemExit, and validate_schema to succeed
         with patch("maid_runner.cli.validate.run_validation") as mock_run:
-            mock_run.side_effect = SystemExit(1)
+            with patch("maid_runner.cli.validate.validate_schema"):
+                mock_run.side_effect = SystemExit(1)
 
-            import os
+                import os
 
-            original_cwd = os.getcwd()
-            try:
-                os.chdir(tmp_path)
-                result = run_dual_mode_validation(
-                    manifest_path=manifest_path,
-                    use_manifest_chain=False,
-                    quiet=True,
-                )
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    result = run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=True,
+                    )
 
-                # Should return False on failure
-                assert result is False
-            finally:
-                os.chdir(original_cwd)
+                    # Should return False on failure
+                    assert result is False
+                finally:
+                    os.chdir(original_cwd)
 
     def test_run_dual_mode_validation_runs_both_modes(self, tmp_path: Path):
         """Test that run_dual_mode_validation runs both behavioral and implementation validation."""
@@ -434,31 +436,32 @@ def example_function():
         validation_modes = []
 
         with patch("maid_runner.cli.validate.run_validation") as mock_run:
-            # Capture which modes are called
-            def capture_mode(**kwargs):
-                mode = kwargs.get("validation_mode")
-                if mode:
-                    validation_modes.append(mode)
+            with patch("maid_runner.cli.validate.validate_schema"):
+                # Capture which modes are called
+                def capture_mode(**kwargs):
+                    mode = kwargs.get("validation_mode")
+                    if mode:
+                        validation_modes.append(mode)
 
-            mock_run.side_effect = capture_mode
+                mock_run.side_effect = capture_mode
 
-            import os
+                import os
 
-            original_cwd = os.getcwd()
-            try:
-                os.chdir(tmp_path)
-                run_dual_mode_validation(
-                    manifest_path=manifest_path,
-                    use_manifest_chain=False,
-                    quiet=True,
-                )
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=True,
+                    )
 
-                # Should have called validation twice (behavioral and implementation)
-                assert mock_run.call_count == 2
-                assert "behavioral" in validation_modes
-                assert "implementation" in validation_modes
-            finally:
-                os.chdir(original_cwd)
+                    # Should have called validation twice (behavioral and implementation)
+                    assert mock_run.call_count == 2
+                    assert "behavioral" in validation_modes
+                    assert "implementation" in validation_modes
+                finally:
+                    os.chdir(original_cwd)
 
 
 class TestExecuteValidationCommand:

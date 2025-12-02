@@ -1114,7 +1114,12 @@ def run_dual_mode_validation(
     use_manifest_chain: bool,
     quiet: bool,
 ) -> bool:
-    """Run both behavioral and implementation validation on a manifest.
+    """Run schema, behavioral, and implementation validation on a manifest.
+
+    Validates in three stages:
+    1. Schema validation - manifest structure against JSON schema
+    2. Behavioral validation - tests USE declared artifacts
+    3. Implementation validation - code DEFINES declared artifacts
 
     Args:
         manifest_path: Path to the manifest file
@@ -1122,10 +1127,37 @@ def run_dual_mode_validation(
         quiet: If True, suppress success messages
 
     Returns:
-        True if both validations pass, False otherwise
+        True if all validations pass, False otherwise
     """
-    validation_modes = ["behavioral", "implementation"]
     all_passed = True
+
+    # Stage 1: Schema validation
+    if not quiet:
+        print("\n📋 Running schema validation...", flush=True)
+
+    try:
+        # Load and validate manifest against schema
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
+
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
+        validate_schema(manifest_data, str(schema_path))
+
+        if not quiet:
+            print("  ✅ Schema validation PASSED", flush=True)
+    except (json.JSONDecodeError, jsonschema.ValidationError, FileNotFoundError) as e:
+        all_passed = False
+        if not quiet:
+            print(f"  ❌ Schema validation FAILED: {e}", flush=True)
+        return all_passed  # Can't continue without valid schema
+
+    # Stage 2 & 3: Behavioral and Implementation validation
+    validation_modes = ["behavioral", "implementation"]
 
     for mode in validation_modes:
         try:
@@ -1152,6 +1184,11 @@ def run_dual_mode_validation(
                 all_passed = False
                 if not quiet:
                     print(f"  ❌ {mode.capitalize()} validation FAILED", flush=True)
+        except FileNotFoundError as e:
+            # File not found - don't crash watch mode
+            all_passed = False
+            if not quiet:
+                print(f"  ⚠️  {e}", flush=True)
 
     return all_passed
 
@@ -1560,6 +1597,12 @@ def _run_directory_validation(
                     manifests_with_failures.append(manifest_path.name)
                     if not quiet:
                         print("  ❌ FAILED\n")
+            except FileNotFoundError as e:
+                # File not found (test files, implementation files, etc.)
+                total_failed += 1
+                manifests_with_failures.append(manifest_path.name)
+                if not quiet:
+                    print(f"  ⚠️  {e}\n")
     finally:
         # Restore original working directory
         os.chdir(original_cwd)
@@ -1853,6 +1896,18 @@ def run_validation(
             if validation_commands:
                 test_files = extract_test_files_from_command(validation_commands)
                 if test_files:
+                    # Check if test files exist (TDD: tests may not exist yet)
+                    missing_test_files = []
+                    for test_file in test_files:
+                        if not Path(test_file).exists():
+                            missing_test_files.append(test_file)
+
+                    if missing_test_files:
+                        print(
+                            f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
+                        )
+                        sys.exit(1)
+
                     if not quiet:
                         print("Running behavioral test validation...")
                     validate_behavioral_tests(
