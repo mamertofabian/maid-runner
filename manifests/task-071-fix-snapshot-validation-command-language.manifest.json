@@ -1,0 +1,29 @@
+{
+  "goal": "Fix snapshot command generating Python test file path in validationCommand for TypeScript files - add target_language parameter to get_test_stub_path to allow passing known language when manifest not yet written",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_032_test_stub_generation.py",
+    "tests/test_task_058_typescript_test_stub_generation.py",
+    "tests/test_task_071_fix_snapshot_validation_command_language.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "get_test_stub_path",
+        "args": [
+          {"name": "manifest_path", "type": "str"},
+          {"name": "target_language", "type": "Optional[str]", "default": "None"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_032_test_stub_generation.py", "tests/test_task_058_typescript_test_stub_generation.py", "-v"]
+}

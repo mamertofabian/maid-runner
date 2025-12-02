@@ -898,11 +898,11 @@ def generate_snapshot(
 
     # Add test stub to validationCommand if generating stubs
     if not skip_test_stub:
-        # Get the stub path that will be generated
-        stub_path = get_test_stub_path(str(manifest_path))
-
         # Detect file language to determine test runner
         target_language = detect_file_language(file_path)
+
+        # Get the stub path that will be generated (pass language since manifest not yet written)
+        stub_path = get_test_stub_path(str(manifest_path), target_language)
         if target_language == "typescript":
             # Use Jest for TypeScript/JavaScript files
             test_command = ["npx", "jest", stub_path]
@@ -942,7 +942,9 @@ def generate_snapshot(
     return str(manifest_path)
 
 
-def get_test_stub_path(manifest_path: str) -> str:
+def get_test_stub_path(
+    manifest_path: str, target_language: Optional[str] = None
+) -> str:
     """Derive test stub file path from manifest filename.
 
     Detects the target file language from the manifest and returns appropriate extension:
@@ -951,6 +953,8 @@ def get_test_stub_path(manifest_path: str) -> str:
 
     Args:
         manifest_path: Path to the manifest file
+        target_language: Optional language override. If provided, skips manifest detection.
+                        Use when manifest hasn't been written yet.
 
     Returns:
         Path to the test stub file in tests/ directory
@@ -962,17 +966,18 @@ def get_test_stub_path(manifest_path: str) -> str:
     if stem.endswith(".manifest"):
         stem = stem[:-9]
 
-    # Detect target file language from manifest
-    target_language = "python"  # Default
-    try:
-        with open(manifest_path, "r") as f:
-            manifest_data = json.load(f)
-            target_file = manifest_data.get("expectedArtifacts", {}).get("file", "")
-            if target_file:
-                target_language = detect_file_language(target_file)
-    except (json.JSONDecodeError, IOError, KeyError):
-        # If we can't read the manifest, default to Python for backward compatibility
-        pass
+    # Use provided language or detect from manifest
+    if target_language is None:
+        target_language = "python"  # Default
+        try:
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+                target_file = manifest_data.get("expectedArtifacts", {}).get("file", "")
+                if target_file:
+                    target_language = detect_file_language(target_file)
+        except (json.JSONDecodeError, IOError, KeyError):
+            # If we can't read the manifest, default to Python for backward compatibility
+            pass
 
     # Convert manifest name to test name
     # task-032-feature.manifest.json -> test_task_032_feature.py or task-032-feature.spec.ts
