@@ -18,6 +18,25 @@
         "name": "_ManifestFileChangeHandler"
       },
       {
+        "type": "class",
+        "name": "_MultiManifestValidationHandler"
+      },
+      {
+        "type": "function",
+        "name": "build_file_to_manifests_map_for_validation",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "active_manifests",
+            "type": "List[Path]"
+          }
+        ],
+        "returns": "Dict[Path, List[Path]]"
+      },
+      {
         "type": "function",
         "name": "on_modified",
         "class": "_ManifestFileChangeHandler",

@@ -690,6 +690,234 @@ def get_watchable_files_for_manifest(manifest_data: dict) -> List[str]:
     return unique_files
 
 
+def build_file_to_manifests_map_for_validation(
+    manifests_dir: Path, active_manifests: List[Path]
+) -> Dict[Path, List[Path]]:
+    """Build a mapping from file paths to lists of manifests that reference them.
+
+    Args:
+        manifests_dir: Path to the manifests directory
+        active_manifests: List of paths to active (non-superseded) manifests
+
+    Returns:
+        Dictionary mapping absolute file paths to lists of manifest paths
+    """
+    file_to_manifests: Dict[Path, List[Path]] = {}
+    project_root = manifests_dir.parent
+
+    for manifest_path in active_manifests:
+        try:
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+
+            # Get all watchable files from this manifest
+            watchable_files = get_watchable_files_for_manifest(manifest_data)
+
+            # Add this manifest to the mapping for each watchable file
+            for file_path in watchable_files:
+                absolute_path = (project_root / file_path).resolve()
+                if absolute_path not in file_to_manifests:
+                    file_to_manifests[absolute_path] = []
+                file_to_manifests[absolute_path].append(manifest_path)
+
+            # Also add the manifest file itself
+            manifest_absolute = manifest_path.resolve()
+            if manifest_absolute not in file_to_manifests:
+                file_to_manifests[manifest_absolute] = []
+            file_to_manifests[manifest_absolute].append(manifest_path)
+
+        except (json.JSONDecodeError, IOError):
+            continue
+
+    return file_to_manifests
+
+
+class _MultiManifestValidationHandler(FileSystemEventHandler):
+    """Handle file change events for multi-manifest validation watch mode."""
+
+    def __init__(
+        self,
+        file_to_manifests: Dict[Path, List[Path]],
+        use_manifest_chain: bool,
+        quiet: bool,
+        skip_tests: bool,
+        timeout: int,
+        verbose: bool,
+        project_root: Path,
+        manifests_dir: Optional[Path] = None,
+        observer: Optional["Observer"] = None,
+    ):
+        """Initialize handler for multi-manifest validation watch mode.
+
+        Args:
+            file_to_manifests: Mapping from absolute file paths to manifest lists
+            use_manifest_chain: If True, use manifest chain for validation
+            quiet: If True, suppress non-essential output
+            skip_tests: If True, skip running validationCommand
+            timeout: Command timeout in seconds
+            verbose: If True, show detailed output
+            project_root: Root directory for executing commands
+            manifests_dir: Path to manifests directory for dynamic discovery
+            observer: Reference to the observer for dynamic scheduling
+        """
+        self.file_to_manifests = file_to_manifests
+        self.use_manifest_chain = use_manifest_chain
+        self.quiet = quiet
+        self.skip_tests = skip_tests
+        self.timeout = timeout
+        self.verbose = verbose
+        self.project_root = project_root
+        self.manifests_dir = manifests_dir
+        self.observer = observer
+        self.last_run = 0.0
+        self.debounce_seconds = 2.0
+        self._watched_dirs: Set[Path] = set()
+        self._known_manifests: Set[Path] = set()
+
+    def _run_validation_for_manifest(self, manifest_path: Path) -> None:
+        """Run dual mode validation and optionally tests for a manifest."""
+        success = run_dual_mode_validation(
+            manifest_path=manifest_path,
+            use_manifest_chain=self.use_manifest_chain,
+            quiet=self.quiet,
+        )
+
+        if success and not self.skip_tests:
+            try:
+                with open(manifest_path, "r") as f:
+                    manifest_data = json.load(f)
+                execute_validation_command(
+                    manifest_data=manifest_data,
+                    project_root=self.project_root,
+                    timeout=self.timeout,
+                    verbose=self.verbose,
+                )
+            except (json.JSONDecodeError, IOError) as e:
+                if not self.quiet:
+                    print(f"⚠️  Error loading manifest: {e}", flush=True)
+
+    def on_modified(self, event) -> None:
+        """Run validation for affected manifests when watched files change."""
+        if event.is_directory:
+            return
+
+        current_time = time.time()
+        if current_time - self.last_run <= self.debounce_seconds:
+            return
+
+        modified_path = Path(event.src_path).resolve()
+        affected_manifests = self.file_to_manifests.get(modified_path)
+
+        if affected_manifests:
+            self.last_run = current_time
+
+            try:
+                display_path = modified_path.relative_to(self.project_root)
+            except ValueError:
+                display_path = modified_path
+
+            if not self.quiet:
+                print(f"\n🔔 Detected change in {display_path}", flush=True)
+
+            for manifest_path in affected_manifests:
+                if not self.quiet:
+                    print(f"\n📋 Validating {manifest_path.name}", flush=True)
+                self._run_validation_for_manifest(manifest_path)
+
+    def on_created(self, event) -> None:
+        """Handle file creation events for dynamic manifest discovery."""
+        if event.is_directory:
+            return
+
+        src_path = str(event.src_path)
+
+        if src_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(
+                        f"\n🔄 New manifest detected: {Path(src_path).name}", flush=True
+                    )
+                self.refresh_file_mappings()
+            return
+
+        self.on_modified(event)
+
+    def on_deleted(self, event) -> None:
+        """Handle file deletion events."""
+        if event.is_directory:
+            return
+
+        src_path = str(event.src_path)
+
+        if src_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(f"\n🗑️  Manifest deleted: {Path(src_path).name}", flush=True)
+                self.refresh_file_mappings()
+
+    def on_moved(self, event) -> None:
+        """Handle file move/rename events for atomic write detection."""
+        if event.is_directory:
+            return
+
+        dest_path = str(event.dest_path)
+
+        if dest_path.endswith(".manifest.json"):
+            if self.manifests_dir is not None:
+                if not self.quiet:
+                    print(
+                        f"\n🔄 New manifest detected: {Path(dest_path).name}",
+                        flush=True,
+                    )
+                self.refresh_file_mappings()
+            return
+
+        class _FakeEvent:
+            def __init__(self, path, is_dir=False):
+                self.src_path = path
+                self.is_directory = is_dir
+
+        self.on_modified(_FakeEvent(dest_path))
+
+    def refresh_file_mappings(self) -> None:
+        """Rebuild file-to-manifests mapping from manifests directory."""
+        if self.manifests_dir is None:
+            return
+
+        from maid_runner.utils import get_superseded_manifests
+
+        manifest_files = sorted(self.manifests_dir.glob("task-*.manifest.json"))
+        superseded = get_superseded_manifests(self.manifests_dir)
+        active_manifests = [m for m in manifest_files if m not in superseded]
+
+        current_manifest_set = set(active_manifests)
+        new_manifests = current_manifest_set - self._known_manifests
+        self._known_manifests = current_manifest_set
+
+        new_mapping = build_file_to_manifests_map_for_validation(
+            self.manifests_dir, active_manifests
+        )
+        self.file_to_manifests.clear()
+        self.file_to_manifests.update(new_mapping)
+
+        if self.observer is not None:
+            for file_path in new_mapping.keys():
+                parent_dir = file_path.parent
+                if parent_dir not in self._watched_dirs:
+                    try:
+                        self.observer.schedule(self, str(parent_dir), recursive=False)
+                        self._watched_dirs.add(parent_dir)
+                        if not self.quiet:
+                            print(f"   👁️  Now watching: {parent_dir}", flush=True)
+                    except Exception:
+                        pass
+
+        for manifest_path in sorted(new_manifests):
+            if not self.quiet:
+                print(f"\n📋 Validating new manifest: {manifest_path.name}", flush=True)
+            self._run_validation_for_manifest(manifest_path)
+
+
 class _ManifestFileChangeHandler(FileSystemEventHandler):
     """Handle manifest and related file change events for watch mode."""
 
@@ -1124,6 +1352,9 @@ def watch_all_validations(
 ) -> None:
     """Watch all manifests and related files, run validation when they change.
 
+    Uses a single handler with file-to-manifests mapping for efficient watching.
+    Supports dynamic manifest discovery (new manifests are auto-detected).
+
     Watches:
     - All manifest files in the directory
     - All implementation files (editableFiles, creatableFiles) from each manifest
@@ -1154,16 +1385,13 @@ def watch_all_validations(
         print("⚠️  No active manifest files found")
         return
 
-    # Collect all watchable files from all manifests
-    all_watchable_files: Set[str] = set()
-    for manifest_path in active_manifests:
-        try:
-            with open(manifest_path, "r") as f:
-                manifest_data = json.load(f)
-            watchable_files = get_watchable_files_for_manifest(manifest_data)
-            all_watchable_files.update(watchable_files)
-        except (json.JSONDecodeError, IOError):
-            pass
+    # Build file-to-manifests mapping
+    file_to_manifests = build_file_to_manifests_map_for_validation(
+        manifests_dir, active_manifests
+    )
+
+    # Get all unique watchable files
+    all_watchable_files = set(file_to_manifests.keys())
 
     print(
         f"\n👁️  Multi-manifest watch mode enabled for {len(active_manifests)} manifest(s)",
@@ -1171,7 +1399,7 @@ def watch_all_validations(
     )
     if all_watchable_files:
         print(
-            f"👀 Watching {len(all_watchable_files)} file(s) + {len(active_manifests)} manifest(s)",
+            f"👀 Watching {len(all_watchable_files)} file(s)",
             flush=True,
         )
     print("Press Ctrl+C to stop.", flush=True)
@@ -1202,33 +1430,40 @@ def watch_all_validations(
                 if not quiet:
                     print(f"⚠️  Error loading {manifest_path.name}: {e}")
 
-    # Create handlers for each manifest
+    # Create single handler with file-to-manifests mapping
     observer = Observer()
 
-    for manifest_path in active_manifests:
-        handler = _ManifestFileChangeHandler(
-            manifest_path=manifest_path,
-            use_manifest_chain=use_manifest_chain,
-            quiet=quiet,
-            skip_tests=skip_tests,
-            timeout=timeout,
-            verbose=verbose,
-            project_root=project_root,
-        )
+    event_handler = _MultiManifestValidationHandler(
+        file_to_manifests=file_to_manifests,
+        use_manifest_chain=use_manifest_chain,
+        quiet=quiet,
+        skip_tests=skip_tests,
+        timeout=timeout,
+        verbose=verbose,
+        project_root=project_root,
+        manifests_dir=manifests_dir,
+        observer=observer,
+    )
 
-        # Track directories for THIS handler to avoid double-scheduling same handler
-        handler_watched_dirs: Set[Path] = set()
+    # Watch all directories containing watchable files
+    watched_dirs: Set[Path] = set()
+    for file_path in all_watchable_files:
+        parent_dir = file_path.parent
+        if parent_dir not in watched_dirs:
+            try:
+                observer.schedule(event_handler, str(parent_dir), recursive=False)
+                watched_dirs.add(parent_dir)
+            except Exception:
+                pass
 
-        # Schedule all directories for this handler's watchable paths
-        for watched_path in handler.watchable_paths:
-            parent_dir = watched_path.parent.resolve()
-            if parent_dir not in handler_watched_dirs:
-                try:
-                    observer.schedule(handler, str(parent_dir), recursive=False)
-                    handler_watched_dirs.add(parent_dir)
-                except Exception:
-                    # Directory might not exist
-                    pass
+    # Always watch the manifests directory for dynamic discovery
+    if manifests_dir.resolve() not in watched_dirs:
+        observer.schedule(event_handler, str(manifests_dir), recursive=False)
+        watched_dirs.add(manifests_dir.resolve())
+
+    # Initialize handler state
+    event_handler._watched_dirs = watched_dirs
+    event_handler._known_manifests = set(active_manifests)
 
     try:
         observer.start()

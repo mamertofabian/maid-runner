@@ -222,6 +222,78 @@ class TestGetWatchableFilesForManifest:
         assert result.count("src/file.py") == 1
 
 
+class TestBuildFileToManifestsMapForValidation:
+    """Tests for the build_file_to_manifests_map_for_validation function."""
+
+    def test_build_file_to_manifests_map_for_validation_is_importable(self):
+        """Test that build_file_to_manifests_map_for_validation is importable."""
+        from maid_runner.cli.validate import build_file_to_manifests_map_for_validation
+
+        assert callable(build_file_to_manifests_map_for_validation)
+
+    def test_build_file_to_manifests_map_for_validation_has_correct_signature(self):
+        """Test that build_file_to_manifests_map_for_validation has correct signature."""
+        from maid_runner.cli.validate import build_file_to_manifests_map_for_validation
+
+        sig = inspect.signature(build_file_to_manifests_map_for_validation)
+        params = list(sig.parameters.keys())
+        assert "manifests_dir" in params
+        assert "active_manifests" in params
+
+    def test_build_file_to_manifests_map_for_validation_returns_dict(
+        self, tmp_path: Path
+    ):
+        """Test that build_file_to_manifests_map_for_validation returns a dictionary."""
+        from maid_runner.cli.validate import build_file_to_manifests_map_for_validation
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        result = build_file_to_manifests_map_for_validation(manifests_dir, [])
+        assert isinstance(result, dict)
+
+
+class TestMultiManifestValidationHandler:
+    """Tests for the _MultiManifestValidationHandler class."""
+
+    def test_multi_manifest_validation_handler_is_importable(self):
+        """Test that _MultiManifestValidationHandler class is importable."""
+        from maid_runner.cli.validate import _MultiManifestValidationHandler
+
+        assert _MultiManifestValidationHandler is not None
+        assert inspect.isclass(_MultiManifestValidationHandler)
+
+    def test_multi_manifest_validation_handler_has_on_modified_method(self):
+        """Test that _MultiManifestValidationHandler has on_modified method."""
+        from maid_runner.cli.validate import _MultiManifestValidationHandler
+
+        assert hasattr(_MultiManifestValidationHandler, "on_modified")
+        assert callable(getattr(_MultiManifestValidationHandler, "on_modified"))
+
+    def test_multi_manifest_validation_handler_has_on_created_method(self):
+        """Test that _MultiManifestValidationHandler has on_created method."""
+        from maid_runner.cli.validate import _MultiManifestValidationHandler
+
+        assert hasattr(_MultiManifestValidationHandler, "on_created")
+        assert callable(getattr(_MultiManifestValidationHandler, "on_created"))
+
+    def test_multi_manifest_validation_handler_has_on_moved_method(self):
+        """Test that _MultiManifestValidationHandler has on_moved method."""
+        from maid_runner.cli.validate import _MultiManifestValidationHandler
+
+        assert hasattr(_MultiManifestValidationHandler, "on_moved")
+        assert callable(getattr(_MultiManifestValidationHandler, "on_moved"))
+
+    def test_multi_manifest_validation_handler_has_refresh_file_mappings_method(self):
+        """Test that _MultiManifestValidationHandler has refresh_file_mappings method."""
+        from maid_runner.cli.validate import _MultiManifestValidationHandler
+
+        assert hasattr(_MultiManifestValidationHandler, "refresh_file_mappings")
+        assert callable(
+            getattr(_MultiManifestValidationHandler, "refresh_file_mappings")
+        )
+
+
 class TestRunDualModeValidation:
     """Tests for the run_dual_mode_validation function."""
 
