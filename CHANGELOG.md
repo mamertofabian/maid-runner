@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2025-12-02
+
+### Added
+- Include `unit-testing-rules.md` in PyPI package and `maid init` output
+- Multi-language support for file tracking (TypeScript, JavaScript, Python)
+- Automatic exclusion of `node_modules` directory from file tracking
+
+### Fixed
+- Use correct test file extension (`.test.ts`) in snapshot validationCommand for TypeScript
+- Remove unused `typing_extensions` dependency for TypedDict
+
 ## [0.2.4] - 2025-12-02
 
 ### Added
@@ -216,6 +227,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.5]: https://github.com/mamertofabian/maid-runner/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/mamertofabian/maid-runner/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/mamertofabian/maid-runner/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/mamertofabian/maid-runner/compare/v0.2.1...v0.2.2
