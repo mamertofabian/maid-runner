@@ -1,0 +1,24 @@
+{
+  "goal": "Add /maid-run slash command for complete MAID workflow orchestration that chains all phases (spike, manifest, tests, implementation) using subagents",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    ".claude/commands/maid-run.md",
+    "maid_runner/claude/commands/maid-run.md"
+  ],
+  "editableFiles": [
+    "maid_runner/claude/manifest.json"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/init.py",
+    ".claude/commands/plan.md",
+    ".claude/commands/implement.md",
+    ".claude/commands/generate-manifest.md",
+    ".claude/commands/generate-tests.md"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/claude/manifest.json",
+    "contains": []
+  },
+  "validationCommand": ["pytest", "tests/test_task_074_maid_run_command.py", "-v"]
+}

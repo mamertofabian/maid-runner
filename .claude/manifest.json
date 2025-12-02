@@ -23,6 +23,7 @@
     "distributable": [
       "spike.md",
       "plan.md",
+      "maid-run.md",
       "generate-manifest.md",
       "enhance-manifest.md",
       "validate-manifest.md",
@@ -37,6 +38,7 @@
     "descriptions": {
       "spike.md": "Explore and spike an idea before creating manifest",
       "plan.md": "Complete Phase 1 & 2 (manifest + tests) from goal",
+      "maid-run.md": "Run complete MAID workflow from goal to validated implementation",
       "generate-manifest.md": "Generate MAID manifest from goal (Phase 1)",
       "enhance-manifest.md": "Enhance existing manifest with additional details",
       "validate-manifest.md": "Validate and review manifest (Phase 1/2 quality gate)",
