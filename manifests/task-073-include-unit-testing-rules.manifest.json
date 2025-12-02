@@ -1,0 +1,26 @@
+{
+  "goal": "Include docs/unit-testing-rules.md in the PyPI package and have maid init copy it to .maid/docs/ alongside maid_specs.md",
+  "taskType": "edit",
+  "editableFiles": [
+    "pyproject.toml",
+    "maid_runner/cli/init.py"
+  ],
+  "readonlyFiles": [
+    "docs/unit-testing-rules.md",
+    "tests/test_task_073_unit_testing_rules.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "copy_unit_testing_rules",
+        "args": [
+          {"name": "target_dir", "type": "str"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_073_unit_testing_rules.py", "-v"]
+}

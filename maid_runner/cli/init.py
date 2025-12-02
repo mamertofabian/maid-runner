@@ -175,6 +175,28 @@ def copy_maid_specs(target_dir: str) -> None:
     print(f"✓ Copied MAID specification: {dest_specs}")
 
 
+def copy_unit_testing_rules(target_dir: str) -> None:
+    """Copy unit testing rules document to .maid/docs directory.
+
+    Args:
+        target_dir: Target directory containing .maid/docs subdirectory
+    """
+    current_file = Path(__file__)
+    maid_runner_package = current_file.parent.parent
+    source_rules = maid_runner_package / "docs" / "unit-testing-rules.md"
+
+    if not source_rules.exists():
+        print(
+            f"Warning: Could not find unit-testing-rules.md at {source_rules}. "
+            "Skipping copy."
+        )
+        return
+
+    dest_rules = Path(target_dir) / ".maid" / "docs" / "unit-testing-rules.md"
+    shutil.copy2(source_rules, dest_rules)
+    print(f"Copied unit-testing-rules.md: {dest_rules}")
+
+
 def detect_project_language(target_dir: str) -> str:
     """Detect the primary language of the project.
 
@@ -763,6 +785,7 @@ def run_init(target_dir: str, force: bool) -> None:
 
     create_directories(target_dir)
     copy_maid_specs(target_dir)
+    copy_unit_testing_rules(target_dir)
     handle_claude_md(target_dir, force)
     copy_claude_agents(target_dir, force)
     copy_claude_commands(target_dir, force)
