@@ -16,6 +16,27 @@ FILE_STATUS_UNDECLARED = "UNDECLARED"
 FILE_STATUS_REGISTERED = "REGISTERED"
 FILE_STATUS_TRACKED = "TRACKED"
 
+# Default exclude patterns for file tracking
+DEFAULT_EXCLUDE_PATTERNS = [
+    "**/__pycache__/**",
+    "**/*.pyc",
+    ".venv/**",
+    "venv/**",
+    ".git/**",
+    ".pytest_cache/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "node_modules/**",
+    "**/node_modules/**",
+    ".next/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+]
+
+# Default source file extensions to search
+DEFAULT_SOURCE_EXTENSIONS = [".py", ".ts", ".tsx", ".js", ".jsx"]
+
 
 # Type definitions
 class FileInfo(TypedDict):
@@ -36,12 +57,18 @@ class FileTrackingAnalysis(TypedDict):
     untracked_tests: List[str]
 
 
-def find_source_files(root_dir: str, exclude_patterns: List[str]) -> Set[str]:
-    """Find all Python source files in a directory.
+def find_source_files(
+    root_dir: str,
+    exclude_patterns: List[str],
+    extensions: Optional[List[str]] = None,
+) -> Set[str]:
+    """Find all source files in a directory.
 
     Args:
         root_dir: Root directory to search
         exclude_patterns: List of glob patterns to exclude
+        extensions: List of file extensions to search for (e.g., [".py", ".ts"]).
+                   If None, uses DEFAULT_SOURCE_EXTENSIONS.
 
     Returns:
         Set of relative file paths
@@ -49,20 +76,27 @@ def find_source_files(root_dir: str, exclude_patterns: List[str]) -> Set[str]:
     root_path = Path(root_dir)
     source_files = set()
 
-    # Find all .py files
-    for py_file in root_path.rglob("*.py"):
-        relative_path = py_file.relative_to(root_path).as_posix()
+    # Use default extensions if not provided
+    if extensions is None:
+        extensions = DEFAULT_SOURCE_EXTENSIONS
 
-        # Check if file matches any exclude pattern
-        excluded = False
-        for pattern in exclude_patterns:
-            # Simple pattern matching (supports basic wildcards)
-            if _matches_pattern(relative_path, pattern):
-                excluded = True
-                break
+    # Find files for each extension
+    for ext in extensions:
+        # Ensure extension starts with a dot
+        ext_pattern = ext if ext.startswith(".") else f".{ext}"
+        for source_file in root_path.rglob(f"*{ext_pattern}"):
+            relative_path = source_file.relative_to(root_path).as_posix()
 
-        if not excluded:
-            source_files.add(relative_path)
+            # Check if file matches any exclude pattern
+            excluded = False
+            for pattern in exclude_patterns:
+                # Simple pattern matching (supports basic wildcards)
+                if _matches_pattern(relative_path, pattern):
+                    excluded = True
+                    break
+
+            if not excluded:
+                source_files.add(relative_path)
 
     return source_files
 
@@ -263,20 +297,8 @@ def analyze_file_tracking(
     Returns:
         FileTrackingAnalysis with categorized files
     """
-    # Default exclude patterns
-    default_excludes = [
-        "**/__pycache__/**",
-        "**/*.pyc",
-        ".venv/**",
-        "venv/**",
-        ".git/**",
-        ".pytest_cache/**",
-        "**/.mypy_cache/**",
-        "**/.ruff_cache/**",
-    ]
-
-    # Find all source files
-    all_files = find_source_files(source_root, default_excludes)
+    # Find all source files using default excludes and extensions
+    all_files = find_source_files(source_root, DEFAULT_EXCLUDE_PATTERNS)
 
     # Collect tracked files from manifests
     tracked_files = collect_tracked_files(manifest_chain)

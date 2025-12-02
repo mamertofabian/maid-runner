@@ -1,0 +1,37 @@
+{
+  "goal": "Improve file tracking to exclude node_modules and support multiple file extensions (TypeScript, JavaScript) in addition to Python",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_072_file_tracking_multi_language.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "DEFAULT_EXCLUDE_PATTERNS",
+        "description": "Default patterns to exclude from file tracking (includes node_modules)"
+      },
+      {
+        "type": "attribute",
+        "name": "DEFAULT_SOURCE_EXTENSIONS",
+        "description": "Default file extensions to search for source files (py, ts, tsx, js, jsx)"
+      },
+      {
+        "type": "function",
+        "name": "find_source_files",
+        "args": [
+          {"name": "root_dir", "type": "str"},
+          {"name": "exclude_patterns", "type": "List[str]"},
+          {"name": "extensions", "type": "Optional[List[str]]"}
+        ],
+        "returns": "Set[str]",
+        "description": "Find source files with configurable extensions (defaults to DEFAULT_SOURCE_EXTENSIONS)"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_072_file_tracking_multi_language.py", "-v"]
+}
