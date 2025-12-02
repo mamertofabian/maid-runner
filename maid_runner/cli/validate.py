@@ -8,11 +8,27 @@ or behavioral test files using the enhanced AST validator.
 
 import argparse
 import json
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Optional, List, Dict, Set, Any
 
 import jsonschema
+
+from maid_runner.utils import normalize_validation_commands
+
+# Try to import watchdog for watch mode
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+
+    WATCHDOG_AVAILABLE = True
+except ImportError:
+    WATCHDOG_AVAILABLE = False
+    # Provide a dummy base class to avoid NameError during module import
+    FileSystemEventHandler = object  # type: ignore
+    Observer = None  # type: ignore
 
 from maid_runner.validators.manifest_validator import validate_with_ast, validate_schema
 from maid_runner.validators.semantic_validator import (
@@ -631,6 +647,599 @@ def validate_behavioral_tests(
     )
 
 
+def get_watchable_files_for_manifest(manifest_data: dict) -> List[str]:
+    """Extract files that should be watched for a manifest.
+
+    This includes:
+    - editableFiles: Implementation files being modified
+    - creatableFiles: New implementation files being created
+    - Test files: Extracted from validationCommand/validationCommands
+
+    Args:
+        manifest_data: Dictionary containing manifest data
+
+    Returns:
+        List of file paths that should be watched for changes
+    """
+    watchable_files = []
+
+    # Get editable files
+    editable_files = manifest_data.get("editableFiles", [])
+    if editable_files:
+        watchable_files.extend(editable_files)
+
+    # Get creatable files
+    creatable_files = manifest_data.get("creatableFiles", [])
+    if creatable_files:
+        watchable_files.extend(creatable_files)
+
+    # Get test files from validation commands
+    validation_commands = normalize_validation_commands(manifest_data)
+    for cmd in validation_commands:
+        test_files = extract_test_files_from_command(cmd)
+        watchable_files.extend(test_files)
+
+    # Remove duplicates while preserving order
+    seen: Set[str] = set()
+    unique_files: List[str] = []
+    for f in watchable_files:
+        if f not in seen:
+            seen.add(f)
+            unique_files.append(f)
+
+    return unique_files
+
+
+class _ManifestFileChangeHandler(FileSystemEventHandler):
+    """Handle manifest and related file change events for watch mode."""
+
+    def __init__(
+        self,
+        manifest_path: Path,
+        use_manifest_chain: bool,
+        quiet: bool,
+        skip_tests: bool,
+        timeout: int,
+        verbose: bool,
+        project_root: Path,
+    ):
+        """Initialize manifest file change handler.
+
+        Args:
+            manifest_path: Path to the manifest file to watch
+            use_manifest_chain: If True, use manifest chain for validation
+            quiet: If True, suppress non-essential output
+            skip_tests: If True, skip running validationCommand
+            timeout: Command timeout in seconds
+            verbose: If True, show detailed output
+            project_root: Root directory for executing commands
+        """
+        self.manifest_path = manifest_path
+        self.use_manifest_chain = use_manifest_chain
+        self.quiet = quiet
+        self.skip_tests = skip_tests
+        self.timeout = timeout
+        self.verbose = verbose
+        self.project_root = project_root
+        self.last_run = 0.0
+        self.debounce_seconds = 2.0
+
+        # Cache watchable files as absolute paths for efficient comparison
+        self._refresh_watchable_paths()
+
+    def _refresh_watchable_paths(self) -> None:
+        """Refresh the set of watchable paths from the manifest."""
+        try:
+            with open(self.manifest_path, "r") as f:
+                manifest_data = json.load(f)
+            watchable_files = get_watchable_files_for_manifest(manifest_data)
+            self.watchable_paths: Set[Path] = {
+                (self.project_root / f).resolve() for f in watchable_files
+            }
+            # Also include the manifest itself
+            self.watchable_paths.add(self.manifest_path.resolve())
+        except (json.JSONDecodeError, IOError):
+            # If manifest can't be read, just watch the manifest itself
+            self.watchable_paths = {self.manifest_path.resolve()}
+
+    def _is_watched_file(self, file_path: Path) -> bool:
+        """Check if a file is in our watchable paths.
+
+        Args:
+            file_path: Path to check
+
+        Returns:
+            True if file should trigger validation
+        """
+        resolved_path = file_path.resolve()
+        return resolved_path in self.watchable_paths
+
+    def on_modified(self, event) -> None:
+        """Handle file modification events.
+
+        Args:
+            event: Filesystem event containing information about the modified file
+        """
+        if event.is_directory:
+            return
+
+        modified_path = Path(event.src_path)
+        if not self._is_watched_file(modified_path):
+            return
+
+        # Debounce to avoid multiple rapid triggers
+        current_time = time.time()
+        if current_time - self.last_run <= self.debounce_seconds:
+            return
+        self.last_run = current_time
+
+        # Get relative path for display
+        try:
+            display_path = modified_path.resolve().relative_to(self.project_root)
+        except ValueError:
+            display_path = modified_path
+
+        if not self.quiet:
+            print(f"\n🔔 Detected change in {display_path}", flush=True)
+
+        # If manifest changed, refresh watchable paths
+        if modified_path.resolve() == self.manifest_path.resolve():
+            self._refresh_watchable_paths()
+
+        self._run_validation()
+
+    def on_created(self, event) -> None:
+        """Handle file creation events.
+
+        Args:
+            event: Filesystem event containing information about the created file
+        """
+        if event.is_directory:
+            return
+
+        created_path = Path(event.src_path)
+        if not self._is_watched_file(created_path):
+            return
+
+        # Debounce
+        current_time = time.time()
+        if current_time - self.last_run <= self.debounce_seconds:
+            return
+        self.last_run = current_time
+
+        # Get relative path for display
+        try:
+            display_path = created_path.resolve().relative_to(self.project_root)
+        except ValueError:
+            display_path = created_path
+
+        if not self.quiet:
+            print(f"\n🔔 File created: {display_path}", flush=True)
+
+        self._run_validation()
+
+    def on_moved(self, event) -> None:
+        """Handle file move/rename events for atomic write detection.
+
+        Many editors use atomic writes: write to temp file, then rename.
+        This triggers on_moved instead of on_modified.
+
+        Args:
+            event: Filesystem event with src_path (old) and dest_path (new)
+        """
+        if event.is_directory:
+            return
+
+        dest_path = Path(event.dest_path)
+        if not self._is_watched_file(dest_path):
+            return
+
+        # Debounce
+        current_time = time.time()
+        if current_time - self.last_run <= self.debounce_seconds:
+            return
+        self.last_run = current_time
+
+        # Get relative path for display
+        try:
+            display_path = dest_path.resolve().relative_to(self.project_root)
+        except ValueError:
+            display_path = dest_path
+
+        if not self.quiet:
+            print(f"\n🔔 Detected change in {display_path}", flush=True)
+
+        # If manifest changed, refresh watchable paths
+        if dest_path.resolve() == self.manifest_path.resolve():
+            self._refresh_watchable_paths()
+
+        self._run_validation()
+
+    def _run_validation(self) -> None:
+        """Run dual mode validation and optionally execute tests."""
+        # Run dual mode validation
+        success = run_dual_mode_validation(
+            manifest_path=self.manifest_path,
+            use_manifest_chain=self.use_manifest_chain,
+            quiet=self.quiet,
+        )
+
+        # Run validation command if enabled and validation passed
+        if success and not self.skip_tests:
+            try:
+                with open(self.manifest_path, "r") as f:
+                    manifest_data = json.load(f)
+
+                execute_validation_command(
+                    manifest_data=manifest_data,
+                    project_root=self.project_root,
+                    timeout=self.timeout,
+                    verbose=self.verbose,
+                )
+            except (json.JSONDecodeError, IOError) as e:
+                if not self.quiet:
+                    print(f"⚠️  Error loading manifest: {e}")
+
+
+def run_dual_mode_validation(
+    manifest_path: Path,
+    use_manifest_chain: bool,
+    quiet: bool,
+) -> bool:
+    """Run both behavioral and implementation validation on a manifest.
+
+    Args:
+        manifest_path: Path to the manifest file
+        use_manifest_chain: If True, use manifest chain for validation
+        quiet: If True, suppress success messages
+
+    Returns:
+        True if both validations pass, False otherwise
+    """
+    validation_modes = ["behavioral", "implementation"]
+    all_passed = True
+
+    for mode in validation_modes:
+        try:
+            if not quiet:
+                print(f"\n📋 Running {mode} validation...", flush=True)
+
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode=mode,
+                use_manifest_chain=use_manifest_chain,
+                quiet=True,  # Suppress individual messages
+                manifest_dir=None,
+                skip_file_tracking=True,
+            )
+
+            if not quiet:
+                print(f"  ✅ {mode.capitalize()} validation PASSED", flush=True)
+
+        except SystemExit as e:
+            if e.code == 0:
+                if not quiet:
+                    print(f"  ✅ {mode.capitalize()} validation PASSED", flush=True)
+            else:
+                all_passed = False
+                if not quiet:
+                    print(f"  ❌ {mode.capitalize()} validation FAILED", flush=True)
+
+    return all_passed
+
+
+def execute_validation_command(
+    manifest_data: dict,
+    project_root: Path,
+    timeout: int,
+    verbose: bool,
+) -> bool:
+    """Execute the validation command from a manifest.
+
+    Args:
+        manifest_data: Dictionary containing manifest data
+        project_root: Project root directory where commands should be executed
+        timeout: Command timeout in seconds
+        verbose: If True, show detailed command output
+
+    Returns:
+        True if all commands pass, False otherwise
+    """
+    import os
+
+    validation_commands = normalize_validation_commands(manifest_data)
+
+    if not validation_commands:
+        return True  # No commands to run = success
+
+    all_passed = True
+    total = len(validation_commands)
+
+    # Set up environment
+    env = os.environ.copy()
+    current_pythonpath = env.get("PYTHONPATH", "")
+    pythonpath_additions = [str(project_root)]
+    if current_pythonpath:
+        pythonpath_additions.append(current_pythonpath)
+    env["PYTHONPATH"] = ":".join(pythonpath_additions)
+
+    print("\n🧪 Running validation command(s)...", flush=True)
+
+    for i, cmd in enumerate(validation_commands):
+        if not cmd:
+            continue
+
+        cmd_str = " ".join(cmd)
+        print(f"  [{i+1}/{total}] {cmd_str}", flush=True)
+
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=project_root,
+                env=env,
+            )
+
+            if result.returncode == 0:
+                print("    ✅ PASSED", flush=True)
+                if verbose and result.stdout:
+                    for line in result.stdout.strip().split("\n"):
+                        print(f"      {line}", flush=True)
+            else:
+                all_passed = False
+                print(f"    ❌ FAILED (exit code: {result.returncode})", flush=True)
+                if result.stderr:
+                    stderr_lines = result.stderr.strip().split("\n")[:10]
+                    for line in stderr_lines:
+                        print(f"      {line}", flush=True)
+
+        except subprocess.TimeoutExpired:
+            all_passed = False
+            print(f"    ⏰ TIMEOUT (>{timeout}s)", flush=True)
+        except FileNotFoundError:
+            all_passed = False
+            print(f"    ❌ Command not found: {cmd[0]}", flush=True)
+        except Exception as e:
+            all_passed = False
+            print(f"    ❌ Error: {e}", flush=True)
+
+    return all_passed
+
+
+def watch_manifest_validation(
+    manifest_path: Path,
+    use_manifest_chain: bool,
+    quiet: bool,
+    skip_tests: bool,
+    timeout: int,
+    verbose: bool,
+) -> None:
+    """Watch a manifest and related files, run validation when they change.
+
+    Watches:
+    - The manifest file itself
+    - Implementation files (editableFiles, creatableFiles)
+    - Test files (from validationCommand)
+
+    Args:
+        manifest_path: Path to the manifest file to watch
+        use_manifest_chain: If True, use manifest chain for validation
+        quiet: If True, suppress non-essential output
+        skip_tests: If True, skip running validationCommand
+        timeout: Command timeout in seconds
+        verbose: If True, show detailed output
+    """
+    if not WATCHDOG_AVAILABLE:
+        print("❌ Watchdog not available. Install with: pip install watchdog")
+        sys.exit(1)
+
+    project_root = manifest_path.parent.parent
+
+    # Load manifest to get watchable files
+    try:
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
+        watchable_files = get_watchable_files_for_manifest(manifest_data)
+    except (json.JSONDecodeError, IOError):
+        watchable_files = []
+
+    print(f"\n👁️  Watch mode enabled for: {manifest_path.name}", flush=True)
+    if watchable_files:
+        print(f"👀 Watching {len(watchable_files)} file(s) + manifest", flush=True)
+    print("Press Ctrl+C to stop.", flush=True)
+
+    # Run initial validation
+    print("\n📋 Running initial validation:", flush=True)
+    success = run_dual_mode_validation(
+        manifest_path=manifest_path,
+        use_manifest_chain=use_manifest_chain,
+        quiet=quiet,
+    )
+
+    if success and not skip_tests:
+        try:
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+            execute_validation_command(
+                manifest_data=manifest_data,
+                project_root=project_root,
+                timeout=timeout,
+                verbose=verbose,
+            )
+        except (json.JSONDecodeError, IOError) as e:
+            if not quiet:
+                print(f"⚠️  Error loading manifest: {e}")
+
+    # Set up file watching
+    event_handler = _ManifestFileChangeHandler(
+        manifest_path=manifest_path,
+        use_manifest_chain=use_manifest_chain,
+        quiet=quiet,
+        skip_tests=skip_tests,
+        timeout=timeout,
+        verbose=verbose,
+        project_root=project_root,
+    )
+
+    observer = Observer()
+
+    # Watch all directories containing watchable files
+    watched_dirs: Set[Path] = set()
+
+    # Always watch the manifest directory
+    manifest_dir = manifest_path.parent.resolve()
+    observer.schedule(event_handler, str(manifest_dir), recursive=False)
+    watched_dirs.add(manifest_dir)
+
+    # Watch directories of implementation and test files
+    for file_path in watchable_files:
+        parent_dir = (project_root / file_path).parent.resolve()
+        if parent_dir not in watched_dirs:
+            try:
+                observer.schedule(event_handler, str(parent_dir), recursive=False)
+                watched_dirs.add(parent_dir)
+            except Exception:
+                # Directory might not exist yet
+                pass
+
+    try:
+        observer.start()
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        print("\n👋 Stopping watch mode", flush=True)
+    observer.join()
+
+
+def watch_all_validations(
+    manifests_dir: Path,
+    use_manifest_chain: bool,
+    quiet: bool,
+    skip_tests: bool,
+    timeout: int,
+    verbose: bool,
+) -> None:
+    """Watch all manifests and related files, run validation when they change.
+
+    Watches:
+    - All manifest files in the directory
+    - All implementation files (editableFiles, creatableFiles) from each manifest
+    - All test files (from validationCommand) from each manifest
+
+    Args:
+        manifests_dir: Path to the manifests directory
+        use_manifest_chain: If True, use manifest chain for validation
+        quiet: If True, suppress non-essential output
+        skip_tests: If True, skip running validationCommand
+        timeout: Command timeout in seconds
+        verbose: If True, show detailed output
+    """
+    if not WATCHDOG_AVAILABLE:
+        print("❌ Watchdog not available. Install with: pip install watchdog")
+        sys.exit(1)
+
+    from maid_runner.utils import get_superseded_manifests
+
+    project_root = manifests_dir.parent
+
+    # Get all active manifests
+    manifest_files = sorted(manifests_dir.glob("task-*.manifest.json"))
+    superseded = get_superseded_manifests(manifests_dir)
+    active_manifests = [m for m in manifest_files if m not in superseded]
+
+    if not active_manifests:
+        print("⚠️  No active manifest files found")
+        return
+
+    # Collect all watchable files from all manifests
+    all_watchable_files: Set[str] = set()
+    for manifest_path in active_manifests:
+        try:
+            with open(manifest_path, "r") as f:
+                manifest_data = json.load(f)
+            watchable_files = get_watchable_files_for_manifest(manifest_data)
+            all_watchable_files.update(watchable_files)
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    print(
+        f"\n👁️  Multi-manifest watch mode enabled for {len(active_manifests)} manifest(s)",
+        flush=True,
+    )
+    if all_watchable_files:
+        print(
+            f"👀 Watching {len(all_watchable_files)} file(s) + {len(active_manifests)} manifest(s)",
+            flush=True,
+        )
+    print("Press Ctrl+C to stop.", flush=True)
+
+    # Run initial validation for all manifests
+    print("\n📋 Running initial validation for all manifests:", flush=True)
+    for manifest_path in active_manifests:
+        if not quiet:
+            print(f"\n📋 {manifest_path.name}", flush=True)
+
+        success = run_dual_mode_validation(
+            manifest_path=manifest_path,
+            use_manifest_chain=use_manifest_chain,
+            quiet=quiet,
+        )
+
+        if success and not skip_tests:
+            try:
+                with open(manifest_path, "r") as f:
+                    manifest_data = json.load(f)
+                execute_validation_command(
+                    manifest_data=manifest_data,
+                    project_root=project_root,
+                    timeout=timeout,
+                    verbose=verbose,
+                )
+            except (json.JSONDecodeError, IOError) as e:
+                if not quiet:
+                    print(f"⚠️  Error loading {manifest_path.name}: {e}")
+
+    # Create handlers for each manifest
+    observer = Observer()
+
+    for manifest_path in active_manifests:
+        handler = _ManifestFileChangeHandler(
+            manifest_path=manifest_path,
+            use_manifest_chain=use_manifest_chain,
+            quiet=quiet,
+            skip_tests=skip_tests,
+            timeout=timeout,
+            verbose=verbose,
+            project_root=project_root,
+        )
+
+        # Track directories for THIS handler to avoid double-scheduling same handler
+        handler_watched_dirs: Set[Path] = set()
+
+        # Schedule all directories for this handler's watchable paths
+        for watched_path in handler.watchable_paths:
+            parent_dir = watched_path.parent.resolve()
+            if parent_dir not in handler_watched_dirs:
+                try:
+                    observer.schedule(handler, str(parent_dir), recursive=False)
+                    handler_watched_dirs.add(parent_dir)
+                except Exception:
+                    # Directory might not exist
+                    pass
+
+    try:
+        observer.start()
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        print("\n👋 Stopping watch mode", flush=True)
+    observer.join()
+
+
 def _run_directory_validation(
     manifest_dir: str,
     validation_mode: str,
@@ -777,6 +1386,11 @@ def run_validation(
     quiet: bool = False,
     manifest_dir: Optional[str] = None,
     skip_file_tracking: bool = False,
+    watch: bool = False,
+    watch_all: bool = False,
+    timeout: int = 300,
+    verbose: bool = False,
+    skip_tests: bool = False,
 ) -> None:
     """Core validation logic accepting parsed arguments.
 
@@ -787,10 +1401,50 @@ def run_validation(
         quiet: If True, suppress success messages
         manifest_dir: Path to directory containing manifests to validate all at once
         skip_file_tracking: If True, skip file tracking analysis (used in batch mode)
+        watch: If True, watch the manifest file for changes
+        watch_all: If True, watch all manifests for changes
+        timeout: Command timeout in seconds (default: 300)
+        verbose: If True, show detailed output
+        skip_tests: If True, skip running validationCommand
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
     """
+    # Handle --watch-all mode: watch all manifests in directory
+    if watch_all:
+        manifests_dir = Path(manifest_dir) if manifest_dir else Path("manifests")
+        if not manifests_dir.exists():
+            print(f"✗ Error: Manifests directory not found: {manifests_dir}")
+            sys.exit(1)
+        watch_all_validations(
+            manifests_dir=manifests_dir,
+            use_manifest_chain=use_manifest_chain,
+            quiet=quiet,
+            skip_tests=skip_tests,
+            timeout=timeout,
+            verbose=verbose,
+        )
+        return
+
+    # Handle --watch mode: watch single manifest
+    if watch:
+        if not manifest_path:
+            print("✗ Error: --watch requires a manifest path")
+            sys.exit(1)
+        manifest_path_obj = Path(manifest_path)
+        if not manifest_path_obj.exists():
+            print(f"✗ Error: Manifest file not found: {manifest_path}")
+            sys.exit(1)
+        watch_manifest_validation(
+            manifest_path=manifest_path_obj,
+            use_manifest_chain=use_manifest_chain,
+            quiet=quiet,
+            skip_tests=skip_tests,
+            timeout=timeout,
+            verbose=verbose,
+        )
+        return
+
     # Handle --manifest-dir mode
     if manifest_dir:
         _run_directory_validation(

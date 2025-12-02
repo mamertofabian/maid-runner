@@ -67,6 +67,34 @@ def main():
         "--manifest-dir",
         help="Directory containing manifests to validate (mutually exclusive with manifest_path)",
     )
+    validate_parser.add_argument(
+        "--watch",
+        "-w",
+        action="store_true",
+        help="Watch mode: automatically re-run validation when manifest changes (requires manifest_path)",
+    )
+    validate_parser.add_argument(
+        "--watch-all",
+        action="store_true",
+        help="Watch all manifests: automatically re-run validation when any manifest changes",
+    )
+    validate_parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Command timeout in seconds (default: 300)",
+    )
+    validate_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show detailed command output",
+    )
+    validate_parser.add_argument(
+        "--skip-tests",
+        action="store_true",
+        help="Skip running validationCommand after validation (watch modes only)",
+    )
 
     # Snapshot subcommand
     snapshot_parser = subparsers.add_parser(
@@ -291,6 +319,12 @@ def main():
             use_manifest_chain,
             args.quiet,
             manifest_dir,
+            skip_file_tracking=False,
+            watch=args.watch,
+            watch_all=args.watch_all,
+            timeout=args.timeout,
+            verbose=args.verbose,
+            skip_tests=args.skip_tests,
         )
     elif args.command == "snapshot":
         from maid_runner.cli.snapshot import run_snapshot

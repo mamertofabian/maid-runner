@@ -178,7 +178,7 @@ class _FileChangeHandler(FileSystemEventHandler):
                 except ValueError:
                     display_path = modified_path
 
-                print(f"\n🔔 Detected change in {display_path}")
+                print(f"\n🔔 Detected change in {display_path}", flush=True)
                 execute_validation_commands(
                     manifest_path=self.manifest_path,
                     manifest_data=self.manifest_data,
@@ -250,7 +250,7 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
             except ValueError:
                 display_path = modified_path
 
-            print(f"\n🔔 Detected change in {display_path}")
+            print(f"\n🔔 Detected change in {display_path}", flush=True)
 
             # Run validation for each affected manifest
             for manifest_path in affected_manifests:
@@ -259,7 +259,10 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
                         manifest_data = json.load(f)
 
                     if not self.quiet:
-                        print(f"\n📋 Running validation for {manifest_path.name}")
+                        print(
+                            f"\n📋 Running validation for {manifest_path.name}",
+                            flush=True,
+                        )
 
                     execute_validation_commands(
                         manifest_path=manifest_path,
@@ -271,7 +274,7 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
 
                 except (json.JSONDecodeError, IOError) as e:
                     if not self.quiet:
-                        print(f"⚠️  Error loading {manifest_path.name}: {e}")
+                        print(f"⚠️  Error loading {manifest_path.name}: {e}", flush=True)
 
     def on_created(self, event) -> None:
         """Handle file creation events for dynamic manifest discovery.
@@ -292,7 +295,9 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         if src_path.endswith(".manifest.json"):
             if self.manifests_dir is not None:
                 if not self.quiet:
-                    print(f"\n🔄 New manifest detected: {Path(src_path).name}")
+                    print(
+                        f"\n🔄 New manifest detected: {Path(src_path).name}", flush=True
+                    )
                 self.refresh_file_mappings(self.manifests_dir)
             return
 
@@ -321,7 +326,7 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         if src_path.endswith(".manifest.json"):
             if self.manifests_dir is not None:
                 if not self.quiet:
-                    print(f"\n🗑️  Manifest deleted: {Path(src_path).name}")
+                    print(f"\n🗑️  Manifest deleted: {Path(src_path).name}", flush=True)
                 self.refresh_file_mappings(self.manifests_dir)
 
     def on_moved(self, event) -> None:
@@ -345,7 +350,10 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
         if dest_path.endswith(".manifest.json"):
             if self.manifests_dir is not None:
                 if not self.quiet:
-                    print(f"\n🔄 New manifest detected: {Path(dest_path).name}")
+                    print(
+                        f"\n🔄 New manifest detected: {Path(dest_path).name}",
+                        flush=True,
+                    )
                 self.refresh_file_mappings(self.manifests_dir)
             return
 
@@ -394,7 +402,7 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
                         self.observer.schedule(self, str(parent_dir), recursive=False)
                         self._watched_dirs.add(parent_dir)
                         if not self.quiet:
-                            print(f"   👁️  Now watching: {parent_dir}")
+                            print(f"   👁️  Now watching: {parent_dir}", flush=True)
                     except Exception:
                         # Directory might already be watched or inaccessible
                         pass
@@ -407,7 +415,8 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
 
                 if not self.quiet:
                     print(
-                        f"\n📋 Running validation for new manifest: {manifest_path.name}"
+                        f"\n📋 Running validation for new manifest: {manifest_path.name}",
+                        flush=True,
                     )
 
                 execute_validation_commands(
@@ -420,7 +429,7 @@ class _MultiManifestFileChangeHandler(FileSystemEventHandler):
 
             except (json.JSONDecodeError, IOError) as e:
                 if not self.quiet:
-                    print(f"⚠️  Error loading {manifest_path.name}: {e}")
+                    print(f"⚠️  Error loading {manifest_path.name}: {e}", flush=True)
 
 
 def watch_manifest(
@@ -442,22 +451,25 @@ def watch_manifest(
         debounce_seconds: Number of seconds to wait before re-running after a change
     """
     if not WATCHDOG_AVAILABLE:
-        print("❌ Watchdog not available. Install with: pip install watchdog")
+        print(
+            "❌ Watchdog not available. Install with: pip install watchdog", flush=True
+        )
         sys.exit(1)
 
     watchable_files = get_watchable_files(manifest_data)
 
-    print("\n👁️  Watch mode enabled. Press Ctrl+C to stop.")
+    print("\n👁️  Watch mode enabled. Press Ctrl+C to stop.", flush=True)
     if watchable_files:
-        print(f"👀 Watching files: {', '.join(watchable_files)}")
+        print(f"👀 Watching files: {', '.join(watchable_files)}", flush=True)
     else:
         print(
-            "⚠️  No watchable files found in manifest (editableFiles or creatableFiles)"
+            "⚠️  No watchable files found in manifest (editableFiles or creatableFiles)",
+            flush=True,
         )
-        print("   Watch mode will only run initial validation")
+        print("   Watch mode will only run initial validation", flush=True)
 
     # Initial run
-    print("\n📋 Running initial validation:")
+    print("\n📋 Running initial validation:", flush=True)
     execute_validation_commands(
         manifest_path=manifest_path,
         manifest_data=manifest_data,
@@ -490,7 +502,7 @@ def watch_manifest(
             time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
-        print("\n👋 Stopping watch mode")
+        print("\n👋 Stopping watch mode", flush=True)
     observer.join()
 
 
@@ -515,7 +527,9 @@ def watch_all_manifests(
         debounce_seconds: Number of seconds to wait before re-running after a change
     """
     if not WATCHDOG_AVAILABLE:
-        print("❌ Watchdog not available. Install with: pip install watchdog")
+        print(
+            "❌ Watchdog not available. Install with: pip install watchdog", flush=True
+        )
         sys.exit(1)
 
     # Build file-to-manifests mapping
@@ -524,24 +538,25 @@ def watch_all_manifests(
     # Get all unique watchable files
     all_watchable_files = set(file_to_manifests.keys())
 
-    print("\n👁️  Multi-manifest watch mode enabled. Press Ctrl+C to stop.")
+    print("\n👁️  Multi-manifest watch mode enabled. Press Ctrl+C to stop.", flush=True)
     if all_watchable_files:
         print(
-            f"👀 Watching {len(all_watchable_files)} file(s) across {len(active_manifests)} manifest(s)"
+            f"👀 Watching {len(all_watchable_files)} file(s) across {len(active_manifests)} manifest(s)",
+            flush=True,
         )
     else:
-        print("⚠️  No watchable files found in any manifest")
-        print("   Watch mode will only run initial validation")
+        print("⚠️  No watchable files found in any manifest", flush=True)
+        print("   Watch mode will only run initial validation", flush=True)
 
     # Run initial validation for all manifests
-    print("\n📋 Running initial validation for all manifests:")
+    print("\n📋 Running initial validation for all manifests:", flush=True)
     for manifest_path in active_manifests:
         try:
             with open(manifest_path, "r") as f:
                 manifest_data = json.load(f)
 
             if not quiet:
-                print(f"\n📋 {manifest_path.name}")
+                print(f"\n📋 {manifest_path.name}", flush=True)
 
             execute_validation_commands(
                 manifest_path=manifest_path,
@@ -553,7 +568,7 @@ def watch_all_manifests(
 
         except (json.JSONDecodeError, IOError) as e:
             if not quiet:
-                print(f"⚠️  Error loading {manifest_path.name}: {e}")
+                print(f"⚠️  Error loading {manifest_path.name}: {e}", flush=True)
 
     observer = Observer()
 
@@ -594,7 +609,7 @@ def watch_all_manifests(
             time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
-        print("\n👋 Stopping watch mode")
+        print("\n👋 Stopping watch mode", flush=True)
     observer.join()
 
 

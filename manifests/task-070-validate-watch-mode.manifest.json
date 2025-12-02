@@ -1,0 +1,260 @@
+{
+  "goal": "Add watch modes (--watch and --watch-all) to the maid validate command for continuous validation during development, running both behavioral and implementation validation when manifest, implementation, or test files change",
+  "taskType": "edit",
+  "supersedes": ["manifests/task-038-snapshot-validate.manifest.json"],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/cli/test.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "_ManifestFileChangeHandler"
+      },
+      {
+        "type": "function",
+        "name": "on_modified",
+        "class": "_ManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "event"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "on_created",
+        "class": "_ManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "event"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "on_moved",
+        "class": "_ManifestFileChangeHandler",
+        "args": [
+          {
+            "name": "event"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "get_watchable_files_for_manifest",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "run_dual_mode_validation",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Path"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "execute_validation_command",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "project_root",
+            "type": "Path"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "watch_manifest_validation",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Path"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "skip_tests",
+            "type": "bool"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "watch_all_validations",
+        "args": [
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "skip_tests",
+            "type": "bool"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "extract_test_files_from_command",
+        "args": [
+          {
+            "name": "validation_command"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "validate_behavioral_tests",
+        "args": [
+          {
+            "name": "manifest_data"
+          },
+          {
+            "name": "test_files"
+          },
+          {
+            "name": "use_manifest_chain"
+          },
+          {
+            "name": "quiet"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          },
+          {
+            "name": "quiet",
+            "type": "bool"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "skip_file_tracking",
+            "type": "bool"
+          },
+          {
+            "name": "watch",
+            "type": "bool"
+          },
+          {
+            "name": "watch_all",
+            "type": "bool"
+          },
+          {
+            "name": "timeout",
+            "type": "int"
+          },
+          {
+            "name": "verbose",
+            "type": "bool"
+          },
+          {
+            "name": "skip_tests",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "main",
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_070_validate_watch_mode.py",
+    "tests/test_task_038_snapshot_validate.py",
+    "-v"
+  ]
+}
