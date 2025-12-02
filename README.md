@@ -193,6 +193,10 @@ maid validate <manifest_path> [options]
 #   --validation-mode {implementation,behavioral}  # Default: implementation
 #   --use-manifest-chain                          # Merge related manifests
 #   --quiet, -q                                    # Suppress success messages
+#   --watch, -w                                    # Watch mode (requires manifest path)
+#   --watch-all                                    # Watch all manifests
+#   --skip-tests                                   # Skip running validationCommand
+#   --timeout SECONDS                              # Command timeout (default: 300)
 
 # Exit Codes:
 #   0 = Validation passed
@@ -262,6 +266,32 @@ Summary: 3 UNDECLARED, 5 REGISTERED, 42 TRACKED
 - **✓ TRACKED**: Files with full MAID compliance - properly documented and tested
 
 This progressive compliance system helps teams migrate existing codebases to MAID while clearly identifying accountability gaps.
+
+**Watch Mode:**
+
+```bash
+# Watch single manifest - re-run validation on file changes
+$ maid validate manifests/task-070.manifest.json --watch
+👁️  Watch mode enabled for: task-070.manifest.json
+👀 Watching 3 file(s) + manifest
+Press Ctrl+C to stop.
+
+📋 Running initial validation:
+✓ Validation PASSED
+
+🔔 Detected change in maid_runner/cli/validate.py
+📋 Validating task-070.manifest.json
+✓ Validation PASSED
+
+# Watch all manifests - continuous validation across codebase
+$ maid validate --watch-all
+👁️  Multi-manifest watch mode enabled for 55 manifest(s)
+👀 Watching 127 file(s)
+Press Ctrl+C to stop.
+
+# Skip test execution (validation only)
+$ maid validate manifests/task-070.manifest.json --watch --skip-tests
+```
 
 ### 2. Snapshot Generation
 
@@ -448,6 +478,35 @@ $ maid test --watch-all
 - **Continuous Validation**: Monitor entire codebase for regressions (`--watch-all`)
 - **Quick Feedback**: Get immediate test results without manual re-runs
 - **Integration Testing**: Verify changes don't break dependent tasks
+
+### 6. File Tracking Status
+
+```bash
+# Show file tracking status overview
+maid files [options]
+
+# Options:
+#   --manifest-dir DIR  # Default: manifests/
+#   --quiet, -q         # Show counts only
+
+# Exit Codes:
+#   0 = Success
+```
+
+**Example:**
+
+```bash
+$ maid files
+📊 File Tracking Status
+
+🔴 UNDECLARED: 3 files
+🟡 REGISTERED: 7 files
+✓  TRACKED: 72 files
+
+Total: 82 files
+```
+
+Quick visibility into MAID compliance across your codebase without running full validation.
 
 ## Optional Human Helper Tools
 
@@ -714,10 +773,11 @@ maid-runner/
 │   ├── __version__.py             # Version information
 │   ├── cli/                        # CLI modules
 │   │   ├── main.py                # Main CLI entry point (maid command)
-│   │   ├── validate.py            # Validate subcommand
+│   │   ├── validate.py            # Validate subcommand (with watch mode)
 │   │   ├── snapshot.py            # Snapshot subcommand
 │   │   ├── list_manifests.py      # Manifests subcommand
-│   │   └── test.py                # Test subcommand
+│   │   ├── files.py               # Files subcommand (tracking status)
+│   │   └── test.py                # Test subcommand (with watch mode)
 │   └── validators/                # Core validation logic
 │       ├── manifest_validator.py  # Main validation engine
 │       ├── base_validator.py      # Abstract validator interface

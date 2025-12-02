@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2025-12-02
+
+### Added
+- **Watch Mode for `maid validate` Command** - Continuous validation during development
+  - Single-manifest watch mode (`maid validate <manifest> --watch`)
+  - Multi-manifest watch mode (`maid validate --watch-all`)
+  - Watches manifest, implementation, and test files for changes
+  - Runs both behavioral and implementation validation on changes
+  - Optional test execution with `--skip-tests` flag
+  - Dynamic manifest discovery (new manifests auto-detected)
+- **`maid files` Command** - File tracking status overview
+  - Shows UNDECLARED, REGISTERED, and TRACKED file counts
+  - Quick visibility into MAID compliance across codebase
+- **Idempotent `maid init`** - Marker-based CLAUDE.md handling
+  - Updates only MAID-managed sections, preserves user content
+  - Safe to re-run without losing customizations
+
+### Changed
+- Refactored validate watch-all to use single handler pattern (matching maid test architecture)
+- Improved watch mode output buffering for non-TTY environments
+
+### Fixed
+- Handle `Generic[T]` and parameterized base classes in validator
+- Use `(type, class, name)` key for artifact merging to prevent overwrites
+- Handle atomic file writes in watch-all mode (editors using temp file + rename)
+- Run validation for newly discovered manifests in watch-all mode
+
 ## [0.2.2] - 2025-12-01
 
 ### Fixed
@@ -179,6 +206,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.3]: https://github.com/mamertofabian/maid-runner/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/mamertofabian/maid-runner/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/mamertofabian/maid-runner/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mamertofabian/maid-runner/compare/v0.1.3...v0.2.0
