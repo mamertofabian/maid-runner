@@ -244,6 +244,28 @@ MAID is a methodology for developing software with AI assistance by explicitly d
 
 This project is compatible with MAID-aware AI agents including Claude Code and other tools that understand the MAID workflow.
 
+## Prerequisites: Installing MAID Runner
+
+MAID Runner is a Python CLI tool that validates manifests and runs tests. Install it using one of these methods:
+
+```bash
+# Using pip
+pip install maid-runner
+
+# Using uv (recommended for Python projects)
+uv add maid-runner --dev
+
+# Using pipx (for global installation)
+pipx install maid-runner
+```
+
+After installation, the `maid` command will be available in your terminal. Verify with:
+```bash
+maid --help
+```
+
+**Note:** If using `uv` or a virtual environment, prefix commands with your runner (e.g., `uv run maid validate ...`).
+
 ## MAID Workflow
 
 ### Phase 1: Goal Definition
@@ -359,6 +381,32 @@ MAID is a methodology for developing software with AI assistance by explicitly d
 - How to validate that the changes meet requirements
 
 This project is compatible with MAID-aware AI agents including Claude Code and other tools that understand the MAID workflow.
+
+## Prerequisites: Installing MAID Runner
+
+MAID Runner is a Python CLI tool that validates manifests and runs tests. Even for TypeScript/JavaScript projects, you need Python to run the `maid` CLI.
+
+**Option 1: Using pipx (recommended - no Python project setup needed)**
+```bash
+pipx install maid-runner
+```
+
+**Option 2: Using pip**
+```bash
+pip install maid-runner
+```
+
+**Option 3: Using uv**
+```bash
+uv tool install maid-runner
+```
+
+After installation, verify with:
+```bash
+maid --help
+```
+
+**Note:** MAID Runner requires Python 3.9+. The `maid` command validates your TypeScript/JavaScript code structure against manifests.
 
 ## MAID Workflow
 
@@ -477,6 +525,36 @@ MAID is a methodology for developing software with AI assistance by explicitly d
 This project is compatible with MAID-aware AI agents including Claude Code and other tools that understand the MAID workflow.
 
 **Supported Languages**: Python (`.py`) and TypeScript/JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`)
+
+## Prerequisites: Installing MAID Runner
+
+MAID Runner is a Python CLI tool that validates manifests and runs tests. Install it using one of these methods:
+
+**Option 1: Using pipx (recommended for global installation)**
+```bash
+pipx install maid-runner
+```
+
+**Option 2: Using pip**
+```bash
+pip install maid-runner
+```
+
+**Option 3: Using uv**
+```bash
+# As a tool (global)
+uv tool install maid-runner
+
+# As a dev dependency (project-local)
+uv add maid-runner --dev
+```
+
+After installation, verify with:
+```bash
+maid --help
+```
+
+**Note:** MAID Runner requires Python 3.9+. If using `uv` or a virtual environment with a project-local install, prefix commands with your runner (e.g., `uv run maid validate ...`).
 
 ## MAID Workflow
 
