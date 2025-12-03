@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2025-12-03
+
+### Added
+- **Pre-commit hooks** for automated code quality and MAID validation
+  - Runs black formatter, ruff linter, and MAID validation on commit
+  - Automatic MAID test execution before commits
+  - Smart Claude files sync when `.claude/` directory changes
+  - Integrates with existing git hook infrastructure
+- **Smart project root detection** for non-standard directory layouts
+  - Walks up directory tree looking for project markers (.git, pyproject.toml, package.json, etc.)
+  - Fixes `maid test` and `maid validate` when manifests are in project root or custom test directories
+- **`/maid-run` command** for complete MAID workflow orchestration
+  - Chains all MAID phases (manifest creation, test design, implementation, refactoring)
+  - Uses subagents for automated workflow execution
+  - Included in distributable files copied by `maid init`
+- **Installation instructions** in generated CLAUDE.md files
+  - Prerequisites section explaining pip, uv, and pipx installation options
+  - Helps users understand maid-runner is a Python CLI tool requiring installation
+
+### Changed
+- **Documentation improvements** for Claude Code integration
+  - Updated agents and commands with refactoring guidance
+  - Clarified when manifests are needed vs. when private refactoring is acceptable
+  - Added phase separation notes (don't create tests in Phase 1)
+  - Improved manifest rules clarity (immutability, one-file-per-manifest, Definition of Done)
+  - Refactored `init.py` to extract duplicate sections into helper functions (~450 lines → ~100 lines)
+
+### Fixed
+- Include watchdog in dev dependencies to ensure all tests pass
+  - Prevents import errors when running tests that check watch mode functionality
+  - Still optional for end users via `[watch]` extra
+
 ## [0.2.5] - 2025-12-02
 
 ### Added
@@ -227,6 +259,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.6]: https://github.com/mamertofabian/maid-runner/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/mamertofabian/maid-runner/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/mamertofabian/maid-runner/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/mamertofabian/maid-runner/compare/v0.2.2...v0.2.3
