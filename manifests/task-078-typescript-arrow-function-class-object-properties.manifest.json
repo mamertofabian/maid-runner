@@ -1,0 +1,39 @@
+{
+  "version": "1",
+  "goal": "Fix TypeScript validator to detect arrow functions in class properties and object properties",
+  "description": "The TypeScript validator's _extract_arrow_functions() method only detects arrow functions assigned to variables (const/let declarations), but misses arrow functions defined as class properties (e.g., handleClick = (e) => {}) and object properties (e.g., { onClick: (e) => {} }). This causes validation failures in React components and other codebases that use these common patterns. The fix enhances _extract_arrow_functions() to detect these additional patterns using tree-sitter node types: public_field_definition (class properties) and pair (object properties).",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_078_typescript_arrow_function_class_object_properties.py",
+    "maid_runner/validators/base_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "class": "TypeScriptValidator",
+        "name": "_extract_arrow_functions",
+        "description": "Extract arrow function declarations from variable declarations, class properties, and object properties",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_078_typescript_arrow_function_class_object_properties.py",
+    "-v"
+  ]
+}

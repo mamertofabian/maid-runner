@@ -330,7 +330,10 @@ class TypeScriptValidator(BaseValidator):
     def _extract_arrow_functions(self, tree, source_code: bytes) -> dict:
         """Extract arrow function declarations with their parameters.
 
-        Arrow functions are found under lexical_declaration -> variable_declarator.
+        Arrow functions are found in:
+        - lexical_declaration -> variable_declarator (const/let variables)
+        - public_field_definition (class properties)
+        - pair (object properties)
 
         Args:
             tree: Parsed AST tree
@@ -342,6 +345,7 @@ class TypeScriptValidator(BaseValidator):
         functions = {}
 
         def _visit(node):
+            # Handle variable declarations (const/let)
             if node.type == "lexical_declaration":
                 for child in node.children:
                     if child.type == "variable_declarator":
@@ -383,6 +387,58 @@ class TypeScriptValidator(BaseValidator):
                             for subchild in child.children
                         ):
                             functions[name] = params
+
+            # Handle class property arrow functions
+            elif node.type == "public_field_definition":
+                name = None
+                params = []
+
+                for child in node.children:
+                    if child.type == "property_identifier":
+                        name = self._get_node_text(child, source_code)
+                    elif child.type == "arrow_function":
+                        for arrow_child in child.children:
+                            if arrow_child.type == "formal_parameters":
+                                params = self._extract_parameters(
+                                    arrow_child, source_code
+                                )
+                            elif arrow_child.type == "identifier":
+                                # Single parameter without parentheses
+                                param_name = self._get_node_text(
+                                    arrow_child, source_code
+                                )
+                                params = [{"name": param_name}]
+
+                if name and any(
+                    child.type == "arrow_function" for child in node.children
+                ):
+                    functions[name] = params
+
+            # Handle object property arrow functions
+            elif node.type == "pair":
+                name = None
+                params = []
+
+                for child in node.children:
+                    if child.type == "property_identifier":
+                        name = self._get_node_text(child, source_code)
+                    elif child.type == "arrow_function":
+                        for arrow_child in child.children:
+                            if arrow_child.type == "formal_parameters":
+                                params = self._extract_parameters(
+                                    arrow_child, source_code
+                                )
+                            elif arrow_child.type == "identifier":
+                                # Single parameter without parentheses
+                                param_name = self._get_node_text(
+                                    arrow_child, source_code
+                                )
+                                params = [{"name": param_name}]
+
+                if name and any(
+                    child.type == "arrow_function" for child in node.children
+                ):
+                    functions[name] = params
 
         self._traverse_tree(tree.root_node, _visit)
         return functions
@@ -706,6 +762,7 @@ class TypeScriptValidator(BaseValidator):
                     ):
                         method_name = None
                         params = []
+                        is_arrow_function = False
 
                         for method_child in body_child.children:
                             if method_child.type in (
@@ -719,9 +776,27 @@ class TypeScriptValidator(BaseValidator):
                                 params = self._extract_parameters(
                                     method_child, source_code
                                 )
+                            elif method_child.type == "arrow_function":
+                                # Class property arrow function
+                                is_arrow_function = True
+                                for arrow_child in method_child.children:
+                                    if arrow_child.type == "formal_parameters":
+                                        params = self._extract_parameters(
+                                            arrow_child, source_code
+                                        )
+                                    elif arrow_child.type == "identifier":
+                                        # Single parameter without parentheses
+                                        param_name = self._get_node_text(
+                                            arrow_child, source_code
+                                        )
+                                        params = [{"name": param_name}]
 
-                        # Skip constructors
-                        if method_name and method_name != "constructor":
+                        # Skip constructors and skip arrow functions (they're handled by _extract_arrow_functions)
+                        if (
+                            method_name
+                            and method_name != "constructor"
+                            and not is_arrow_function
+                        ):
                             methods[method_name] = params
 
         return methods
