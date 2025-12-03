@@ -1889,6 +1889,14 @@ def run_validation(
             print(f"✗ Error: {e}", file=sys.stderr)
             sys.exit(1)
 
+        # Early exit for schema-only validation mode
+        # Schema mode validates structure only, without checking files
+        if validation_mode == "schema":
+            if not quiet:
+                print("✓ Manifest validation PASSED (schema-only mode)")
+                print("  Schema, semantic, and version validation completed")
+            return
+
         # Check if this is a system manifest - they skip behavioral/implementation validation
         from maid_runner.validators.manifest_validator import (
             _should_skip_behavioral_validation,

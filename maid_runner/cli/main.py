@@ -48,9 +48,9 @@ def main():
     )
     validate_parser.add_argument(
         "--validation-mode",
-        choices=["implementation", "behavioral"],
+        choices=["implementation", "behavioral", "schema"],
         default="implementation",
-        help="Validation mode: 'implementation' (default) checks definitions, 'behavioral' checks usage",
+        help="Validation mode: 'implementation' (default) checks definitions, 'behavioral' checks usage, 'schema' validates manifest structure only",
     )
     validate_parser.add_argument(
         "--use-manifest-chain",

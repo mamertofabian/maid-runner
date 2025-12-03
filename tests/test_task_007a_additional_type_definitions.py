@@ -39,7 +39,7 @@ class TestValidationMode:
         assert origin is Literal
 
         # Check it has the correct literal values
-        assert set(args) == {"implementation", "behavioral"}
+        assert set(args) == {"implementation", "behavioral", "schema"}
 
 
 class TestParameterInfo:

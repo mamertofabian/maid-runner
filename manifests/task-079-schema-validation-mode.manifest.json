@@ -1,0 +1,29 @@
+{
+  "version": "1",
+  "goal": "Add schema-only validation mode to maid validate command",
+  "description": "Add 'schema' as a third validation mode choice that performs only schema/semantic/version validation without requiring implementation or test files to exist. This enables early manifest validation during Phase 1 planning and validation of snapshot manifests by tooling/automation. Implementation changes: (1) Update ValidationMode type literal in types.py to include 'schema', (2) Update CLI choices in validate.py and main.py, (3) Add early-exit logic in validate.py run_validation() after version validation when mode is 'schema'.",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/types.py",
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_079_schema_validation_mode.py",
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/validators/semantic_validator.py",
+    "maid_runner/cli/main.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/types.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "ValidationMode",
+        "artifactKind": "type",
+        "description": "Type alias for validation mode with three choices: implementation, behavioral, and schema"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_079_schema_validation_mode.py", "-v"]
+}

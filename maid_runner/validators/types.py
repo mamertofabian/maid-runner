@@ -71,17 +71,20 @@ Example:
     mypy_cmd: TestCommand = ["mypy", "src/", "--strict"]
 """
 
-ValidationMode = Literal["implementation", "behavioral"]
+ValidationMode = Literal["implementation", "behavioral", "schema"]
 """Type alias for validation mode selection.
 
 Specifies which type of validation to perform:
 - "implementation": Validates that code defines expected artifacts
 - "behavioral": Validates that tests use expected artifacts
+- "schema": Validates only manifest schema, semantics, and version (skips file checks)
 
 Example:
     mode: ValidationMode = "implementation"
     if mode == "behavioral":
         validate_tests()
+    elif mode == "schema":
+        validate_schema_only()
     else:
         validate_implementation()
 """
