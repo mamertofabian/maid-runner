@@ -1,0 +1,66 @@
+{
+  "version": "1",
+  "goal": "Add TypeScript artifact type support to manifest validator",
+  "description": "Enable manifest validator to recognize and validate TypeScript-specific artifact types (interface, type, enum, namespace) by treating them as semantically equivalent to class declarations for validation purposes. This resolves validation failures when using TypeScript snapshots that generate these artifact types.",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "_ARTIFACT_TYPE_INTERFACE",
+        "description": "Constant for TypeScript interface artifact type"
+      },
+      {
+        "type": "attribute",
+        "name": "_ARTIFACT_TYPE_TYPE",
+        "description": "Constant for TypeScript type alias artifact type"
+      },
+      {
+        "type": "attribute",
+        "name": "_ARTIFACT_TYPE_ENUM",
+        "description": "Constant for TypeScript enum artifact type"
+      },
+      {
+        "type": "attribute",
+        "name": "_ARTIFACT_TYPE_NAMESPACE",
+        "description": "Constant for TypeScript namespace artifact type"
+      },
+      {
+        "type": "function",
+        "name": "_validate_single_artifact",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate a single artifact including TypeScript types"
+      }
+    ]
+  },
+  "validationCommand": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/validators/test_ast_validator_structure.py",
+    "tests/validators/test_ast_validator_strict.py",
+    "-v"
+  ]
+}

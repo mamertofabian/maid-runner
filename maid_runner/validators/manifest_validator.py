@@ -481,6 +481,10 @@ _TYPEDDICT_INDICATOR = "TypedDict"  # Marker for TypedDict classes
 _ARTIFACT_TYPE_CLASS = "class"
 _ARTIFACT_TYPE_FUNCTION = "function"
 _ARTIFACT_TYPE_ATTRIBUTE = "attribute"
+_ARTIFACT_TYPE_INTERFACE = "interface"
+_ARTIFACT_TYPE_TYPE = "type"
+_ARTIFACT_TYPE_ENUM = "enum"
+_ARTIFACT_TYPE_NAMESPACE = "namespace"
 
 # Validation mode constants - how validation is performed
 _VALIDATION_MODE_BEHAVIORAL = "behavioral"  # Test usage validation
@@ -1711,7 +1715,15 @@ def _validate_single_artifact(
     artifact_type = artifact.get("type")
     artifact_name = artifact.get("name")
 
-    if artifact_type == _ARTIFACT_TYPE_CLASS:
+    if artifact_type in (
+        _ARTIFACT_TYPE_CLASS,
+        _ARTIFACT_TYPE_INTERFACE,
+        _ARTIFACT_TYPE_TYPE,
+        _ARTIFACT_TYPE_ENUM,
+        _ARTIFACT_TYPE_NAMESPACE,
+    ):
+        # Treat TypeScript structural types as equivalent to class for validation
+        # They all define named types in the found_classes set
         expected_bases = artifact.get("bases", [])
         if validation_mode == _VALIDATION_MODE_BEHAVIORAL:
             # In behavioral mode, check if class was used
@@ -1947,7 +1959,16 @@ def _validate_no_unexpected_artifacts(
     """Validate that no unexpected public artifacts exist in the code."""
     # Build sets of expected names
     expected_classes = {
-        item["name"] for item in expected_items if item.get("type") == "class"
+        item["name"]
+        for item in expected_items
+        if item.get("type")
+        in (
+            "class",
+            "interface",
+            "type",
+            "enum",
+            "namespace",
+        )
     }
     expected_functions = {
         item["name"]
