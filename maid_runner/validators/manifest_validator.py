@@ -1938,15 +1938,23 @@ def _validate_function(function_name, expected_parameters, found_functions):
 
         expected_param_names = [p["name"] for p in expected_parameters]
 
+        # Handle both old format (list of strings) and new format (list of dicts)
+        # After Task-077, parameters are dicts with {"name": "...", "type": "..."}
+        if actual_parameters and isinstance(actual_parameters[0], dict):
+            actual_param_names = [p["name"] for p in actual_parameters]
+        else:
+            # Legacy format: list of strings
+            actual_param_names = actual_parameters
+
         # Check all expected parameters are present
         for param_name in expected_param_names:
-            if param_name not in actual_parameters:
+            if param_name not in actual_param_names:
                 raise AlignmentError(
                     f"Parameter '{param_name}' not found in function '{function_name}'"
                 )
 
         # Check for unexpected parameters (strict validation)
-        unexpected_params = set(actual_parameters) - set(expected_param_names)
+        unexpected_params = set(actual_param_names) - set(expected_param_names)
         if unexpected_params:
             raise AlignmentError(
                 f"Unexpected parameter(s) in function '{function_name}': {', '.join(sorted(unexpected_params))}"
