@@ -359,11 +359,24 @@ class TypeScriptValidator(BaseValidator):
                                         )
                                     elif arrow_child.type == "identifier":
                                         # Single parameter without parentheses
-                                        params = [
-                                            self._get_node_text(
-                                                arrow_child, source_code
+                                        param_name = self._get_node_text(
+                                            arrow_child, source_code
+                                        )
+                                        # Check if there's a type annotation
+                                        type_annotation = (
+                                            self._find_type_annotation_in_node(
+                                                subchild, source_code
                                             )
-                                        ]
+                                        )
+                                        if type_annotation:
+                                            params = [
+                                                {
+                                                    "name": param_name,
+                                                    "type": type_annotation,
+                                                }
+                                            ]
+                                        else:
+                                            params = [{"name": param_name}]
 
                         if name and any(
                             subchild.type == "arrow_function"
@@ -399,14 +412,14 @@ class TypeScriptValidator(BaseValidator):
         return methods
 
     def _extract_parameters(self, params_node, source_code: bytes) -> list:
-        """Extract parameter names from formal_parameters node.
+        """Extract parameter names and types from formal_parameters node.
 
         Args:
             params_node: formal_parameters AST node
             source_code: Source code as bytes
 
         Returns:
-            List of parameter names
+            List of parameter dicts with 'name' and optionally 'type' keys
         """
         params = []
 
@@ -416,34 +429,76 @@ class TypeScriptValidator(BaseValidator):
                 has_rest = False
                 for subchild in child.children:
                     if subchild.type == "rest_pattern":
-                        param_name = self._handle_rest_parameter(subchild, source_code)
-                        if param_name:
-                            params.append(param_name)
+                        param_info = self._handle_rest_parameter(subchild, source_code)
+                        if param_info:
+                            # Extract type annotation if present
+                            type_annotation = self._find_type_annotation_in_node(
+                                child, source_code
+                            )
+                            if type_annotation:
+                                if isinstance(param_info, dict):
+                                    param_info["type"] = type_annotation
+                                else:
+                                    param_info = {
+                                        "name": param_info,
+                                        "type": type_annotation,
+                                    }
+                            elif isinstance(param_info, str):
+                                param_info = {"name": param_info}
+                            params.append(param_info)
                         has_rest = True
                         break
 
                 if not has_rest:
                     # Find the identifier (pattern child)
+                    param_name = None
                     for subchild in child.children:
                         if subchild.type == "identifier":
-                            params.append(self._get_node_text(subchild, source_code))
+                            param_name = self._get_node_text(subchild, source_code)
                             break
                         elif subchild.type == "pattern":
                             # Pattern contains the identifier
                             for pattern_child in subchild.children:
                                 if pattern_child.type == "identifier":
-                                    params.append(
-                                        self._get_node_text(pattern_child, source_code)
+                                    param_name = self._get_node_text(
+                                        pattern_child, source_code
                                     )
                                     break
+
+                    if param_name:
+                        # Extract type annotation if present
+                        type_annotation = self._find_type_annotation_in_node(
+                            child, source_code
+                        )
+                        if type_annotation:
+                            params.append({"name": param_name, "type": type_annotation})
+                        else:
+                            params.append({"name": param_name})
             elif child.type == "optional_parameter":
-                param_name = self._handle_optional_parameter(child, source_code)
-                if param_name:
-                    params.append(param_name)
+                param_info = self._handle_optional_parameter(child, source_code)
+                if param_info:
+                    # Extract type annotation if present
+                    type_annotation = self._find_type_annotation_in_node(
+                        child, source_code
+                    )
+                    if type_annotation:
+                        if isinstance(param_info, dict):
+                            param_info["type"] = type_annotation
+                        else:
+                            param_info = {"name": param_info, "type": type_annotation}
+                    elif isinstance(param_info, str):
+                        param_info = {"name": param_info}
+                    params.append(param_info)
             elif child.type in ("object_pattern", "array_pattern"):
                 # Destructured parameters
                 destructured = self._handle_destructured_parameter(child, source_code)
-                params.extend(destructured)
+                # Convert string names to dicts
+                params.extend(
+                    [
+                        {"name": name} if isinstance(name, str) else name
+                        for name in destructured
+                    ]
+                )
 
         return params
 
@@ -747,7 +802,7 @@ class TypeScriptValidator(BaseValidator):
             source_code: Source code as bytes
 
         Returns:
-            Parameter name
+            Parameter name (string, not dict - type is added by caller)
         """
         for child in param_node.children:
             if child.type == "identifier":
@@ -766,7 +821,7 @@ class TypeScriptValidator(BaseValidator):
             source_code: Source code as bytes
 
         Returns:
-            Parameter name without ... prefix
+            Parameter name without ... prefix (string, not dict - type is added by caller)
         """
         for child in param_node.children:
             if child.type == "identifier":
@@ -812,3 +867,57 @@ class TypeScriptValidator(BaseValidator):
         if file_path.endswith((".tsx", ".jsx")):
             return "tsx"
         return "typescript"
+
+    def _extract_type_from_node(self, type_node, source_code: bytes) -> str:
+        """Extract type annotation text from tree-sitter AST node.
+
+        Handles various TypeScript type constructs:
+        - Simple types: string, number, boolean, any
+        - Union types: string | number | null
+        - Generic types: Array<T>, Promise<User>, Record<K, V>
+        - Array notation: string[], number[]
+        - Custom types: User, Customer
+
+        Args:
+            type_node: AST node representing the type
+            source_code: Source code as bytes
+
+        Returns:
+            String representation of the type
+        """
+        if type_node is None:
+            return ""
+
+        # For most types, we can just extract the text directly
+        # This works for:
+        # - predefined_type (string, number, boolean, etc.)
+        # - type_identifier (User, Customer, etc.)
+        # - union_type (string | number)
+        # - array_type (string[])
+        # - generic_type (Array<T>, Promise<User>)
+        # - intersection_type (A & B)
+        # - tuple_type ([string, number])
+        # - function_type ((x: number) => string)
+        # - literal_type ('success' | 'error')
+        # - parenthesized_type ((string | number))
+
+        return self._get_node_text(type_node, source_code)
+
+    def _find_type_annotation_in_node(self, param_node, source_code: bytes) -> str:
+        """Find and extract type annotation from a parameter node.
+
+        Args:
+            param_node: Parameter AST node (required_parameter, optional_parameter, etc.)
+            source_code: Source code as bytes
+
+        Returns:
+            Type annotation string or empty string if not found
+        """
+        for child in param_node.children:
+            if child.type == "type_annotation":
+                # type_annotation node contains colon and the actual type
+                # Find the type node (skip the colon)
+                for type_child in child.children:
+                    if type_child.type != ":":
+                        return self._extract_type_from_node(type_child, source_code)
+        return ""

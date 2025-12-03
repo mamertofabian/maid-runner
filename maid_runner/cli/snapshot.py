@@ -129,8 +129,18 @@ def _convert_typescript_artifacts_to_manifest(
             "name": func_name,
         }
         if params:
-            args = [{"name": param} for param in params]
+            # Handle both old format (list of strings) and new format (list of dicts)
+            args = []
+            for param in params:
+                if isinstance(param, dict):
+                    # New format - already a dict with 'name' and optionally 'type'
+                    args.append(param)
+                else:
+                    # Old format - string parameter name
+                    args.append({"name": param})
             artifact["args"] = args
+            # Also add 'parameters' key for backward compatibility
+            artifact["parameters"] = args
         manifest_artifacts.append(artifact)
 
     # Extract methods
@@ -143,8 +153,18 @@ def _convert_typescript_artifacts_to_manifest(
                 "class": class_name,
             }
             if params:
-                args = [{"name": param} for param in params]
+                # Handle both old format (list of strings) and new format (list of dicts)
+                args = []
+                for param in params:
+                    if isinstance(param, dict):
+                        # New format - already a dict with 'name' and optionally 'type'
+                        args.append(param)
+                    else:
+                        # Old format - string parameter name
+                        args.append({"name": param})
                 artifact["args"] = args
+                # Also add 'parameters' key for backward compatibility
+                artifact["parameters"] = args
             manifest_artifacts.append(artifact)
 
     return manifest_artifacts

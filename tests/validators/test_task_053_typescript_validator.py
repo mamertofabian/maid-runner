@@ -759,7 +759,10 @@ function calculateTotal(a: number, b: number): number {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "calculateTotal" in result["found_functions"]
-        assert result["found_functions"]["calculateTotal"] == ["a", "b"]
+        assert result["found_functions"]["calculateTotal"] == [
+            {"name": "a", "type": "number"},
+            {"name": "b", "type": "number"},
+        ]
 
     def test_exported_function(self, tmp_path):
         """Must detect exported functions."""
@@ -774,7 +777,9 @@ export function formatDate(date: Date): string {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "formatDate" in result["found_functions"]
-        assert result["found_functions"]["formatDate"] == ["date"]
+        assert result["found_functions"]["formatDate"] == [
+            {"name": "date", "type": "Date"}
+        ]
 
     def test_async_function(self, tmp_path):
         """Must detect async functions."""
@@ -789,7 +794,9 @@ async function fetchUser(id: number): Promise<User> {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "fetchUser" in result["found_functions"]
-        assert result["found_functions"]["fetchUser"] == ["id"]
+        assert result["found_functions"]["fetchUser"] == [
+            {"name": "id", "type": "number"}
+        ]
 
     def test_generic_function(self, tmp_path):
         """Must detect generic functions."""
@@ -804,7 +811,7 @@ function identity<T>(value: T): T {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "identity" in result["found_functions"]
-        assert result["found_functions"]["identity"] == ["value"]
+        assert result["found_functions"]["identity"] == [{"name": "value", "type": "T"}]
 
     def test_arrow_function_const(self, tmp_path):
         """Must detect arrow functions assigned to const."""
@@ -817,7 +824,10 @@ const add = (x: number, y: number): number => x + y;
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "add" in result["found_functions"]
-        assert result["found_functions"]["add"] == ["x", "y"]
+        assert result["found_functions"]["add"] == [
+            {"name": "x", "type": "number"},
+            {"name": "y", "type": "number"},
+        ]
 
     def test_arrow_function_with_block_body(self, tmp_path):
         """Must detect arrow functions with block bodies."""
@@ -833,7 +843,9 @@ const process = (data: string) => {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "process" in result["found_functions"]
-        assert result["found_functions"]["process"] == ["data"]
+        assert result["found_functions"]["process"] == [
+            {"name": "data", "type": "string"}
+        ]
 
     def test_function_with_no_parameters(self, tmp_path):
         """Must detect functions with no parameters."""
@@ -887,7 +899,10 @@ function greet(name: string, age: number): string {
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
-        assert result["found_functions"]["greet"] == ["name", "age"]
+        assert result["found_functions"]["greet"] == [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "number"},
+        ]
 
     def test_optional_parameters(self, tmp_path):
         """Must extract optional parameters."""
@@ -901,8 +916,10 @@ function greet(name: string, title?: string): string {
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
-        assert "name" in result["found_functions"]["greet"]
-        assert "title" in result["found_functions"]["greet"]
+        params = result["found_functions"]["greet"]
+        param_names = [p["name"] for p in params]
+        assert "name" in param_names
+        assert "title" in param_names
 
     def test_rest_parameters(self, tmp_path):
         """Must extract rest parameters."""
@@ -916,7 +933,9 @@ function sum(...numbers: number[]): number {
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
-        assert "numbers" in result["found_functions"]["sum"]
+        params = result["found_functions"]["sum"]
+        param_names = [p["name"] for p in params]
+        assert "numbers" in param_names
 
     def test_default_parameters(self, tmp_path):
         """Must extract parameters with default values."""
@@ -928,8 +947,10 @@ function createUser(name: string, role = "user"): void {}
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
-        assert "name" in result["found_functions"]["createUser"]
-        assert "role" in result["found_functions"]["createUser"]
+        params = result["found_functions"]["createUser"]
+        param_names = [p["name"] for p in params]
+        assert "name" in param_names
+        assert "role" in param_names
 
     def test_destructured_object_parameters(self, tmp_path):
         """Must handle destructured object parameters."""
@@ -988,8 +1009,14 @@ class Calculator {
         assert "Calculator" in result["found_methods"]
         assert "add" in result["found_methods"]["Calculator"]
         assert "subtract" in result["found_methods"]["Calculator"]
-        assert result["found_methods"]["Calculator"]["add"] == ["a", "b"]
-        assert result["found_methods"]["Calculator"]["subtract"] == ["a", "b"]
+        assert result["found_methods"]["Calculator"]["add"] == [
+            {"name": "a", "type": "number"},
+            {"name": "b", "type": "number"},
+        ]
+        assert result["found_methods"]["Calculator"]["subtract"] == [
+            {"name": "a", "type": "number"},
+            {"name": "b", "type": "number"},
+        ]
 
     def test_static_methods(self, tmp_path):
         """Must detect static methods."""
@@ -1625,7 +1652,10 @@ class Service {
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert isinstance(result["found_methods"]["Service"]["process"], list)
-        assert result["found_methods"]["Service"]["process"] == ["a", "b"]
+        assert result["found_methods"]["Service"]["process"] == [
+            {"name": "a", "type": "string"},
+            {"name": "b", "type": "number"},
+        ]
 
     def test_function_parameters_are_lists(self, tmp_path):
         """Function parameters must be returned as lists."""
@@ -1638,7 +1668,10 @@ function process(x: number, y: string): void {}
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert isinstance(result["found_functions"]["process"], list)
-        assert result["found_functions"]["process"] == ["x", "y"]
+        assert result["found_functions"]["process"] == [
+            {"name": "x", "type": "number"},
+            {"name": "y", "type": "string"},
+        ]
 
 
 # =============================================================================

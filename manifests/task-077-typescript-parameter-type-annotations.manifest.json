@@ -1,0 +1,42 @@
+{
+  "goal": "Add type annotation support to TypeScript snapshot generation for function/method parameters",
+  "description": "Enhance TypeScript validator's _extract_parameters() method to extract type annotations from tree-sitter AST nodes and return parameter objects with both name and type information, matching the format used by Python snapshot generation.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/snapshot.py",
+    "tests/test_task_077_typescript_parameter_type_annotations.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_parameters",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "params_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "list",
+        "description": "Extract parameter information including type annotations from formal_parameters node"
+      },
+      {
+        "type": "function",
+        "name": "_extract_type_from_node",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "type_node"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "str",
+        "description": "Extract type annotation text from a TypeScript type AST node"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_077_typescript_parameter_type_annotations.py", "-v"]
+}
