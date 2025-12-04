@@ -29,7 +29,7 @@ What actually happened.
 ## Environment
 
 - **OS**: [e.g., Ubuntu 22.04, macOS 14, Windows 11]
-- **Python Version**: [e.g., 3.12.1]
+- **Python Version**: [e.g., 3.10.5]
 - **MAID Runner Version**: [e.g., 0.1.0 or commit SHA]
 - **Installation Method**: [e.g., uv, pip, git clone]
 

@@ -500,7 +500,7 @@ After installation, verify with:
 maid --help
 ```
 
-**Note:** MAID Runner requires Python 3.9+. The `maid` command validates your TypeScript/JavaScript code structure against manifests.
+**Note:** MAID Runner requires Python 3.10+. The `maid` command validates your TypeScript/JavaScript code structure against manifests.
 
 ## MAID Workflow
 
@@ -618,7 +618,7 @@ After installation, verify with:
 maid --help
 ```
 
-**Note:** MAID Runner requires Python 3.9+. If using `uv` or a virtual environment with a project-local install, prefix commands with your runner (e.g., `uv run maid validate ...`).
+**Note:** MAID Runner requires Python 3.10+. If using `uv` or a virtual environment with a project-local install, prefix commands with your runner (e.g., `uv run maid validate ...`).
 
 ## MAID Workflow
 

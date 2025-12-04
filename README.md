@@ -896,7 +896,7 @@ The file tracking analysis (via `maid validate`) identifies undeclared files wit
 
 ## Requirements
 
-- Python 3.12+
+- Python 3.10+
 - Dependencies managed via `uv`
 - Core dependencies: `jsonschema`, `pytest`, `tree-sitter`, `tree-sitter-typescript`
 - Development dependencies: `black`, `ruff`, `mypy`

@@ -274,7 +274,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - Verifiable Chronology: Current state = sequential manifest application
 
 **Requirements:**
-- Python 3.12 or higher
+- Python 3.10 or higher
 - jsonschema >= 4.25.1
 
 **Development:**

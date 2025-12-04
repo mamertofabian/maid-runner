@@ -17,7 +17,7 @@ If you're contributing code related to an upcoming episode, please coordinate wi
 
 ### Prerequisites
 
-- Python 3.12 or higher
+- Python 3.10 or higher
 - [uv](https://docs.astral.sh/uv/) for dependency management
 
 ### Setup
