@@ -24,14 +24,57 @@ def detect_file_language(file_path: str) -> str:
         file_path: Path to the file
 
     Returns:
-        Language identifier: "python", "typescript", or "unknown"
+        Language identifier: "python", "typescript", "svelte", "unknown", or defaults to "python"
     """
     if file_path.endswith(".py"):
         return "python"
     elif file_path.endswith((".ts", ".tsx", ".js", ".jsx")):
         return "typescript"
+    elif file_path.endswith(".svelte"):
+        return "svelte"
     else:
-        # Default to python for backward compatibility with unknown extensions
+        from pathlib import Path
+
+        # Check if file has no extension
+        if not Path(file_path).suffix:
+            return "unknown"
+
+        # Check if this might be a case variant of a known extension
+        # Return "unknown" for case variants and unrecognized extensions
+        lower_path = file_path.lower()
+        if (
+            lower_path.endswith(".py")
+            or lower_path.endswith((".ts", ".tsx", ".js", ".jsx"))
+            or lower_path.endswith(".svelte")
+        ):
+            # This is a case variant of a known extension (e.g., .PY, .SVELTE)
+            return "unknown"
+
+        # Check if it's a common non-code file extension
+        non_code_extensions = (
+            ".txt",
+            ".md",
+            ".json",
+            ".yaml",
+            ".yml",
+            ".xml",
+            ".html",
+            ".css",
+            ".scss",
+            ".sass",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".ico",
+        )
+        if lower_path.endswith(non_code_extensions):
+            return "unknown"
+
+        # Default to python for backward compatibility with other unknown extensions
+        # This maintains backward compatibility with existing code that might
+        # pass unusual file extensions
         return "python"
 
 
@@ -67,6 +110,94 @@ def extract_typescript_artifacts(file_path: str) -> dict:
     manifest_artifacts = _convert_typescript_artifacts_to_manifest(
         artifacts_data, file_path
     )
+
+    return {
+        "artifacts": manifest_artifacts,
+    }
+
+
+def extract_svelte_artifacts(file_path: str) -> dict:
+    """Extract artifacts from a Svelte source file.
+
+    Args:
+        file_path: Path to the Svelte file to analyze
+
+    Returns:
+        Dictionary containing extracted artifacts with structure:
+        {
+            "artifacts": [...]  # List of artifacts in manifest format
+        }
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+    """
+    from pathlib import Path
+
+    # Validate file exists
+    file_path_obj = Path(file_path)
+    if not file_path_obj.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    # Use Svelte validator to collect artifacts
+    from maid_runner.validators.svelte_validator import SvelteValidator
+
+    validator = SvelteValidator()
+    artifacts_data = validator.collect_artifacts(file_path, "implementation")
+
+    # Convert validator output to manifest format
+    # Svelte validator extracts classes and functions from script blocks
+    manifest_artifacts = []
+
+    # Extract classes (includes interfaces, but Svelte doesn't parse TypeScript constructs separately)
+    found_classes = artifacts_data.get("found_classes", set())
+    for class_name in sorted(found_classes):
+        manifest_artifacts.append({"type": "class", "name": class_name})
+
+    # Extract standalone functions
+    found_functions = artifacts_data.get("found_functions", {})
+    for func_name, params in sorted(found_functions.items()):
+        artifact = {
+            "type": "function",
+            "name": func_name,
+        }
+        if params:
+            # Handle both old format (list of strings) and new format (list of dicts)
+            args = []
+            for param in params:
+                if isinstance(param, dict):
+                    # New format - already a dict with 'name' and optionally 'type'
+                    args.append(param)
+                else:
+                    # Old format - string parameter name
+                    args.append({"name": param})
+            artifact["args"] = args
+            # Also add 'parameters' key for backward compatibility
+            artifact["parameters"] = args
+        manifest_artifacts.append(artifact)
+
+    # Extract methods
+    found_methods = artifacts_data.get("found_methods", {})
+    for class_name, methods_dict in sorted(found_methods.items()):
+        for method_name, params in sorted(methods_dict.items()):
+            artifact = {
+                "type": "function",
+                "name": method_name,
+                "class": class_name,
+            }
+            if params:
+                # Handle both old format (list of strings) and new format (list of dicts)
+                args = []
+                for param in params:
+                    if isinstance(param, dict):
+                        # New format - already a dict with 'name' and optionally 'type'
+                        args.append(param)
+                    else:
+                        # Old format - string parameter name
+                        args.append({"name": param})
+                artifact["args"] = args
+                # Also add 'parameters' key for backward compatibility
+                artifact["parameters"] = args
+            manifest_artifacts.append(artifact)
 
     return {
         "artifacts": manifest_artifacts,
@@ -393,6 +524,7 @@ def extract_artifacts_from_code(file_path: str) -> dict:
     Detects file type and routes to the appropriate artifact extractor:
     - Python files (.py): Uses Python AST parser
     - TypeScript/JavaScript files (.ts, .tsx, .js, .jsx): Uses TypeScript validator
+    - Svelte files (.svelte): Uses Svelte validator
 
     Args:
         file_path: Path to the file to analyze
@@ -409,14 +541,29 @@ def extract_artifacts_from_code(file_path: str) -> dict:
 
     Raises:
         FileNotFoundError: If the file doesn't exist
+        ValueError: If the file type is not supported
         SyntaxError: If the file contains invalid syntax
     """
     # Detect file language and route to appropriate extractor
     language = detect_file_language(file_path)
 
+    if language == "unknown":
+        # File extension is not supported
+        from pathlib import Path
+
+        ext = Path(file_path).suffix or "(no extension)"
+        supported_extensions = [".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"]
+        raise ValueError(
+            f"Unsupported file type '{ext}' for: {file_path}\n"
+            f"Supported file types: {', '.join(supported_extensions)}"
+        )
+
     if language == "typescript":
         # Use TypeScript extractor
         return extract_typescript_artifacts(file_path)
+    elif language == "svelte":
+        # Use Svelte extractor
+        return extract_svelte_artifacts(file_path)
     else:
         # Use Python extractor (default for backward compatibility)
         return _extract_python_artifacts(file_path)

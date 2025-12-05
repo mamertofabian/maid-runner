@@ -1,0 +1,56 @@
+{
+  "goal": "Update language detection and add Svelte artifact extraction in snapshot.py to support .svelte files",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/snapshot.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/svelte_validator.py",
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/snapshot.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "detect_file_language",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "extract_svelte_artifacts",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "extract_artifacts_from_code",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_088_update_language_detection.py",
+    "-v"
+  ]
+}

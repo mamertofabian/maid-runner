@@ -1373,9 +1373,10 @@ def _get_validator_for_file(file_path: str):
     """
     from maid_runner.validators.python_validator import PythonValidator
     from maid_runner.validators.typescript_validator import TypeScriptValidator
+    from maid_runner.validators.svelte_validator import SvelteValidator
 
     # Try each validator
-    validators = [PythonValidator(), TypeScriptValidator()]
+    validators = [PythonValidator(), TypeScriptValidator(), SvelteValidator()]
 
     for validator in validators:
         if validator.supports_file(file_path):

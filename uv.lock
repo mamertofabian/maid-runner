@@ -486,6 +486,7 @@ source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },
     { name = "tree-sitter" },
+    { name = "tree-sitter-svelte" },
     { name = "tree-sitter-typescript" },
 ]
 
@@ -509,6 +510,7 @@ dev = [
 requires-dist = [
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "tree-sitter", specifier = ">=0.23.2" },
+    { name = "tree-sitter-svelte", specifier = ">=1.0.2" },
     { name = "tree-sitter-typescript", specifier = ">=0.23.2" },
     { name = "watchdog", marker = "extra == 'watch'", specifier = ">=6.0.0" },
 ]
@@ -1116,6 +1118,22 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/57/e2/d42d55bf56360987c32bc7b16adb06744e425670b823fb8a5786a1cea991/tree_sitter-0.25.2-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:7d2ee1acbacebe50ba0f85fff1bc05e65d877958f00880f49f9b2af38dce1af0", size = 631522 },
     { url = "https://files.pythonhosted.org/packages/03/87/af9604ebe275a9345d88c3ace0cf2a1341aa3f8ef49dd9fc11662132df8a/tree_sitter-0.25.2-cp314-cp314-win_amd64.whl", hash = "sha256:4973b718fcadfb04e59e746abfbb0288694159c6aeecd2add59320c03368c721", size = 130864 },
     { url = "https://files.pythonhosted.org/packages/a6/6e/e64621037357acb83d912276ffd30a859ef117f9c680f2e3cb955f47c680/tree_sitter-0.25.2-cp314-cp314-win_arm64.whl", hash = "sha256:b8d4429954a3beb3e844e2872610d2a4800ba4eb42bb1990c6a4b1949b18459f", size = 117470 },
+]
+
+[[package]]
+name = "tree-sitter-svelte"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/88/0b974d002bf819427e73155d69733530da75671fbdd3869490a46529d63d/tree_sitter_svelte-1.0.2.tar.gz", hash = "sha256:c7153ff70b09abda8eb6937653f374b722f8835abd20b728713a0e7bb90d0c2b", size = 28906 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/a1/6474c819cb43a39c1b7ceec1cde24780c68914754fda673f14174ed3d1a6/tree_sitter_svelte-1.0.2-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:7a53e6ddb4c626e6595119d67231a4bf992af882d17640e279c33f7ede8e9ff8", size = 22733 },
+    { url = "https://files.pythonhosted.org/packages/9b/c5/470276ec3cef4d358d8bcb52a358ef8d97e1bfc19c71c8f6710ffbe9b825/tree_sitter_svelte-1.0.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:d263ad25dd26da5e1fa919b08aa997ccb042504d12a9ca80a5c7631edcc5a672", size = 23164 },
+    { url = "https://files.pythonhosted.org/packages/5c/5f/c85caa50a0c1892e350808f3fb59864a2021ddecd7e29212ed106e8b31c5/tree_sitter_svelte-1.0.2-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eb529109f74808bed36bca613f5b2b3e0494e1f30a42346539738a0433ea8d50", size = 53367 },
+    { url = "https://files.pythonhosted.org/packages/93/48/2fca4934927e1c272e57ca74a599ba773cd4bc52f327c58752a6b01da8d3/tree_sitter_svelte-1.0.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:00972e83ef9a4f6c05532cf0614488b2b40ee017b77e58bf8e6540e1ade4d52d", size = 54159 },
+    { url = "https://files.pythonhosted.org/packages/4d/35/c9c42e63e27995e7e41520829e35ee69d201c76fcdd116d5c8c06c46c68d/tree_sitter_svelte-1.0.2-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:0197d5b6430cc9cb59a3401526a5628fc06372f4905a55c4ee6f300e0890bb30", size = 52591 },
+    { url = "https://files.pythonhosted.org/packages/48/fa/81b0795920f974111c27bf5a94b9b1c2a139b3f4dc25bcacae3c24b33619/tree_sitter_svelte-1.0.2-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:287fa2d5c1e0b1bd6c7c6e5c3314e4bc41d2d3f17a464e205e77265a2762bb8c", size = 52584 },
+    { url = "https://files.pythonhosted.org/packages/7a/cf/78c27487e249e4179d32e0ff8174fa98ba9f87cfd88d9340b6551d4fb6c0/tree_sitter_svelte-1.0.2-cp39-abi3-win_amd64.whl", hash = "sha256:febd1573c9469a1d4ce199801fd63d144d21e0f09e1458b1637ffb00f473ce0e", size = 25899 },
+    { url = "https://files.pythonhosted.org/packages/8d/91/a62ede59992e901c8bcb3696e0eb703d0c894d6e01a4837ed84bb22e629f/tree_sitter_svelte-1.0.2-cp39-abi3-win_arm64.whl", hash = "sha256:5675f49301e2079f0b7502912c7ef49e988cc2ad66a3c779b6cf3a689bb0b48f", size = 23414 },
 ]
 
 [[package]]

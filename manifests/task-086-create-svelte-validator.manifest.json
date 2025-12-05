@@ -1,0 +1,190 @@
+{
+  "goal": "Create SvelteValidator class for validating Svelte (.svelte) files using tree-sitter-svelte parser",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/validators/svelte_validator.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py",
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/svelte_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "SvelteValidator",
+        "bases": ["BaseValidator"]
+      },
+      {
+        "type": "function",
+        "name": "__init__",
+        "class": "SvelteValidator"
+      },
+      {
+        "type": "function",
+        "name": "supports_file",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "collect_artifacts",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_parse_svelte_file",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_collect_implementation_artifacts",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_collect_behavioral_artifacts",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_traverse_tree",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "node"
+          },
+          {
+            "name": "callback"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_get_node_text",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "node"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_extract_functions",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_extract_classes",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_function_calls",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "set"
+      },
+      {
+        "type": "function",
+        "name": "_extract_class_usage",
+        "class": "SvelteValidator",
+        "args": [
+          {
+            "name": "tree"
+          },
+          {
+            "name": "source_code",
+            "type": "bytes"
+          }
+        ],
+        "returns": "set"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_086_create_svelte_validator.py",
+    "-v"
+  ]
+}

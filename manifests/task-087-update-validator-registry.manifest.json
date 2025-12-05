@@ -1,0 +1,34 @@
+{
+  "goal": "Update validator registry to include SvelteValidator for .svelte file support",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/svelte_validator.py",
+    "maid_runner/validators/python_validator.py",
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_get_validator_for_file",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ]
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_087_update_validator_registry.py",
+    "-v"
+  ]
+}
