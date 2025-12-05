@@ -270,6 +270,73 @@ The development process is broken down into distinct phases, characterized by tw
 
       **Key Rule:** Once you supersede a snapshot with a comprehensive edit manifest, continue using incremental edit manifests. Don't create new snapshots unless establishing a new "checkpoint" baseline.
 
+  * **File Deletion Pattern**
+
+    When removing a file that was previously tracked by MAID:
+
+    1. **Create a deletion manifest** with `taskType: "refactor"`
+    2. **Supersede** the original creation manifest
+    3. **Delete** the file, its tests, and any imports
+    4. **Validate** the deletion with behavioral tests
+
+    **Manifest Structure:**
+    ```json
+    {
+      "goal": "Remove module X as it is no longer needed",
+      "taskType": "refactor",
+      "supersedes": ["manifests/task-XXX-create-module.manifest.json"],
+      "creatableFiles": [],
+      "editableFiles": [],
+      "expectedArtifacts": {
+        "file": "some_file.py",
+        "contains": []
+      },
+      "validationCommand": ["pytest", "tests/test_verify_deletion.py", "-v"]
+    }
+    ```
+
+    **Validation Requirements:**
+    - File no longer exists
+    - Test file for original feature is deleted
+    - No remaining imports from the deleted module
+
+    **Audit Trail:** The superseded manifest preserves the complete history of when and why the file was created and later removed.
+
+  * **File Rename Pattern**
+
+    When renaming a file tracked by MAID:
+
+    1. **Create a rename manifest** with `taskType: "refactor"`
+    2. **Supersede** the original creation manifest
+    3. **Use `git mv`** to preserve file history
+    4. **Update** manifest to reference new filename
+    5. **Validate** the rename with behavioral tests
+
+    **Manifest Structure:**
+    ```json
+    {
+      "goal": "Rename module_old.py to module_new.py for clarity",
+      "taskType": "refactor",
+      "supersedes": ["manifests/task-XXX-create-module-old.manifest.json"],
+      "creatableFiles": ["path/to/module_new.py"],
+      "expectedArtifacts": {
+        "file": "path/to/module_new.py",
+        "contains": [
+          {"type": "function", "name": "existing_function"}
+        ]
+      },
+      "validationCommand": ["pytest", "tests/test_verify_rename.py", "-v"]
+    }
+    ```
+
+    **Validation Requirements:**
+    - Old filename no longer exists
+    - New filename exists with correct functionality
+    - No remaining imports from old module name
+    - Git history preserved via `git mv`
+
+    **Key Difference from Deletion:** The `creatableFiles` contains the new filename, and `expectedArtifacts` declares the same public API under the new file location. This maintains continuity of the module's functionality while updating its location.
+
   * **The "Scaffold and Fill" Pattern**
     A stricter version of the workflow where the Architect Agent not only creates tests but also creates the `editableFiles` with empty function signatures. This reduces the Developer Agent's task to pure implementation.
 

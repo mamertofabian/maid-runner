@@ -385,6 +385,24 @@ With --use-manifest-chain:
 - Don't create new snapshots unless establishing a new "checkpoint" baseline
 - The transition manifest must be comprehensive (list ALL current functions), but future edits can be incremental
 
+## File Deletion Pattern
+
+When removing a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Delete file and tests → Validate deletion.
+
+**Manifest**: `taskType: "refactor"`, supersedes original, empty `expectedArtifacts.contains: []`
+
+**Validation**: File deleted, tests deleted, no remaining imports
+
+## File Rename Pattern
+
+When renaming a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Use `git mv` → Update manifest → Validate rename.
+
+**Manifest**: `taskType: "refactor"`, supersedes original, new filename in `creatableFiles`, same API in `expectedArtifacts` under new location
+
+**Validation**: Old file deleted, new file exists with working functionality, no old imports, git history preserved
+
+**Key difference from deletion**: Rename maintains module's public API continuity under new location.
+
 ## Key Reminders
 
 - This codebase **IS** the MAID implementation - exemplify the methodology

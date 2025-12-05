@@ -321,6 +321,38 @@ def _generate_snapshot_transition_pattern() -> str:
    - No need to update previous manifests"""
 
 
+def _generate_file_deletion_pattern() -> str:
+    """Generate file deletion pattern section.
+
+    Returns:
+        String containing file deletion pattern documentation
+    """
+    return """## File Deletion Pattern
+
+When removing a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Delete file and tests → Validate deletion.
+
+**Manifest**: `taskType: "refactor"`, supersedes original, empty `expectedArtifacts.contains: []`
+
+**Validation**: File deleted, tests deleted, no remaining imports"""
+
+
+def _generate_file_rename_pattern() -> str:
+    """Generate file rename pattern section.
+
+    Returns:
+        String containing file rename pattern documentation
+    """
+    return """## File Rename Pattern
+
+When renaming a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Use `git mv` → Update manifest → Validate rename.
+
+**Manifest**: `taskType: "refactor"`, supersedes original, new filename in `creatableFiles`, same API in `expectedArtifacts` under new location
+
+**Validation**: Old file deleted, new file exists with working functionality, no old imports, git history preserved
+
+**Key difference from deletion**: Rename maintains module's public API continuity under new location."""
+
+
 def _generate_refactoring_flexibility() -> str:
     """Generate refactoring flexibility section.
 
@@ -483,6 +515,8 @@ Verify complete chain: `pytest tests/ -v`
         _generate_artifact_rules(),
         _generate_superseded_manifests_info(),
         _generate_snapshot_transition_pattern(),
+        _generate_file_deletion_pattern(),
+        _generate_file_rename_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 
@@ -597,6 +631,8 @@ Verify complete chain: `npm test` (or `pnpm test` / `yarn test`)
         _generate_artifact_rules(),
         _generate_superseded_manifests_info(),
         _generate_snapshot_transition_pattern(),
+        _generate_file_deletion_pattern(),
+        _generate_file_rename_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 
@@ -741,6 +777,8 @@ Verify complete chain: `pytest tests/ -v` or `npm test`
         _generate_artifact_rules(),
         _generate_superseded_manifests_info(),
         _generate_snapshot_transition_pattern(),
+        _generate_file_deletion_pattern(),
+        _generate_file_rename_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 
