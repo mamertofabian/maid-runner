@@ -1881,14 +1881,22 @@ def _validate_method_parameters(
     """Validate method parameters match expectations."""
     actual_parameters = collector.found_methods[class_name][method_name]
 
-    # Skip 'self' and 'cls' parameters for methods and classmethods
-    actual_parameters = [p for p in actual_parameters if p not in ("self", "cls")]
+    # Handle both old format (list of strings) and new format (list of dicts)
+    # After Task-077, parameters are dicts with {"name": "...", "type": "..."}
+    if actual_parameters and isinstance(actual_parameters[0], dict):
+        # New format: extract parameter names, filtering out 'self' and 'cls'
+        actual_param_names = [
+            p["name"] for p in actual_parameters if p.get("name") not in ("self", "cls")
+        ]
+    else:
+        # Legacy format: list of strings, filter out 'self' and 'cls'
+        actual_param_names = [p for p in actual_parameters if p not in ("self", "cls")]
 
     expected_param_names = [p["name"] for p in parameters]
 
     # Check all expected parameters are present
     for param_name in expected_param_names:
-        if param_name not in actual_parameters:
+        if param_name not in actual_param_names:
             raise AlignmentError(
                 f"Parameter '{param_name}' not found in method '{method_name}'"
             )

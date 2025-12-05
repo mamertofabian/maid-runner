@@ -1,0 +1,33 @@
+{
+  "goal": "Fix bug where TypeScript method parameter validation fails because _validate_method_parameters doesn't handle dict format parameters (introduced in Task-077)",
+  "description": "The _validate_method_parameters function assumes parameters are strings, but TypeScript validator returns dicts with 'name' and 'type' keys. Fix it to handle both formats like _validate_function does.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_081_fix_method_parameter_validation.py",
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_validate_method_parameters",
+        "args": [
+          {"name": "method_name", "type": "str"},
+          {"name": "parameters", "type": "List[dict]"},
+          {"name": "class_name", "type": "str"},
+          {"name": "collector", "type": "_ArtifactCollector"}
+        ],
+        "returns": "None",
+        "description": "Validate method parameters match expectations, handling both dict format (new) and string format (legacy)"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_081_fix_method_parameter_validation.py", "-v"]
+}
+
