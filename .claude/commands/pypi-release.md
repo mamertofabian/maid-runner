@@ -47,13 +47,20 @@ Prepare and publish a new PyPI release for this project. Follow these steps:
    - Validate with twine: `python -m twine check dist/*`
 
 5. **Automated Release via GitHub Actions**
-   - Stage and commit changes:
+   - Stage and commit changes with descriptive title:
      ```bash
      git add pyproject.toml CHANGELOG.md
-     git commit -m "chore: bump version to X.Y.Z for release
+     # Parse the changelog to extract the main feature/change for this version
+     # Use a descriptive title that summarizes what's in the release
+     git commit -m "release: vX.Y.Z - [Main feature from changelog]
 
      - [Summary of key changes]
-     - [One-line descriptions]"
+     - [One-line descriptions from changelog]"
+
+     # Examples of good commit titles:
+     # "release: v0.3.0 - File deletion tracking with status field"
+     # "release: v0.2.0 - TypeScript/JavaScript support"
+     # "release: v0.1.3 - Async function detection fix"
      ```
    - Push to main: `git push origin main`
    - Create and push version tag:
