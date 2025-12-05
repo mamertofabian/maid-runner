@@ -279,6 +279,8 @@ The development process is broken down into distinct phases, characterized by tw
     3. **Delete** the file, its tests, and any imports
     4. **Validate** the deletion with behavioral tests
 
+    Use status: "absent" in expectedArtifacts to mark the file as deleted.
+
     **Manifest Structure:**
     ```json
     {
@@ -288,7 +290,8 @@ The development process is broken down into distinct phases, characterized by tw
       "creatableFiles": [],
       "editableFiles": [],
       "expectedArtifacts": {
-        "file": "some_file.py",
+        "file": "module_x.py",
+        "status": "absent",
         "contains": []
       },
       "validationCommand": ["pytest", "tests/test_verify_deletion.py", "-v"]

@@ -65,6 +65,12 @@
             "type": "string",
             "description": "Path to the file containing the expected artifacts, relative to the project root."
           },
+          "status": {
+            "type": "string",
+            "enum": ["present", "absent"],
+            "default": "present",
+            "description": "Indicates whether the file should be present or absent. Use 'absent' for file deletion tracking."
+          },
           "contains": {
             "type": "array",
             "description": "List of code artifacts (functions, classes, attributes, parameters) that must be implemented in the specified file.",

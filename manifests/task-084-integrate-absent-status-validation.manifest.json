@@ -1,0 +1,24 @@
+{
+  "goal": "Integrate absent status validation functions into the validation flow: call _validate_file_status_semantic_rules from semantic_validator.py and _validate_absent_file from validate_with_ast",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/semantic_validator.py",
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_084_integrate_absent_status_validation.py",
+    "tests/test_task_083_absent_status_validation.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/semantic_validator.py",
+    "contains": []
+  },
+  "validationCommand": [
+    "uv",
+    "run",
+    "pytest",
+    "tests/test_task_084_integrate_absent_status_validation.py",
+    "-v"
+  ]
+}

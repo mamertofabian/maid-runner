@@ -1,0 +1,38 @@
+{
+  "goal": "Implement validation logic to check that files with status: 'absent' do not exist in the codebase",
+  "description": "Extends the validator to handle the status field added in Task-082. When a manifest declares expectedArtifacts with status: 'absent', the validator verifies the file doesn't exist. If status is 'present' or unspecified, normal validation proceeds. Includes semantic validation to reject creatableFiles with status: 'absent'.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_083_absent_status_validation.py",
+    "maid_runner/validators/schemas/manifest.schema.json",
+    "maid_runner/validators/python_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_validate_absent_file",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "None",
+        "description": "Validates that a file with status 'absent' does not exist"
+      },
+      {
+        "type": "function",
+        "name": "_validate_file_status_semantic_rules",
+        "args": [
+          {"name": "manifest_data", "type": "dict"}
+        ],
+        "returns": "None",
+        "description": "Validates semantic rules for file status (e.g., creatableFiles cannot have status 'absent')"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_083_absent_status_validation.py", "-v"]
+}

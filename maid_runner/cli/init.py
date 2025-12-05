@@ -331,7 +331,7 @@ def _generate_file_deletion_pattern() -> str:
 
 When removing a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Delete file and tests → Validate deletion.
 
-**Manifest**: `taskType: "refactor"`, supersedes original, empty `expectedArtifacts.contains: []`
+**Manifest**: `taskType: "refactor"`, supersedes original, `status: "absent"` in expectedArtifacts
 
 **Validation**: File deleted, tests deleted, no remaining imports"""
 

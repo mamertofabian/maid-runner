@@ -7,6 +7,10 @@ for violations of MAID methodology principles like extreme isolation
 """
 
 from typing import List, Optional
+from maid_runner.validators.manifest_validator import (
+    _validate_file_status_semantic_rules,
+    AlignmentError,
+)
 
 
 class ManifestSemanticError(Exception):
@@ -36,6 +40,12 @@ def validate_manifest_semantics(manifest_data: dict) -> None:
 
     if not isinstance(manifest_data, dict):
         raise TypeError(f"manifest_data must be dict, got {type(manifest_data)}")
+
+    # Validate file status semantic rules (e.g., status: "absent" constraints)
+    try:
+        _validate_file_status_semantic_rules(manifest_data)
+    except AlignmentError as e:
+        raise ManifestSemanticError(str(e))
 
     # Detect attempts to specify multiple files with artifacts
     multi_file_indicators = _detect_multi_file_intent(manifest_data)

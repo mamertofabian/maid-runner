@@ -1,0 +1,17 @@
+{
+  "goal": "Add optional 'status' field to expectedArtifacts schema with enum values 'present' (default) and 'absent' for file deletion tracking",
+  "description": "Enhances the manifest schema to support explicit file deletion tracking. The status field allows manifests to declare whether a file should be present or absent, replacing the current workaround of using witness files with empty contains arrays.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_082_status_field_schema.py",
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/schemas/manifest.schema.json",
+    "contains": []
+  },
+  "validationCommand": ["pytest", "tests/test_task_082_status_field_schema.py", "-v"]
+}

@@ -1400,6 +1400,18 @@ def validate_with_ast(
     Raises:
         AlignmentError: If any expected artifact is not found in the code
     """
+    # Validate file status: absent (check that file doesn't exist)
+    # This should be called early, before trying to parse the file
+    _validate_absent_file(manifest_data, test_file_path)
+
+    # Early return if file has status: "absent" - no need to parse
+    expected_artifacts = manifest_data.get("expectedArtifacts")
+    if expected_artifacts and isinstance(expected_artifacts, dict):
+        status = expected_artifacts.get("status")
+        if status == "absent":
+            # File is marked as deleted - validation complete
+            return
+
     # Get the appropriate validator for this file type
     validator = _get_validator_for_file(test_file_path)
     validation_mode = validation_mode or _VALIDATION_MODE_IMPLEMENTATION
@@ -2445,3 +2457,131 @@ def _should_skip_by_artifact_kind(artifact: dict) -> Optional[bool]:
         return False
 
     return None  # No explicit specification
+
+
+def _validate_absent_file(manifest_data: dict, file_path: str) -> None:
+    """Validates that a file with status 'absent' does not exist.
+
+    This function checks the expectedArtifacts.status field in the manifest.
+    If status is "absent", it verifies the file does NOT exist in the codebase.
+    If status is "present" or missing, the function returns early (no-op).
+
+    Args:
+        manifest_data: Dictionary containing the manifest data
+        file_path: Path to the file being validated
+
+    Raises:
+        AlignmentError: If file has status 'absent' but still exists in the codebase
+
+    Example:
+        >>> manifest = {
+        ...     "expectedArtifacts": {
+        ...         "file": "deleted.py",
+        ...         "status": "absent",
+        ...         "contains": []
+        ...     }
+        ... }
+        >>> _validate_absent_file(manifest, "deleted.py")  # Passes if deleted.py doesn't exist
+        >>> # Raises AlignmentError if deleted.py exists
+    """
+    # Skip if no expectedArtifacts
+    expected_artifacts = manifest_data.get("expectedArtifacts")
+    if not expected_artifacts or not isinstance(expected_artifacts, dict):
+        return
+
+    # Get the status field - default to "present" if not specified
+    status = expected_artifacts.get("status", "present")
+
+    # Only validate absence if status is explicitly "absent"
+    if status != "absent":
+        return
+
+    # Check if the file exists
+    file_path_obj = Path(file_path)
+    if file_path_obj.exists():
+        raise AlignmentError(
+            f"File {file_path} has status 'absent' but still exists in the codebase"
+        )
+
+
+def _validate_file_status_semantic_rules(manifest_data: dict) -> None:
+    """Validates semantic rules for file status field usage.
+
+    This function enforces semantic constraints on the status field:
+    - Files in creatableFiles cannot have status: "absent" (contradiction)
+    - Files with status: "absent" must have empty contains array
+    - Files with status: "absent" must have taskType: "refactor"
+    - Files with status: "absent" must have non-empty supersedes array
+    - Files in editableFiles CAN have status: "absent" (deletion scenario)
+    - Files in readonlyFiles are not affected by status
+
+    Args:
+        manifest_data: Dictionary containing the manifest data
+
+    Raises:
+        AlignmentError: If semantic rules are violated
+
+    Example:
+        >>> # This is invalid - creating a file that should be absent
+        >>> manifest = {
+        ...     "creatableFiles": ["new.py"],
+        ...     "expectedArtifacts": {
+        ...         "file": "new.py",
+        ...         "status": "absent"
+        ...     }
+        ... }
+        >>> _validate_file_status_semantic_rules(manifest)  # Raises AlignmentError
+
+        >>> # This is valid - refactoring to delete a file
+        >>> manifest = {
+        ...     "taskType": "refactor",
+        ...     "supersedes": ["manifests/task-001.manifest.json"],
+        ...     "editableFiles": ["old.py"],
+        ...     "expectedArtifacts": {
+        ...         "file": "old.py",
+        ...         "status": "absent",
+        ...         "contains": []
+        ...     }
+        ... }
+        >>> _validate_file_status_semantic_rules(manifest)  # Passes
+    """
+    # Skip if no expectedArtifacts
+    expected_artifacts = manifest_data.get("expectedArtifacts")
+    if not expected_artifacts or not isinstance(expected_artifacts, dict):
+        return
+
+    # Get the file path and status
+    file_path = expected_artifacts.get("file")
+    status = expected_artifacts.get("status")
+
+    # Only validate if status is "absent"
+    if status != "absent":
+        return
+
+    # Rule 1: Files in creatableFiles cannot have status: "absent"
+    creatable_files = manifest_data.get("creatableFiles", [])
+    if file_path in creatable_files:
+        raise AlignmentError("Files in 'creatableFiles' cannot have status 'absent'")
+
+    # Rule 2: contains must be empty when status is "absent"
+    contains = expected_artifacts.get("contains", [])
+    if contains:
+        raise AlignmentError(
+            "Files with status 'absent' must have empty 'contains' array "
+            "(no artifacts to declare for deleted files)"
+        )
+
+    # Rule 3: taskType must be "refactor" when status is "absent"
+    task_type = manifest_data.get("taskType")
+    if task_type != "refactor":
+        raise AlignmentError(
+            f"Files with status 'absent' require taskType 'refactor', got '{task_type}'"
+        )
+
+    # Rule 4: supersedes must be non-empty when status is "absent"
+    supersedes = manifest_data.get("supersedes", [])
+    if not supersedes:
+        raise AlignmentError(
+            "Files with status 'absent' must have non-empty 'supersedes' array "
+            "(must reference the manifest that created the file being deleted)"
+        )
