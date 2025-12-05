@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2025-12-05
+
+### Changed
+- **Lowered Python requirement** from 3.11+ to 3.10+ with CI matrix testing
+  - Expands compatibility to support Python 3.10, 3.11, and 3.12
+  - Adds comprehensive CI testing across all supported Python versions
+
+### Fixed
+- **Method parameter validation** to handle dict format
+  - Properly processes parameters defined as dictionaries with `name` and `type` keys
+  - Fixes validation failures when manifest uses dict parameter format
+- **Snapshot force flag bug** where `maid snapshot --force` causes manifest to supersede itself
+  - Prevents manifest from incorrectly marking itself as superseded
+  - Ensures proper manifest chain integrity
+
 ## [0.2.8] - 2025-12-03
 
 ### Added
@@ -282,6 +297,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.2.9]: https://github.com/mamertofabian/maid-runner/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/mamertofabian/maid-runner/compare/v0.2.6...v0.2.8
 [0.2.6]: https://github.com/mamertofabian/maid-runner/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/mamertofabian/maid-runner/compare/v0.2.4...v0.2.5
