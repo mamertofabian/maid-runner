@@ -30,7 +30,7 @@ All validation features (behavioral tests, implementation validation, snapshot g
 
 ## Architecture Philosophy
 
-**MAID Runner is a validation-only tool.** It does NOT create files, generate code, or automate development. Instead, it validates that manifests, tests, and implementations comply with MAID methodology.
+**MAID Runner is a validation-first tool.** Its core purpose is to validate that manifests, tests, and implementations comply with MAID methodology. It also provides helper commands to generate manifest snapshots and test stubs from existing code, but does not generate production code or automate the development workflow itself.
 
 MAID Runner works with any development approach—from fully manual to fully automated. See [Usage Modes](#usage-modes) for details.
 
@@ -51,9 +51,9 @@ MAID Runner works with any development approach—from fully manual to fully aut
               │ Creates files
               ▼
 ┌──────────────────────────────────────┐
-│   MAID Runner (Validation Only)      │
+│   MAID Runner (Validation-First)    │
 │                                      │
-│   Responsibilities:                  │
+│   Core Responsibilities:             │
 │   ✓ Validate manifest schema         │
 │   ✓ Validate behavioral tests        │
 │   ✓ Validate implementation          │
@@ -61,9 +61,13 @@ MAID Runner works with any development approach—from fully manual to fully aut
 │   ✓ Validate manifest chain          │
 │   ✓ Track file compliance            │
 │                                      │
-│   ✗ No file creation                 │
-│   ✗ No code generation               │
-│   ✗ Tool-agnostic design             │
+│   Helper Capabilities:               │
+│   ✓ Generate manifest snapshots      │
+│   ✓ Generate test stubs              │
+│                                      │
+│   Boundaries:                        │
+│   ✗ No production code generation    │
+│   ✗ No workflow automation           │
 └──────────────────────────────────────┘
 ```
 
@@ -137,7 +141,7 @@ maid init --force  # Updates .claude/ files and CLAUDE.md
 
 ## The MAID Ecosystem
 
-MAID Runner provides **validation-only** capabilities for manifest-driven development. For **full workflow automation** (planning → testing → implementing → validating), check out:
+MAID Runner provides **validation and helper utilities** for manifest-driven development. For **full workflow automation** (planning → testing → implementing → validating), check out:
 
 **[MAID Agents](https://github.com/mamertofabian/maid-agents)** - Automated orchestration using Claude Code agents. Handles the complete development lifecycle from idea to validated implementation.
 
