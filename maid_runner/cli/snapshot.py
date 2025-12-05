@@ -898,8 +898,28 @@ def generate_snapshot(
 
     # Filter out the snapshot itself from supersedes to avoid circular reference
     # (This handles the case where we're regenerating with --force)
-    snapshot_path_str = str(manifest_path)
-    superseded_manifests = [m for m in superseded_manifests if m != snapshot_path_str]
+    # Normalize both paths to absolute for comparison, since discover_related_manifests
+    # may return relative paths while manifest_path is absolute
+    manifest_path_resolved = manifest_path.resolve()
+    filtered_superseded = []
+    for m in superseded_manifests:
+        # Resolve the superseded manifest path to absolute for comparison
+        superseded_path = Path(m)
+        if not superseded_path.is_absolute():
+            # If path already includes "manifests/", resolve from project root
+            # Otherwise resolve relative to output_path
+            if str(superseded_path).startswith("manifests/"):
+                from maid_runner.utils import find_project_root
+
+                project_root = find_project_root(output_path)
+                superseded_path = project_root / superseded_path
+            else:
+                superseded_path = output_path / superseded_path
+        superseded_path_resolved = superseded_path.resolve()
+        # Only include if it's not the same as the manifest we're creating
+        if superseded_path_resolved != manifest_path_resolved:
+            filtered_superseded.append(m)
+    superseded_manifests = filtered_superseded
 
     # Create the snapshot manifest
     manifest = create_snapshot_manifest(
