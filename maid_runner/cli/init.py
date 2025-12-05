@@ -286,6 +286,41 @@ def _generate_artifact_rules() -> str:
 - **editableFiles**: Permissive validation (contains at least)"""
 
 
+def _generate_superseded_manifests_info() -> str:
+    """Generate superseded manifests information section.
+
+    Returns:
+        String containing superseded manifests behavior documentation
+    """
+    return """## Superseded Manifests
+
+**Critical:** When a manifest is superseded, it is completely excluded from MAID operations:
+
+- `maid validate` ignores superseded manifests when merging manifest chains
+- `maid test` does NOT execute `validationCommand` from superseded manifests
+- Superseded manifests serve as historical documentation only—they are archived, not active"""
+
+
+def _generate_snapshot_transition_pattern() -> str:
+    """Generate snapshot transition pattern section.
+
+    Returns:
+        String containing snapshot transition pattern documentation
+    """
+    return """## Transitioning from Snapshots to Natural Evolution
+
+**Key Insight:** Snapshot manifests are for "frozen" code. Once code evolves, transition to natural MAID flow:
+
+1. **Snapshot Phase**: Capture complete baseline with `maid snapshot`
+2. **Transition Manifest**: When file needs changes, create edit manifest that:
+   - Declares ALL current functions (existing + new)
+   - Supersedes the snapshot manifest
+   - Uses `taskType: "edit"`
+3. **Future Evolution**: Subsequent manifests only declare new changes
+   - With `--use-manifest-chain`, validator merges all active manifests
+   - No need to update previous manifests"""
+
+
 def _generate_refactoring_flexibility() -> str:
     """Generate refactoring flexibility section.
 
@@ -446,6 +481,8 @@ Verify complete chain: `pytest tests/ -v`
         _generate_key_rules(),
         _generate_manifest_rules(),
         _generate_artifact_rules(),
+        _generate_superseded_manifests_info(),
+        _generate_snapshot_transition_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 
@@ -558,6 +595,8 @@ Verify complete chain: `npm test` (or `pnpm test` / `yarn test`)
         _generate_key_rules(),
         _generate_manifest_rules(),
         _generate_artifact_rules(),
+        _generate_superseded_manifests_info(),
+        _generate_snapshot_transition_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 
@@ -700,6 +739,8 @@ Verify complete chain: `pytest tests/ -v` or `npm test`
         _generate_key_rules(),
         _generate_manifest_rules(),
         _generate_artifact_rules(),
+        _generate_superseded_manifests_info(),
+        _generate_snapshot_transition_pattern(),
         _generate_refactoring_flexibility(),
         """## Getting Started
 

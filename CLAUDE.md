@@ -319,6 +319,72 @@ make format      # Auto-fix formatting issues
 - **creatableFiles**: Strict validation (exact match)
 - **editableFiles**: Permissive validation (contains at least)
 
+## Superseded Manifests and Test Execution
+
+**Critical Behavior:** When a manifest is superseded, it is completely excluded from MAID operations:
+
+- `uv run maid validate` ignores superseded manifests when merging manifest chains
+- `uv run maid test` does NOT execute `validationCommand` from superseded manifests
+- Superseded manifests serve as historical documentation only—they are archived, not active
+
+**Why this matters:** If you supersede a manifest, its tests will no longer run. This is by design—superseded manifests represent obsolete contracts that have been replaced.
+
+## Transitioning from Snapshots to Natural Evolution
+
+**Key Insight:** Snapshot manifests are for "frozen" code. Once code needs to evolve, you must transition to the natural MAID flow.
+
+### The Pattern
+
+1. **Snapshot Phase** (Initial baseline):
+   - Use `maid snapshot` to capture complete public API of existing code
+   - `taskType: "snapshot"` declares ALL functions/classes at that point in time
+
+2. **Transition Manifest** (First evolution):
+   - When file needs changes, create an edit manifest that:
+     - Declares ALL current functions (existing + new)
+     - Supersedes the snapshot manifest
+     - Uses `taskType: "edit"` (not "snapshot")
+   - This is the bridge from frozen state to natural evolution
+
+3. **Future Evolution** (Natural MAID flow):
+   - Subsequent manifests only declare NEW changes
+   - With `--use-manifest-chain`, validator merges all active manifests
+   - No need to update previous manifests when adding new APIs
+
+### Example Evolution
+
+```
+File history: src/service.py
+
+task-015-snapshot-service.manifest.json (snapshot)
+├─ Declares: func_1, func_2, func_3
+└─ Status: SUPERSEDED by task-123
+
+task-123-add-new-feature.manifest.json (edit, supersedes task-015)
+├─ Declares: func_1, func_2, func_3, new_func  // ALL current functions
+└─ Supersedes: ["task-015-snapshot-service.manifest.json"]
+
+task-126-another-feature.manifest.json (edit)
+└─ Declares: another_func  // Only the new addition
+
+With --use-manifest-chain:
+  Merged = task-123 + task-126
+  = {func_1, func_2, func_3, new_func, another_func} ✅
+```
+
+### Why This Pattern Works
+
+- **Snapshot** = baseline for static/legacy code
+- **Transition manifest** = comprehensive edit that supersedes snapshot, declares complete current state
+- **Natural flow** = incremental edits leveraging manifest chaining
+- **Future manifests** can add APIs without touching previous manifests
+
+### Key Rules
+
+- Once you supersede a snapshot with a comprehensive edit manifest, continue using incremental edit manifests
+- Don't create new snapshots unless establishing a new "checkpoint" baseline
+- The transition manifest must be comprehensive (list ALL current functions), but future edits can be incremental
+
 ## Key Reminders
 
 - This codebase **IS** the MAID implementation - exemplify the methodology

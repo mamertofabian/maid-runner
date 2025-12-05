@@ -414,6 +414,8 @@ maid test [options]
 #   1 = One or more validation commands failed
 ```
 
+**Important:** The `maid test` command automatically excludes superseded manifests. Only active (non-superseded) manifests have their `validationCommand` executed. Superseded manifests serve as historical documentation only—their tests will not run.
+
 **Examples:**
 
 ```bash

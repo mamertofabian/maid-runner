@@ -203,7 +203,72 @@ The development process is broken down into distinct phases, characterized by tw
 
     * **Handling Refactoring with `supersedes`:** To handle breaking changes without violating immutability, a new manifest can formally supersede an old one. It uses the optional `supersedes` property (an array of manifest paths). The Merging Validator is smart enough to ignore any manifest that has been superseded, allowing the contract to evolve. Superseded manifests are considered "dead" for validation but remain as an immutable part of the project's audit log.
 
+      **Important:** When a manifest is superseded, it is completely excluded from MAID operations:
+      - The validator (`maid validate`) ignores superseded manifests when merging manifest chains
+      - The test runner (`maid test`) does NOT execute `validationCommand` from superseded manifests
+      - Superseded manifests serve as historical documentation only—they are archived, not active
+
     * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
+
+    * **Transitioning from Snapshots to Natural Evolution:** Snapshot manifests are designed for "frozen" code—capturing a complete baseline. Once code needs to evolve, you must transition to the natural MAID flow:
+
+      **The Pattern:**
+      1. **Snapshot Phase** (Initial state): A snapshot manifest captures the complete public API of a file at a specific point in time
+         ```json
+         {
+           "taskType": "snapshot",
+           "expectedArtifacts": {
+             "file": "src/service.py",
+             "contains": [
+               {"type": "function", "name": "existing_func_1"},
+               {"type": "function", "name": "existing_func_2"}
+             ]
+           }
+         }
+         ```
+
+      2. **Transition Manifest** (First evolution): When the file needs to evolve, create an edit manifest that:
+         - Declares ALL current functions (existing + new)
+         - Supersedes the snapshot manifest
+         - Uses `taskType: "edit"` (not "snapshot")
+
+         ```json
+         {
+           "taskType": "edit",
+           "supersedes": ["task-015-snapshot-service.manifest.json"],
+           "expectedArtifacts": {
+             "file": "src/service.py",
+             "contains": [
+               {"type": "function", "name": "existing_func_1"},
+               {"type": "function", "name": "existing_func_2"},
+               {"type": "function", "name": "new_func"}  // New addition
+             ]
+           }
+         }
+         ```
+
+      3. **Future Evolution** (Natural MAID flow): Subsequent manifests only declare new changes:
+         ```json
+         {
+           "taskType": "edit",
+           "expectedArtifacts": {
+             "file": "src/service.py",
+             "contains": [
+               {"type": "function", "name": "another_new_func"}  // Only the new addition
+             ]
+           }
+         }
+         ```
+
+         With `--use-manifest-chain`, the validator merges all active manifests, so the complete API is validated without needing to update previous manifests.
+
+      **Why This Pattern Works:**
+      - Snapshot = baseline for static/legacy code
+      - Transition manifest = bridge from frozen state to natural evolution
+      - Natural flow = incremental changes leveraging manifest chaining
+      - Future manifests can add APIs without touching previous manifests
+
+      **Key Rule:** Once you supersede a snapshot with a comprehensive edit manifest, continue using incremental edit manifests. Don't create new snapshots unless establishing a new "checkpoint" baseline.
 
   * **The "Scaffold and Fill" Pattern**
     A stricter version of the workflow where the Architect Agent not only creates tests but also creates the `editableFiles` with empty function signatures. This reduces the Developer Agent's task to pure implementation.
