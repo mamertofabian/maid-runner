@@ -1994,7 +1994,11 @@ def run_validation(
                     )
         else:
             # Implementation mode: Check implementation file exists and DEFINES artifacts
-            if not Path(file_path).exists():
+            # Special case: If status is "absent", file should NOT exist - skip existence check
+            expected_artifacts = manifest_data.get("expectedArtifacts", {})
+            file_status = expected_artifacts.get("status", "present")
+
+            if file_status != "absent" and not Path(file_path).exists():
                 print(f"✗ Error: Target file not found: {file_path}")
                 print()
                 print(

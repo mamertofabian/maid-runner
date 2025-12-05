@@ -1,0 +1,21 @@
+{
+  "goal": "Fix CLI validation to check status field before file existence check, allowing validation of manifests with status: 'absent'",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/cli/validate.py"],
+  "readonlyFiles": [
+    "tests/test_task_085_fix_cli_validation_absent_status.py",
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": []
+  },
+  "validationCommand": [
+    "uv",
+    "run",
+    "pytest",
+    "tests/test_task_085_fix_cli_validation_absent_status.py",
+    "-v"
+  ]
+}
