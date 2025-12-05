@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-12-05
+
+### Fixed
+- **CLI validation for absent status files**
+  - Validation now correctly skips existence checks for files marked with `status: "absent"` in manifests
+  - Prevents false validation failures when cleaning up deleted files
+  - Ensures proper handling of file deletion manifests in `maid validate` command
+
+### Changed
+- **PyPI release automation improvements**
+  - Updated release commit messages to be more descriptive
+  - Changed from generic "chore: bump version" to "release: vX.Y.Z - [Main feature]"
+  - Improves GitHub release page readability and changelog clarity
+
 ## [0.3.0] - 2025-12-05
 
 ### Added
@@ -321,6 +335,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.3.1]: https://github.com/mamertofabian/maid-runner/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/mamertofabian/maid-runner/compare/v0.2.9...v0.3.0
 [0.2.9]: https://github.com/mamertofabian/maid-runner/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/mamertofabian/maid-runner/compare/v0.2.6...v0.2.8
