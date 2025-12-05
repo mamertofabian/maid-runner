@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-12-05
+
+### Added
+- **File deletion tracking with `status` field** (Tasks 082-084)
+  - New optional `status` field in `expectedArtifacts` schema with enum values `["present", "absent"]`
+  - Default value is `"present"` for backward compatibility with existing manifests
+  - Files with `status: "absent"` are validated to not exist in the codebase
+  - Strict semantic validation enforces proper deletion manifest structure:
+    - Files in `creatableFiles` cannot have `status: "absent"` (contradiction)
+    - Files with `status: "absent"` must have empty `contains` array
+    - Files with `status: "absent"` must have `taskType: "refactor"`
+    - Files with `status: "absent"` must have non-empty `supersedes` array
+  - Replaces witness file pattern with self-documenting deletion manifests
+
+### Changed
+- **Documentation updates for file deletion and rename patterns**
+  - Updated MAID specs, CLAUDE.md, and init.py to use new `status: "absent"` pattern
+  - Added comprehensive documentation for file deletion and rename workflows
+  - Clarified superseded manifest behavior (archived, not active in validation/tests)
+
+### Fixed
+- **CI workflow enhancement** to run Claude sync before validation
+  - Ensures packaged documentation is up-to-date before validation
+
 ## [0.2.9] - 2025-12-05
 
 ### Changed
@@ -297,6 +321,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.3.0]: https://github.com/mamertofabian/maid-runner/compare/v0.2.9...v0.3.0
 [0.2.9]: https://github.com/mamertofabian/maid-runner/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/mamertofabian/maid-runner/compare/v0.2.6...v0.2.8
 [0.2.6]: https://github.com/mamertofabian/maid-runner/compare/v0.2.5...v0.2.6
