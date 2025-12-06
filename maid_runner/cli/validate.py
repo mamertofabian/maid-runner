@@ -38,6 +38,11 @@ from maid_runner.validators.semantic_validator import (
 )
 from maid_runner.validators.file_tracker import analyze_file_tracking
 
+# Import private helpers
+from . import _validate_helpers
+from . import _test_file_extraction
+from . import _behavioral_validation
+
 
 def _format_file_tracking_output(
     analysis: dict,
@@ -176,513 +181,11 @@ def extract_test_files_from_command(validation_command: List[Any]) -> list:
         return []
 
     # Check if this is the enhanced format (array of arrays)
-    if _is_enhanced_command_format(validation_command):
-        return _extract_from_multiple_commands(validation_command)
+    if _test_file_extraction._is_enhanced_command_format(validation_command):
+        return _test_file_extraction._extract_from_multiple_commands(validation_command)
     else:
         # Legacy format: validationCommand = ["pytest", "test.py", "-v"]
-        return _extract_from_single_command(validation_command)
-
-
-def _is_enhanced_command_format(validation_command: List[Any]) -> bool:
-    """Check if validation command uses enhanced format (array of arrays).
-
-    Args:
-        validation_command: Command to check
-
-    Returns:
-        True if enhanced format, False otherwise
-    """
-    return bool(validation_command and isinstance(validation_command[0], list))
-
-
-def _extract_from_multiple_commands(commands: List[List[str]]) -> List[str]:
-    """Extract test files from multiple command arrays (enhanced format).
-
-    Args:
-        commands: List of command arrays
-
-    Returns:
-        Combined list of test file paths from all commands
-    """
-    all_test_files = []
-    for cmd_array in commands:
-        test_files = _extract_from_single_command(cmd_array)
-        all_test_files.extend(test_files)
-    return all_test_files
-
-
-def _extract_from_single_command(command: List[str]) -> list:
-    """Extract test files from a single command array.
-
-    Args:
-        command: List of command components (e.g., ["pytest", "test.py", "-v"])
-
-    Returns:
-        List of test file paths
-    """
-    if not command:
-        return []
-
-    # Handle multiple pytest commands as strings
-    test_files = _extract_from_string_commands(command)
-    if test_files:
-        return test_files
-
-    # Otherwise, try the standard list format
-    return _extract_from_list_command(command)
-
-
-def _extract_from_string_commands(command: List[str]) -> List[str]:
-    """Extract test files from string-based pytest commands.
-
-    Handles formats like: ["pytest test1.py", "pytest test2.py"]
-
-    Args:
-        command: List of command strings
-
-    Returns:
-        List of test file paths
-    """
-    test_files = []
-
-    for cmd in command:
-        if not isinstance(cmd, str) or "pytest" not in cmd:
-            continue
-
-        cmd_parts = cmd.split() if " " in cmd else [cmd]
-        pytest_index = _find_pytest_index(cmd_parts)
-
-        if pytest_index != -1:
-            pytest_args = cmd_parts[pytest_index + 1 :]
-            test_files.extend(_filter_test_paths_from_args(pytest_args))
-
-    return test_files
-
-
-def _extract_from_list_command(command: List[str]) -> List[str]:
-    """Extract test files from list-based pytest command.
-
-    Handles formats like: ["pytest", "test.py", "-v"]
-
-    Args:
-        command: List of command parts
-
-    Returns:
-        List of test file paths
-    """
-    if len(command) <= 1:
-        return []
-
-    pytest_index = _find_pytest_index(command)
-    if pytest_index == -1:
-        return []
-
-    pytest_args = command[pytest_index + 1 :]
-    return _filter_test_paths_from_args(pytest_args)
-
-
-def _find_pytest_index(command_parts: List[str]) -> int:
-    """Find the index of 'pytest' in command parts.
-
-    Args:
-        command_parts: List of command components
-
-    Returns:
-        Index of 'pytest' or -1 if not found
-    """
-    for i, part in enumerate(command_parts):
-        if part == "pytest":
-            return i
-    return -1
-
-
-def _filter_test_paths_from_args(pytest_args: List[str]) -> List[str]:
-    """Filter test file/directory paths from pytest arguments.
-
-    Args:
-        pytest_args: List of pytest arguments
-
-    Returns:
-        List of test file/directory paths
-    """
-    PYTEST_OPTIONS_WITH_VALUES = {"--tb", "--cov", "--maxfail", "--timeout"}
-    test_files = []
-
-    for arg in pytest_args:
-        # Skip pytest flags
-        if arg.startswith("-"):
-            continue
-
-        # Skip common pytest options that take values
-        if arg in PYTEST_OPTIONS_WITH_VALUES:
-            continue
-
-        # Extract file path from node IDs (file::class::method)
-        if "::" in arg:
-            file_path = arg.split("::")[0]
-            test_files.append(file_path)
-        else:
-            # Regular file or directory path
-            test_files.append(arg)
-
-    return test_files
-
-
-def _normalize_test_file_paths(test_files: List[str]) -> List[str]:
-    """Normalize test file paths by removing redundant directory prefixes.
-
-    Args:
-        test_files: List of test file paths to normalize
-
-    Returns:
-        List of normalized test file paths
-    """
-    normalized_test_files = []
-    project_name = Path.cwd().name
-
-    for test_file in test_files:
-        # Only normalize if the file doesn't exist as-is
-        if "/" in test_file and not Path(test_file).exists():
-            if test_file.startswith(f"{project_name}/"):
-                potential_normalized = test_file[len(project_name) + 1 :]
-                if Path(potential_normalized).exists():
-                    test_file = potential_normalized
-        normalized_test_files.append(test_file)
-
-    return normalized_test_files
-
-
-def _validate_test_files_exist(test_files: List[str]) -> None:
-    """Validate that all test files exist on disk.
-
-    Args:
-        test_files: List of test file paths to check
-
-    Raises:
-        FileNotFoundError: If any test file doesn't exist
-    """
-    for test_file in test_files:
-        if not Path(test_file).exists():
-            raise FileNotFoundError(f"Test file not found: {test_file}")
-
-
-def _find_imported_test_files(test_file: str) -> List[str]:
-    """Find test files imported by a test file.
-
-    This helps with split test files where the main entry point imports
-    test classes from other test modules (e.g., _test_*.py files).
-
-    Args:
-        test_file: Path to the test file to analyze
-
-    Returns:
-        List of imported test file paths that exist
-    """
-    import ast
-
-    imported_files = []
-    test_file_path = Path(test_file)
-
-    if not test_file_path.exists():
-        return imported_files
-
-    try:
-        with open(test_file_path, "r", encoding="utf-8") as f:
-            source = f.read()
-        tree = ast.parse(source, filename=test_file)
-    except (SyntaxError, UnicodeDecodeError):
-        return imported_files
-
-    # Find the tests directory
-    tests_dir = test_file_path.parent
-    if tests_dir.name != "tests":
-        # If not in tests/, look for tests/ in parent directories
-        for parent in test_file_path.parents:
-            if parent.name == "tests":
-                tests_dir = parent
-                break
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom):
-            if node.module and node.module.startswith("tests."):
-                # Convert module path to file path
-                # e.g., "tests._test_task_005_type_validation_validate_type_hints"
-                # -> "tests/_test_task_005_type_validation_validate_type_hints.py"
-                module_parts = node.module.split(".")
-                if len(module_parts) >= 2 and module_parts[0] == "tests":
-                    # Reconstruct file path
-                    file_name = "/".join(module_parts[1:]) + ".py"
-                    imported_file = tests_dir / file_name
-                    if imported_file.exists():
-                        imported_files.append(str(imported_file))
-
-    return imported_files
-
-
-def _collect_artifact_usage_from_tests(test_files: List[str]) -> Dict[str, Any]:
-    """Collect artifact usage data from all test files.
-
-    Also checks imported test files (e.g., _test_*.py files imported by main test file)
-    to support split test file patterns.
-
-    Args:
-        test_files: List of test file paths to analyze
-
-    Returns:
-        Dictionary with usage data for classes, methods, functions, and arguments
-    """
-    from maid_runner.validators.manifest_validator import collect_behavioral_artifacts
-
-    all_used_classes = set()
-    all_used_methods = {}
-    all_used_functions = set()
-    all_used_arguments = set()
-
-    # Track which files we've already processed to avoid duplicates
-    processed_files = set()
-
-    # First, collect all files to process (original + imported)
-    files_to_process = []
-    for test_file in test_files:
-        normalized_path = str(Path(test_file).resolve())
-        if normalized_path not in processed_files:
-            files_to_process.append(test_file)
-            processed_files.add(normalized_path)
-
-            # Find imported test files
-            imported_files = _find_imported_test_files(test_file)
-            for imported_file in imported_files:
-                imported_normalized = str(Path(imported_file).resolve())
-                if imported_normalized not in processed_files:
-                    files_to_process.append(imported_file)
-                    processed_files.add(imported_normalized)
-
-    # Now collect artifacts from all files
-    for test_file in files_to_process:
-        artifacts = collect_behavioral_artifacts(test_file)
-
-        # Merge usage data
-        all_used_classes.update(artifacts["used_classes"])
-        all_used_functions.update(artifacts["used_functions"])
-        all_used_arguments.update(artifacts["used_arguments"])
-
-        for class_name, methods in artifacts["used_methods"].items():
-            if class_name not in all_used_methods:
-                all_used_methods[class_name] = set()
-            all_used_methods[class_name].update(methods)
-
-    return {
-        "used_classes": all_used_classes,
-        "used_methods": all_used_methods,
-        "used_functions": all_used_functions,
-        "used_arguments": all_used_arguments,
-    }
-
-
-def _get_expected_artifacts(manifest_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Extract expected artifacts from manifest data.
-
-    Args:
-        manifest_data: Dictionary containing the manifest
-
-    Returns:
-        List of expected artifact definitions
-    """
-    expected_artifacts = manifest_data.get("expectedArtifacts", {})
-    return expected_artifacts.get("contains", [])
-
-
-def _validate_artifacts_usage(
-    expected_items: List[Dict[str, Any]],
-    usage_data: Dict[str, Any],
-    should_skip_behavioral_validation,
-) -> None:
-    """Validate that all expected artifacts are used in tests.
-
-    Args:
-        expected_items: List of expected artifact definitions
-        usage_data: Dictionary with usage data from tests
-        should_skip_behavioral_validation: Function to check if artifact should be skipped
-
-    Raises:
-        AlignmentError: If any expected artifact is not used in tests
-    """
-    all_used_classes = usage_data["used_classes"]
-    all_used_methods = usage_data["used_methods"]
-    all_used_functions = usage_data["used_functions"]
-    all_used_arguments = usage_data["used_arguments"]
-
-    for artifact in expected_items:
-        _validate_no_self_parameter(artifact)
-
-        # Skip type-only artifacts in behavioral validation
-        if should_skip_behavioral_validation(artifact):
-            continue
-
-        artifact_type = artifact.get("type")
-        artifact_name = artifact.get("name")
-
-        if artifact_type == "class":
-            _validate_class_usage(artifact_name, all_used_classes)
-        elif artifact_type == "function":
-            _validate_function_usage(
-                artifact,
-                artifact_name,
-                all_used_methods,
-                all_used_functions,
-                all_used_arguments,
-            )
-
-
-def _validate_no_self_parameter(artifact: Dict[str, Any]) -> None:
-    """Validate that 'self' parameter is not explicitly declared in methods.
-
-    Args:
-        artifact: Artifact definition to check
-
-    Raises:
-        AlignmentError: If 'self' is explicitly declared
-    """
-    from maid_runner.validators.manifest_validator import AlignmentError
-
-    if artifact.get("type") != "function":
-        return
-
-    parameters = artifact.get("args") or artifact.get("parameters", [])
-    if not parameters:
-        return
-
-    for param in parameters:
-        if param.get("name") == "self":
-            raise AlignmentError(
-                f"Manifest error: Parameter 'self' should not be explicitly declared "
-                f"in method '{artifact.get('name')}'. In Python, 'self' is implicit for instance methods "
-                f"and is not included in artifact declarations. Remove 'self' from the parameters list."
-            )
-
-
-def _validate_class_usage(artifact_name: str, all_used_classes: Set[str]) -> None:
-    """Validate that a class artifact is used in tests.
-
-    Args:
-        artifact_name: Name of the class artifact
-        all_used_classes: Set of classes used in tests
-
-    Raises:
-        AlignmentError: If class is not used in tests
-    """
-    from maid_runner.validators.manifest_validator import AlignmentError
-
-    if artifact_name not in all_used_classes:
-        raise AlignmentError(f"Class '{artifact_name}' not used in behavioral tests")
-
-
-def _validate_function_usage(
-    artifact: Dict[str, Any],
-    artifact_name: str,
-    all_used_methods: Dict[str, Set[str]],
-    all_used_functions: Set[str],
-    all_used_arguments: Set[str],
-) -> None:
-    """Validate that a function/method artifact is used in tests.
-
-    Args:
-        artifact: Artifact definition
-        artifact_name: Name of the function/method
-        all_used_methods: Dictionary of methods used per class
-        all_used_functions: Set of standalone functions used
-        all_used_arguments: Set of arguments used in calls
-
-    Raises:
-        AlignmentError: If function/method is not used correctly in tests
-    """
-    parent_class = artifact.get("class")
-    parameters = artifact.get("args") or artifact.get("parameters", [])
-
-    if parent_class:
-        _validate_method_usage(artifact_name, parent_class, all_used_methods)
-    else:
-        _validate_standalone_function_usage(artifact_name, all_used_functions)
-
-    # Validate parameters were used (if specified)
-    if parameters:
-        _validate_parameters_usage(parameters, artifact_name, all_used_arguments)
-
-
-def _validate_method_usage(
-    artifact_name: str, parent_class: str, all_used_methods: Dict[str, Set[str]]
-) -> None:
-    """Validate that a method is called on its class in tests.
-
-    Args:
-        artifact_name: Name of the method
-        parent_class: Name of the parent class
-        all_used_methods: Dictionary of methods used per class
-
-    Raises:
-        AlignmentError: If method is not called on class in tests
-    """
-    from maid_runner.validators.manifest_validator import AlignmentError
-
-    if parent_class in all_used_methods:
-        if artifact_name not in all_used_methods[parent_class]:
-            raise AlignmentError(
-                f"Method '{artifact_name}' not called on class '{parent_class}' in behavioral tests"
-            )
-    else:
-        raise AlignmentError(
-            f"Class '{parent_class}' not used or method '{artifact_name}' not called in behavioral tests"
-        )
-
-
-def _validate_standalone_function_usage(
-    artifact_name: str, all_used_functions: Set[str]
-) -> None:
-    """Validate that a standalone function is called in tests.
-
-    Args:
-        artifact_name: Name of the function
-        all_used_functions: Set of standalone functions used
-
-    Raises:
-        AlignmentError: If function is not called in tests
-    """
-    from maid_runner.validators.manifest_validator import AlignmentError
-
-    if artifact_name not in all_used_functions:
-        raise AlignmentError(
-            f"Function '{artifact_name}' not called in behavioral tests"
-        )
-
-
-def _validate_parameters_usage(
-    parameters: List[Dict[str, Any]], artifact_name: str, all_used_arguments: Set[str]
-) -> None:
-    """Validate that function parameters are used in test calls.
-
-    Args:
-        parameters: List of parameter definitions
-        artifact_name: Name of the function/method
-        all_used_arguments: Set of arguments used in calls
-
-    Raises:
-        AlignmentError: If parameter is not used in test calls
-    """
-    from maid_runner.validators.manifest_validator import AlignmentError
-
-    for param in parameters:
-        param_name = param.get("name")
-        if not param_name:
-            continue
-
-        # Check if parameter was used as keyword argument or positionally
-        if (
-            param_name not in all_used_arguments
-            and "__positional__" not in all_used_arguments
-        ):
-            raise AlignmentError(
-                f"Parameter '{param_name}' not used in call to '{artifact_name}' in behavioral tests"
-            )
+        return _test_file_extraction._extract_from_single_command(validation_command)
 
 
 def validate_behavioral_tests(
@@ -709,17 +212,17 @@ def validate_behavioral_tests(
     if not test_files:
         return
 
-    test_files = _normalize_test_file_paths(test_files)
-    _validate_test_files_exist(test_files)
+    test_files = _test_file_extraction._normalize_test_file_paths(test_files)
+    _test_file_extraction._validate_test_files_exist(test_files)
 
     from maid_runner.validators.manifest_validator import (
         should_skip_behavioral_validation,
     )
 
-    usage_data = _collect_artifact_usage_from_tests(test_files)
+    usage_data = _behavioral_validation._collect_artifact_usage_from_tests(test_files)
 
-    expected_items = _get_expected_artifacts(manifest_data)
-    _validate_artifacts_usage(
+    expected_items = _behavioral_validation._get_expected_artifacts(manifest_data)
+    _behavioral_validation._validate_artifacts_usage(
         expected_items, usage_data, should_skip_behavioral_validation
     )
 
@@ -853,36 +356,15 @@ class _MultiManifestValidationHandler(FileSystemEventHandler):
 
     def _run_validation_for_manifest(self, manifest_path: Path) -> None:
         """Run dual mode validation and optionally tests for a manifest."""
-        results = run_dual_mode_validation(
+        _run_validation_with_tests(
             manifest_path=manifest_path,
             use_manifest_chain=self.use_manifest_chain,
             quiet=self.quiet,
+            skip_tests=self.skip_tests,
+            project_root=self.project_root,
+            timeout=self.timeout,
+            verbose=self.verbose,
         )
-
-        # Check if all validations passed (ignoring None/skipped)
-        validations_passed = all(
-            v is True for k, v in results.items() if k != "tests" and v is not None
-        )
-
-        if validations_passed and not self.skip_tests:
-            try:
-                with open(manifest_path, "r") as f:
-                    manifest_data = json.load(f)
-                test_success = execute_validation_command(
-                    manifest_data=manifest_data,
-                    project_root=self.project_root,
-                    timeout=self.timeout,
-                    verbose=self.verbose,
-                )
-                results["tests"] = test_success
-            except (json.JSONDecodeError, IOError) as e:
-                results["tests"] = False
-                if not self.quiet:
-                    print(f"⚠️  Error loading manifest: {e}", flush=True)
-
-        # Print summary
-        task_id = _extract_task_id(manifest_path)
-        _print_validation_summary(task_id, results, self.quiet)
 
     def on_modified(self, event) -> None:
         """Run validation for affected manifests when watched files change."""
@@ -890,7 +372,7 @@ class _MultiManifestValidationHandler(FileSystemEventHandler):
             return
 
         current_time = time.time()
-        if current_time - self.last_run <= self.debounce_seconds:
+        if _should_skip_debounce(self.last_run, current_time, self.debounce_seconds):
             return
 
         modified_path = Path(event.src_path).resolve()
@@ -899,11 +381,7 @@ class _MultiManifestValidationHandler(FileSystemEventHandler):
         if affected_manifests:
             self.last_run = current_time
 
-            try:
-                display_path = modified_path.relative_to(self.project_root)
-            except ValueError:
-                display_path = modified_path
-
+            display_path = _get_display_path(modified_path, self.project_root)
             if not self.quiet:
                 print(f"\n🔔 Detected change in {display_path}", flush=True)
 
@@ -1083,22 +561,15 @@ class _ManifestFileChangeHandler(FileSystemEventHandler):
         if not self._is_watched_file(modified_path):
             return
 
-        # Debounce to avoid multiple rapid triggers
         current_time = time.time()
-        if current_time - self.last_run <= self.debounce_seconds:
+        if _should_skip_debounce(self.last_run, current_time, self.debounce_seconds):
             return
         self.last_run = current_time
 
-        # Get relative path for display
-        try:
-            display_path = modified_path.resolve().relative_to(self.project_root)
-        except ValueError:
-            display_path = modified_path
-
+        display_path = _get_display_path(modified_path, self.project_root)
         if not self.quiet:
             print(f"\n🔔 Detected change in {display_path}", flush=True)
 
-        # If manifest changed, refresh watchable paths
         if modified_path.resolve() == self.manifest_path.resolve():
             self._refresh_watchable_paths()
 
@@ -1117,18 +588,12 @@ class _ManifestFileChangeHandler(FileSystemEventHandler):
         if not self._is_watched_file(created_path):
             return
 
-        # Debounce
         current_time = time.time()
-        if current_time - self.last_run <= self.debounce_seconds:
+        if _should_skip_debounce(self.last_run, current_time, self.debounce_seconds):
             return
         self.last_run = current_time
 
-        # Get relative path for display
-        try:
-            display_path = created_path.resolve().relative_to(self.project_root)
-        except ValueError:
-            display_path = created_path
-
+        display_path = _get_display_path(created_path, self.project_root)
         if not self.quiet:
             print(f"\n🔔 File created: {display_path}", flush=True)
 
@@ -1150,22 +615,15 @@ class _ManifestFileChangeHandler(FileSystemEventHandler):
         if not self._is_watched_file(dest_path):
             return
 
-        # Debounce
         current_time = time.time()
-        if current_time - self.last_run <= self.debounce_seconds:
+        if _should_skip_debounce(self.last_run, current_time, self.debounce_seconds):
             return
         self.last_run = current_time
 
-        # Get relative path for display
-        try:
-            display_path = dest_path.resolve().relative_to(self.project_root)
-        except ValueError:
-            display_path = dest_path
-
+        display_path = _get_display_path(dest_path, self.project_root)
         if not self.quiet:
             print(f"\n🔔 Detected change in {display_path}", flush=True)
 
-        # If manifest changed, refresh watchable paths
         if dest_path.resolve() == self.manifest_path.resolve():
             self._refresh_watchable_paths()
 
@@ -1173,39 +631,15 @@ class _ManifestFileChangeHandler(FileSystemEventHandler):
 
     def _run_validation(self) -> None:
         """Run dual mode validation and optionally execute tests."""
-        # Run dual mode validation
-        results = run_dual_mode_validation(
+        _run_validation_with_tests(
             manifest_path=self.manifest_path,
             use_manifest_chain=self.use_manifest_chain,
             quiet=self.quiet,
+            skip_tests=self.skip_tests,
+            project_root=self.project_root,
+            timeout=self.timeout,
+            verbose=self.verbose,
         )
-
-        # Check if all validations passed (ignoring None/skipped)
-        validations_passed = all(
-            v is True for k, v in results.items() if k != "tests" and v is not None
-        )
-
-        # Run validation command if enabled and validation passed
-        if validations_passed and not self.skip_tests:
-            try:
-                with open(self.manifest_path, "r") as f:
-                    manifest_data = json.load(f)
-
-                test_success = execute_validation_command(
-                    manifest_data=manifest_data,
-                    project_root=self.project_root,
-                    timeout=self.timeout,
-                    verbose=self.verbose,
-                )
-                results["tests"] = test_success
-            except (json.JSONDecodeError, IOError) as e:
-                results["tests"] = False
-                if not self.quiet:
-                    print(f"⚠️  Error loading manifest: {e}")
-
-        # Print summary
-        task_id = _extract_task_id(self.manifest_path)
-        _print_validation_summary(task_id, results, self.quiet)
 
 
 def _extract_task_id(manifest_path: Path) -> str:
@@ -1220,6 +654,113 @@ def _extract_task_id(manifest_path: Path) -> str:
     filename = manifest_path.name
     match = re.match(r"(task-\d+)", filename)
     return match.group(1) if match else ""
+
+
+# Re-export helpers for backward compatibility
+_are_validations_passed = _validate_helpers._are_validations_passed
+_get_display_path = _validate_helpers._get_display_path
+_should_skip_debounce = _validate_helpers._should_skip_debounce
+
+# Re-export test file extraction helpers for backward compatibility
+_is_enhanced_command_format = _test_file_extraction._is_enhanced_command_format
+_extract_from_multiple_commands = _test_file_extraction._extract_from_multiple_commands
+_extract_from_single_command = _test_file_extraction._extract_from_single_command
+_extract_from_string_commands = _test_file_extraction._extract_from_string_commands
+_extract_from_list_command = _test_file_extraction._extract_from_list_command
+_find_pytest_index = _test_file_extraction._find_pytest_index
+_filter_test_paths_from_args = _test_file_extraction._filter_test_paths_from_args
+_normalize_test_file_paths = _test_file_extraction._normalize_test_file_paths
+_validate_test_files_exist = _test_file_extraction._validate_test_files_exist
+_find_imported_test_files = _test_file_extraction._find_imported_test_files
+
+# Re-export behavioral validation helpers for backward compatibility
+_collect_artifact_usage_from_tests = (
+    _behavioral_validation._collect_artifact_usage_from_tests
+)
+_get_expected_artifacts = _behavioral_validation._get_expected_artifacts
+_validate_artifacts_usage = _behavioral_validation._validate_artifacts_usage
+_validate_no_self_parameter = _behavioral_validation._validate_no_self_parameter
+_validate_class_usage = _behavioral_validation._validate_class_usage
+_validate_function_usage = _behavioral_validation._validate_function_usage
+_validate_method_usage = _behavioral_validation._validate_method_usage
+_validate_standalone_function_usage = (
+    _behavioral_validation._validate_standalone_function_usage
+)
+_validate_parameters_usage = _behavioral_validation._validate_parameters_usage
+
+
+def _run_tests_for_manifest(
+    manifest_path: Path,
+    project_root: Path,
+    timeout: int,
+    verbose: bool,
+    quiet: bool,
+) -> bool:
+    """Load manifest and run validation command.
+
+    Args:
+        manifest_path: Path to manifest file
+        project_root: Project root directory
+        timeout: Command timeout in seconds
+        verbose: If True, show detailed output
+        quiet: If True, suppress error messages
+
+    Returns:
+        True if tests passed, False otherwise
+    """
+    try:
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
+        return execute_validation_command(
+            manifest_data=manifest_data,
+            project_root=project_root,
+            timeout=timeout,
+            verbose=verbose,
+        )
+    except (json.JSONDecodeError, IOError) as e:
+        if not quiet:
+            print(f"⚠️  Error loading manifest: {e}", flush=True)
+        return False
+
+
+def _run_validation_with_tests(
+    manifest_path: Path,
+    use_manifest_chain: bool,
+    quiet: bool,
+    skip_tests: bool,
+    project_root: Path,
+    timeout: int,
+    verbose: bool,
+) -> Dict[str, Optional[bool]]:
+    """Run dual mode validation and optionally execute tests.
+
+    Args:
+        manifest_path: Path to manifest file
+        use_manifest_chain: If True, use manifest chain for validation
+        quiet: If True, suppress non-essential output
+        skip_tests: If True, skip running validationCommand
+        project_root: Project root directory
+        timeout: Command timeout in seconds
+        verbose: If True, show detailed output
+
+    Returns:
+        Dict with validation results including tests
+    """
+    results = run_dual_mode_validation(
+        manifest_path=manifest_path,
+        use_manifest_chain=use_manifest_chain,
+        quiet=quiet,
+    )
+
+    if _are_validations_passed(results) and not skip_tests:
+        test_success = _run_tests_for_manifest(
+            manifest_path, project_root, timeout, verbose, quiet
+        )
+        results["tests"] = test_success
+
+    task_id = _extract_task_id(manifest_path)
+    _print_validation_summary(task_id, results, quiet)
+    return results
 
 
 def _print_validation_summary(
@@ -1482,36 +1023,15 @@ def watch_manifest_validation(
 
     # Run initial validation
     print("\n📋 Running initial validation:", flush=True)
-    results = run_dual_mode_validation(
+    _run_validation_with_tests(
         manifest_path=manifest_path,
         use_manifest_chain=use_manifest_chain,
         quiet=quiet,
+        skip_tests=skip_tests,
+        project_root=project_root,
+        timeout=timeout,
+        verbose=verbose,
     )
-
-    # Check if all validations passed (ignoring None/skipped)
-    validations_passed = all(
-        v is True for k, v in results.items() if k != "tests" and v is not None
-    )
-
-    if validations_passed and not skip_tests:
-        try:
-            with open(manifest_path, "r") as f:
-                manifest_data = json.load(f)
-            test_success = execute_validation_command(
-                manifest_data=manifest_data,
-                project_root=project_root,
-                timeout=timeout,
-                verbose=verbose,
-            )
-            results["tests"] = test_success
-        except (json.JSONDecodeError, IOError) as e:
-            results["tests"] = False
-            if not quiet:
-                print(f"⚠️  Error loading manifest: {e}")
-
-    # Print summary
-    task_id = _extract_task_id(manifest_path)
-    _print_validation_summary(task_id, results, quiet)
 
     # Set up file watching
     event_handler = _ManifestFileChangeHandler(
@@ -1623,36 +1143,15 @@ def watch_all_validations(
         if not quiet:
             print(f"\n📋 {manifest_path.name}", flush=True)
 
-        results = run_dual_mode_validation(
+        _run_validation_with_tests(
             manifest_path=manifest_path,
             use_manifest_chain=use_manifest_chain,
             quiet=quiet,
+            skip_tests=skip_tests,
+            project_root=project_root,
+            timeout=timeout,
+            verbose=verbose,
         )
-
-        # Check if all validations passed (ignoring None/skipped)
-        validations_passed = all(
-            v is True for k, v in results.items() if k != "tests" and v is not None
-        )
-
-        if validations_passed and not skip_tests:
-            try:
-                with open(manifest_path, "r") as f:
-                    manifest_data = json.load(f)
-                test_success = execute_validation_command(
-                    manifest_data=manifest_data,
-                    project_root=project_root,
-                    timeout=timeout,
-                    verbose=verbose,
-                )
-                results["tests"] = test_success
-            except (json.JSONDecodeError, IOError) as e:
-                results["tests"] = False
-                if not quiet:
-                    print(f"⚠️  Error loading {manifest_path.name}: {e}")
-
-        # Print summary for this manifest
-        task_id = _extract_task_id(manifest_path)
-        _print_validation_summary(task_id, results, quiet)
 
     # Create single handler with file-to-manifests mapping
     observer = Observer()

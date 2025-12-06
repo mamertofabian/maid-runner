@@ -256,10 +256,14 @@ class TestValidateBehavioralTests:
             )
 
     @patch("maid_runner.validators.manifest_validator.collect_behavioral_artifacts")
+    @patch("maid_runner.cli._test_file_extraction.Path")
     @patch("maid_runner.cli.validate.Path")
-    def test_class_not_used_raises_alignment_error(self, mock_path, mock_collect):
+    def test_class_not_used_raises_alignment_error(
+        self, mock_path, mock_path_helper, mock_collect
+    ):
         """Test that missing class usage raises AlignmentError."""
         mock_path.return_value.exists.return_value = True
+        mock_path_helper.return_value.exists.return_value = True
         mock_collect.return_value = {
             "used_classes": set(),
             "used_methods": {},
@@ -284,10 +288,14 @@ class TestValidateBehavioralTests:
             )
 
     @patch("maid_runner.validators.manifest_validator.collect_behavioral_artifacts")
+    @patch("maid_runner.cli._test_file_extraction.Path")
     @patch("maid_runner.cli.validate.Path")
-    def test_function_not_called_raises_alignment_error(self, mock_path, mock_collect):
+    def test_function_not_called_raises_alignment_error(
+        self, mock_path, mock_path_helper, mock_collect
+    ):
         """Test that missing function usage raises AlignmentError."""
         mock_path.return_value.exists.return_value = True
+        mock_path_helper.return_value.exists.return_value = True
         mock_collect.return_value = {
             "used_classes": set(),
             "used_methods": {},
@@ -315,10 +323,14 @@ class TestValidateBehavioralTests:
             )
 
     @patch("maid_runner.validators.manifest_validator.collect_behavioral_artifacts")
+    @patch("maid_runner.cli._test_file_extraction.Path")
     @patch("maid_runner.cli.validate.Path")
-    def test_self_parameter_raises_alignment_error(self, mock_path, mock_collect):
+    def test_self_parameter_raises_alignment_error(
+        self, mock_path, mock_path_helper, mock_collect
+    ):
         """Test that 'self' parameter in manifest raises AlignmentError."""
         mock_path.return_value.exists.return_value = True
+        mock_path_helper.return_value.exists.return_value = True
 
         manifest_data = {
             "expectedArtifacts": {
