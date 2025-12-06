@@ -1,0 +1,33 @@
+{
+  "goal": "Add private implementation file detection to file_tracker",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_089_add_private_impl_detection.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "FILE_STATUS_PRIVATE_IMPL"
+      },
+      {
+        "type": "function",
+        "name": "is_private_implementation_file",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "class",
+        "name": "FileTrackingAnalysis"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_089_add_private_impl_detection.py", "-v"]
+}

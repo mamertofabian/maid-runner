@@ -1,0 +1,54 @@
+{
+  "goal": "Update files CLI to format and filter private implementation files",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/files.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/file_tracker.py",
+    "tests/test_task_090_update_files_cli_for_private_impl.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/files.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "format_files_output",
+        "args": [
+          {"name": "analysis", "type": "FileTrackingAnalysis"},
+          {"name": "issues_only", "type": "bool"},
+          {"name": "status_filter", "type": "Optional[str]"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "hide_private", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "format_files_json",
+        "args": [
+          {"name": "analysis", "type": "FileTrackingAnalysis"},
+          {"name": "issues_only", "type": "bool"},
+          {"name": "status_filter", "type": "Optional[str]"},
+          {"name": "hide_private", "type": "bool"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "run_files",
+        "args": [
+          {"name": "manifest_dir", "type": "str"},
+          {"name": "issues_only", "type": "bool"},
+          {"name": "status_filter", "type": "Optional[str]"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "json_output", "type": "bool"},
+          {"name": "hide_private", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_090_update_files_cli_for_private_impl.py", "-v"]
+}

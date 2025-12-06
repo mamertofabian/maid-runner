@@ -1,0 +1,17 @@
+{
+  "goal": "Add --hide-private CLI flag to maid files command in main.py",
+  "taskType": "edit",
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/files.py",
+    "tests/test_task_091_add_hide_private_cli_flag.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/main.py",
+    "contains": []
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_091_add_hide_private_cli_flag.py", "-v"]
+}

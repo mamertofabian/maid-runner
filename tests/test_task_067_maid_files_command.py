@@ -31,6 +31,7 @@ class TestRunFiles:
             status_filter=None,
             quiet=False,
             json_output=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -48,6 +49,7 @@ class TestRunFiles:
             status_filter=None,
             quiet=False,
             json_output=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -65,6 +67,7 @@ class TestRunFiles:
             status_filter="undeclared",
             quiet=False,
             json_output=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -82,6 +85,7 @@ class TestRunFiles:
             status_filter=None,
             quiet=True,
             json_output=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -99,6 +103,7 @@ class TestRunFiles:
             status_filter=None,
             quiet=False,
             json_output=True,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -131,6 +136,7 @@ class TestFormatFilesOutput:
             issues_only=False,
             status_filter=None,
             quiet=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -158,6 +164,7 @@ class TestFormatFilesOutput:
             issues_only=True,
             status_filter=None,
             quiet=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -193,6 +200,7 @@ class TestFormatFilesOutput:
             issues_only=False,
             status_filter="undeclared",
             quiet=False,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -222,6 +230,7 @@ class TestFormatFilesOutput:
             issues_only=False,
             status_filter=None,
             quiet=True,
+            hide_private=False,
         )
 
         captured = capsys.readouterr()
@@ -246,6 +255,7 @@ class TestFormatFilesJson:
             analysis=analysis,
             issues_only=False,
             status_filter=None,
+            hide_private=False,
         )
 
         assert isinstance(result, str)
@@ -274,6 +284,7 @@ class TestFormatFilesJson:
             analysis=analysis,
             issues_only=True,
             status_filter=None,
+            hide_private=False,
         )
 
         assert isinstance(result, str)
@@ -310,6 +321,7 @@ class TestFormatFilesJson:
             analysis=analysis,
             issues_only=False,
             status_filter="tracked",
+            hide_private=False,
         )
 
         assert isinstance(result, str)

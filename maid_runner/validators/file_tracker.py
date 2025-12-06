@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Set, TypedDict
 FILE_STATUS_UNDECLARED = "UNDECLARED"
 FILE_STATUS_REGISTERED = "REGISTERED"
 FILE_STATUS_TRACKED = "TRACKED"
+FILE_STATUS_PRIVATE_IMPL = "PRIVATE_IMPL"
 
 # Default exclude patterns for file tracking
 DEFAULT_EXCLUDE_PATTERNS = [
@@ -35,7 +36,7 @@ DEFAULT_EXCLUDE_PATTERNS = [
 ]
 
 # Default source file extensions to search
-DEFAULT_SOURCE_EXTENSIONS = [".py", ".ts", ".tsx", ".js", ".jsx"]
+DEFAULT_SOURCE_EXTENSIONS = [".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"]
 
 
 # Type definitions
@@ -54,6 +55,7 @@ class FileTrackingAnalysis(TypedDict):
     undeclared: List[FileInfo]
     registered: List[FileInfo]
     tracked: List[str]
+    private_impl: List[str]
     untracked_tests: List[str]
 
 
@@ -156,6 +158,34 @@ def _is_test_file(file_path: str) -> bool:
     return file_path.startswith("tests/") or file_path.split("/")[-1].startswith(
         "test_"
     )
+
+
+def is_private_implementation_file(file_path: str) -> bool:
+    """Check if a file is a private implementation file.
+
+    Private implementation files:
+    - Start with _ prefix (e.g., _helpers.py, _validators.py)
+    - Have a source code extension (.py, .ts, .tsx, .js, .jsx, .svelte)
+    - Excluding __init__.py (tracked normally)
+
+    Args:
+        file_path: Relative file path
+
+    Returns:
+        True if file is private implementation
+    """
+    filename = file_path.split("/")[-1]
+
+    # __init__.py is tracked normally
+    if filename == "__init__.py":
+        return False
+
+    # Check if starts with _ and has source extension
+    if filename.startswith("_"):
+        ext = Path(filename).suffix
+        return ext in DEFAULT_SOURCE_EXTENSIONS
+
+    return False
 
 
 def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
@@ -307,9 +337,15 @@ def analyze_file_tracking(
     undeclared = []
     registered = []
     tracked = []
+    private_impl = []
     untracked_tests = []
 
     for file_path in sorted(all_files):
+        # Check if file is private implementation first
+        if is_private_implementation_file(file_path):
+            private_impl.append(file_path)
+            continue
+
         tracked_info = tracked_files.get(file_path)
         status, issues = classify_file_status(file_path, tracked_info)
 
@@ -342,5 +378,6 @@ def analyze_file_tracking(
         "undeclared": undeclared,
         "registered": registered,
         "tracked": tracked,
+        "private_impl": private_impl,
         "untracked_tests": untracked_tests,
     }

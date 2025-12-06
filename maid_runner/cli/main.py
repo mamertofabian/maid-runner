@@ -269,8 +269,8 @@ def main():
     )
     files_parser.add_argument(
         "--status",
-        choices=["undeclared", "registered", "tracked"],
-        help="Filter by status (undeclared, registered, tracked)",
+        choices=["undeclared", "registered", "tracked", "private_impl"],
+        help="Filter by status (undeclared, registered, tracked, private_impl)",
     )
     files_parser.add_argument(
         "--quiet",
@@ -282,6 +282,11 @@ def main():
         "--json",
         action="store_true",
         help="Output as JSON",
+    )
+    files_parser.add_argument(
+        "--hide-private",
+        action="store_true",
+        help="Hide private implementation files (files starting with _)",
     )
 
     args = parser.parse_args()
@@ -402,6 +407,7 @@ def main():
             args.status,
             args.quiet,
             args.json,
+            args.hide_private,
         )
     else:
         parser.print_help()
