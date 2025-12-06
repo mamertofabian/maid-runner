@@ -12,7 +12,19 @@ Test Organization:
 - Edge cases and error handling
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import pytest
+
+# Import private test modules for task-077 private artifacts
+from tests._test_task_077_private_helpers import (  # noqa: F401
+    TestExtractParameters,
+    TestExtractTypeFromNode,
+)
 
 
 # =============================================================================

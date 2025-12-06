@@ -9,8 +9,18 @@ This module tests how the validator processes various import patterns:
 - Uppercase class name detection
 """
 
+import sys
 from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from maid_runner.validators.manifest_validator import validate_with_ast
+
+# Import private test modules for task-015 private artifacts
+from tests._test_task_015_private_helpers import (  # noqa: F401
+    TestArtifactCollectorIsLocalImport,
+)
 
 
 def test_import_regular_modules(tmp_path: Path):

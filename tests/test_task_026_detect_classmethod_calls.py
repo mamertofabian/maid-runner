@@ -6,9 +6,13 @@ directly on the class name (e.g., ConfigService.create_default()) in behavioral
 test validation mode.
 """
 
+import sys
 from pathlib import Path
 import pytest
 import tempfile
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import with fallback for Red phase testing
 try:
@@ -16,6 +20,11 @@ try:
 except ImportError as e:
     # In Red phase, this function won't exist yet
     pytest.skip(f"Implementation not ready: {e}", allow_module_level=True)
+
+# Import private test modules for task-026 private artifacts
+from tests._test_task_026_private_helpers import (  # noqa: F401
+    TestArtifactCollectorVisitCall,
+)
 
 
 class TestClassmethodCallDetection:

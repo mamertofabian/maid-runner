@@ -1,7 +1,18 @@
 # tests/validators/test_task_027_validate_unexpected_methods.py
-import pytest
+import sys
 from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+import pytest
 from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
+
+# Import private test modules for task-027 private artifacts
+from tests._test_task_027_private_helpers import (  # noqa: F401
+    TestCheckUnexpectedArtifacts,
+    TestValidateNoUnexpectedArtifacts,
+)
 
 
 def test_unexpected_public_method_fails(tmp_path: Path):

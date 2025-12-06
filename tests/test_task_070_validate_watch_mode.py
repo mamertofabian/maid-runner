@@ -8,12 +8,23 @@ Tests the watch mode functionality for the maid validate command, including:
 - watch_all_validations() for multi-manifest watch orchestration
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import inspect
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Import private test modules for task-070 private artifacts
+from tests._test_task_070_private_helpers import (  # noqa: F401
+    TestMultiManifestValidationHandler,
+    TestManifestFileChangeHandler,
+)
 
 
 class TestManifestFileChangeHandlerClass:
@@ -261,47 +272,6 @@ class TestBuildFileToManifestsMapForValidation:
 
         result = build_file_to_manifests_map_for_validation(manifests_dir, [])
         assert isinstance(result, dict)
-
-
-class TestMultiManifestValidationHandler:
-    """Tests for the _MultiManifestValidationHandler class."""
-
-    def test_multi_manifest_validation_handler_is_importable(self):
-        """Test that _MultiManifestValidationHandler class is importable."""
-        from maid_runner.cli.validate import _MultiManifestValidationHandler
-
-        assert _MultiManifestValidationHandler is not None
-        assert inspect.isclass(_MultiManifestValidationHandler)
-
-    def test_multi_manifest_validation_handler_has_on_modified_method(self):
-        """Test that _MultiManifestValidationHandler has on_modified method."""
-        from maid_runner.cli.validate import _MultiManifestValidationHandler
-
-        assert hasattr(_MultiManifestValidationHandler, "on_modified")
-        assert callable(getattr(_MultiManifestValidationHandler, "on_modified"))
-
-    def test_multi_manifest_validation_handler_has_on_created_method(self):
-        """Test that _MultiManifestValidationHandler has on_created method."""
-        from maid_runner.cli.validate import _MultiManifestValidationHandler
-
-        assert hasattr(_MultiManifestValidationHandler, "on_created")
-        assert callable(getattr(_MultiManifestValidationHandler, "on_created"))
-
-    def test_multi_manifest_validation_handler_has_on_moved_method(self):
-        """Test that _MultiManifestValidationHandler has on_moved method."""
-        from maid_runner.cli.validate import _MultiManifestValidationHandler
-
-        assert hasattr(_MultiManifestValidationHandler, "on_moved")
-        assert callable(getattr(_MultiManifestValidationHandler, "on_moved"))
-
-    def test_multi_manifest_validation_handler_has_refresh_file_mappings_method(self):
-        """Test that _MultiManifestValidationHandler has refresh_file_mappings method."""
-        from maid_runner.cli.validate import _MultiManifestValidationHandler
-
-        assert hasattr(_MultiManifestValidationHandler, "refresh_file_mappings")
-        assert callable(
-            getattr(_MultiManifestValidationHandler, "refresh_file_mappings")
-        )
 
 
 class TestRunDualModeValidation:

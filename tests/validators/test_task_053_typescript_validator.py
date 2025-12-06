@@ -29,6 +29,43 @@ from pathlib import Path
 # Add parent directory to path to enable imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+# Import private test modules for task-053 private artifacts
+from tests._test_task_053_private_helpers import (  # noqa: F401
+    TestTypeScriptValidatorInit,
+    TestParseTypeScriptFile,
+    TestCollectImplementationArtifacts,
+    TestCollectBehavioralArtifacts,
+    TestTraverseTree,
+    TestGetNodeText,
+    TestExtractIdentifier,
+    TestExtractClasses,
+    TestExtractInterfaces,
+    TestExtractTypeAliases,
+    TestExtractEnums,
+    TestExtractNamespaces,
+    TestExtractFunctions,
+    TestExtractArrowFunctions,
+    TestExtractMethods,
+    TestExtractParameters,
+    TestExtractClassBases,
+    TestIsExported,
+    TestExtractClassUsage,
+    TestExtractFunctionCalls,
+    TestExtractMethodCalls,
+    TestGetClassNameFromNode,
+    TestGetFunctionNameFromNode,
+    TestFindClassMethods,
+    TestIsAbstractClass,
+    TestIsStaticMethod,
+    TestHasDecorator,
+    TestIsGetterOrSetter,
+    TestIsAsync,
+    TestHandleOptionalParameter,
+    TestHandleRestParameter,
+    TestHandleDestructuredParameter,
+    TestGetLanguageForFile,
+)
+
 # Import and re-export all test classes so pytest discovers them in this file's namespace
 from tests.validators._test_task_053_typescript_validator._test_task_053_typescript_validator_validator_structure import (  # noqa: F401
     TestValidatorStructure,

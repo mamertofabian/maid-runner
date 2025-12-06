@@ -8,8 +8,19 @@ are "used" in behavioral tests through patterns like:
 - hasattr checks
 """
 
+import sys
 from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from maid_runner.validators.manifest_validator import validate_with_ast
+
+# Import private test modules for task-016 private artifacts
+from tests._test_task_016_private_helpers import (  # noqa: F401
+    TestArtifactCollectorVisitClassDef,
+    TestArtifactCollectorVisitCall,
+)
 
 
 def test_detects_class_used_as_base_class(tmp_path: Path):

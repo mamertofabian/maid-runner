@@ -1,6 +1,16 @@
 # tests/test_ast_validator_strict.py
-import pytest
+
+import sys
 from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# Import private test modules for task-076 private artifacts
+from tests._test_task_076_private_helpers import (  # noqa: F401
+    TestValidateSingleArtifact,
+)
+import pytest
 from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
 

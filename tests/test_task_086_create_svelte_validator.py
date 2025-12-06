@@ -14,8 +14,28 @@ Test Organization:
 - Artifact structure consistency
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from maid_runner.validators.svelte_validator import SvelteValidator
 from maid_runner.validators.base_validator import BaseValidator
+
+# Import private test modules for task-086 private artifacts
+from tests._test_task_086_private_helpers import (  # noqa: F401
+    TestSvelteValidatorInit,
+    TestParseSvelteFile,
+    TestCollectImplementationArtifacts,
+    TestCollectBehavioralArtifacts,
+    TestTraverseTree,
+    TestGetNodeText,
+    TestExtractFunctions,
+    TestExtractClasses,
+    TestExtractFunctionCalls,
+    TestExtractClassUsage,
+)
 
 
 # =============================================================================

@@ -14,8 +14,18 @@ Test Organization:
 - Integration with manifest validation
 """
 
-import pytest
+import sys
 from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+import pytest
+
+# Import private test modules for task-076 private artifacts
+from tests._test_task_076_private_helpers import (  # noqa: F401
+    TestValidateSingleArtifact,
+)
 
 
 # =============================================================================
