@@ -1,0 +1,70 @@
+# Vulture whitelist for known false positives
+# This file lists functions/classes that vulture thinks are unused but are actually used
+
+# Magic methods and pytest fixtures
+__init__
+__str__
+__repr__
+__eq__
+__hash__
+__call__
+setup_method
+teardown_method
+
+# Pytest fixtures (used via dependency injection)
+tmp_path
+capsys
+monkeypatch
+caplog
+
+# CLI entry points (called by setuptools)
+main
+
+# AST visitor methods (called by ast.NodeVisitor automatically)
+visit_*
+generic_visit
+
+# Module-level constants exported for external use
+_VALIDATION_MODE_BEHAVIORAL
+_VALIDATION_MODE_IMPLEMENTATION
+_ARTIFACT_TYPE_CLASS
+_ARTIFACT_TYPE_FUNCTION
+_ARTIFACT_TYPE_ATTRIBUTE
+_ARTIFACT_TYPE_INTERFACE
+_ARTIFACT_TYPE_TYPE
+_ARTIFACT_TYPE_ENUM
+_ARTIFACT_TYPE_NAMESPACE
+_ARTIFACT_KIND_TYPE
+_ARTIFACT_KIND_RUNTIME
+_TYPEDDICT_INDICATOR
+_OPTIONAL_PREFIX
+_UNION_PREFIX
+_BRACKET_OPEN
+_BRACKET_CLOSE
+_COMMA
+_PIPE
+_SPACE
+_NONE_TYPE
+
+# Public API functions exported by modules
+validate_schema
+validate_with_ast
+extract_type_annotation
+compare_types
+normalize_type_string
+discover_related_manifests
+collect_behavioral_artifacts
+validate_type_hints
+should_skip_behavioral_validation
+
+# Exception classes (raised but may not be caught in same file)
+AlignmentError
+
+# TypeScript/Svelte validator classes (dynamically loaded)
+TypeScriptValidator
+SvelteValidator
+
+# MCP server resource handlers (called by MCP framework)
+get_*
+list_*
+maid_*

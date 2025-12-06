@@ -1,7 +1,7 @@
 # MAID Runner Development Makefile
 # Convenience commands for development workflow
 
-.PHONY: help test validate watch dev install-dev sync-claude build clean
+.PHONY: help test validate watch dev install-dev sync-claude build clean dead-code
 
 help:
 	@echo "MAID Runner Development Commands:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make type-check    - Run type checking (alias for lint)"
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
+	@echo "  make dead-code     - Detect unused/dead code with vulture"
 	@echo "  make sync-claude   - Sync Claude Code files for package distribution"
 	@echo "  make build         - Build package (includes sync-claude)"
 	@echo "  make clean         - Clean generated files"
@@ -105,6 +106,17 @@ type-check-fix:
 
 format:
 	uv run black .
+
+# Dead code detection with vulture
+dead-code:
+	@echo "🔍 Scanning for unused/dead code..."
+	@uv run vulture maid_runner/ tests/ \
+		--min-confidence 80 \
+		--exclude "*/__pycache__/*" \
+		--sort-by-size || true
+	@echo ""
+	@echo "💡 Note: Review results carefully for false positives"
+	@echo "   Add legitimate exceptions to .vulture whitelist file"
 
 # Sync Claude Code integration files for package distribution
 sync-claude:
