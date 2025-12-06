@@ -366,8 +366,64 @@ def _validate_test_files_exist(test_files: List[str]) -> None:
             raise FileNotFoundError(f"Test file not found: {test_file}")
 
 
+def _find_imported_test_files(test_file: str) -> List[str]:
+    """Find test files imported by a test file.
+
+    This helps with split test files where the main entry point imports
+    test classes from other test modules (e.g., _test_*.py files).
+
+    Args:
+        test_file: Path to the test file to analyze
+
+    Returns:
+        List of imported test file paths that exist
+    """
+    import ast
+
+    imported_files = []
+    test_file_path = Path(test_file)
+
+    if not test_file_path.exists():
+        return imported_files
+
+    try:
+        with open(test_file_path, "r", encoding="utf-8") as f:
+            source = f.read()
+        tree = ast.parse(source, filename=test_file)
+    except (SyntaxError, UnicodeDecodeError):
+        return imported_files
+
+    # Find the tests directory
+    tests_dir = test_file_path.parent
+    if tests_dir.name != "tests":
+        # If not in tests/, look for tests/ in parent directories
+        for parent in test_file_path.parents:
+            if parent.name == "tests":
+                tests_dir = parent
+                break
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if node.module and node.module.startswith("tests."):
+                # Convert module path to file path
+                # e.g., "tests._test_task_005_type_validation_validate_type_hints"
+                # -> "tests/_test_task_005_type_validation_validate_type_hints.py"
+                module_parts = node.module.split(".")
+                if len(module_parts) >= 2 and module_parts[0] == "tests":
+                    # Reconstruct file path
+                    file_name = "/".join(module_parts[1:]) + ".py"
+                    imported_file = tests_dir / file_name
+                    if imported_file.exists():
+                        imported_files.append(str(imported_file))
+
+    return imported_files
+
+
 def _collect_artifact_usage_from_tests(test_files: List[str]) -> Dict[str, Any]:
     """Collect artifact usage data from all test files.
+
+    Also checks imported test files (e.g., _test_*.py files imported by main test file)
+    to support split test file patterns.
 
     Args:
         test_files: List of test file paths to analyze
@@ -382,7 +438,27 @@ def _collect_artifact_usage_from_tests(test_files: List[str]) -> Dict[str, Any]:
     all_used_functions = set()
     all_used_arguments = set()
 
+    # Track which files we've already processed to avoid duplicates
+    processed_files = set()
+
+    # First, collect all files to process (original + imported)
+    files_to_process = []
     for test_file in test_files:
+        normalized_path = str(Path(test_file).resolve())
+        if normalized_path not in processed_files:
+            files_to_process.append(test_file)
+            processed_files.add(normalized_path)
+
+            # Find imported test files
+            imported_files = _find_imported_test_files(test_file)
+            for imported_file in imported_files:
+                imported_normalized = str(Path(imported_file).resolve())
+                if imported_normalized not in processed_files:
+                    files_to_process.append(imported_file)
+                    processed_files.add(imported_normalized)
+
+    # Now collect artifacts from all files
+    for test_file in files_to_process:
         artifacts = collect_behavioral_artifacts(test_file)
 
         # Merge usage data
