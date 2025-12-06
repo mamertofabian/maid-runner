@@ -83,9 +83,9 @@ class TestPrivateArtifactsInManifests:
 
         # USE the function - should return True (skipped) because of explicit type kind
         result = should_skip_behavioral_validation(private_type_function)
-        assert result is True, (
-            "Private functions with explicit artifactKind='type' should still be skipped."
-        )
+        assert (
+            result is True
+        ), "Private functions with explicit artifactKind='type' should still be skipped."
 
     def test_private_function_behavioral_validation_integration(self, tmp_path: Path):
         """Test end-to-end: private function in manifest must be used in behavioral tests."""
@@ -124,8 +124,16 @@ def test_public_function():
             "expectedArtifacts": {
                 "file": str(impl_file),
                 "contains": [
-                    {"type": "function", "name": "_helper_function", "parameters": [{"name": "x", "type": "int"}]},
-                    {"type": "function", "name": "public_function", "parameters": [{"name": "value", "type": "int"}]},
+                    {
+                        "type": "function",
+                        "name": "_helper_function",
+                        "parameters": [{"name": "x", "type": "int"}],
+                    },
+                    {
+                        "type": "function",
+                        "name": "public_function",
+                        "parameters": [{"name": "value", "type": "int"}],
+                    },
                 ],
             },
             "validationCommand": ["pytest", str(test_file), "-v"],
@@ -134,7 +142,9 @@ def test_public_function():
         # Behavioral validation should pass - private function is used in test
         validate_with_ast(manifest, str(test_file), validation_mode="behavioral")
 
-    def test_private_function_not_used_fails_behavioral_validation(self, tmp_path: Path):
+    def test_private_function_not_used_fails_behavioral_validation(
+        self, tmp_path: Path
+    ):
         """Test that private function in manifest must be used in behavioral tests."""
         # Create implementation file with private function
         impl_file = tmp_path / "module.py"
@@ -166,8 +176,16 @@ def test_public_function():
             "expectedArtifacts": {
                 "file": str(impl_file),
                 "contains": [
-                    {"type": "function", "name": "_helper_function", "parameters": [{"name": "x", "type": "int"}]},
-                    {"type": "function", "name": "public_function", "parameters": [{"name": "value", "type": "int"}]},
+                    {
+                        "type": "function",
+                        "name": "_helper_function",
+                        "parameters": [{"name": "x", "type": "int"}],
+                    },
+                    {
+                        "type": "function",
+                        "name": "public_function",
+                        "parameters": [{"name": "value", "type": "int"}],
+                    },
                 ],
             },
             "validationCommand": ["pytest", str(test_file), "-v"],
@@ -176,7 +194,10 @@ def test_public_function():
         # Behavioral validation should FAIL - private function declared but not used
         from maid_runner.validators.manifest_validator import AlignmentError
 
-        with pytest.raises(AlignmentError, match="Function '_helper_function' not called in behavioral test"):
+        with pytest.raises(
+            AlignmentError,
+            match="Function '_helper_function' not called in behavioral test",
+        ):
             validate_with_ast(manifest, str(test_file), validation_mode="behavioral")
 
 
@@ -202,7 +223,11 @@ def public_function(value: int) -> int:
             "expectedArtifacts": {
                 "file": str(impl_file),
                 "contains": [
-                    {"type": "function", "name": "public_function", "parameters": [{"name": "value", "type": "int"}]},
+                    {
+                        "type": "function",
+                        "name": "public_function",
+                        "parameters": [{"name": "value", "type": "int"}],
+                    },
                     # _internal_helper is NOT declared - should be allowed as implementation detail
                 ],
             },
@@ -210,4 +235,3 @@ def public_function(value: int) -> int:
 
         # Implementation validation should pass - private function not declared is allowed
         validate_with_ast(manifest, str(impl_file), validation_mode="implementation")
-

@@ -17,6 +17,30 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from maid_runner.validators.manifest_validator import validate_with_ast, AlignmentError
 
+# Import private test modules for task-009 private artifacts
+from tests._test_task_009_private_helpers import (  # noqa: F401
+    TestArtifactCollectorUsage,
+    TestValidateExtractionInputs,
+    TestAstToTypeString,
+    TestSafeAstConversion,
+    TestHandleSubscriptNode,
+    TestHandleAttributeNode,
+    TestHandleUnionOperator,
+    TestFallbackAstUnparse,
+    TestSafeStrConversion,
+    TestNormalizeTypeInput,
+    TestNormalizeModernUnionSyntax,
+    TestNormalizeOptionalType,
+    TestIsOptionalType,
+    TestExtractBracketedContent,
+    TestNormalizeUnionType,
+    TestIsUnionType,
+    TestSplitTypeArguments,
+    TestSplitByDelimiter,
+    TestNormalizeCommaSpacing,
+    TestSkipSpaces,
+)
+
 
 class TestTypeValidationIntegration:
     """Test that type validation is integrated into validate_with_ast."""

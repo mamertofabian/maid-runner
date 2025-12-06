@@ -210,25 +210,8 @@ def discover_related_manifests(target_file):
     # Get all JSON files and sort numerically by task number
     manifest_files = list(manifest_dir.glob("*.json"))
 
-    def _get_task_number(path):
-        """Extract task number from filename like task-XXX-description.json"""
-        stem = path.stem
-        # Handle .manifest.json files by removing .manifest suffix
-        if stem.endswith(".manifest"):
-            stem = stem[:-9]  # Remove '.manifest' suffix
-
-        if stem.startswith("task-"):
-            try:
-                # Split by '-' and get the number part (second element)
-                parts = stem.split("-")
-                if len(parts) >= 2:
-                    return int(parts[1])
-            except (ValueError, IndexError):
-                pass
-        return float("inf")  # Put non-task files at the end
-
     # Sort manifest files numerically (supports task-1 through task-999999+)
-    manifest_files.sort(key=_get_task_number)
+    manifest_files.sort(key=_manifest_utils._get_task_number)
 
     for manifest_path in manifest_files:
         with open(manifest_path, "r") as f:
@@ -308,9 +291,7 @@ def validate_with_ast(
     )
 
     # Validate all expected artifacts
-    _validate_all_artifacts(
-        expected_items, collector, validation_mode
-    )
+    _validate_all_artifacts(expected_items, collector, validation_mode)
 
     # Check for unexpected public artifacts (strict mode)
     _check_unexpected_artifacts(expected_items, collector)
@@ -405,11 +386,7 @@ def validate_type_hints(
         if not _should_validate_artifact_types(artifact):
             continue
 
-        errors.extend(
-            _validate_function_types(
-                artifact, implementation_artifacts
-            )
-        )
+        errors.extend(_validate_function_types(artifact, implementation_artifacts))
 
     return errors
 
@@ -709,8 +686,9 @@ class _ArtifactCollector(ast.NodeVisitor):
             class_name = node.value.func.value.id
 
         # Check if it's a known class or follows class naming conventions
+        # Support both standard (UpperCase) and private (_ClassName) patterns
         if class_name and (
-            class_name in self.found_classes or (class_name and class_name[0].isupper())
+            class_name in self.found_classes or self._is_class_name(class_name)
         ):
             for target in node.targets:
                 if isinstance(target, ast.Name):
@@ -1039,6 +1017,11 @@ def _skip_spaces(text: str, start_idx: int) -> int:
 
 
 # Manifest utility functions declared in manifests must be defined here
+def _get_task_number(path) -> int:
+    """Extract task number from filename like task-XXX-description.json."""
+    return _manifest_utils._get_task_number(path)
+
+
 def _get_artifact_key(artifact: dict) -> tuple:
     """Generate unique key for an artifact."""
     return _manifest_utils._get_artifact_key(artifact)

@@ -2,6 +2,7 @@
 
 import ast
 import json
+from pathlib import Path
 from typing import List
 
 
@@ -10,6 +11,31 @@ def _get_discover_related_manifests():
     from maid_runner.validators.manifest_validator import discover_related_manifests
 
     return discover_related_manifests
+
+
+def _get_task_number(path: Path) -> int:
+    """Extract task number from filename like task-XXX-description.json.
+
+    Args:
+        path: Path object to the manifest file
+
+    Returns:
+        Task number as integer, or float('inf') for non-task files
+    """
+    stem = path.stem
+    # Handle .manifest.json files by removing .manifest suffix
+    if stem.endswith(".manifest"):
+        stem = stem[:-9]  # Remove '.manifest' suffix
+
+    if stem.startswith("task-"):
+        try:
+            # Split by '-' and get the number part (second element)
+            parts = stem.split("-")
+            if len(parts) >= 2:
+                return int(parts[1])
+        except (ValueError, IndexError):
+            pass
+    return float("inf")  # Put non-task files at the end
 
 
 def _get_artifact_key(artifact: dict) -> tuple:
