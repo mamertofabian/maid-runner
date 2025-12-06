@@ -17,24 +17,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import and re-export all test classes so pytest discovers them in this file's namespace
-from tests._test_task_005_type_validation_validate_type_hints import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_validate_type_hints import (  # noqa: F401
     TestValidateTypeHints,
 )
-from tests._test_task_005_type_validation_extract_annotation import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_extract_annotation import (  # noqa: F401
     TestExtractTypeAnnotation,
 )
-from tests._test_task_005_type_validation_compare_types import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_compare_types import (  # noqa: F401
     TestCompareTypes,
 )
-from tests._test_task_005_type_validation_normalize import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_normalize import (  # noqa: F401
     TestNormalizeTypeString,
 )
-from tests._test_task_005_type_validation_artifact_collector import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_artifact_collector import (  # noqa: F401
     TestArtifactCollectorAttributes,
 )
-from tests._test_task_005_type_validation_error_messages import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_error_messages import (  # noqa: F401
     TestErrorMessageConsistency,
 )
-from tests._test_task_005_type_validation_integration import (  # noqa: F401
+from tests._test_task_005_type_validation._test_task_005_type_validation_integration import (  # noqa: F401
     TestIntegrationScenarios,
 )
