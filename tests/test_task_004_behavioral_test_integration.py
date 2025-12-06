@@ -22,6 +22,9 @@ from maid_runner.cli.validate import (
 )
 from maid_runner.validators.manifest_validator import collect_behavioral_artifacts
 
+# Import and re-export test class so pytest discovers it in this file's namespace
+from tests._test_find_imported_test_files import TestFindImportedTestFiles  # noqa: F401
+
 
 class TestExtractTestFilesFromCommand:
     """Test extraction of test files from various pytest command formats."""

@@ -10,15 +10,11 @@ When pytest runs this file, it will discover all test classes defined here,
 which are imported from the split files.
 """
 
-# Import all test modules to ensure they're loaded
-# Note: Files are prefixed with _ to prevent pytest from discovering them directly
-import tests._test_task_005_type_validation_validate_type_hints  # noqa: F401
-import tests._test_task_005_type_validation_extract_annotation  # noqa: F401
-import tests._test_task_005_type_validation_compare_types  # noqa: F401
-import tests._test_task_005_type_validation_normalize  # noqa: F401
-import tests._test_task_005_type_validation_artifact_collector  # noqa: F401
-import tests._test_task_005_type_validation_error_messages  # noqa: F401
-import tests._test_task_005_type_validation_integration  # noqa: F401
+import sys
+from pathlib import Path
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import and re-export all test classes so pytest discovers them in this file's namespace
 from tests._test_task_005_type_validation_validate_type_hints import (  # noqa: F401
