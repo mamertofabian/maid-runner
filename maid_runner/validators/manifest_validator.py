@@ -126,7 +126,7 @@ def extract_type_annotation(
         AttributeError: If node is None (for backward compatibility)
     """
     # Validate inputs
-    _type_annotation._validate_extraction_inputs(node, annotation_attr)
+    _validate_extraction_inputs(node, annotation_attr)
 
     # Extract annotation attribute
     annotation = getattr(node, annotation_attr, None)
@@ -134,7 +134,7 @@ def extract_type_annotation(
         return None
 
     # Convert AST annotation to string
-    return _type_annotation._ast_to_type_string(annotation)
+    return _ast_to_type_string(annotation)
 
 
 def compare_types(manifest_type: str, implementation_type: str) -> bool:
@@ -152,8 +152,8 @@ def compare_types(manifest_type: str, implementation_type: str) -> bool:
         True if types are equivalent, False otherwise
     """
     # Normalize inputs to strings or None
-    manifest_type = _type_normalization._normalize_type_input(manifest_type)
-    implementation_type = _type_normalization._normalize_type_input(implementation_type)
+    manifest_type = _normalize_type_input(manifest_type)
+    implementation_type = _normalize_type_input(implementation_type)
 
     # Handle None cases
     if manifest_type is None and implementation_type is None:
@@ -267,7 +267,7 @@ def validate_with_ast(
     """
     # Validate file status: absent (check that file doesn't exist)
     # This should be called early, before trying to parse the file
-    _file_validation._validate_absent_file(manifest_data, test_file_path)
+    _validate_absent_file(manifest_data, test_file_path)
 
     # Early return if file has status: "absent" - no need to parse
     expected_artifacts = manifest_data.get("expectedArtifacts")
@@ -278,7 +278,7 @@ def validate_with_ast(
             return
 
     # Get the appropriate validator for this file type
-    validator = _manifest_utils._get_validator_for_file(test_file_path)
+    validator = _get_validator_for_file(test_file_path)
     validation_mode = validation_mode or _VALIDATION_MODE_IMPLEMENTATION
 
     # Collect artifacts using the language-specific validator
@@ -303,17 +303,17 @@ def validate_with_ast(
     collector = _CollectorShim(artifacts)
 
     # Get expected artifacts
-    expected_items = _manifest_utils._get_expected_artifacts(
+    expected_items = _get_expected_artifacts(
         manifest_data, test_file_path, use_manifest_chain
     )
 
     # Validate all expected artifacts
-    _artifact_validation._validate_all_artifacts(
+    _validate_all_artifacts(
         expected_items, collector, validation_mode
     )
 
     # Check for unexpected public artifacts (strict mode)
-    _artifact_validation._check_unexpected_artifacts(expected_items, collector)
+    _check_unexpected_artifacts(expected_items, collector)
 
     # Type hint validation (only in implementation mode)
     if validation_mode == _VALIDATION_MODE_IMPLEMENTATION:
@@ -335,7 +335,7 @@ def validate_with_ast(
 
     # Validate all editableFiles for undeclared public artifacts (close loophole)
     if validation_mode == _VALIDATION_MODE_IMPLEMENTATION:
-        _file_validation._validate_editable_files(manifest_data, validation_mode)
+        _validate_editable_files(manifest_data, validation_mode)
 
 
 def collect_behavioral_artifacts(file_path: str) -> dict:
@@ -360,7 +360,7 @@ def collect_behavioral_artifacts(file_path: str) -> dict:
         SyntaxError: If the file contains invalid syntax
     """
     # Use the appropriate validator for this file type
-    validator = _manifest_utils._get_validator_for_file(file_path)
+    validator = _get_validator_for_file(file_path)
     artifacts = validator.collect_artifacts(file_path, _VALIDATION_MODE_BEHAVIORAL)
 
     return {
@@ -389,7 +389,7 @@ def validate_type_hints(
         List of error messages for type mismatches
     """
     # Validate inputs
-    if not _type_validation._are_valid_type_validation_inputs(
+    if not _are_valid_type_validation_inputs(
         manifest_artifacts, implementation_artifacts
     ):
         return []
@@ -402,11 +402,11 @@ def validate_type_hints(
     errors = []
 
     for artifact in expected_items:
-        if not _type_validation._should_validate_artifact_types(artifact):
+        if not _should_validate_artifact_types(artifact):
             continue
 
         errors.extend(
-            _type_validation._validate_function_types(
+            _validate_function_types(
                 artifact, implementation_artifacts
             )
         )
@@ -420,8 +420,12 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
 
     Type-only artifacts (like TypedDict classes, type aliases) are compile-time
     constructs that shouldn't be behaviorally validated as they don't have runtime
-    behavior that can be tested. Private artifacts (starting with _) are also skipped
-    as they are implementation details, not part of the public API.
+    behavior that can be tested.
+
+    IMPORTANT: If an artifact is explicitly declared in a manifest, it should be
+    validated behaviorally even if it's "private" by naming convention (starts with _).
+    The manifest declaration overrides the naming convention - if it's in the manifest,
+    it's part of the declared contract and should be tested.
 
     Args:
         artifact: Dictionary containing artifact metadata
@@ -432,26 +436,25 @@ def should_skip_behavioral_validation(artifact: Any) -> bool:
     if not artifact:
         return False
 
-    # Skip private artifacts (implementation details, not public API)
-    artifact_name = artifact.get("name", "")
-    if artifact_name.startswith("_"):
-        return True
-
-    # Skip methods/attributes on private classes (implementation details)
-    parent_class = artifact.get("class", "")
-    if parent_class and parent_class.startswith("_"):
-        return True
-
-    # Check explicit artifact kind first
-    skip_by_kind = _artifact_validation._should_skip_by_artifact_kind(artifact)
+    # Check explicit artifact kind first (explicit intent overrides naming convention)
+    skip_by_kind = _should_skip_by_artifact_kind(artifact)
     if skip_by_kind is not None:
         return skip_by_kind
 
     # Auto-detect type-only patterns
-    if _artifact_validation._is_typeddict_class(artifact):
+    if _is_typeddict_class(artifact):
         return True
 
-    # Default to runtime validation
+    # NOTE: We do NOT skip private artifacts (starting with _) here because:
+    # 1. If an artifact is in expected_items, it's explicitly declared in the manifest
+    # 2. Manifest declaration overrides naming convention - it's part of the contract
+    # 3. Private artifacts that are NOT in manifests are handled elsewhere (unexpected artifact checks)
+    #
+    # The old logic skipped all private artifacts, but this created a loophole where
+    # explicitly declared private functions (like _safe_ast_conversion in task-009)
+    # would not be behaviorally validated even though they're part of the declared API.
+
+    # Default to runtime validation (validate it)
     return False
 
 
@@ -629,7 +632,7 @@ class _ArtifactCollector(ast.NodeVisitor):
         # Collect base classes
         base_names = []
         for base in node.bases:
-            base_name = _type_annotation._extract_base_class_name(base)
+            base_name = _extract_base_class_name(base)
             if base_name:
                 base_names.append(base_name)
                 # In behavioral mode, track base classes as "used"

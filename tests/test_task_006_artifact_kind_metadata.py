@@ -5,7 +5,19 @@ Tests verify that type-only artifacts (TypedDict, type aliases) are properly ide
 and skipped during behavioral validation, while runtime artifacts are validated.
 """
 
+import sys
+from pathlib import Path
+
 import pytest
+
+# Add parent directory to path to enable imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Import private test module for private artifact behavioral validation fix
+from tests._test_private_artifact_behavioral_validation import (  # noqa: F401
+    TestPrivateArtifactsInManifests,
+    TestPrivateArtifactsNotInManifests,
+)
 
 # Import with fallback for Red phase testing
 try:
