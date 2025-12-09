@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-12-09
+
+### Added
+- **Svelte file support** (Tasks 086-088)
+  - Full validation support for Svelte files (`.svelte` extension)
+  - AST parsing using tree-sitter for Svelte components
+  - Integration with existing multi-language validation framework
+- **Enhanced behavioral validation with import following** (Task 085)
+  - Automatically follows imports from test files to detect artifact usage
+  - Finds and analyzes imported test helper modules
+  - Supports relative imports and test module patterns
+  - Improves validation accuracy for modular test suites
+- **Private implementation file categorization** (Tasks 089-091)
+  - New categories for private implementation files in file tracking
+  - Better organization and visibility of internal vs public modules
+  - Improved compliance reporting for private artifacts
+- **Dead code detection with vulture**
+  - Added vulture dependency for detecting unused code
+  - Helps maintain clean codebase by identifying dead code paths
+
+### Changed
+- **Major refactoring for code maintainability**
+  - Extracted `validate.py` into smaller private helper modules
+  - Refactored `manifest_validator.py` into focused private modules
+  - Organized large test files into structured directory layout
+  - Split task-005 type validation tests into smaller, focused modules
+  - Improved code organization without changing public API
+
+### Fixed
+- **Private artifact behavioral validation**
+  - Closed loophole in private artifact validation logic
+  - Enhanced tracking of private class patterns
+  - Added comprehensive behavioral tests for private artifacts
+- **Test infrastructure improvements**
+  - Fixed test imports with proper sys.path manipulation
+  - Improved test file organization and maintainability
+  - Added private test files for complete behavioral coverage
+
+### Documentation
+- **README improvements**
+  - Clarified MAID Runner capabilities and scope
+  - Updated documentation for new features
+  - Enhanced examples and usage guidelines
+
 ## [0.3.1] - 2025-12-05
 
 ### Fixed
@@ -335,6 +379,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.4.0]: https://github.com/mamertofabian/maid-runner/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/mamertofabian/maid-runner/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/mamertofabian/maid-runner/compare/v0.2.9...v0.3.0
 [0.2.9]: https://github.com/mamertofabian/maid-runner/compare/v0.2.8...v0.2.9
