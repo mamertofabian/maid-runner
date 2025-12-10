@@ -13,15 +13,21 @@ from maid_runner.validators.manifest_validator import (
 
 
 def testdiscover_related_manifests():
-    """Test that we can discover manifests that touched a specific file."""
+    """Test that we can discover manifests that touched a specific file.
+
+    This test verifies that discover_related_manifests:
+    1. Returns only active (non-superseded) manifests
+    2. Returns manifests in chronological order
+    3. Returns all manifests that reference the target file
+    """
     # This test uses the real manifests in the project
     target_file = "maid_runner/validators/manifest_validator.py"
 
     manifests = discover_related_manifests(target_file)
 
-    # Should find at least the known manifests that reference this file
-    # This test is future-proof - it will pass even if more manifests are added
-    assert len(manifests) >= 3, f"Expected at least 3 manifests, got {len(manifests)}"
+    # Should find at least the known active manifests that reference this file
+    # task-009 superseded task-001, 002, 003, so we expect task-009 instead
+    assert len(manifests) >= 1, f"Expected at least 1 manifest, got {len(manifests)}"
 
     # Verify that manifests are returned in chronological order
     manifest_names = [Path(manifest).stem for manifest in manifests]
@@ -44,16 +50,21 @@ def testdiscover_related_manifests():
         task_numbers
     ), f"Manifests not in chronological order: {task_numbers}"
 
-    # Verify that we have the expected core manifests
-    expected_manifests = ["task-001", "task-002", "task-003"]
-    found_expected = [
-        name
-        for name in manifest_names
-        if any(exp in name for exp in expected_manifests)
+    # Verify that task-009 (which superseded task-001, 002, 003) is included
+    # but the superseded tasks are NOT included
+    found_task_009 = any("task-009" in name for name in manifest_names)
+    assert (
+        found_task_009
+    ), f"Expected to find task-009 (snapshot), found: {manifest_names}"
+
+    # Verify that superseded tasks are NOT included
+    superseded_tasks = ["task-001", "task-002", "task-003"]
+    found_superseded = [
+        name for name in manifest_names if any(exp in name for exp in superseded_tasks)
     ]
     assert (
-        len(found_expected) == 3
-    ), f"Expected to find task-001, task-002, and task-003, found: {found_expected}"
+        len(found_superseded) == 0
+    ), f"Found superseded tasks that should be filtered out: {found_superseded}"
 
     # Verify that all returned manifests actually reference the target file
     for manifest_path in manifests:

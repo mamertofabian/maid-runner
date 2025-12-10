@@ -1,0 +1,37 @@
+{
+  "version": "1",
+  "goal": "Fix discover_related_manifests to filter out superseded manifests when building manifest chain",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/utils.py",
+    "tests/test_task_092_filter_superseded_in_discover_related.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "discover_related_manifests",
+        "args": [
+          {
+            "name": "target_file",
+            "type": "str"
+          }
+        ],
+        "returns": "List[str]"
+      }
+    ]
+  },
+  "validationCommand": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_task_092_filter_superseded_in_discover_related.py",
+    "-v"
+  ]
+}

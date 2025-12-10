@@ -188,7 +188,7 @@ def normalize_type_string(type_str: str) -> Optional[str]:
     return _type_normalization.normalize_type_string(type_str)
 
 
-def discover_related_manifests(target_file):
+def discover_related_manifests(target_file: str) -> List[str]:
     """
     Discover all manifests that have touched the target file.
 
@@ -199,8 +199,10 @@ def discover_related_manifests(target_file):
         target_file: Path to the file to check
 
     Returns:
-        List of manifest paths in chronological order
+        List of manifest paths in chronological order, excluding superseded manifests
     """
+    from maid_runner.utils import get_superseded_manifests
+
     manifests = []
     manifest_dir = Path("manifests")
 
@@ -230,7 +232,11 @@ def discover_related_manifests(target_file):
         ):
             manifests.append(str(manifest_path))
 
-    return manifests
+    # Filter out superseded manifests
+    superseded = get_superseded_manifests(manifest_dir)
+    active_manifests = [m for m in manifests if Path(m) not in superseded]
+
+    return active_manifests
 
 
 def validate_with_ast(
