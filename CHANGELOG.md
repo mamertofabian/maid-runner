@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-12-11
+
+### Added
+- **Multi-runner batch mode for `maid test`** (Tasks 093-094)
+  - Intelligent batch testing that runs all test files in a single invocation per test runner type
+  - Eliminates overhead of N separate test processes for N manifests (10-20x faster)
+  - Automatic detection of test runner from `validationCommand` (pytest, vitest, jest, npm/pnpm test)
+  - Support for mixed runner projects - batches each runner type separately
+  - Package manager detection for JavaScript projects (pnpm/npm/yarn)
+  - Environment setup handling (uv run prefix, PYTHONPATH configuration)
+  - Clean, readable output format showing command prefix and test counts
+  - Always displays test runner output with individual test counts and results
+  - Example output: `Command: pnpm exec vitest run <141 test files>`
+
+### Changed
+- **Improved test execution output**
+  - Test runner output now always visible (no longer requires `--verbose`)
+  - Shows complete test results including counts, progress, and failures
+  - More informative feedback during test execution
+
 ## [0.4.1] - 2025-12-10
 
 ### Fixed
@@ -392,6 +412,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.5.0]: https://github.com/mamertofabian/maid-runner/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/mamertofabian/maid-runner/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/mamertofabian/maid-runner/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/mamertofabian/maid-runner/compare/v0.3.0...v0.3.1
