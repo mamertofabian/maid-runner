@@ -13,6 +13,10 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
+from maid_runner.cli._batch_test_runner import (
+    collect_test_files_by_runner,
+    run_batch_tests,
+)
 from maid_runner.utils import (
     find_project_root,
     get_superseded_manifests,
@@ -848,6 +852,63 @@ def run_test(
             # If we reach here, watch was interrupted and we should exit cleanly
             sys.exit(0)
 
+        # Try batch mode for multiple manifests
+        # Group tests by runner type and batch execute
+        # Skip batch mode for watch modes (already handled above)
+        if len(active_manifests) > 1:
+            # Collect test files grouped by runner type
+            test_files_by_runner = collect_test_files_by_runner(
+                manifests_dir, active_manifests
+            )
+
+            if test_files_by_runner:
+                # We have test files that can be batched
+                total_runners = len(test_files_by_runner)
+                total_test_files = sum(
+                    len(files) for files in test_files_by_runner.values()
+                )
+
+                if not quiet:
+                    print(
+                        f"\n🚀 Using batch mode for {len(active_manifests)} manifest(s)"
+                    )
+                    if total_runners > 1:
+                        print(f"   📊 Found {total_runners} test runner type(s)")
+
+                # Run batch tests for each runner type
+                total_passed = 0
+                total_failed = 0
+                total_batches = 0
+
+                for runner, test_files in sorted(test_files_by_runner.items()):
+                    passed, failed, count = run_batch_tests(
+                        runner, test_files, project_root, verbose, timeout
+                    )
+                    total_passed += passed
+                    total_failed += failed
+                    total_batches += count
+
+                # Print summary
+                if total_batches > 0:
+                    print(
+                        f"\n📊 Summary: {'All tests passed' if total_failed == 0 else 'Some tests failed'}"
+                    )
+                    print(
+                        f"   🧪 Ran {total_test_files} test file(s) across {total_runners} runner(s)"
+                    )
+                else:
+                    print("\n⚠️  No tests executed")
+
+                # Exit with appropriate code
+                if total_failed > 0:
+                    sys.exit(1)
+                else:
+                    sys.exit(0)
+
+            # If no test files collected, fall through to sequential mode
+            elif not quiet:
+                print("\n⚠️  No batchable test commands found, using sequential mode")
+
     total_passed = 0
     total_failed = 0
     total_commands = 0
@@ -924,11 +985,15 @@ def run_test(
 def main() -> None:
     """Main CLI entry point for maid test command."""
     parser = argparse.ArgumentParser(
-        description="Run validation commands from all non-superseded manifests",
+        description="""Run validation commands from all non-superseded manifests.
+
+When running multiple manifests, automatically uses batch mode to run all pytest
+tests in a single invocation (10-20x faster). Falls back to sequential mode for
+mixed test runners (pytest + vitest, etc.).""",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run all validation commands
+  # Run all validation commands (uses batch mode for speed)
   %(prog)s
 
   # Run validation commands for a single manifest
@@ -945,6 +1010,15 @@ Examples:
 
   # Only show summary
   %(prog)s --quiet
+
+Batch Mode:
+  When all validation commands are pytest-compatible, batch mode automatically
+  collects test files from all manifests and runs them in a single pytest
+  invocation, eliminating the overhead of running N separate pytest processes.
+
+  For projects with mixed test runners (pytest + vitest/jest), falls back to
+  sequential mode. Single-manifest mode (--manifest) and watch modes skip
+  batch optimization.
         """,
     )
 

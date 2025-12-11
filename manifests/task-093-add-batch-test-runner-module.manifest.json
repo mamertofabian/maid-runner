@@ -1,0 +1,85 @@
+{
+  "version": "1",
+  "goal": "Create batch test runner module with functions to detect test runners, extract test files from validation commands, collect test files grouped by runner type, and run batch test execution for multiple test frameworks (pytest, vitest, jest)",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/_batch_test_runner.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/utils.py",
+    "tests/test_task_093_batch_test_runner.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/_batch_test_runner.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "detect_test_runner",
+        "args": [
+          {"name": "command", "type": "List[str]"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "extract_test_file_from_command",
+        "args": [
+          {"name": "command", "type": "List[str]"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "is_pytest_command",
+        "args": [
+          {"name": "command", "type": "List[str]"}
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "collect_pytest_test_files",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"},
+          {"name": "active_manifests", "type": "List[Path]"}
+        ],
+        "returns": "Optional[Set[str]]"
+      },
+      {
+        "type": "function",
+        "name": "collect_test_files_by_runner",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"},
+          {"name": "active_manifests", "type": "List[Path]"}
+        ],
+        "returns": "Dict[str, Set[str]]"
+      },
+      {
+        "type": "function",
+        "name": "run_batch_pytest",
+        "args": [
+          {"name": "test_files", "type": "Set[str]"},
+          {"name": "project_root", "type": "Path"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "timeout", "type": "int"}
+        ],
+        "returns": "tuple"
+      },
+      {
+        "type": "function",
+        "name": "run_batch_tests",
+        "args": [
+          {"name": "runner", "type": "str"},
+          {"name": "test_files", "type": "Set[str]"},
+          {"name": "project_root", "type": "Path"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "timeout", "type": "int"}
+        ],
+        "returns": "tuple"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_093_batch_test_runner.py", "-v"]
+}

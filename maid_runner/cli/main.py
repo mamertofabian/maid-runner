@@ -148,8 +148,13 @@ def main():
     # Test subcommand
     test_parser = subparsers.add_parser(
         "test",
-        help="Run validation commands from all non-superseded manifests",
-        description="Run validation commands from all non-superseded manifests",
+        help="Run validation commands from all non-superseded manifests (uses batch mode for speed)",
+        description="""Run validation commands from all non-superseded manifests.
+
+When running multiple manifests, automatically uses batch mode to run all pytest
+tests in a single invocation (10-20x faster). Falls back to sequential mode for
+mixed test runners (pytest + vitest, etc.).""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     test_parser.add_argument(
         "--manifest",

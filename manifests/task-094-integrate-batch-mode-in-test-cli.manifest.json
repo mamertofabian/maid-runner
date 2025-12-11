@@ -1,0 +1,36 @@
+{
+  "version": "1",
+  "goal": "Integrate batch mode into maid test CLI to automatically use batch pytest execution when all validation commands are pytest-compatible",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/test.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/_batch_test_runner.py",
+    "maid_runner/utils.py",
+    "tests/test_task_094_integrate_batch_mode.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/test.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_test",
+        "args": [
+          {"name": "manifest_dir", "type": "str"},
+          {"name": "fail_fast", "type": "bool"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "timeout", "type": "int"},
+          {"name": "manifest_path", "type": "Optional[str]"},
+          {"name": "watch", "type": "bool"},
+          {"name": "watch_all", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_094_integrate_batch_mode.py", "-v"]
+}
