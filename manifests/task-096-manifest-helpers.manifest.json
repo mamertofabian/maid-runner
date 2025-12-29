@@ -1,0 +1,49 @@
+{
+  "version": "1",
+  "goal": "Create _manifest_helpers.py with helper functions for manifest creation: parse_artifacts_json, sanitize_goal_for_filename, and generate_validation_command",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/_manifest_helpers.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "docs/spikes/spike-maid-manifest-create.md",
+    "maid_runner/cli/_validate_helpers.py",
+    "tests/test_task_096_manifest_helpers.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/_manifest_helpers.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "parse_artifacts_json",
+        "args": [
+          {"name": "artifacts_str", "type": "Optional[str]"}
+        ],
+        "returns": "List[dict]",
+        "description": "Parse JSON artifacts string from CLI argument into list of artifact dictionaries"
+      },
+      {
+        "type": "function",
+        "name": "sanitize_goal_for_filename",
+        "args": [
+          {"name": "goal", "type": "str"}
+        ],
+        "returns": "str",
+        "description": "Convert goal string to safe filename component (lowercase, hyphens, truncated)"
+      },
+      {
+        "type": "function",
+        "name": "generate_validation_command",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "task_number", "type": "int"}
+        ],
+        "returns": "List[str]",
+        "description": "Generate pytest or vitest validation command based on file type and task number"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_096_manifest_helpers.py", "-v"]
+}

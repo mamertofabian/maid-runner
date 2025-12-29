@@ -1,0 +1,19 @@
+{
+  "version": "1",
+  "goal": "Add manifest create subcommand registration to CLI main.py with all arguments and dispatch to run_create_manifest handler",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "docs/spikes/spike-maid-manifest-create.md",
+    "tests/test_task_095_cli_manifest_create_registration.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/main.py",
+    "contains": []
+  },
+  "validationCommand": ["pytest", "tests/test_task_095_cli_manifest_create_registration.py", "-v"]
+}
