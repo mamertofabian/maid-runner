@@ -34,7 +34,7 @@
         "type": "function",
         "name": "run_validation",
         "parameters": [
-          {"name": "manifest_path", "type": "str"},
+          {"name": "manifest_path", "type": "Optional[str]"},
           {"name": "validation_mode", "type": "str"},
           {"name": "use_manifest_chain", "type": "bool"},
           {"name": "quiet", "type": "bool"},
