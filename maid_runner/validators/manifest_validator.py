@@ -300,7 +300,7 @@ def validate_with_ast(
     _validate_all_artifacts(expected_items, collector, validation_mode)
 
     # Check for unexpected public artifacts (strict mode)
-    _check_unexpected_artifacts(expected_items, collector)
+    _check_unexpected_artifacts(expected_items, collector, test_file_path)
 
     # Type hint validation (only in implementation mode)
     if validation_mode == _VALIDATION_MODE_IMPLEMENTATION:
@@ -1077,10 +1077,12 @@ def _validate_all_artifacts(
 
 
 def _check_unexpected_artifacts(
-    expected_items: List[dict], collector: "_ArtifactCollector"
+    expected_items: List[dict], collector: "_ArtifactCollector", file_path: str
 ) -> None:
     """Check for unexpected public artifacts in strict mode."""
-    return _artifact_validation._check_unexpected_artifacts(expected_items, collector)
+    return _artifact_validation._check_unexpected_artifacts(
+        expected_items, collector, file_path
+    )
 
 
 def _validate_single_artifact(

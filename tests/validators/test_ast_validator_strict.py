@@ -258,8 +258,8 @@ def unexpected_function():
         validate_with_ast(manifest, str(test_file))
 
 
-def test_file_with_test_prefix_but_no_test_functions(tmp_path: Path):
-    """Test edge case: filename starts with test but no test functions."""
+def test_file_with_test_prefix_skips_strict_validation(tmp_path: Path):
+    """Test that file with test_ prefix in name skips strict validation (path-based detection)."""
     code = """
 def setup():
     pass
@@ -268,7 +268,7 @@ def teardown():
     pass
 
 def helper_function():
-    # File named test_*.py but no test_ functions
+    # File named test_*.py should skip strict validation
     pass
 """
     test_file = tmp_path / "test_helpers.py"
@@ -279,10 +279,9 @@ def helper_function():
             "contains": [
                 {"type": "function", "name": "setup"},
                 {"type": "function", "name": "teardown"},
-                # helper_function not listed
+                # helper_function not listed but OK since test file
             ]
         }
     }
-    # Should fail - no test_ functions means strict validation applies
-    with pytest.raises(AlignmentError, match="Unexpected public function"):
-        validate_with_ast(manifest, str(test_file))
+    # Should pass - file with test_ prefix is a test file, skips strict validation
+    validate_with_ast(manifest, str(test_file))

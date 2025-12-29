@@ -1,0 +1,29 @@
+{
+  "goal": "Fix security loophole where strict artifact validation is bypassed for files containing test_ prefixed functions by replacing function-name-based detection with path-based detection",
+  "description": "The _check_unexpected_artifacts function currently uses function-name-based detection (any func.startswith('test_')) which allows production code to hide in non-test files that happen to contain test_ prefixed functions. This fix replaces it with path-based detection using the proven pattern from file_tracker.py: file is in tests/ directory OR filename starts with test_",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/_artifact_validation.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/file_tracker.py",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/_artifact_validation.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_check_unexpected_artifacts",
+        "description": "Check for unexpected public artifacts in strict mode, using path-based test file detection",
+        "args": [
+          {"name": "expected_items", "type": "List[dict]"},
+          {"name": "collector", "type": "Any"},
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_100_fix_test_file_bypass.py", "-v"]
+}

@@ -58,18 +58,44 @@ def _validate_all_artifacts(
         _validate_single_artifact(artifact, collector, validation_mode)
 
 
-def _check_unexpected_artifacts(expected_items: List[dict], collector: Any) -> None:
+def _is_test_file_path(path: str) -> bool:
+    """Check if file path indicates a test file.
+
+    A file is considered a test file if:
+    - It's in a 'tests/' directory, OR
+    - Its filename starts with 'test_'
+
+    Args:
+        path: File path to check
+
+    Returns:
+        True if this is a test file path
+    """
+    # Normalize path separators
+    normalized = path.replace("\\", "/")
+    # Check if in tests directory
+    if normalized.startswith("tests/") or "/tests/" in normalized:
+        return True
+    # Check if filename starts with test_
+    filename = normalized.split("/")[-1]
+    return filename.startswith("test_")
+
+
+def _check_unexpected_artifacts(
+    expected_items: List[dict], collector: Any, file_path: str
+) -> None:
     """Check for unexpected public artifacts in strict mode.
 
     Args:
         expected_items: List of expected artifacts
         collector: Artifact collector with discovered artifacts
+        file_path: Path to the file being validated
 
     Raises:
         AlignmentError: If unexpected public artifacts are found
     """
-    # Skip strict validation for test files
-    is_test_file = any(func.startswith("test_") for func in collector.found_functions)
+    # Skip strict validation for test files (path-based detection)
+    is_test_file = _is_test_file_path(file_path)
 
     if expected_items and not is_test_file:
         _validate_no_unexpected_artifacts(

@@ -927,7 +927,7 @@ def _private_helper():
 
         expected_artifacts = [{"type": "function", "name": "public_function"}]
 
-        _check_unexpected_artifacts(expected_artifacts, collector)
+        _check_unexpected_artifacts(expected_artifacts, collector, str(impl_file))
 
 
 class TestValidateSingleArtifactBehavior:

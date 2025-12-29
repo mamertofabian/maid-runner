@@ -1,0 +1,1031 @@
+{
+  "goal": "Comprehensive snapshot of manifest_validator.py with updated _check_unexpected_artifacts signature",
+  "description": "This manifest supersedes older manifests that declared _check_unexpected_artifacts with the old 2-parameter signature. It includes all current public functions with their updated signatures.",
+  "taskType": "snapshot",
+  "supersedes": [
+    "manifests/task-009-snapshot-manifest_validator.manifest.json",
+    "manifests/task-010-integrate-type-validation.manifest.json",
+    "manifests/task-015-fix-enum-import-detection.manifest.json",
+    "manifests/task-016-detect-abc-usage-patterns.manifest.json",
+    "manifests/task-023-fix-manifest-chain-artifact-filtering.manifest.json",
+    "manifests/task-024-fix-import-vs-definition-tracking.manifest.json",
+    "manifests/task-025-fix-cls-parameter-filtering.manifest.json",
+    "manifests/task-026-detect-classmethod-calls-on-class.manifest.json",
+    "manifests/task-027-validate-unexpected-methods.manifest.json",
+    "manifests/task-034-validate-all-editable-files.manifest.json",
+    "manifests/task-047-validator-system-manifest-support.manifest.json",
+    "manifests/task-048-validator-system-snapshot-handling.manifest.json",
+    "manifests/task-049-fix-async-function-detection.manifest.json",
+    "manifests/task-064-generic-base-class-support.manifest.json",
+    "manifests/task-065-fix-artifact-merge-key.manifest.json",
+    "manifests/task-076-typescript-artifact-type-validation.manifest.json",
+    "manifests/task-081-fix-method-parameter-validation.manifest.json",
+    "manifests/task-083-implement-absent-status-validation.manifest.json",
+    "manifests/task-087-update-validator-registry.manifest.json",
+    "manifests/task-092-filter-superseded-in-discover-related.manifest.json"
+  ],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/manifest_validator.py"
+  ],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "bases": [
+          "Exception"
+        ]
+      },
+      {
+        "type": "function",
+        "name": "validate_schema",
+        "args": [
+          {
+            "name": "manifest_data"
+          },
+          {
+            "name": "schema_path"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "extract_type_annotation",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.AST"
+          },
+          {
+            "name": "annotation_attr",
+            "type": "str"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "compare_types",
+        "args": [
+          {
+            "name": "manifest_type",
+            "type": "str"
+          },
+          {
+            "name": "implementation_type",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "normalize_type_string",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "discover_related_manifests",
+        "args": [
+          {
+            "name": "target_file",
+            "type": "str"
+          }
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "validate_with_ast",
+        "args": [
+          {
+            "name": "manifest_data"
+          },
+          {
+            "name": "test_file_path"
+          },
+          {
+            "name": "use_manifest_chain"
+          },
+          {
+            "name": "validation_mode"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "collect_behavioral_artifacts",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "validate_type_hints",
+        "args": [
+          {
+            "name": "manifest_artifacts",
+            "type": "dict"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "dict"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "should_skip_behavioral_validation",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "Any"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "class",
+        "name": "_ArtifactCollector",
+        "bases": [
+          "ast.NodeVisitor"
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_is_system_manifest",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_validate_system_artifacts_structure",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_should_skip_behavioral_validation",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_should_skip_implementation_validation",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_extract_base_class_name",
+        "args": [
+          {
+            "name": "base",
+            "type": "ast.AST"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_ast_to_type_string",
+        "args": [
+          {
+            "name": "node",
+            "type": "Optional[ast.AST]"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_validate_extraction_inputs",
+        "args": [
+          {
+            "name": "node",
+            "type": "Any"
+          },
+          {
+            "name": "annotation_attr",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_safe_ast_conversion",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.AST"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_handle_subscript_node",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.Subscript"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_handle_attribute_node",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.Attribute"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_handle_union_operator",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.BinOp"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_fallback_ast_unparse",
+        "args": [
+          {
+            "name": "node",
+            "type": "ast.AST"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_safe_str_conversion",
+        "args": [
+          {
+            "name": "node",
+            "type": "Any"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_normalize_type_input",
+        "args": [
+          {
+            "name": "type_value",
+            "type": "Any"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_normalize_modern_union_syntax",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_normalize_optional_type",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_is_optional_type",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_extract_bracketed_content",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          },
+          {
+            "name": "prefix",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_normalize_union_type",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_is_union_type",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_split_type_arguments",
+        "args": [
+          {
+            "name": "inner",
+            "type": "str"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_split_by_delimiter",
+        "args": [
+          {
+            "name": "text",
+            "type": "str"
+          },
+          {
+            "name": "delimiter",
+            "type": "str"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_normalize_comma_spacing",
+        "args": [
+          {
+            "name": "type_str",
+            "type": "str"
+          }
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_skip_spaces",
+        "args": [
+          {
+            "name": "text",
+            "type": "str"
+          },
+          {
+            "name": "start_idx",
+            "type": "int"
+          }
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "_get_task_number",
+        "args": [
+          {
+            "name": "path"
+          }
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "_get_artifact_key",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          }
+        ],
+        "returns": "tuple"
+      },
+      {
+        "type": "function",
+        "name": "_merge_expected_artifacts",
+        "args": [
+          {
+            "name": "manifest_paths",
+            "type": "List[str]"
+          },
+          {
+            "name": "target_file",
+            "type": "str"
+          }
+        ],
+        "returns": "List[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_get_expected_artifacts",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "test_file_path",
+            "type": "str"
+          },
+          {
+            "name": "use_manifest_chain",
+            "type": "bool"
+          }
+        ],
+        "returns": "List[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_get_validator_for_file",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_parse_file",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "ast.AST"
+      },
+      {
+        "type": "function",
+        "name": "_collect_artifacts_from_ast",
+        "args": [
+          {
+            "name": "tree",
+            "type": "ast.AST"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "_ArtifactCollector"
+      },
+      {
+        "type": "function",
+        "name": "_validate_all_artifacts",
+        "args": [
+          {
+            "name": "expected_items",
+            "type": "List[dict]"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_check_unexpected_artifacts",
+        "args": [
+          {
+            "name": "expected_items",
+            "type": "List[dict]"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          },
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_single_artifact",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_function_artifact",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_function_behavioral",
+        "args": [
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parameters",
+            "type": "List[dict]"
+          },
+          {
+            "name": "parent_class",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_parameters_used",
+        "args": [
+          {
+            "name": "parameters",
+            "type": "List[dict]"
+          },
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_function_implementation",
+        "args": [
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parameters",
+            "type": "List[dict]"
+          },
+          {
+            "name": "parent_class",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_method_parameters",
+        "args": [
+          {
+            "name": "method_name",
+            "type": "str"
+          },
+          {
+            "name": "parameters",
+            "type": "List[dict]"
+          },
+          {
+            "name": "class_name",
+            "type": "str"
+          },
+          {
+            "name": "collector",
+            "type": "_ArtifactCollector"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_class",
+        "args": [
+          {
+            "name": "class_name"
+          },
+          {
+            "name": "expected_bases"
+          },
+          {
+            "name": "found_classes"
+          },
+          {
+            "name": "found_class_bases"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_validate_attribute",
+        "args": [
+          {
+            "name": "attribute_name"
+          },
+          {
+            "name": "parent_class"
+          },
+          {
+            "name": "found_attributes"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_validate_function",
+        "args": [
+          {
+            "name": "function_name"
+          },
+          {
+            "name": "expected_parameters"
+          },
+          {
+            "name": "found_functions"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_validate_no_unexpected_artifacts",
+        "args": [
+          {
+            "name": "expected_items"
+          },
+          {
+            "name": "found_classes"
+          },
+          {
+            "name": "found_functions"
+          },
+          {
+            "name": "found_methods"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_is_typeddict_class",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_is_typeddict_base",
+        "args": [
+          {
+            "name": "base_name",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_should_skip_by_artifact_kind",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          }
+        ],
+        "returns": "Optional[bool]"
+      },
+      {
+        "type": "function",
+        "name": "_are_valid_type_validation_inputs",
+        "args": [
+          {
+            "name": "manifest_artifacts",
+            "type": "Any"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "Any"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_should_validate_artifact_types",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "Any"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_validate_function_types",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "dict"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_get_implementation_info",
+        "args": [
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parent_class",
+            "type": "Optional[str]"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "dict"
+          }
+        ],
+        "returns": "Optional[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_get_method_info",
+        "args": [
+          {
+            "name": "method_name",
+            "type": "str"
+          },
+          {
+            "name": "class_name",
+            "type": "str"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "dict"
+          }
+        ],
+        "returns": "Optional[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_get_function_info",
+        "args": [
+          {
+            "name": "function_name",
+            "type": "str"
+          },
+          {
+            "name": "implementation_artifacts",
+            "type": "dict"
+          }
+        ],
+        "returns": "Optional[dict]"
+      },
+      {
+        "type": "function",
+        "name": "_validate_parameter_types",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "impl_info",
+            "type": "dict"
+          },
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parent_class",
+            "type": "str"
+          }
+        ],
+        "returns": "list"
+      },
+      {
+        "type": "function",
+        "name": "_validate_single_parameter",
+        "args": [
+          {
+            "name": "param_name",
+            "type": "str"
+          },
+          {
+            "name": "manifest_type",
+            "type": "str"
+          },
+          {
+            "name": "impl_params_dict",
+            "type": "dict"
+          },
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parent_class",
+            "type": "Optional[str]"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_validate_return_type",
+        "args": [
+          {
+            "name": "artifact",
+            "type": "dict"
+          },
+          {
+            "name": "impl_info",
+            "type": "dict"
+          },
+          {
+            "name": "artifact_name",
+            "type": "str"
+          },
+          {
+            "name": "parent_class",
+            "type": "Optional[str]"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_validate_absent_file",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_validate_file_status_semantic_rules",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_has_undeclared_public_artifacts",
+        "args": [
+          {
+            "name": "file_path",
+            "type": "str"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_validate_editable_files",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "validation_mode",
+            "type": "str"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "echo",
+    "Snapshot manifest - no behavioral validation required"
+  ]
+}

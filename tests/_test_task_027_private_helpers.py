@@ -55,7 +55,7 @@ class Service:
 
         # Call _check_unexpected_artifacts directly - should raise error
         with pytest.raises(AlignmentError, match="unexpected_method"):
-            _check_unexpected_artifacts(expected_items, collector)
+            _check_unexpected_artifacts(expected_items, collector, str(test_file))
 
     def test_check_unexpected_artifacts_passes_when_all_declared(self, tmp_path):
         """Test that _check_unexpected_artifacts passes when all artifacts are declared."""
@@ -77,7 +77,7 @@ class Service:
         ]
 
         # Call _check_unexpected_artifacts directly - should not raise error
-        _check_unexpected_artifacts(expected_items, collector)
+        _check_unexpected_artifacts(expected_items, collector, str(test_file))
 
     def test_check_unexpected_artifacts_allows_private_methods(self, tmp_path):
         """Test that _check_unexpected_artifacts allows private methods."""
@@ -101,7 +101,7 @@ class Service:
         ]
 
         # Call _check_unexpected_artifacts directly - should not raise error for private methods
-        _check_unexpected_artifacts(expected_items, collector)
+        _check_unexpected_artifacts(expected_items, collector, str(test_file))
 
 
 class TestValidateNoUnexpectedArtifacts:

@@ -50,12 +50,14 @@ def testdiscover_related_manifests():
         task_numbers
     ), f"Manifests not in chronological order: {task_numbers}"
 
-    # Verify that task-009 (which superseded task-001, 002, 003) is included
-    # but the superseded tasks are NOT included
-    found_task_009 = any("task-009" in name for name in manifest_names)
+    # Verify that the current snapshot (task-100a which superseded task-009)
+    # or task-009 is included, but older superseded tasks are NOT
+    found_current_snapshot = any(
+        "task-100a" in name or "task-009" in name for name in manifest_names
+    )
     assert (
-        found_task_009
-    ), f"Expected to find task-009 (snapshot), found: {manifest_names}"
+        found_current_snapshot
+    ), f"Expected to find task-100a or task-009 (snapshot), found: {manifest_names}"
 
     # Verify that superseded tasks are NOT included
     superseded_tasks = ["task-001", "task-002", "task-003"]
