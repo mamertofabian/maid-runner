@@ -58,6 +58,35 @@ def _validate_all_artifacts(
         _validate_single_artifact(artifact, collector, validation_mode)
 
 
+def _is_test_file_path(file_path: str) -> bool:
+    """Check if file path indicates a test file.
+
+    A file is considered a test file if:
+    - It's in a 'tests/' directory, OR
+    - Its filename starts with 'test_'
+
+    This uses path-based detection instead of function-name-based detection
+    to prevent production code from bypassing validation by including
+    functions with test_ prefix.
+
+    Args:
+        file_path: Path to the file being validated
+
+    Returns:
+        True if this is a test file path
+    """
+    if not file_path:
+        return False
+    # Normalize path separators
+    normalized = file_path.replace("\\", "/")
+    # Check if in tests directory
+    if normalized.startswith("tests/") or "/tests/" in normalized:
+        return True
+    # Check if filename starts with test_
+    filename = normalized.split("/")[-1]
+    return filename.startswith("test_")
+
+
 def _check_unexpected_artifacts(expected_items: List[dict], collector: Any) -> None:
     """Check for unexpected public artifacts in strict mode.
 
@@ -68,8 +97,10 @@ def _check_unexpected_artifacts(expected_items: List[dict], collector: Any) -> N
     Raises:
         AlignmentError: If unexpected public artifacts are found
     """
-    # Skip strict validation for test files
-    is_test_file = any(func.startswith("test_") for func in collector.found_functions)
+    # Skip strict validation for test files (path-based detection)
+    # Uses collector.file_path for security - prevents bypass via test_ prefixed functions
+    file_path = getattr(collector, "file_path", "")
+    is_test_file = _is_test_file_path(file_path)
 
     if expected_items and not is_test_file:
         _validate_no_unexpected_artifacts(

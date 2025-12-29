@@ -259,7 +259,12 @@ def unexpected_function():
 
 
 def test_file_with_test_prefix_but_no_test_functions(tmp_path: Path):
-    """Test edge case: filename starts with test but no test functions."""
+    """Test edge case: filename starts with test_ so it IS a test file.
+
+    Files with test_ prefix in filename are test files regardless of function content.
+    This is path-based detection (secure) vs function-name-based detection (vulnerable).
+    Test helper files like test_helpers.py should skip strict validation.
+    """
     code = """
 def setup():
     pass
@@ -268,7 +273,7 @@ def teardown():
     pass
 
 def helper_function():
-    # File named test_*.py but no test_ functions
+    # File named test_*.py - considered test file by path
     pass
 """
     test_file = tmp_path / "test_helpers.py"
@@ -279,10 +284,44 @@ def helper_function():
             "contains": [
                 {"type": "function", "name": "setup"},
                 {"type": "function", "name": "teardown"},
-                # helper_function not listed
+                # helper_function not listed - but that's OK for test files
             ]
         }
     }
-    # Should fail - no test_ functions means strict validation applies
+    # Should pass - test_helpers.py IS a test file (filename starts with test_)
+    # Strict validation is skipped for test files (path-based detection)
+    validate_with_ast(manifest, str(test_file))
+
+
+def test_production_file_with_test_prefixed_function_still_validated(tmp_path: Path):
+    """Security test: production code can't bypass validation with test_ functions.
+
+    This verifies the fix for the test file bypass loophole. Previously, a file like
+    utils.py could bypass strict validation by including a function named test_helper().
+    With path-based detection, only files in tests/ or named test_*.py skip validation.
+    """
+    code = """
+def test_helper():
+    # This function has test_ prefix but file is NOT a test file
+    pass
+
+def public_api():
+    # This is an undeclared public function
+    pass
+"""
+    # Production file (NOT in tests/, NOT named test_*)
+    prod_file = tmp_path / "utils.py"
+    prod_file.write_text(code)
+
+    manifest = {
+        "expectedArtifacts": {
+            "contains": [
+                {"type": "function", "name": "test_helper"},
+                # public_api not listed - should be caught
+            ]
+        }
+    }
+    # Should FAIL - utils.py is NOT a test file, strict validation applies
+    # The test_helper function name does NOT bypass validation (security fix)
     with pytest.raises(AlignmentError, match="Unexpected public function"):
-        validate_with_ast(manifest, str(test_file))
+        validate_with_ast(manifest, str(prod_file))
