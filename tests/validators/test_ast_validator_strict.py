@@ -325,3 +325,90 @@ def public_api():
     # The test_helper function name does NOT bypass validation (security fix)
     with pytest.raises(AlignmentError, match="Unexpected public function"):
         validate_with_ast(manifest, str(prod_file))
+
+
+# Direct unit tests for _is_test_file_path() function
+class TestIsTestFilePath:
+    """Unit tests for the _is_test_file_path() helper function.
+
+    These tests verify path-based test file detection handles various edge cases
+    including absolute paths, Windows paths, and relative paths.
+    """
+
+    @pytest.fixture
+    def is_test_file_path(self):
+        """Import the function under test."""
+        from maid_runner.validators._artifact_validation import _is_test_file_path
+
+        return _is_test_file_path
+
+    def test_empty_string_returns_false(self, is_test_file_path):
+        """Empty string should return False."""
+        assert is_test_file_path("") is False
+
+    def test_none_like_empty_returns_false(self, is_test_file_path):
+        """None-like empty values should return False."""
+        assert is_test_file_path("") is False
+
+    def test_relative_tests_directory(self, is_test_file_path):
+        """Relative path in tests/ directory should return True."""
+        assert is_test_file_path("tests/test_example.py") is True
+        assert is_test_file_path("tests/subdir/test_example.py") is True
+
+    def test_relative_with_dot_slash(self, is_test_file_path):
+        """Paths starting with ./ should be handled correctly."""
+        assert is_test_file_path("./tests/test_example.py") is True
+        assert is_test_file_path("./tests/subdir/test_file.py") is True
+
+    def test_absolute_unix_path(self, is_test_file_path):
+        """Absolute Unix paths with tests/ directory should return True."""
+        assert is_test_file_path("/home/user/project/tests/test_example.py") is True
+        assert is_test_file_path("/var/project/tests/subdir/test_file.py") is True
+
+    def test_absolute_windows_path(self, is_test_file_path):
+        """Windows absolute paths should be normalized and handled."""
+        assert is_test_file_path("C:\\project\\tests\\test_example.py") is True
+        assert is_test_file_path("D:\\code\\tests\\subdir\\test_file.py") is True
+
+    def test_mixed_path_separators(self, is_test_file_path):
+        """Mixed path separators should be normalized."""
+        assert is_test_file_path("tests\\subdir/test_example.py") is True
+        assert is_test_file_path("C:/project\\tests/test_file.py") is True
+
+    def test_test_prefixed_filename_not_in_tests_dir(self, is_test_file_path):
+        """Files named test_*.py outside tests/ should return True."""
+        assert is_test_file_path("src/test_utils.py") is True
+        assert is_test_file_path("test_standalone.py") is True
+        assert is_test_file_path("/home/user/test_file.py") is True
+
+    def test_non_test_file_in_tests_dir(self, is_test_file_path):
+        """Non-test files in tests/ directory should still return True (directory takes precedence)."""
+        assert is_test_file_path("tests/conftest.py") is True
+        assert is_test_file_path("tests/helpers.py") is True
+        assert is_test_file_path("tests/__init__.py") is True
+
+    def test_production_file_not_test(self, is_test_file_path):
+        """Production files should return False."""
+        assert is_test_file_path("src/utils.py") is False
+        assert is_test_file_path("maid_runner/validators/manifest_validator.py") is False
+        assert is_test_file_path("/home/user/project/src/service.py") is False
+
+    def test_file_named_test_without_underscore(self, is_test_file_path):
+        """File named exactly 'test.py' (without underscore) should return False."""
+        assert is_test_file_path("test.py") is False
+        assert is_test_file_path("src/test.py") is False
+
+    def test_testing_in_name_not_test_file(self, is_test_file_path):
+        """Files with 'testing' in name but not test_ prefix should return False."""
+        assert is_test_file_path("testing_utils.py") is False
+        assert is_test_file_path("src/testing_helpers.py") is False
+
+    def test_my_test_not_test_file(self, is_test_file_path):
+        """Files ending in test but not starting with test_ should return False."""
+        assert is_test_file_path("my_test.py") is False
+        assert is_test_file_path("src/unit_test.py") is False
+
+    def test_tests_in_path_but_not_directory(self, is_test_file_path):
+        """Path containing 'tests' as part of filename should not match."""
+        assert is_test_file_path("my_tests_utils.py") is False
+        assert is_test_file_path("src/tests_helper.py") is False

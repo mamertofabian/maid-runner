@@ -77,9 +77,15 @@ def _is_test_file_path(file_path: str) -> bool:
     """
     if not file_path:
         return False
-    # Normalize path separators
+    # Normalize path separators (Windows backslashes to forward slashes)
     normalized = file_path.replace("\\", "/")
-    # Check if in tests directory
+    # Strip leading ./ for relative paths
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+    # Check if in tests directory (handles relative, absolute, and various formats)
+    # - "tests/..." (relative)
+    # - "/path/to/tests/..." (absolute)
+    # - "./tests/..." (explicit relative, after stripping)
     if normalized.startswith("tests/") or "/tests/" in normalized:
         return True
     # Check if filename starts with test_
