@@ -369,14 +369,13 @@ def _validate_snapshot_edit_supersession(
             continue
 
         # Check if superseding a valid manifest type
-        # Valid types to supersede: snapshot (frozen state) or create (initial state)
-        # Invalid types: edit, refactor (would be consolidation abuse)
-        allowed_supersede_types = {"snapshot", "create"}
-        if task_type not in allowed_supersede_types:
+        # Only snapshots can be superseded (they are "frozen" and need explicit unfreezing)
+        # All other types (create, edit, refactor) should use manifest chain instead
+        if task_type != "snapshot":
             raise ManifestSemanticError(
                 f"Cannot supersede '{task_type}' manifest '{filename}'. "
-                f"Only 'snapshot' or 'create' manifests can be superseded by edit manifests. "
-                f"This prevents consolidation abuse. "
+                f"Only 'snapshot' manifests can be superseded by edit manifests. "
+                f"Use --use-manifest-chain to merge artifacts from multiple manifests. "
                 f"To delete a file, use status: 'absent'. To rename, put old file in editableFiles."
             )
 
