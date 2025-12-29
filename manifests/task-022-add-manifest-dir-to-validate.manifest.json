@@ -2,7 +2,7 @@
   "version": "1",
   "goal": "Add --manifest-dir option to 'maid validate' command to validate all manifests in a directory",
   "taskType": "edit",
-  "supersedes": ["manifests/task-004-behavioral-test-integration.manifest.json"],
+  "supersedes": [],
   "creatableFiles": [],
   "editableFiles": [
     "maid_runner/cli/validate.py"

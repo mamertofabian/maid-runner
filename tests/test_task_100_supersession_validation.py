@@ -140,6 +140,39 @@ class TestValidateSupersessionValidCases:
         # Should NOT raise - valid snapshot-to-edit transition
         validate_supersession(edit_manifest, manifests_dir)
 
+    def test_snapshot_can_supersede_any_manifest_type(self, tmp_path):
+        """Snapshot manifests can supersede any manifest type (create new baseline)."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create an edit manifest for the file
+        edit_manifest = {
+            "goal": "Edit service",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+        _create_manifest_file(
+            manifests_dir, "task-010-edit-service.manifest.json", edit_manifest
+        )
+
+        # Snapshot superseding the edit manifest (creating baseline)
+        snapshot_manifest = {
+            "goal": "Snapshot current state of service",
+            "taskType": "snapshot",
+            "supersedes": ["task-010-edit-service.manifest.json"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+
+        # Should NOT raise - snapshots can supersede any manifest type
+        validate_supersession(snapshot_manifest, manifests_dir)
+
     def test_no_supersession_empty_array(self, tmp_path):
         """Manifest with empty supersedes array is trivially valid."""
         manifests_dir = tmp_path / "manifests"
@@ -763,7 +796,7 @@ class TestValidateSupersessionEdgeCases:
     """Edge cases and error handling for supersession validation."""
 
     def test_handles_missing_superseded_manifest_file(self, tmp_path):
-        """Should handle gracefully when superseded manifest file doesn't exist."""
+        """Should raise error when superseded manifest file doesn't exist."""
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
 
@@ -773,13 +806,12 @@ class TestValidateSupersessionEdgeCases:
             "expectedArtifacts": {"file": "src/service.py", "contains": []},
         }
 
-        # Should either skip the missing file or raise informative error
-        # The implementation will determine the exact behavior
-        try:
+        # Should raise informative error for missing superseded manifest
+        with pytest.raises(ManifestSemanticError) as exc_info:
             validate_supersession(manifest, manifests_dir)
-        except (ManifestSemanticError, FileNotFoundError) as e:
-            # Acceptable to raise an error for missing file
-            assert "nonexistent" in str(e).lower() or "not found" in str(e).lower()
+
+        error_msg = str(exc_info.value).lower()
+        assert "not found" in error_msg or "nonexistent" in error_msg
 
     def test_handles_manifest_without_expected_artifacts(self, tmp_path):
         """Should handle superseded manifests that have no expectedArtifacts."""
@@ -807,6 +839,65 @@ class TestValidateSupersessionEdgeCases:
             validate_supersession(superseding_manifest, manifests_dir)
         except ManifestSemanticError:
             pass  # Acceptable to reject if file can't be determined
+
+    def test_handles_invalid_json_in_superseded_manifest(self, tmp_path):
+        """Should raise error when superseded manifest has invalid JSON."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a file with invalid JSON
+        invalid_manifest_path = manifests_dir / "task-010-invalid.manifest.json"
+        invalid_manifest_path.write_text("{ invalid json content }")
+
+        manifest = {
+            "goal": "Edit service",
+            "supersedes": ["task-010-invalid.manifest.json"],
+            "expectedArtifacts": {"file": "src/service.py", "contains": []},
+        }
+
+        # Should raise informative error for invalid JSON
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            validate_supersession(manifest, manifests_dir)
+
+        error_msg = str(exc_info.value).lower()
+        assert "json" in error_msg or "invalid" in error_msg
+
+    def test_rename_with_empty_editable_files_raises_error(self, tmp_path):
+        """Rename operation with empty editableFiles should raise error."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create manifest for old file
+        old_manifest = {
+            "goal": "Create old file",
+            "taskType": "snapshot",
+            "expectedArtifacts": {
+                "file": "src/old.py",
+                "contains": [{"type": "function", "name": "func"}],
+            },
+        }
+        _create_manifest_file(
+            manifests_dir, "task-010-old.manifest.json", old_manifest
+        )
+
+        # Rename manifest with empty editableFiles (missing old path)
+        rename_manifest = {
+            "goal": "Rename file",
+            "taskType": "refactor",
+            "supersedes": ["task-010-old.manifest.json"],
+            "creatableFiles": ["src/new.py"],
+            "editableFiles": [],  # Empty - should cause error
+            "expectedArtifacts": {
+                "file": "src/new.py",
+                "contains": [{"type": "function", "name": "func"}],
+            },
+        }
+
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            validate_supersession(rename_manifest, manifests_dir)
+
+        error_msg = str(exc_info.value).lower()
+        assert "editablefiles" in error_msg and "empty" in error_msg
 
     def test_handles_system_manifests_gracefully(self, tmp_path):
         """System manifests with systemArtifacts should be handled."""
