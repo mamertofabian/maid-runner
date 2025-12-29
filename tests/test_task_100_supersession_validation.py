@@ -22,6 +22,8 @@ from maid_runner.validators.semantic_validator import (
     _validate_delete_supersession,
     _validate_rename_supersession,
     _validate_snapshot_edit_supersession,
+    _validate_snapshot_supersedes,
+    _find_prior_manifests_for_file,
 )
 
 
@@ -1069,3 +1071,233 @@ class TestValidateSupersessionIntegration:
 
         with pytest.raises(ManifestSemanticError):
             validate_supersession(edit2, manifests_dir)
+
+
+class TestValidateSnapshotSupersedes:
+    """Tests for _validate_snapshot_supersedes - validates snapshot supersession patterns."""
+
+    def test_legacy_snapshot_with_no_prior_manifests_empty_supersedes(self, tmp_path):
+        """Legacy snapshot (no prior manifests) should have empty supersedes."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a legacy snapshot for a file not tracked before
+        legacy_snapshot = {
+            "goal": "Snapshot legacy code",
+            "taskType": "snapshot",
+            "supersedes": [],
+            "expectedArtifacts": {
+                "file": "src/legacy.py",
+                "contains": [{"type": "function", "name": "legacy_func"}],
+            },
+        }
+        manifest_path = _create_manifest_file(
+            manifests_dir, "task-001-snapshot.manifest.json", legacy_snapshot
+        )
+
+        # Should NOT raise - valid legacy snapshot
+        _validate_snapshot_supersedes(legacy_snapshot, manifests_dir, manifest_path)
+
+    def test_legacy_snapshot_with_supersedes_raises_error(self, tmp_path):
+        """Legacy snapshot should not supersede anything when no prior manifests exist."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a snapshot that claims to supersede something that doesn't exist
+        invalid_snapshot = {
+            "goal": "Snapshot legacy code",
+            "taskType": "snapshot",
+            "supersedes": ["task-000-nonexistent.manifest.json"],
+            "expectedArtifacts": {
+                "file": "src/legacy.py",
+                "contains": [{"type": "function", "name": "legacy_func"}],
+            },
+        }
+
+        # Note: The superseded file doesn't exist, so this will fail
+        # in _get_superseded_manifest_files before reaching _validate_snapshot_supersedes
+        # To test _validate_snapshot_supersedes directly:
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            _validate_snapshot_supersedes(invalid_snapshot, manifests_dir)
+
+        assert "no prior manifests" in str(exc_info.value).lower()
+
+    def test_consolidation_snapshot_must_supersede_prior_manifests(self, tmp_path):
+        """Consolidation snapshot must supersede all prior manifests for the same file."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create prior manifests for the target file
+        prior_manifest = {
+            "goal": "Prior edit",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+        _create_manifest_file(
+            manifests_dir, "task-001-edit-service.manifest.json", prior_manifest
+        )
+
+        # Create snapshot with empty supersedes - should fail
+        invalid_snapshot = {
+            "goal": "Snapshot service",
+            "taskType": "snapshot",
+            "supersedes": [],  # Should not be empty!
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+        snapshot_path = _create_manifest_file(
+            manifests_dir, "task-002-snapshot.manifest.json", invalid_snapshot
+        )
+
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            _validate_snapshot_supersedes(invalid_snapshot, manifests_dir, snapshot_path)
+
+        error_msg = str(exc_info.value)
+        assert "empty supersedes" in error_msg.lower()
+        assert "task-001-edit-service.manifest.json" in error_msg
+
+    def test_consolidation_snapshot_with_proper_supersedes_passes(self, tmp_path):
+        """Consolidation snapshot with proper supersedes should pass."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create prior manifest
+        prior_manifest = {
+            "goal": "Prior edit",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+        _create_manifest_file(
+            manifests_dir, "task-001-edit-service.manifest.json", prior_manifest
+        )
+
+        # Create snapshot that properly supersedes prior manifest
+        valid_snapshot = {
+            "goal": "Snapshot service",
+            "taskType": "snapshot",
+            "supersedes": ["task-001-edit-service.manifest.json"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [{"type": "function", "name": "serve"}],
+            },
+        }
+        snapshot_path = _create_manifest_file(
+            manifests_dir, "task-002-snapshot.manifest.json", valid_snapshot
+        )
+
+        # Should NOT raise - valid consolidation snapshot
+        _validate_snapshot_supersedes(valid_snapshot, manifests_dir, snapshot_path)
+
+
+class TestFindPriorManifestsForFile:
+    """Tests for _find_prior_manifests_for_file helper function."""
+
+    def test_finds_manifests_for_same_file(self, tmp_path):
+        """Should find all manifests referencing the target file."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create manifests for the target file
+        for i in range(3):
+            manifest = {
+                "goal": f"Edit {i}",
+                "taskType": "edit",
+                "expectedArtifacts": {
+                    "file": "src/service.py",
+                    "contains": [],
+                },
+            }
+            _create_manifest_file(manifests_dir, f"task-00{i}-edit.manifest.json", manifest)
+
+        result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
+
+        assert len(result) == 3
+
+    def test_excludes_manifests_for_different_files(self, tmp_path):
+        """Should not include manifests for different files."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create manifest for target file
+        target_manifest = {
+            "goal": "Edit service",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/service.py", "contains": []},
+        }
+        _create_manifest_file(manifests_dir, "task-001-service.manifest.json", target_manifest)
+
+        # Create manifest for different file
+        other_manifest = {
+            "goal": "Edit other",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/other.py", "contains": []},
+        }
+        _create_manifest_file(manifests_dir, "task-002-other.manifest.json", other_manifest)
+
+        result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
+
+        assert len(result) == 1
+        assert "task-001-service.manifest.json" in str(result[0])
+
+    def test_excludes_current_manifest(self, tmp_path):
+        """Should exclude the current manifest from results."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create two manifests for same file
+        manifest1 = {
+            "goal": "Edit 1",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/service.py", "contains": []},
+        }
+        _create_manifest_file(manifests_dir, "task-001.manifest.json", manifest1)
+
+        manifest2 = {
+            "goal": "Edit 2",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/service.py", "contains": []},
+        }
+        path2 = _create_manifest_file(manifests_dir, "task-002.manifest.json", manifest2)
+
+        # Find prior manifests excluding manifest2
+        result = _find_prior_manifests_for_file("src/service.py", manifests_dir, path2)
+
+        assert len(result) == 1
+        assert "task-001.manifest.json" in str(result[0])
+
+    def test_returns_empty_for_no_prior_manifests(self, tmp_path):
+        """Should return empty list when no prior manifests exist."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        result = _find_prior_manifests_for_file("src/new_file.py", manifests_dir)
+
+        assert result == []
+
+    def test_handles_normalized_paths(self, tmp_path):
+        """Should handle path normalization (./path vs path)."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create manifest with ./ prefix
+        manifest = {
+            "goal": "Edit",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "./src/service.py", "contains": []},
+        }
+        _create_manifest_file(manifests_dir, "task-001.manifest.json", manifest)
+
+        # Search without prefix - should still find it
+        result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
+
+        assert len(result) == 1

@@ -25,6 +25,10 @@
           {
             "name": "manifests_dir",
             "type": "Path"
+          },
+          {
+            "name": "current_manifest_path",
+            "type": "Optional[Path]"
           }
         ],
         "returns": "None",
@@ -93,6 +97,46 @@
         ],
         "returns": "None",
         "description": "Validate that only snapshot manifests for the same file are superseded"
+      },
+      {
+        "type": "function",
+        "name": "_validate_snapshot_supersedes",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "current_manifest_path",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate snapshot supersedes based on whether prior manifests exist"
+      },
+      {
+        "type": "function",
+        "name": "_find_prior_manifests_for_file",
+        "args": [
+          {
+            "name": "target_file",
+            "type": "str"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "exclude_manifest",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "List[Path]",
+        "description": "Find all manifests that reference the given target file"
       }
     ]
   },

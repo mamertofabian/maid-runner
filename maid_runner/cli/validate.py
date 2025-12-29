@@ -1459,7 +1459,7 @@ def run_validation(
         # Validate supersession legitimacy (prevent abuse)
         try:
             manifests_dir = manifest_path_obj.parent
-            validate_supersession(manifest_data, manifests_dir)
+            validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
         except ManifestSemanticError as e:
             print("✗ Error: Supersession validation failed", file=sys.stderr)
             print(f"\n{e}", file=sys.stderr)

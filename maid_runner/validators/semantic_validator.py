@@ -163,7 +163,9 @@ See CLAUDE.md for full MAID workflow documentation."""
     return suggestion
 
 
-def validate_supersession(manifest_data: dict, manifests_dir: Path) -> None:
+def validate_supersession(
+    manifest_data: dict, manifests_dir: Path, current_manifest_path: Optional[Path] = None
+) -> None:
     """
     Validate that supersession is legitimate (delete, rename, or snapshot-edit only).
 
@@ -174,14 +176,27 @@ def validate_supersession(manifest_data: dict, manifests_dir: Path) -> None:
     - Snapshot manifests can supersede any manifest for the same file (creating baseline)
     - Edit manifests can supersede only snapshot manifests for the same file
 
+    For snapshot manifests, additional validation:
+    - Legacy snapshot (no prior manifests): supersedes must be empty
+    - Consolidation snapshot (prior manifests exist): supersedes must NOT be empty
+
     Args:
         manifest_data: The manifest dictionary to validate
         manifests_dir: Path to the manifests directory
+        current_manifest_path: Optional path to current manifest (to exclude from prior check)
 
     Raises:
         ManifestSemanticError: If supersession is invalid/abusive
     """
-    # Get superseded manifests - if none, nothing to validate
+    task_type = manifest_data.get("taskType", "")
+
+    # For snapshot manifests, validate supersedes based on prior manifests
+    if task_type == "snapshot":
+        _validate_snapshot_supersedes(
+            manifest_data, manifests_dir, current_manifest_path
+        )
+
+    # Get superseded manifests - if none, nothing more to validate
     superseded_manifests = _get_superseded_manifest_files(manifest_data, manifests_dir)
     if not superseded_manifests:
         return
@@ -466,3 +481,104 @@ def _validate_snapshot_edit_supersession(
                 f"'{superseded_file}' when editing file '{target_file}'. "
                 f"Supersession must be for the same file."
             )
+
+
+def _validate_snapshot_supersedes(
+    manifest_data: dict,
+    manifests_dir: Path,
+    current_manifest_path: Optional[Path] = None,
+) -> None:
+    """
+    Validate snapshot supersedes based on whether prior manifests exist.
+
+    - Legacy snapshot (no prior manifests for target file): supersedes must be empty
+    - Consolidation snapshot (prior manifests exist for target file): supersedes must NOT be empty
+
+    Args:
+        manifest_data: The snapshot manifest dictionary
+        manifests_dir: Path to the manifests directory
+        current_manifest_path: Path to current manifest (to exclude from prior check)
+
+    Raises:
+        ManifestSemanticError: If supersedes doesn't match the expected pattern
+    """
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+    supersedes = manifest_data.get("supersedes", [])
+
+    if not target_file:
+        return  # Can't validate without a target file
+
+    # Normalize target file path
+    normalized_target = target_file.lstrip("./")
+
+    # Find all prior manifests for the same file
+    prior_manifests = _find_prior_manifests_for_file(
+        normalized_target, manifests_dir, current_manifest_path
+    )
+
+    if prior_manifests and not supersedes:
+        # Case 1: Consolidation snapshot - must supersede prior manifests
+        prior_names = [p.name for p in prior_manifests]
+        raise ManifestSemanticError(
+            f"Snapshot manifest for '{target_file}' has empty supersedes, "
+            f"but prior manifests exist for this file: {prior_names}. "
+            f"Consolidation snapshots must supersede all prior manifests for the same file. "
+            f"Add the prior manifests to the supersedes array."
+        )
+
+    if not prior_manifests and supersedes:
+        # Case 2: Legacy snapshot - should not supersede anything
+        raise ManifestSemanticError(
+            f"Snapshot manifest for '{target_file}' has supersedes={supersedes}, "
+            f"but no prior manifests exist for this file. "
+            f"Legacy snapshots (for code not previously tracked by MAID) should have empty supersedes."
+        )
+
+
+def _find_prior_manifests_for_file(
+    target_file: str,
+    manifests_dir: Path,
+    exclude_manifest: Optional[Path] = None,
+) -> List[Path]:
+    """
+    Find all manifests that reference the given target file.
+
+    Args:
+        target_file: Normalized file path to search for
+        manifests_dir: Path to the manifests directory
+        exclude_manifest: Optional manifest path to exclude from results
+
+    Returns:
+        List of manifest paths that reference the target file
+    """
+    prior_manifests = []
+
+    # Scan all manifest files in the directory
+    for manifest_path in manifests_dir.glob("task-*.manifest.json"):
+        # Skip the current manifest being validated
+        if exclude_manifest and manifest_path.resolve() == exclude_manifest.resolve():
+            continue
+
+        try:
+            with open(manifest_path, "r") as f:
+                content = json.load(f)
+
+            # Check if this manifest references the same file
+            artifacts = content.get("expectedArtifacts", {})
+            manifest_file = artifacts.get("file", "")
+
+            if not manifest_file:
+                continue
+
+            # Normalize for comparison
+            normalized_manifest_file = manifest_file.lstrip("./")
+
+            if normalized_manifest_file == target_file:
+                prior_manifests.append(manifest_path)
+
+        except (json.JSONDecodeError, IOError):
+            # Skip manifests that can't be read
+            continue
+
+    return prior_manifests
