@@ -53,6 +53,53 @@ def run_create_manifest(
     Returns:
         Exit code: 0 on success, non-zero on failure
     """
+    try:
+        return _run_create_manifest_impl(
+            file_path=file_path,
+            goal=goal,
+            artifacts=artifacts,
+            task_type=task_type,
+            force_supersede=force_supersede,
+            test_file=test_file,
+            readonly_files=readonly_files,
+            output_dir=output_dir,
+            task_number=task_number,
+            json_output=json_output,
+            quiet=quiet,
+            dry_run=dry_run,
+        )
+    except Exception as e:
+        if json_output:
+            error_output = {
+                "success": False,
+                "error": str(e),
+            }
+            print(json.dumps(error_output, indent=2))
+            return 1
+        else:
+            # Re-raise to show normal traceback
+            raise
+
+
+def _run_create_manifest_impl(
+    file_path: str,
+    goal: str,
+    artifacts: Optional[str | List[dict]],
+    task_type: Optional[str],
+    force_supersede: Optional[str],
+    test_file: Optional[str],
+    readonly_files: Optional[str | List[str]],
+    output_dir: str | Path,
+    task_number: Optional[int],
+    json_output: bool,
+    quiet: bool,
+    dry_run: bool,
+) -> int:
+    """Implementation of manifest creation logic.
+
+    This is the internal implementation, wrapped by run_create_manifest
+    which handles errors and JSON output formatting.
+    """
     from maid_runner.cli._manifest_helpers import parse_artifacts_json
 
     # Convert inputs to proper types (handle both CLI strings and direct Python objects)

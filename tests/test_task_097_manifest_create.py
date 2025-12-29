@@ -13,6 +13,8 @@ Tests focus on actual behavior (inputs/outputs), not implementation details.
 
 import json
 
+import pytest
+
 from maid_runner.cli.manifest_create import (
     _get_next_task_number,
     _detect_task_type,
@@ -946,3 +948,55 @@ class TestIntegration:
         assert data["expectedArtifacts"]["contains"] == [
             {"type": "function", "name": "logout"}
         ]
+
+
+class TestJsonErrorHandling:
+    """Tests for JSON error output mode."""
+
+    def test_json_mode_returns_json_error_on_invalid_artifacts(self, tmp_path, capsys):
+        """When json_output=True and error occurs, returns JSON formatted error."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        result = run_create_manifest(
+            file_path="src/module.py",
+            goal="Test error",
+            artifacts="invalid json",  # Invalid JSON string
+            task_type="create",
+            force_supersede=None,
+            test_file=None,
+            readonly_files=[],
+            output_dir=manifests_dir,
+            task_number=None,
+            json_output=True,  # JSON mode enabled
+            quiet=True,
+            dry_run=False,
+        )
+
+        assert result == 1  # Non-zero exit code
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert output["success"] is False
+        assert "error" in output
+        assert "Invalid JSON" in output["error"]
+
+    def test_non_json_mode_raises_exception_on_invalid_artifacts(self, tmp_path):
+        """When json_output=False and error occurs, raises exception normally."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        with pytest.raises(ValueError, match="Invalid JSON"):
+            run_create_manifest(
+                file_path="src/module.py",
+                goal="Test error",
+                artifacts="invalid json",
+                task_type="create",
+                force_supersede=None,
+                test_file=None,
+                readonly_files=[],
+                output_dir=manifests_dir,
+                task_number=None,
+                json_output=False,  # Not JSON mode
+                quiet=True,
+                dry_run=False,
+            )
