@@ -84,6 +84,47 @@ class TestRunCreateManifestWithDeleteFlag:
         data = json.loads(manifests[0].read_text())
         assert data["expectedArtifacts"]["status"] == "absent"
 
+    def test_delete_flag_works_for_nonexistent_file(self, tmp_path):
+        """When delete=True, can create deletion manifest for file that doesn't exist.
+
+        This is a valid use case: the file might have been previously deleted,
+        or only exists in manifest records (e.g., marking legacy tracked files as absent).
+        """
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Explicitly verify the file does NOT exist
+        target_path = tmp_path / "src" / "legacy_service.py"
+        assert not target_path.exists()
+
+        result = run_create_manifest(
+            file_path="src/legacy_service.py",
+            goal="Mark legacy service as deleted",
+            artifacts=None,
+            task_type=None,
+            force_supersede=None,
+            test_file=None,
+            readonly_files=None,
+            output_dir=manifests_dir,
+            task_number=None,
+            json_output=False,
+            quiet=True,
+            dry_run=False,
+            delete=True,
+        )
+
+        assert result == 0
+
+        # Verify manifest was created successfully
+        manifests = list(manifests_dir.glob("task-*.manifest.json"))
+        assert len(manifests) == 1
+
+        data = json.loads(manifests[0].read_text())
+        assert data["taskType"] == "refactor"
+        assert data["expectedArtifacts"]["status"] == "absent"
+        assert data["expectedArtifacts"]["file"] == "src/legacy_service.py"
+        assert "src/legacy_service.py" in data["editableFiles"]
+
     def test_delete_flag_enforces_empty_artifacts(self, tmp_path, capsys):
         """When delete=True and artifacts provided, should raise ValueError."""
         manifests_dir = tmp_path / "manifests"

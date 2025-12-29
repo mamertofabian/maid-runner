@@ -489,11 +489,25 @@ def _get_artifacts_from_manifests(
             if not isinstance(artifact, dict):
                 continue
 
-            # Create a deduplication key based on type, name, and class
+            # Create a deduplication key based on type, name, class, and args
+            # Include args for functions to handle overloaded signatures
+            args_key = ""
+            if artifact.get("type") == "function" and "args" in artifact:
+                # Serialize args as a tuple of (name, type) pairs for deduplication
+                args = artifact.get("args", [])
+                if isinstance(args, list):
+                    args_key = str(
+                        tuple(
+                            (a.get("name", ""), a.get("type", ""))
+                            for a in args
+                            if isinstance(a, dict)
+                        )
+                    )
             artifact_key = (
                 artifact.get("type", ""),
                 artifact.get("name", ""),
                 artifact.get("class", ""),
+                args_key,
             )
 
             if artifact_key not in seen_artifact_keys:
@@ -525,7 +539,11 @@ def _generate_manifest(
         readonly_files: List of readonly dependency paths
         validation_command: Command array for validation
         delete: If True, create deletion manifest with status: absent
-        rename_to: New file path for rename operations
+        rename_to: New file path for rename/move operations. Rename and move
+            are semantically equivalent - both relocate a file to a new path.
+            Use rename for same-directory changes (e.g., old.py -> new.py)
+            and move for cross-directory changes (e.g., src/old.py -> lib/old.py),
+            though the manifest structure is identical for both.
 
     Returns:
         Complete manifest dictionary
