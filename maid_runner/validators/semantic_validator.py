@@ -6,7 +6,10 @@ for violations of MAID methodology principles like extreme isolation
 (one manifest per file for new public artifacts).
 """
 
-from typing import List, Optional
+import json
+from pathlib import Path
+from typing import List, Optional, Tuple
+
 from maid_runner.validators.manifest_validator import (
     _validate_file_status_semantic_rules,
     AlignmentError,
@@ -158,3 +161,226 @@ Both manifests can reference each other's files in readonlyFiles or editableFile
 See CLAUDE.md for full MAID workflow documentation."""
 
     return suggestion
+
+
+def validate_supersession(manifest_data: dict, manifests_dir: Path) -> None:
+    """
+    Validate that supersession is legitimate (delete, rename, or snapshot-edit only).
+
+    This function validates the supersedes field of a manifest to ensure it follows
+    valid supersession patterns:
+    - Delete operations (status: absent) can supersede manifests for the same file
+    - Rename operations can supersede manifests for the old file path
+    - Edit manifests can supersede snapshot manifests for the same file
+
+    Args:
+        manifest_data: The manifest dictionary to validate
+        manifests_dir: Path to the manifests directory
+
+    Raises:
+        ManifestSemanticError: If supersession is invalid/abusive
+    """
+    # Get superseded manifests - if none, nothing to validate
+    superseded_manifests = _get_superseded_manifest_files(manifest_data, manifests_dir)
+    if not superseded_manifests:
+        return
+
+    # Get expectedArtifacts info
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+    status = expected_artifacts.get("status", "")
+
+    # Check for delete operation (status: absent)
+    if status == "absent":
+        _validate_delete_supersession(manifest_data, superseded_manifests)
+        return
+
+    # Check for rename operation (file in creatableFiles, supersedes different file)
+    creatable_files = manifest_data.get("creatableFiles", [])
+    if target_file and target_file in creatable_files:
+        # Check if superseded manifests are for DIFFERENT files (rename)
+        # or SAME file (complete rewrite/snapshot transition)
+        superseded_files = set()
+        for _, content in superseded_manifests:
+            superseded_artifacts = content.get("expectedArtifacts", {})
+            superseded_file = superseded_artifacts.get("file", "")
+            if superseded_file:
+                superseded_files.add(superseded_file)
+
+        # If all superseded are for the same target file, treat as snapshot transition
+        if superseded_files == {target_file}:
+            _validate_snapshot_edit_supersession(manifest_data, superseded_manifests)
+            return
+        # If superseded files exist and are different, it's a rename
+        elif superseded_files:
+            _validate_rename_supersession(manifest_data, superseded_manifests)
+            return
+
+    # Otherwise, check for valid snapshot-to-edit transition
+    _validate_snapshot_edit_supersession(manifest_data, superseded_manifests)
+
+
+def _get_superseded_manifest_files(
+    manifest_data: dict, manifests_dir: Path
+) -> List[Tuple[str, dict]]:
+    """
+    Load superseded manifest files and their contents.
+
+    Args:
+        manifest_data: The manifest dictionary containing supersedes field
+        manifests_dir: Path to the manifests directory
+
+    Returns:
+        List of (filename, manifest_data) tuples for each superseded manifest
+    """
+    supersedes = manifest_data.get("supersedes", [])
+    if not supersedes:
+        return []
+
+    result = []
+    for filename in supersedes:
+        manifest_path = manifests_dir / filename
+        if manifest_path.exists():
+            with open(manifest_path, "r") as f:
+                content = json.load(f)
+            result.append((str(manifest_path), content))
+
+    return result
+
+
+def _validate_delete_supersession(
+    manifest_data: dict, superseded_manifests: List[Tuple[str, dict]]
+) -> None:
+    """
+    Validate supersession for delete operations (status: absent).
+
+    All superseded manifests must reference the same file being deleted.
+
+    Args:
+        manifest_data: The manifest dictionary (deleting manifest)
+        superseded_manifests: List of (filename, content) tuples
+
+    Raises:
+        ManifestSemanticError: If superseded manifests don't reference the deleted file
+    """
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    deleted_file = expected_artifacts.get("file", "")
+
+    for filename, content in superseded_manifests:
+        superseded_artifacts = content.get("expectedArtifacts", {})
+        superseded_file = superseded_artifacts.get("file", "")
+
+        # Check systemArtifacts for system manifests
+        if not superseded_file:
+            system_artifacts = content.get("systemArtifacts", [])
+            if system_artifacts:
+                # System manifest - check if any artifact references the deleted file
+                system_files = [a.get("file", "") for a in system_artifacts]
+                if deleted_file not in system_files:
+                    raise ManifestSemanticError(
+                        f"Delete operation supersedes manifest '{filename}' "
+                        f"which does not reference the deleted file '{deleted_file}'"
+                    )
+                continue
+
+        if superseded_file and superseded_file != deleted_file:
+            raise ManifestSemanticError(
+                f"Delete operation for '{deleted_file}' supersedes manifest "
+                f"'{filename}' which references different file '{superseded_file}'"
+            )
+
+
+def _validate_rename_supersession(
+    manifest_data: dict, superseded_manifests: List[Tuple[str, dict]]
+) -> None:
+    """
+    Validate supersession for rename/move operations.
+
+    Superseded manifests must reference the old file path (found in editableFiles),
+    not the new file path.
+
+    Args:
+        manifest_data: The manifest dictionary (renaming manifest)
+        superseded_manifests: List of (filename, content) tuples
+
+    Raises:
+        ManifestSemanticError: If superseded manifests don't reference the old path
+    """
+    editable_files = manifest_data.get("editableFiles", [])
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    new_file = expected_artifacts.get("file", "")
+
+    # Old files are in editableFiles (files being renamed from)
+    old_files = set(editable_files)
+
+    for filename, content in superseded_manifests:
+        superseded_artifacts = content.get("expectedArtifacts", {})
+        superseded_file = superseded_artifacts.get("file", "")
+
+        # Handle manifest without expectedArtifacts
+        if not superseded_file:
+            continue
+
+        # Superseded must be for the old path, not the new one
+        if superseded_file == new_file:
+            raise ManifestSemanticError(
+                f"Rename operation supersedes manifest '{filename}' which "
+                f"references the NEW file path '{new_file}' instead of the old path"
+            )
+
+        if superseded_file not in old_files:
+            raise ManifestSemanticError(
+                f"Rename operation supersedes manifest '{filename}' which "
+                f"references unrelated file '{superseded_file}'. "
+                f"Expected old file from: {list(old_files)}"
+            )
+
+
+def _validate_snapshot_edit_supersession(
+    manifest_data: dict, superseded_manifests: List[Tuple[str, dict]]
+) -> None:
+    """
+    Validate that only snapshot manifests for the same file are superseded.
+
+    Non-snapshot manifests cannot be superseded (would be consolidation abuse).
+    Snapshots for different files also cannot be superseded.
+
+    Args:
+        manifest_data: The manifest dictionary (editing manifest)
+        superseded_manifests: List of (filename, content) tuples
+
+    Raises:
+        ManifestSemanticError: If superseding non-snapshot or snapshot for different file
+    """
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    target_file = expected_artifacts.get("file", "")
+
+    for filename, content in superseded_manifests:
+        task_type = content.get("taskType", "")
+        superseded_artifacts = content.get("expectedArtifacts", {})
+        superseded_file = superseded_artifacts.get("file", "")
+
+        # Handle manifest without expectedArtifacts
+        if not superseded_file:
+            # System manifest or missing expectedArtifacts - skip or error
+            if content.get("systemArtifacts"):
+                continue
+            # No file to compare - could be problematic but allow
+            continue
+
+        # Check if superseding a non-snapshot manifest
+        if task_type != "snapshot":
+            raise ManifestSemanticError(
+                f"Cannot supersede non-snapshot manifest '{filename}' "
+                f"(taskType: '{task_type}'). Only snapshot manifests can be "
+                f"superseded by edit manifests. This prevents consolidation abuse. "
+                f"To delete a file, use status: 'absent'. To rename, put old file in editableFiles."
+            )
+
+        # Check if snapshot is for the same file
+        if superseded_file != target_file:
+            raise ManifestSemanticError(
+                f"Cannot supersede snapshot '{filename}' for file "
+                f"'{superseded_file}' when editing file '{target_file}'. "
+                f"Snapshot supersession must be for the same file."
+            )
