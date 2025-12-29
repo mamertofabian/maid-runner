@@ -337,6 +337,15 @@ Automatically handles:
         action="store_true",
         help="Print manifest without writing to file",
     )
+    manifest_create_parser.add_argument(
+        "--delete",
+        action="store_true",
+        help="Create a deletion manifest with status: absent (supersedes all active manifests for the file)",
+    )
+    manifest_create_parser.add_argument(
+        "--rename-to",
+        help="New file path for rename/move operations (supersedes all active manifests for the source file)",
+    )
 
     # Files subcommand
     files_parser = subparsers.add_parser(
@@ -517,6 +526,8 @@ Automatically handles:
                 json_output=args.json,
                 quiet=args.quiet,
                 dry_run=args.dry_run,
+                delete=args.delete,
+                rename_to=args.rename_to,
             )
         else:
             manifest_parser.print_help()
