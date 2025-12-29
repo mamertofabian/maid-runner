@@ -115,8 +115,11 @@ def _run_create_manifest_impl(
 
     # Handle rename_to validation early
     if rename_to is not None:
-        # Validate rename_to != file_path
-        if rename_to == file_path:
+        # Validate rename_to != file_path (normalize paths for comparison)
+        # This catches equivalents like "./src/file.py" vs "src/file.py"
+        normalized_rename = str(Path(rename_to))
+        normalized_source = str(Path(file_path))
+        if normalized_rename == normalized_source:
             raise ValueError(
                 "Cannot rename to the same path. "
                 "--rename-to must be different from the source file."
@@ -489,8 +492,8 @@ def _get_artifacts_from_manifests(
             if not isinstance(artifact, dict):
                 continue
 
-            # Create a deduplication key based on type, name, class, and args
-            # Include args for functions to handle overloaded signatures
+            # Create a deduplication key based on type, name, class, args, and returns
+            # Include args and returns for functions to handle overloaded signatures
             args_key = ""
             if artifact.get("type") == "function" and "args" in artifact:
                 # Serialize args as a tuple of (name, type) pairs for deduplication
@@ -508,6 +511,7 @@ def _get_artifacts_from_manifests(
                 artifact.get("name", ""),
                 artifact.get("class", ""),
                 args_key,
+                artifact.get("returns", ""),
             )
 
             if artifact_key not in seen_artifact_keys:
