@@ -305,26 +305,26 @@ class TestValidateSupersessionInvalidCases:
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
 
-        # Create manifest for target file
+        # Create an edit manifest for target file (not snapshot/create)
         original_data = {
-            "goal": "Create service",
-            "taskType": "create",
-            "creatableFiles": ["src/service.py"],
+            "goal": "Edit service",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
             "expectedArtifacts": {
                 "file": "src/service.py",
                 "contains": [{"type": "function", "name": "serve"}],
             },
         }
         _create_manifest_file(
-            manifests_dir, "task-010-create-service.manifest.json", original_data
+            manifests_dir, "task-010-edit-service.manifest.json", original_data
         )
 
-        # Create manifest that supersedes without proper delete pattern
-        # This looks like a delete but doesn't have status: absent
+        # Create manifest that supersedes the edit without proper delete pattern
+        # This is consolidation abuse - edit superseding edit
         suspicious_manifest = {
             "goal": "Remove service functionality",
             "taskType": "refactor",
-            "supersedes": ["task-010-create-service.manifest.json"],
+            "supersedes": ["task-010-edit-service.manifest.json"],
             "editableFiles": ["src/service.py"],
             "expectedArtifacts": {
                 "file": "src/service.py",
@@ -332,12 +332,12 @@ class TestValidateSupersessionInvalidCases:
             },
         }
 
-        # This should raise because it looks like a delete without proper marking
+        # This should raise because it's consolidation (edit/refactor superseding edit)
         with pytest.raises(ManifestSemanticError) as exc_info:
             validate_supersession(suspicious_manifest, manifests_dir)
 
         error_msg = str(exc_info.value)
-        assert "absent" in error_msg.lower() or "delete" in error_msg.lower()
+        assert "consolidation" in error_msg.lower() or "edit" in error_msg.lower()
 
     def test_rename_target_mismatch(self, tmp_path):
         """Rename superseding manifests for wrong file should fail."""

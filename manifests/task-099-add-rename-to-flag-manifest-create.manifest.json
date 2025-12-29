@@ -1,7 +1,7 @@
 {
   "goal": "Add --rename-to flag support to maid manifest create command for creating rename/move manifests",
   "taskType": "edit",
-  "supersedes": ["task-098-add-delete-flag-manifest-create.manifest.json"],
+  "supersedes": [],
   "editableFiles": [
     "maid_runner/cli/manifest_create.py"
   ],

@@ -368,19 +368,22 @@ def _validate_snapshot_edit_supersession(
             # No file to compare - could be problematic but allow
             continue
 
-        # Check if superseding a non-snapshot manifest
-        if task_type != "snapshot":
+        # Check if superseding a valid manifest type
+        # Valid types to supersede: snapshot (frozen state) or create (initial state)
+        # Invalid types: edit, refactor (would be consolidation abuse)
+        allowed_supersede_types = {"snapshot", "create"}
+        if task_type not in allowed_supersede_types:
             raise ManifestSemanticError(
-                f"Cannot supersede non-snapshot manifest '{filename}' "
-                f"(taskType: '{task_type}'). Only snapshot manifests can be "
-                f"superseded by edit manifests. This prevents consolidation abuse. "
+                f"Cannot supersede '{task_type}' manifest '{filename}'. "
+                f"Only 'snapshot' or 'create' manifests can be superseded by edit manifests. "
+                f"This prevents consolidation abuse. "
                 f"To delete a file, use status: 'absent'. To rename, put old file in editableFiles."
             )
 
-        # Check if snapshot is for the same file
+        # Check if superseded manifest is for the same file
         if superseded_file != target_file:
             raise ManifestSemanticError(
-                f"Cannot supersede snapshot '{filename}' for file "
+                f"Cannot supersede manifest '{filename}' for file "
                 f"'{superseded_file}' when editing file '{target_file}'. "
-                f"Snapshot supersession must be for the same file."
+                f"Supersession must be for the same file."
             )
