@@ -700,6 +700,64 @@ class TestValidateSnapshotEditSupersession:
 
         assert "other.py" in str(exc_info.value)
 
+    def test_rejects_edit_superseding_create_manifest(self, tmp_path):
+        """Edit manifest cannot supersede create manifests - use manifest chain instead."""
+        edit_manifest = {
+            "goal": "Edit service",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [],
+            },
+        }
+
+        superseded = [
+            (
+                "task-010-create.manifest.json",
+                {
+                    "taskType": "create",  # Not a snapshot - should fail
+                    "creatableFiles": ["src/service.py"],
+                    "expectedArtifacts": {"file": "src/service.py", "contains": []},
+                },
+            ),
+        ]
+
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            _validate_snapshot_edit_supersession(edit_manifest, superseded)
+
+        error_msg = str(exc_info.value).lower()
+        assert "create" in error_msg or "snapshot" in error_msg
+
+    def test_rejects_edit_superseding_refactor_manifest(self, tmp_path):
+        """Edit manifest cannot supersede refactor manifests - use manifest chain instead."""
+        edit_manifest = {
+            "goal": "Edit service",
+            "taskType": "edit",
+            "editableFiles": ["src/service.py"],
+            "expectedArtifacts": {
+                "file": "src/service.py",
+                "contains": [],
+            },
+        }
+
+        superseded = [
+            (
+                "task-010-refactor.manifest.json",
+                {
+                    "taskType": "refactor",  # Not a snapshot - should fail
+                    "editableFiles": ["src/service.py"],
+                    "expectedArtifacts": {"file": "src/service.py", "contains": []},
+                },
+            ),
+        ]
+
+        with pytest.raises(ManifestSemanticError) as exc_info:
+            _validate_snapshot_edit_supersession(edit_manifest, superseded)
+
+        error_msg = str(exc_info.value).lower()
+        assert "refactor" in error_msg or "snapshot" in error_msg
+
 
 class TestValidateSupersessionEdgeCases:
     """Edge cases and error handling for supersession validation."""
