@@ -549,6 +549,9 @@ class _ArtifactCollector(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         """Collect function definitions and their parameters."""
+        # Check if this is a property (has @property decorator)
+        is_property = self._has_property_decorator(node)
+
         # Extract function signature information
         param_names = [arg.arg for arg in node.args.args]
         param_types = self._extract_parameter_types(node.args.args)
@@ -558,13 +561,31 @@ class _ArtifactCollector(ast.NodeVisitor):
         if self.current_class is None:
             self._store_function_info(node.name, param_names, param_types, return_type)
         else:
-            self._store_method_info(node.name, param_names, param_types, return_type)
+            # Properties are registered as class attributes, not methods
+            if is_property:
+                self._add_class_attribute(self.current_class, node.name)
+            else:
+                self._store_method_info(node.name, param_names, param_types, return_type)
 
         # Track function scope for nested definitions
         old_function = self.current_function
         self.current_function = node.name
         self.generic_visit(node)
         self.current_function = old_function
+
+    def _has_property_decorator(self, node):
+        """Check if a function has the @property decorator.
+
+        Args:
+            node: An ast.FunctionDef or ast.AsyncFunctionDef node.
+
+        Returns:
+            True if the function has a @property decorator, False otherwise.
+        """
+        for decorator in node.decorator_list:
+            if isinstance(decorator, ast.Name) and decorator.id == "property":
+                return True
+        return False
 
     # Alias for async function definitions - treat them the same as regular functions
     visit_AsyncFunctionDef = visit_FunctionDef

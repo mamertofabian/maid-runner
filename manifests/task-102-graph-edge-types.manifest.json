@@ -1,0 +1,56 @@
+{
+  "goal": "Define graph edge data structures for the Knowledge Graph Builder",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/graph/model.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/graph/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/model.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "EdgeType",
+        "description": "Enum with values: SUPERSEDES, CREATES, EDITS, READS, DEFINES, DECLARES, CONTAINS, INHERITS, BELONGS_TO"
+      },
+      {
+        "type": "class",
+        "name": "Edge",
+        "description": "Dataclass representing a graph edge"
+      },
+      {
+        "type": "attribute",
+        "name": "id",
+        "class": "Edge",
+        "description": "Unique identifier for the edge"
+      },
+      {
+        "type": "attribute",
+        "name": "edge_type",
+        "class": "Edge",
+        "description": "Type of the edge (EdgeType enum)"
+      },
+      {
+        "type": "attribute",
+        "name": "source_id",
+        "class": "Edge",
+        "description": "ID of the source node"
+      },
+      {
+        "type": "attribute",
+        "name": "target_id",
+        "class": "Edge",
+        "description": "ID of the target node"
+      },
+      {
+        "type": "attribute",
+        "name": "attributes",
+        "class": "Edge",
+        "description": "Additional attributes as Dict[str, Any]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_102_graph_edge_types.py", "-v"]
+}

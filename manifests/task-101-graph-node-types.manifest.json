@@ -1,0 +1,139 @@
+{
+  "goal": "Define graph node data structures for the Knowledge Graph Builder",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/graph/model.py",
+    "maid_runner/graph/__init__.py"
+  ],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/model.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "NodeType",
+        "description": "Enum with values: MANIFEST, FILE, ARTIFACT, MODULE"
+      },
+      {
+        "type": "class",
+        "name": "Node",
+        "description": "Base dataclass with id, node_type, and attributes"
+      },
+      {
+        "type": "attribute",
+        "name": "id",
+        "class": "Node",
+        "description": "Unique identifier for the node"
+      },
+      {
+        "type": "attribute",
+        "name": "node_type",
+        "class": "Node",
+        "description": "Type of the node (NodeType enum)"
+      },
+      {
+        "type": "attribute",
+        "name": "attributes",
+        "class": "Node",
+        "description": "Additional attributes as Dict[str, Any]"
+      },
+      {
+        "type": "class",
+        "name": "ManifestNode",
+        "bases": ["Node"],
+        "description": "Node representing a MAID manifest"
+      },
+      {
+        "type": "attribute",
+        "name": "path",
+        "class": "ManifestNode",
+        "description": "File path to the manifest"
+      },
+      {
+        "type": "attribute",
+        "name": "goal",
+        "class": "ManifestNode",
+        "description": "Goal description from manifest"
+      },
+      {
+        "type": "attribute",
+        "name": "task_type",
+        "class": "ManifestNode",
+        "description": "Task type (create, edit, refactor, snapshot)"
+      },
+      {
+        "type": "attribute",
+        "name": "version",
+        "class": "ManifestNode",
+        "description": "Manifest version"
+      },
+      {
+        "type": "class",
+        "name": "FileNode",
+        "bases": ["Node"],
+        "description": "Node representing a tracked file"
+      },
+      {
+        "type": "attribute",
+        "name": "path",
+        "class": "FileNode",
+        "description": "File path"
+      },
+      {
+        "type": "attribute",
+        "name": "status",
+        "class": "FileNode",
+        "description": "File status (e.g., tracked, untracked)"
+      },
+      {
+        "type": "class",
+        "name": "ArtifactNode",
+        "bases": ["Node"],
+        "description": "Node representing a code artifact (function, class, etc.)"
+      },
+      {
+        "type": "attribute",
+        "name": "name",
+        "class": "ArtifactNode",
+        "description": "Artifact name"
+      },
+      {
+        "type": "attribute",
+        "name": "artifact_type",
+        "class": "ArtifactNode",
+        "description": "Type of artifact (function, class, attribute)"
+      },
+      {
+        "type": "attribute",
+        "name": "signature",
+        "class": "ArtifactNode",
+        "description": "Optional function/method signature"
+      },
+      {
+        "type": "attribute",
+        "name": "parent_class",
+        "class": "ArtifactNode",
+        "description": "Optional parent class for methods/attributes"
+      },
+      {
+        "type": "class",
+        "name": "ModuleNode",
+        "bases": ["Node"],
+        "description": "Node representing a Python module"
+      },
+      {
+        "type": "attribute",
+        "name": "name",
+        "class": "ModuleNode",
+        "description": "Module name"
+      },
+      {
+        "type": "attribute",
+        "name": "package",
+        "class": "ModuleNode",
+        "description": "Package name the module belongs to"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_101_graph_node_types.py", "-v"]
+}
