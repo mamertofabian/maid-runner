@@ -1,0 +1,105 @@
+{
+  "goal": "Add --delete flag support to maid manifest create command for creating deletion manifests with status: absent",
+  "taskType": "edit",
+  "supersedes": [],
+  "editableFiles": [
+    "maid_runner/cli/manifest_create.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/utils.py",
+    "docs/maid_specs.md",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/manifest_create.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_create_manifest",
+        "description": "Main entry point for manifest creation with delete flag support",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "goal", "type": "str"},
+          {"name": "artifacts", "type": "Optional[Union[str, List[dict]]]"},
+          {"name": "task_type", "type": "Optional[str]"},
+          {"name": "force_supersede", "type": "Optional[str]"},
+          {"name": "test_file", "type": "Optional[str]"},
+          {"name": "readonly_files", "type": "Optional[Union[str, List[str]]]"},
+          {"name": "output_dir", "type": "Union[str, Path]"},
+          {"name": "task_number", "type": "Optional[int]"},
+          {"name": "json_output", "type": "bool"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "dry_run", "type": "bool"},
+          {"name": "delete", "type": "bool"}
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "_get_next_task_number",
+        "description": "Find next available task number by scanning manifest directory",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"}
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "_detect_task_type",
+        "description": "Auto-detect create/edit based on file existence",
+        "args": [
+          {"name": "file_path", "type": "Path"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "_find_active_snapshot_to_supersede",
+        "description": "Find active snapshot manifest that must be superseded to edit file",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "manifests_dir", "type": "Path"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_find_active_manifests_to_supersede",
+        "description": "Find all active manifests referencing a file that should be superseded for deletion",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "manifests_dir", "type": "Path"}
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "_generate_manifest",
+        "description": "Build manifest dictionary from provided parameters with delete support",
+        "args": [
+          {"name": "goal", "type": "str"},
+          {"name": "file_path", "type": "str"},
+          {"name": "task_type", "type": "str"},
+          {"name": "artifacts", "type": "List[dict]"},
+          {"name": "supersedes", "type": "List[str]"},
+          {"name": "readonly_files", "type": "List[str]"},
+          {"name": "validation_command", "type": "List[str]"},
+          {"name": "delete", "type": "bool"}
+        ],
+        "returns": "dict"
+      },
+      {
+        "type": "function",
+        "name": "_write_manifest",
+        "description": "Write manifest dictionary to JSON file",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "output_path", "type": "Path"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_097_manifest_create.py", "tests/test_task_098_delete_flag.py", "-v"]
+}

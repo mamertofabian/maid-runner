@@ -34,6 +34,7 @@ except ImportError:
 from maid_runner.validators.manifest_validator import validate_with_ast, validate_schema
 from maid_runner.validators.semantic_validator import (
     validate_manifest_semantics,
+    validate_supersession,
     ManifestSemanticError,
 )
 from maid_runner.validators.file_tracker import analyze_file_tracking
@@ -1452,6 +1453,15 @@ def run_validation(
             validate_manifest_semantics(manifest_data)
         except ManifestSemanticError as e:
             print("✗ Error: Manifest semantic validation failed", file=sys.stderr)
+            print(f"\n{e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate supersession legitimacy (prevent abuse)
+        try:
+            manifests_dir = manifest_path_obj.parent
+            validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
+        except ManifestSemanticError as e:
+            print("✗ Error: Supersession validation failed", file=sys.stderr)
             print(f"\n{e}", file=sys.stderr)
             sys.exit(1)
 

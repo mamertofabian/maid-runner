@@ -7,10 +7,26 @@ Create manifest for: $ARGUMENTS
 
 **Note:** Manifests are only needed for public API changes. Private implementation refactoring doesn't require a manifest.
 
-Use the maid-manifest-architect subagent to:
+## Quick Method: Use `maid manifest create`
 
-1. Find next task number
-2. Create `manifests/task-XXX-description.manifest.json`
+```bash
+# Auto-numbers, auto-supersedes snapshots, auto-detects task type
+maid manifest create <file_path> --goal "$ARGUMENTS"
+
+# With artifacts
+maid manifest create <file_path> --goal "$ARGUMENTS" \
+  --artifacts '[{"type": "class", "name": "MyClass"}]'
+
+# Preview first
+maid manifest create <file_path> --goal "$ARGUMENTS" --dry-run --json
+```
+
+## Alternative: Use maid-manifest-architect subagent
+
+For complex manifests or when you need more control, use the subagent to:
+
+1. Analyze the goal and determine affected files
+2. Use `maid manifest create` or create manifest manually
 3. Validate: `maid validate manifests/task-XXX.manifest.json --use-manifest-chain`
 4. Iterate until valid
 

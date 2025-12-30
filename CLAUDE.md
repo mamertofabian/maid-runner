@@ -248,6 +248,9 @@ uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
 # Generate a snapshot manifest from existing code
 uv run maid snapshot <file-path> [--output-dir <dir>]
 
+# Create a new manifest for a file (auto-numbers, auto-supersedes snapshots)
+uv run maid manifest create <file-path> --goal "Description" [--artifacts JSON] [--dry-run] [--json]
+
 # Generate system-wide manifest aggregating all active manifests
 uv run maid snapshot-system [--output <file>] [--manifest-dir <dir>] [--quiet]
 
@@ -267,6 +270,7 @@ uv run maid test --watch-all
 uv run maid --help
 uv run maid validate --help
 uv run maid snapshot --help
+uv run maid manifest create --help
 uv run maid snapshot-system --help
 uv run maid manifests --help
 uv run maid test --help
