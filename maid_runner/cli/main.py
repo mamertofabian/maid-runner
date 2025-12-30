@@ -10,6 +10,7 @@ Provides a unified command-line interface with subcommands:
 - maid test ...
 - maid manifests ...
 - maid schema
+- maid manifest create ...
 """
 
 import argparse
@@ -256,6 +257,96 @@ mixed test runners (pytest + vitest, etc.).""",
         description="Output the manifest JSON schema for agent consumption",
     )
 
+    # Manifest subcommand (with nested subcommands)
+    manifest_parser = subparsers.add_parser(
+        "manifest",
+        help="Manifest management commands",
+        description="Commands for creating and managing MAID manifests",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    manifest_subparsers = manifest_parser.add_subparsers(
+        dest="manifest_command", help="Manifest commands"
+    )
+
+    # manifest create subcommand
+    manifest_create_parser = manifest_subparsers.add_parser(
+        "create",
+        help="Create a new manifest for a file",
+        description="""Create a new MAID manifest for a file.
+
+Automatically handles:
+- Task numbering (finds next available task number)
+- Snapshot supersession (unfreezes snapshotted files)
+- File mode detection (creatableFiles vs editableFiles)
+- Validation command generation""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    manifest_create_parser.add_argument(
+        "file_path",
+        help="Path to the file this manifest describes",
+    )
+    manifest_create_parser.add_argument(
+        "--goal",
+        required=True,
+        help="Concise goal description for the manifest",
+    )
+    manifest_create_parser.add_argument(
+        "--artifacts",
+        help='JSON array of artifact definitions (e.g., \'[{"type": "function", "name": "foo"}]\')',
+    )
+    manifest_create_parser.add_argument(
+        "--task-type",
+        choices=["create", "edit", "refactor"],
+        help="Task type (default: auto-detect based on file existence)",
+    )
+    manifest_create_parser.add_argument(
+        "--force-supersede",
+        help="Force supersede a specific manifest (for non-snapshots)",
+    )
+    manifest_create_parser.add_argument(
+        "--test-file",
+        help="Path to test file for validationCommand (default: auto-generated)",
+    )
+    manifest_create_parser.add_argument(
+        "--readonly-files",
+        help="Comma-separated list of readonly dependencies",
+    )
+    manifest_create_parser.add_argument(
+        "--output-dir",
+        default="manifests",
+        help="Directory to write manifest (default: manifests)",
+    )
+    manifest_create_parser.add_argument(
+        "--task-number",
+        type=int,
+        help="Force specific task number (default: auto-detect next available)",
+    )
+    manifest_create_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output created manifest as JSON (for agent consumption)",
+    )
+    manifest_create_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress informational messages",
+    )
+    manifest_create_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print manifest without writing to file",
+    )
+    manifest_create_parser.add_argument(
+        "--delete",
+        action="store_true",
+        help="Create a deletion manifest with status: absent (supersedes all active manifests for the file)",
+    )
+    manifest_create_parser.add_argument(
+        "--rename-to",
+        help="New file path for rename/move operations (supersedes all active manifests for the source file)",
+    )
+
     # Files subcommand
     files_parser = subparsers.add_parser(
         "files",
@@ -414,6 +505,33 @@ mixed test runners (pytest + vitest, etc.).""",
             args.json,
             args.hide_private,
         )
+    elif args.command == "manifest":
+        if not args.manifest_command:
+            manifest_parser.print_help()
+            sys.exit(1)
+
+        if args.manifest_command == "create":
+            from maid_runner.cli.manifest_create import run_create_manifest
+
+            run_create_manifest(
+                file_path=args.file_path,
+                goal=args.goal,
+                artifacts=args.artifacts,
+                task_type=args.task_type,
+                force_supersede=args.force_supersede,
+                test_file=args.test_file,
+                readonly_files=args.readonly_files,
+                output_dir=args.output_dir,
+                task_number=args.task_number,
+                json_output=args.json,
+                quiet=args.quiet,
+                dry_run=args.dry_run,
+                delete=args.delete,
+                rename_to=args.rename_to,
+            )
+        else:
+            manifest_parser.print_help()
+            sys.exit(1)
     else:
         parser.print_help()
         sys.exit(1)

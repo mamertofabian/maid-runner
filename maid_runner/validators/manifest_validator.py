@@ -275,7 +275,7 @@ def validate_with_ast(
 
     # Convert to collector-like object for compatibility
     class _CollectorShim:
-        def __init__(self, artifacts_dict):
+        def __init__(self, artifacts_dict, file_path: str = ""):
             self.found_classes = artifacts_dict.get("found_classes", set())
             self.found_class_bases = artifacts_dict.get("found_class_bases", {})
             self.found_attributes = artifacts_dict.get("found_attributes", {})
@@ -288,8 +288,10 @@ def validate_with_ast(
             self.used_functions = artifacts_dict.get("used_functions", set())
             self.used_methods = artifacts_dict.get("used_methods", {})
             self.used_arguments = artifacts_dict.get("used_arguments", set())
+            # Store file path for path-based test file detection (security fix)
+            self.file_path = file_path
 
-    collector = _CollectorShim(artifacts)
+    collector = _CollectorShim(artifacts, test_file_path)
 
     # Get expected artifacts
     expected_items = _get_expected_artifacts(
