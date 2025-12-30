@@ -13,6 +13,15 @@ from maid_runner.graph.model import (
     ModuleNode,
     EdgeType,
     Edge,
+    KnowledgeGraph,
+)
+from maid_runner.graph.exporters import (
+    export_json,
+    export_dot,
+    export_graphml,
+    graph_to_dict,
+    graph_to_dot,
+    graph_to_graphml,
 )
 from maid_runner.graph.builder import (
     load_manifest,
@@ -45,6 +54,16 @@ from maid_runner.graph.query import (
     QueryExecutor,
 )
 
+# Explicit re-exports for MAID validation
+# These assignments make imported names visible as module-level attributes
+KnowledgeGraph = KnowledgeGraph
+export_json = export_json
+export_dot = export_dot
+export_graphml = export_graphml
+graph_to_dict = graph_to_dict
+graph_to_dot = graph_to_dot
+graph_to_graphml = graph_to_graphml
+
 __all__ = [
     "NodeType",
     "Node",
@@ -54,6 +73,13 @@ __all__ = [
     "ModuleNode",
     "EdgeType",
     "Edge",
+    "KnowledgeGraph",
+    "export_json",
+    "export_dot",
+    "export_graphml",
+    "graph_to_dict",
+    "graph_to_dot",
+    "graph_to_graphml",
     "load_manifest",
     "load_manifests",
     "create_manifest_node",

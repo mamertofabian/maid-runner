@@ -1,0 +1,46 @@
+{
+  "version": "1",
+  "goal": "Complete the public API exports from graph package by adding missing exports (KnowledgeGraph and exporter functions)",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/graph/__init__.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/graph/model.py",
+    "maid_runner/graph/exporters.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/__init__.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "KnowledgeGraph"
+      },
+      {
+        "type": "attribute",
+        "name": "export_json"
+      },
+      {
+        "type": "attribute",
+        "name": "export_dot"
+      },
+      {
+        "type": "attribute",
+        "name": "export_graphml"
+      },
+      {
+        "type": "attribute",
+        "name": "graph_to_dict"
+      },
+      {
+        "type": "attribute",
+        "name": "graph_to_dot"
+      },
+      {
+        "type": "attribute",
+        "name": "graph_to_graphml"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_119_graph_package_init.py", "-v"]
+}
