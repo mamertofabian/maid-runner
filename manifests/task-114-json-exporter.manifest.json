@@ -1,0 +1,52 @@
+{
+  "goal": "Export knowledge graph to JSON format",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/graph/exporters.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/graph/model.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/exporters.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "export_json",
+        "args": [
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          },
+          {
+            "name": "output_path",
+            "type": "Path"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "graph_to_dict",
+        "args": [
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          }
+        ],
+        "returns": "Dict[str, Any]"
+      }
+    ]
+  },
+  "validationCommand": [
+    "uv",
+    "run",
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_task_114_json_exporter.py",
+    "-v"
+  ]
+}
