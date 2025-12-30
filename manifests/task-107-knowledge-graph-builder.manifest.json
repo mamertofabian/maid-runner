@@ -1,0 +1,57 @@
+{
+  "goal": "Create the main KnowledgeGraphBuilder class that orchestrates graph construction from manifests",
+  "description": "Add the KnowledgeGraphBuilder class to the builder module. This class is the main entry point for constructing a knowledge graph from MAID manifests. It coordinates loading manifests, creating nodes and edges using the existing factory functions, and assembling them into a complete KnowledgeGraph instance.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/builder.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/builder.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "KnowledgeGraphBuilder",
+        "description": "Main class that orchestrates knowledge graph construction from manifests"
+      },
+      {
+        "type": "function",
+        "name": "__init__",
+        "class": "KnowledgeGraphBuilder",
+        "description": "Initialize the builder with a manifest directory path",
+        "args": [
+          {"name": "manifest_dir", "type": "Path"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "build",
+        "class": "KnowledgeGraphBuilder",
+        "description": "Build and return the complete knowledge graph from all active manifests",
+        "args": [],
+        "returns": "KnowledgeGraph"
+      },
+      {
+        "type": "function",
+        "name": "_process_manifest",
+        "class": "KnowledgeGraphBuilder",
+        "description": "Process a single manifest, creating nodes and edges",
+        "args": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "path", "type": "Path"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "_extract_artifacts",
+        "class": "KnowledgeGraphBuilder",
+        "description": "Extract artifact data from manifest's expectedArtifacts",
+        "args": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"}
+        ],
+        "returns": "List[Tuple[Dict[str, Any], str]]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_107_knowledge_graph_builder.py", "-v"]
+}

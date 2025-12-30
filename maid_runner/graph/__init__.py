@@ -14,6 +14,18 @@ from maid_runner.graph.model import (
     EdgeType,
     Edge,
 )
+from maid_runner.graph.builder import (
+    load_manifest,
+    load_manifests,
+    create_manifest_node,
+    create_file_node,
+    create_artifact_node,
+    create_module_node,
+    create_supersedes_edges,
+    create_file_edges,
+    create_artifact_edges,
+    KnowledgeGraphBuilder,
+)
 
 __all__ = [
     "NodeType",
@@ -24,4 +36,14 @@ __all__ = [
     "ModuleNode",
     "EdgeType",
     "Edge",
+    "load_manifest",
+    "load_manifests",
+    "create_manifest_node",
+    "create_file_node",
+    "create_artifact_node",
+    "create_module_node",
+    "create_supersedes_edges",
+    "create_file_edges",
+    "create_artifact_edges",
+    "KnowledgeGraphBuilder",
 ]
