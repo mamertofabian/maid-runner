@@ -685,7 +685,11 @@ class TestRenameToIntegration:
                 "file": "src/auth/old_auth.py",
                 "contains": [
                     {"type": "class", "name": "AuthHandler"},
-                    {"type": "function", "name": "authenticate", "class": "AuthHandler"},
+                    {
+                        "type": "function",
+                        "name": "authenticate",
+                        "class": "AuthHandler",
+                    },
                 ],
             },
         }

@@ -164,7 +164,9 @@ See CLAUDE.md for full MAID workflow documentation."""
 
 
 def validate_supersession(
-    manifest_data: dict, manifests_dir: Path, current_manifest_path: Optional[Path] = None
+    manifest_data: dict,
+    manifests_dir: Path,
+    current_manifest_path: Optional[Path] = None,
 ) -> None:
     """
     Validate that supersession is legitimate (delete, rename, or snapshot-edit only).
@@ -269,7 +271,7 @@ def _get_superseded_manifest_files(
         # Strip "manifests/" prefix if present to normalize the path
         normalized_filename = filename
         if filename.startswith("manifests/"):
-            normalized_filename = filename[len("manifests/"):]
+            normalized_filename = filename[len("manifests/") :]
 
         manifest_path = manifests_dir / normalized_filename
         if not manifest_path.exists():

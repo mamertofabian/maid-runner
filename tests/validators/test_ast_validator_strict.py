@@ -390,7 +390,9 @@ class TestIsTestFilePath:
     def test_production_file_not_test(self, is_test_file_path):
         """Production files should return False."""
         assert is_test_file_path("src/utils.py") is False
-        assert is_test_file_path("maid_runner/validators/manifest_validator.py") is False
+        assert (
+            is_test_file_path("maid_runner/validators/manifest_validator.py") is False
+        )
         assert is_test_file_path("/home/user/project/src/service.py") is False
 
     def test_file_named_test_without_underscore(self, is_test_file_path):
