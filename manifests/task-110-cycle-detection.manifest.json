@@ -1,0 +1,31 @@
+{
+  "goal": "Implement cycle detection algorithms for finding circular dependencies in the knowledge graph",
+  "description": "Add cycle detection functions to the query module for identifying circular dependencies in the knowledge graph. These functions enable detecting all cycles using DFS-based algorithms and efficiently checking if the graph is acyclic.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "find_cycles",
+        "description": "Find all cycles (circular dependencies) in the graph using DFS-based cycle detection algorithm. Returns list of cycles, where each cycle is a list of nodes. Returns empty list if no cycles found.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "List[List[Node]]"
+      },
+      {
+        "type": "function",
+        "name": "is_acyclic",
+        "description": "Check if the graph has no cycles. Returns True if acyclic, False if any cycles exist. More efficient than find_cycles when just checking existence.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_110_cycle_detection.py", "-v"]
+}

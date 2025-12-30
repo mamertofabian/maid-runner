@@ -1,0 +1,67 @@
+{
+  "goal": "Implement query executor that executes parsed queries against the knowledge graph",
+  "description": "Add query execution capabilities to the query module. The QueryExecutor class takes a KnowledgeGraph and executes QueryIntent objects, routing to appropriate query functions based on QueryType and returning structured QueryResult objects. Supports FIND_DEFINITION, FIND_DEPENDENTS, FIND_DEPENDENCIES, FIND_IMPACT, FIND_CYCLES, and LIST_ARTIFACTS query types.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "QueryResult",
+        "description": "Dataclass representing the result of executing a query against the knowledge graph."
+      },
+      {
+        "type": "attribute",
+        "name": "success",
+        "class": "QueryResult",
+        "description": "Whether the query executed successfully (bool)."
+      },
+      {
+        "type": "attribute",
+        "name": "query_type",
+        "class": "QueryResult",
+        "description": "The type of query that was executed (QueryType)."
+      },
+      {
+        "type": "attribute",
+        "name": "data",
+        "class": "QueryResult",
+        "description": "The result data - nodes, files, impact dict, etc. (Any)."
+      },
+      {
+        "type": "attribute",
+        "name": "message",
+        "class": "QueryResult",
+        "description": "Human-readable result message (str)."
+      },
+      {
+        "type": "class",
+        "name": "QueryExecutor",
+        "description": "Executor class that runs parsed QueryIntent objects against a KnowledgeGraph and returns QueryResult objects."
+      },
+      {
+        "type": "function",
+        "name": "__init__",
+        "class": "QueryExecutor",
+        "description": "Initialize the QueryExecutor with a KnowledgeGraph instance.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "execute",
+        "class": "QueryExecutor",
+        "description": "Execute a parsed query intent and return the result. Routes to appropriate query function based on QueryType.",
+        "args": [
+          {"name": "intent", "type": "QueryIntent"}
+        ],
+        "returns": "QueryResult"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_113_query_executor.py", "-v"]
+}

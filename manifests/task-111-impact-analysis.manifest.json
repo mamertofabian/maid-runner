@@ -1,0 +1,43 @@
+{
+  "goal": "Implement impact analysis functions to determine what would be affected by changing an artifact",
+  "description": "Add impact analysis functions to the query module for analyzing the ripple effects of changing an artifact in the knowledge graph. These functions enable determining affected files, affected manifests, and computing a comprehensive impact summary.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "analyze_impact",
+        "description": "Analyze what would be affected if an artifact changed. Returns dict with impact summary including affected_files, affected_manifests, affected_artifacts, and total_impact_count.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "Dict[str, Any]"
+      },
+      {
+        "type": "function",
+        "name": "get_affected_files",
+        "description": "Get list of file paths that would be affected by changing an artifact. Follows DEFINES and file relationship edges.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "get_affected_manifests",
+        "description": "Get list of manifest paths that would be affected by changing an artifact. Follows DECLARES and manifest relationship edges.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "List[str]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_111_impact_analysis.py", "-v"]
+}
