@@ -14,12 +14,28 @@ class TestCLIAbsentStatusValidation:
 
     def test_cli_accepts_absent_file_that_doesnt_exist(self, tmp_path):
         """Test that CLI validation passes for absent files that don't exist."""
+        # Create manifests directory and superseded manifest
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        superseded_manifest = manifests_dir / "task-001.manifest.json"
+        superseded_manifest.write_text(json.dumps({
+            "goal": "Original file",
+            "taskType": "create",
+            "creatableFiles": ["deleted_file.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "deleted_file.py",
+                "contains": [{"type": "function", "name": "dummy"}]
+            },
+            "validationCommand": ["echo", "test"],
+        }, indent=2))
+
         # Create a manifest with status: "absent"
-        manifest_path = tmp_path / "test-delete.manifest.json"
+        manifest_path = manifests_dir / "test-delete.manifest.json"
         manifest_data = {
             "goal": "Delete obsolete module",
             "taskType": "refactor",
-            "supersedes": ["manifests/task-001.manifest.json"],
+            "supersedes": ["task-001.manifest.json"],
             "editableFiles": ["deleted_file.py"],
             "readonlyFiles": [],
             "expectedArtifacts": {
@@ -48,16 +64,33 @@ class TestCLIAbsentStatusValidation:
 
     def test_cli_rejects_absent_file_that_still_exists(self, tmp_path):
         """Test that CLI validation fails if file marked absent still exists."""
+        # Create manifests directory and superseded manifest
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
         # Create a file that should be deleted
         existing_file = tmp_path / "should_be_deleted.py"
         existing_file.write_text("# This file should not exist\n")
 
+        superseded_manifest = manifests_dir / "task-001.manifest.json"
+        superseded_manifest.write_text(json.dumps({
+            "goal": "Original file",
+            "taskType": "create",
+            "creatableFiles": [str(existing_file)],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(existing_file),
+                "contains": [{"type": "function", "name": "dummy"}]
+            },
+            "validationCommand": ["echo", "test"],
+        }, indent=2))
+
         # Create manifest marking it as absent
-        manifest_path = tmp_path / "test-delete.manifest.json"
+        manifest_path = manifests_dir / "test-delete.manifest.json"
         manifest_data = {
             "goal": "Delete file",
             "taskType": "refactor",
-            "supersedes": ["manifests/task-001.manifest.json"],
+            "supersedes": ["task-001.manifest.json"],
             "editableFiles": [str(existing_file)],
             "readonlyFiles": [],
             "expectedArtifacts": {
@@ -118,15 +151,32 @@ class TestCLIAbsentStatusValidation:
 
     def test_cli_absent_file_skips_implementation_validation(self, tmp_path):
         """Test that absent files skip artifact validation."""
+        # Create manifests directory and superseded manifest
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
         # Don't create the file (it should be absent)
         deleted_file = tmp_path / "deleted.py"
 
+        superseded_manifest = manifests_dir / "task-001.manifest.json"
+        superseded_manifest.write_text(json.dumps({
+            "goal": "Original file",
+            "taskType": "create",
+            "creatableFiles": [str(deleted_file)],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(deleted_file),
+                "contains": [{"type": "function", "name": "dummy"}]
+            },
+            "validationCommand": ["echo", "test"],
+        }, indent=2))
+
         # Create manifest with status: "absent"
-        manifest_path = tmp_path / "test-delete.manifest.json"
+        manifest_path = manifests_dir / "test-delete.manifest.json"
         manifest_data = {
             "goal": "Delete file",
             "taskType": "refactor",
-            "supersedes": ["manifests/task-001.manifest.json"],
+            "supersedes": ["task-001.manifest.json"],
             "editableFiles": [str(deleted_file)],
             "readonlyFiles": [],
             "expectedArtifacts": {
@@ -161,16 +211,33 @@ class TestCLIErrorMessages:
 
     def test_helpful_error_when_absent_file_exists(self, tmp_path):
         """Test that error message is clear when deleted file still exists."""
+        # Create manifests directory and superseded manifest
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
         # Create file that should be deleted
         leftover_file = tmp_path / "should_be_gone.py"
         leftover_file.write_text("# Forgot to delete this\n")
 
+        superseded_manifest = manifests_dir / "task-001.manifest.json"
+        superseded_manifest.write_text(json.dumps({
+            "goal": "Original file",
+            "taskType": "create",
+            "creatableFiles": [str(leftover_file)],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(leftover_file),
+                "contains": [{"type": "function", "name": "dummy"}]
+            },
+            "validationCommand": ["echo", "test"],
+        }, indent=2))
+
         # Create manifest
-        manifest_path = tmp_path / "test-delete.manifest.json"
+        manifest_path = manifests_dir / "test-delete.manifest.json"
         manifest_data = {
             "goal": "Delete file",
             "taskType": "refactor",
-            "supersedes": ["manifests/task-001.manifest.json"],
+            "supersedes": ["task-001.manifest.json"],
             "editableFiles": [str(leftover_file)],
             "readonlyFiles": [],
             "expectedArtifacts": {

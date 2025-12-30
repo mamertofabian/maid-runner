@@ -1,7 +1,7 @@
 {
   "goal": "Add --delete flag support to maid manifest create command for creating deletion manifests with status: absent",
   "taskType": "edit",
-  "supersedes": ["task-097-manifest-create-core.manifest.json"],
+  "supersedes": [],
   "editableFiles": [
     "maid_runner/cli/manifest_create.py"
   ],

@@ -1,0 +1,148 @@
+{
+  "goal": "Add supersession validity validation to detect invalid/abusive supersession in manifests",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/semantic_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/validate.py",
+    "docs/maid_specs.md",
+    "maid_runner/validators/schemas/manifest.schema.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/semantic_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "validate_supersession",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "current_manifest_path",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate that supersession is legitimate (delete, rename, or snapshot-edit only)"
+      },
+      {
+        "type": "function",
+        "name": "_get_superseded_manifest_files",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "List[Tuple[str, dict]]",
+        "description": "Load superseded manifest files and their contents"
+      },
+      {
+        "type": "function",
+        "name": "_validate_delete_supersession",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "superseded_manifests",
+            "type": "List[Tuple[str, dict]]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate supersession for delete operations (status: absent)"
+      },
+      {
+        "type": "function",
+        "name": "_validate_rename_supersession",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "superseded_manifests",
+            "type": "List[Tuple[str, dict]]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate supersession for rename/move operations"
+      },
+      {
+        "type": "function",
+        "name": "_validate_snapshot_edit_supersession",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "superseded_manifests",
+            "type": "List[Tuple[str, dict]]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate that only snapshot manifests for the same file are superseded"
+      },
+      {
+        "type": "function",
+        "name": "_validate_snapshot_supersedes",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "current_manifest_path",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "None",
+        "description": "Validate snapshot supersedes based on whether prior manifests exist"
+      },
+      {
+        "type": "function",
+        "name": "_find_prior_manifests_for_file",
+        "args": [
+          {
+            "name": "target_file",
+            "type": "str"
+          },
+          {
+            "name": "manifests_dir",
+            "type": "Path"
+          },
+          {
+            "name": "exclude_manifest",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "List[Path]",
+        "description": "Find all manifests that reference the given target file"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_100_supersession_validation.py",
+    "-v"
+  ]
+}
