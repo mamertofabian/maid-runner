@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-30
+
+### Added
+- **`maid manifest create` command** for programmatic manifest generation (Tasks 095-099)
+  - Create new manifests with auto-numbering (`--goal "description"`)
+  - Auto-supersedes snapshot manifests for the same file
+  - Support for `--delete` flag to create file deletion manifests
+  - Support for `--rename-to` flag to create file rename manifests
+  - JSON output mode (`--json`) for tool integration
+  - Dry-run mode (`--dry-run`) to preview manifest without writing
+  - Path normalization for consistent manifest references
+  - Artifact specification via `--artifacts` flag (JSON format)
+- **Snapshot supersession validation** to prevent manifest abuse (Task 100)
+  - Only snapshot manifests can be superseded
+  - Edit/create/refactor manifests cannot supersede each other (prevents task "re-farming")
+  - Legacy snapshots (without `taskType`) automatically detected and allowed
+  - Clear error messages explaining supersession rules
+  - Integrated into `maid validate` command
+- **Auto-sync Claude files** before test runs via pytest conftest.py
+  - Ensures packaged Claude documentation stays synchronized
+
+### Fixed
+- **Test file bypass security loophole** closed (Issue #100)
+  - Improved path handling in validation
+  - Added edge case tests for path normalization
+- **Deduplication key** now includes `returns` field for more accurate artifact matching
+- **E402 lint error** resolved in conftest.py
+
+### Changed
+- Supersession validation now integrated directly into manifest validation pipeline
+
 ## [0.5.0] - 2025-12-11
 
 ### Added
@@ -412,6 +443,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.6.0]: https://github.com/mamertofabian/maid-runner/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mamertofabian/maid-runner/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/mamertofabian/maid-runner/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/mamertofabian/maid-runner/compare/v0.3.1...v0.4.0

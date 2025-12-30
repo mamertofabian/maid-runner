@@ -438,9 +438,7 @@ def _find_active_manifests_to_supersede(
     return result
 
 
-def _get_artifacts_from_manifests(
-    file_path: str, manifests_dir: Path
-) -> List[dict]:
+def _get_artifacts_from_manifests(file_path: str, manifests_dir: Path) -> List[dict]:
     """Get combined artifacts from all active manifests for a file.
 
     Used during rename operations to copy existing artifact declarations

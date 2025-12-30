@@ -878,9 +878,7 @@ class TestValidateSupersessionEdgeCases:
                 "contains": [{"type": "function", "name": "func"}],
             },
         }
-        _create_manifest_file(
-            manifests_dir, "task-010-old.manifest.json", old_manifest
-        )
+        _create_manifest_file(manifests_dir, "task-010-old.manifest.json", old_manifest)
 
         # Rename manifest with empty editableFiles (missing old path)
         rename_manifest = {
@@ -1043,7 +1041,9 @@ class TestValidateSupersessionIntegration:
             "taskType": "snapshot",
             "expectedArtifacts": {"file": "src/service.py", "contains": []},
         }
-        _create_manifest_file(manifests_dir, "task-001-original.manifest.json", original)
+        _create_manifest_file(
+            manifests_dir, "task-001-original.manifest.json", original
+        )
 
         # First edit supersedes original snapshot
         edit1 = {
@@ -1156,7 +1156,9 @@ class TestValidateSnapshotSupersedes:
         )
 
         with pytest.raises(ManifestSemanticError) as exc_info:
-            _validate_snapshot_supersedes(invalid_snapshot, manifests_dir, snapshot_path)
+            _validate_snapshot_supersedes(
+                invalid_snapshot, manifests_dir, snapshot_path
+            )
 
         error_msg = str(exc_info.value)
         assert "empty supersedes" in error_msg.lower()
@@ -1217,7 +1219,9 @@ class TestFindPriorManifestsForFile:
                     "contains": [],
                 },
             }
-            _create_manifest_file(manifests_dir, f"task-00{i}-edit.manifest.json", manifest)
+            _create_manifest_file(
+                manifests_dir, f"task-00{i}-edit.manifest.json", manifest
+            )
 
         result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
 
@@ -1234,7 +1238,9 @@ class TestFindPriorManifestsForFile:
             "taskType": "edit",
             "expectedArtifacts": {"file": "src/service.py", "contains": []},
         }
-        _create_manifest_file(manifests_dir, "task-001-service.manifest.json", target_manifest)
+        _create_manifest_file(
+            manifests_dir, "task-001-service.manifest.json", target_manifest
+        )
 
         # Create manifest for different file
         other_manifest = {
@@ -1242,7 +1248,9 @@ class TestFindPriorManifestsForFile:
             "taskType": "edit",
             "expectedArtifacts": {"file": "src/other.py", "contains": []},
         }
-        _create_manifest_file(manifests_dir, "task-002-other.manifest.json", other_manifest)
+        _create_manifest_file(
+            manifests_dir, "task-002-other.manifest.json", other_manifest
+        )
 
         result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
 
@@ -1267,7 +1275,9 @@ class TestFindPriorManifestsForFile:
             "taskType": "edit",
             "expectedArtifacts": {"file": "src/service.py", "contains": []},
         }
-        path2 = _create_manifest_file(manifests_dir, "task-002.manifest.json", manifest2)
+        path2 = _create_manifest_file(
+            manifests_dir, "task-002.manifest.json", manifest2
+        )
 
         # Find prior manifests excluding manifest2
         result = _find_prior_manifests_for_file("src/service.py", manifests_dir, path2)
