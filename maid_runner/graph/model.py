@@ -16,9 +16,16 @@ Edge Types:
 - Edge: Dataclass representing a directed edge between nodes
 """
 
-from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+# Node ID prefix constants
+MANIFEST_PREFIX = "manifest:"
+FILE_PREFIX = "file:"
+ARTIFACT_PREFIX = "artifact:"
+MODULE_PREFIX = "module:"
+EDGE_PREFIX = "edge:"
 
 
 class NodeType(Enum):
@@ -37,7 +44,6 @@ class NodeType(Enum):
     MODULE = "module"
 
 
-@dataclass
 class Node:
     """Base class for all graph nodes.
 
@@ -46,10 +52,6 @@ class Node:
         node_type: The type of this node (from NodeType enum).
         attributes: Additional metadata as key-value pairs.
     """
-
-    id: str
-    node_type: NodeType
-    attributes: Dict[str, Any] = field(default_factory=dict)
 
     def __init__(
         self,
@@ -69,7 +71,6 @@ class Node:
         self.attributes = attributes if attributes is not None else {}
 
 
-@dataclass
 class ManifestNode(Node):
     """Node representing a MAID manifest file.
 
@@ -82,11 +83,6 @@ class ManifestNode(Node):
         task_type: Task type (create, edit, refactor, snapshot).
         version: Manifest version string.
     """
-
-    path: str = ""
-    goal: str = ""
-    task_type: str = ""
-    version: str = ""
 
     def __init__(
         self,
@@ -118,7 +114,6 @@ class ManifestNode(Node):
         self.version = version
 
 
-@dataclass
 class FileNode(Node):
     """Node representing a tracked file.
 
@@ -129,9 +124,6 @@ class FileNode(Node):
         path: File path.
         status: File status (e.g., tracked, untracked, registered).
     """
-
-    path: str = ""
-    status: str = ""
 
     def __init__(
         self,
@@ -157,7 +149,6 @@ class FileNode(Node):
         self.status = status
 
 
-@dataclass
 class ArtifactNode(Node):
     """Node representing a code artifact.
 
@@ -172,11 +163,6 @@ class ArtifactNode(Node):
         signature: Optional function/method signature.
         parent_class: Optional parent class for methods/attributes.
     """
-
-    name: str = ""
-    artifact_type: str = ""
-    signature: Optional[str] = None
-    parent_class: Optional[str] = None
 
     def __init__(
         self,
@@ -208,7 +194,6 @@ class ArtifactNode(Node):
         self.parent_class = parent_class
 
 
-@dataclass
 class ModuleNode(Node):
     """Node representing a Python module.
 
@@ -219,9 +204,6 @@ class ModuleNode(Node):
         name: Module name.
         package: Package name the module belongs to.
     """
-
-    name: str = ""
-    package: Optional[str] = None
 
     def __init__(
         self,
@@ -274,9 +256,8 @@ class EdgeType(Enum):
     BELONGS_TO = "belongs_to"
 
 
-@dataclass
 class Edge:
-    """Dataclass representing a graph edge.
+    """Class representing a graph edge.
 
     Represents a directed relationship between two nodes in the knowledge graph.
 
@@ -287,12 +268,6 @@ class Edge:
         target_id: ID of the target node.
         attributes: Additional metadata as key-value pairs.
     """
-
-    id: str
-    edge_type: EdgeType
-    source_id: str
-    target_id: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
 
     def __init__(
         self,
@@ -325,6 +300,9 @@ class KnowledgeGraph:
         """Initialize an empty knowledge graph."""
         self._nodes: Dict[str, Node] = {}  # node_id -> Node
         self._edges: List[Edge] = []
+        # Adjacency list indices for O(1) edge lookups
+        self._outgoing_edges: Dict[str, List[Edge]] = {}  # source_id -> edges
+        self._incoming_edges: Dict[str, List[Edge]] = {}  # target_id -> edges
 
     def add_node(self, node: Node) -> None:
         """Add a node to the graph.
@@ -341,6 +319,13 @@ class KnowledgeGraph:
             edge: The edge to add to the graph.
         """
         self._edges.append(edge)
+        # Update adjacency indices
+        if edge.source_id not in self._outgoing_edges:
+            self._outgoing_edges[edge.source_id] = []
+        self._outgoing_edges[edge.source_id].append(edge)
+        if edge.target_id not in self._incoming_edges:
+            self._incoming_edges[edge.target_id] = []
+        self._incoming_edges[edge.target_id].append(edge)
 
     def get_node(self, node_id: str) -> Optional[Node]:
         """Retrieve a node by its ID.
@@ -356,6 +341,8 @@ class KnowledgeGraph:
     def get_edges(self, node_id: str, edge_type: Optional[EdgeType] = None) -> List[Edge]:
         """Get edges for a node, optionally filtered by edge type.
 
+        Uses adjacency list indices for O(1) lookup instead of scanning all edges.
+
         Args:
             node_id: The ID of the node to get edges for.
             edge_type: Optional edge type to filter by.
@@ -363,9 +350,11 @@ class KnowledgeGraph:
         Returns:
             List of edges connected to the specified node.
         """
-        result = [
-            e for e in self._edges if e.source_id == node_id or e.target_id == node_id
-        ]
+        # Combine outgoing and incoming edges using indices
+        outgoing = self._outgoing_edges.get(node_id, [])
+        incoming = self._incoming_edges.get(node_id, [])
+        result = list(outgoing) + [e for e in incoming if e not in outgoing]
+
         if edge_type is not None:
             result = [e for e in result if e.edge_type == edge_type]
         return result

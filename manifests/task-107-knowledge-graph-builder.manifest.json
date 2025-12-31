@@ -34,10 +34,11 @@
         "type": "function",
         "name": "_process_manifest",
         "class": "KnowledgeGraphBuilder",
-        "description": "Process a single manifest, creating nodes and edges",
+        "description": "Process a single manifest, creating nodes and edges with optional validation",
         "args": [
           {"name": "manifest_data", "type": "Dict[str, Any]"},
-          {"name": "path", "type": "Path"}
+          {"name": "path", "type": "Path"},
+          {"name": "known_manifest_ids", "type": "Optional[set]"}
         ],
         "returns": "None"
       },

@@ -10,10 +10,11 @@
       {
         "type": "function",
         "name": "create_supersedes_edges",
-        "description": "Create SUPERSEDES edges from a manifest to each superseded manifest",
+        "description": "Create SUPERSEDES edges from a manifest to each superseded manifest, with optional validation",
         "args": [
           {"name": "manifest_data", "type": "Dict[str, Any]"},
-          {"name": "manifest_node", "type": "ManifestNode"}
+          {"name": "manifest_node", "type": "ManifestNode"},
+          {"name": "known_manifest_ids", "type": "Optional[set]"}
         ],
         "returns": "List[Edge]"
       },
