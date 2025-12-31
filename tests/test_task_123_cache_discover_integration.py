@@ -266,9 +266,7 @@ class TestUseCacheTrue:
         create_manifest("task-001-module.manifest.json", "src/module.py")
 
         # Create a mock to verify delegation
-        with patch.object(
-            ManifestRegistry, "get_instance"
-        ) as mock_get_instance:
+        with patch.object(ManifestRegistry, "get_instance") as mock_get_instance:
             mock_registry = MagicMock()
             mock_registry.get_related_manifests.return_value = [
                 "manifests/task-001-module.manifest.json"
@@ -501,8 +499,8 @@ class TestRelatedManifestsDiscovery:
                     task_numbers.append(int(parts[1]))
 
             # Verify chronological order
-            assert (
-                task_numbers == sorted(task_numbers)
+            assert task_numbers == sorted(
+                task_numbers
             ), f"Not in order with use_cache={use_cache}: {task_numbers}"
 
 

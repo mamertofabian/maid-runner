@@ -212,7 +212,9 @@ class TestHandleQuery:
 
     def test_handles_impact_query(self, populated_manifest_dir, capsys):
         """Verify handle_query handles impact analysis query."""
-        handle_query("What would break if I change function_one?", populated_manifest_dir)
+        handle_query(
+            "What would break if I change function_one?", populated_manifest_dir
+        )
 
         captured = capsys.readouterr()
         assert len(captured.out) > 0

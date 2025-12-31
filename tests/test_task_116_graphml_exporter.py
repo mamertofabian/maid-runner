@@ -111,9 +111,7 @@ class TestGraphToGraphmlStructure:
 
         root = ET.fromstring(result)
         # Find graph element (with or without namespace)
-        graph_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("graph")
-        ]
+        graph_elements = [elem for elem in root.iter() if elem.tag.endswith("graph")]
         assert len(graph_elements) >= 1
 
     def test_graph_is_directed(self) -> None:
@@ -123,9 +121,7 @@ class TestGraphToGraphmlStructure:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        graph_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("graph")
-        ]
+        graph_elements = [elem for elem in root.iter() if elem.tag.endswith("graph")]
         assert len(graph_elements) >= 1
         graph_elem = graph_elements[0]
         assert graph_elem.get("edgedefault") == "directed"
@@ -141,9 +137,7 @@ class TestGraphToGraphmlKeyDefinitions:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        key_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("key")
-        ]
+        key_elements = [elem for elem in root.iter() if elem.tag.endswith("key")]
         assert len(key_elements) > 0
 
     def test_contains_node_type_key(self) -> None:
@@ -177,9 +171,7 @@ class TestGraphToGraphmlNodes:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         assert len(node_elements) >= 1
 
     def test_node_has_id_attribute(self) -> None:
@@ -191,9 +183,7 @@ class TestGraphToGraphmlNodes:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         assert len(node_elements) >= 1
         assert node_elements[0].get("id") == "my-node-id"
 
@@ -210,9 +200,7 @@ class TestGraphToGraphmlNodes:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         node_ids = [elem.get("id") for elem in node_elements]
         assert "node1" in node_ids
         assert "node2" in node_ids
@@ -299,9 +287,7 @@ class TestGraphToGraphmlEdges:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
         assert len(edge_elements) >= 1
 
     def test_edge_has_source_attribute(self) -> None:
@@ -318,9 +304,7 @@ class TestGraphToGraphmlEdges:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
         assert len(edge_elements) >= 1
         assert edge_elements[0].get("source") == "source-node"
 
@@ -338,9 +322,7 @@ class TestGraphToGraphmlEdges:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
         assert len(edge_elements) >= 1
         assert edge_elements[0].get("target") == "target-node"
 
@@ -372,9 +354,7 @@ class TestGraphToGraphmlEdges:
         result = graph_to_graphml(graph)
 
         root = ET.fromstring(result)
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
         assert len(edge_elements) >= 3
 
 
@@ -511,9 +491,7 @@ class TestExportGraphml:
 
         content = output_path.read_text()
         root = ET.fromstring(content)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         assert len(node_elements) >= 1
         assert node_elements[0].get("id") == "test-node"
 
@@ -533,9 +511,7 @@ class TestExportGraphml:
 
         content = output_path.read_text()
         root = ET.fromstring(content)
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
         assert len(edge_elements) >= 1
 
     def test_exports_complex_graph(self, tmp_path: Path) -> None:
@@ -605,12 +581,8 @@ class TestExportGraphml:
         content = output_path.read_text()
         root = ET.fromstring(content)
 
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
-        edge_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("edge")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
+        edge_elements = [elem for elem in root.iter() if elem.tag.endswith("edge")]
 
         assert len(node_elements) == 4
         assert len(edge_elements) == 3
@@ -648,9 +620,7 @@ class TestExportGraphml:
 
         content = output_path.read_text()
         root = ET.fromstring(content)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         node_ids = [elem.get("id") for elem in node_elements]
         assert "second-node" in node_ids
         assert "first-node" not in node_ids
@@ -698,9 +668,7 @@ class TestGraphToGraphmlSpecialCharacters:
 
         # Should be parseable
         root = ET.fromstring(result)
-        node_elements = [
-            elem for elem in root.iter() if elem.tag.endswith("node")
-        ]
+        node_elements = [elem for elem in root.iter() if elem.tag.endswith("node")]
         assert len(node_elements) >= 1
 
     def test_node_with_ampersand_produces_valid_xml(self) -> None:

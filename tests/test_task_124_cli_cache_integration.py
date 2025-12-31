@@ -187,7 +187,9 @@ class TestCacheFlagPropagationToDiscoverRelatedManifests:
         with patch("maid_runner.cli.validate.validate_schema"):
             with patch("maid_runner.cli.validate.validate_manifest_semantics"):
                 with patch("maid_runner.cli.validate.validate_supersession"):
-                    with patch("maid_runner.cli.validate.validate_with_ast") as mock_ast:
+                    with patch(
+                        "maid_runner.cli.validate.validate_with_ast"
+                    ) as mock_ast:
                         # Mock validate_with_ast to prevent actual validation
                         mock_ast.return_value = None
 
@@ -258,7 +260,9 @@ class TestCacheFlagPropagationToDiscoverRelatedManifests:
         with patch("maid_runner.cli.validate.validate_schema"):
             with patch("maid_runner.cli.validate.validate_manifest_semantics"):
                 with patch("maid_runner.cli.validate.validate_supersession"):
-                    with patch("maid_runner.cli.validate.validate_with_ast") as mock_ast:
+                    with patch(
+                        "maid_runner.cli.validate.validate_with_ast"
+                    ) as mock_ast:
                         mock_ast.return_value = None
 
                         with patch(
@@ -334,8 +338,12 @@ class TestCacheFlagPropagationToGetSupersededManifests:
             )
             return set()
 
-        with patch("maid_runner.cli.validate.get_superseded_manifests", mock_get_superseded):
-            with patch("maid_runner.utils.get_superseded_manifests", mock_get_superseded):
+        with patch(
+            "maid_runner.cli.validate.get_superseded_manifests", mock_get_superseded
+        ):
+            with patch(
+                "maid_runner.utils.get_superseded_manifests", mock_get_superseded
+            ):
                 import os
 
                 original_cwd = os.getcwd()
@@ -445,9 +453,8 @@ class TestCLIFlagParsing:
         if run_validation_calls:
             last_call = run_validation_calls[-1]
             # use_cache may be in kwargs or as positional arg
-            assert (
-                last_call["kwargs"].get("use_cache") is True
-                or (len(last_call["args"]) >= 12 and last_call["args"][11] is True)
+            assert last_call["kwargs"].get("use_cache") is True or (
+                len(last_call["args"]) >= 12 and last_call["args"][11] is True
             ), "main() should pass use_cache=True to run_validation"
 
 
@@ -648,6 +655,6 @@ class TestRunValidationSignatureComplete:
         from maid_runner.cli.validate import run_validation
 
         sig = inspect.signature(run_validation)
-        assert (
-            sig.return_annotation is None or sig.return_annotation is type(None)
+        assert sig.return_annotation is None or sig.return_annotation is type(
+            None
         ), "run_validation should return None"

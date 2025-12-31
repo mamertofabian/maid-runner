@@ -338,7 +338,9 @@ class KnowledgeGraph:
         """
         return self._nodes.get(node_id)
 
-    def get_edges(self, node_id: str, edge_type: Optional[EdgeType] = None) -> List[Edge]:
+    def get_edges(
+        self, node_id: str, edge_type: Optional[EdgeType] = None
+    ) -> List[Edge]:
         """Get edges for a node, optionally filtered by edge type.
 
         Uses adjacency list indices for O(1) lookup instead of scanning all edges.

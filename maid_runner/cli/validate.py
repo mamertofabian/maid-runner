@@ -17,7 +17,11 @@ from typing import Optional, List, Dict, Set, Any
 
 import jsonschema
 
-from maid_runner.utils import find_project_root, normalize_validation_commands, get_superseded_manifests
+from maid_runner.utils import (
+    find_project_root,
+    normalize_validation_commands,
+    get_superseded_manifests,
+)
 
 # Try to import watchdog for watch mode
 try:
@@ -1417,7 +1421,11 @@ def run_validation(
     # Handle --manifest-dir mode
     if manifest_dir:
         _run_directory_validation(
-            manifest_dir, validation_mode, use_manifest_chain, quiet, use_cache=use_cache
+            manifest_dir,
+            validation_mode,
+            use_manifest_chain,
+            quiet,
+            use_cache=use_cache,
         )
         return
 

@@ -152,9 +152,15 @@ def cyclic_graph():
     graph.add_node(node_c)
 
     # A -> B -> C -> A (cycle)
-    graph.add_edge(Edge(id="e1", edge_type=EdgeType.DECLARES, source_id="A", target_id="B"))
-    graph.add_edge(Edge(id="e2", edge_type=EdgeType.DECLARES, source_id="B", target_id="C"))
-    graph.add_edge(Edge(id="e3", edge_type=EdgeType.DECLARES, source_id="C", target_id="A"))
+    graph.add_edge(
+        Edge(id="e1", edge_type=EdgeType.DECLARES, source_id="A", target_id="B")
+    )
+    graph.add_edge(
+        Edge(id="e2", edge_type=EdgeType.DECLARES, source_id="B", target_id="C")
+    )
+    graph.add_edge(
+        Edge(id="e3", edge_type=EdgeType.DECLARES, source_id="C", target_id="A")
+    )
 
     return graph
 
@@ -290,7 +296,9 @@ class TestQueryExecutorInit:
         # We verify by checking it can execute queries against it
         assert executor is not None
 
-    def test_init_explicitly_called_with_graph_parameter(self, empty_graph, simple_graph):
+    def test_init_explicitly_called_with_graph_parameter(
+        self, empty_graph, simple_graph
+    ):
         """__init__ can be called explicitly with graph parameter."""
         executor = QueryExecutor(graph=empty_graph)
 

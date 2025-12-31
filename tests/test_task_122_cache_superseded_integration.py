@@ -137,9 +137,7 @@ class TestUseCacheFalse:
         """Verify use_cache=False does not use ManifestRegistry."""
         create_manifest("task-001.manifest.json")
 
-        with patch(
-            "maid_runner.utils.ManifestRegistry"
-        ) as mock_registry_class:
+        with patch("maid_runner.utils.ManifestRegistry") as mock_registry_class:
             result = get_superseded_manifests(temp_manifest_dir, use_cache=False)
 
             # ManifestRegistry should not be called with use_cache=False
@@ -189,9 +187,7 @@ class TestUseCacheTrue:
         mock_registry = MagicMock()
         mock_registry.get_superseded_manifests.return_value = set()
 
-        with patch(
-            "maid_runner.utils.ManifestRegistry"
-        ) as mock_registry_class:
+        with patch("maid_runner.utils.ManifestRegistry") as mock_registry_class:
             mock_registry_class.get_instance.return_value = mock_registry
 
             get_superseded_manifests(temp_manifest_dir, use_cache=True)

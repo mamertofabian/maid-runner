@@ -144,9 +144,9 @@ def test_discover_related_manifests_cached_vs_uncached(manifests_with_50_files: 
     cached_avg = sum(cached_times) / len(cached_times)
 
     # Assert that cached is faster than uncached
-    assert cached_avg < uncached_avg, (
-        f"Cached ({cached_avg:.6f}s) should be faster than uncached ({uncached_avg:.6f}s)"
-    )
+    assert (
+        cached_avg < uncached_avg
+    ), f"Cached ({cached_avg:.6f}s) should be faster than uncached ({uncached_avg:.6f}s)"
 
     # Both should return non-empty results
     assert len(result_cached) > 0, "Cached should return results"
@@ -197,17 +197,17 @@ def test_get_superseded_manifests_cached_vs_uncached(manifests_with_50_files: Pa
     cached_avg = sum(cached_times) / len(cached_times)
 
     # Assert that cached is faster than uncached
-    assert cached_avg < uncached_avg, (
-        f"Cached ({cached_avg:.6f}s) should be faster than uncached ({uncached_avg:.6f}s)"
-    )
+    assert (
+        cached_avg < uncached_avg
+    ), f"Cached ({cached_avg:.6f}s) should be faster than uncached ({uncached_avg:.6f}s)"
 
     # Both should return the same superseded manifests
     # (supersession logic should be identical between cached and uncached)
     cached_names = {Path(p).name for p in result_cached}
     uncached_names = {Path(p).name for p in result_uncached}
-    assert cached_names == uncached_names, (
-        "Cached and uncached superseded manifests should be equivalent"
-    )
+    assert (
+        cached_names == uncached_names
+    ), "Cached and uncached superseded manifests should be equivalent"
 
 
 def test_cache_achieves_50_percent_improvement(manifests_with_50_files: Path):

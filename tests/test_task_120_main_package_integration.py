@@ -241,7 +241,12 @@ class TestCombinedUsage:
 
     def test_exported_graph_symbols_are_same_as_graph_package(self) -> None:
         """Symbols exported from maid_runner should be same as from maid_runner.graph."""
-        from maid_runner import EdgeType, KnowledgeGraph, KnowledgeGraphBuilder, NodeType
+        from maid_runner import (
+            EdgeType,
+            KnowledgeGraph,
+            KnowledgeGraphBuilder,
+            NodeType,
+        )
         from maid_runner.graph import (
             EdgeType as GraphEdgeType,
             KnowledgeGraph as GraphKnowledgeGraph,

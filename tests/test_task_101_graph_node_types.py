@@ -86,7 +86,9 @@ class TestNodeBaseClass:
     def test_node_creation_with_custom_attributes(self):
         """Node can be created with custom attributes dict."""
         custom_attrs = {"key1": "value1", "key2": 42, "nested": {"a": 1}}
-        node = Node(id="test-node-3", node_type=NodeType.ARTIFACT, attributes=custom_attrs)
+        node = Node(
+            id="test-node-3", node_type=NodeType.ARTIFACT, attributes=custom_attrs
+        )
 
         assert node.attributes["key1"] == "value1"
         assert node.attributes["key2"] == 42

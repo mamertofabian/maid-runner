@@ -548,9 +548,7 @@ class TestFindCycles:
             cycle_node_ids.extend([node.id for node in cycle])
         assert "artifact-C" in cycle_node_ids or "artifact-D" in cycle_node_ids
 
-    def test_cycle_is_list_of_nodes(
-        self, simple_cycle_graph: KnowledgeGraph
-    ) -> None:
+    def test_cycle_is_list_of_nodes(self, simple_cycle_graph: KnowledgeGraph) -> None:
         """Test that each cycle in the result is a list of Node objects."""
         result = find_cycles(simple_cycle_graph)
 
@@ -621,9 +619,7 @@ class TestIsAcyclic:
 
         assert result is False
 
-    def test_returns_false_for_self_loop(
-        self, self_loop_graph: KnowledgeGraph
-    ) -> None:
+    def test_returns_false_for_self_loop(self, self_loop_graph: KnowledgeGraph) -> None:
         """Test that is_acyclic returns False for self-loop (A -> A)."""
         result = is_acyclic(self_loop_graph)
 

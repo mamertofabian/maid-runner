@@ -622,9 +622,7 @@ class TestGetNeighbors:
         neighbor_ids = [n.id for n in result]
         assert "file-001" in neighbor_ids
 
-    def test_works_with_reads_edge_type(
-        self, connected_graph: KnowledgeGraph
-    ) -> None:
+    def test_works_with_reads_edge_type(self, connected_graph: KnowledgeGraph) -> None:
         """Test get_neighbors works with READS edge type."""
         manifest = connected_graph.get_node("manifest-001")
         assert manifest is not None

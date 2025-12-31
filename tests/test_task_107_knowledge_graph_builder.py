@@ -233,9 +233,7 @@ class TestKnowledgeGraphBuilderBuild:
 
         result = builder.build()
 
-        manifest_nodes = [
-            n for n in result.nodes if n.node_type == NodeType.MANIFEST
-        ]
+        manifest_nodes = [n for n in result.nodes if n.node_type == NodeType.MANIFEST]
         assert len(manifest_nodes) == 2
 
     def test_build_creates_file_nodes(
@@ -625,5 +623,9 @@ class TestKnowledgeGraphBuilderIntegration:
             # SUPERSEDES edges may reference nodes not in the graph
             # (superseded manifests are not loaded)
             if edge.edge_type != EdgeType.SUPERSEDES:
-                assert edge.source_id in node_ids, f"Missing source node: {edge.source_id}"
-                assert edge.target_id in node_ids, f"Missing target node: {edge.target_id}"
+                assert (
+                    edge.source_id in node_ids
+                ), f"Missing source node: {edge.source_id}"
+                assert (
+                    edge.target_id in node_ids
+                ), f"Missing target node: {edge.target_id}"

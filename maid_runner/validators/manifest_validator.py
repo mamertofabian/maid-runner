@@ -581,7 +581,9 @@ class _ArtifactCollector(ast.NodeVisitor):
             if is_property:
                 self._add_class_attribute(self.current_class, node.name)
             else:
-                self._store_method_info(node.name, param_names, param_types, return_type)
+                self._store_method_info(
+                    node.name, param_names, param_types, return_type
+                )
 
         # Track function scope for nested definitions
         old_function = self.current_function

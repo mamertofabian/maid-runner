@@ -41,9 +41,7 @@ class TestLoadManifest:
             "readonlyFiles": ["src/base.py"],
             "expectedArtifacts": {
                 "file": "src/utils.py",
-                "contains": [
-                    {"type": "function", "name": "helper", "args": []}
-                ],
+                "contains": [{"type": "function", "name": "helper", "args": []}],
             },
             "validationCommand": ["pytest", "tests/test_utils.py", "-v"],
         }
@@ -88,9 +86,7 @@ class TestLoadManifest:
         with pytest.raises((FileNotFoundError, OSError)):
             load_manifest(nonexistent_path)
 
-    def test_load_manifest_raises_error_for_invalid_json(
-        self, tmp_path: Path
-    ) -> None:
+    def test_load_manifest_raises_error_for_invalid_json(self, tmp_path: Path) -> None:
         """load_manifest raises error when file contains invalid JSON."""
         invalid_json_path = tmp_path / "task-001-invalid.manifest.json"
         invalid_json_path.write_text("{ invalid json content }")
@@ -258,9 +254,7 @@ class TestLoadManifests:
         assert len(result) == 1
         assert result[0]["goal"] == "Replacement task"
 
-    def test_load_manifests_preserves_chronological_order(
-        self, tmp_path: Path
-    ) -> None:
+    def test_load_manifests_preserves_chronological_order(self, tmp_path: Path) -> None:
         """load_manifests returns manifests in chronological order."""
         manifest_dir = tmp_path / "manifests"
         manifest_dir.mkdir()
@@ -324,9 +318,7 @@ class TestLoadManifests:
         assert len(result) == 1
         assert result[0]["goal"] == "Valid manifest"
 
-    def test_load_manifests_handles_complex_supersession(
-        self, tmp_path: Path
-    ) -> None:
+    def test_load_manifests_handles_complex_supersession(self, tmp_path: Path) -> None:
         """load_manifests correctly handles chain of supersessions."""
         manifest_dir = tmp_path / "manifests"
         manifest_dir.mkdir()

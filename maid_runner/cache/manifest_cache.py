@@ -207,7 +207,9 @@ class ManifestRegistry:
 
         # Find all manifest files
         manifest_files = list(self._manifests_dir.glob("task-*.manifest.json"))
-        logger.debug("Found %d manifest files in %s", len(manifest_files), self._manifests_dir)
+        logger.debug(
+            "Found %d manifest files in %s", len(manifest_files), self._manifests_dir
+        )
 
         for manifest_path in manifest_files:
             try:

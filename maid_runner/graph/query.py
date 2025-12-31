@@ -306,9 +306,7 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
                 if normalized not in seen_cycles:
                     seen_cycles.add(normalized)
                     cycle_nodes = [
-                        graph.get_node(nid)
-                        for nid in cycle_ids
-                        if graph.get_node(nid)
+                        graph.get_node(nid) for nid in cycle_ids if graph.get_node(nid)
                     ]
                     if cycle_nodes:
                         cycles.append(cycle_nodes)
@@ -454,7 +452,9 @@ def analyze_impact(graph: KnowledgeGraph, artifact_name: str) -> Dict[str, Any]:
             if isinstance(dep, ArtifactNode) and dep.name not in affected_artifacts:
                 affected_artifacts.append(dep.name)
 
-    total_count = len(affected_files) + len(affected_manifests) + len(affected_artifacts)
+    total_count = (
+        len(affected_files) + len(affected_manifests) + len(affected_artifacts)
+    )
 
     return {
         "affected_files": affected_files,

@@ -77,7 +77,9 @@ class TestCreateSupersedesEdges:
     """Tests for create_supersedes_edges function."""
 
     def test_returns_list_of_edges(
-        self, manifest_with_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Function returns a list of Edge objects."""
         result = create_supersedes_edges(manifest_with_supersedes, sample_manifest_node)
@@ -86,7 +88,9 @@ class TestCreateSupersedesEdges:
         assert all(isinstance(edge, Edge) for edge in result)
 
     def test_creates_edge_for_each_superseded_manifest(
-        self, manifest_with_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Creates one SUPERSEDES edge for each item in supersedes array."""
         result = create_supersedes_edges(manifest_with_supersedes, sample_manifest_node)
@@ -94,15 +98,21 @@ class TestCreateSupersedesEdges:
         assert len(result) == 2
 
     def test_returns_empty_list_when_no_supersedes_field(
-        self, manifest_without_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_without_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Returns empty list when manifest has no supersedes field."""
-        result = create_supersedes_edges(manifest_without_supersedes, sample_manifest_node)
+        result = create_supersedes_edges(
+            manifest_without_supersedes, sample_manifest_node
+        )
 
         assert result == []
 
     def test_edge_source_id_is_manifest_node_id(
-        self, manifest_with_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Each edge source_id matches the manifest node ID."""
         result = create_supersedes_edges(manifest_with_supersedes, sample_manifest_node)
@@ -111,7 +121,9 @@ class TestCreateSupersedesEdges:
             assert edge.source_id == sample_manifest_node.id
 
     def test_edge_target_id_references_superseded_manifest_path(
-        self, manifest_with_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Each edge target_id references the superseded manifest path."""
         result = create_supersedes_edges(manifest_with_supersedes, sample_manifest_node)
@@ -121,7 +133,9 @@ class TestCreateSupersedesEdges:
         assert "manifest:manifests/task-075.manifest.json" in target_ids
 
     def test_edge_type_is_supersedes(
-        self, manifest_with_supersedes: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_supersedes: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Each edge has EdgeType.SUPERSEDES."""
         result = create_supersedes_edges(manifest_with_supersedes, sample_manifest_node)
@@ -144,7 +158,9 @@ class TestCreateFileEdges:
     """Tests for create_file_edges function."""
 
     def test_creates_creates_edges_for_creatable_files(
-        self, manifest_with_all_file_types: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_all_file_types: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Creates CREATES edges for creatableFiles."""
         result = create_file_edges(manifest_with_all_file_types, sample_manifest_node)
@@ -157,7 +173,9 @@ class TestCreateFileEdges:
         assert "file:src/another_new.py" in target_ids
 
     def test_creates_edits_edges_for_editable_files(
-        self, manifest_with_all_file_types: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_all_file_types: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Creates EDITS edges for editableFiles."""
         result = create_file_edges(manifest_with_all_file_types, sample_manifest_node)
@@ -167,7 +185,9 @@ class TestCreateFileEdges:
         assert edits_edges[0].target_id == "file:src/existing.py"
 
     def test_creates_reads_edges_for_readonly_files(
-        self, manifest_with_all_file_types: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_all_file_types: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Creates READS edges for readonlyFiles."""
         result = create_file_edges(manifest_with_all_file_types, sample_manifest_node)
@@ -188,7 +208,9 @@ class TestCreateFileEdges:
         assert result == []
 
     def test_edge_source_id_is_manifest_node_id(
-        self, manifest_with_all_file_types: Dict[str, Any], sample_manifest_node: ManifestNode
+        self,
+        manifest_with_all_file_types: Dict[str, Any],
+        sample_manifest_node: ManifestNode,
     ) -> None:
         """Each edge source_id matches the manifest node ID."""
         result = create_file_edges(manifest_with_all_file_types, sample_manifest_node)
@@ -300,9 +322,7 @@ class TestCreateArtifactEdges:
         assert edge_types == {EdgeType.DEFINES, EdgeType.DECLARES}
         assert len(result) == 2
 
-    def test_edge_ids_are_unique(
-        self, sample_manifest_node: ManifestNode
-    ) -> None:
+    def test_edge_ids_are_unique(self, sample_manifest_node: ManifestNode) -> None:
         """All edge IDs are unique."""
         artifact = {"name": "my_method", "type": "function", "class": "MyClass"}
         file_path = "src/module.py"
