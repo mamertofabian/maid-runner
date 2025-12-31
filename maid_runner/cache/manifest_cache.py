@@ -134,32 +134,7 @@ class ManifestRegistry:
         with self._lock:
             if not self._cache_valid:
                 return False
-
-            if not self._manifests_dir.exists():
-                return False
-
-            # Get current manifest files
-            try:
-                current_files = set(self._manifests_dir.glob("task-*.manifest.json"))
-            except OSError:
-                return False
-
-            # Check if file count changed (files added or removed)
-            cached_files = set(Path(p) for p in self._file_mtimes.keys())
-            if current_files != cached_files:
-                return False
-
-            # Check if any individual file's mtime has changed
-            for file_path in current_files:
-                try:
-                    current_mtime = file_path.stat().st_mtime
-                    cached_mtime = self._file_mtimes.get(str(file_path))
-                    if cached_mtime is None or current_mtime != cached_mtime:
-                        return False
-                except OSError:
-                    return False
-
-            return True
+            return self._is_cache_fresh()
 
     def _ensure_cache_loaded(self) -> None:
         """Ensure manifests are loaded into cache with automatic freshness checking.
