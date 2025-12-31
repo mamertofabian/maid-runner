@@ -10,6 +10,42 @@ A tool-agnostic validation framework for the Manifest-driven AI Development (MAI
 
 📹 **[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)** to learn about MAID Runner and the MAID methodology.
 
+## Conceptual Framework: Structural Determinism in Generative AI
+
+### 1. The Core Problem: Probabilistic Entropy
+
+Current Large Language Models (LLMs) function on **Probabilistic Generation**. They predict the next token based on statistical likelihood, optimizing for "plausibility" rather than correctness or architectural soundness.
+
+* **The Consequence:** Without intervention, this stochastic nature inevitably leads to "AI Slop"—code that is syntactically valid but architecturally chaotic (introducing circular dependencies, hallucinated methods, and violating SOLID principles).
+* **The Gap:** Standard validation methods (Unit Tests) only check *behavior*, leaving the *structure* vulnerable to entropy.
+
+### 2. The Solution: Dual-Constraint Validation
+
+MAID Runner introduces a **Governance Layer** that enforces a "Double-Coordinate Target" for accepted code. To be valid, generation must satisfy two distinct axes simultaneously:
+
+* **Coordinate A (Behavioral):** The code must pass the Test Suite (Functional Correctness).
+* **Coordinate B (Structural):** The code must strictly adhere to a pre-designed JSON Manifest (Topological Correctness).
+
+### 3. Methodology: Structural Determinism
+
+The framework applies **Structural Determinism** to **Probabilistic Generation**.
+
+* **Search Space Restriction:** By treating the software architecture as an immutable constant (via the Manifest) rather than a variable, MAID Runner drastically reduces the AI's "search space."
+* **The Mechanism:** The AI is forced to "fill in the blanks" of a valid design rather than guessing the design itself. This ensures that even if the AI's internal logic varies, the external contract and dependency graph remain deterministic.
+
+### 4. The Paradigm Shift: AI as a "Stochastic Compiler"
+
+MAID Runner redefines the operational role of the AI Agent:
+
+* **From "Junior Developer":** A creative entity that requires reactive, human-in-the-loop code review to catch errors.
+* **To "Stochastic Compiler":** A constrained engine that translates a rigid specification (The Manifest) into implementation details.
+
+This shifts the developer's primary activity from **Prompt Engineering** (persuading the AI via natural language) to **Spec Engineering** (defining the precise architectural boundaries the AI must respect).
+
+### 5. Architectural Objective: The "Last Mile" of Reliability
+
+By enforcing architectural topology *before* execution, MAID Runner solves the "Last Mile" problem of autonomous coding. It decouples **Speed of Generation** from **Quality of Architecture**, ensuring that rapid iteration does not result in technical debt.
+
 ## Supported Languages
 
 MAID Runner supports multi-language validation with production-ready parsers:
