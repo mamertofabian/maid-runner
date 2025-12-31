@@ -114,7 +114,10 @@ def _merge_expected_artifacts(
 
 
 def _get_expected_artifacts(
-    manifest_data: dict, test_file_path: str, use_manifest_chain: bool
+    manifest_data: dict,
+    test_file_path: str,
+    use_manifest_chain: bool,
+    use_cache: bool = False,
 ) -> List[dict]:
     """Get expected artifacts from manifest(s).
 
@@ -122,6 +125,7 @@ def _get_expected_artifacts(
         manifest_data: Manifest data dictionary
         test_file_path: Path to file being validated
         use_manifest_chain: Whether to use manifest chain
+        use_cache: Whether to use manifest chain caching
 
     Returns:
         List of expected artifact definitions
@@ -135,7 +139,7 @@ def _get_expected_artifacts(
             "file", test_file_path
         )
         discover_related_manifests = _get_discover_related_manifests()
-        related_manifests = discover_related_manifests(target_file)
+        related_manifests = discover_related_manifests(target_file, use_cache=use_cache)
         return _merge_expected_artifacts(related_manifests, target_file)
     else:
         expected_artifacts = manifest_data.get("expectedArtifacts", {})

@@ -176,6 +176,12 @@ def main():
         action="store_true",
         help="Skip running validationCommand after validation (watch modes only)",
     )
+    validate_parser.add_argument(
+        "--use-cache",
+        action="store_true",
+        default=False,
+        help="Enable manifest chain caching for improved performance",
+    )
 
     # Snapshot subcommand
     snapshot_parser = subparsers.add_parser(
@@ -509,6 +515,7 @@ Automatically handles:
             timeout=args.timeout,
             verbose=args.verbose,
             skip_tests=args.skip_tests,
+            use_cache=args.use_cache,
         )
     elif args.command == "snapshot":
         from maid_runner.cli.snapshot import run_snapshot

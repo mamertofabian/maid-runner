@@ -1,0 +1,43 @@
+{
+  "goal": "Add --use-cache CLI flag to the validate command that enables manifest chain caching for improved performance during batch validation",
+  "description": "Modify the validate CLI to accept a --use-cache boolean flag. When True, pass use_cache=True to discover_related_manifests() and get_superseded_manifests() calls. This enables O(1) manifest lookups via ManifestRegistry instead of O(n) file system scans.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cache/manifest_cache.py",
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/utils.py",
+    "tests/test_task_124_cli_cache_integration.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {"name": "manifest_path", "type": "Optional[str]"},
+          {"name": "validation_mode", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "manifest_dir", "type": "Optional[str]"},
+          {"name": "skip_file_tracking", "type": "bool"},
+          {"name": "watch", "type": "bool"},
+          {"name": "watch_all", "type": "bool"},
+          {"name": "timeout", "type": "int"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "skip_tests", "type": "bool"},
+          {"name": "use_cache", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_124_cli_cache_integration.py",
+    "-v"
+  ]
+}

@@ -26,7 +26,7 @@ def testdiscover_related_manifests():
     manifests = discover_related_manifests(target_file)
 
     # Should find at least the known active manifests that reference this file
-    # task-009 superseded task-001, 002, 003, so we expect task-009 instead
+    # task-123 supersedes task-009, which superseded task-001, 002, 003, so we expect task-123
     assert len(manifests) >= 1, f"Expected at least 1 manifest, got {len(manifests)}"
 
     # Verify that manifests are returned in chronological order
@@ -50,15 +50,16 @@ def testdiscover_related_manifests():
         task_numbers
     ), f"Manifests not in chronological order: {task_numbers}"
 
-    # Verify that task-009 (which superseded task-001, 002, 003) is included
+    # Verify that task-123 (which superseded task-009) is included
     # but the superseded tasks are NOT included
-    found_task_009 = any("task-009" in name for name in manifest_names)
+    found_task_123 = any("task-123" in name for name in manifest_names)
     assert (
-        found_task_009
-    ), f"Expected to find task-009 (snapshot), found: {manifest_names}"
+        found_task_123
+    ), f"Expected to find task-123 (which supersedes task-009), found: {manifest_names}"
 
     # Verify that superseded tasks are NOT included
-    superseded_tasks = ["task-001", "task-002", "task-003"]
+    # task-009 is now superseded by task-123
+    superseded_tasks = ["task-001", "task-002", "task-003", "task-009"]
     found_superseded = [
         name for name in manifest_names if any(exp in name for exp in superseded_tasks)
     ]
