@@ -3,7 +3,7 @@
 import json
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from maid_runner.cli.snapshot_system import discover_active_manifests
 from maid_runner.graph.model import (
@@ -14,6 +14,11 @@ from maid_runner.graph.model import (
     ModuleNode,
     Edge,
     EdgeType,
+    MANIFEST_PREFIX,
+    FILE_PREFIX,
+    ARTIFACT_PREFIX,
+    MODULE_PREFIX,
+    EDGE_PREFIX,
 )
 
 
@@ -67,7 +72,7 @@ def create_manifest_node(manifest_data: Dict[str, Any], path: Path) -> ManifestN
     Returns:
         ManifestNode with extracted fields and unique ID
     """
-    node_id = f"manifest:{path}"
+    node_id = f"{MANIFEST_PREFIX}{path}"
     return ManifestNode(
         id=node_id,
         path=str(path),
@@ -77,20 +82,21 @@ def create_manifest_node(manifest_data: Dict[str, Any], path: Path) -> ManifestN
     )
 
 
-def create_file_node(file_path: str) -> FileNode:
+def create_file_node(file_path: str, status: str = "unknown") -> FileNode:
     """Create a FileNode from a file path.
 
     Args:
         file_path: Path to the source file
+        status: File status (creatable, editable, readonly, or unknown)
 
     Returns:
         FileNode with unique ID derived from path
     """
-    node_id = f"file:{file_path}"
+    node_id = f"{FILE_PREFIX}{file_path}"
     return FileNode(
         id=node_id,
         path=file_path,
-        status="unknown",
+        status=status,
     )
 
 
@@ -118,7 +124,7 @@ def create_artifact_node(artifact: Dict[str, Any], file_path: str) -> ArtifactNo
         returns = artifact.get("returns", "None")
         signature = f"({arg_str}) -> {returns}"
 
-    node_id = f"artifact:{file_path}:{name}"
+    node_id = f"{ARTIFACT_PREFIX}{file_path}:{name}"
     return ArtifactNode(
         id=node_id,
         name=name,
@@ -144,7 +150,7 @@ def create_module_node(file_path: str) -> ModuleNode:
     parts = path_obj.parts[:-1]
     package = ".".join(parts) if parts else None
 
-    node_id = f"module:{file_path}"
+    node_id = f"{MODULE_PREFIX}{file_path}"
     return ModuleNode(
         id=node_id,
         name=module_name,
@@ -153,13 +159,17 @@ def create_module_node(file_path: str) -> ModuleNode:
 
 
 def create_supersedes_edges(
-    manifest_data: Dict[str, Any], manifest_node: ManifestNode
+    manifest_data: Dict[str, Any],
+    manifest_node: ManifestNode,
+    known_manifest_ids: Optional[set] = None,
 ) -> List[Edge]:
     """Create SUPERSEDES edges from a manifest to its superseded manifests.
 
     Args:
         manifest_data: Parsed manifest dictionary
         manifest_node: The manifest node that supersedes others
+        known_manifest_ids: Optional set of known manifest node IDs for validation.
+                           If provided, edges to unknown manifests are skipped.
 
     Returns:
         List of Edge objects with type SUPERSEDES
@@ -167,11 +177,15 @@ def create_supersedes_edges(
     edges = []
     supersedes = manifest_data.get("supersedes", [])
     for superseded_path in supersedes:
+        target_id = f"{MANIFEST_PREFIX}{superseded_path}"
+        # Skip edges to unknown manifests if validation is enabled
+        if known_manifest_ids is not None and target_id not in known_manifest_ids:
+            continue
         edge = Edge(
-            id=f"edge:{uuid.uuid4()}",
+            id=f"{EDGE_PREFIX}{uuid.uuid4()}",
             edge_type=EdgeType.SUPERSEDES,
             source_id=manifest_node.id,
-            target_id=f"manifest:{superseded_path}",
+            target_id=target_id,
         )
         edges.append(edge)
     return edges
@@ -207,10 +221,10 @@ def create_file_edges(
         files = manifest_data.get(field, [])
         for file_path in files:
             edge = Edge(
-                id=f"edge:{uuid.uuid4()}",
+                id=f"{EDGE_PREFIX}{uuid.uuid4()}",
                 edge_type=edge_type,
                 source_id=manifest_node.id,
-                target_id=f"file:{file_path}",
+                target_id=f"{FILE_PREFIX}{file_path}",
             )
             edges.append(edge)
 
@@ -237,13 +251,13 @@ def create_artifact_edges(
     """
     edges = []
     artifact_name = artifact.get("name", "")
-    artifact_id = f"artifact:{file_path}:{artifact_name}"
-    file_id = f"file:{file_path}"
+    artifact_id = f"{ARTIFACT_PREFIX}{file_path}:{artifact_name}"
+    file_id = f"{FILE_PREFIX}{file_path}"
 
     # DEFINES: file -> artifact
     edges.append(
         Edge(
-            id=f"edge:{uuid.uuid4()}",
+            id=f"{EDGE_PREFIX}{uuid.uuid4()}",
             edge_type=EdgeType.DEFINES,
             source_id=file_id,
             target_id=artifact_id,
@@ -253,7 +267,7 @@ def create_artifact_edges(
     # DECLARES: manifest -> artifact
     edges.append(
         Edge(
-            id=f"edge:{uuid.uuid4()}",
+            id=f"{EDGE_PREFIX}{uuid.uuid4()}",
             edge_type=EdgeType.DECLARES,
             source_id=manifest_node.id,
             target_id=artifact_id,
@@ -263,10 +277,10 @@ def create_artifact_edges(
     # CONTAINS: parent class -> artifact (if has parent class)
     parent_class = artifact.get("class")
     if parent_class:
-        parent_id = f"artifact:{file_path}:{parent_class}"
+        parent_id = f"{ARTIFACT_PREFIX}{file_path}:{parent_class}"
         edges.append(
             Edge(
-                id=f"edge:{uuid.uuid4()}",
+                id=f"{EDGE_PREFIX}{uuid.uuid4()}",
                 edge_type=EdgeType.CONTAINS,
                 source_id=parent_id,
                 target_id=artifact_id,
@@ -305,26 +319,44 @@ class KnowledgeGraphBuilder:
         # Get manifest paths for correlation
         manifest_paths = discover_active_manifests(self.manifest_dir)
 
+        # Build set of ALL manifest IDs for edge validation (including superseded)
+        # This allows supersedes edges to reference superseded manifests
+        all_manifest_files = list(self.manifest_dir.glob("*.manifest.json"))
+        known_manifest_ids = {f"{MANIFEST_PREFIX}{path}" for path in all_manifest_files}
+
         for manifest_data, path in zip(manifests, manifest_paths):
-            self._process_manifest(manifest_data, path)
+            self._process_manifest(manifest_data, path, known_manifest_ids)
 
         return self._graph
 
-    def _process_manifest(self, manifest_data: Dict[str, Any], path: Path) -> None:
+    def _process_manifest(
+        self,
+        manifest_data: Dict[str, Any],
+        path: Path,
+        known_manifest_ids: Optional[set] = None,
+    ) -> None:
         """Process a single manifest, creating nodes and edges.
 
         Args:
             manifest_data: Parsed manifest dictionary
             path: Path to the manifest file
+            known_manifest_ids: Optional set of known manifest IDs for edge validation
         """
         # Create manifest node
         manifest_node = create_manifest_node(manifest_data, path)
         self._graph.add_node(manifest_node)
 
         # Create file nodes and edges
+        # Map file category to status
+        category_to_status = {
+            "creatableFiles": "creatable",
+            "editableFiles": "editable",
+            "readonlyFiles": "readonly",
+        }
         for file_category in ["creatableFiles", "editableFiles", "readonlyFiles"]:
+            status = category_to_status[file_category]
             for file_path in manifest_data.get(file_category, []):
-                file_node = create_file_node(file_path)
+                file_node = create_file_node(file_path, status)
                 self._graph.add_node(file_node)
 
                 # Create module node for each file
@@ -336,8 +368,10 @@ class KnowledgeGraphBuilder:
         for edge in file_edges:
             self._graph.add_edge(edge)
 
-        # Create supersedes edges
-        supersedes_edges = create_supersedes_edges(manifest_data, manifest_node)
+        # Create supersedes edges (with validation if known_manifest_ids provided)
+        supersedes_edges = create_supersedes_edges(
+            manifest_data, manifest_node, known_manifest_ids
+        )
         for edge in supersedes_edges:
             self._graph.add_edge(edge)
 

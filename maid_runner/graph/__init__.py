@@ -14,6 +14,11 @@ from maid_runner.graph.model import (
     EdgeType,
     Edge,
     KnowledgeGraph,
+    MANIFEST_PREFIX,
+    FILE_PREFIX,
+    ARTIFACT_PREFIX,
+    MODULE_PREFIX,
+    EDGE_PREFIX,
 )
 from maid_runner.graph.exporters import (
     export_json,
@@ -74,6 +79,11 @@ __all__ = [
     "EdgeType",
     "Edge",
     "KnowledgeGraph",
+    "MANIFEST_PREFIX",
+    "FILE_PREFIX",
+    "ARTIFACT_PREFIX",
+    "MODULE_PREFIX",
+    "EDGE_PREFIX",
     "export_json",
     "export_dot",
     "export_graphml",

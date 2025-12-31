@@ -14,7 +14,6 @@ Query parsing capabilities:
 - QueryParser: Parser for natural language-style queries
 """
 
-from dataclasses import dataclass
 from enum import Enum
 import re
 from typing import Any, Dict, List, Optional, Set
@@ -246,10 +245,29 @@ def get_dependency_tree(
     return result
 
 
+def _normalize_cycle(cycle_ids: List[str]) -> tuple:
+    """Normalize a cycle by rotating to start with the smallest ID.
+
+    This ensures cycles like [A, B, C] and [B, C, A] are treated as equivalent.
+
+    Args:
+        cycle_ids: List of node IDs forming the cycle
+
+    Returns:
+        Tuple of node IDs starting with the smallest ID
+    """
+    if not cycle_ids:
+        return tuple()
+    min_idx = cycle_ids.index(min(cycle_ids))
+    rotated = cycle_ids[min_idx:] + cycle_ids[:min_idx]
+    return tuple(rotated)
+
+
 def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
     """Find all cycles (circular dependencies) in the graph.
 
-    Uses DFS-based cycle detection algorithm.
+    Uses DFS-based cycle detection algorithm with normalized cycle comparison
+    to detect duplicate cycles with different starting points.
 
     Args:
         graph: The knowledge graph to search
@@ -259,6 +277,7 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
         Returns empty list if no cycles found.
     """
     cycles: List[List[Node]] = []
+    seen_cycles: Set[tuple] = set()  # Normalized cycle IDs for deduplication
     visited: Set[str] = set()
     rec_stack: Set[str] = set()
 
@@ -282,11 +301,17 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
                 # Found a cycle - extract it from path
                 cycle_start = path.index(neighbor_id)
                 cycle_ids = path[cycle_start:]
-                cycle_nodes = [
-                    graph.get_node(nid) for nid in cycle_ids if graph.get_node(nid)
-                ]
-                if cycle_nodes and cycle_nodes not in cycles:
-                    cycles.append(cycle_nodes)
+                # Normalize cycle for deduplication
+                normalized = _normalize_cycle(cycle_ids)
+                if normalized not in seen_cycles:
+                    seen_cycles.add(normalized)
+                    cycle_nodes = [
+                        graph.get_node(nid)
+                        for nid in cycle_ids
+                        if graph.get_node(nid)
+                    ]
+                    if cycle_nodes:
+                        cycles.append(cycle_nodes)
 
         path.pop()
         rec_stack.remove(node_id)
@@ -459,7 +484,6 @@ class QueryType(Enum):
     LIST_ARTIFACTS = "list_artifacts"
 
 
-@dataclass
 class QueryIntent:
     """Parsed query intent with type, target, and original query.
 
@@ -468,10 +492,6 @@ class QueryIntent:
         target: Optional target artifact or module name being queried.
         original_query: The original query string that was parsed.
     """
-
-    query_type: QueryType
-    target: Optional[str]
-    original_query: str
 
     def __init__(
         self,
@@ -601,7 +621,6 @@ class QueryParser:
         return QueryType.FIND_DEFINITION
 
 
-@dataclass
 class QueryResult:
     """Result of executing a query against the knowledge graph.
 
@@ -611,11 +630,6 @@ class QueryResult:
         data: The result data - nodes, files, impact dict, etc. (Any).
         message: Human-readable result message (str).
     """
-
-    success: bool
-    query_type: QueryType
-    data: Any
-    message: str
 
     def __init__(
         self,

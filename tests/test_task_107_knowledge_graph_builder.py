@@ -269,9 +269,21 @@ class TestKnowledgeGraphBuilderBuild:
         assert len(artifact_nodes) >= 2
 
     def test_build_creates_supersedes_edges(
-        self, manifest_dir: Path, manifest_with_supersedes: Dict[str, Any]
+        self,
+        manifest_dir: Path,
+        sample_manifest_data: Dict[str, Any],
+        manifest_with_supersedes: Dict[str, Any],
     ) -> None:
         """build() creates SUPERSEDES edges for supersedes relationships."""
+        # Create the superseded manifest first so the edge can be validated
+        create_manifest_file(
+            manifest_dir, "task-001.manifest.json", sample_manifest_data
+        )
+        # Update supersedes path to match the actual manifest location
+        manifest_with_supersedes = manifest_with_supersedes.copy()
+        manifest_with_supersedes["supersedes"] = [
+            str(manifest_dir / "task-001.manifest.json")
+        ]
         create_manifest_file(
             manifest_dir, "task-002.manifest.json", manifest_with_supersedes
         )

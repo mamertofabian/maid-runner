@@ -20,9 +20,10 @@
       {
         "type": "function",
         "name": "create_file_node",
-        "description": "Create a FileNode from a file path string",
+        "description": "Create a FileNode from a file path string with optional status",
         "args": [
-          {"name": "file_path", "type": "str"}
+          {"name": "file_path", "type": "str"},
+          {"name": "status", "type": "str"}
         ],
         "returns": "FileNode"
       },
