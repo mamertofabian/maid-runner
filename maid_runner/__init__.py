@@ -9,6 +9,19 @@ from maid_runner.validators import (
     validate_with_ast,
 )
 from maid_runner.cli.snapshot import generate_snapshot
+from maid_runner.graph import (
+    KnowledgeGraph,
+    KnowledgeGraphBuilder,
+    NodeType,
+    EdgeType,
+)
+
+# Explicit re-exports for MAID validation
+# These assignments make imported names visible as module-level attributes
+KnowledgeGraph = KnowledgeGraph
+KnowledgeGraphBuilder = KnowledgeGraphBuilder
+NodeType = NodeType
+EdgeType = EdgeType
 
 __all__ = [
     "__version__",
@@ -18,4 +31,8 @@ __all__ = [
     "validate_schema",
     "validate_with_ast",
     "generate_snapshot",
+    "KnowledgeGraph",
+    "KnowledgeGraphBuilder",
+    "NodeType",
+    "EdgeType",
 ]

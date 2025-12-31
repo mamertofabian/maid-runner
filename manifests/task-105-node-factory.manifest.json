@@ -1,0 +1,52 @@
+{
+  "goal": "Create factory functions to convert manifest data into graph nodes",
+  "description": "Add factory functions to the builder module that create ManifestNode, FileNode, ArtifactNode, and ModuleNode instances from raw data. Each factory generates unique IDs and populates node attributes appropriately.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/builder.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/builder.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "create_manifest_node",
+        "description": "Create a ManifestNode from manifest data dict and file path",
+        "args": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "path", "type": "Path"}
+        ],
+        "returns": "ManifestNode"
+      },
+      {
+        "type": "function",
+        "name": "create_file_node",
+        "description": "Create a FileNode from a file path string with optional status",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "status", "type": "str"}
+        ],
+        "returns": "FileNode"
+      },
+      {
+        "type": "function",
+        "name": "create_artifact_node",
+        "description": "Create an ArtifactNode from artifact dict and file path",
+        "args": [
+          {"name": "artifact", "type": "Dict[str, Any]"},
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "ArtifactNode"
+      },
+      {
+        "type": "function",
+        "name": "create_module_node",
+        "description": "Create a ModuleNode from a file path string",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "ModuleNode"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_105_node_factory.py", "-v"]
+}

@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "goal": "Export knowledge graph to GraphML format for interoperability with graph analysis tools",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/graph/exporters.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/graph/model.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/exporters.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "export_graphml",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "output_path", "type": "Path"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "graph_to_graphml",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_116_graphml_exporter.py", "-v"]
+}

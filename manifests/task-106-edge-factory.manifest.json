@@ -1,0 +1,45 @@
+{
+  "goal": "Create factory functions to generate graph edges from manifest relationships",
+  "description": "Add factory functions to the builder module that create Edge objects for different relationship types: supersedes edges between manifests, file edges (creates/edits/reads) between manifests and files, and artifact edges (defines/declares/contains) connecting files, manifests, and artifacts.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/builder.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/builder.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "create_supersedes_edges",
+        "description": "Create SUPERSEDES edges from a manifest to each superseded manifest, with optional validation",
+        "args": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "manifest_node", "type": "ManifestNode"},
+          {"name": "known_manifest_ids", "type": "Optional[set]"}
+        ],
+        "returns": "List[Edge]"
+      },
+      {
+        "type": "function",
+        "name": "create_file_edges",
+        "description": "Create CREATES, EDITS, and READS edges from a manifest to files",
+        "args": [
+          {"name": "manifest_data", "type": "Dict[str, Any]"},
+          {"name": "manifest_node", "type": "ManifestNode"}
+        ],
+        "returns": "List[Edge]"
+      },
+      {
+        "type": "function",
+        "name": "create_artifact_edges",
+        "description": "Create DEFINES, DECLARES, and CONTAINS edges for artifacts",
+        "args": [
+          {"name": "artifact", "type": "Dict[str, Any]"},
+          {"name": "file_path", "type": "str"},
+          {"name": "manifest_node", "type": "ManifestNode"}
+        ],
+        "returns": "List[Edge]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_106_edge_factory.py", "-v"]
+}

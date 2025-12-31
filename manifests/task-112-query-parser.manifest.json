@@ -1,0 +1,76 @@
+{
+  "goal": "Implement query parser for natural language-style graph queries",
+  "description": "Add query parsing capabilities to the query module for interpreting natural language-style queries and converting them to structured QueryIntent objects. This enables users to query the knowledge graph using intuitive questions like 'What defines X?' or 'What depends on Y?'",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "QueryType",
+        "description": "Enum defining the types of queries that can be parsed. Values: FIND_DEFINITION (What defines X?), FIND_DEPENDENTS (What depends on X?), FIND_DEPENDENCIES (What does X depend on?), FIND_IMPACT (What would break if I change X?), FIND_CYCLES (Find circular dependencies), LIST_ARTIFACTS (Show all artifacts in module X)."
+      },
+      {
+        "type": "class",
+        "name": "QueryIntent",
+        "description": "Dataclass representing a parsed query intent with query_type, target (artifact/module name), and original_query string."
+      },
+      {
+        "type": "attribute",
+        "name": "query_type",
+        "class": "QueryIntent",
+        "description": "The type of query (QueryType enum value)."
+      },
+      {
+        "type": "attribute",
+        "name": "target",
+        "class": "QueryIntent",
+        "description": "Optional target artifact or module name being queried."
+      },
+      {
+        "type": "attribute",
+        "name": "original_query",
+        "class": "QueryIntent",
+        "description": "The original query string that was parsed."
+      },
+      {
+        "type": "class",
+        "name": "QueryParser",
+        "description": "Parser class for converting natural language-style query strings into structured QueryIntent objects."
+      },
+      {
+        "type": "function",
+        "name": "parse",
+        "class": "QueryParser",
+        "description": "Parse a query string into a QueryIntent object.",
+        "args": [
+          {"name": "query", "type": "str"}
+        ],
+        "returns": "QueryIntent"
+      },
+      {
+        "type": "function",
+        "name": "_extract_target",
+        "class": "QueryParser",
+        "description": "Extract the target artifact or module name from a query string.",
+        "args": [
+          {"name": "query", "type": "str"}
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_determine_query_type",
+        "class": "QueryParser",
+        "description": "Determine the QueryType from a query string based on keyword matching.",
+        "args": [
+          {"name": "query", "type": "str"}
+        ],
+        "returns": "QueryType"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_112_query_parser.py", "-v"]
+}

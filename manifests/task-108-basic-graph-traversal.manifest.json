@@ -1,0 +1,44 @@
+{
+  "goal": "Implement core graph traversal functions for querying the knowledge graph",
+  "description": "Add graph traversal utility functions to a new query module. These functions provide fundamental operations for searching and navigating the knowledge graph: finding nodes by type, searching nodes by name, and retrieving neighboring nodes connected via edges.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "find_nodes_by_type",
+        "description": "Find all nodes in the graph matching a specific node type",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "node_type", "type": "NodeType"}
+        ],
+        "returns": "List[Node]"
+      },
+      {
+        "type": "function",
+        "name": "find_node_by_name",
+        "description": "Search for a node by name, checking id and type-specific name fields",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "name", "type": "str"}
+        ],
+        "returns": "Optional[Node]"
+      },
+      {
+        "type": "function",
+        "name": "get_neighbors",
+        "description": "Get all nodes connected to the given node, optionally filtered by edge type",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "node", "type": "Node"},
+          {"name": "edge_type", "type": "Optional[EdgeType]", "default": "None"}
+        ],
+        "returns": "List[Node]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_108_basic_graph_traversal.py", "-v"]
+}

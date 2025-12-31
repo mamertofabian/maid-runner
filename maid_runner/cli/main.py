@@ -19,6 +19,86 @@ import sys
 from maid_runner import __version__
 
 
+def setup_graph_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Set up the graph subparser with query, export, and analysis subcommands.
+
+    Args:
+        subparsers: The subparsers action from the main argument parser.
+
+    Returns:
+        None
+    """
+    # Graph subparser
+    graph_parser = subparsers.add_parser(
+        "graph",
+        help="Knowledge graph operations",
+        description="Query, export, and analyze the knowledge graph built from manifests",
+    )
+
+    # Nested subparsers for graph command
+    graph_subparsers = graph_parser.add_subparsers(
+        dest="subcommand", help="Graph subcommands"
+    )
+
+    # Query subcommand
+    query_parser = graph_subparsers.add_parser(
+        "query",
+        help="Query the knowledge graph",
+        description="Execute a query against the knowledge graph",
+    )
+    query_parser.add_argument(
+        "query",
+        help="The query string to execute",
+    )
+    query_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+
+    # Export subcommand
+    export_parser = graph_subparsers.add_parser(
+        "export",
+        help="Export the knowledge graph",
+        description="Export the knowledge graph to a file in various formats",
+    )
+    export_parser.add_argument(
+        "--format",
+        choices=["json", "dot", "graphml"],
+        required=True,
+        help="Output format (json, dot, or graphml)",
+    )
+    export_parser.add_argument(
+        "--output",
+        required=True,
+        help="Output file path",
+    )
+    export_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+
+    # Analysis subcommand
+    analysis_parser = graph_subparsers.add_parser(
+        "analysis",
+        help="Run graph analysis",
+        description="Run analysis on the knowledge graph",
+    )
+    analysis_parser.add_argument(
+        "--type",
+        dest="analysis_type",
+        choices=["find-cycles", "show-stats"],
+        required=True,
+        help="Type of analysis to run",
+    )
+    analysis_parser.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        help="Directory containing manifests (default: manifests)",
+    )
+
+
 def main():
     """Main CLI entry point with subcommands."""
     parser = argparse.ArgumentParser(
@@ -385,6 +465,9 @@ Automatically handles:
         help="Hide private implementation files (files starting with _)",
     )
 
+    # Graph subcommand (with nested subcommands)
+    setup_graph_parser(subparsers)
+
     args = parser.parse_args()
 
     if not args.command:
@@ -532,6 +615,10 @@ Automatically handles:
         else:
             manifest_parser.print_help()
             sys.exit(1)
+    elif args.command == "graph":
+        from maid_runner.cli.graph import run_graph_command
+
+        sys.exit(run_graph_command(args))
     else:
         parser.print_help()
         sys.exit(1)

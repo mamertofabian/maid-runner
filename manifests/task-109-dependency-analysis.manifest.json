@@ -1,0 +1,45 @@
+{
+  "goal": "Implement dependency tracking and analysis functions for the knowledge graph",
+  "description": "Add dependency analysis functions to the query module for analyzing relationships between artifacts in the knowledge graph. These functions enable finding what depends on an artifact (dependents), what an artifact depends on (dependencies), and building complete dependency trees with cycle detection.",
+  "taskType": "edit",
+  "editableFiles": ["maid_runner/graph/query.py"],
+  "readonlyFiles": ["maid_runner/graph/model.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/query.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "find_dependents",
+        "description": "Find all nodes that depend on (use) the named artifact by following READS, DECLARES, and similar dependency edges",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "List[Node]"
+      },
+      {
+        "type": "function",
+        "name": "find_dependencies",
+        "description": "Find all nodes that the named artifact depends on by following DEFINES, CONTAINS, and similar edges in reverse",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "List[Node]"
+      },
+      {
+        "type": "function",
+        "name": "get_dependency_tree",
+        "description": "Build a tree of dependencies recursively with cycle detection. Returns dict with node info and nested dependencies. Depth -1 means unlimited.",
+        "args": [
+          {"name": "graph", "type": "KnowledgeGraph"},
+          {"name": "node", "type": "Node"},
+          {"name": "depth", "type": "int", "default": "-1"},
+          {"name": "_visited", "type": "Optional[set]", "default": "None"}
+        ],
+        "returns": "Dict[str, Any]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_109_dependency_analysis.py", "-v"]
+}

@@ -1,0 +1,36 @@
+{
+  "goal": "Add graph-related exports to the main maid_runner package public API",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/__init__.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/graph/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/__init__.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "KnowledgeGraph",
+        "description": "Main graph container class for representing MAID codebase knowledge"
+      },
+      {
+        "type": "attribute",
+        "name": "KnowledgeGraphBuilder",
+        "description": "Builder for constructing knowledge graphs from manifests"
+      },
+      {
+        "type": "attribute",
+        "name": "NodeType",
+        "description": "Enumeration of node types in the knowledge graph"
+      },
+      {
+        "type": "attribute",
+        "name": "EdgeType",
+        "description": "Enumeration of edge types in the knowledge graph"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_120_main_package_integration.py", "-v"]
+}

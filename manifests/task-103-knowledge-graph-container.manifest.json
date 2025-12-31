@@ -1,0 +1,86 @@
+{
+  "goal": "Define the main KnowledgeGraph container class with node/edge storage and retrieval methods",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/graph/model.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/graph/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/model.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "KnowledgeGraph",
+        "description": "Main container class for the knowledge graph with node/edge storage and retrieval"
+      },
+      {
+        "type": "function",
+        "name": "add_node",
+        "class": "KnowledgeGraph",
+        "args": [
+          {"name": "node", "type": "Node"}
+        ],
+        "returns": "None",
+        "description": "Add a node to the graph"
+      },
+      {
+        "type": "function",
+        "name": "add_edge",
+        "class": "KnowledgeGraph",
+        "args": [
+          {"name": "edge", "type": "Edge"}
+        ],
+        "returns": "None",
+        "description": "Add an edge to the graph"
+      },
+      {
+        "type": "function",
+        "name": "get_node",
+        "class": "KnowledgeGraph",
+        "args": [
+          {"name": "node_id", "type": "str"}
+        ],
+        "returns": "Optional[Node]",
+        "description": "Retrieve a node by its ID, returns None if not found"
+      },
+      {
+        "type": "function",
+        "name": "get_edges",
+        "class": "KnowledgeGraph",
+        "args": [
+          {"name": "node_id", "type": "str"},
+          {"name": "edge_type", "type": "Optional[EdgeType]"}
+        ],
+        "returns": "List[Edge]",
+        "description": "Get edges for a node, optionally filtered by edge type"
+      },
+      {
+        "type": "attribute",
+        "name": "nodes",
+        "class": "KnowledgeGraph",
+        "description": "Property returning all nodes in the graph"
+      },
+      {
+        "type": "attribute",
+        "name": "edges",
+        "class": "KnowledgeGraph",
+        "description": "Property returning all edges in the graph"
+      },
+      {
+        "type": "attribute",
+        "name": "node_count",
+        "class": "KnowledgeGraph",
+        "description": "Property returning the count of nodes in the graph"
+      },
+      {
+        "type": "attribute",
+        "name": "edge_count",
+        "class": "KnowledgeGraph",
+        "description": "Property returning the count of edges in the graph"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_103_knowledge_graph_container.py", "-v"]
+}

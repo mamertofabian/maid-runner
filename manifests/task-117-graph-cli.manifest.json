@@ -1,0 +1,89 @@
+{
+  "goal": "Implement CLI command handler for graph operations (query, export, analysis)",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/graph.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/graph/model.py",
+    "maid_runner/graph/builder.py",
+    "maid_runner/graph/query.py",
+    "maid_runner/graph/exporters.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/graph.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_graph_command",
+        "args": [
+          {
+            "name": "args",
+            "type": "argparse.Namespace"
+          }
+        ],
+        "returns": "int"
+      },
+      {
+        "type": "function",
+        "name": "handle_query",
+        "args": [
+          {
+            "name": "query",
+            "type": "str"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "handle_export",
+        "args": [
+          {
+            "name": "format",
+            "type": "str"
+          },
+          {
+            "name": "output",
+            "type": "Path"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "handle_analysis",
+        "args": [
+          {
+            "name": "analysis_type",
+            "type": "str"
+          },
+          {
+            "name": "manifest_dir",
+            "type": "Path"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "uv",
+    "run",
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_task_117_graph_cli.py",
+    "-v"
+  ]
+}

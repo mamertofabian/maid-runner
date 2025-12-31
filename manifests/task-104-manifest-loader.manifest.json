@@ -1,0 +1,34 @@
+{
+  "goal": "Load and parse manifests for graph building, reusing existing discovery functions",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/graph/builder.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/snapshot_system.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/graph/builder.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "load_manifests",
+        "args": [
+          {"name": "manifest_dir", "type": "Path"}
+        ],
+        "returns": "List[Dict[str, Any]]",
+        "description": "Load all active manifests from a directory using discover_active_manifests"
+      },
+      {
+        "type": "function",
+        "name": "load_manifest",
+        "args": [
+          {"name": "manifest_path", "type": "Path"}
+        ],
+        "returns": "Dict[str, Any]",
+        "description": "Load and parse a single manifest JSON file"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_104_manifest_loader.py", "-v"]
+}

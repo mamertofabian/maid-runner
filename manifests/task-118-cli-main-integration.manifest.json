@@ -1,0 +1,38 @@
+{
+  "goal": "Add graph subcommand to main CLI for querying the knowledge graph",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/graph.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/main.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "main",
+        "args": []
+      },
+      {
+        "type": "function",
+        "name": "setup_graph_parser",
+        "args": [
+          {
+            "name": "subparsers",
+            "type": "argparse._SubParsersAction"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_118_cli_main_integration.py",
+    "-v"
+  ]
+}
