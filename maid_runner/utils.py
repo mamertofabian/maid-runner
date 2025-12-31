@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from typing import List, Tuple
 
+from maid_runner.cache.manifest_cache import ManifestRegistry
+
 # Tuple of file/directory names that indicate a project root
 # These are common markers for various project types
 PROJECT_ROOT_MARKERS: Tuple[str, ...] = (
@@ -146,15 +148,20 @@ def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:
     return []
 
 
-def get_superseded_manifests(manifests_dir: Path) -> set:
+def get_superseded_manifests(manifests_dir: Path, use_cache: bool = False) -> set:
     """Find all manifests that are superseded by any other manifests.
 
     Args:
         manifests_dir: Path to the manifests directory
+        use_cache: If True, delegate to ManifestRegistry for cached results.
+                   If False (default), use direct file system scanning.
 
     Returns:
         set: Set of manifest paths (as Path objects) that are superseded
     """
+    if use_cache:
+        return ManifestRegistry.get_instance(manifests_dir).get_superseded_manifests()
+
     superseded = set()
     project_root = find_project_root(manifests_dir)
 

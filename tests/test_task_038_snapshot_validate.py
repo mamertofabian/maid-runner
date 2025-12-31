@@ -430,7 +430,7 @@ class TestRunValidation:
         )
 
         mock_run_dir.assert_called_once_with(
-            "manifests", "implementation", False, False
+            "manifests", "implementation", False, False, use_cache=False
         )
 
     @patch("maid_runner.cli.validate.validate_schema")

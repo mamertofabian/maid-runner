@@ -17,7 +17,7 @@ from typing import Optional, List, Dict, Set, Any
 
 import jsonschema
 
-from maid_runner.utils import find_project_root, normalize_validation_commands
+from maid_runner.utils import find_project_root, normalize_validation_commands, get_superseded_manifests
 
 # Try to import watchdog for watch mode
 try:
@@ -1204,6 +1204,7 @@ def _run_directory_validation(
     validation_mode: str,
     use_manifest_chain: bool,
     quiet: bool,
+    use_cache: bool = False,
 ) -> None:
     """Validate all manifests in a directory.
 
@@ -1212,13 +1213,13 @@ def _run_directory_validation(
         validation_mode: Validation mode ('implementation' or 'behavioral')
         use_manifest_chain: If True, use manifest chain to merge related manifests
         quiet: If True, suppress success messages
+        use_cache: If True, enable manifest chain caching for improved performance
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
     """
     import os
     from maid_runner.utils import (
-        get_superseded_manifests,
         print_maid_not_enabled_message,
         print_no_manifests_found_message,
     )
@@ -1235,7 +1236,7 @@ def _run_directory_validation(
         sys.exit(0)
 
     # Get superseded manifests and filter them out
-    superseded = get_superseded_manifests(manifests_dir)
+    superseded = get_superseded_manifests(manifests_dir, use_cache=use_cache)
     active_manifests = [m for m in manifest_files if m not in superseded]
 
     if not active_manifests:
@@ -1270,6 +1271,7 @@ def _run_directory_validation(
                     quiet=True,  # Suppress individual success messages
                     manifest_dir=None,  # Prevent recursion
                     skip_file_tracking=True,  # Skip per-manifest tracking
+                    use_cache=use_cache,
                 )
                 total_passed += 1
                 if not quiet:
@@ -1356,6 +1358,7 @@ def run_validation(
     timeout: int = 300,
     verbose: bool = False,
     skip_tests: bool = False,
+    use_cache: bool = False,
 ) -> None:
     """Core validation logic accepting parsed arguments.
 
@@ -1371,6 +1374,7 @@ def run_validation(
         timeout: Command timeout in seconds (default: 300)
         verbose: If True, show detailed output
         skip_tests: If True, skip running validationCommand
+        use_cache: If True, enable manifest chain caching for improved performance
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
@@ -1413,7 +1417,7 @@ def run_validation(
     # Handle --manifest-dir mode
     if manifest_dir:
         _run_directory_validation(
-            manifest_dir, validation_mode, use_manifest_chain, quiet
+            manifest_dir, validation_mode, use_manifest_chain, quiet, use_cache=use_cache
         )
         return
 
@@ -1636,6 +1640,7 @@ def run_validation(
                 file_path,
                 use_manifest_chain=use_manifest_chain,
                 validation_mode=validation_mode,
+                use_cache=use_cache,
             )
 
         # Success message

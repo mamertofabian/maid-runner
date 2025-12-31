@@ -688,7 +688,11 @@ class OrderService:
         call_order = []
 
         def track_validation_calls(
-            manifest_data, file_path, use_manifest_chain=False, validation_mode=None
+            manifest_data,
+            file_path,
+            use_manifest_chain=False,
+            validation_mode=None,
+            use_cache=False,
         ):
             call_order.append((file_path, validation_mode))
             # Call the actual validation
@@ -697,7 +701,11 @@ class OrderService:
             )
 
             return real_validate(
-                manifest_data, file_path, use_manifest_chain, validation_mode
+                manifest_data,
+                file_path,
+                use_manifest_chain,
+                validation_mode,
+                use_cache,
             )
 
         with patch("sys.argv", test_args):

@@ -1,0 +1,67 @@
+{
+  "goal": "Create ManifestRegistry class for caching and querying manifests with thread-safe singleton access",
+  "description": "Implements a manifest caching system that loads and caches all manifests from the manifests directory, provides methods to query related manifests for a target file, computes and caches superseded manifest set, supports cache invalidation via file modification time checking, and is thread-safe for future parallel validation support.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/cache/__init__.py",
+    "maid_runner/cache/manifest_cache.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_121_manifest_cache.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cache/manifest_cache.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ManifestRegistry",
+        "description": "Thread-safe singleton registry for caching and querying manifests"
+      },
+      {
+        "type": "function",
+        "name": "get_instance",
+        "class": "ManifestRegistry",
+        "description": "Get singleton instance of ManifestRegistry for the given manifests directory",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"}
+        ],
+        "returns": "ManifestRegistry"
+      },
+      {
+        "type": "function",
+        "name": "get_related_manifests",
+        "class": "ManifestRegistry",
+        "description": "Get list of manifest paths that reference the target file",
+        "args": [
+          {"name": "target_file", "type": "str"}
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "get_superseded_manifests",
+        "class": "ManifestRegistry",
+        "description": "Get set of manifest paths that have been superseded by other manifests",
+        "args": [],
+        "returns": "Set[Path]"
+      },
+      {
+        "type": "function",
+        "name": "invalidate_cache",
+        "class": "ManifestRegistry",
+        "description": "Invalidate the cached manifests, forcing reload on next access",
+        "args": [],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "is_cache_valid",
+        "class": "ManifestRegistry",
+        "description": "Check if the cache is still valid based on directory modification time",
+        "args": [],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_121_manifest_cache.py", "-v"]
+}

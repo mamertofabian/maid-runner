@@ -1,0 +1,29 @@
+{
+  "version": "1",
+  "goal": "Add optional use_cache parameter to get_superseded_manifests() that leverages ManifestRegistry when True",
+  "description": "Modify maid_runner/utils.py to add an optional use_cache parameter to get_superseded_manifests(). When use_cache=True, delegate to ManifestRegistry.get_instance(manifests_dir).get_superseded_manifests(). When use_cache=False (default), use existing implementation for backward compatibility.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/utils.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cache/__init__.py",
+    "maid_runner/cache/manifest_cache.py",
+    "tests/test_task_122_cache_superseded_integration.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/utils.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "get_superseded_manifests",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"},
+          {"name": "use_cache", "type": "bool"}
+        ],
+        "returns": "set"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_122_cache_superseded_integration.py", "-v"]
+}

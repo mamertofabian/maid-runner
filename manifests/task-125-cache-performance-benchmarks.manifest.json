@@ -1,0 +1,32 @@
+{
+  "goal": "Create performance benchmarks to verify the 50%+ improvement target for manifest chain caching",
+  "description": "Implements benchmark tests that measure and verify the performance gains from manifest chain caching. Tests compare cached vs uncached operations for discover_related_manifests and get_superseded_manifests, verify the 50% improvement target is achieved, and ensure cached validation completes under 100ms.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cache/manifest_cache.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cache/__init__.py",
+    "maid_runner/validators/manifest_validator.py",
+    "maid_runner/utils.py",
+    "tests/test_task_125_cache_performance.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cache/manifest_cache.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ManifestRegistry"
+      },
+      {
+        "type": "function",
+        "name": "get_instance",
+        "class": "ManifestRegistry",
+        "args": [
+          {"name": "manifests_dir", "type": "Path"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_125_cache_performance.py", "-v"]
+}

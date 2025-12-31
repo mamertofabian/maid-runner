@@ -188,7 +188,7 @@ def normalize_type_string(type_str: str) -> Optional[str]:
     return _type_normalization.normalize_type_string(type_str)
 
 
-def discover_related_manifests(target_file: str) -> List[str]:
+def discover_related_manifests(target_file: str, use_cache: bool = False) -> List[str]:
     """
     Discover all manifests that have touched the target file.
 
@@ -197,10 +197,21 @@ def discover_related_manifests(target_file: str) -> List[str]:
 
     Args:
         target_file: Path to the file to check
+        use_cache: If True, delegate to ManifestRegistry for cached lookup.
+                   If False (default), use the existing implementation.
 
     Returns:
         List of manifest paths in chronological order, excluding superseded manifests
     """
+    if use_cache:
+        # Delegate to ManifestRegistry for cached lookup
+        from maid_runner.cache.manifest_cache import ManifestRegistry
+
+        manifest_dir = Path("manifests")
+        registry = ManifestRegistry.get_instance(manifest_dir)
+        return registry.get_related_manifests(target_file)
+
+    # Original implementation (use_cache=False)
     from maid_runner.utils import get_superseded_manifests
 
     manifests = []
@@ -240,7 +251,11 @@ def discover_related_manifests(target_file: str) -> List[str]:
 
 
 def validate_with_ast(
-    manifest_data, test_file_path, use_manifest_chain=False, validation_mode=None
+    manifest_data,
+    test_file_path,
+    use_manifest_chain=False,
+    validation_mode=None,
+    use_cache=False,
 ):
     """
     Validate that artifacts listed in manifest are referenced in the test file.
@@ -250,6 +265,7 @@ def validate_with_ast(
         test_file_path: Path to the file to analyze (Python, TypeScript, JavaScript, etc.)
         use_manifest_chain: If True, discovers and merges all related manifests
         validation_mode: _VALIDATION_MODE_IMPLEMENTATION or _VALIDATION_MODE_BEHAVIORAL mode, auto-detected if None
+        use_cache: If True, use manifest chain caching for improved performance
 
     Raises:
         AlignmentError: If any expected artifact is not found in the code
@@ -295,7 +311,7 @@ def validate_with_ast(
 
     # Get expected artifacts
     expected_items = _get_expected_artifacts(
-        manifest_data, test_file_path, use_manifest_chain
+        manifest_data, test_file_path, use_manifest_chain, use_cache=use_cache
     )
 
     # Validate all expected artifacts
@@ -1064,11 +1080,14 @@ def _merge_expected_artifacts(
 
 
 def _get_expected_artifacts(
-    manifest_data: dict, test_file_path: str, use_manifest_chain: bool
+    manifest_data: dict,
+    test_file_path: str,
+    use_manifest_chain: bool,
+    use_cache: bool = False,
 ) -> List[dict]:
     """Get expected artifacts from manifest(s)."""
     return _manifest_utils._get_expected_artifacts(
-        manifest_data, test_file_path, use_manifest_chain
+        manifest_data, test_file_path, use_manifest_chain, use_cache=use_cache
     )
 
 
