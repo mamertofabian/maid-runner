@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-31
+
+### Added
+- **Knowledge Graph Builder** (Issue #85) - Complete feature for visualizing and querying manifest relationships
+  - Core data model with `ManifestNode`, `ArtifactNode`, `FileNode`, and relationship types
+  - Graph builder module for constructing knowledge graphs from manifests
+  - Query engine for traversing and analyzing manifest relationships
+  - Export formats: DOT (Graphviz), JSON, and Mermaid diagram support
+  - CLI integration via `maid graph` command with multiple output options
+  - Public API for programmatic access to knowledge graph functionality
+- **Manifest Chain Caching** (Issue #34) - Performance optimization for manifest chain resolution
+  - Caches resolved manifest chains to avoid redundant file system operations
+  - Automatic cache invalidation when manifests are modified
+  - Significant performance improvement for large codebases with many manifests
+
+### Changed
+- **Code readability improvements** with consistent formatting across the codebase
+- **Cache reliability improvements** with better logging and freshness checks
+
+### Documentation
+- **README expansion** with conceptual framework for Structural Determinism in Generative AI
+
 ## [0.6.0] - 2025-12-30
 
 ### Added
@@ -443,6 +465,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.7.0]: https://github.com/mamertofabian/maid-runner/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/mamertofabian/maid-runner/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mamertofabian/maid-runner/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/mamertofabian/maid-runner/compare/v0.4.0...v0.4.1
