@@ -2,12 +2,26 @@
 
 Provides thread-safe caching of manifest data with invalidation support
 based on individual file modification times.
+
+Thread Safety:
+    - Class-level lock (_instance_lock) for singleton creation
+    - Instance-level lock (_lock) for cache operations
+    - Lock order: Always acquire _instance_lock before _lock if both needed
+    - Never call get_instance() while holding instance _lock
+
+Cache Invalidation:
+    - Automatic freshness checking on each cache access
+    - Tracks individual file mtimes for precise invalidation
+    - Detects file additions, removals, and modifications
 """
 
 import json
+import logging
 import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
 
 
 class ManifestRegistry:
@@ -148,18 +162,62 @@ class ManifestRegistry:
             return True
 
     def _ensure_cache_loaded(self) -> None:
-        """Ensure manifests are loaded into cache.
+        """Ensure manifests are loaded into cache with automatic freshness checking.
+
+        Automatically invalidates and reloads cache if files have been modified,
+        added, or removed since the last load.
 
         Must be called with lock held.
         """
-        if self._cache_valid:
+        if self._cache_valid and self._is_cache_fresh():
             return
+
+        # Cache is stale or invalid, reload
+        if self._cache_valid:
+            logger.debug("Cache invalidated due to file changes, reloading manifests")
 
         self._load_manifests()
         self._cache_valid = True
 
+    def _is_cache_fresh(self) -> bool:
+        """Check if cached data is still fresh (no file changes since load).
+
+        Must be called with lock held.
+
+        Returns:
+            True if cache matches current file state, False if stale
+        """
+        if not self._manifests_dir.exists():
+            return len(self._manifests) == 0  # Fresh if both empty
+
+        try:
+            current_files = set(self._manifests_dir.glob("task-*.manifest.json"))
+        except OSError:
+            return False
+
+        # Check if file count changed (files added or removed)
+        cached_files = set(Path(p) for p in self._file_mtimes.keys())
+        if current_files != cached_files:
+            return False
+
+        # Check if any individual file's mtime has changed
+        for file_path in current_files:
+            try:
+                current_mtime = file_path.stat().st_mtime
+                cached_mtime = self._file_mtimes.get(str(file_path))
+                if cached_mtime is None or current_mtime != cached_mtime:
+                    return False
+            except OSError:
+                return False
+
+        return True
+
     def _load_manifests(self) -> None:
         """Load all manifests from directory into cache.
+
+        Invalid manifests (malformed JSON, unreadable files) are skipped with
+        a warning logged. This ensures partial cache availability even when
+        some manifests are corrupted.
 
         Must be called with lock held.
         """
@@ -169,10 +227,12 @@ class ManifestRegistry:
         self._file_mtimes = {}
 
         if not self._manifests_dir.exists():
+            logger.debug("Manifests directory does not exist: %s", self._manifests_dir)
             return
 
         # Find all manifest files
         manifest_files = list(self._manifests_dir.glob("task-*.manifest.json"))
+        logger.debug("Found %d manifest files in %s", len(manifest_files), self._manifests_dir)
 
         for manifest_path in manifest_files:
             try:
@@ -182,12 +242,28 @@ class ManifestRegistry:
                 with open(manifest_path, "r") as f:
                     data = json.load(f)
                 self._manifests[str(manifest_path)] = data
-            except (json.JSONDecodeError, IOError, OSError):
-                # Skip invalid manifests
+            except json.JSONDecodeError as e:
+                logger.warning(
+                    "Skipping manifest with invalid JSON: %s (error: %s)",
+                    manifest_path,
+                    e,
+                )
                 continue
+            except (IOError, OSError) as e:
+                logger.warning(
+                    "Skipping unreadable manifest: %s (error: %s)",
+                    manifest_path,
+                    e,
+                )
+                continue
+
+        logger.debug("Loaded %d valid manifests", len(self._manifests))
 
     def _build_file_mapping(self) -> None:
         """Build mapping from files to manifests that reference them.
+
+        Creates a reverse index from file paths to the manifests that reference them,
+        enabling efficient lookup of related manifests for any given file.
 
         Must be called with lock held.
         """
@@ -248,36 +324,66 @@ class ManifestRegistry:
                 continue
 
             for superseded_path_str in supersedes_list:
-                # Convert to Path and resolve relative to manifests_dir
-                superseded_path = Path(superseded_path_str)
-                if not superseded_path.is_absolute():
-                    # Handle paths that include "manifests/" prefix
-                    if str(superseded_path).startswith("manifests/"):
-                        # Resolve from parent of manifests_dir
-                        superseded_path = (
-                            self._manifests_dir.parent / superseded_path
-                        )
-                    else:
-                        # Resolve relative to manifests_dir
-                        superseded_path = self._manifests_dir / superseded_path
-
-                try:
-                    resolved = superseded_path.resolve()
-                    # Get relative path from manifests_dir
-                    try:
-                        relative_path = resolved.relative_to(
-                            self._manifests_dir.resolve()
-                        )
-                        superseded.add(self._manifests_dir / relative_path)
-                    except ValueError:
-                        # Path is outside manifests_dir, skip
-                        pass
-                except (OSError, ValueError):
-                    # Invalid path, skip
-                    pass
+                resolved_path = self._resolve_superseded_path(
+                    superseded_path_str, manifest_path
+                )
+                if resolved_path is not None:
+                    superseded.add(resolved_path)
 
         self._superseded = superseded
         return superseded
+
+    def _resolve_superseded_path(
+        self, path_str: str, referencing_manifest: str
+    ) -> Optional[Path]:
+        """Resolve a superseded manifest path to an absolute path within manifests_dir.
+
+        Handles multiple path formats:
+        - Relative paths (e.g., "task-001.manifest.json")
+        - Paths with "manifests/" prefix (e.g., "manifests/task-001.manifest.json")
+        - Absolute paths (validated to be within manifests_dir)
+
+        Security: Paths outside manifests_dir are rejected and logged.
+
+        Args:
+            path_str: The path string from the supersedes list
+            referencing_manifest: The manifest containing this supersedes reference (for logging)
+
+        Returns:
+            Resolved Path within manifests_dir, or None if invalid/out-of-bounds
+        """
+        superseded_path = Path(path_str)
+
+        if not superseded_path.is_absolute():
+            # Handle paths that include "manifests/" prefix
+            if path_str.startswith("manifests/"):
+                # Resolve from parent of manifests_dir (project root)
+                superseded_path = self._manifests_dir.parent / superseded_path
+            else:
+                # Resolve relative to manifests_dir
+                superseded_path = self._manifests_dir / superseded_path
+
+        try:
+            resolved = superseded_path.resolve()
+            # Validate path is within manifests_dir (security boundary)
+            relative_path = resolved.relative_to(self._manifests_dir.resolve())
+            return self._manifests_dir / relative_path
+        except ValueError:
+            # Path is outside manifests_dir - potential path traversal attempt
+            logger.warning(
+                "Superseded path '%s' in manifest '%s' resolves outside manifests directory, skipping",
+                path_str,
+                referencing_manifest,
+            )
+            return None
+        except OSError as e:
+            logger.debug(
+                "Failed to resolve superseded path '%s' in manifest '%s': %s",
+                path_str,
+                referencing_manifest,
+                e,
+            )
+            return None
 
     @staticmethod
     def _get_task_number(manifest_path: str) -> int:
