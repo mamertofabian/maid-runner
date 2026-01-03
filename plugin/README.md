@@ -53,12 +53,23 @@ Access all MAID Runner tools through the bundled MCP server:
 - `maid_files` - Check file tracking status
 - And more...
 
-### ⌨️ Slash Commands
+### ⌨️ Slash Commands (9 Commands)
 
 Explicit commands for MAID operations:
-- `/maid-runner:validate [manifest]` - Validate all or specific manifest
-- `/maid-runner:status` - Show project MAID compliance status
-- `/maid-runner:test [manifest]` - Run MAID validation tests
+
+**Workflow Commands:**
+- `/maid-runner:manifest <file>` - Create manifest with auto-numbering and supersession
+- `/maid-runner:stubs <manifest>` - Generate test stubs from manifest
+- `/maid-runner:validate [manifest]` - Validate manifests (behavioral/implementation modes)
+- `/maid-runner:test [manifest]` - Run validation tests with batch mode
+
+**Status & Analysis:**
+- `/maid-runner:status` - Show project MAID compliance overview
+- `/maid-runner:files` - Show file tracking status (undeclared/registered/tracked)
+
+**Initialization & Migration:**
+- `/maid-runner:init` - Initialize MAID in existing project
+- `/maid-runner:snapshot <file>` - Create snapshot manifest from existing code
 
 ## Installation
 
@@ -171,9 +182,14 @@ plugin/
 │       └── VALIDATION_GUIDE.md  # Validation guide
 │
 ├── commands/
+│   ├── manifest.md              # /maid-runner:manifest command
+│   ├── stubs.md                 # /maid-runner:stubs command
 │   ├── validate.md              # /maid-runner:validate command
+│   ├── test.md                  # /maid-runner:test command
 │   ├── status.md                # /maid-runner:status command
-│   └── test.md                  # /maid-runner:test command
+│   ├── files.md                 # /maid-runner:files command
+│   ├── init.md                  # /maid-runner:init command
+│   └── snapshot.md              # /maid-runner:snapshot command
 │
 ├── .mcp.json                    # MCP server configuration
 │
@@ -193,14 +209,15 @@ When you ask Claude to make code changes, the `maid-workflow` Skill is automatic
 - "Create a new module..."
 - "Update the implementation..."
 
-**Claude's response:**
+**Claude's response (using CLI):**
 1. Confirms the goal (Phase 1)
-2. Guides you to create a manifest (Phase 2)
-3. Helps write behavioral tests (Phase 2)
-4. Validates tests use declared artifacts (Phase 2)
-5. Implements code to pass tests (Phase 3)
-6. Validates implementation matches manifest (Phase 3)
-7. Verifies complete integration (Phase 4)
+2. Creates manifest using `maid manifest create` with auto-numbering (Phase 2)
+3. Generates test stubs with `maid generate-stubs` (Phase 2)
+4. Guides you to enhance tests to use declared artifacts (Phase 2)
+5. Validates tests with `maid validate --validation-mode behavioral` (Phase 2)
+6. Implements code to pass tests (Phase 3)
+7. Validates implementation with `maid validate --validation-mode implementation` (Phase 3)
+8. Verifies complete integration with `maid validate` and `maid test` (Phase 4)
 
 ### MCP Tools Integration
 
@@ -220,10 +237,21 @@ await mcp_tool("maid_validate", {
 Users can explicitly invoke MAID operations:
 
 ```
+# Workflow
+/maid-runner:manifest src/new.py   → Create manifest with CLI
+/maid-runner:stubs task-042        → Generate test stubs
 /maid-runner:validate              → Validate all manifests
 /maid-runner:validate task-042     → Validate specific manifest
-/maid-runner:status                → Show project status
 /maid-runner:test                  → Run all MAID tests
+/maid-runner:test task-042         → Run specific manifest tests
+
+# Status & Analysis
+/maid-runner:status                → Project compliance overview
+/maid-runner:files                 → File tracking status
+
+# Initialization
+/maid-runner:init                  → Initialize MAID in project
+/maid-runner:snapshot old_code.py  → Snapshot existing code
 ```
 
 ## Progressive Disclosure

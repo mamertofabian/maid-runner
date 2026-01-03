@@ -15,6 +15,8 @@ uv run maid test
 
 This executes the `validationCommand` from each active manifest and reports results.
 
+**Note:** Automatically uses **batch mode** when running multiple pytest tests (10-20x faster) by combining them into a single invocation.
+
 ## Specific Manifest Testing
 
 If the user provides a manifest path as argument:
@@ -22,15 +24,37 @@ If the user provides a manifest path as argument:
 uv run maid test --manifest $ARGUMENTS
 ```
 
-## Watch Mode
+## Watch Mode (TDD Workflow)
 
-For TDD workflow, offer watch mode:
+For continuous testing during development:
 ```bash
-# Single manifest watch
+# Single manifest watch (re-run tests on file changes)
 uv run maid test --manifest $ARGUMENTS --watch
 
 # Multi-manifest watch (run affected tests on changes)
 uv run maid test --watch-all
+```
+
+## Additional Options
+
+**Fail fast (stop on first failure):**
+```bash
+uv run maid test --fail-fast
+```
+
+**Verbose output (show detailed test output):**
+```bash
+uv run maid test --verbose
+```
+
+**Quiet mode (only show summary):**
+```bash
+uv run maid test --quiet
+```
+
+**Custom timeout:**
+```bash
+uv run maid test --timeout 600  # 10 minutes
 ```
 
 ## Report Results

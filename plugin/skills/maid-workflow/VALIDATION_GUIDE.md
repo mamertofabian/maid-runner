@@ -7,6 +7,55 @@ MAID validation operates in two distinct modes, each serving a specific phase of
 1. **Behavioral Mode**: Validates that tests USE the declared artifacts (Phase 2)
 2. **Implementation Mode**: Validates that code DEFINES the declared artifacts (Phase 3)
 
+## CLI Features & Options
+
+The `maid validate` command provides powerful features for different workflows:
+
+### Watch Modes (Live TDD)
+
+```bash
+# Watch single manifest (re-validate on changes)
+uv run maid validate <manifest> --watch
+
+# Watch all manifests (validate affected on changes)
+uv run maid validate --watch-all
+```
+
+### Performance Optimization
+
+```bash
+# Enable caching for faster validation
+uv run maid validate --use-cache
+
+# Manifest chain caching improves performance when validating multiple times
+```
+
+### Schema-Only Validation
+
+```bash
+# Quick schema check without AST parsing
+uv run maid validate <manifest> --validation-mode schema
+```
+
+### Output Control
+
+```bash
+# Quiet mode (errors only)
+uv run maid validate --quiet
+
+# Verbose mode (detailed output)
+uv run maid validate --verbose
+```
+
+### Directory Validation
+
+```bash
+# Validate all manifests in directory
+uv run maid validate --manifest-dir manifests
+
+# Automatically enables --use-manifest-chain and file tracking
+```
+
 ## Validation Modes
 
 ### Behavioral Mode (Phase 2: Planning Loop)
@@ -287,24 +336,47 @@ def my_function(arg1: str) -> int:
 ## Quick Reference Commands
 
 ```bash
+# === Validation ===
 # Behavioral validation (Phase 2)
 uv run maid validate <manifest> --validation-mode behavioral --use-manifest-chain
 
 # Implementation validation (Phase 3)
 uv run maid validate <manifest> --validation-mode implementation --use-manifest-chain
 
-# Validate all manifests
+# Validate all manifests (whole codebase)
 uv run maid validate
 
-# Run all MAID tests
+# Schema-only validation (quick check)
+uv run maid validate <manifest> --validation-mode schema
+
+# === Watch Modes (Live TDD) ===
+# Watch single manifest (validate on changes)
+uv run maid validate <manifest> --watch
+
+# Watch all manifests
+uv run maid validate --watch-all
+
+# === Testing ===
+# Run all MAID tests (batch mode)
 uv run maid test
 
-# Run specific test
-uv run python -m pytest tests/test_task_XXX_*.py -v
+# Run specific manifest tests
+uv run maid test --manifest <manifest>
 
-# Watch mode (auto-test on file changes)
+# Watch mode for tests
 uv run maid test --manifest <manifest> --watch
 uv run maid test --watch-all
+
+# === File Tracking ===
+# Check file status (quick, no validation)
+uv run maid files --issues-only
+
+# Show all tracked/untracked files
+uv run maid files
+
+# === Performance ===
+# Enable caching for faster validation
+uv run maid validate --use-cache
 ```
 
 ## Definition of Done Checklist

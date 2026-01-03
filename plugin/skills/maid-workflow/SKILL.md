@@ -16,20 +16,49 @@ Confirm the high-level goal before proceeding. Ensure you understand what needs 
 ### Phase 2: Planning Loop (BEFORE Implementation)
 **Iterative refinement until validation passes:**
 
-1. **Create Manifest** (`manifests/task-XXX.manifest.json`)
-   - Define goal, files, and expected artifacts
-   - Use `taskType`: "create", "edit", or "refactor"
-   - **CRITICAL**: `expectedArtifacts` is an OBJECT for ONE file only
-   - For multi-file changes: Create separate manifests
+1. **Create Manifest Using CLI** (`manifests/task-XXX.manifest.json`)
+   ```bash
+   # Use the CLI to create manifest - handles numbering, supersession automatically
+   uv run maid manifest create <file-path> \
+     --goal "Clear description of what this task accomplishes" \
+     --artifacts '[{"type":"function","name":"my_func","args":[{"name":"arg1","type":"str"}],"returns":"str"}]'
 
-2. **Create Behavioral Tests** (`tests/test_task_XXX_*.py`)
-   - Tests must USE the artifacts declared in manifest
-   - Follow TDD: Write tests that will pass once implementation is complete
+   # Preview first with --dry-run
+   uv run maid manifest create <file-path> \
+     --goal "..." \
+     --artifacts '[...]' \
+     --dry-run
+   ```
+
+   **CLI Benefits:**
+   - ✅ Auto-numbers tasks (finds next available)
+   - ✅ Auto-detects taskType (create/edit based on file existence)
+   - ✅ Auto-supersedes snapshots when editing frozen code
+   - ✅ Auto-generates test file path
+   - ✅ Validates against schema
+
+   **For multi-file tasks:** Create separate manifests for each file
+
+2. **Generate Test Stubs** (`tests/test_task_XXX_*.py`)
+   ```bash
+   # Auto-generate failing test stubs from manifest
+   uv run maid generate-stubs manifests/task-XXX.manifest.json
+   ```
+
+   Then:
+   - Review generated stubs
+   - Enhance tests to fully USE the declared artifacts
+   - Add assertions and test cases
+   - Follow TDD: Tests should fail now, pass after implementation
 
 3. **Validate Behavioral Compliance**
    ```bash
-   uv run maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain
+   uv run maid validate manifests/task-XXX.manifest.json \
+     --validation-mode behavioral \
+     --use-manifest-chain
    ```
+
+   Fix until tests properly use all declared artifacts
 
 4. **Refine** manifest and tests together until validation passes
 
@@ -127,13 +156,32 @@ uv run python -m pytest tests/ -v
   - Use during Phase 3 when implementing code
   - Includes file tracking analysis with `--use-manifest-chain`
 
-## Finding Next Task Number
+## CLI Commands Quick Reference
 
 ```bash
-# Find the last task number
-ls manifests/task-*.manifest.json | tail -1
+# Create manifest (auto-numbers, auto-supersedes)
+uv run maid manifest create <file-path> --goal "..." --artifacts '[...]'
 
-# Next task is +1 from the last number
+# Generate test stubs
+uv run maid generate-stubs manifests/task-XXX.manifest.json
+
+# Validate (behavioral mode for Phase 2)
+uv run maid validate <manifest> --validation-mode behavioral --use-manifest-chain
+
+# Validate (implementation mode for Phase 3)
+uv run maid validate <manifest> --validation-mode implementation --use-manifest-chain
+
+# Run tests
+uv run maid test --manifest <manifest>
+
+# Check file tracking
+uv run maid files --issues-only
+
+# Create snapshot of existing code
+uv run maid snapshot <file-path>
+
+# Initialize MAID in new project
+uv run maid init
 ```
 
 ## Progressive Disclosure
@@ -143,38 +191,56 @@ For detailed information:
 - **Validation details**: See [VALIDATION_GUIDE.md](VALIDATION_GUIDE.md)
 - **Full methodology**: See [MAID_SPECS.md](MAID_SPECS.md)
 
-## Common Patterns
+## Common Patterns (Using CLI)
 
 ### Creating a New File
-```json
-{
-  "taskType": "create",
-  "creatableFiles": ["src/new_module.py"],
-  "expectedArtifacts": {
-    "file": "src/new_module.py",
-    "contains": [...]
-  }
-}
+```bash
+# CLI auto-detects taskType="create" for non-existent files
+uv run maid manifest create src/new_module.py \
+  --goal "Add new payment processing module" \
+  --artifacts '[
+    {"type":"function","name":"process_payment","args":[{"name":"amount","type":"Decimal"}],"returns":"PaymentResult"}
+  ]'
 ```
 
 ### Editing an Existing File
-```json
-{
-  "taskType": "edit",
-  "editableFiles": ["src/existing_module.py"],
-  "expectedArtifacts": {
-    "file": "src/existing_module.py",
-    "contains": [/* only NEW or MODIFIED artifacts */]
-  }
-}
+```bash
+# CLI auto-detects taskType="edit" for existing files
+# Auto-supersedes snapshots if file was frozen
+uv run maid manifest create src/existing_module.py \
+  --goal "Add refund support to payment module" \
+  --artifacts '[
+    {"type":"function","name":"process_refund","args":[{"name":"payment_id","type":"str"}],"returns":"RefundResult"}
+  ]'
 ```
 
 ### Multi-File Feature (Separate Manifests)
 ```bash
-# Wrong: One manifest with multiple files in expectedArtifacts
-# Right: Separate manifests
-manifests/task-050-add-utils.manifest.json      # Modifies utils.py
-manifests/task-051-update-handlers.manifest.json # Modifies handlers.py
+# Create separate manifests for each file
+uv run maid manifest create src/utils.py \
+  --goal "Add utility functions" \
+  --artifacts '[...]'
+
+uv run maid manifest create src/handlers.py \
+  --goal "Update request handlers" \
+  --artifacts '[...]'
+```
+
+### Deleting a File
+```bash
+# Create deletion manifest (supersedes all active manifests for file)
+uv run maid manifest create src/old_module.py \
+  --goal "Remove deprecated module" \
+  --delete
+```
+
+### Renaming a File
+```bash
+# Create rename manifest (supersedes all active manifests for source)
+uv run maid manifest create src/old_name.py \
+  --goal "Rename module for clarity" \
+  --rename-to src/new_name.py \
+  --artifacts '[...]'  # Same artifacts, new location
 ```
 
 ## Definition of Done

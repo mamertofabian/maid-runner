@@ -1,6 +1,45 @@
 # Manifest Creation Guide
 
-## Manifest Structure
+## Recommended: Use CLI for Manifest Creation
+
+**The `maid manifest create` CLI command is the recommended way to create manifests.**
+
+### Quick Start with CLI
+
+```bash
+# Create manifest (auto-numbers, auto-supersedes, validates)
+uv run maid manifest create <file-path> \
+  --goal "Clear description" \
+  --artifacts '[{"type":"function","name":"my_func","args":[],"returns":"str"}]'
+
+# Preview first with --dry-run
+uv run maid manifest create <file-path> \
+  --goal "..." \
+  --artifacts '[...]' \
+  --dry-run
+```
+
+### CLI Benefits
+
+- ✅ **Auto-numbering**: Finds next available task number
+- ✅ **Auto-detection**: Detects taskType (create/edit) based on file existence
+- ✅ **Auto-supersession**: Supersedes snapshots when editing frozen code
+- ✅ **Auto-generation**: Generates test file path
+- ✅ **Schema validation**: Validates against schema automatically
+- ✅ **Special operations**: Handles delete and rename with flags
+
+### See Also
+
+For CLI details, use:
+```bash
+uv run maid manifest create --help
+```
+
+Or see [SKILL.md](SKILL.md) for common CLI patterns.
+
+---
+
+## Manifest Structure (Manual Creation)
 
 Every manifest must follow this JSON schema:
 

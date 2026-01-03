@@ -32,7 +32,7 @@ In Claude Code, check that the plugin loaded successfully:
 > /help
 ```
 
-**Expected**: You should see `/maid-runner:validate`, `/maid-runner:status`, `/maid-runner:test` commands.
+**Expected**: You should see 9 `/maid-runner:*` commands (manifest, stubs, validate, test, status, files, init, snapshot).
 
 ## Step 3: Test Automatic MAID Enforcement
 
@@ -42,14 +42,16 @@ Try asking Claude to create a new feature:
 > I want to add a new function to calculate shipping costs based on weight and distance
 ```
 
-**Expected behavior**:
+**Expected behavior** (using CLI commands):
 1. Claude activates the `maid-workflow` Skill
 2. Claude asks you to confirm the goal
-3. Claude guides you to create a manifest first
-4. Claude helps write behavioral tests
-5. Claude validates tests use the declared artifacts
-6. Claude implements the code
-7. Claude validates the implementation
+3. Claude runs `maid manifest create` to create manifest with auto-numbering
+4. Claude runs `maid generate-stubs` to create test skeleton
+5. Claude helps enhance tests to use declared artifacts
+6. Claude runs `maid validate --validation-mode behavioral` to verify tests
+7. Claude implements the code to pass tests
+8. Claude runs `maid validate --validation-mode implementation` to verify code
+9. Claude runs `maid test` to execute behavioral tests
 
 ## Step 4: Try Slash Commands
 
@@ -124,27 +126,29 @@ Now the MAID workflow will be automatically available in all your projects!
 
 **Prompt**: "Create a new module for user authentication with login and logout functions"
 
-**Expected flow**:
+**Expected flow** (CLI-based):
 1. Confirm goal
-2. Create manifest: `manifests/task-XXX-user-authentication.manifest.json`
-3. Create tests: `tests/test_task_XXX_authentication.py`
-4. Validate tests (behavioral mode)
-5. Implement code
-6. Validate implementation
-7. Run tests
+2. `maid manifest create` → `manifests/task-XXX-user-authentication.manifest.json`
+3. `maid generate-stubs` → `tests/test_task_XXX_authentication.py`
+4. Enhance tests to use declared artifacts
+5. `maid validate --validation-mode behavioral` → Verify tests
+6. Implement code
+7. `maid validate --validation-mode implementation` → Verify code
+8. `maid test` → Run behavioral tests
 
 ### Test 2: Editing Existing File
 
 **Prompt**: "Add a new method to calculate discounts in the existing ShoppingCart class"
 
-**Expected flow**:
+**Expected flow** (CLI-based):
 1. Confirm goal
-2. Create manifest with `editableFiles` and `--use-manifest-chain`
-3. Create tests
-4. Validate with manifest chain
-5. Implement
-6. Validate with chain
-7. Run tests
+2. `maid manifest create` (auto-detects edit mode, auto-supersedes snapshot)
+3. `maid generate-stubs` → Create test skeleton
+4. Enhance tests
+5. `maid validate --validation-mode behavioral --use-manifest-chain`
+6. Implement code
+7. `maid validate --validation-mode implementation --use-manifest-chain`
+8. `maid test` → Run tests
 
 ### Test 3: Validation Check
 
