@@ -5,8 +5,8 @@
   "author": {
     "name": "MAID Runner Team"
   },
-  "homepage": "https://github.com/your-org/maid-runner",
-  "repository": "https://github.com/your-org/maid-runner",
+  "homepage": "https://github.com/mamertofabian/maid-runner",
+  "repository": "https://github.com/mamertofabian/maid-runner",
   "license": "MIT",
   "keywords": ["maid", "manifest", "tdd", "validation", "methodology", "workflow"]
 }

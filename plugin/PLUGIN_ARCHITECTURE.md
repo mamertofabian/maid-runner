@@ -237,7 +237,7 @@ plugin/
 
 ### User Scope (Default)
 ```bash
-claude plugin install ./plugin --scope user
+claude plugin install maid-runner@maid-official --scope user
 ```
 
 **Location**: `~/.claude/settings.json`
@@ -246,7 +246,7 @@ claude plugin install ./plugin --scope user
 
 ### Project Scope (Team)
 ```bash
-claude plugin install ./plugin --scope project
+claude plugin install maid-runner@maid-official --scope project
 ```
 
 **Location**: `.claude/settings.json` (checked into repo)
@@ -255,7 +255,7 @@ claude plugin install ./plugin --scope project
 
 ### Local Scope (Per-Project Personal)
 ```bash
-claude plugin install ./plugin --scope local
+claude plugin install maid-runner@maid-official --scope local
 ```
 
 **Location**: `.claude/settings.local.json` (gitignored)
@@ -287,8 +287,8 @@ claude plugin install ./plugin --scope local
 
 ### Local Testing
 ```bash
-cd plugin
-claude --plugin-dir .
+cd /path/to/maid-runner
+claude --plugin-dir ./plugin
 ```
 
 ### Verification Checklist
@@ -315,13 +315,14 @@ claude --plugin-dir ./plugin
 
 ### Personal Use
 ```bash
-claude plugin install ./plugin --scope user
+# First, set up a marketplace (see https://code.claude.com/docs/en/plugin-marketplaces)
+claude plugin install maid-runner@maid-official --scope user
 ```
 
 ### Team Distribution
 ```bash
-# In project root
-claude plugin install ./plugin --scope project
+# In project root, install from marketplace
+claude plugin install maid-runner@maid-official --scope project
 
 # Commit .claude/settings.json
 git add .claude/settings.json
@@ -329,7 +330,7 @@ git commit -m "Add MAID Runner plugin for team"
 ```
 
 ### Marketplace Distribution
-1. Create marketplace manifest
+1. Create marketplace manifest (see https://code.claude.com/docs/en/plugin-marketplaces)
 2. Publish to Git repository
 3. Team adds marketplace
 4. Team installs plugin

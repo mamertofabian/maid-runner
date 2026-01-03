@@ -75,38 +75,31 @@ Explicit commands for MAID operations:
 
 ### Option 1: Test Locally (Development)
 
-Test the plugin without installing to a marketplace:
+Test the plugin directly without installation:
 
 ```bash
 # From the maid-runner project root
-cd plugin
+cd /path/to/maid-runner
 
 # Start Claude Code with the plugin loaded
-claude --plugin-dir .
+claude --plugin-dir ./plugin
 ```
 
-### Option 2: Install from Directory
+This loads the plugin temporarily for the current session only.
 
-Install the plugin to your user scope:
+### Option 2: Install from Marketplace (Recommended)
+
+Once you've set up a plugin marketplace (see [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)):
 
 ```bash
-# Install to user scope (available in all projects)
-claude plugin install /path/to/maid-runner/plugin --scope user
+# Add your marketplace (one-time setup)
+claude plugin marketplace add maid-official /path/to/marketplace
 
-# Install to project scope (team-shared via version control)
-claude plugin install /path/to/maid-runner/plugin --scope project
-
-# Install to local scope (project-specific, gitignored)
-claude plugin install /path/to/maid-runner/plugin --scope local
+# Install the plugin
+claude plugin install maid-runner@maid-official --scope user
 ```
 
-### Option 3: Install from Marketplace (Future)
-
-Once published to a marketplace:
-
-```bash
-claude plugin install maid-runner@official
-```
+**Note**: Direct installation from directories (e.g., `claude plugin install ./plugin`) is not supported. Use `--plugin-dir` for testing or set up a marketplace for permanent installation.
 
 ## Testing the Plugin
 
@@ -115,8 +108,8 @@ claude plugin install maid-runner@official
 Start Claude Code with the plugin:
 
 ```bash
-cd /path/to/maid-runner/plugin
-claude --plugin-dir .
+cd /path/to/maid-runner
+claude --plugin-dir ./plugin
 ```
 
 In Claude Code, try these prompts:
@@ -377,7 +370,7 @@ claude plugin update maid-runner --scope user
 
 ### Create a Marketplace
 
-See [Claude Code Plugin Marketplaces](https://docs.anthropic.com/en/docs/claude-code/plugin-marketplaces) for details.
+See [Claude Code Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) for details.
 
 **Quick start:**
 
@@ -413,7 +406,7 @@ claude plugin install maid-runner@maid-official
 
 ### User Scope (Default)
 ```bash
-claude plugin install maid-runner --scope user
+claude plugin install maid-runner@maid-official --scope user
 ```
 - Available across all your projects
 - Stored in `~/.claude/settings.json`
@@ -421,7 +414,7 @@ claude plugin install maid-runner --scope user
 
 ### Project Scope (Team)
 ```bash
-claude plugin install maid-runner --scope project
+claude plugin install maid-runner@maid-official --scope project
 ```
 - Shared with team via `.claude/settings.json` in repo
 - Everyone on the team gets MAID automatically
@@ -452,16 +445,16 @@ Administrators can deploy MAID organization-wide via `managed-settings.json`.
 
 ## Next Steps
 
-1. **Test locally**: `claude --plugin-dir .`
+1. **Test locally**: `claude --plugin-dir ./plugin`
 2. **Try the Skills**: Ask Claude to create a feature
 3. **Use slash commands**: `/maid-runner:status`
-4. **Install for team**: `--scope project`
-5. **Create marketplace**: Distribute to organization
+4. **Set up marketplace**: See [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
+5. **Install for team**: Use `--scope project` with marketplace
 
 ## Support
 
 For issues, questions, or contributions:
-- GitHub: [your-org/maid-runner](https://github.com/your-org/maid-runner)
+- GitHub: [mamertofabian/maid-runner](https://github.com/mamertofabian/maid-runner)
 - Documentation: See `docs/maid_specs.md` in the main repository
 
 ## License

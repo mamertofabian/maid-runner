@@ -5,11 +5,11 @@ Get started with the MAID Runner plugin in under 5 minutes.
 ## Step 1: Test the Plugin Locally
 
 ```bash
-# Navigate to the plugin directory
-cd /path/to/maid-runner/plugin
+# Navigate to the maid-runner directory
+cd /path/to/maid-runner
 
 # Start Claude Code with the plugin loaded
-claude --plugin-dir .
+claude --plugin-dir ./plugin
 ```
 
 ## Step 2: Verify Installation
@@ -104,21 +104,23 @@ Claude should use the `maid_snapshot` MCP tool to create a manifest from the exi
 
 ## Step 6: Install for Regular Use
 
-Once you've verified the plugin works, install it to your user scope:
+Once you've verified the plugin works, set up a marketplace for permanent installation:
 
 ```bash
 # Exit Claude Code
 exit
 
-# Install to user scope (available in all projects)
-cd /path/to/maid-runner
-claude plugin install ./plugin --scope user
+# Set up a marketplace (see https://code.claude.com/docs/en/plugin-marketplaces)
+# Then install from the marketplace:
+claude plugin install maid-runner@maid-official --scope user
 
 # Restart Claude Code
 claude
 ```
 
 Now the MAID workflow will be automatically available in all your projects!
+
+**Note**: Direct installation from directories is not supported. Use `--plugin-dir` for testing or set up a marketplace for permanent installation.
 
 ## Common Test Scenarios
 
@@ -213,14 +215,17 @@ Once you've verified the plugin works:
 ## Quick Reference
 
 ```bash
-# Test locally
-cd plugin && claude --plugin-dir .
+# Test locally (development)
+cd /path/to/maid-runner && claude --plugin-dir ./plugin
 
-# Install to user scope
-claude plugin install ./plugin --scope user
+# Set up marketplace (one-time)
+# See: https://code.claude.com/docs/en/plugin-marketplaces
+
+# Install from marketplace to user scope
+claude plugin install maid-runner@maid-official --scope user
 
 # Install to project scope (team)
-claude plugin install ./plugin --scope project
+claude plugin install maid-runner@maid-official --scope project
 
 # Update plugin
 claude plugin update maid-runner --scope user
@@ -233,6 +238,6 @@ claude plugin uninstall maid-runner --scope user
 
 - See `plugin/README.md` for detailed documentation
 - See `docs/maid_specs.md` for MAID methodology
-- Check Claude Code docs: https://docs.anthropic.com/en/docs/claude-code/plugins
+- Check Claude Code docs: https://code.claude.com/docs/en/plugins
 
 Happy MAID development! 🎯
