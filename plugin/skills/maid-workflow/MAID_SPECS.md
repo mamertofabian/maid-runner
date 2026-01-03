@@ -1,0 +1,1 @@
+../../../docs/maid_specs.md

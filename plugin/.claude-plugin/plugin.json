@@ -1,0 +1,12 @@
+{
+  "name": "maid-runner",
+  "version": "0.1.0",
+  "description": "Manifest-driven AI Development (MAID) methodology enforcement for Claude Code. Automatically applies MAID workflow for all code changes.",
+  "author": {
+    "name": "MAID Runner Team"
+  },
+  "homepage": "https://github.com/your-org/maid-runner",
+  "repository": "https://github.com/your-org/maid-runner",
+  "license": "MIT",
+  "keywords": ["maid", "manifest", "tdd", "validation", "methodology", "workflow"]
+}
