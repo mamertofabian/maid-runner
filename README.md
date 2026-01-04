@@ -132,9 +132,25 @@ MAID Runner supports three development approaches, differing only in **who creat
 
 ## Installation
 
-### From PyPI (Recommended)
+### Claude Code Plugin (Recommended for Claude Code Users)
 
-Install MAID Runner from PyPI using pip or uv:
+For Claude Code users, install MAID Runner via the plugin marketplace:
+
+```bash
+# First, add the plugin marketplace
+/plugin marketplace add aidrivencoder/claude-plugins
+
+# Then install MAID Runner
+/plugin install maid-runner@aidrivencoder
+```
+
+The plugin auto-installs the `maid-runner` PyPI package on session start and provides MAID workflow commands, specialized agents, and on-demand methodology documentation—no manual initialization required.
+
+See the [Claude Code Plugin documentation](https://github.com/aidrivencoder/claude-plugins/tree/main/plugins/maid-runner) for details.
+
+### From PyPI (Standalone Usage)
+
+For non-Claude Code environments, install MAID Runner from PyPI:
 
 ```bash
 # Using pip
@@ -168,11 +184,12 @@ maid --help
 
 ### Updating
 
-After upgrading maid-runner, re-run `maid init` to update Claude files:
-
 ```bash
+# PyPI users: re-run maid init to update Claude files
 pip install --upgrade maid-runner
 maid init --force  # Updates .claude/ files and CLAUDE.md
+
+# Claude Code plugin users: updates happen automatically
 ```
 
 ## The MAID Ecosystem
