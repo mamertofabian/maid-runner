@@ -1,6 +1,6 @@
 {
   "name": "maid-runner",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "description": "Manifest-driven AI Development (MAID) methodology enforcement for Claude Code. Automatically applies MAID workflow for all code changes.",
   "author": {
     "name": "MAID Runner Team"
