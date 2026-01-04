@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "maid-runner": {
-      "command": "uvx",
-      "args": ["maid-runner-mcp"],
-      "env": {}
-    }
-  }
-}
