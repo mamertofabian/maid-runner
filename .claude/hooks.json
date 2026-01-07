@@ -1,0 +1,17 @@
+{
+  "hooks": [
+    {
+      "lifecycle": "PostToolUse",
+      "match": {
+        "tool": ["Write", "Edit", "MultiEdit"]
+      },
+      "files": ["**/*.py", "**/*.manifest.json"],
+      "command": [
+        "uv",
+        "run",
+        "maid",
+        "validate"
+      ]
+    }
+  ]
+}
