@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-01-08
+
+### Added
+- **Architectural Coherence Validation** (Issue #86) - Comprehensive validation for manifest consistency and architecture compliance
+  - Duplicate artifact detection across manifests to identify redundant declarations
+  - Naming convention validation ensuring consistent file and artifact naming patterns
+  - Dependency validation to detect circular dependencies and missing relationships
+  - Pattern compliance checking against configurable architectural rules
+  - Constraint validation for cross-cutting concerns and project-wide rules
+  - CLI integration via `maid validate --coherence` with optional JSON output (`--json`)
+  - False positive filtering for legitimate artifact variations
+
+### Changed
+- **Claude Code Integration** improvements
+  - MAID validation hook for automatic coherence checking
+  - Plugin version alignment with package versioning
+  - Installation documentation recommending Claude Code plugin marketplace
+
 ## [0.7.0] - 2025-12-31
 
 ### Added
@@ -465,6 +483,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.8.0]: https://github.com/mamertofabian/maid-runner/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/mamertofabian/maid-runner/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/mamertofabian/maid-runner/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mamertofabian/maid-runner/compare/v0.4.1...v0.5.0
