@@ -276,6 +276,12 @@ def main():
         help="Enable manifest chain caching for improved performance",
     )
 
+    validate_parser.add_argument(
+        "--json-output",
+        action="store_true",
+        help="Output validation results as JSON (for tool integration)",
+    )
+
     # Add coherence validation arguments
     add_coherence_arguments(validate_parser)
 
@@ -403,6 +409,11 @@ mixed test runners (pytest + vitest, etc.).""",
         "-q",
         action="store_true",
         help="Show minimal output (just manifest names)",
+    )
+    list_manifests_parser.add_argument(
+        "--json-output",
+        action="store_true",
+        help="Output manifest list as JSON array",
     )
 
     # Init subcommand
@@ -620,6 +631,7 @@ Automatically handles:
             verbose=args.verbose,
             skip_tests=args.skip_tests,
             use_cache=args.use_cache,
+            json_output=args.json_output,
         )
 
         # Run coherence validation if requested (after standard validation)
@@ -653,7 +665,9 @@ Automatically handles:
     elif args.command == "manifests":
         from maid_runner.cli.list_manifests import run_list_manifests
 
-        run_list_manifests(args.file_path, args.manifest_dir, args.quiet)
+        run_list_manifests(
+            args.file_path, args.manifest_dir, args.quiet, args.json_output
+        )
     elif args.command == "init":
         from maid_runner.cli.init import run_init
 

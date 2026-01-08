@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Dict, Set, Any
 
@@ -21,6 +22,12 @@ from maid_runner.utils import (
     find_project_root,
     normalize_validation_commands,
     get_superseded_manifests,
+)
+from maid_runner.validation_result import (
+    ErrorCode,
+    ErrorSeverity,
+    ValidationError,
+    ValidationResult,
 )
 
 # Try to import watchdog for watch mode
@@ -48,6 +55,37 @@ from maid_runner.coherence import CoherenceValidator, CoherenceResult
 from . import _validate_helpers
 from . import _test_file_extraction
 from . import _behavioral_validation
+
+
+def format_validation_json(
+    success: bool,
+    errors: List[ValidationError],
+    warnings: List[ValidationError],
+    metadata: Dict[str, Any],
+) -> str:
+    """Format validation results as JSON string in maid-lsp compatible format.
+
+    Creates a ValidationResult from the provided parameters and serializes
+    it to a JSON string. The output format is compatible with maid-lsp
+    expectations.
+
+    Args:
+        success: Whether validation passed overall.
+        errors: List of validation errors.
+        warnings: List of validation warnings.
+        metadata: Dictionary of additional metadata.
+
+    Returns:
+        JSON string with format:
+        {"success": bool, "errors": [...], "warnings": [...], "metadata": {...}}
+    """
+    result = ValidationResult(
+        success=success,
+        errors=errors,
+        warnings=warnings,
+        metadata=metadata,
+    )
+    return result.to_json()
 
 
 def _format_file_tracking_output(
@@ -1435,6 +1473,260 @@ def _run_directory_validation(
         sys.exit(0)
 
 
+@dataclass
+class _CoreValidationResult:
+    """Result of core validation operations.
+
+    This dataclass holds the structured result of manifest validation,
+    suitable for both JSON output and text output modes.
+    """
+
+    success: bool
+    errors: List[ValidationError]
+    warnings: List[ValidationError]
+    metadata: Dict[str, Any]
+
+
+def _perform_core_validation(
+    manifest_path: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    use_cache: bool,
+) -> _CoreValidationResult:
+    """Perform core manifest validation and return structured result.
+
+    This function contains the shared validation logic used by both JSON
+    and text output modes. It performs schema, semantic, supersession,
+    and AST validation.
+
+    Note:
+        Test execution (validationCommand) is not included as it's
+        typically handled separately by IDE test runners or CLI.
+
+    Args:
+        manifest_path: Path to the manifest JSON file.
+        validation_mode: Validation mode ('implementation', 'behavioral', or 'schema').
+        use_manifest_chain: Whether to use manifest chain for validation.
+        use_cache: Whether to enable manifest chain caching.
+
+    Returns:
+        _CoreValidationResult with success status, errors, warnings, and metadata.
+    """
+    from maid_runner.validators.manifest_validator import (
+        AlignmentError,
+        validate_schema,
+        validate_with_ast,
+    )
+    from maid_runner.validators.semantic_validator import (
+        ManifestSemanticError,
+        validate_manifest_semantics,
+        validate_supersession,
+    )
+
+    errors: List[ValidationError] = []
+    warnings: List[ValidationError] = []
+    metadata: Dict[str, Any] = {
+        "manifest_path": manifest_path,
+        "validation_mode": validation_mode,
+        "use_manifest_chain": use_manifest_chain,
+    }
+
+    def _make_result(success: bool) -> _CoreValidationResult:
+        return _CoreValidationResult(
+            success=success, errors=errors, warnings=warnings, metadata=metadata
+        )
+
+    try:
+        # Validate manifest file exists
+        manifest_path_obj = Path(manifest_path)
+        if not manifest_path_obj.exists():
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.FILE_NOT_FOUND,
+                    message=f"Manifest file not found: {manifest_path}",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            return _make_result(False)
+
+        # Load the manifest
+        with open(manifest_path_obj, "r") as f:
+            manifest_data = json.load(f)
+
+        # Validate against JSON schema
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
+        try:
+            validate_schema(manifest_data, str(schema_path))
+        except jsonschema.ValidationError as e:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.SCHEMA_VALIDATION_FAILED,
+                    message=f"Schema validation failed: {e.message}",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            return _make_result(False)
+
+        # Validate MAID semantics
+        try:
+            validate_manifest_semantics(manifest_data)
+        except ManifestSemanticError as e:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
+                    message=str(e),
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            return _make_result(False)
+
+        # Validate supersession
+        try:
+            manifests_dir = manifest_path_obj.parent
+            validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
+        except ManifestSemanticError as e:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.SUPERSESSION_VALIDATION_FAILED,
+                    message=str(e),
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            return _make_result(False)
+
+        # Schema-only mode early exit
+        if validation_mode == "schema":
+            return _make_result(True)
+
+        # Get file to validate
+        expected_artifacts = manifest_data.get("expectedArtifacts", {})
+        file_path = expected_artifacts.get("file", "")
+
+        if not file_path:
+            creatable = manifest_data.get("creatableFiles", [])
+            editable = manifest_data.get("editableFiles", [])
+            if creatable:
+                file_path = creatable[0]
+            elif editable:
+                file_path = editable[0]
+
+        # Validate that we have a target file
+        if not file_path:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
+                    message="Manifest has no target file to validate (no expectedArtifacts.file, creatableFiles, or editableFiles)",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            return _make_result(False)
+
+        metadata["target_file"] = file_path
+
+        # Run AST validation based on mode
+        file_status = expected_artifacts.get("status", "present")
+
+        if validation_mode in ("implementation", "behavioral"):
+            # Check file exists for implementation mode
+            if (
+                validation_mode == "implementation"
+                and file_status != "absent"
+                and not Path(file_path).exists()
+            ):
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.ALIGNMENT_ERROR,
+                        message=f"Target file not found: {file_path}",
+                        file=file_path,
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
+                return _make_result(False)
+
+            try:
+                validate_with_ast(
+                    manifest_data,
+                    file_path,
+                    use_manifest_chain=use_manifest_chain,
+                    validation_mode=validation_mode,
+                    use_cache=use_cache,
+                )
+            except AlignmentError as e:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.ARTIFACT_NOT_FOUND,
+                        message=str(e),
+                        file=getattr(e, "file", None) or file_path,
+                        line=getattr(e, "line", None),
+                        column=getattr(e, "column", None),
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
+                return _make_result(False)
+
+        # Success
+        return _make_result(True)
+
+    except json.JSONDecodeError as e:
+        errors.append(
+            ValidationError(
+                code=ErrorCode.FILE_NOT_FOUND,
+                message=f"Invalid JSON in manifest: {e}",
+                file=manifest_path,
+                severity=ErrorSeverity.ERROR,
+            )
+        )
+        return _make_result(False)
+
+    except Exception as e:
+        errors.append(
+            ValidationError(
+                code=ErrorCode.UNEXPECTED_ERROR,
+                message=f"Unexpected error: {e}",
+                severity=ErrorSeverity.ERROR,
+            )
+        )
+        return _make_result(False)
+
+
+def _run_validation_with_json_output(
+    manifest_path: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    use_cache: bool,
+) -> None:
+    """Run validation and output results as JSON.
+
+    This function calls the core validation logic and outputs the result
+    as structured JSON compatible with maid-lsp expectations.
+
+    Args:
+        manifest_path: Path to the manifest JSON file.
+        validation_mode: Validation mode ('implementation', 'behavioral', or 'schema').
+        use_manifest_chain: Whether to use manifest chain for validation.
+        use_cache: Whether to enable manifest chain caching.
+    """
+    result = _perform_core_validation(
+        manifest_path, validation_mode, use_manifest_chain, use_cache
+    )
+    print(
+        format_validation_json(
+            result.success, result.errors, result.warnings, result.metadata
+        )
+    )
+    sys.exit(0 if result.success else 1)
+
+
 def run_validation(
     manifest_path: Optional[str] = None,
     validation_mode: str = "implementation",
@@ -1448,6 +1740,7 @@ def run_validation(
     verbose: bool = False,
     skip_tests: bool = False,
     use_cache: bool = False,
+    json_output: bool = False,
 ) -> None:
     """Core validation logic accepting parsed arguments.
 
@@ -1464,6 +1757,7 @@ def run_validation(
         verbose: If True, show detailed output
         skip_tests: If True, skip running validationCommand
         use_cache: If True, enable manifest chain caching for improved performance
+        json_output: If True, output validation results as JSON
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure
@@ -1511,6 +1805,16 @@ def run_validation(
             use_manifest_chain,
             quiet,
             use_cache=use_cache,
+        )
+        return
+
+    # JSON output mode: wrap validation and output structured results
+    if json_output:
+        _run_validation_with_json_output(
+            manifest_path,
+            validation_mode,
+            use_manifest_chain,
+            use_cache,
         )
         return
 

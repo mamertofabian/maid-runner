@@ -1,0 +1,38 @@
+{
+  "goal": "Add --json-output flag to maid manifests command that outputs a JSON array of manifest paths instead of formatted text",
+  "description": "The maid-lsp server needs to call `maid manifests <file> --json-output` and receive a JSON array of manifest paths. This manifest covers the list_manifests.py changes: adding format_manifests_json() function and modifying run_list_manifests() to accept json_output parameter.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/list_manifests.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/main.py",
+    "maid_runner/utils/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/list_manifests.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "format_manifests_json",
+        "args": [
+          {"name": "categorized_manifests", "type": "dict"},
+          {"name": "manifest_dir", "type": "str"}
+        ],
+        "returns": "str"
+      },
+      {
+        "type": "function",
+        "name": "run_list_manifests",
+        "args": [
+          {"name": "file_path", "type": "str"},
+          {"name": "manifest_dir", "type": "str"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "json_output", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_143_list_manifests_json_output.py", "-v"]
+}
