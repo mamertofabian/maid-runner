@@ -15,8 +15,10 @@ Provides a unified command-line interface with subcommands:
 
 import argparse
 import sys
+from pathlib import Path
 
 from maid_runner import __version__
+from maid_runner.cli.validate import run_coherence_validation, _format_coherence_issues
 
 
 def setup_graph_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -97,6 +99,83 @@ def setup_graph_parser(subparsers: argparse._SubParsersAction) -> None:
         default="manifests",
         help="Directory containing manifests (default: manifests)",
     )
+
+
+def add_coherence_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add coherence validation arguments to an argument parser.
+
+    Adds --coherence and --coherence-only flags to the validate subparser.
+    These flags enable architectural coherence validation.
+
+    Args:
+        parser: The ArgumentParser to add arguments to.
+
+    Returns:
+        None
+    """
+    parser.add_argument(
+        "--coherence",
+        action="store_true",
+        default=False,
+        help="Run coherence validation in addition to standard validation",
+    )
+    parser.add_argument(
+        "--coherence-only",
+        action="store_true",
+        default=False,
+        help="Run only coherence validation (skip standard validation)",
+    )
+
+
+def handle_coherence_validation(args: argparse.Namespace) -> bool:
+    """Handle coherence validation based on parsed arguments.
+
+    Checks if coherence validation is requested and runs it if so.
+    Automatically enables use_manifest_chain when coherence validation
+    is requested.
+
+    Args:
+        args: Parsed arguments namespace with coherence, coherence_only,
+              use_manifest_chain, manifest_path, manifest_dir, and quiet attributes.
+
+    Returns:
+        True if coherence validation passes or is not requested, False otherwise.
+    """
+    # Check if coherence validation is requested
+    if not args.coherence and not args.coherence_only:
+        return True
+
+    # Auto-enable use_manifest_chain when coherence is requested
+    args.use_manifest_chain = True
+
+    # Determine manifest path and directory
+    manifest_path = getattr(args, "manifest_path", None)
+    manifest_dir = getattr(args, "manifest_dir", None)
+    quiet = getattr(args, "quiet", False)
+
+    # If no manifest path is provided, we cannot run coherence validation
+    if not manifest_path:
+        # For directory validation, skip coherence validation for now
+        return True
+
+    manifest_path_obj = Path(manifest_path)
+    if not manifest_path_obj.exists():
+        return True
+
+    # Determine manifest directory
+    if manifest_dir:
+        manifest_dir_path = Path(manifest_dir)
+    else:
+        manifest_dir_path = manifest_path_obj.parent
+
+    # Run coherence validation
+    result = run_coherence_validation(manifest_path_obj, manifest_dir_path, quiet)
+
+    # Format and display issues if not quiet
+    if not quiet:
+        _format_coherence_issues(result, quiet)
+
+    return result.valid
 
 
 def main():
@@ -182,6 +261,9 @@ def main():
         default=False,
         help="Enable manifest chain caching for improved performance",
     )
+
+    # Add coherence validation arguments
+    add_coherence_arguments(validate_parser)
 
     # Snapshot subcommand
     snapshot_parser = subparsers.add_parser(
