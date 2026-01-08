@@ -14,6 +14,46 @@
     "contains": [
       {
         "type": "class",
+        "name": "ErrorCode",
+        "description": "Standard error codes for MAID validation"
+      },
+      {
+        "type": "attribute",
+        "name": "FILE_NOT_FOUND",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "SCHEMA_VALIDATION_FAILED",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "SEMANTIC_VALIDATION_FAILED",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "SUPERSESSION_VALIDATION_FAILED",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "ARTIFACT_NOT_FOUND",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "ALIGNMENT_ERROR",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "attribute",
+        "name": "UNEXPECTED_ERROR",
+        "class": "ErrorCode"
+      },
+      {
+        "type": "class",
         "name": "ErrorSeverity",
         "bases": ["Enum"],
         "description": "Enum for validation error severity levels"

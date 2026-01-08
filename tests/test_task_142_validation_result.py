@@ -1,16 +1,64 @@
 """Behavioral tests for validation result types (Task-142).
 
-Tests the ErrorSeverity enum, ValidationError dataclass, and ValidationResult dataclass
-that provide structured validation output for maid-lsp compatibility.
+Tests the ErrorCode constants, ErrorSeverity enum, ValidationError dataclass,
+and ValidationResult dataclass that provide structured validation output for
+maid-lsp compatibility.
 """
 
 import json
 
 from maid_runner.validation_result import (
+    ErrorCode,
     ErrorSeverity,
     ValidationError,
     ValidationResult,
 )
+
+
+class TestErrorCode:
+    """Tests for ErrorCode constants."""
+
+    def test_error_code_class_exists(self) -> None:
+        """ErrorCode class should exist and be importable."""
+        assert ErrorCode is not None
+        # Verify it's a class with the expected attributes
+        assert hasattr(ErrorCode, "FILE_NOT_FOUND")
+
+    def test_file_not_found_code(self) -> None:
+        """ErrorCode.FILE_NOT_FOUND should be E001."""
+        assert ErrorCode.FILE_NOT_FOUND == "E001"
+
+    def test_schema_validation_failed_code(self) -> None:
+        """ErrorCode.SCHEMA_VALIDATION_FAILED should be E002."""
+        assert ErrorCode.SCHEMA_VALIDATION_FAILED == "E002"
+
+    def test_semantic_validation_failed_code(self) -> None:
+        """ErrorCode.SEMANTIC_VALIDATION_FAILED should be E101."""
+        assert ErrorCode.SEMANTIC_VALIDATION_FAILED == "E101"
+
+    def test_supersession_validation_failed_code(self) -> None:
+        """ErrorCode.SUPERSESSION_VALIDATION_FAILED should be E102."""
+        assert ErrorCode.SUPERSESSION_VALIDATION_FAILED == "E102"
+
+    def test_artifact_not_found_code(self) -> None:
+        """ErrorCode.ARTIFACT_NOT_FOUND should be E301."""
+        assert ErrorCode.ARTIFACT_NOT_FOUND == "E301"
+
+    def test_alignment_error_code(self) -> None:
+        """ErrorCode.ALIGNMENT_ERROR should be E308."""
+        assert ErrorCode.ALIGNMENT_ERROR == "E308"
+
+    def test_unexpected_error_code(self) -> None:
+        """ErrorCode.UNEXPECTED_ERROR should be E999."""
+        assert ErrorCode.UNEXPECTED_ERROR == "E999"
+
+    def test_can_use_error_code_in_validation_error(self) -> None:
+        """ErrorCode constants can be used to construct ValidationError."""
+        error = ValidationError(
+            code=ErrorCode.FILE_NOT_FOUND,
+            message="File not found",
+        )
+        assert error.code == "E001"
 
 
 class TestErrorSeverity:

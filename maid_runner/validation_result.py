@@ -2,12 +2,54 @@
 
 Provides LSP-compatible data structures for validation results,
 supporting the --json-output flag in CLI commands.
+
+Error Code Reference:
+    E0XX - File/JSON errors:
+        E001: File not found or invalid JSON
+        E002: JSON schema validation failed
+
+    E1XX - Semantic validation errors:
+        E101: MAID semantic validation failed (e.g., multi-file artifacts)
+        E102: Supersession validation failed
+
+    E3XX - Implementation validation errors:
+        E301: Expected artifact not found in implementation
+        E308: Alignment error during validation
+
+    E9XX - System errors:
+        E999: Unexpected/unhandled error
 """
 
 import json
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+class ErrorCode:
+    """Standard error codes for MAID validation.
+
+    Groups:
+        E0XX: File and JSON parsing errors
+        E1XX: Semantic validation errors
+        E3XX: Implementation validation errors
+        E9XX: System/unexpected errors
+    """
+
+    # File/JSON errors (E0XX)
+    FILE_NOT_FOUND = "E001"
+    SCHEMA_VALIDATION_FAILED = "E002"
+
+    # Semantic validation errors (E1XX)
+    SEMANTIC_VALIDATION_FAILED = "E101"
+    SUPERSESSION_VALIDATION_FAILED = "E102"
+
+    # Implementation validation errors (E3XX)
+    ARTIFACT_NOT_FOUND = "E301"
+    ALIGNMENT_ERROR = "E308"
+
+    # System errors (E9XX)
+    UNEXPECTED_ERROR = "E999"
 
 
 class ErrorSeverity(Enum):
