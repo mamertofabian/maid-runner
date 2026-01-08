@@ -1,0 +1,53 @@
+{
+  "version": "1",
+  "goal": "Create data structures for coherence validation results including severity levels, issue types, and result containers",
+  "description": "This is the first task in implementing GitHub issue #86 (Architectural Coherence Validator). These types will be used by all coherence validation checks to report issues with consistent structure.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/result.py"],
+  "readonlyFiles": [
+    "maid_runner/validators/types.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "types", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/result.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "IssueSeverity",
+        "bases": ["Enum"],
+        "description": "Enum for severity levels: ERROR, WARNING, INFO"
+      },
+      {
+        "type": "class",
+        "name": "IssueType",
+        "bases": ["Enum"],
+        "description": "Enum for types of coherence issues: DUPLICATE, SIGNATURE_CONFLICT, BOUNDARY_VIOLATION, NAMING, DEPENDENCY, PATTERN, CONSTRAINT"
+      },
+      {
+        "type": "class",
+        "name": "CoherenceIssue",
+        "description": "Dataclass representing a single coherence issue with issue_type, severity, message, suggestion, and location fields"
+      },
+      {
+        "type": "class",
+        "name": "CoherenceResult",
+        "description": "Dataclass containing validation results and issue list with valid, issues fields"
+      },
+      {
+        "type": "attribute",
+        "name": "errors",
+        "class": "CoherenceResult",
+        "description": "Property returning count of ERROR severity issues"
+      },
+      {
+        "type": "attribute",
+        "name": "warnings",
+        "class": "CoherenceResult",
+        "description": "Property returning count of WARNING severity issues"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_126_coherence_result_types.py", "-v"]
+}

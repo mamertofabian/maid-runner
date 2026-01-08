@@ -1,0 +1,48 @@
+{
+  "version": "1",
+  "goal": "Detect artifacts with the same name but different signatures (arguments, return types) across the system",
+  "description": "This is Task 129 in GitHub issue #86 (Architectural Coherence Validator). The check finds artifacts with the same name in the system, then compares their signatures to detect conflicts where the same function/method has different parameters or return types. Returns CoherenceIssue with IssueType.SIGNATURE_CONFLICT for any conflicts found.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/checks/signature_check.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "checks", "signature", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/signature_check.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_signature_conflicts",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "system_artifacts", "type": "List[Dict]"}
+        ],
+        "returns": "List[CoherenceIssue]",
+        "description": "Main function that checks for signature conflicts. Returns list of CoherenceIssue with IssueType.SIGNATURE_CONFLICT for any conflicts found."
+      },
+      {
+        "type": "function",
+        "name": "_extract_artifact_signature",
+        "args": [
+          {"name": "artifact", "type": "dict"}
+        ],
+        "returns": "str",
+        "description": "Extract a signature string from an artifact. Combines args and returns into a signature like \"(arg1: str, arg2: int) -> bool\"."
+      },
+      {
+        "type": "function",
+        "name": "_compare_signatures",
+        "args": [
+          {"name": "new_sig", "type": "str"},
+          {"name": "existing_sig", "type": "str"}
+        ],
+        "returns": "bool",
+        "description": "Compare two signatures for compatibility. Returns True if signatures match/compatible, False if conflict."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_129_signature_check.py", "-v"]
+}

@@ -15,6 +15,7 @@ from maid_runner.graph import (
     NodeType,
     EdgeType,
 )
+from maid_runner import coherence
 
 # Explicit re-exports for MAID validation
 # These assignments make imported names visible as module-level attributes
@@ -22,6 +23,7 @@ KnowledgeGraph = KnowledgeGraph
 KnowledgeGraphBuilder = KnowledgeGraphBuilder
 NodeType = NodeType
 EdgeType = EdgeType
+coherence = coherence
 
 __all__ = [
     "__version__",
@@ -35,4 +37,5 @@ __all__ = [
     "KnowledgeGraphBuilder",
     "NodeType",
     "EdgeType",
+    "coherence",
 ]

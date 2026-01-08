@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "goal": "Update argument parser in main.py to add --coherence and --coherence-only flags for the validate subcommand. Pass these flags to the validation function with auto-enable of --use-manifest-chain when coherence is used.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/validate.py",
+    "maid_runner/coherence/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/main.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "add_coherence_arguments",
+        "args": [
+          {"name": "parser", "type": "argparse.ArgumentParser"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "handle_coherence_validation",
+        "args": [
+          {"name": "args", "type": "argparse.Namespace"}
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_138_main_cli_coherence.py", "-v"]
+}

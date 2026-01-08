@@ -1,0 +1,38 @@
+{
+  "version": "1",
+  "goal": "Add --coherence and --coherence-only flags to validate.py CLI. Integrate CoherenceValidator into validation pipeline with auto-enable of --use-manifest-chain when coherence is used.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/coherence/__init__.py",
+    "maid_runner/coherence/validator.py",
+    "maid_runner/coherence/result.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_coherence_validation",
+        "args": [
+          {"name": "manifest_path", "type": "Path"},
+          {"name": "manifest_dir", "type": "Path"},
+          {"name": "quiet", "type": "bool"}
+        ],
+        "returns": "CoherenceResult"
+      },
+      {
+        "type": "function",
+        "name": "_format_coherence_issues",
+        "args": [
+          {"name": "result", "type": "CoherenceResult"},
+          {"name": "quiet", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_137_validate_coherence_flag.py", "-v"]
+}

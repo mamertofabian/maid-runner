@@ -1,0 +1,47 @@
+{
+  "version": "1",
+  "goal": "Create a dedicated formatter module for coherence validation output with color-coded terminal output and actionable suggestions",
+  "description": "This task creates the output formatting module for coherence validation results. The formatter provides a public function for formatting the entire coherence result (with optional verbose mode) and private helper functions for formatting individual issues and suggestions with consistent styling.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/formatter.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "formatter", "output", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/formatter.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "format_coherence_result",
+        "args": [
+          {"name": "result", "type": "CoherenceResult"},
+          {"name": "verbose", "type": "bool"}
+        ],
+        "returns": "str",
+        "description": "Formats the entire coherence result as a string. Shows summary line with errors/warnings counts. In verbose mode, shows detailed issue information."
+      },
+      {
+        "type": "function",
+        "name": "_format_issue",
+        "args": [
+          {"name": "issue", "type": "CoherenceIssue"}
+        ],
+        "returns": "str",
+        "description": "Formats a single issue with severity indicator (emoji/symbol), including type, message, location, and suggestion."
+      },
+      {
+        "type": "function",
+        "name": "_format_suggestion",
+        "args": [
+          {"name": "suggestion", "type": "str"}
+        ],
+        "returns": "str",
+        "description": "Formats a suggestion with consistent styling."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_139_coherence_formatter.py", "-v"]
+}

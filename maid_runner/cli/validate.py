@@ -42,6 +42,7 @@ from maid_runner.validators.semantic_validator import (
     ManifestSemanticError,
 )
 from maid_runner.validators.file_tracker import analyze_file_tracking
+from maid_runner.coherence import CoherenceValidator, CoherenceResult
 
 # Import private helpers
 from . import _validate_helpers
@@ -162,6 +163,90 @@ def _format_file_tracking_output(
             print(validation_summary)
         print(f"Summary: {', '.join(summary_parts)}")
         print()
+
+
+def run_coherence_validation(
+    manifest_path: Path, manifest_dir: Path, quiet: bool
+) -> CoherenceResult:
+    """Run coherence validation on a manifest file.
+
+    Creates a CoherenceValidator with the manifest directory and runs
+    validation against the specified manifest file.
+
+    Args:
+        manifest_path: Path to the manifest file to validate
+        manifest_dir: Path to the directory containing manifests
+        quiet: If True, suppress detailed output
+
+    Returns:
+        CoherenceResult containing validation status and list of issues
+    """
+    validator = CoherenceValidator(manifest_dir=manifest_dir)
+    result = validator.validate(manifest_path)
+    return result
+
+
+def format_coherence_json(result: CoherenceResult, manifest_path: Path) -> str:
+    """Format coherence validation result as JSON for CI/CD integration.
+
+    Produces a JSON string with validation status, issues, and summary
+    suitable for parsing by CI/CD pipelines.
+
+    Args:
+        result: CoherenceResult containing validation status and issues
+        manifest_path: Path to the manifest that was validated
+
+    Returns:
+        JSON string with coherence validation results
+    """
+    import json
+
+    output = {
+        "manifest": str(manifest_path),
+        "valid": result.valid,
+        "summary": {
+            "total_issues": len(result.issues),
+            "errors": result.errors,
+            "warnings": result.warnings,
+        },
+        "issues": [
+            {
+                "type": issue.issue_type.value,
+                "severity": issue.severity.value,
+                "message": issue.message,
+                "location": issue.location,
+                "suggestion": issue.suggestion,
+            }
+            for issue in result.issues
+        ],
+    }
+    return json.dumps(output, indent=2)
+
+
+def _format_coherence_issues(result: CoherenceResult, quiet: bool) -> None:
+    """Format and print coherence validation issues to stdout.
+
+    Uses the formatter module to display coherence issues with severity
+    indicators and actionable suggestions.
+
+    Args:
+        result: CoherenceResult containing validation status and issues
+        quiet: If True, suppress detailed output
+    """
+    from maid_runner.coherence.formatter import format_coherence_result
+
+    if not result.issues:
+        return
+
+    if quiet:
+        # In quiet mode, only show a brief summary
+        return
+
+    # Use the formatter module for consistent output
+    output = format_coherence_result(result, verbose=True)
+    if output:
+        print()
+        print(output)
 
 
 def extract_test_files_from_command(validation_command: List[Any]) -> list:

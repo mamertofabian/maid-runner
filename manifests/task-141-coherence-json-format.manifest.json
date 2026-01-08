@@ -1,0 +1,26 @@
+{
+  "version": "1",
+  "goal": "Add format_coherence_json function to validate.py for CI/CD JSON output",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "format_coherence_json",
+        "args": [
+          {"name": "result", "type": "CoherenceResult"},
+          {"name": "manifest_path", "type": "Path"}
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_141_coherence_json_format.py", "-v"]
+}

@@ -1,0 +1,26 @@
+{
+  "goal": "Export the coherence package from the main maid_runner/__init__.py for programmatic use, enabling 'from maid_runner import coherence'",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/__init__.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/coherence/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/__init__.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "coherence"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_140_main_package_export.py",
+    "-v"
+  ]
+}

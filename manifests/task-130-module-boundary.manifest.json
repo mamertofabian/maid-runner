@@ -1,0 +1,50 @@
+{
+  "version": "1",
+  "goal": "Validate that artifacts stay within appropriate module boundaries based on file paths",
+  "description": "This is Task 130 in GitHub issue #86 (Architectural Coherence Validator). Module boundary validation ensures artifacts are properly organized. For example, it might detect if a 'controllers' module is directly accessing a 'data' module, suggesting the need for a service layer. The check extracts module names from file paths and validates cross-module access patterns.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/checks/module_boundary.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/graph/model.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "checks", "module-boundary", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/module_boundary.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_module_boundaries",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "List[CoherenceIssue]",
+        "description": "Main function that validates module boundary compliance. Returns list of CoherenceIssue with IssueType.BOUNDARY_VIOLATION for violations."
+      },
+      {
+        "type": "function",
+        "name": "_extract_module_from_path",
+        "args": [
+          {"name": "file_path", "type": "str"}
+        ],
+        "returns": "str",
+        "description": "Extract module name from a file path. E.g., 'src/auth/service.py' -> 'auth'. Returns the immediate parent directory name as the module."
+      },
+      {
+        "type": "function",
+        "name": "_detect_boundary_violation",
+        "args": [
+          {"name": "source_module", "type": "str"},
+          {"name": "target_module", "type": "str"},
+          {"name": "artifact_name", "type": "str"}
+        ],
+        "returns": "Optional[CoherenceIssue]",
+        "description": "Detect if there's a boundary violation between modules. Returns CoherenceIssue if violation detected, None otherwise."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_130_module_boundary.py", "-v"]
+}

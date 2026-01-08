@@ -1,0 +1,49 @@
+{
+  "version": "1",
+  "goal": "Validate that new artifacts follow established naming patterns in the codebase",
+  "description": "This is Task 131 in GitHub issue #86 (Architectural Coherence Validator). The check extracts naming patterns from existing codebase artifacts and validates that new artifacts follow similar conventions. Returns CoherenceIssue with IssueType.NAMING for any naming violations.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/checks/naming_check.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "checks", "naming", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/naming_check.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_naming_conventions",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "system_artifacts", "type": "List[Dict]"}
+        ],
+        "returns": "List[CoherenceIssue]",
+        "description": "Main function that validates naming conventions. Extracts patterns from existing artifacts and checks new artifact names against them. Returns list of CoherenceIssue with IssueType.NAMING for violations."
+      },
+      {
+        "type": "function",
+        "name": "_extract_naming_patterns",
+        "args": [
+          {"name": "system_artifacts", "type": "List[Dict]"}
+        ],
+        "returns": "Dict[str, List[str]]",
+        "description": "Analyze existing artifact names to extract naming patterns. Returns dict mapping artifact types to list of patterns found, e.g., {\"function\": [\"get_*\", \"fetch_*\", \"create_*\"], \"class\": [\"*Service\", \"*Repository\"]}."
+      },
+      {
+        "type": "function",
+        "name": "_validate_artifact_name",
+        "args": [
+          {"name": "name", "type": "str"},
+          {"name": "artifact_type", "type": "str"},
+          {"name": "patterns", "type": "Dict[str, List[str]]"}
+        ],
+        "returns": "Optional[CoherenceIssue]",
+        "description": "Validate a single artifact name against established patterns. Returns CoherenceIssue if name does not match patterns, None otherwise."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_131_naming_check.py", "-v"]
+}

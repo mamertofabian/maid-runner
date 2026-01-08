@@ -1,0 +1,78 @@
+{
+  "goal": "Export CoherenceValidator, result types, and all check functions from the main coherence package",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/coherence/__init__.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/coherence/validator.py",
+    "maid_runner/coherence/checks/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/__init__.py",
+    "contains": [
+      {
+        "type": "attribute",
+        "name": "CoherenceIssue"
+      },
+      {
+        "type": "attribute",
+        "name": "CoherenceResult"
+      },
+      {
+        "type": "attribute",
+        "name": "IssueSeverity"
+      },
+      {
+        "type": "attribute",
+        "name": "IssueType"
+      },
+      {
+        "type": "attribute",
+        "name": "CoherenceValidator"
+      },
+      {
+        "type": "attribute",
+        "name": "check_duplicate_artifacts"
+      },
+      {
+        "type": "attribute",
+        "name": "check_signature_conflicts"
+      },
+      {
+        "type": "attribute",
+        "name": "check_module_boundaries"
+      },
+      {
+        "type": "attribute",
+        "name": "check_naming_conventions"
+      },
+      {
+        "type": "attribute",
+        "name": "check_dependency_availability"
+      },
+      {
+        "type": "attribute",
+        "name": "check_pattern_consistency"
+      },
+      {
+        "type": "attribute",
+        "name": "check_architectural_constraints"
+      },
+      {
+        "type": "attribute",
+        "name": "load_constraint_config"
+      },
+      {
+        "type": "attribute",
+        "name": "ConstraintConfig"
+      },
+      {
+        "type": "attribute",
+        "name": "ConstraintRule"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_136_coherence_package_init.py", "-v"]
+}
