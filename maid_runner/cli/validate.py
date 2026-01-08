@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Dict, Set, Any
 
@@ -1472,27 +1473,44 @@ def _run_directory_validation(
         sys.exit(0)
 
 
-def _run_validation_with_json_output(
+@dataclass
+class _CoreValidationResult:
+    """Result of core validation operations.
+
+    This dataclass holds the structured result of manifest validation,
+    suitable for both JSON output and text output modes.
+    """
+
+    success: bool
+    errors: List[ValidationError]
+    warnings: List[ValidationError]
+    metadata: Dict[str, Any]
+
+
+def _perform_core_validation(
     manifest_path: str,
     validation_mode: str,
     use_manifest_chain: bool,
     use_cache: bool,
-) -> None:
-    """Run validation and output results as JSON.
+) -> _CoreValidationResult:
+    """Perform core manifest validation and return structured result.
 
-    This wraps the validation logic and outputs structured JSON results
-    compatible with maid-lsp expectations. Performs full validation including
-    schema, semantic, AST, and behavioral validation.
+    This function contains the shared validation logic used by both JSON
+    and text output modes. It performs schema, semantic, supersession,
+    and AST validation.
 
     Note:
-        Test execution (validationCommand) is not included in JSON output mode
-        as it's typically handled separately by IDE test runners.
+        Test execution (validationCommand) is not included as it's
+        typically handled separately by IDE test runners or CLI.
 
     Args:
         manifest_path: Path to the manifest JSON file.
-        validation_mode: Validation mode ('implementation' or 'behavioral').
+        validation_mode: Validation mode ('implementation', 'behavioral', or 'schema').
         use_manifest_chain: Whether to use manifest chain for validation.
         use_cache: Whether to enable manifest chain caching.
+
+    Returns:
+        _CoreValidationResult with success status, errors, warnings, and metadata.
     """
     from maid_runner.validators.manifest_validator import (
         AlignmentError,
@@ -1507,11 +1525,16 @@ def _run_validation_with_json_output(
 
     errors: List[ValidationError] = []
     warnings: List[ValidationError] = []
-    metadata = {
+    metadata: Dict[str, Any] = {
         "manifest_path": manifest_path,
         "validation_mode": validation_mode,
         "use_manifest_chain": use_manifest_chain,
     }
+
+    def _make_result(success: bool) -> _CoreValidationResult:
+        return _CoreValidationResult(
+            success=success, errors=errors, warnings=warnings, metadata=metadata
+        )
 
     try:
         # Validate manifest file exists
@@ -1525,8 +1548,7 @@ def _run_validation_with_json_output(
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, warnings, metadata))
-            sys.exit(1)
+            return _make_result(False)
 
         # Load the manifest
         with open(manifest_path_obj, "r") as f:
@@ -1550,8 +1572,7 @@ def _run_validation_with_json_output(
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, warnings, metadata))
-            sys.exit(1)
+            return _make_result(False)
 
         # Validate MAID semantics
         try:
@@ -1565,8 +1586,7 @@ def _run_validation_with_json_output(
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, warnings, metadata))
-            sys.exit(1)
+            return _make_result(False)
 
         # Validate supersession
         try:
@@ -1581,13 +1601,11 @@ def _run_validation_with_json_output(
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, warnings, metadata))
-            sys.exit(1)
+            return _make_result(False)
 
         # Schema-only mode early exit
         if validation_mode == "schema":
-            print(format_validation_json(True, errors, warnings, metadata))
-            sys.exit(0)
+            return _make_result(True)
 
         # Get file to validate
         expected_artifacts = manifest_data.get("expectedArtifacts", {})
@@ -1611,17 +1629,20 @@ def _run_validation_with_json_output(
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, warnings, metadata))
-            sys.exit(1)
+            return _make_result(False)
 
         metadata["target_file"] = file_path
 
         # Run AST validation based on mode
         file_status = expected_artifacts.get("status", "present")
 
-        if validation_mode == "implementation":
+        if validation_mode in ("implementation", "behavioral"):
             # Check file exists for implementation mode
-            if file_status != "absent" and not Path(file_path).exists():
+            if (
+                validation_mode == "implementation"
+                and file_status != "absent"
+                and not Path(file_path).exists()
+            ):
                 errors.append(
                     ValidationError(
                         code=ErrorCode.ALIGNMENT_ERROR,
@@ -1630,8 +1651,7 @@ def _run_validation_with_json_output(
                         severity=ErrorSeverity.ERROR,
                     )
                 )
-                print(format_validation_json(False, errors, warnings, metadata))
-                sys.exit(1)
+                return _make_result(False)
 
             try:
                 validate_with_ast(
@@ -1652,36 +1672,10 @@ def _run_validation_with_json_output(
                         severity=ErrorSeverity.ERROR,
                     )
                 )
-                print(format_validation_json(False, errors, warnings, metadata))
-                sys.exit(1)
-
-        elif validation_mode == "behavioral":
-            # Run behavioral validation
-            try:
-                validate_with_ast(
-                    manifest_data,
-                    file_path,
-                    use_manifest_chain=use_manifest_chain,
-                    validation_mode=validation_mode,
-                    use_cache=use_cache,
-                )
-            except AlignmentError as e:
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.ARTIFACT_NOT_FOUND,
-                        message=str(e),
-                        file=getattr(e, "file", None) or file_path,
-                        line=getattr(e, "line", None),
-                        column=getattr(e, "column", None),
-                        severity=ErrorSeverity.ERROR,
-                    )
-                )
-                print(format_validation_json(False, errors, warnings, metadata))
-                sys.exit(1)
+                return _make_result(False)
 
         # Success
-        print(format_validation_json(True, errors, warnings, metadata))
-        sys.exit(0)
+        return _make_result(True)
 
     except json.JSONDecodeError as e:
         errors.append(
@@ -1692,8 +1686,7 @@ def _run_validation_with_json_output(
                 severity=ErrorSeverity.ERROR,
             )
         )
-        print(format_validation_json(False, errors, warnings, metadata))
-        sys.exit(1)
+        return _make_result(False)
 
     except Exception as e:
         errors.append(
@@ -1703,8 +1696,35 @@ def _run_validation_with_json_output(
                 severity=ErrorSeverity.ERROR,
             )
         )
-        print(format_validation_json(False, errors, warnings, metadata))
-        sys.exit(1)
+        return _make_result(False)
+
+
+def _run_validation_with_json_output(
+    manifest_path: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    use_cache: bool,
+) -> None:
+    """Run validation and output results as JSON.
+
+    This function calls the core validation logic and outputs the result
+    as structured JSON compatible with maid-lsp expectations.
+
+    Args:
+        manifest_path: Path to the manifest JSON file.
+        validation_mode: Validation mode ('implementation', 'behavioral', or 'schema').
+        use_manifest_chain: Whether to use manifest chain for validation.
+        use_cache: Whether to enable manifest chain caching.
+    """
+    result = _perform_core_validation(
+        manifest_path, validation_mode, use_manifest_chain, use_cache
+    )
+    print(
+        format_validation_json(
+            result.success, result.errors, result.warnings, result.metadata
+        )
+    )
+    sys.exit(0 if result.success else 1)
 
 
 def run_validation(
