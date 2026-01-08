@@ -1,0 +1,64 @@
+{
+  "goal": "Verify that dependencies declared in manifest's readonlyFiles exist in the knowledge graph",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/coherence/checks/dependency_check.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/graph/model.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/dependency_check.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_dependency_availability",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          }
+        ],
+        "returns": "List[CoherenceIssue]"
+      },
+      {
+        "type": "function",
+        "name": "_get_required_dependencies",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          }
+        ],
+        "returns": "List[str]"
+      },
+      {
+        "type": "function",
+        "name": "_check_dependency_exists",
+        "args": [
+          {
+            "name": "dependency",
+            "type": "str"
+          },
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          }
+        ],
+        "returns": "bool"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_132_dependency_check.py",
+    "-v"
+  ]
+}

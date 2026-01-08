@@ -1,0 +1,52 @@
+{
+  "version": "1",
+  "goal": "Detect artifacts that are declared in multiple manifests without proper supersession",
+  "description": "This is Task 128 in GitHub issue #86 (Architectural Coherence Validator). The check queries the system snapshot (aggregated artifacts from all manifests) to detect when a manifest declares an artifact that already exists elsewhere without using supersedes. Returns CoherenceIssue with IssueType.DUPLICATE for any duplicates found.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/checks/duplicate_check.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/graph/model.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "checks", "duplicate", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/duplicate_check.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_duplicate_artifacts",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "system_artifacts", "type": "List[Dict]"},
+          {"name": "graph", "type": "KnowledgeGraph"}
+        ],
+        "returns": "List[CoherenceIssue]",
+        "description": "Main function that checks for duplicate artifact declarations. Returns list of CoherenceIssue with IssueType.DUPLICATE for any duplicates found."
+      },
+      {
+        "type": "function",
+        "name": "_find_existing_artifact",
+        "args": [
+          {"name": "artifact_name", "type": "str"},
+          {"name": "artifact_type", "type": "str"},
+          {"name": "system_artifacts", "type": "List[Dict]"}
+        ],
+        "returns": "Optional[str]",
+        "description": "Helper to search system artifacts for an existing artifact with matching name/type. Returns file path where artifact is already defined, or None."
+      },
+      {
+        "type": "function",
+        "name": "_is_valid_supersession",
+        "args": [
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "existing_file", "type": "str"}
+        ],
+        "returns": "bool",
+        "description": "Check if the manifest properly supersedes the file containing the existing artifact. Returns True if supersession is valid, False otherwise."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_128_duplicate_check.py", "-v"]
+}

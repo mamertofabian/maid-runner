@@ -1,0 +1,55 @@
+{
+  "version": "1",
+  "goal": "Create the main CoherenceValidator class that orchestrates all coherence validation checks",
+  "description": "This is Task 127 in GitHub issue #86 (Architectural Coherence Validator). The validator loads a system snapshot using snapshot_system module, builds a knowledge graph using the graph module, runs all coherence checks (to be implemented in tasks 128-134), and returns a CoherenceResult with any issues found.",
+  "taskType": "create",
+  "creatableFiles": ["maid_runner/coherence/validator.py"],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/cli/snapshot_system.py",
+    "maid_runner/graph/builder.py"
+  ],
+  "metadata": {
+    "tags": ["coherence", "validator", "issue-86"]
+  },
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "CoherenceValidator",
+        "description": "Main orchestrator for coherence validation that loads system context and runs checks"
+      },
+      {
+        "type": "function",
+        "name": "__init__",
+        "class": "CoherenceValidator",
+        "args": [{"name": "manifest_dir", "type": "Path"}],
+        "description": "Initialize with manifest directory path"
+      },
+      {
+        "type": "function",
+        "name": "validate",
+        "class": "CoherenceValidator",
+        "args": [{"name": "manifest_path", "type": "Path"}],
+        "returns": "CoherenceResult",
+        "description": "Main validation entry point that loads manifest and runs all checks"
+      },
+      {
+        "type": "function",
+        "name": "_load_system_context",
+        "class": "CoherenceValidator",
+        "description": "Build system snapshot and knowledge graph from manifest directory"
+      },
+      {
+        "type": "function",
+        "name": "_run_checks",
+        "class": "CoherenceValidator",
+        "args": [{"name": "manifest_data", "type": "dict"}],
+        "returns": "List[CoherenceIssue]",
+        "description": "Execute all validation checks and return list of issues"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_127_coherence_validator.py", "-v"]
+}

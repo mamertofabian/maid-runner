@@ -1,0 +1,121 @@
+{
+  "goal": "Enforce configurable architectural constraints loaded from .maid-constraints.json",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/coherence/checks/constraint_check.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "maid_runner/coherence/result.py",
+    "maid_runner/graph/model.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/coherence/checks/constraint_check.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_architectural_constraints",
+        "args": [
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          },
+          {
+            "name": "config_path",
+            "type": "Optional[Path]",
+            "default": "None"
+          }
+        ],
+        "returns": "List[CoherenceIssue]"
+      },
+      {
+        "type": "function",
+        "name": "load_constraint_config",
+        "args": [
+          {
+            "name": "config_path",
+            "type": "Optional[Path]"
+          }
+        ],
+        "returns": "ConstraintConfig"
+      },
+      {
+        "type": "class",
+        "name": "ConstraintConfig"
+      },
+      {
+        "type": "attribute",
+        "name": "version",
+        "class": "ConstraintConfig"
+      },
+      {
+        "type": "attribute",
+        "name": "rules",
+        "class": "ConstraintConfig"
+      },
+      {
+        "type": "attribute",
+        "name": "enabled",
+        "class": "ConstraintConfig"
+      },
+      {
+        "type": "class",
+        "name": "ConstraintRule"
+      },
+      {
+        "type": "attribute",
+        "name": "name",
+        "class": "ConstraintRule"
+      },
+      {
+        "type": "attribute",
+        "name": "description",
+        "class": "ConstraintRule"
+      },
+      {
+        "type": "attribute",
+        "name": "pattern",
+        "class": "ConstraintRule"
+      },
+      {
+        "type": "attribute",
+        "name": "severity",
+        "class": "ConstraintRule"
+      },
+      {
+        "type": "attribute",
+        "name": "suggestion",
+        "class": "ConstraintRule"
+      },
+      {
+        "type": "function",
+        "name": "_evaluate_constraint",
+        "args": [
+          {
+            "name": "rule",
+            "type": "ConstraintRule"
+          },
+          {
+            "name": "manifest_data",
+            "type": "dict"
+          },
+          {
+            "name": "graph",
+            "type": "KnowledgeGraph"
+          }
+        ],
+        "returns": "Optional[CoherenceIssue]"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_134_constraint_check.py",
+    "-v"
+  ]
+}
