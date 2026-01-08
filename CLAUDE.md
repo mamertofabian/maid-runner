@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 **⚠️ CRITICAL: This project dogfoods MAID v1.3. Every code change MUST follow the MAID workflow.**
+**⚠️ USE SUBAGENTS: When MAID subagents are available (maid-manifest-architect, maid-test-designer, maid-developer, etc.), INVOKE them via the Task tool for each phase.**
 
 **Note on Documentation Changes:** Pure documentation changes (modifying only `.md` files with no code artifacts) may be exempt from the full MAID workflow, but should still be reviewed for accuracy and consistency. When in doubt, create a manifest.
 
@@ -36,22 +37,22 @@ Confirm the high-level goal with user before proceeding.
 2. Run all MAID tests: `uv run maid test`
 3. Run full test suite: `uv run python -m pytest tests/ -v`
 
-## External MAID Automation Examples
+## MAID Subagents (Use When Available)
 
-**Note:** MAID Runner is a validation-only tool. The automation examples below are external tools that use MAID Runner for validation. They are NOT part of MAID Runner itself.
+**When these subagents are available, INVOKE them via the Task tool for each phase:**
 
-Example Claude Code configurations demonstrating MAID automation are available in `docs/future/claude-code-integration/`. These show how external tools can build automation on top of MAID Runner:
+| Subagent | Phase | When to INVOKE |
+|----------|-------|----------------|
+| `maid-manifest-architect` | Phase 1 | Creating any manifest |
+| `maid-test-designer` | Phase 2 | Creating behavioral tests |
+| `maid-developer` | Phase 3 | Implementing code to pass tests |
+| `maid-refactorer` | Phase 3.5 | Improving code quality |
+| `maid-fixer` | Phase 3 Support | Fixing validation errors |
+| `maid-auditor` | Cross-cutting | Checking MAID compliance |
 
-### Example Automation Agents (External):
-1. **maid-manifest-architect** - Phase 1: Creates and validates manifests
-2. **maid-test-designer** - Phase 2: Creates behavioral tests from manifests
-3. **maid-developer** - Phase 3: Implements code to pass tests
-4. **maid-refactorer** - Phase 3.5: Improves code quality (completes TDD cycle)
-5. **maid-auditor** - Cross-cutting: Enforces strict MAID compliance across all phases
+**Note:** MAID Runner is a validation-only tool. The subagents above are provided by the MAID Runner plugin or configured in `.claude/agents/`. They use MAID Runner CLI commands internally.
 
-**These are examples only.** MAID Runner itself provides validation tools via the `maid` CLI (`maid validate`, `maid snapshot`). External tools (Claude Code, custom agents, IDEs) use these CLI commands to build automation workflows.
-
-See `docs/future/claude-code-integration/README.md` for details on building your own automation.
+See `docs/future/claude-code-integration/` for subagent configuration examples.
 
 **Note:** The MAID workflow embodies TDD at two levels:
 - **Planning Loop**: Iterative test-manifest refinement (micro TDD)
