@@ -88,8 +88,9 @@ def format_manifests_json(categorized_manifests: dict, manifest_dir: str) -> str
     manifest_dir_path = Path(manifest_dir)
     for category in ["created", "edited", "read"]:
         for manifest_name in categorized_manifests.get(category, []):
-            # Construct full path using Path for cross-platform compatibility
-            full_path = str(manifest_dir_path / manifest_name)
+            # Construct full path using Path, then convert to POSIX format
+            # for cross-platform JSON compatibility (LSP expects forward slashes)
+            full_path = (manifest_dir_path / manifest_name).as_posix()
             all_manifests.add(full_path)
 
     # Return as JSON array

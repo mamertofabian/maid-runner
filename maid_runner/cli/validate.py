@@ -23,6 +23,7 @@ from maid_runner.utils import (
     get_superseded_manifests,
 )
 from maid_runner.validation_result import (
+    ErrorCode,
     ErrorSeverity,
     ValidationError,
     ValidationResult,
@@ -1480,7 +1481,12 @@ def _run_validation_with_json_output(
     """Run validation and output results as JSON.
 
     This wraps the validation logic and outputs structured JSON results
-    compatible with maid-lsp expectations.
+    compatible with maid-lsp expectations. Performs full validation including
+    schema, semantic, AST, and behavioral validation.
+
+    Note:
+        Test execution (validationCommand) is not included in JSON output mode
+        as it's typically handled separately by IDE test runners.
 
     Args:
         manifest_path: Path to the manifest JSON file.
@@ -1500,6 +1506,7 @@ def _run_validation_with_json_output(
     )
 
     errors: List[ValidationError] = []
+    warnings: List[ValidationError] = []
     metadata = {
         "manifest_path": manifest_path,
         "validation_mode": validation_mode,
@@ -1512,13 +1519,13 @@ def _run_validation_with_json_output(
         if not manifest_path_obj.exists():
             errors.append(
                 ValidationError(
-                    code="E001",
+                    code=ErrorCode.FILE_NOT_FOUND,
                     message=f"Manifest file not found: {manifest_path}",
                     file=manifest_path,
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, [], metadata))
+            print(format_validation_json(False, errors, warnings, metadata))
             sys.exit(1)
 
         # Load the manifest
@@ -1537,13 +1544,13 @@ def _run_validation_with_json_output(
         except jsonschema.ValidationError as e:
             errors.append(
                 ValidationError(
-                    code="E002",
+                    code=ErrorCode.SCHEMA_VALIDATION_FAILED,
                     message=f"Schema validation failed: {e.message}",
                     file=manifest_path,
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, [], metadata))
+            print(format_validation_json(False, errors, warnings, metadata))
             sys.exit(1)
 
         # Validate MAID semantics
@@ -1552,13 +1559,13 @@ def _run_validation_with_json_output(
         except ManifestSemanticError as e:
             errors.append(
                 ValidationError(
-                    code="E101",
+                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
                     message=str(e),
                     file=manifest_path,
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, [], metadata))
+            print(format_validation_json(False, errors, warnings, metadata))
             sys.exit(1)
 
         # Validate supersession
@@ -1568,18 +1575,18 @@ def _run_validation_with_json_output(
         except ManifestSemanticError as e:
             errors.append(
                 ValidationError(
-                    code="E102",
+                    code=ErrorCode.SUPERSESSION_VALIDATION_FAILED,
                     message=str(e),
                     file=manifest_path,
                     severity=ErrorSeverity.ERROR,
                 )
             )
-            print(format_validation_json(False, errors, [], metadata))
+            print(format_validation_json(False, errors, warnings, metadata))
             sys.exit(1)
 
         # Schema-only mode early exit
         if validation_mode == "schema":
-            print(format_validation_json(True, [], [], metadata))
+            print(format_validation_json(True, errors, warnings, metadata))
             sys.exit(0)
 
         # Get file to validate
@@ -1594,21 +1601,36 @@ def _run_validation_with_json_output(
             elif editable:
                 file_path = editable[0]
 
+        # Validate that we have a target file
+        if not file_path:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
+                    message="Manifest has no target file to validate (no expectedArtifacts.file, creatableFiles, or editableFiles)",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            print(format_validation_json(False, errors, warnings, metadata))
+            sys.exit(1)
+
         metadata["target_file"] = file_path
 
-        # Run AST validation for implementation mode
+        # Run AST validation based on mode
+        file_status = expected_artifacts.get("status", "present")
+
         if validation_mode == "implementation":
-            file_status = expected_artifacts.get("status", "present")
+            # Check file exists for implementation mode
             if file_status != "absent" and not Path(file_path).exists():
                 errors.append(
                     ValidationError(
-                        code="E308",
+                        code=ErrorCode.ALIGNMENT_ERROR,
                         message=f"Target file not found: {file_path}",
                         file=file_path,
                         severity=ErrorSeverity.ERROR,
                     )
                 )
-                print(format_validation_json(False, errors, [], metadata))
+                print(format_validation_json(False, errors, warnings, metadata))
                 sys.exit(1)
 
             try:
@@ -1622,40 +1644,62 @@ def _run_validation_with_json_output(
             except AlignmentError as e:
                 errors.append(
                     ValidationError(
-                        code="E301",
+                        code=ErrorCode.ARTIFACT_NOT_FOUND,
                         message=str(e),
                         file=file_path,
                         severity=ErrorSeverity.ERROR,
                     )
                 )
-                print(format_validation_json(False, errors, [], metadata))
+                print(format_validation_json(False, errors, warnings, metadata))
+                sys.exit(1)
+
+        elif validation_mode == "behavioral":
+            # Run behavioral validation
+            try:
+                validate_with_ast(
+                    manifest_data,
+                    file_path,
+                    use_manifest_chain=use_manifest_chain,
+                    validation_mode=validation_mode,
+                    use_cache=use_cache,
+                )
+            except AlignmentError as e:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.ARTIFACT_NOT_FOUND,
+                        message=str(e),
+                        file=file_path,
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
+                print(format_validation_json(False, errors, warnings, metadata))
                 sys.exit(1)
 
         # Success
-        print(format_validation_json(True, [], [], metadata))
+        print(format_validation_json(True, errors, warnings, metadata))
         sys.exit(0)
 
     except json.JSONDecodeError as e:
         errors.append(
             ValidationError(
-                code="E001",
+                code=ErrorCode.FILE_NOT_FOUND,
                 message=f"Invalid JSON in manifest: {e}",
                 file=manifest_path,
                 severity=ErrorSeverity.ERROR,
             )
         )
-        print(format_validation_json(False, errors, [], metadata))
+        print(format_validation_json(False, errors, warnings, metadata))
         sys.exit(1)
 
     except Exception as e:
         errors.append(
             ValidationError(
-                code="E999",
+                code=ErrorCode.UNEXPECTED_ERROR,
                 message=f"Unexpected error: {e}",
                 severity=ErrorSeverity.ERROR,
             )
         )
-        print(format_validation_json(False, errors, [], metadata))
+        print(format_validation_json(False, errors, warnings, metadata))
         sys.exit(1)
 
 
