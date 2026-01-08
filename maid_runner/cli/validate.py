@@ -22,7 +22,11 @@ from maid_runner.utils import (
     normalize_validation_commands,
     get_superseded_manifests,
 )
-from maid_runner.validation_result import ValidationError, ValidationResult
+from maid_runner.validation_result import (
+    ErrorSeverity,
+    ValidationError,
+    ValidationResult,
+)
 
 # Try to import watchdog for watch mode
 try:
@@ -1467,6 +1471,194 @@ def _run_directory_validation(
         sys.exit(0)
 
 
+def _run_validation_with_json_output(
+    manifest_path: str,
+    validation_mode: str,
+    use_manifest_chain: bool,
+    use_cache: bool,
+) -> None:
+    """Run validation and output results as JSON.
+
+    This wraps the validation logic and outputs structured JSON results
+    compatible with maid-lsp expectations.
+
+    Args:
+        manifest_path: Path to the manifest JSON file.
+        validation_mode: Validation mode ('implementation' or 'behavioral').
+        use_manifest_chain: Whether to use manifest chain for validation.
+        use_cache: Whether to enable manifest chain caching.
+    """
+    from maid_runner.validators.manifest_validator import (
+        AlignmentError,
+        validate_schema,
+        validate_with_ast,
+    )
+    from maid_runner.validators.semantic_validator import (
+        ManifestSemanticError,
+        validate_manifest_semantics,
+        validate_supersession,
+    )
+
+    errors: List[ValidationError] = []
+    metadata = {
+        "manifest_path": manifest_path,
+        "validation_mode": validation_mode,
+        "use_manifest_chain": use_manifest_chain,
+    }
+
+    try:
+        # Validate manifest file exists
+        manifest_path_obj = Path(manifest_path)
+        if not manifest_path_obj.exists():
+            errors.append(
+                ValidationError(
+                    code="E001",
+                    message=f"Manifest file not found: {manifest_path}",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            print(format_validation_json(False, errors, [], metadata))
+            sys.exit(1)
+
+        # Load the manifest
+        with open(manifest_path_obj, "r") as f:
+            manifest_data = json.load(f)
+
+        # Validate against JSON schema
+        schema_path = (
+            Path(__file__).parent.parent
+            / "validators"
+            / "schemas"
+            / "manifest.schema.json"
+        )
+        try:
+            validate_schema(manifest_data, str(schema_path))
+        except jsonschema.ValidationError as e:
+            errors.append(
+                ValidationError(
+                    code="E002",
+                    message=f"Schema validation failed: {e.message}",
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            print(format_validation_json(False, errors, [], metadata))
+            sys.exit(1)
+
+        # Validate MAID semantics
+        try:
+            validate_manifest_semantics(manifest_data)
+        except ManifestSemanticError as e:
+            errors.append(
+                ValidationError(
+                    code="E101",
+                    message=str(e),
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            print(format_validation_json(False, errors, [], metadata))
+            sys.exit(1)
+
+        # Validate supersession
+        try:
+            manifests_dir = manifest_path_obj.parent
+            validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
+        except ManifestSemanticError as e:
+            errors.append(
+                ValidationError(
+                    code="E102",
+                    message=str(e),
+                    file=manifest_path,
+                    severity=ErrorSeverity.ERROR,
+                )
+            )
+            print(format_validation_json(False, errors, [], metadata))
+            sys.exit(1)
+
+        # Schema-only mode early exit
+        if validation_mode == "schema":
+            print(format_validation_json(True, [], [], metadata))
+            sys.exit(0)
+
+        # Get file to validate
+        expected_artifacts = manifest_data.get("expectedArtifacts", {})
+        file_path = expected_artifacts.get("file", "")
+
+        if not file_path:
+            creatable = manifest_data.get("creatableFiles", [])
+            editable = manifest_data.get("editableFiles", [])
+            if creatable:
+                file_path = creatable[0]
+            elif editable:
+                file_path = editable[0]
+
+        metadata["target_file"] = file_path
+
+        # Run AST validation for implementation mode
+        if validation_mode == "implementation":
+            file_status = expected_artifacts.get("status", "present")
+            if file_status != "absent" and not Path(file_path).exists():
+                errors.append(
+                    ValidationError(
+                        code="E308",
+                        message=f"Target file not found: {file_path}",
+                        file=file_path,
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
+                print(format_validation_json(False, errors, [], metadata))
+                sys.exit(1)
+
+            try:
+                validate_with_ast(
+                    manifest_data,
+                    file_path,
+                    use_manifest_chain=use_manifest_chain,
+                    validation_mode=validation_mode,
+                    use_cache=use_cache,
+                )
+            except AlignmentError as e:
+                errors.append(
+                    ValidationError(
+                        code="E301",
+                        message=str(e),
+                        file=file_path,
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
+                print(format_validation_json(False, errors, [], metadata))
+                sys.exit(1)
+
+        # Success
+        print(format_validation_json(True, [], [], metadata))
+        sys.exit(0)
+
+    except json.JSONDecodeError as e:
+        errors.append(
+            ValidationError(
+                code="E001",
+                message=f"Invalid JSON in manifest: {e}",
+                file=manifest_path,
+                severity=ErrorSeverity.ERROR,
+            )
+        )
+        print(format_validation_json(False, errors, [], metadata))
+        sys.exit(1)
+
+    except Exception as e:
+        errors.append(
+            ValidationError(
+                code="E999",
+                message=f"Unexpected error: {e}",
+                severity=ErrorSeverity.ERROR,
+            )
+        )
+        print(format_validation_json(False, errors, [], metadata))
+        sys.exit(1)
+
+
 def run_validation(
     manifest_path: Optional[str] = None,
     validation_mode: str = "implementation",
@@ -1545,6 +1737,16 @@ def run_validation(
             use_manifest_chain,
             quiet,
             use_cache=use_cache,
+        )
+        return
+
+    # JSON output mode: wrap validation and output structured results
+    if json_output:
+        _run_validation_with_json_output(
+            manifest_path,
+            validation_mode,
+            use_manifest_chain,
+            use_cache,
         )
         return
 
