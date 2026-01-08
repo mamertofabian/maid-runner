@@ -437,3 +437,233 @@ class TestRunValidationJsonOutputParameter:
                 validation_mode="implementation",
                 json_output=True,
             )
+
+
+class TestRunValidationWithJsonOutputIntegration:
+    """Integration tests for _run_validation_with_json_output function."""
+
+    def test_valid_manifest_outputs_success_json(self, tmp_path, capsys) -> None:
+        """Valid manifest should output JSON with success=true."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        # Create a valid manifest and implementation file
+        impl_file = tmp_path / "module.py"
+        impl_file.write_text("def hello():\n    pass\n")
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_content = {
+            "goal": "test goal",
+            "taskType": "create",
+            "creatableFiles": [str(impl_file)],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(impl_file),
+                "contains": [{"type": "function", "name": "hello"}],
+            },
+            "validationCommand": ["echo", "ok"],
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 0
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["success"] is True
+        assert parsed["errors"] == []
+
+    def test_missing_manifest_outputs_error_json(self, tmp_path, capsys) -> None:
+        """Missing manifest file should output JSON with E001 error."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        nonexistent_path = tmp_path / "nonexistent.manifest.json"
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(nonexistent_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["success"] is False
+        assert len(parsed["errors"]) == 1
+        assert parsed["errors"][0]["code"] == "E001"
+        assert "not found" in parsed["errors"][0]["message"].lower()
+
+    def test_invalid_json_manifest_outputs_error(self, tmp_path, capsys) -> None:
+        """Invalid JSON in manifest should output JSON with E001 error."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        manifest_path = tmp_path / "invalid.manifest.json"
+        manifest_path.write_text("{ invalid json }")
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["success"] is False
+        assert len(parsed["errors"]) >= 1
+        assert parsed["errors"][0]["code"] == "E001"
+
+    def test_schema_validation_error_outputs_json(self, tmp_path, capsys) -> None:
+        """Schema validation failure should output JSON with E002 error."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        manifest_path = tmp_path / "schema_invalid.manifest.json"
+        # Missing required fields like 'goal'
+        manifest_content = {"taskType": "create"}
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["success"] is False
+        assert len(parsed["errors"]) >= 1
+        assert parsed["errors"][0]["code"] == "E002"
+
+    def test_implementation_error_outputs_json(self, tmp_path, capsys) -> None:
+        """Missing implementation artifact should output JSON with error."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        # Create impl file without the expected function
+        impl_file = tmp_path / "module.py"
+        impl_file.write_text("# empty file\n")
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_content = {
+            "goal": "test goal",
+            "taskType": "create",
+            "creatableFiles": [str(impl_file)],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(impl_file),
+                "contains": [{"type": "function", "name": "missing_function"}],
+            },
+            "validationCommand": ["echo", "ok"],
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["success"] is False
+        assert len(parsed["errors"]) >= 1
+
+    def test_json_output_includes_metadata(self, tmp_path, capsys) -> None:
+        """JSON output should include metadata with manifest_path and validation_mode."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        impl_file = tmp_path / "module.py"
+        impl_file.write_text("def hello():\n    pass\n")
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_content = {
+            "goal": "test goal",
+            "taskType": "create",
+            "creatableFiles": [str(impl_file)],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(impl_file),
+                "contains": [{"type": "function", "name": "hello"}],
+            },
+            "validationCommand": ["echo", "ok"],
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        with pytest.raises(SystemExit):
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert "metadata" in parsed
+        assert parsed["metadata"]["manifest_path"] == str(manifest_path)
+        assert parsed["metadata"]["validation_mode"] == "implementation"
+
+    def test_json_output_exit_code_zero_on_success(self, tmp_path) -> None:
+        """Successful validation with json_output should exit with code 0."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        impl_file = tmp_path / "module.py"
+        impl_file.write_text("def hello():\n    pass\n")
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_content = {
+            "goal": "test goal",
+            "taskType": "create",
+            "creatableFiles": [str(impl_file)],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": str(impl_file),
+                "contains": [{"type": "function", "name": "hello"}],
+            },
+            "validationCommand": ["echo", "ok"],
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(manifest_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 0
+
+    def test_json_output_exit_code_one_on_failure(self, tmp_path) -> None:
+        """Failed validation with json_output should exit with code 1."""
+        import pytest
+        from maid_runner.cli.validate import run_validation
+
+        nonexistent_path = tmp_path / "nonexistent.manifest.json"
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(nonexistent_path),
+                validation_mode="implementation",
+                json_output=True,
+            )
+
+        assert exc_info.value.code == 1
