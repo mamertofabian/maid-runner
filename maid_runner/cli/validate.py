@@ -186,6 +186,43 @@ def run_coherence_validation(
     return result
 
 
+def format_coherence_json(result: CoherenceResult, manifest_path: Path) -> str:
+    """Format coherence validation result as JSON for CI/CD integration.
+
+    Produces a JSON string with validation status, issues, and summary
+    suitable for parsing by CI/CD pipelines.
+
+    Args:
+        result: CoherenceResult containing validation status and issues
+        manifest_path: Path to the manifest that was validated
+
+    Returns:
+        JSON string with coherence validation results
+    """
+    import json
+
+    output = {
+        "manifest": str(manifest_path),
+        "valid": result.valid,
+        "summary": {
+            "total_issues": len(result.issues),
+            "errors": result.errors,
+            "warnings": result.warnings,
+        },
+        "issues": [
+            {
+                "type": issue.issue_type.value,
+                "severity": issue.severity.value,
+                "message": issue.message,
+                "location": issue.location,
+                "suggestion": issue.suggestion,
+            }
+            for issue in result.issues
+        ],
+    }
+    return json.dumps(output, indent=2)
+
+
 def _format_coherence_issues(result: CoherenceResult, quiet: bool) -> None:
     """Format and print coherence validation issues to stdout.
 

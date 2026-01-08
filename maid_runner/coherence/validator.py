@@ -23,6 +23,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from maid_runner.coherence.result import CoherenceResult, CoherenceIssue
+from maid_runner.coherence.checks import (
+    check_duplicate_artifacts,
+    check_signature_conflicts,
+    check_module_boundaries,
+    check_naming_conventions,
+    check_dependency_availability,
+    check_pattern_consistency,
+    check_architectural_constraints,
+)
 from maid_runner.cli.snapshot_system import (
     discover_active_manifests,
     aggregate_system_artifacts,
@@ -107,8 +116,7 @@ class CoherenceValidator:
         """Execute all validation checks and return list of issues.
 
         Runs all coherence checks against the manifest data and aggregates
-        any issues found. Currently returns an empty list as checks will be
-        added in tasks 128-134.
+        any issues found.
 
         Args:
             manifest_data: Parsed manifest dictionary to validate
@@ -116,17 +124,36 @@ class CoherenceValidator:
         Returns:
             List of CoherenceIssue instances representing found issues
         """
-        # Placeholder for coherence checks to be implemented in tasks 128-134
-        # Each check function will be called here and results aggregated
         issues: List[CoherenceIssue] = []
 
-        # Future checks will be added here:
-        # - Task 128: Duplicate artifact detection
-        # - Task 129: Signature conflict detection
-        # - Task 130: Boundary violation detection
-        # - Task 131: Naming convention checks
-        # - Task 132: Dependency validation
-        # - Task 133: Pattern conformance
-        # - Task 134: Constraint validation
+        # Ensure system context is loaded
+        system_artifacts = self._system_artifacts or []
+        graph = self._knowledge_graph
+
+        # Run all coherence checks
+        # Task 128: Duplicate artifact detection
+        issues.extend(check_duplicate_artifacts(manifest_data, system_artifacts, graph))
+
+        # Task 129: Signature conflict detection
+        issues.extend(check_signature_conflicts(manifest_data, system_artifacts))
+
+        # Task 130: Module boundary validation
+        if graph:
+            issues.extend(check_module_boundaries(manifest_data, graph))
+
+        # Task 131: Naming convention compliance
+        issues.extend(check_naming_conventions(manifest_data, system_artifacts))
+
+        # Task 132: Dependency availability check
+        if graph:
+            issues.extend(check_dependency_availability(manifest_data, graph))
+
+        # Task 133: Pattern consistency check
+        if graph:
+            issues.extend(check_pattern_consistency(manifest_data, graph))
+
+        # Task 134: Architectural constraint validation
+        if graph:
+            issues.extend(check_architectural_constraints(manifest_data, graph))
 
         return issues

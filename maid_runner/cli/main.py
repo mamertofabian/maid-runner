@@ -18,7 +18,11 @@ import sys
 from pathlib import Path
 
 from maid_runner import __version__
-from maid_runner.cli.validate import run_coherence_validation, _format_coherence_issues
+from maid_runner.cli.validate import (
+    run_coherence_validation,
+    _format_coherence_issues,
+    format_coherence_json,
+)
 
 
 def setup_graph_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -125,6 +129,12 @@ def add_coherence_arguments(parser: argparse.ArgumentParser) -> None:
         default=False,
         help="Run only coherence validation (skip standard validation)",
     )
+    parser.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="Output format for coherence validation (default: text)",
+    )
 
 
 def handle_coherence_validation(args: argparse.Namespace) -> bool:
@@ -136,7 +146,8 @@ def handle_coherence_validation(args: argparse.Namespace) -> bool:
 
     Args:
         args: Parsed arguments namespace with coherence, coherence_only,
-              use_manifest_chain, manifest_path, manifest_dir, and quiet attributes.
+              use_manifest_chain, manifest_path, manifest_dir, quiet,
+              and format attributes.
 
     Returns:
         True if coherence validation passes or is not requested, False otherwise.
@@ -152,6 +163,7 @@ def handle_coherence_validation(args: argparse.Namespace) -> bool:
     manifest_path = getattr(args, "manifest_path", None)
     manifest_dir = getattr(args, "manifest_dir", None)
     quiet = getattr(args, "quiet", False)
+    output_format = getattr(args, "format", "text")
 
     # If no manifest path is provided, we cannot run coherence validation
     if not manifest_path:
@@ -171,8 +183,10 @@ def handle_coherence_validation(args: argparse.Namespace) -> bool:
     # Run coherence validation
     result = run_coherence_validation(manifest_path_obj, manifest_dir_path, quiet)
 
-    # Format and display issues if not quiet
-    if not quiet:
+    # Format and display output based on format option
+    if output_format == "json":
+        print(format_coherence_json(result, manifest_path_obj))
+    elif not quiet:
         _format_coherence_issues(result, quiet)
 
     return result.valid
@@ -585,6 +599,14 @@ Automatically handles:
             # User can still force it off by explicitly passing the flag for single files
             use_manifest_chain = True
 
+        # Handle coherence-only mode: skip standard validation
+        if args.coherence_only:
+            args.use_manifest_chain = use_manifest_chain
+            args.manifest_dir = manifest_dir
+            coherence_valid = handle_coherence_validation(args)
+            sys.exit(0 if coherence_valid else 1)
+
+        # Run standard validation
         run_validation(
             args.manifest_path,
             args.validation_mode,
@@ -599,6 +621,14 @@ Automatically handles:
             skip_tests=args.skip_tests,
             use_cache=args.use_cache,
         )
+
+        # Run coherence validation if requested (after standard validation)
+        if args.coherence:
+            args.use_manifest_chain = use_manifest_chain
+            args.manifest_dir = manifest_dir
+            coherence_valid = handle_coherence_validation(args)
+            if not coherence_valid:
+                sys.exit(1)
     elif args.command == "snapshot":
         from maid_runner.cli.snapshot import run_snapshot
 
