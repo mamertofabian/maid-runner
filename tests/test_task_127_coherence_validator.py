@@ -466,3 +466,105 @@ class TestCoherenceValidatorIntegration:
         assert len(results) == len(multiple_manifests)
         for result in results:
             assert isinstance(result, CoherenceResult)
+
+
+class TestFlattenArtifacts:
+    """Tests for the _flatten_artifacts helper method."""
+
+    def test_flatten_artifacts_exists(self, manifest_dir: Path) -> None:
+        """_flatten_artifacts method exists on CoherenceValidator."""
+        validator = CoherenceValidator(manifest_dir)
+        assert hasattr(validator, "_flatten_artifacts")
+        assert callable(validator._flatten_artifacts)
+
+    def test_flatten_artifacts_converts_nested_structure(
+        self, manifest_dir: Path
+    ) -> None:
+        """_flatten_artifacts converts nested structure to flat list."""
+        validator = CoherenceValidator(manifest_dir)
+
+        # Nested structure from aggregate_system_artifacts
+        nested = [
+            {
+                "file": "src/module.py",
+                "contains": [
+                    {"type": "function", "name": "func1"},
+                    {"type": "class", "name": "Class1"},
+                ],
+            }
+        ]
+
+        flattened = validator._flatten_artifacts(nested)
+
+        assert len(flattened) == 2
+        assert flattened[0]["name"] == "func1"
+        assert flattened[0]["type"] == "function"
+        assert flattened[0]["file"] == "src/module.py"
+        assert flattened[1]["name"] == "Class1"
+        assert flattened[1]["type"] == "class"
+        assert flattened[1]["file"] == "src/module.py"
+
+    def test_flatten_artifacts_handles_empty_input(self, manifest_dir: Path) -> None:
+        """_flatten_artifacts returns empty list for empty input."""
+        validator = CoherenceValidator(manifest_dir)
+
+        flattened = validator._flatten_artifacts([])
+
+        assert flattened == []
+
+    def test_flatten_artifacts_handles_empty_contains(self, manifest_dir: Path) -> None:
+        """_flatten_artifacts handles files with empty contains array."""
+        validator = CoherenceValidator(manifest_dir)
+
+        nested = [{"file": "src/empty.py", "contains": []}]
+
+        flattened = validator._flatten_artifacts(nested)
+
+        assert flattened == []
+
+    def test_flatten_artifacts_preserves_additional_fields(
+        self, manifest_dir: Path
+    ) -> None:
+        """_flatten_artifacts preserves extra artifact fields like args, returns."""
+        validator = CoherenceValidator(manifest_dir)
+
+        nested = [
+            {
+                "file": "src/module.py",
+                "contains": [
+                    {
+                        "type": "function",
+                        "name": "func_with_args",
+                        "args": [{"name": "x", "type": "int"}],
+                        "returns": "str",
+                    }
+                ],
+            }
+        ]
+
+        flattened = validator._flatten_artifacts(nested)
+
+        assert len(flattened) == 1
+        assert flattened[0]["args"] == [{"name": "x", "type": "int"}]
+        assert flattened[0]["returns"] == "str"
+
+    def test_flatten_artifacts_handles_multiple_files(self, manifest_dir: Path) -> None:
+        """_flatten_artifacts handles multiple file entries."""
+        validator = CoherenceValidator(manifest_dir)
+
+        nested = [
+            {
+                "file": "src/a.py",
+                "contains": [{"type": "function", "name": "a_func"}],
+            },
+            {
+                "file": "src/b.py",
+                "contains": [{"type": "class", "name": "BClass"}],
+            },
+        ]
+
+        flattened = validator._flatten_artifacts(nested)
+
+        assert len(flattened) == 2
+        assert flattened[0]["file"] == "src/a.py"
+        assert flattened[1]["file"] == "src/b.py"

@@ -136,10 +136,12 @@ def _is_valid_supersession(
     manifest_data: dict,
     existing_file: str,
 ) -> bool:
-    """Check if the manifest properly supersedes the existing file.
+    """Check if the manifest properly supersedes or owns the existing file.
 
     A supersession is valid if:
+    - The existing_file is the same file the manifest is creating/editing, OR
     - The existing_file is in the manifest's editableFiles list, OR
+    - The existing_file is in the manifest's creatableFiles list, OR
     - The existing_file is covered by a supersedes declaration
 
     Args:
@@ -149,6 +151,16 @@ def _is_valid_supersession(
     Returns:
         True if the supersession is valid, False otherwise.
     """
+    # Check if existing_file is the file this manifest is creating
+    expected_artifacts = manifest_data.get("expectedArtifacts", {})
+    if expected_artifacts.get("file") == existing_file:
+        return True
+
+    # Check if existing_file is in creatableFiles
+    creatable_files = manifest_data.get("creatableFiles", [])
+    if existing_file in creatable_files:
+        return True
+
     # Check if existing_file is in editableFiles
     editable_files = manifest_data.get("editableFiles", [])
     if existing_file in editable_files:

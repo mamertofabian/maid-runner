@@ -42,7 +42,7 @@ from maid_runner.validators.semantic_validator import (
     ManifestSemanticError,
 )
 from maid_runner.validators.file_tracker import analyze_file_tracking
-from maid_runner.coherence import CoherenceValidator, CoherenceResult, IssueSeverity
+from maid_runner.coherence import CoherenceValidator, CoherenceResult
 
 # Import private helpers
 from . import _validate_helpers
@@ -226,17 +226,15 @@ def format_coherence_json(result: CoherenceResult, manifest_path: Path) -> str:
 def _format_coherence_issues(result: CoherenceResult, quiet: bool) -> None:
     """Format and print coherence validation issues to stdout.
 
-    Prints formatted output for coherence issues with colors based on severity:
-    - Red for errors
-    - Yellow for warnings
-    - Blue for info
-
-    Shows suggestions for each issue. In quiet mode, detailed output is suppressed.
+    Uses the formatter module to display coherence issues with severity
+    indicators and actionable suggestions.
 
     Args:
         result: CoherenceResult containing validation status and issues
         quiet: If True, suppress detailed output
     """
+    from maid_runner.coherence.formatter import format_coherence_result
+
     if not result.issues:
         return
 
@@ -244,38 +242,11 @@ def _format_coherence_issues(result: CoherenceResult, quiet: bool) -> None:
         # In quiet mode, only show a brief summary
         return
 
-    # Color codes for different severities
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    RESET = "\033[0m"
-
-    print()
-    print("COHERENCE VALIDATION ISSUES")
-    print("-" * 40)
-
-    for issue in result.issues:
-        # Choose color based on severity
-        if issue.severity == IssueSeverity.ERROR:
-            color = RED
-            severity_label = "ERROR"
-        elif issue.severity == IssueSeverity.WARNING:
-            color = YELLOW
-            severity_label = "WARNING"
-        else:
-            color = BLUE
-            severity_label = "INFO"
-
-        # Print issue with color
-        print(f"{color}[{severity_label}]{RESET} {issue.message}")
-
-        if issue.location:
-            print(f"  Location: {issue.location}")
-
-        if issue.suggestion:
-            print(f"  Suggestion: {issue.suggestion}")
-
+    # Use the formatter module for consistent output
+    output = format_coherence_result(result, verbose=True)
+    if output:
         print()
+        print(output)
 
 
 def extract_test_files_from_command(validation_command: List[Any]) -> list:

@@ -106,11 +106,47 @@ class CoherenceValidator:
         """
         # Discover active manifests and aggregate artifacts
         active_manifests = discover_active_manifests(self.manifest_dir)
-        self._system_artifacts = aggregate_system_artifacts(active_manifests)
+        raw_artifacts = aggregate_system_artifacts(active_manifests)
+
+        # Flatten artifacts to the structure expected by checks:
+        # [{name: ..., type: ..., file: ...}, ...]
+        self._system_artifacts = self._flatten_artifacts(raw_artifacts)
 
         # Build knowledge graph
         graph_builder = KnowledgeGraphBuilder(self.manifest_dir)
         self._knowledge_graph = graph_builder.build()
+
+    def _flatten_artifacts(
+        self, raw_artifacts: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Flatten nested artifact structure to flat list.
+
+        Converts from: [{file: ..., contains: [{name, type}, ...]}, ...]
+        To: [{name: ..., type: ..., file: ...}, ...]
+
+        Args:
+            raw_artifacts: Nested artifact structure from aggregate_system_artifacts
+
+        Returns:
+            Flattened list of artifacts with name, type, and file keys
+        """
+        flattened: List[Dict[str, Any]] = []
+        for file_entry in raw_artifacts:
+            file_path = file_entry.get("file")
+            for artifact in file_entry.get("contains", []):
+                flattened.append(
+                    {
+                        "name": artifact.get("name"),
+                        "type": artifact.get("type"),
+                        "file": file_path,
+                        **{
+                            k: v
+                            for k, v in artifact.items()
+                            if k not in ("name", "type")
+                        },
+                    }
+                )
+        return flattened
 
     def _run_checks(self, manifest_data: dict) -> List[CoherenceIssue]:
         """Execute all validation checks and return list of issues.

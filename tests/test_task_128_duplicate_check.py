@@ -558,6 +558,82 @@ class TestIsValidSupersessionFunction:
 
         assert result is False
 
+    def test_returns_true_when_file_matches_expected_artifacts(self) -> None:
+        """_is_valid_supersession returns True when existing_file matches expectedArtifacts.file."""
+        manifest_data = {
+            "version": "1",
+            "goal": "Create new module",
+            "taskType": "create",
+            "creatableFiles": ["maid_runner/coherence/validator.py"],
+            "expectedArtifacts": {
+                "file": "maid_runner/coherence/validator.py",
+                "contains": [{"type": "class", "name": "CoherenceValidator"}],
+            },
+        }
+
+        result = _is_valid_supersession(
+            manifest_data=manifest_data,
+            existing_file="maid_runner/coherence/validator.py",
+        )
+
+        assert result is True
+
+    def test_returns_true_when_file_in_creatable_files(self) -> None:
+        """_is_valid_supersession returns True when existing_file is in creatableFiles."""
+        manifest_data = {
+            "version": "1",
+            "goal": "Create new module",
+            "taskType": "create",
+            "creatableFiles": ["maid_runner/new_module.py"],
+            "expectedArtifacts": {
+                "file": "maid_runner/new_module.py",
+                "contains": [{"type": "function", "name": "helper"}],
+            },
+        }
+
+        result = _is_valid_supersession(
+            manifest_data=manifest_data,
+            existing_file="maid_runner/new_module.py",
+        )
+
+        assert result is True
+
+    def test_returns_false_when_different_expected_artifacts_file(self) -> None:
+        """_is_valid_supersession returns False when expectedArtifacts.file is different."""
+        manifest_data = {
+            "version": "1",
+            "goal": "Create new module",
+            "taskType": "create",
+            "creatableFiles": ["maid_runner/other.py"],
+            "expectedArtifacts": {
+                "file": "maid_runner/other.py",
+                "contains": [{"type": "function", "name": "other_func"}],
+            },
+        }
+
+        result = _is_valid_supersession(
+            manifest_data=manifest_data,
+            existing_file="maid_runner/validators/manifest.py",  # Different file
+        )
+
+        assert result is False
+
+    def test_returns_false_when_no_expected_artifacts(self) -> None:
+        """_is_valid_supersession returns False when expectedArtifacts is missing."""
+        manifest_data = {
+            "version": "1",
+            "goal": "Create new module",
+            "taskType": "create",
+            "creatableFiles": ["maid_runner/other.py"],
+        }
+
+        result = _is_valid_supersession(
+            manifest_data=manifest_data,
+            existing_file="maid_runner/validators/manifest.py",
+        )
+
+        assert result is False
+
 
 class TestCheckDuplicateArtifactsEdgeCases:
     """Edge case tests for check_duplicate_artifacts."""
