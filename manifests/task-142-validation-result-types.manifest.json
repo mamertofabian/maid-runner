@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "goal": "Create core data structures for structured validation output to support --json-output flag in CLI commands",
+  "description": "Add ValidationResult and ValidationError dataclasses with ErrorSeverity enum for LSP-compatible JSON output. The maid-lsp server expects structured output with success status, errors array, warnings array, and metadata.",
+  "taskType": "create",
+  "creatableFiles": [
+    "maid_runner/validation_result.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_142_validation_result.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validation_result.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "ErrorSeverity",
+        "bases": ["Enum"],
+        "description": "Enum for validation error severity levels"
+      },
+      {
+        "type": "attribute",
+        "name": "ERROR",
+        "class": "ErrorSeverity"
+      },
+      {
+        "type": "attribute",
+        "name": "WARNING",
+        "class": "ErrorSeverity"
+      },
+      {
+        "type": "class",
+        "name": "ValidationError",
+        "description": "Dataclass representing a single validation error with location info"
+      },
+      {
+        "type": "attribute",
+        "name": "code",
+        "class": "ValidationError"
+      },
+      {
+        "type": "attribute",
+        "name": "message",
+        "class": "ValidationError"
+      },
+      {
+        "type": "attribute",
+        "name": "file",
+        "class": "ValidationError"
+      },
+      {
+        "type": "attribute",
+        "name": "line",
+        "class": "ValidationError"
+      },
+      {
+        "type": "attribute",
+        "name": "column",
+        "class": "ValidationError"
+      },
+      {
+        "type": "attribute",
+        "name": "severity",
+        "class": "ValidationError"
+      },
+      {
+        "type": "function",
+        "name": "to_dict",
+        "class": "ValidationError",
+        "args": [],
+        "returns": "Dict[str, Any]",
+        "description": "Convert error to dictionary for JSON serialization"
+      },
+      {
+        "type": "class",
+        "name": "ValidationResult",
+        "description": "Dataclass representing complete validation result with errors and metadata"
+      },
+      {
+        "type": "attribute",
+        "name": "success",
+        "class": "ValidationResult"
+      },
+      {
+        "type": "attribute",
+        "name": "errors",
+        "class": "ValidationResult"
+      },
+      {
+        "type": "attribute",
+        "name": "warnings",
+        "class": "ValidationResult"
+      },
+      {
+        "type": "attribute",
+        "name": "metadata",
+        "class": "ValidationResult"
+      },
+      {
+        "type": "function",
+        "name": "add_error",
+        "class": "ValidationResult",
+        "args": [
+          {"name": "error", "type": "ValidationError"}
+        ],
+        "returns": "None",
+        "description": "Add error to result, sets success=False if severity is ERROR"
+      },
+      {
+        "type": "function",
+        "name": "to_dict",
+        "class": "ValidationResult",
+        "args": [],
+        "returns": "Dict[str, Any]",
+        "description": "Convert result to maid-lsp compatible dictionary"
+      },
+      {
+        "type": "function",
+        "name": "to_json",
+        "class": "ValidationResult",
+        "args": [
+          {"name": "indent", "type": "Optional[int]", "default": "None"}
+        ],
+        "returns": "str",
+        "description": "Convert result to JSON string"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_142_validation_result.py", "-v"]
+}

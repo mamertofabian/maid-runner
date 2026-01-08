@@ -22,6 +22,7 @@ from maid_runner.utils import (
     normalize_validation_commands,
     get_superseded_manifests,
 )
+from maid_runner.validation_result import ValidationError, ValidationResult
 
 # Try to import watchdog for watch mode
 try:
@@ -48,6 +49,37 @@ from maid_runner.coherence import CoherenceValidator, CoherenceResult
 from . import _validate_helpers
 from . import _test_file_extraction
 from . import _behavioral_validation
+
+
+def format_validation_json(
+    success: bool,
+    errors: List[ValidationError],
+    warnings: List[ValidationError],
+    metadata: Dict[str, Any],
+) -> str:
+    """Format validation results as JSON string in maid-lsp compatible format.
+
+    Creates a ValidationResult from the provided parameters and serializes
+    it to a JSON string. The output format is compatible with maid-lsp
+    expectations.
+
+    Args:
+        success: Whether validation passed overall.
+        errors: List of validation errors.
+        warnings: List of validation warnings.
+        metadata: Dictionary of additional metadata.
+
+    Returns:
+        JSON string with format:
+        {"success": bool, "errors": [...], "warnings": [...], "metadata": {...}}
+    """
+    result = ValidationResult(
+        success=success,
+        errors=errors,
+        warnings=warnings,
+        metadata=metadata,
+    )
+    return result.to_json()
 
 
 def _format_file_tracking_output(
@@ -1448,6 +1480,7 @@ def run_validation(
     verbose: bool = False,
     skip_tests: bool = False,
     use_cache: bool = False,
+    json_output: bool = False,
 ) -> None:
     """Core validation logic accepting parsed arguments.
 
@@ -1464,6 +1497,7 @@ def run_validation(
         verbose: If True, show detailed output
         skip_tests: If True, skip running validationCommand
         use_cache: If True, enable manifest chain caching for improved performance
+        json_output: If True, output validation results as JSON
 
     Raises:
         SystemExit: Exits with code 0 on success, 1 on failure

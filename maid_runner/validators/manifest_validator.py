@@ -694,10 +694,19 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _process_class_assignments(self, node):
-        """Process assignments within a class scope (self.attribute = value)."""
+        """Process assignments within a class scope.
+
+        Handles:
+        - self.attribute = value (instance attributes defined in methods)
+        - ATTRIBUTE = value (class-level attributes like enum members)
+        """
         for target in node.targets:
             if self._is_self_attribute(target):
                 self._add_class_attribute(self.current_class, target.attr)
+            # Handle class-level simple assignments (e.g., enum members, class constants)
+            # Only when not inside a method (current_function is None)
+            elif isinstance(target, ast.Name) and self.current_function is None:
+                self._add_class_attribute(self.current_class, target.id)
 
     def _process_module_assignments(self, node):
         """Process assignments at module level."""
@@ -790,10 +799,20 @@ class _ArtifactCollector(ast.NodeVisitor):
         self.found_attributes[None].add(attribute_name)
 
     def visit_AnnAssign(self, node):
-        """Track annotated assignments including module-level type-annotated variables."""
-        # Only track module-level annotated assignments
-        if self._is_module_scope() and isinstance(node.target, ast.Name):
-            self._add_module_attribute(node.target.id)
+        """Track annotated assignments including module-level and class-level type-annotated variables.
+
+        Handles:
+        - Module-level: type_alias: TypeAlias = SomeType
+        - Class-level: field: type (dataclass fields, class variables)
+        """
+        if isinstance(node.target, ast.Name):
+            # Module-level annotated assignments
+            if self._is_module_scope():
+                self._add_module_attribute(node.target.id)
+            # Class-level annotated assignments (dataclass fields, class variables)
+            # Only when not inside a method
+            elif self.current_class and self.current_function is None:
+                self._add_class_attribute(self.current_class, node.target.id)
 
         self.generic_visit(node)
 

@@ -70,6 +70,31 @@ def _categorize_manifest_by_file(manifest_data: dict, file_path: str) -> Optiona
     return None
 
 
+def format_manifests_json(categorized_manifests: dict, manifest_dir: str) -> str:
+    """Format categorized manifests as a JSON array of full paths.
+
+    Flattens all manifests from created/edited/read categories into a single
+    deduplicated list and returns them as a JSON array string.
+
+    Args:
+        categorized_manifests: Dictionary with categories as keys and manifest lists as values
+        manifest_dir: Directory containing manifests (used to construct full paths)
+
+    Returns:
+        JSON array string of full manifest paths, e.g., '["manifests/task-001.manifest.json"]'
+    """
+    # Collect all manifests from all categories
+    all_manifests = set()
+    for category in ["created", "edited", "read"]:
+        for manifest_name in categorized_manifests.get(category, []):
+            # Construct full path: manifest_dir + manifest_name
+            full_path = f"{manifest_dir}/{manifest_name}"
+            all_manifests.add(full_path)
+
+    # Return as JSON array
+    return json.dumps(sorted(all_manifests))
+
+
 def _format_manifest_list_output(
     categorized_manifests: dict, file_path: str, quiet: bool
 ) -> None:
@@ -121,7 +146,9 @@ def _format_manifest_list_output(
         print("\n" + "=" * 80)
 
 
-def run_list_manifests(file_path: str, manifest_dir: str, quiet: bool) -> None:
+def run_list_manifests(
+    file_path: str, manifest_dir: str, quiet: bool, json_output: bool = False
+) -> None:
     """List all manifests that reference a given file.
 
     Scans all manifests in the specified directory and categorizes them by
@@ -131,6 +158,7 @@ def run_list_manifests(file_path: str, manifest_dir: str, quiet: bool) -> None:
         file_path: Path to the file to search for in manifests
         manifest_dir: Directory containing manifest files
         quiet: If True, show minimal output
+        json_output: If True, output manifest list as JSON array
 
     Raises:
         SystemExit: Exits with code 1 if manifest_dir doesn't exist
@@ -177,6 +205,10 @@ def run_list_manifests(file_path: str, manifest_dir: str, quiet: bool) -> None:
             continue
 
     # Format and display results
+    if json_output:
+        print(format_manifests_json(categorized, manifest_dir))
+        return
+
     _format_manifest_list_output(categorized, file_path, quiet)
 
 

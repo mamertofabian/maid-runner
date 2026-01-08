@@ -1,0 +1,59 @@
+{
+  "version": "1",
+  "goal": "Add --json-output flag to maid validate command for structured JSON output using ValidationResult types",
+  "description": "Add format_validation_json() function to validate.py that formats validation results as JSON using ValidationResult types from task-142. The main.py CLI wiring changes (adding --json-output argument) are implementation details handled during Phase 3. The JSON output format is compatible with maid-lsp expectations.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validation_result.py",
+    "maid_runner/cli/main.py",
+    "tests/test_task_144_json_output.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "format_validation_json",
+        "args": [
+          {"name": "success", "type": "bool"},
+          {"name": "errors", "type": "List[ValidationError]"},
+          {"name": "warnings", "type": "List[ValidationError]"},
+          {"name": "metadata", "type": "Dict[str, Any]"}
+        ],
+        "returns": "str",
+        "description": "Format validation results as JSON string in maid-lsp compatible format"
+      },
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {"name": "manifest_path", "type": "Optional[str]"},
+          {"name": "validation_mode", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "manifest_dir", "type": "Optional[str]"},
+          {"name": "skip_file_tracking", "type": "bool"},
+          {"name": "watch", "type": "bool"},
+          {"name": "watch_all", "type": "bool"},
+          {"name": "timeout", "type": "int"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "skip_tests", "type": "bool"},
+          {"name": "use_cache", "type": "bool"},
+          {"name": "json_output", "type": "bool"}
+        ],
+        "returns": "None",
+        "description": "Core validation logic with json_output parameter for structured JSON output"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/test_task_144_json_output.py",
+    "-v"
+  ]
+}
