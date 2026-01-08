@@ -1646,7 +1646,9 @@ def _run_validation_with_json_output(
                     ValidationError(
                         code=ErrorCode.ARTIFACT_NOT_FOUND,
                         message=str(e),
-                        file=file_path,
+                        file=getattr(e, "file", None) or file_path,
+                        line=getattr(e, "line", None),
+                        column=getattr(e, "column", None),
                         severity=ErrorSeverity.ERROR,
                     )
                 )
@@ -1668,7 +1670,9 @@ def _run_validation_with_json_output(
                     ValidationError(
                         code=ErrorCode.ARTIFACT_NOT_FOUND,
                         message=str(e),
-                        file=file_path,
+                        file=getattr(e, "file", None) or file_path,
+                        line=getattr(e, "line", None),
+                        column=getattr(e, "column", None),
                         severity=ErrorSeverity.ERROR,
                     )
                 )

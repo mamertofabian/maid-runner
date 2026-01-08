@@ -77,9 +77,26 @@ _NONE_TYPE = _NONE_TYPE_IMPL
 
 
 class AlignmentError(Exception):
-    """Raised when expected artifacts are not found in the code."""
+    """Raised when expected artifacts are not found in the code.
 
-    pass
+    Attributes:
+        message: Error description.
+        file: Optional file path where the error occurred.
+        line: Optional line number (1-based) where the error occurred.
+        column: Optional column number (1-based) where the error occurred.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        file: Optional[str] = None,
+        line: Optional[int] = None,
+        column: Optional[int] = None,
+    ):
+        super().__init__(message)
+        self.file = file
+        self.line = line
+        self.column = column
 
 
 def validate_schema(manifest_data, schema_path):
