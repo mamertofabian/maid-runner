@@ -1,0 +1,32 @@
+{
+  "goal": "Fix untracked test files false positive by extracting test files from validationCommand/validationCommands fields in collect_tracked_files()",
+  "description": "Test files referenced in validationCommand or validationCommands fields are incorrectly reported as UNTRACKED TEST FILES. The fix imports and uses extract_test_files_from_command() from _test_file_extraction.py to extract test files from validation commands and add them to the tracked_files dictionary.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validators/file_tracker.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/cli/_test_file_extraction.py",
+    "tests/validators/test_task_036_separate_untracked_tests.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/file_tracker.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "collect_tracked_files",
+        "args": [
+          {"name": "manifest_chain", "type": "List[dict]"}
+        ],
+        "returns": "Dict[str, dict]"
+      }
+    ]
+  },
+  "validationCommand": [
+    "pytest",
+    "tests/validators/test_task_146_track_validationcommand_test_files.py",
+    "-v"
+  ]
+}

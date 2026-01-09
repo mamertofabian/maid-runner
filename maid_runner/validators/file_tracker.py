@@ -10,6 +10,9 @@ This module provides validation to detect:
 from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
 
+from maid_runner.utils import normalize_validation_commands
+from maid_runner.cli._test_file_extraction import _extract_from_single_command
+
 
 # File status constants
 FILE_STATUS_UNDECLARED = "UNDECLARED"
@@ -266,6 +269,32 @@ def collect_tracked_files(manifest_chain: List[dict]) -> Dict[str, dict]:
                 normalized_path = _normalize_path(file_path)
                 if normalized_path in tracked_files:
                     tracked_files[normalized_path]["has_tests"] = True
+
+        # Extract test files from validationCommand and validationCommands
+        # Using existing utilities to avoid duplication
+        validation_cmds = normalize_validation_commands(manifest)
+        test_files: List[str] = []
+        for cmd in validation_cmds:
+            test_files.extend(_extract_from_single_command(cmd))
+        for test_file in test_files:
+            normalized_test_file = _normalize_path(test_file)
+            # Only track paths that look like test files to avoid
+            # tracking pytest option arguments (e.g., "src" from --cov src)
+            if not _is_test_file(normalized_test_file):
+                continue
+            if normalized_test_file not in tracked_files:
+                tracked_files[normalized_test_file] = {
+                    "created": False,
+                    "edited": False,
+                    "readonly": False,
+                    "has_artifacts": False,
+                    "has_tests": True,
+                    "manifests": [],
+                }
+            else:
+                # File already tracked; mark it as having tests
+                tracked_files[normalized_test_file]["has_tests"] = True
+            tracked_files[normalized_test_file]["manifests"].append(manifest_id)
 
     return tracked_files
 
