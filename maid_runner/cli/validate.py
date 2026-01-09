@@ -88,6 +88,54 @@ def format_validation_json(
     return result.to_json()
 
 
+def _check_if_superseded(
+    manifest_path: Path, manifests_dir: Path
+) -> tuple[bool, Optional[Path]]:
+    """Check if a manifest is superseded by another manifest.
+
+    Scans all manifests in the directory to find if any manifest supersedes
+    the given manifest path. This is used to skip validation for inactive
+    manifests.
+
+    Args:
+        manifest_path: Path to the manifest to check.
+        manifests_dir: Directory containing all manifests.
+
+    Returns:
+        Tuple of (is_superseded, superseding_manifest_path).
+        If not superseded, returns (False, None).
+        If superseded, returns (True, path_to_superseding_manifest).
+    """
+    # Get all superseded manifests and find if this one is in the set
+    superseded_set = get_superseded_manifests(manifests_dir)
+
+    # Normalize the manifest path for comparison
+    manifest_path_resolved = manifest_path.resolve()
+
+    for superseded_path in superseded_set:
+        if superseded_path.resolve() == manifest_path_resolved:
+            # Find which manifest supersedes this one
+            for other_manifest in manifests_dir.glob("task-*.manifest.json"):
+                try:
+                    with open(other_manifest, "r") as f:
+                        data = json.load(f)
+                    supersedes_list = data.get("supersedes", [])
+                    for superseded_ref in supersedes_list:
+                        ref_path = Path(superseded_ref)
+                        # Handle both "manifests/task-XXX.manifest.json" and "task-XXX.manifest.json"
+                        if ref_path.name == manifest_path.name:
+                            return True, other_manifest
+                        if str(ref_path).startswith("manifests/"):
+                            if ref_path.name == manifest_path.name:
+                                return True, other_manifest
+                except (json.JSONDecodeError, IOError):
+                    continue
+            # Found in superseded set but couldn't identify which manifest
+            return True, None
+
+    return False, None
+
+
 def _format_file_tracking_output(
     analysis: dict,
     quiet: bool = False,
@@ -1549,6 +1597,33 @@ def _perform_core_validation(
                 )
             )
             return _make_result(False)
+
+        # Check if this manifest is superseded by another manifest
+        manifests_dir = manifest_path_obj.parent
+        is_superseded, superseding_manifest = _check_if_superseded(
+            manifest_path_obj, manifests_dir
+        )
+        if is_superseded:
+            # Return success with informational warning - superseded manifests
+            # are inactive and should not produce validation errors
+            superseding_name = (
+                superseding_manifest.name
+                if superseding_manifest
+                else "another manifest"
+            )
+            warnings.append(
+                ValidationError(
+                    code="I103",  # Informational code for superseded manifest
+                    message=f"This manifest has been superseded by {superseding_name} and is excluded from active validation.",
+                    file=manifest_path,
+                    severity=ErrorSeverity.WARNING,
+                )
+            )
+            metadata["is_superseded"] = True
+            metadata["superseded_by"] = (
+                str(superseding_manifest) if superseding_manifest else None
+            )
+            return _make_result(True)  # Success - not an error condition
 
         # Load the manifest
         with open(manifest_path_obj, "r") as f:
