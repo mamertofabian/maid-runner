@@ -12,6 +12,9 @@ Error Code Reference:
         E101: MAID semantic validation failed (e.g., multi-file artifacts)
         E102: Supersession validation failed
 
+    I1XX - Informational codes (warnings):
+        I103: Manifest is superseded and excluded from active validation
+
     E3XX - Implementation validation errors:
         E301: Expected artifact not found in implementation
         E308: Alignment error during validation
@@ -43,6 +46,9 @@ class ErrorCode:
     # Semantic validation errors (E1XX)
     SEMANTIC_VALIDATION_FAILED = "E101"
     SUPERSESSION_VALIDATION_FAILED = "E102"
+
+    # Informational codes (I1XX) - used as warnings
+    SUPERSEDED_MANIFEST = "I103"
 
     # Implementation validation errors (E3XX)
     ARTIFACT_NOT_FOUND = "E301"

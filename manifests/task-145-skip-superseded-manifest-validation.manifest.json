@@ -1,0 +1,25 @@
+{
+  "goal": "Add superseded manifest detection to single-manifest validation. When validating a manifest that has been superseded by another manifest, return success with an informational warning instead of running validation. This prevents false positive errors for inactive manifests in LSP integration.",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/validation_result.py",
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/utils.py",
+    "tests/cli/test_task_145_skip_superseded_validation.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_check_if_superseded",
+        "description": "Check if a manifest is superseded by another manifest. Returns tuple of (is_superseded, superseding_manifest_path)."
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/cli/test_task_145_skip_superseded_validation.py", "-v"]
+}
