@@ -1311,3 +1311,77 @@ class TestFindPriorManifestsForFile:
         result = _find_prior_manifests_for_file("src/service.py", manifests_dir)
 
         assert len(result) == 1
+
+    def test_only_returns_chronologically_prior_manifests(self, tmp_path):
+        """Should only return manifests with lower task numbers (chronologically prior)."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create older manifests (should be included)
+        manifest_010 = {
+            "goal": "Early edit",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/SlidePanel.tsx", "contains": []},
+        }
+        _create_manifest_file(
+            manifests_dir, "task-010-early-edit.manifest.json", manifest_010
+        )
+
+        manifest_020 = {
+            "goal": "Another early edit",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/SlidePanel.tsx", "contains": []},
+        }
+        _create_manifest_file(
+            manifests_dir, "task-020-another-edit.manifest.json", manifest_020
+        )
+
+        # Create the current manifest being validated (task-037)
+        manifest_037 = {
+            "goal": "Snapshot SlidePanel",
+            "taskType": "snapshot",
+            "expectedArtifacts": {"file": "src/SlidePanel.tsx", "contains": []},
+        }
+        current_path = _create_manifest_file(
+            manifests_dir, "task-037-snapshot-SlidePanel.manifest.json", manifest_037
+        )
+
+        # Create newer manifests (should NOT be included - these are AFTER task-037)
+        manifest_069 = {
+            "goal": "Improve animation",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/SlidePanel.tsx", "contains": []},
+        }
+        _create_manifest_file(
+            manifests_dir,
+            "task-069-improve-slidepanel-animation.manifest.json",
+            manifest_069,
+        )
+
+        manifest_157 = {
+            "goal": "Add escape handler",
+            "taskType": "edit",
+            "expectedArtifacts": {"file": "src/SlidePanel.tsx", "contains": []},
+        }
+        _create_manifest_file(
+            manifests_dir,
+            "task-157-add-slidepanel-escape-handler.manifest.json",
+            manifest_157,
+        )
+
+        # Find prior manifests for task-037
+        result = _find_prior_manifests_for_file(
+            "src/SlidePanel.tsx", manifests_dir, current_path
+        )
+
+        # Should ONLY return manifests with task numbers < 037 (i.e., 010 and 020)
+        # Should NOT include task-069 or task-157 (they are chronologically AFTER)
+        assert len(result) == 2, f"Expected 2 prior manifests, got {len(result)}"
+
+        result_names = [p.name for p in result]
+        assert "task-010-early-edit.manifest.json" in result_names
+        assert "task-020-another-edit.manifest.json" in result_names
+        assert "task-069-improve-slidepanel-animation.manifest.json" not in result_names
+        assert (
+            "task-157-add-slidepanel-escape-handler.manifest.json" not in result_names
+        )

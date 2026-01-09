@@ -14,6 +14,7 @@ from maid_runner.validators.manifest_validator import (
     _validate_file_status_semantic_rules,
     AlignmentError,
 )
+from maid_runner.validators._manifest_utils import _get_task_number
 
 
 class ManifestSemanticError(Exception):
@@ -544,22 +545,37 @@ def _find_prior_manifests_for_file(
     exclude_manifest: Optional[Path] = None,
 ) -> List[Path]:
     """
-    Find all manifests that reference the given target file.
+    Find manifests that reference the given target file and are chronologically prior.
+
+    Only returns manifests with lower task numbers than the exclude_manifest (if provided).
+    This ensures "prior" means chronologically earlier, not just "other manifests".
 
     Args:
         target_file: Normalized file path to search for
         manifests_dir: Path to the manifests directory
         exclude_manifest: Optional manifest path to exclude from results
+                         (also used as reference point for chronological filtering)
 
     Returns:
-        List of manifest paths that reference the target file
+        List of manifest paths that reference the target file and are chronologically prior
     """
     prior_manifests = []
+
+    # Extract task number from the current manifest (if provided)
+    current_task_num = float("inf")
+    if exclude_manifest:
+        current_task_num = _get_task_number(exclude_manifest)
 
     # Scan all manifest files in the directory
     for manifest_path in manifests_dir.glob("task-*.manifest.json"):
         # Skip the current manifest being validated
         if exclude_manifest and manifest_path.resolve() == exclude_manifest.resolve():
+            continue
+
+        # Extract task number and check chronological order
+        manifest_task_num = _get_task_number(manifest_path)
+        if manifest_task_num >= current_task_num:
+            # Skip manifests that are chronologically after or equal to current
             continue
 
         try:
