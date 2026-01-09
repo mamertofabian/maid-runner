@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-01-09
+
+### Fixed
+- Chronological filtering in `_find_prior_manifests_for_file` function
+  - Function now correctly returns only manifests with lower task numbers (chronologically prior)
+  - Previously returned ALL manifests for a file, including newer ones, causing false validation errors
+  - Fixed bug where validating older snapshot manifests incorrectly reported newer manifests as "prior"
+  - Added comprehensive test coverage to prevent regression
+
 ## [0.9.0] - 2026-01-08
 
 ### Added
@@ -499,6 +508,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.9.1]: https://github.com/mamertofabian/maid-runner/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/mamertofabian/maid-runner/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/mamertofabian/maid-runner/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/mamertofabian/maid-runner/compare/v0.6.0...v0.7.0
