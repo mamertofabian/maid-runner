@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4] - 2026-01-12
+
+### Fixed
+- Consistent superseded manifest handling across validation modes
+  - Both JSON and non-JSON output modes now properly skip validation for superseded manifests
+  - Previously, non-JSON mode would attempt validation and report errors for inactive manifests
+  - Added early supersession check in `run_validation()` before schema validation
+  - Returns success with informational message when manifest is superseded
+  - Ensures consistent behavior for LSP integration and CLI usage
+
 ## [0.9.3] - 2026-01-12
 
 ### Added
@@ -534,6 +544,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.9.4]: https://github.com/mamertofabian/maid-runner/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/mamertofabian/maid-runner/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/mamertofabian/maid-runner/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/mamertofabian/maid-runner/compare/v0.9.0...v0.9.1
