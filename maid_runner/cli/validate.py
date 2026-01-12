@@ -1972,6 +1972,26 @@ def run_validation(
             print(f"✗ Error: Manifest file not found: {manifest_path}")
             sys.exit(1)
 
+        # Check if this manifest is superseded by another manifest
+        # If superseded, return success with informational message
+        manifests_dir = manifest_path_obj.parent
+        is_superseded, superseding_manifest = _check_if_superseded(
+            manifest_path_obj, manifests_dir
+        )
+        if is_superseded:
+            # Superseded manifests are inactive - skip validation and return success
+            if not quiet:
+                superseding_name = (
+                    superseding_manifest.name
+                    if superseding_manifest
+                    else "another manifest"
+                )
+                print(
+                    f"⏭️  This manifest has been superseded by {superseding_name} "
+                    f"and is excluded from active validation."
+                )
+            return  # Exit successfully without running validation
+
         # Load the manifest
         with open(manifest_path_obj, "r") as f:
             manifest_data = json.load(f)
@@ -2006,7 +2026,6 @@ def run_validation(
 
         # Validate supersession legitimacy (prevent abuse)
         try:
-            manifests_dir = manifest_path_obj.parent
             validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
         except ManifestSemanticError as e:
             print("✗ Error: Supersession validation failed", file=sys.stderr)

@@ -211,3 +211,85 @@ class TestValidationSkipsSupersededManifest:
 
         # Metadata should indicate superseded status
         assert result.metadata.get("is_superseded") is True
+
+    def test_non_json_output_succeeds_for_superseded_manifest(self, tmp_path: Path):
+        """Test that non-JSON output mode also succeeds for superseded manifest."""
+        from maid_runner.cli.validate import run_validation
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a superseded manifest with artifacts that would fail validation
+        superseded_manifest = {
+            "version": "1.3",
+            "goal": "Original manifest",
+            "taskType": "create",
+            "supersedes": [],
+            "creatableFiles": ["src/example.py"],
+            "editableFiles": [],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "src/example.py",
+                "contains": [{"type": "function", "name": "old_function", "args": []}],
+            },
+            "validationCommand": ["pytest", "tests/test_example.py", "-v"],
+        }
+
+        # Create a superseding manifest
+        superseding_manifest = {
+            "version": "1.3",
+            "goal": "Superseding manifest",
+            "taskType": "edit",
+            "supersedes": ["manifests/task-001-example.manifest.json"],
+            "creatableFiles": [],
+            "editableFiles": ["src/example.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "src/example.py",
+                "contains": [{"type": "function", "name": "new_function", "args": []}],
+            },
+            "validationCommand": ["pytest", "tests/test_example.py", "-v"],
+        }
+
+        superseded_path = manifests_dir / "task-001-example.manifest.json"
+        superseding_path = manifests_dir / "task-002-update.manifest.json"
+
+        superseded_path.write_text(json.dumps(superseded_manifest))
+        superseding_path.write_text(json.dumps(superseding_manifest))
+
+        # Create the implementation file with only the new function
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        impl_file = src_dir / "example.py"
+        impl_file.write_text("def new_function():\n    pass\n")
+
+        # Change to tmp_path so paths resolve correctly
+        import os
+
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+
+            # Validate the superseded manifest - should succeed with quiet mode
+            # (quiet mode should suppress the warning message)
+            run_validation(
+                manifest_path=str(superseded_path),
+                validation_mode="implementation",
+                use_manifest_chain=False,
+                quiet=True,
+                manifest_dir=None,
+                skip_file_tracking=True,
+                watch=False,
+                watch_all=False,
+                timeout=300,
+                verbose=False,
+                skip_tests=False,
+                use_cache=False,
+                json_output=False,
+            )
+
+            # If we reach here, validation succeeded (did not call sys.exit(1))
+            # This is the expected behavior: superseded manifests should be skipped
+            # and validation should return success without errors
+        finally:
+            os.chdir(original_cwd)

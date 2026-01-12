@@ -1,0 +1,38 @@
+{
+  "goal": "Fix inconsistent handling of superseded manifests between JSON and non-JSON validation modes",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/cli/test_task_145_skip_superseded_validation.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_validation",
+        "args": [
+          {"name": "manifest_path", "type": "Optional[str]"},
+          {"name": "validation_mode", "type": "str"},
+          {"name": "use_manifest_chain", "type": "bool"},
+          {"name": "quiet", "type": "bool"},
+          {"name": "manifest_dir", "type": "Optional[str]"},
+          {"name": "skip_file_tracking", "type": "bool"},
+          {"name": "watch", "type": "bool"},
+          {"name": "watch_all", "type": "bool"},
+          {"name": "timeout", "type": "int"},
+          {"name": "verbose", "type": "bool"},
+          {"name": "skip_tests", "type": "bool"},
+          {"name": "use_cache", "type": "bool"},
+          {"name": "json_output", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/cli/test_task_145_skip_superseded_validation.py", "-v"]
+}
