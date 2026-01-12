@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.3] - 2026-01-12
+
+### Added
+- Helpful hint in validation errors when supersede is needed
+  - When validation fails with "Unexpected public" errors due to newer manifests modifying the same file
+  - Hint explains the fix: add `supersedes` field and redeclare all artifacts
+  - Improves user experience by guiding users through MAID supersession workflow
+
+### Changed
+- Moved Claude Code hooks to maid-runner plugin (removed from project `.claude` directory)
+- Moved agent documentation to dedicated `AGENTS.md` file
+
 ## [0.9.2] - 2026-01-09
 
 ### Fixed
@@ -522,6 +534,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.9.3]: https://github.com/mamertofabian/maid-runner/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/mamertofabian/maid-runner/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/mamertofabian/maid-runner/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/mamertofabian/maid-runner/compare/v0.8.0...v0.9.0
