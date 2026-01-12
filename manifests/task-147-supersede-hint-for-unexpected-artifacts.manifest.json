@@ -1,0 +1,28 @@
+{
+  "goal": "Add helpful hint suggesting supersede when validation fails due to unexpected artifacts from newer manifests",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/manifest_validator.py",
+    "tests/test_task_147_supersede_hint.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_build_supersede_hint",
+        "args": [
+          {"name": "manifest_path", "type": "Path"},
+          {"name": "manifest_data", "type": "dict"},
+          {"name": "target_file", "type": "str"},
+          {"name": "error_message", "type": "str"}
+        ],
+        "returns": "Optional[str]"
+      }
+    ]
+  },
+  "validationCommand": ["python", "-m", "pytest", "tests/test_task_147_supersede_hint.py", "-v"]
+}

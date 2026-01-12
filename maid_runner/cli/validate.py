@@ -42,7 +42,11 @@ except ImportError:
     FileSystemEventHandler = object  # type: ignore
     Observer = None  # type: ignore
 
-from maid_runner.validators.manifest_validator import validate_with_ast, validate_schema
+from maid_runner.validators.manifest_validator import (
+    validate_with_ast,
+    validate_schema,
+    discover_related_manifests,
+)
 from maid_runner.validators.semantic_validator import (
     validate_manifest_semantics,
     validate_supersession,
@@ -129,6 +133,69 @@ def _check_if_superseded(
 
     # In superseded set but superseder not found (e.g., deleted manifest)
     return True, None
+
+
+def _build_supersede_hint(
+    manifest_path: Path,
+    manifest_data: dict,
+    target_file: str,
+    error_message: str,
+) -> Optional[str]:
+    """Build a helpful hint when validation fails due to newer manifests.
+
+    When an older manifest (especially snapshots) fails validation with
+    "Unexpected public" errors, this function checks if there are newer
+    manifests for the same file that should supersede the older one.
+
+    Args:
+        manifest_path: Path to the manifest being validated.
+        manifest_data: The manifest data dictionary.
+        target_file: The target file being validated.
+        error_message: The error message from validation.
+
+    Returns:
+        A hint string if the scenario is detected, None otherwise.
+    """
+    # Only provide hints for "Unexpected public" errors
+    if "Unexpected public" not in error_message:
+        return None
+
+    # Find all active manifests for this file
+    try:
+        related_manifests = discover_related_manifests(target_file)
+    except Exception:
+        return None
+
+    if not related_manifests:
+        return None
+
+    # Find manifests that are newer than the current one
+    newer_manifests = []
+
+    found_current = False
+    for manifest in related_manifests:
+        if Path(manifest).name == manifest_path.name:
+            found_current = True
+            continue
+        if found_current:
+            newer_manifests.append(manifest)
+
+    if not newer_manifests:
+        return None
+
+    # Get the newest manifest that should supersede this one
+    newest_manifest = Path(newer_manifests[-1]).name
+
+    # Build the hint
+    hint = (
+        f"\n\nHint: This manifest may be obsolete. The file '{target_file}' has been "
+        f"modified by newer manifest(s). To fix, update {newest_manifest} to:\n"
+        f'  1. Add \'"supersedes": ["{manifest_path.name}"]\'\n'
+        f"  2. Redeclare ALL artifacts from this manifest in expectedArtifacts "
+        f"(superseded manifests are excluded from the chain)"
+    )
+
+    return hint
 
 
 def _format_file_tracking_output(
@@ -1732,10 +1799,20 @@ def _perform_core_validation(
                     use_cache=use_cache,
                 )
             except AlignmentError as e:
+                error_message = str(e)
+                # Check if we should add a hint about superseding
+                hint = _build_supersede_hint(
+                    manifest_path=manifest_path_obj,
+                    manifest_data=manifest_data,
+                    target_file=file_path,
+                    error_message=error_message,
+                )
+                if hint:
+                    error_message += hint
                 errors.append(
                     ValidationError(
                         code=ErrorCode.ARTIFACT_NOT_FOUND,
-                        message=str(e),
+                        message=error_message,
                         file=getattr(e, "file", None) or file_path,
                         line=getattr(e, "line", None),
                         column=getattr(e, "column", None),
@@ -2173,7 +2250,17 @@ def run_validation(
         from maid_runner.validators.manifest_validator import AlignmentError
 
         if isinstance(e, AlignmentError):
-            print(f"✗ Validation FAILED: {e}")
+            error_message = str(e)
+            # Check if we should add a hint about superseding
+            hint = _build_supersede_hint(
+                manifest_path=Path(manifest_path),
+                manifest_data=manifest_data,
+                target_file=file_path,
+                error_message=error_message,
+            )
+            if hint:
+                error_message += hint
+            print(f"✗ Validation FAILED: {error_message}")
             if not quiet:
                 print(f"  Manifest: {manifest_path}")
                 print(f"  Mode:     {validation_mode}")
