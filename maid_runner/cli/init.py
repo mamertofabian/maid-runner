@@ -205,21 +205,162 @@ def _generate_maid_cli_commands() -> str:
     """
     return """## MAID CLI Commands
 
+**IMPORTANT: Always use the `maid` CLI for validation and snapshots, NOT direct Python scripts.**
+
+### Whole-Codebase Validation (Recommended)
+
 ```bash
-# Validate a manifest
-maid validate <manifest-path> [--validation-mode behavioral|implementation]
+# Validate ALL active manifests with proper chaining
+# Automatically excludes superseded manifests and uses manifest chain
+maid validate
+
+# Run ALL validation commands from all active manifests
+# Intelligent enough to exclude inactive manifests
+maid test
+```
+
+**These commands are the primary way to verify complete MAID compliance across the entire codebase.**
+
+### Manifest Creation and Management
+
+```bash
+# Create a new manifest for a file (RECOMMENDED - auto-numbers, auto-supersedes snapshots)
+maid manifest create <file-path> --goal "Description" [--artifacts JSON] [--dry-run] [--json]
+
+# Key options for manifest create:
+#   --goal "Description"          # Required: Task description
+#   --artifacts JSON               # Optional: JSON array of artifact definitions
+#   --task-type create|edit|refactor  # Optional: Auto-detected if not specified
+#   --dry-run                      # Preview manifest without writing
+#   --json                         # Output as JSON (for agent consumption)
+#   --delete                       # Create deletion manifest (status: absent)
+#   --rename-to <new-path>         # Create rename manifest
+#   --test-file <path>             # Specify test file path
+#   --readonly-files <files>       # Comma-separated readonly dependencies
 
 # Generate a snapshot manifest from existing code
-maid snapshot <file-path> [--output-dir <dir>]
+maid snapshot <file-path> [--output-dir <dir>] [--force] [--skip-test-stub]
 
+# Generate system-wide manifest aggregating all active manifests
+maid snapshot-system [--output <file>] [--manifest-dir <dir>] [--quiet]
+```
+
+### Validation Commands
+
+```bash
+# Validate a specific manifest (with optional manifest chain)
+maid validate <manifest-path> [--use-manifest-chain] [--quiet]
+
+# Validate all manifests in a directory
+maid validate --manifest-dir <dir> [--use-manifest-chain]
+
+# Validation modes
+maid validate <manifest-path> --validation-mode behavioral    # Checks tests USE artifacts
+maid validate <manifest-path> --validation-mode implementation  # Checks code DEFINES artifacts (default)
+maid validate <manifest-path> --validation-mode schema      # Validates manifest structure only
+
+# Important validation options:
+#   --use-manifest-chain          # Merge related manifests (enables file tracking analysis)
+#   --manifest-dir <dir>           # Validate all manifests in directory
+#   --watch / --watch-all          # Watch mode: auto re-validate on changes
+#   --coherence / --coherence-only  # Architectural coherence validation
+#   --quiet, --verbose             # Control output verbosity
+#   --json-output                  # Output results as JSON
+
+# Run validation commands from manifests
+maid test [--manifest-dir <dir>] [--fail-fast] [--verbose] [--quiet]
+
+# Run tests for a single manifest
+maid test --manifest <manifest-path> [--watch]
+
+# Watch modes (Live TDD workflow)
+maid test --manifest <manifest-path> --watch      # Single-manifest watch
+maid test --watch-all                            # Multi-manifest watch
+```
+
+### Utility Commands
+
+```bash
 # List manifests that reference a file
-maid manifests <file-path> [--manifest-dir <dir>]
+maid manifests <file-path> [--manifest-dir <dir>] [--quiet] [--json-output]
 
-# Run all validation commands
-maid test [--manifest-dir <dir>]
+# Show file tracking status (UNDECLARED/REGISTERED/TRACKED)
+maid files [--manifest-dir <dir>] [--issues-only] [--status <status>] [--json]
 
-# Get help
+# Generate test stubs from existing manifest
+maid generate-stubs <manifest-path>
+
+# Output the manifest JSON schema
+maid schema
+
+# Knowledge graph operations
+maid graph query "<query>" [--manifest-dir <dir>]
+maid graph export --format json|dot|graphml --output <file> [--manifest-dir <dir>]
+maid graph analysis --type find-cycles|show-stats [--manifest-dir <dir>]
+```
+
+### Quick Reference
+
+```bash
+# Whole-Codebase Validation (Primary Commands)
+maid validate     # Validate ALL active manifests with proper chaining
+maid test         # Run ALL validation commands from active manifests
+
+# Watch Mode (Live TDD workflow)
+maid test --manifest manifests/task-XXX.manifest.json --watch  # Single-manifest watch
+maid test --watch-all                                          # Multi-manifest watch
+
+# Individual Task Validation Flow
+# 1. During Planning: Behavioral validation (checks tests USE artifacts)
+maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain
+
+# 2. During Implementation: Implementation validation (checks code DEFINES artifacts)
+maid validate manifests/task-XXX.manifest.json --validation-mode implementation --use-manifest-chain
+
+# 3. Run actual tests
+maid test --manifest manifests/task-XXX.manifest.json
+
+# Manifest Creation Workflow
+# 1. Create manifest (preferred over writing manually)
+maid manifest create <file-path> --goal "Description" --dry-run  # Preview first
+maid manifest create <file-path> --goal "Description"            # Create it
+
+# 2. Validate the manifest
+maid validate manifests/task-XXX.manifest.json --validation-mode behavioral
+
+# 3. Write tests, then validate implementation
+maid validate manifests/task-XXX.manifest.json --validation-mode implementation
+```
+
+### Important Concepts
+
+**File Tracking Analysis**: When using `--use-manifest-chain` in implementation mode, MAID Runner automatically analyzes file tracking compliance:
+- 🔴 **UNDECLARED**: Files not in any manifest (high priority - add to manifest)
+- 🟡 **REGISTERED**: Files tracked but incomplete compliance (medium priority - add artifacts/tests)
+- ✓ **TRACKED**: Files with full MAID compliance
+
+**Watch Modes**: Enable live TDD workflow with automatic re-validation when files change. Perfect for iterative development.
+
+**Validation Modes**:
+- **Behavioral**: Verifies test files USE/CALL the declared artifacts (use during Phase 2: Planning)
+- **Implementation**: Verifies code DEFINES the artifacts (use during Phase 3: Implementation)
+- **Schema**: Validates manifest JSON structure only
+
+**Manifest Creation**: Prefer `maid manifest create` over writing manifests manually. It handles:
+- Auto-numbering (finds next available task number)
+- Auto-supersession (unfreezes snapshotted files)
+- File mode detection (creatableFiles vs editableFiles)
+- Validation command generation
+
+### Get Help
+
+```bash
 maid --help
+maid validate --help
+maid manifest create --help
+maid snapshot --help
+maid test --help
+# ... and so on for any command
 ```"""
 
 
@@ -520,7 +661,7 @@ Verify complete chain: `pytest tests/ -v`
         _generate_refactoring_flexibility(),
         """## Getting Started
 
-1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
+1. Create your first manifest (preferred: use `maid manifest create <file-path> --goal "Description"` or manually create `manifests/task-001-<description>.manifest.json`)
 2. Write behavioral tests in `tests/test_task_001_*.py`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
@@ -636,7 +777,7 @@ Verify complete chain: `npm test` (or `pnpm test` / `yarn test`)
         _generate_refactoring_flexibility(),
         """## Getting Started
 
-1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
+1. Create your first manifest (preferred: use `maid manifest create <file-path> --goal "Description"` or manually create `manifests/task-001-<description>.manifest.json`)
 2. Write behavioral tests in `tests/test_task_001_*.test.ts`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
@@ -782,7 +923,7 @@ Verify complete chain: `pytest tests/ -v` or `npm test`
         _generate_refactoring_flexibility(),
         """## Getting Started
 
-1. Create your first manifest in `manifests/task-001-<description>.manifest.json`
+1. Create your first manifest (preferred: use `maid manifest create <file-path> --goal "Description"` or manually create `manifests/task-001-<description>.manifest.json`)
 2. Write behavioral tests in `tests/test_task_001_*.py` or `tests/test_task_001_*.test.ts`
 3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
 4. Implement the code
@@ -987,7 +1128,10 @@ def run_init(target_dir: str, force: bool) -> None:
     print("Next steps:")
     print("1. Generate a manifest from existing code: maid snapshot <file-path>")
     print(
-        "2. Or create your first task manifest: manifests/task-001-<description>.manifest.json"
+        '2. Or create your first task manifest: maid manifest create <file-path> --goal "Description"'
+    )
+    print(
+        "   (Alternative: manually create manifests/task-001-<description>.manifest.json)"
     )
     print("3. Write behavioral tests in tests/test_task_001_*.py")
     print(
