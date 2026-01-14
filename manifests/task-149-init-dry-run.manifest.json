@@ -1,0 +1,87 @@
+{
+  "goal": "Add --dry-run option to maid init CLI command to preview files that would be created or updated",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/init.py",
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_149_init_dry_run.py",
+    "manifests/task-031-init-command.manifest.json"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_init",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_directories",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_maid_specs",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_unit_testing_rules",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "handle_claude_md",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_claude_agents",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_claude_commands",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_149_init_dry_run.py", "-v"]
+}

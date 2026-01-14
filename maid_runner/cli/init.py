@@ -96,24 +96,30 @@ def wrap_with_markers(content: str) -> str:
     return f"{MAID_SECTION_START}\n{content}\n{MAID_SECTION_END}"
 
 
-def create_directories(target_dir: str) -> None:
+def create_directories(target_dir: str, dry_run: bool = False) -> None:
     """Create necessary directories for MAID methodology.
 
     Args:
         target_dir: Target directory to initialize MAID in
+        dry_run: If True, show what would be created without making changes
     """
     manifests_dir = Path(target_dir) / "manifests"
     tests_dir = Path(target_dir) / "tests"
     maid_docs_dir = Path(target_dir) / ".maid" / "docs"
 
-    manifests_dir.mkdir(exist_ok=True)
-    print(f"✓ Created directory: {manifests_dir}")
+    if dry_run:
+        print(f"[CREATE] {manifests_dir}/")
+        print(f"[CREATE] {tests_dir}/")
+        print(f"[CREATE] {maid_docs_dir}/")
+    else:
+        manifests_dir.mkdir(exist_ok=True)
+        print(f"✓ Created directory: {manifests_dir}")
 
-    tests_dir.mkdir(exist_ok=True)
-    print(f"✓ Created directory: {tests_dir}")
+        tests_dir.mkdir(exist_ok=True)
+        print(f"✓ Created directory: {tests_dir}")
 
-    maid_docs_dir.mkdir(parents=True, exist_ok=True)
-    print(f"✓ Created directory: {maid_docs_dir}")
+        maid_docs_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Created directory: {maid_docs_dir}")
 
 
 def create_example_manifest(target_dir: str) -> None:
@@ -154,11 +160,12 @@ def create_example_manifest(target_dir: str) -> None:
     print(f"✓ Created example manifest: {example_path}")
 
 
-def copy_maid_specs(target_dir: str) -> None:
+def copy_maid_specs(target_dir: str, dry_run: bool = False) -> None:
     """Copy MAID specification document to .maid/docs directory.
 
     Args:
         target_dir: Target directory containing .maid/docs subdirectory
+        dry_run: If True, show what would be copied without making changes
     """
     current_file = Path(__file__)
     maid_runner_package = current_file.parent.parent
@@ -171,15 +178,20 @@ def copy_maid_specs(target_dir: str) -> None:
         return
 
     dest_specs = Path(target_dir) / ".maid" / "docs" / "maid_specs.md"
-    shutil.copy2(source_specs, dest_specs)
-    print(f"✓ Copied MAID specification: {dest_specs}")
+    if dry_run:
+        action = "[UPDATE]" if dest_specs.exists() else "[CREATE]"
+        print(f"{action} {dest_specs}")
+    else:
+        shutil.copy2(source_specs, dest_specs)
+        print(f"✓ Copied MAID specification: {dest_specs}")
 
 
-def copy_unit_testing_rules(target_dir: str) -> None:
+def copy_unit_testing_rules(target_dir: str, dry_run: bool = False) -> None:
     """Copy unit testing rules document to .maid/docs directory.
 
     Args:
         target_dir: Target directory containing .maid/docs subdirectory
+        dry_run: If True, show what would be copied without making changes
     """
     current_file = Path(__file__)
     maid_runner_package = current_file.parent.parent
@@ -193,8 +205,12 @@ def copy_unit_testing_rules(target_dir: str) -> None:
         return
 
     dest_rules = Path(target_dir) / ".maid" / "docs" / "unit-testing-rules.md"
-    shutil.copy2(source_rules, dest_rules)
-    print(f"Copied unit-testing-rules.md: {dest_rules}")
+    if dry_run:
+        action = "[UPDATE]" if dest_rules.exists() else "[CREATE]"
+        print(f"{action} {dest_rules}")
+    else:
+        shutil.copy2(source_rules, dest_rules)
+        print(f"Copied unit-testing-rules.md: {dest_rules}")
 
 
 def _generate_maid_cli_commands() -> str:
@@ -953,7 +969,7 @@ def generate_claude_md_content(language: str) -> str:
     return wrap_with_markers(raw_content)
 
 
-def handle_claude_md(target_dir: str, force: bool) -> None:
+def handle_claude_md(target_dir: str, force: bool, dry_run: bool = False) -> None:
     """Create or update CLAUDE.md file with MAID documentation.
 
     Detects project language and generates appropriate documentation.
@@ -962,14 +978,18 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
     Args:
         target_dir: Target directory for CLAUDE.md
         force: If True, overwrite without prompting
+        dry_run: If True, show what would be done without making changes
     """
     claude_md_path = Path(target_dir) / "CLAUDE.md"
     language = detect_project_language(target_dir)
     content = generate_claude_md_content(language)
 
     if not claude_md_path.exists():
-        claude_md_path.write_text(content)
-        print(f"✓ Created CLAUDE.md: {claude_md_path}")
+        if dry_run:
+            print(f"[CREATE] {claude_md_path}")
+        else:
+            claude_md_path.write_text(content)
+            print(f"✓ Created CLAUDE.md: {claude_md_path}")
         return
 
     existing_content = claude_md_path.read_text()
@@ -983,14 +1003,24 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
         elif language not in ("python", "typescript"):
             raw_maid_content = generate_mixed_claude_md()
 
-        updated_content = replace_maid_section(existing_content, raw_maid_content)
-        claude_md_path.write_text(updated_content)
-        print(f"✓ Updated MAID section in: {claude_md_path}")
+        if dry_run:
+            print(f"[UPDATE] {claude_md_path}")
+        else:
+            updated_content = replace_maid_section(existing_content, raw_maid_content)
+            claude_md_path.write_text(updated_content)
+            print(f"✓ Updated MAID section in: {claude_md_path}")
         return
 
     if force:
-        claude_md_path.write_text(content)
-        print(f"✓ Overwrote CLAUDE.md: {claude_md_path}")
+        if dry_run:
+            print(f"[UPDATE] {claude_md_path}")
+        else:
+            claude_md_path.write_text(content)
+            print(f"✓ Overwrote CLAUDE.md: {claude_md_path}")
+        return
+
+    if dry_run:
+        print(f"[UPDATE] {claude_md_path}")
         return
 
     print(f"\n⚠️  CLAUDE.md already exists at: {claude_md_path}")
@@ -1016,12 +1046,13 @@ def handle_claude_md(target_dir: str, force: bool) -> None:
         print("⊘ Skipped CLAUDE.md (existing file unchanged)")
 
 
-def copy_claude_agents(target_dir: str, force: bool) -> None:
+def copy_claude_agents(target_dir: str, force: bool, dry_run: bool = False) -> None:
     """Copy Claude Code agent files to .claude/agents/ directory.
 
     Args:
         target_dir: Target directory for .claude/agents/
         force: If True, copy without prompting
+        dry_run: If True, show what would be copied without making changes
     """
     # Get source location from package
     current_file = Path(__file__)
@@ -1034,8 +1065,8 @@ def copy_claude_agents(target_dir: str, force: bool) -> None:
         )
         return
 
-    # Prompt user if not forcing
-    if not force:
+    # Prompt user if not forcing and not dry-run
+    if not force and not dry_run:
         response = input("Copy Claude Code agent files (.claude/agents)? (Y/n): ")
         if response.lower() in ("n", "no"):
             print("⊘ Skipped Claude Code agent files")
@@ -1043,7 +1074,8 @@ def copy_claude_agents(target_dir: str, force: bool) -> None:
 
     # Create destination directory
     dest_agents = Path(target_dir) / ".claude" / "agents"
-    dest_agents.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        dest_agents.mkdir(parents=True, exist_ok=True)
 
     # Load manifest and get distributable files
     manifest = load_claude_manifest()
@@ -1054,18 +1086,25 @@ def copy_claude_agents(target_dir: str, force: bool) -> None:
     for filename in distributable:
         source_file = source_agents / filename
         if source_file.exists():
-            shutil.copy2(source_file, dest_agents / filename)
+            dest_file = dest_agents / filename
+            if dry_run:
+                action = "[UPDATE]" if dest_file.exists() else "[CREATE]"
+                print(f"{action} {dest_file}")
+            else:
+                shutil.copy2(source_file, dest_file)
             copied_count += 1
 
-    print(f"✓ Copied {copied_count} Claude Code agent files to {dest_agents}")
+    if not dry_run:
+        print(f"✓ Copied {copied_count} Claude Code agent files to {dest_agents}")
 
 
-def copy_claude_commands(target_dir: str, force: bool) -> None:
+def copy_claude_commands(target_dir: str, force: bool, dry_run: bool = False) -> None:
     """Copy Claude Code command files to .claude/commands/ directory.
 
     Args:
         target_dir: Target directory for .claude/commands/
         force: If True, copy without prompting
+        dry_run: If True, show what would be copied without making changes
     """
     # Get source location from package
     current_file = Path(__file__)
@@ -1078,8 +1117,8 @@ def copy_claude_commands(target_dir: str, force: bool) -> None:
         )
         return
 
-    # Prompt user if not forcing
-    if not force:
+    # Prompt user if not forcing and not dry-run
+    if not force and not dry_run:
         response = input("Copy Claude Code command files (.claude/commands)? (Y/n): ")
         if response.lower() in ("n", "no"):
             print("⊘ Skipped Claude Code command files")
@@ -1087,7 +1126,8 @@ def copy_claude_commands(target_dir: str, force: bool) -> None:
 
     # Create destination directory
     dest_commands = Path(target_dir) / ".claude" / "commands"
-    dest_commands.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        dest_commands.mkdir(parents=True, exist_ok=True)
 
     # Load manifest and get distributable files
     manifest = load_claude_manifest()
@@ -1098,44 +1138,59 @@ def copy_claude_commands(target_dir: str, force: bool) -> None:
     for filename in distributable:
         source_file = source_commands / filename
         if source_file.exists():
-            shutil.copy2(source_file, dest_commands / filename)
+            dest_file = dest_commands / filename
+            if dry_run:
+                action = "[UPDATE]" if dest_file.exists() else "[CREATE]"
+                print(f"{action} {dest_file}")
+            else:
+                shutil.copy2(source_file, dest_file)
             copied_count += 1
 
-    print(f"✓ Copied {copied_count} Claude Code command files to {dest_commands}")
+    if not dry_run:
+        print(f"✓ Copied {copied_count} Claude Code command files to {dest_commands}")
 
 
-def run_init(target_dir: str, force: bool) -> None:
+def run_init(target_dir: str, force: bool, dry_run: bool = False) -> None:
     """Initialize MAID methodology in a repository.
 
     Args:
         target_dir: Target directory to initialize MAID in
         force: If True, overwrite files without prompting
+        dry_run: If True, show what would be done without making changes
     """
     print(f"\n{'=' * 60}")
-    print("Initializing MAID Methodology")
+    if dry_run:
+        print("MAID Initialization (DRY-RUN MODE)")
+        print("The following files and directories would be created or updated:")
+    else:
+        print("Initializing MAID Methodology")
     print(f"{'=' * 60}\n")
 
-    create_directories(target_dir)
-    copy_maid_specs(target_dir)
-    copy_unit_testing_rules(target_dir)
-    handle_claude_md(target_dir, force)
-    copy_claude_agents(target_dir, force)
-    copy_claude_commands(target_dir, force)
+    create_directories(target_dir, dry_run)
+    copy_maid_specs(target_dir, dry_run)
+    copy_unit_testing_rules(target_dir, dry_run)
+    handle_claude_md(target_dir, force, dry_run)
+    copy_claude_agents(target_dir, force, dry_run)
+    copy_claude_commands(target_dir, force, dry_run)
 
     print(f"\n{'=' * 60}")
-    print("✓ MAID initialization complete!")
+    if dry_run:
+        print("✓ Dry-run complete - no changes were made")
+    else:
+        print("✓ MAID initialization complete!")
     print(f"{'=' * 60}\n")
-    print("Next steps:")
-    print("1. Generate a manifest from existing code: maid snapshot <file-path>")
-    print(
-        '2. Or create your first task manifest: maid manifest create <file-path> --goal "Description"'
-    )
-    print(
-        "   (Alternative: manually create manifests/task-001-<description>.manifest.json)"
-    )
-    print("3. Write behavioral tests in tests/test_task_001_*.py")
-    print(
-        "4. Validate: maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral"
-    )
-    print("5. Implement your code")
-    print("6. Run tests: maid test\n")
+    if not dry_run:
+        print("Next steps:")
+        print("1. Generate a manifest from existing code: maid snapshot <file-path>")
+        print(
+            '2. Or create your first task manifest: maid manifest create <file-path> --goal "Description"'
+        )
+        print(
+            "   (Alternative: manually create manifests/task-001-<description>.manifest.json)"
+        )
+        print("3. Write behavioral tests in tests/test_task_001_*.py")
+        print(
+            "4. Validate: maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral"
+        )
+        print("5. Implement your code")
+        print("6. Run tests: maid test\n")

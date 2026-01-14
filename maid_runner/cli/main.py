@@ -432,6 +432,11 @@ mixed test runners (pytest + vitest, etc.).""",
         action="store_true",
         help="Overwrite existing files without prompting",
     )
+    init_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show which files would be created or updated without making changes",
+    )
 
     # Generate-stubs subcommand
     generate_stubs_parser = subparsers.add_parser(
@@ -671,7 +676,7 @@ Automatically handles:
     elif args.command == "init":
         from maid_runner.cli.init import run_init
 
-        run_init(args.target_dir, args.force)
+        run_init(args.target_dir, args.force, args.dry_run)
     elif args.command == "generate-stubs":
         from maid_runner.cli.snapshot import generate_test_stub
         import json
