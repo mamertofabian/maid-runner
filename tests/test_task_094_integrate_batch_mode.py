@@ -25,6 +25,13 @@ class TestBatchModeIntegration:
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
 
+        # Create test files directory and files
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        for i in range(3):
+            test_file = tests_dir / f"test_{i}.py"
+            test_file.write_text("# Test file\n")
+
         # Create manifests with pytest commands
         for i in range(3):
             manifest_data = {
@@ -69,6 +76,12 @@ class TestBatchModeIntegration:
         """Should batch each runner separately for mixed pytest/vitest commands."""
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
+
+        # Create test files
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_1.py").write_text("# Test file\n")
+        (tmp_path / "test.spec.ts").write_text("// Test file\n")
 
         # Create manifests with mixed commands
         manifest1_data = {
@@ -196,6 +209,13 @@ class TestBatchModeIntegration:
         """Should respect quiet flag in batch mode."""
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
+
+        # Create test files directory and files
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        for i in range(2):
+            test_file = tests_dir / f"test_{i}.py"
+            test_file.write_text("# Test file\n")
 
         # Create multiple manifests to trigger batch mode
         for i in range(2):

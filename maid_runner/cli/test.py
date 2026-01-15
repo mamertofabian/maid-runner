@@ -870,6 +870,24 @@ def run_test(
             )
 
             if test_files_by_runner:
+                # Validate that all collected test files exist before batching
+                missing_files_by_runner = {}
+                for runner, test_files in test_files_by_runner.items():
+                    missing_files = []
+                    for f in test_files:
+                        test_file_path = project_root / f
+                        if not test_file_path.exists():
+                            missing_files.append(f)
+                    if missing_files:
+                        missing_files_by_runner[runner] = missing_files
+
+                if missing_files_by_runner:
+                    # Report missing files and fail
+                    print("\n✗ Error: Test file(s) not found in batch mode:")
+                    for runner, missing_files in missing_files_by_runner.items():
+                        print(f"   {runner}: {', '.join(missing_files)}")
+                    sys.exit(1)
+
                 # We have test files that can be batched
                 total_runners = len(test_files_by_runner)
                 total_test_files = sum(

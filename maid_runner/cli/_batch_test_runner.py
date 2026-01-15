@@ -84,9 +84,17 @@ def extract_test_file_from_command(command: List[str]) -> Optional[str]:
         # Skip flags (start with -)
         if arg.startswith("-"):
             continue
+        # Extract file path from pytest node IDs (file::class::method)
+        if "::" in arg:
+            file_path = arg.split("::")[0]
+            # Check if it's a valid test file path
+            if "test" in file_path or file_path.endswith(
+                (".py", ".spec.ts", ".spec.js", ".test.ts", ".test.js")
+            ):
+                return file_path
         # Found a test file or directory (contains "test" or common test file extensions)
-        if "test" in arg or arg.endswith(
-            (".spec.ts", ".spec.js", ".test.ts", ".test.js")
+        elif "test" in arg or arg.endswith(
+            (".py", ".spec.ts", ".spec.js", ".test.ts", ".test.js")
         ):
             return arg
 
