@@ -113,6 +113,23 @@ MAID provides flexibility for refactoring private implementation details without
 - Public API must remain unchanged (no changes to public functions, classes, or signatures)
 - No MAID rules are violated
 
+**When No New Manifest Is Needed:**
+
+If a change only modifies private implementation (no new public methods/classes) and doesn't change the public API:
+
+1. **Do NOT create a new manifest**
+2. **Update the tests** of the existing latest manifest for the file being edited
+3. Add test cases to cover the new behavior or fix
+4. Ensure all existing tests continue to pass
+
+This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements.
+
+**Example:**
+- File `utils.py` has manifest `task-014-validation-command-utils.manifest.json`
+- You need to fix a bug in private function `_extract_from_list_command()` to support vitest
+- **Action**: Update `tests/test_task_014_validation_command_utils.py` with vitest test cases
+- **Do NOT**: Create `task-151-support-vitest.manifest.json`
+
 This breathing room allows practical development without bureaucracy while maintaining accountability for public interface changes.
 
 **For complete methodology details**, see `docs/maid_specs.md`.

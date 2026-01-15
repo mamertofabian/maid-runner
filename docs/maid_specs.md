@@ -208,6 +208,28 @@ The development process is broken down into distinct phases, characterized by tw
       - The test runner (`maid test`) does NOT execute `validationCommand` from superseded manifests
       - Superseded manifests serve as historical documentation only—they are archived, not active
 
+    * **Refactoring Private Implementation (No Manifest Required):** MAID provides flexibility for refactoring private implementation details without requiring new manifests. If a change only modifies private code (functions, classes, or variables with `_` prefix) and doesn't introduce new public APIs or change existing public interfaces:
+
+      **When No New Manifest Is Needed:**
+      - The change only affects private implementation (no new public methods/classes)
+      - The public API remains unchanged (no changes to public function signatures, class interfaces, or module exports)
+      - Internal logic improvements, bug fixes, or code quality enhancements
+
+      **Process:**
+      1. **Do NOT create a new manifest**
+      2. **Update the tests** of the existing latest manifest for the file being edited
+      3. Add test cases to cover the new behavior, bug fix, or enhancement
+      4. Ensure all existing tests continue to pass
+      5. Run validation to confirm the existing manifest still validates correctly
+
+      **Example:**
+      - File `utils.py` has manifest `task-014-validation-command-utils.manifest.json`
+      - You need to fix a bug in private function `_extract_from_list_command()` to support vitest test runners
+      - **Action**: Update `tests/test_task_014_validation_command_utils.py` with vitest test cases
+      - **Do NOT**: Create a new manifest like `task-151-support-vitest.manifest.json`
+
+      This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements. The existing manifest's tests serve as the documentation of the change.
+
     * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
 
     * **Transitioning from Snapshots to Natural Evolution:** Snapshot manifests are designed for "frozen" code—capturing a complete baseline. Once code needs to evolve, you must transition to the natural MAID flow:
