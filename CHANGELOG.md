@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-01-15
+
+### Added
+- **TypeScript positional argument tracking** (Task 154)
+  - Track positional arguments in function/method calls with `__positional__` marker
+  - Enables proper behavioral validation for functions called with arguments
+  - Extract named arguments from object literals passed to functions
+
+### Fixed
+- **TypeScript variable-to-class mapping** (Task 153)
+  - Handle type-annotated variable declarations (`let statusBar: MaidStatusBar;`)
+  - Handle separate assignment expressions (`statusBar = new MaidStatusBar();`)
+  - Properly resolves method calls on variables declared and assigned separately
+- **TypeScript private/protected member filtering** (Task 155)
+  - Exclude `private` and `protected` class members from implementation validation
+  - Prevents false positives for private TypeScript class properties
+  - Supports both regular methods and arrow function class properties
+
 ## [0.11.0] - 2026-01-15
 
 ### Added
@@ -586,6 +604,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.11.1]: https://github.com/mamertofabian/maid-runner/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/mamertofabian/maid-runner/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/mamertofabian/maid-runner/compare/v0.9.4...v0.10.0
 [0.9.4]: https://github.com/mamertofabian/maid-runner/compare/v0.9.3...v0.9.4
