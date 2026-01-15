@@ -209,7 +209,7 @@ class TestGenerateTestStub:
         assert "start_engine" in content
         assert "stop_engine" in content
 
-    def test_generated_stub_fails_when_run(self, tmp_path: Path):
+    def test_generated_stub_fails_when_run(self, tmp_path: Path, monkeypatch):
         """Test that generated stub fails when executed with pytest."""
         from maid_runner.cli.snapshot import generate_test_stub
 
@@ -225,29 +225,31 @@ class TestGenerateTestStub:
         with open(manifest_path, "w") as f:
             json.dump(manifest_data, f)
 
-        try:
-            stub_path = generate_test_stub(manifest_data, manifest_path)
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
 
-            # Run the stub with pytest - it should fail
-            result = subprocess.run(
-                [sys.executable, "-m", "pytest", stub_path, "-v"],
-                capture_output=True,
-                text=True,
-            )
+        # Change to tmp_path so relative paths resolve to temporary directory
+        monkeypatch.chdir(tmp_path)
 
-            # Should fail (non-zero exit code) - either with test failure or import error
-            assert result.returncode != 0
-            # Check for either FAILED (test ran and failed with pytest.fail()) or ERROR (import failed)
-            assert (
-                "FAILED" in result.stdout
-                or "failed" in result.stdout.lower()
-                or "ERROR" in result.stdout
-                or "error" in result.stdout.lower()
-            )
-        finally:
-            # Cleanup generated stub files
-            for stub_file in Path("tests").glob("test_task_*_test.py"):
-                stub_file.unlink(missing_ok=True)
+        stub_path = generate_test_stub(manifest_data, manifest_path)
+
+        # Run the stub with pytest - it should fail
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", stub_path, "-v"],
+            capture_output=True,
+            text=True,
+        )
+
+        # Should fail (non-zero exit code) - either with test failure or import error
+        assert result.returncode != 0
+        # Check for either FAILED (test ran and failed with pytest.fail()) or ERROR (import failed)
+        assert (
+            "FAILED" in result.stdout
+            or "failed" in result.stdout.lower()
+            or "ERROR" in result.stdout
+            or "error" in result.stdout.lower()
+        )
 
 
 class TestGetTestStubPath:
@@ -296,7 +298,7 @@ class TestGetTestStubPath:
 class TestSnapshotWithStubGeneration:
     """Test snapshot command integration with stub generation."""
 
-    def test_snapshot_generates_stub_by_default(self, tmp_path: Path):
+    def test_snapshot_generates_stub_by_default(self, tmp_path: Path, monkeypatch):
         """Test that snapshot generates test stub by default."""
         from maid_runner.cli.snapshot import generate_snapshot
 
@@ -310,37 +312,45 @@ def example_function():
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
 
-        try:
-            # Generate snapshot (should create stub by default, skip_test_stub defaults to False)
-            manifest_path = generate_snapshot(str(source_file), str(output_dir))
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
 
-            # Manifest should exist
-            assert Path(manifest_path).exists()
+        # Change to tmp_path so relative paths resolve to temporary directory
+        monkeypatch.chdir(tmp_path)
 
-            # Manifest should include test stub in validationCommand
-            with open(manifest_path, "r") as f:
-                manifest = json.load(f)
+        # Generate snapshot (should create stub by default, skip_test_stub defaults to False)
+        manifest_path = generate_snapshot(str(source_file), str(output_dir))
 
-            # Check for either validationCommand or validationCommands
-            has_validation = False
-            if "validationCommand" in manifest:
-                # Should reference a test file
-                cmd = manifest["validationCommand"]
-                has_validation = any("test_" in str(item) for item in cmd)
-            elif "validationCommands" in manifest:
-                # At least one command should reference a test file
-                for cmd in manifest["validationCommands"]:
-                    if any("test_" in str(item) for item in cmd):
-                        has_validation = True
-                        break
+        # Manifest should exist
+        assert Path(manifest_path).exists()
 
-            assert (
-                has_validation
-            ), "Generated manifest should reference test stub in validation commands"
-        finally:
-            # Cleanup generated stub files
-            for stub_file in Path("tests").glob("test_task_*_snapshot_example.py"):
-                stub_file.unlink(missing_ok=True)
+        # Manifest should include test stub in validationCommand
+        with open(manifest_path, "r") as f:
+            manifest = json.load(f)
+
+        # Check for either validationCommand or validationCommands
+        has_validation = False
+        if "validationCommand" in manifest:
+            # Should reference a test file
+            cmd = manifest["validationCommand"]
+            has_validation = any("test_" in str(item) for item in cmd)
+        elif "validationCommands" in manifest:
+            # At least one command should reference a test file
+            for cmd in manifest["validationCommands"]:
+                if any("test_" in str(item) for item in cmd):
+                    has_validation = True
+                    break
+
+        assert (
+            has_validation
+        ), "Generated manifest should reference test stub in validation commands"
+
+        # Verify stub was created in tmp_path/tests, not project root
+        stub_files = list(tests_dir.glob("test_*.py"))
+        assert (
+            len(stub_files) > 0
+        ), "Test stub should be created in temporary tests directory"
 
     def test_snapshot_skips_stub_with_flag(self, tmp_path: Path):
         """Test that snapshot skips stub generation with skip_test_stub=True."""
@@ -429,7 +439,7 @@ class TestCLIIntegration:
         with patch("sys.argv", test_args):
             main()  # Should execute without error
 
-    def test_generate_stubs_subcommand_exists(self, tmp_path: Path):
+    def test_generate_stubs_subcommand_exists(self, tmp_path: Path, monkeypatch):
         """Test that generate-stubs subcommand is available."""
         from maid_runner.cli.main import main
 
@@ -448,22 +458,26 @@ class TestCLIIntegration:
         manifest_file = tmp_path / "test.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        try:
-            # Test generate-stubs command using direct call instead of subprocess
-            test_args = [
-                "maid",
-                "generate-stubs",
-                str(manifest_file),
-            ]
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
 
-            with patch("sys.argv", test_args):
-                main()  # Should execute without raising
-        finally:
-            # Cleanup generated stub files
-            for stub_file in Path("tests").glob("test_test.py"):
-                stub_file.unlink(missing_ok=True)
+        # Change to tmp_path so relative paths resolve to temporary directory
+        monkeypatch.chdir(tmp_path)
 
-    def test_generate_stubs_creates_stub_from_manifest(self, tmp_path: Path):
+        # Test generate-stubs command using direct call instead of subprocess
+        test_args = [
+            "maid",
+            "generate-stubs",
+            str(manifest_file),
+        ]
+
+        with patch("sys.argv", test_args):
+            main()  # Should execute without raising
+
+    def test_generate_stubs_creates_stub_from_manifest(
+        self, tmp_path: Path, monkeypatch
+    ):
         """Test that generate-stubs creates stub from existing manifest."""
         from maid_runner.cli.main import main
 
@@ -487,23 +501,28 @@ class TestCLIIntegration:
         manifest_file = tmp_path / "task-100-new-feature.manifest.json"
         manifest_file.write_text(json.dumps(manifest_data, indent=2))
 
-        try:
-            # Run generate-stubs using direct call instead of subprocess
-            test_args = [
-                "maid",
-                "generate-stubs",
-                str(manifest_file),
-            ]
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
 
-            with patch("sys.argv", test_args):
-                main()  # Should execute without raising
+        # Change to tmp_path so relative paths resolve to temporary directory
+        monkeypatch.chdir(tmp_path)
 
-            # Stub should be created (check for test file)
-            # The exact location depends on implementation
-        finally:
-            # Cleanup generated stub files
-            for stub_file in Path("tests").glob("test_task_*_new_feature.py"):
-                stub_file.unlink(missing_ok=True)
+        # Run generate-stubs using direct call instead of subprocess
+        test_args = [
+            "maid",
+            "generate-stubs",
+            str(manifest_file),
+        ]
+
+        with patch("sys.argv", test_args):
+            main()  # Should execute without raising
+
+        # Verify stub was created in tmp_path/tests, not project root
+        stub_files = list(tests_dir.glob("test_*.py"))
+        assert (
+            len(stub_files) > 0
+        ), "Test stub should be created in temporary tests directory"
 
 
 class TestImportValidation:

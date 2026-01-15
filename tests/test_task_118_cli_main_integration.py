@@ -1008,6 +1008,10 @@ class TestGenerateStubsCommand:
         # Minimal manifest - generate_test_stub handles missing fields gracefully
         manifest_file.write_text('{"goal": "test"}')
 
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
         result = subprocess.run(
             [
                 sys.executable,
@@ -1018,6 +1022,7 @@ class TestGenerateStubsCommand:
             ],
             capture_output=True,
             text=True,
+            cwd=tmp_path,
         )
         # The generate_test_stub function handles minimal manifests
         # It will either succeed or fail gracefully
@@ -1563,6 +1568,10 @@ class TestSnapshotCommand:
         output_dir = tmp_path / "manifests"
         output_dir.mkdir()
 
+        # Create tests directory in tmp_path so stub gets created there
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
         result = subprocess.run(
             [
                 sys.executable,
@@ -1575,6 +1584,7 @@ class TestSnapshotCommand:
             ],
             capture_output=True,
             text=True,
+            cwd=tmp_path,
         )
         # Should create snapshot manifest
         assert result.returncode == 0 or "manifest" in result.stdout.lower()

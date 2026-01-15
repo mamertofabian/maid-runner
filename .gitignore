@@ -27,6 +27,3 @@ maid_agents/.claude/tdd-guard/data/test.json
 
 .coverage
 
-# Auto-generated test stubs
-tests/test_incomplete.py
-tests/test_task_001_snapshot_test.py

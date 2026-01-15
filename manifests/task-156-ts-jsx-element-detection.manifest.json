@@ -1,0 +1,27 @@
+{
+  "goal": "Enhance TypeScript behavioral validation to detect JSX element usage as function calls for React functional components",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/typescript_validator.py"],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py",
+    "tests/test_task_053_create_typescript_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_jsx_component_usage",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ],
+        "returns": "set"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_156_ts_jsx_element_detection.py", "-v"]
+}

@@ -134,9 +134,19 @@ class TypeScriptValidator(BaseValidator):
         # Extract variable-to-class mapping for method call resolution
         variable_to_class = self._extract_variable_to_class_mapping(tree, source_code)
 
+        # Combine regular function calls with JSX component usage
+        used_functions = self._extract_function_calls(tree, source_code)
+        jsx_components = self._extract_jsx_component_usage(tree, source_code)
+        used_functions.update(jsx_components)
+
+        # Combine class instantiation with type annotation usage
+        used_classes = self._extract_class_usage(tree, source_code)
+        type_annotations = self._extract_type_annotation_usage(tree, source_code)
+        used_classes.update(type_annotations)
+
         return {
-            "used_classes": self._extract_class_usage(tree, source_code),
-            "used_functions": self._extract_function_calls(tree, source_code),
+            "used_classes": used_classes,
+            "used_functions": used_functions,
             "used_methods": self._extract_method_calls(
                 tree, source_code, variable_to_class
             ),
@@ -188,6 +198,156 @@ class TypeScriptValidator(BaseValidator):
             used_arguments.add("__positional__")
 
         return used_arguments
+
+    def _extract_jsx_component_usage(self, tree, source_code: bytes) -> set:
+        """Extract JSX component usage from the AST.
+
+        Detects React component usage in JSX elements like <Admin /> or <Container>...</Container>.
+        Only extracts PascalCase component names (custom React components), not lowercase
+        HTML elements like <div> or <span>.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Set of component names used in JSX elements
+        """
+        jsx_components = set()
+
+        def _visit(node):
+            # Handle JSX self-closing elements: <Admin />
+            if node.type == "jsx_self_closing_element":
+                for child in node.children:
+                    if child.type == "identifier":
+                        name = self._get_node_text(child, source_code)
+                        # Only include PascalCase names (React components)
+                        if name and name[0].isupper():
+                            jsx_components.add(name)
+                        break
+
+            # Handle JSX opening elements: <Container>...</Container>
+            elif node.type == "jsx_opening_element":
+                for child in node.children:
+                    if child.type == "identifier":
+                        name = self._get_node_text(child, source_code)
+                        # Only include PascalCase names (React components)
+                        if name and name[0].isupper():
+                            jsx_components.add(name)
+                        break
+
+        self._traverse_tree(tree.root_node, _visit)
+        return jsx_components
+
+    def _extract_type_annotation_usage(self, tree, source_code: bytes) -> set:
+        """Extract type identifiers used in type annotations.
+
+        Detects TypeScript/TSX type annotations like:
+        - const x: MyType = ...
+        - let items: Array<Item> = ...
+        - function foo(x: ParamType): ReturnType { ... }
+
+        This enables behavioral validation for TypeScript types and interfaces,
+        where tests verify values conform to type shapes.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Set of type names used in type annotations
+        """
+        type_usage = set()
+
+        # Built-in types to exclude (lowercase or common JS/TS types)
+        builtin_types = {
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "any",
+            "void",
+            "never",
+            "unknown",
+            "null",
+            "undefined",
+            "symbol",
+            "bigint",
+            "Array",
+            "Object",
+            "String",
+            "Number",
+            "Boolean",
+            "Function",
+            "Promise",
+            "Map",
+            "Set",
+            "WeakMap",
+            "WeakSet",
+            "Date",
+            "RegExp",
+            "Error",
+            "Record",
+            "Partial",
+            "Required",
+            "Readonly",
+            "Pick",
+            "Omit",
+            "Exclude",
+            "Extract",
+            "NonNullable",
+            "Parameters",
+            "ReturnType",
+            "InstanceType",
+            "ThisType",
+            "Awaited",
+        }
+
+        def _visit(node):
+            # Look for type_annotation nodes
+            if node.type == "type_annotation":
+                self._extract_type_identifiers(
+                    node, source_code, type_usage, builtin_types
+                )
+
+            # Also check return type annotations (: ReturnType after function params)
+            # These appear as type_annotation children of function declarations
+
+        self._traverse_tree(tree.root_node, _visit)
+        return type_usage
+
+    def _extract_type_identifiers(
+        self, node, source_code: bytes, type_usage: set, builtin_types: set
+    ) -> None:
+        """Recursively extract type identifiers from a type annotation node.
+
+        Args:
+            node: AST node (type_annotation or child)
+            source_code: Source code as bytes
+            type_usage: Set to add type names to
+            builtin_types: Set of built-in types to exclude
+        """
+        for child in node.children:
+            if child.type == "type_identifier":
+                type_name = self._get_node_text(child, source_code)
+                # Only include custom types (PascalCase, not built-ins)
+                if type_name and type_name not in builtin_types:
+                    type_usage.add(type_name)
+            # Recurse into nested types (generic_type, union_type, etc.)
+            elif child.type in (
+                "generic_type",
+                "type_arguments",
+                "union_type",
+                "intersection_type",
+                "array_type",
+                "tuple_type",
+                "parenthesized_type",
+                "object_type",
+                "function_type",
+            ):
+                self._extract_type_identifiers(
+                    child, source_code, type_usage, builtin_types
+                )
 
     def _extract_object_property_names(
         self, object_node, source_code: bytes, used_arguments: set
@@ -245,6 +405,23 @@ class TypeScriptValidator(BaseValidator):
         """
         for child in node.children:
             if child.type in ("identifier", "type_identifier"):
+                return self._get_node_text(child, source_code)
+        return ""
+
+    def _extract_final_property(self, node, source_code: bytes) -> str:
+        """Extract final property_identifier from a member_expression chain.
+
+        For expressions like `result.current.refetch`, this returns `refetch`.
+
+        Args:
+            node: member_expression AST node
+            source_code: Source code as bytes
+
+        Returns:
+            Final property name or empty string
+        """
+        for child in node.children:
+            if child.type == "property_identifier":
                 return self._get_node_text(child, source_code)
         return ""
 
@@ -745,6 +922,25 @@ class TypeScriptValidator(BaseValidator):
                             var_name = self._get_node_text(child, source_code)
                         elif child.type == "new_expression":
                             class_name = _get_class_from_new_expression(child)
+                        # Source 4: Factory method patterns
+                        # const service = ClassName.getInstance();
+                        # const instance = Factory.create();
+                        elif child.type == "call_expression":
+                            for call_child in child.children:
+                                if call_child.type == "member_expression":
+                                    # Extract ClassName from ClassName.staticMethod()
+                                    for member_child in call_child.children:
+                                        if member_child.type == "identifier":
+                                            potential_class = self._get_node_text(
+                                                member_child, source_code
+                                            )
+                                            # Only consider uppercase names as classes
+                                            if (
+                                                potential_class
+                                                and potential_class[0].isupper()
+                                            ):
+                                                class_name = potential_class
+                                            break
 
                     if var_name and class_name:
                         variable_to_class[var_name] = class_name
@@ -873,18 +1069,74 @@ class TypeScriptValidator(BaseValidator):
         return variable_to_class
 
     def _extract_class_usage(self, tree, source_code: bytes) -> set:
-        """Extract class instantiations (new ClassName).
+        """Extract class usage patterns.
+
+        Detects:
+        - Class instantiation: new ClassName()
+        - Static method calls: ClassName.staticMethod()
 
         Args:
             tree: Parsed AST tree
             source_code: Source code as bytes
 
         Returns:
-            Set of class names being instantiated
+            Set of class names being used
         """
         class_usage = set()
 
+        # Built-in classes to exclude from static method detection
+        builtin_classes = {
+            "Object",
+            "Array",
+            "String",
+            "Number",
+            "Boolean",
+            "Function",
+            "Symbol",
+            "BigInt",
+            "Math",
+            "Date",
+            "RegExp",
+            "Error",
+            "Promise",
+            "Map",
+            "Set",
+            "WeakMap",
+            "WeakSet",
+            "JSON",
+            "Reflect",
+            "Proxy",
+            "Int8Array",
+            "Uint8Array",
+            "Uint8ClampedArray",
+            "Int16Array",
+            "Uint16Array",
+            "Int32Array",
+            "Uint32Array",
+            "Float32Array",
+            "Float64Array",
+            "BigInt64Array",
+            "BigUint64Array",
+            "ArrayBuffer",
+            "SharedArrayBuffer",
+            "DataView",
+            "Atomics",
+            "Intl",
+            "WebAssembly",
+            "console",
+            "Buffer",
+            "URL",
+            "URLSearchParams",
+            "TextEncoder",
+            "TextDecoder",
+            "Headers",
+            "Request",
+            "Response",
+            "FormData",
+        }
+
         def _visit(node):
+            # Pattern 1: new ClassName() - class instantiation
             if node.type == "new_expression":
                 for child in node.children:
                     if child.type == "identifier":
@@ -897,6 +1149,24 @@ class TypeScriptValidator(BaseValidator):
                                 class_usage.add(
                                     self._get_node_text(call_child, source_code)
                                 )
+                                break
+
+            # Pattern 2: ClassName.staticMethod() - static method call
+            elif node.type == "call_expression":
+                for child in node.children:
+                    if child.type == "member_expression":
+                        # Get the object part of member expression (ClassName.method -> ClassName)
+                        for member_child in child.children:
+                            if member_child.type == "identifier":
+                                name = self._get_node_text(member_child, source_code)
+                                # Only include PascalCase names (class convention)
+                                # Exclude built-in JavaScript classes
+                                if (
+                                    name
+                                    and name[0].isupper()
+                                    and name not in builtin_classes
+                                ):
+                                    class_usage.add(name)
                                 break
 
         self._traverse_tree(tree.root_node, _visit)
@@ -938,14 +1208,29 @@ class TypeScriptValidator(BaseValidator):
                     if child.type == "arguments":
                         for arg_child in child.children:
                             # typeof expression (e.g., typeof functionName) - always a function reference
-                            if arg_child.type == "typeof_expression":
-                                for typeof_child in arg_child.children:
-                                    if typeof_child.type == "identifier":
-                                        func_name = self._get_node_text(
-                                            typeof_child, source_code
-                                        )
-                                        function_calls.add(func_name)
-                                        break
+                            # In tree-sitter-typescript, typeof is a unary_expression with typeof child
+                            if arg_child.type == "unary_expression":
+                                has_typeof = any(
+                                    c.type == "typeof" for c in arg_child.children
+                                )
+                                if has_typeof:
+                                    for typeof_child in arg_child.children:
+                                        if typeof_child.type == "identifier":
+                                            func_name = self._get_node_text(
+                                                typeof_child, source_code
+                                            )
+                                            function_calls.add(func_name)
+                                            break
+                                        # Handle typeof on member expressions
+                                        # e.g., typeof result.current.refetch
+                                        elif typeof_child.type == "member_expression":
+                                            # Extract the final property_identifier
+                                            func_name = self._extract_final_property(
+                                                typeof_child, source_code
+                                            )
+                                            if func_name:
+                                                function_calls.add(func_name)
+                                            break
                             # Direct identifier argument - only if it's an imported function
                             elif arg_child.type == "identifier":
                                 func_name = self._get_node_text(arg_child, source_code)
