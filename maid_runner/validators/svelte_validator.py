@@ -203,12 +203,13 @@ class SvelteValidator(BaseValidator):
             source_code: Source code as bytes
 
         Returns:
-            Dictionary with class usage, function calls, method calls
+            Dictionary with class usage, function calls, method calls, and used arguments
         """
         return {
             "used_classes": self._extract_class_usage(tree, source_code),
             "used_functions": self._extract_function_calls(tree, source_code),
             "used_methods": self._extract_method_calls(tree, source_code),
+            "used_arguments": set(),  # Svelte argument tracking not yet implemented
         }
 
     def _traverse_tree(self, node, callback):

@@ -129,12 +129,13 @@ class TypeScriptValidator(BaseValidator):
             source_code: Source code as bytes
 
         Returns:
-            Dictionary with class usage, function calls, method calls
+            Dictionary with class usage, function calls, method calls, and used arguments
         """
         return {
             "used_classes": self._extract_class_usage(tree, source_code),
             "used_functions": self._extract_function_calls(tree, source_code),
             "used_methods": self._extract_method_calls(tree, source_code),
+            "used_arguments": set(),  # TypeScript argument tracking not yet implemented
         }
 
     def _traverse_tree(self, node, callback):
@@ -649,26 +650,107 @@ class TypeScriptValidator(BaseValidator):
         return class_usage
 
     def _extract_function_calls(self, tree, source_code: bytes) -> set:
-        """Extract function calls.
+        """Extract function calls and function references used as arguments.
 
         Args:
             tree: Parsed AST tree
             source_code: Source code as bytes
 
         Returns:
-            Set of function names being called
+            Set of function names being called or referenced
         """
         function_calls = set()
+        # Track imported functions to distinguish from variables
+        imported_functions = self._extract_imported_functions(tree, source_code)
 
         def _visit(node):
             if node.type == "call_expression":
+                # Extract the function being called (direct calls like functionName())
                 for child in node.children:
                     if child.type == "identifier":
                         function_calls.add(self._get_node_text(child, source_code))
                         break
+                    elif child.type == "member_expression":
+                        # Handle method calls - extract the method name
+                        for member_child in child.children:
+                            if member_child.type == "property_identifier":
+                                function_calls.add(
+                                    self._get_node_text(member_child, source_code)
+                                )
+                                break
+
+                # Extract identifiers from arguments that are likely function references
+                # This handles cases like expect(checkMaidCliInstalled).toBeDefined()
+                for child in node.children:
+                    if child.type == "arguments":
+                        for arg_child in child.children:
+                            # typeof expression (e.g., typeof functionName) - always a function reference
+                            if arg_child.type == "typeof_expression":
+                                for typeof_child in arg_child.children:
+                                    if typeof_child.type == "identifier":
+                                        func_name = self._get_node_text(
+                                            typeof_child, source_code
+                                        )
+                                        function_calls.add(func_name)
+                                        break
+                            # Direct identifier argument - only if it's an imported function
+                            elif arg_child.type == "identifier":
+                                func_name = self._get_node_text(arg_child, source_code)
+                                # Only add if it's an imported function (not a local variable)
+                                if func_name in imported_functions:
+                                    function_calls.add(func_name)
+                            # Nested call expression (e.g., expect(functionName()))
+                            elif arg_child.type == "call_expression":
+                                for nested_child in arg_child.children:
+                                    if nested_child.type == "identifier":
+                                        func_name = self._get_node_text(
+                                            nested_child, source_code
+                                        )
+                                        # Only add if it's an imported function
+                                        if func_name in imported_functions:
+                                            function_calls.add(func_name)
+                                        break
 
         self._traverse_tree(tree.root_node, _visit)
         return function_calls
+
+    def _extract_imported_functions(self, tree, source_code: bytes) -> set:
+        """Extract function names from import statements.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Set of imported function names
+        """
+        imported_functions = set()
+
+        def _visit(node):
+            # Handle named imports: import { functionName } from "module"
+            if node.type == "import_statement":
+                for child in node.children:
+                    if child.type == "import_clause":
+                        for clause_child in child.children:
+                            if clause_child.type == "named_imports":
+                                for named_child in clause_child.children:
+                                    if named_child.type == "import_specifier":
+                                        for spec_child in named_child.children:
+                                            if spec_child.type == "identifier":
+                                                imported_functions.add(
+                                                    self._get_node_text(
+                                                        spec_child, source_code
+                                                    )
+                                                )
+                                                break
+                            # Handle default imports: import functionName from "module"
+                            elif clause_child.type == "identifier":
+                                imported_functions.add(
+                                    self._get_node_text(clause_child, source_code)
+                                )
+
+        self._traverse_tree(tree.root_node, _visit)
+        return imported_functions
 
     def _extract_method_calls(self, tree, source_code: bytes) -> dict:
         """Extract method calls (object.method()).
