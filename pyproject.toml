@@ -1,6 +1,6 @@
 [project]
 name = "maid-runner"
-version = "0.11.1"
+version = "0.11.2"
 description = "Tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. Validates that code artifacts align with declarative manifests."
 readme = "README.md"
 requires-python = ">=3.10"
