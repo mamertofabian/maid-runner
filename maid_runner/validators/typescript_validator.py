@@ -140,8 +140,75 @@ class TypeScriptValidator(BaseValidator):
             "used_methods": self._extract_method_calls(
                 tree, source_code, variable_to_class
             ),
-            "used_arguments": set(),  # TypeScript argument tracking not yet implemented
+            "used_arguments": self._extract_used_arguments(tree, source_code),
         }
+
+    def _extract_used_arguments(self, tree, source_code: bytes) -> set:
+        """Extract used arguments from function/method calls.
+
+        Detects when function calls have positional arguments and adds
+        __positional__ marker. Also extracts named arguments from object
+        literals passed to functions.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Set of argument identifiers, including __positional__ if any
+            positional arguments are detected
+        """
+        used_arguments = set()
+        has_positional_args = False
+
+        def _visit(node):
+            nonlocal has_positional_args
+
+            if node.type == "call_expression":
+                # Check if the call has arguments
+                for child in node.children:
+                    if child.type == "arguments":
+                        # Check if arguments node has actual argument children
+                        for arg_child in child.children:
+                            # Skip parentheses and commas
+                            if arg_child.type in ("(", ")", ","):
+                                continue
+                            # Found an actual argument
+                            has_positional_args = True
+
+                            # Extract named arguments from object literals
+                            if arg_child.type == "object":
+                                self._extract_object_property_names(
+                                    arg_child, source_code, used_arguments
+                                )
+
+        self._traverse_tree(tree.root_node, _visit)
+
+        if has_positional_args:
+            used_arguments.add("__positional__")
+
+        return used_arguments
+
+    def _extract_object_property_names(
+        self, object_node, source_code: bytes, used_arguments: set
+    ) -> None:
+        """Extract property names from object literal for argument tracking.
+
+        Args:
+            object_node: AST node representing an object literal
+            source_code: Source code as bytes
+            used_arguments: Set to add property names to
+        """
+        for child in object_node.children:
+            if child.type == "pair":
+                for pair_child in child.children:
+                    if pair_child.type == "property_identifier":
+                        prop_name = self._get_node_text(pair_child, source_code)
+                        used_arguments.add(prop_name)
+                        break
+            elif child.type == "shorthand_property_identifier":
+                prop_name = self._get_node_text(child, source_code)
+                used_arguments.add(prop_name)
 
     def _traverse_tree(self, node, callback):
         """Recursively traverse AST nodes.

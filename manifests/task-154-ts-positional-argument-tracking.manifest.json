@@ -1,0 +1,32 @@
+{
+  "goal": "Add positional argument tracking to TypeScript validator for behavioral validation",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/typescript_validator.py"],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_collect_behavioral_artifacts",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_extract_used_arguments",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_154_ts_positional_argument_tracking.py", "-v"]
+}
