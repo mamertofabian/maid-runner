@@ -294,6 +294,48 @@ maid test --manifest <manifest-path> --watch      # Single-manifest watch
 maid test --watch-all                            # Multi-manifest watch
 ```
 
+### Initialization and Setup
+
+```bash
+# Initialize MAID methodology in a repository
+maid init [--target-dir <dir>] [--force] [--dry-run] [--claude] [--cursor] [--windsurf] [--generic] [--all]
+
+# Options:
+#   --target-dir DIR      # Target directory (default: current directory)
+#   --force               # Overwrite existing files without prompting
+#   --dry-run             # Show what would be created without making changes
+#   --claude              # Set up Claude Code integration (default if no tool specified)
+#   --cursor              # Set up Cursor IDE rules
+#   --windsurf            # Set up Windsurf IDE rules
+#   --generic             # Create generic MAID.md documentation file
+#   --all                 # Set up all supported dev tools
+
+# Examples:
+maid init                                    # Default: Claude Code setup
+maid init --cursor                           # Cursor IDE rules only
+maid init --windsurf                         # Windsurf IDE rules only
+maid init --generic                          # Generic MAID.md only
+maid init --claude --cursor --generic        # Multiple tools
+maid init --all                              # All supported tools
+```
+
+### Interactive Guide
+
+```bash
+# Display interactive guide to MAID methodology
+maid howto [--section <section>]
+
+# Options:
+#   --section SECTION     # Jump to specific section:
+#                         #   intro, principles, workflow, quickstart,
+#                         #   patterns, commands, troubleshooting
+
+# Examples:
+maid howto                                  # Full interactive guide
+maid howto --section quickstart             # Jump to quick start guide
+maid howto --section commands               # Jump to CLI commands reference
+```
+
 ### Utility Commands
 
 ```bash
@@ -694,11 +736,43 @@ Verify complete chain: `pytest tests/ -v`
         _generate_refactoring_flexibility(),
         """## Getting Started
 
-1. Create your first manifest (preferred: use `maid manifest create <file-path> --goal "Description"` or manually create `manifests/task-001-<description>.manifest.json`)
-2. Write behavioral tests in `tests/test_task_001_*.py`
-3. Validate: `maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral`
-4. Implement the code
-5. Run tests to verify: `maid test`""",
+1. **Initialize MAID in your project:**
+   ```bash
+   maid init  # Default: Claude Code
+   # Or for other tools:
+   maid init --cursor    # Cursor IDE
+   maid init --windsurf  # Windsurf IDE
+   maid init --generic   # Generic MAID.md
+   maid init --all       # All tools
+   ```
+
+2. **Create your first manifest:**
+   ```bash
+   maid manifest create <file-path> --goal "Description"
+   # Or manually create: manifests/task-001-<description>.manifest.json
+   ```
+
+3. **Write behavioral tests:**
+   Create `tests/test_task_001_*.py` (or `.test.ts` for TypeScript)
+
+4. **Validate planning:**
+   ```bash
+   maid validate manifests/task-001-<description>.manifest.json --validation-mode behavioral
+   ```
+
+5. **Implement the code**
+
+6. **Validate and test:**
+   ```bash
+   maid validate manifests/task-001-<description>.manifest.json --validation-mode implementation
+   maid test --manifest manifests/task-001-<description>.manifest.json
+   ```
+
+**For interactive guidance:**
+```bash
+maid howto                    # Full interactive guide
+maid howto --section quickstart  # Quick start section
+```""",
         _generate_additional_resources(),
     ]
     return "\n\n".join(sections)

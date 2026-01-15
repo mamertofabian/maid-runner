@@ -46,7 +46,8 @@ MAID Runner is a **validation-only framework** that ensures code artifacts align
 - `maid test` - Run validation commands from manifests
 - `maid manifests` - List manifests referencing a file
 - `maid generate-stubs` - Generate test stubs (Python & TypeScript)
-- `maid init` - Initialize MAID workflow
+- `maid init` - Initialize MAID workflow (supports multiple AI dev tools: Claude Code, Cursor, Windsurf, generic)
+- `maid howto` - Interactive guide to MAID methodology
 - `maid schema` - Output manifest JSON schema
 
 **Validation Modes:**

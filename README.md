@@ -187,9 +187,17 @@ maid --help
 ```bash
 # PyPI users: re-run maid init to update Claude files
 pip install --upgrade maid-runner
-maid init --force  # Updates .claude/ files and CLAUDE.md
+maid init --claude --force  # Updates .claude/ files and CLAUDE.md
 
 # Claude Code plugin users: updates happen automatically
+```
+
+**Note:** With multi-tool support, you can now initialize MAID for different AI development tools:
+- `maid init` or `maid init --claude` - Claude Code (default)
+- `maid init --cursor` - Cursor IDE
+- `maid init --windsurf` - Windsurf IDE
+- `maid init --generic` - Generic MAID.md for any tool
+- `maid init --all` - All supported tools
 ```
 
 ## The MAID Ecosystem
@@ -567,6 +575,149 @@ Total: 82 files
 
 Quick visibility into MAID compliance across your codebase without running full validation.
 
+### 7. Initialize MAID in Project
+
+```bash
+# Initialize MAID methodology in a repository
+maid init [options]
+
+# Options:
+#   --target-dir DIR      # Target directory (default: current directory)
+#   --force               # Overwrite existing files without prompting
+#   --dry-run             # Show what would be created without making changes
+#   --claude              # Set up Claude Code integration (default if no tool specified)
+#   --cursor              # Set up Cursor IDE rules
+#   --windsurf            # Set up Windsurf IDE rules
+#   --generic             # Create generic MAID.md documentation file
+#   --all                 # Set up all supported dev tools
+
+# Exit Codes:
+#   0 = Initialization successful
+#   1 = Error
+```
+
+**Examples:**
+
+```bash
+# Initialize with default Claude Code setup
+$ maid init
+Initializing MAID Methodology
+✓ Created directory: manifests
+✓ Created directory: tests
+✓ Created directory: .maid/docs
+✓ Created CLAUDE.md: CLAUDE.md
+✓ Copied 7 Claude Code agent files to .claude/agents
+✓ Copied 13 Claude Code command files to .claude/commands
+
+# Initialize with Cursor IDE rules
+$ maid init --cursor
+✓ Created Cursor rule file: .cursor/rules/maid-runner.mdc
+
+# Initialize with Windsurf IDE rules
+$ maid init --windsurf
+✓ Created Windsurf rule file: .windsurf/rules/maid-runner.md
+
+# Initialize with generic MAID.md (for any AI tool)
+$ maid init --generic
+✓ Created generic MAID.md: MAID.md
+
+# Set up multiple tools
+$ maid init --claude --cursor --generic
+✓ Created CLAUDE.md: CLAUDE.md
+✓ Copied Claude Code agent files...
+✓ Created Cursor rule file: .cursor/rules/maid-runner.mdc
+✓ Created generic MAID.md: MAID.md
+
+# Set up all supported tools
+$ maid init --all
+✓ Created CLAUDE.md: CLAUDE.md
+✓ Copied Claude Code agent files...
+✓ Created Cursor rule file: .cursor/rules/maid-runner.mdc
+✓ Created Windsurf rule file: .windsurf/rules/maid-runner.md
+✓ Created generic MAID.md: MAID.md
+
+# Preview what would be created (dry-run)
+$ maid init --cursor --dry-run
+[CREATE] manifests/
+[CREATE] tests/
+[CREATE] .maid/docs/
+[CREATE] .cursor/rules/maid-runner.mdc
+```
+
+**What `maid init` Creates:**
+
+- **Core Structure** (always created):
+  - `manifests/` - Directory for task manifests
+  - `tests/` - Directory for behavioral tests
+  - `.maid/docs/` - MAID specification and documentation
+
+- **Tool-Specific Files** (based on flags):
+  - `--claude`: `.claude/agents/`, `.claude/commands/`, `CLAUDE.md`
+  - `--cursor`: `.cursor/rules/maid-runner.mdc` (with YAML frontmatter)
+  - `--windsurf`: `.windsurf/rules/maid-runner.md`
+  - `--generic`: `MAID.md` (language-aware documentation)
+
+**Use Cases:**
+- **Project Setup**: Initialize MAID methodology in new or existing projects
+- **Multi-Tool Support**: Set up MAID for different AI development tools
+- **Documentation**: Generate tool-specific or generic MAID methodology documentation
+- **Migration**: Add MAID to existing projects without disrupting current workflow
+
+### 8. Interactive MAID Guide
+
+```bash
+# Display interactive guide to MAID methodology
+maid howto [options]
+
+# Options:
+#   --section SECTION     # Jump to specific section:
+#                         #   intro, principles, workflow, quickstart,
+#                         #   patterns, commands, troubleshooting
+
+# Exit Codes:
+#   0 = Success
+```
+
+**Examples:**
+
+```bash
+# Display full interactive guide (all sections)
+$ maid howto
+======================================================================
+MAID Methodology - Interactive Guide
+======================================================================
+
+Section: INTRO
+...
+Press Enter to continue to next section...
+
+# Jump directly to a specific section
+$ maid howto --section quickstart
+# Quick Start Guide
+
+## Step 1: Initialize MAID in Your Project
+...
+
+$ maid howto --section commands
+# MAID CLI Commands
+...
+```
+
+**Available Sections:**
+- `intro` - Introduction to MAID methodology
+- `principles` - Core principles of MAID
+- `workflow` - MAID workflow phases
+- `quickstart` - Step-by-step getting started guide
+- `patterns` - Common patterns and manifest templates
+- `commands` - CLI command reference
+- `troubleshooting` - Common issues and solutions
+
+**Use Cases:**
+- **Learning MAID**: Interactive walkthrough for new users
+- **Quick Reference**: Jump to specific sections for guidance
+- **Onboarding**: Help team members understand MAID methodology
+- **Troubleshooting**: Quick access to solutions for common issues
+
 ## Optional Human Helper Tools
 
 For manual/interactive use, MAID Runner includes convenience wrappers in `examples/maid_runner.py`:
@@ -774,12 +925,47 @@ For detailed methodology documentation, see `docs/maid_specs.md`.
 
 This workflow applies to all [usage modes](#usage-modes)—the phases remain the same regardless of who performs them.
 
+**Quick Start:**
+
+```bash
+# 1. Initialize MAID in your project
+maid init  # or maid init --cursor, --windsurf, --generic, --all
+
+# 2. Create your first manifest
+maid manifest create src/my_module.py --goal "Add feature X"
+
+# 3. Write behavioral tests
+# Edit tests/test_task_XXX_*.py
+
+# 4. Validate planning
+maid validate manifests/task-XXX.manifest.json --validation-mode behavioral
+
+# 5. Implement code
+# Edit src/my_module.py
+
+# 6. Validate implementation
+maid validate manifests/task-XXX.manifest.json --validation-mode implementation
+
+# 7. Run tests
+maid test --manifest manifests/task-XXX.manifest.json
+```
+
+**For detailed guidance, use the interactive guide:**
+
+```bash
+maid howto  # Full interactive walkthrough
+maid howto --section quickstart  # Jump to quick start
+```
+
 ### Phase 1: Goal Definition
 Define the high-level feature or bug fix.
 
 ### Phase 2: Planning Loop
 1. **Create manifest** (JSON file defining the task)
+   - Use `maid manifest create <file-path> --goal "Description"` (recommended)
+   - Or manually create `manifests/task-XXX.manifest.json`
 2. **Create behavioral tests** (tests that USE the expected artifacts)
+   - Create `tests/test_task_XXX_*.py` (or `.test.ts` for TypeScript)
 3. **Validate structure**: `maid validate <manifest> --validation-mode behavioral`
 4. **Iterate** until structural validation passes
 5. **Commit** manifest and tests
@@ -787,12 +973,12 @@ Define the high-level feature or bug fix.
 ### Phase 3: Implementation Loop
 1. **Implement code** (create/modify files per manifest)
 2. **Validate implementation**: `maid validate <manifest> --use-manifest-chain`
-3. **Run tests**: Execute `validationCommand` from manifest
+3. **Run tests**: `maid test --manifest <manifest>` or execute `validationCommand` from manifest
 4. **Iterate** until all tests pass
 5. **Commit** implementation
 
 ### Phase 4: Integration
-Verify complete chain: All manifests validate successfully.
+Verify complete chain: `maid validate` and `maid test` pass for all active manifests.
 
 ## Testing
 
