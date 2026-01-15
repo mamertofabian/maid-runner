@@ -24,5 +24,5 @@
       }
     ]
   },
-  "validationCommand": ["python", "-m", "pytest", "tests/test_task_147_supersede_hint.py", "-v"]
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_147_supersede_hint.py", "-v"]
 }

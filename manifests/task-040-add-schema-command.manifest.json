@@ -20,5 +20,5 @@
       }
     ]
   },
-  "validationCommand": ["python", "-m", "pytest", "tests/test_task_040_schema_command.py", "-v"]
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_040_schema_command.py", "-v"]
 }
