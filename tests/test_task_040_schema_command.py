@@ -110,3 +110,95 @@ class TestSchemaCommand:
         # Should succeed and output JSON
         assert result.returncode == 0, "Schema command should succeed"
         assert result.stdout.strip(), "Schema command should output content"
+
+
+class TestSchemaCommandErrors:
+    """Test error handling in the schema command."""
+
+    def test_schema_file_not_found(self, tmp_path, monkeypatch):
+        """Test error when schema file doesn't exist."""
+        from maid_runner.cli import schema
+        import sys
+        from io import StringIO
+
+        # Monkeypatch to use a non-existent schema path
+        fake_parent = tmp_path / "fake_parent" / "cli"
+        fake_parent.mkdir(parents=True)
+
+        # Override __file__ to point to a fake location
+        monkeypatch.setattr(schema, "__file__", str(fake_parent / "schema.py"))
+
+        # Capture stderr
+        captured_stderr = StringIO()
+        monkeypatch.setattr(sys, "stderr", captured_stderr)
+
+        # Should exit with error
+        with pytest.raises(SystemExit) as exc_info:
+            schema.run_schema()
+
+        assert exc_info.value.code == 1
+        assert "not found" in captured_stderr.getvalue()
+
+    def test_schema_invalid_json(self, tmp_path, monkeypatch):
+        """Test error when schema file contains invalid JSON."""
+        from maid_runner.cli import schema
+        import sys
+        from io import StringIO
+
+        # Create a schema file with invalid JSON
+        validators_dir = tmp_path / "validators" / "schemas"
+        validators_dir.mkdir(parents=True)
+        schema_file = validators_dir / "manifest.schema.json"
+        schema_file.write_text("{ invalid json }")
+
+        # Point to the temp directory
+        cli_dir = tmp_path / "cli"
+        cli_dir.mkdir()
+        monkeypatch.setattr(schema, "__file__", str(cli_dir / "schema.py"))
+
+        # Capture stderr
+        captured_stderr = StringIO()
+        monkeypatch.setattr(sys, "stderr", captured_stderr)
+
+        # Should exit with error
+        with pytest.raises(SystemExit) as exc_info:
+            schema.run_schema()
+
+        assert exc_info.value.code == 1
+        assert "Invalid JSON" in captured_stderr.getvalue()
+
+    def test_schema_read_permission_error(self, tmp_path, monkeypatch):
+        """Test error when schema file can't be read."""
+        from maid_runner.cli import schema
+        import sys
+        from io import StringIO
+        import os
+
+        # Create a schema file
+        validators_dir = tmp_path / "validators" / "schemas"
+        validators_dir.mkdir(parents=True)
+        schema_file = validators_dir / "manifest.schema.json"
+        schema_file.write_text('{"type": "object"}')
+
+        # Make file unreadable
+        os.chmod(schema_file, 0o000)
+
+        try:
+            # Point to the temp directory
+            cli_dir = tmp_path / "cli"
+            cli_dir.mkdir()
+            monkeypatch.setattr(schema, "__file__", str(cli_dir / "schema.py"))
+
+            # Capture stderr
+            captured_stderr = StringIO()
+            monkeypatch.setattr(sys, "stderr", captured_stderr)
+
+            # Should exit with error
+            with pytest.raises(SystemExit) as exc_info:
+                schema.run_schema()
+
+            assert exc_info.value.code == 1
+            assert "Error" in captured_stderr.getvalue()
+        finally:
+            # Restore permissions for cleanup
+            os.chmod(schema_file, 0o644)

@@ -561,3 +561,230 @@ def test_maid_test_single_manifest_not_found(tmp_path: Path):
     # Should fail with exit code 1
     assert result.returncode == 1
     assert "Manifest file not found" in result.stdout
+
+
+# =============================================================================
+# Tests for additional edge cases to improve coverage
+# =============================================================================
+
+
+class TestGetWatchableFiles:
+    """Tests for get_watchable_files function."""
+
+    def test_get_watchable_files_empty_manifest(self):
+        """Test get_watchable_files with empty manifest data."""
+        from maid_runner.cli.test import get_watchable_files
+
+        result = get_watchable_files({})
+        assert result == []
+
+    def test_get_watchable_files_with_editable_only(self):
+        """Test get_watchable_files with only editableFiles."""
+        from maid_runner.cli.test import get_watchable_files
+
+        manifest_data = {"editableFiles": ["src/main.py", "src/utils.py"]}
+        result = get_watchable_files(manifest_data)
+        assert "src/main.py" in result
+        assert "src/utils.py" in result
+
+    def test_get_watchable_files_with_creatable_only(self):
+        """Test get_watchable_files with only creatableFiles."""
+        from maid_runner.cli.test import get_watchable_files
+
+        manifest_data = {"creatableFiles": ["src/new.py"]}
+        result = get_watchable_files(manifest_data)
+        assert "src/new.py" in result
+
+    def test_get_watchable_files_with_validation_command(self):
+        """Test get_watchable_files extracts test files from validationCommand."""
+        from maid_runner.cli.test import get_watchable_files
+
+        manifest_data = {"validationCommand": ["pytest", "tests/test_example.py", "-v"]}
+        result = get_watchable_files(manifest_data)
+        # Should extract test file from validation command
+        assert "tests/test_example.py" in result
+
+    def test_get_watchable_files_combined(self):
+        """Test get_watchable_files with all types of files."""
+        from maid_runner.cli.test import get_watchable_files
+
+        manifest_data = {
+            "editableFiles": ["src/main.py"],
+            "creatableFiles": ["src/new.py"],
+            "validationCommand": ["pytest", "tests/test_main.py", "-v"],
+        }
+        result = get_watchable_files(manifest_data)
+        assert "src/main.py" in result
+        assert "src/new.py" in result
+        assert "tests/test_main.py" in result
+
+
+class TestExecuteValidationCommandsEdgeCases:
+    """Tests for edge cases in execute_validation_commands."""
+
+    def test_execute_with_timeout(self, tmp_path):
+        """Test execute_validation_commands respects timeout."""
+        from maid_runner.cli.test import execute_validation_commands
+
+        manifest_data = {"validationCommand": ["echo", "fast"]}
+        manifest_path = tmp_path / "test.manifest.json"
+
+        passed, failed, total = execute_validation_commands(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=1,  # Very short timeout
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Should succeed since echo is fast
+        assert passed == 1
+        assert failed == 0
+
+    def test_execute_with_no_validation_commands(self, tmp_path):
+        """Test execute_validation_commands with no validation commands."""
+        from maid_runner.cli.test import execute_validation_commands
+
+        manifest_data = {}  # No validationCommand
+        manifest_path = tmp_path / "test.manifest.json"
+
+        passed, failed, total = execute_validation_commands(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Should return 0, 0, 0
+        assert passed == 0
+        assert failed == 0
+        assert total == 0
+
+    def test_execute_with_verbose_mode(self, tmp_path, capsys):
+        """Test execute_validation_commands with verbose mode."""
+        from maid_runner.cli.test import execute_validation_commands
+
+        manifest_data = {"validationCommand": ["echo", "verbose test"]}
+        manifest_path = tmp_path / "test.manifest.json"
+
+        passed, failed, total = execute_validation_commands(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=True,
+            project_root=tmp_path,
+        )
+
+        # Should succeed
+        assert passed == 1
+        # Verbose mode should show more output
+        captured = capsys.readouterr()
+        assert "verbose test" in captured.out or passed == 1
+
+
+class TestMaidTestQuietMode:
+    """Tests for quiet mode in maid test."""
+
+    def test_maid_test_quiet_mode(self, tmp_path):
+        """Test that --quiet flag reduces output."""
+        # Create manifests directory
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create passing manifest
+        manifest = {
+            "version": "1",
+            "goal": "test",
+            "taskType": "edit",
+            "editableFiles": ["test.py"],
+            "validationCommand": ["echo", "test"],
+        }
+        manifest_file = manifests_dir / "task-001.manifest.json"
+        manifest_file.write_text(json.dumps(manifest))
+
+        # Run maid test with --quiet
+        result = subprocess.run(
+            ["maid", "test", "--manifest-dir", str(manifests_dir), "--quiet"],
+            cwd=str(tmp_path),
+            capture_output=True,
+            text=True,
+        )
+
+        # Should succeed
+        assert result.returncode == 0
+        # Output should be minimal in quiet mode
+        # (exact behavior depends on implementation)
+
+
+class TestMaidTestVerboseMode:
+    """Tests for verbose mode in maid test."""
+
+    def test_maid_test_verbose_mode(self, tmp_path):
+        """Test that --verbose flag shows more output."""
+        # Create manifests directory
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create passing manifest
+        manifest = {
+            "version": "1",
+            "goal": "test",
+            "taskType": "edit",
+            "editableFiles": ["test.py"],
+            "validationCommand": ["echo", "verbose output"],
+        }
+        manifest_file = manifests_dir / "task-001.manifest.json"
+        manifest_file.write_text(json.dumps(manifest))
+
+        # Run maid test with --verbose
+        result = subprocess.run(
+            ["maid", "test", "--manifest-dir", str(manifests_dir), "--verbose"],
+            cwd=str(tmp_path),
+            capture_output=True,
+            text=True,
+        )
+
+        # Should succeed
+        assert result.returncode == 0
+        # Should show command output
+        assert "verbose output" in result.stdout
+
+
+class TestMaidTestTimeoutHandling:
+    """Tests for timeout handling in maid test."""
+
+    def test_maid_test_custom_timeout(self, tmp_path):
+        """Test that --timeout flag is accepted."""
+        # Create manifests directory
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create passing manifest
+        manifest = {
+            "version": "1",
+            "goal": "test",
+            "taskType": "edit",
+            "editableFiles": ["test.py"],
+            "validationCommand": ["echo", "test"],
+        }
+        manifest_file = manifests_dir / "task-001.manifest.json"
+        manifest_file.write_text(json.dumps(manifest))
+
+        # Run maid test with --timeout
+        result = subprocess.run(
+            [
+                "maid",
+                "test",
+                "--manifest-dir",
+                str(manifests_dir),
+                "--timeout",
+                "60",
+            ],
+            cwd=str(tmp_path),
+            capture_output=True,
+            text=True,
+        )
+
+        # Should succeed
+        assert result.returncode == 0

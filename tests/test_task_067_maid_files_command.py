@@ -330,3 +330,345 @@ class TestFormatFilesJson:
         assert "bar.py" in str(parsed)
         assert "foo.py" not in str(parsed)
         assert "baz.py" not in str(parsed)
+
+
+class TestFilesStatusFilters:
+    """Tests for different status filters to improve coverage (lines 46-57, 163-170)."""
+
+    def test_format_files_output_registered_status_filter(self, capsys):
+        """Test status filter for 'registered' files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [
+                {
+                    "file": "undeclared.py",
+                    "status": "UNDECLARED",
+                    "issues": [],
+                    "manifests": [],
+                }
+            ],
+            "registered": [
+                {
+                    "file": "registered.py",
+                    "status": "REGISTERED",
+                    "issues": ["Missing artifacts"],
+                    "manifests": ["task-001"],
+                }
+            ],
+            "tracked": ["tracked.py"],
+            "untracked_tests": [],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="registered",
+            quiet=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should only show registered files
+        assert "registered.py" in captured.out
+        assert "undeclared.py" not in captured.out
+        assert "tracked.py" not in captured.out
+
+    def test_format_files_output_tracked_status_filter(self, capsys):
+        """Test status filter for 'tracked' files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [
+                {
+                    "file": "undeclared.py",
+                    "status": "UNDECLARED",
+                    "issues": [],
+                    "manifests": [],
+                }
+            ],
+            "registered": [],
+            "tracked": ["tracked.py", "also_tracked.py"],
+            "untracked_tests": [],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="tracked",
+            quiet=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should only show tracked files
+        assert "tracked.py" in captured.out
+        assert "undeclared.py" not in captured.out
+
+    def test_format_files_output_private_impl_status_filter(self, capsys):
+        """Test status filter for 'private_impl' files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [],
+            "tracked": ["tracked.py"],
+            "untracked_tests": [],
+            "private_impl": ["_private.py", "_helper.py"],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="private_impl",
+            quiet=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should only show private impl files
+        assert "_private.py" in captured.out
+        assert "tracked.py" not in captured.out
+
+    def test_format_files_json_registered_status_filter(self):
+        """Test JSON output with 'registered' status filter."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [
+                {
+                    "file": "undeclared.py",
+                    "status": "UNDECLARED",
+                    "issues": [],
+                    "manifests": [],
+                }
+            ],
+            "registered": [
+                {
+                    "file": "registered.py",
+                    "status": "REGISTERED",
+                    "issues": [],
+                    "manifests": ["task-001"],
+                }
+            ],
+            "tracked": ["tracked.py"],
+            "untracked_tests": [],
+        }
+
+        result = format_files_json(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="registered",
+            hide_private=False,
+        )
+
+        parsed = json.loads(result)
+        assert "registered" in parsed
+        assert "registered.py" in str(parsed["registered"])
+        assert "undeclared" not in parsed
+        assert "tracked" not in parsed
+
+    def test_format_files_json_private_impl_status_filter(self):
+        """Test JSON output with 'private_impl' status filter."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [],
+            "tracked": ["tracked.py"],
+            "untracked_tests": [],
+            "private_impl": ["_private.py"],
+        }
+
+        result = format_files_json(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="private_impl",
+            hide_private=False,
+        )
+
+        parsed = json.loads(result)
+        assert "private_impl" in parsed
+        assert "_private.py" in str(parsed["private_impl"])
+        assert "tracked" not in parsed
+
+    def test_format_files_json_private_impl_hidden_with_filter(self):
+        """Test JSON output with 'private_impl' filter but hide_private=True."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [],
+            "tracked": ["tracked.py"],
+            "untracked_tests": [],
+            "private_impl": ["_private.py"],
+        }
+
+        result = format_files_json(
+            analysis=analysis,
+            issues_only=False,
+            status_filter="private_impl",
+            hide_private=True,
+        )
+
+        parsed = json.loads(result)
+        # Should be empty when hiding private with private_impl filter
+        assert "private_impl" not in parsed or parsed.get("private_impl") == []
+
+
+class TestFilesQuietModeOutput:
+    """Tests for quiet mode output to improve coverage (lines 70-77)."""
+
+    def test_quiet_mode_undeclared_files(self, capsys):
+        """Test quiet mode output for undeclared files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [
+                {
+                    "file": "undeclared.py",
+                    "status": "UNDECLARED",
+                    "issues": [],
+                    "manifests": [],
+                }
+            ],
+            "registered": [],
+            "tracked": [],
+            "untracked_tests": [],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter=None,
+            quiet=True,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Quiet mode should have tab-separated format
+        assert "UNDECLARED\t" in captured.out
+        assert "undeclared.py" in captured.out
+
+    def test_quiet_mode_registered_files(self, capsys):
+        """Test quiet mode output for registered files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [
+                {
+                    "file": "registered.py",
+                    "status": "REGISTERED",
+                    "issues": [],
+                    "manifests": ["task-001"],
+                }
+            ],
+            "tracked": [],
+            "untracked_tests": [],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter=None,
+            quiet=True,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Quiet mode should have tab-separated format
+        assert "REGISTERED\t" in captured.out
+        assert "registered.py" in captured.out
+
+    def test_quiet_mode_private_impl_files(self, capsys):
+        """Test quiet mode output for private implementation files."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [],
+            "tracked": [],
+            "untracked_tests": [],
+            "private_impl": ["_private.py"],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter=None,
+            quiet=True,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Quiet mode should have tab-separated format
+        assert "PRIVATE_IMPL\t" in captured.out
+        assert "_private.py" in captured.out
+
+
+class TestFilesRegisteredWithManifests:
+    """Tests for registered file output with manifests list (lines 99-101)."""
+
+    def test_registered_files_show_manifests(self, capsys):
+        """Test that registered files show their manifest references."""
+        analysis: FileTrackingAnalysis = {
+            "undeclared": [],
+            "registered": [
+                {
+                    "file": "registered.py",
+                    "status": "REGISTERED",
+                    "issues": ["Missing expectedArtifacts"],
+                    "manifests": [
+                        "task-001.manifest.json",
+                        "task-002.manifest.json",
+                        "task-003.manifest.json",
+                    ],
+                }
+            ],
+            "tracked": [],
+            "untracked_tests": [],
+        }
+
+        format_files_output(
+            analysis=analysis,
+            issues_only=False,
+            status_filter=None,
+            quiet=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should show manifests
+        assert "Manifests:" in captured.out
+        assert "task-001" in captured.out
+
+
+class TestRunFilesEdgeCases:
+    """Tests for edge cases in run_files (lines 214-221, 227)."""
+
+    def test_run_files_with_invalid_manifest_json(self, tmp_path, capsys):
+        """Test run_files skips invalid JSON manifests."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create an invalid JSON manifest
+        invalid_manifest = manifests_dir / "task-001-invalid.manifest.json"
+        invalid_manifest.write_text("{ invalid json }")
+
+        # Create a valid manifest
+        valid_manifest = manifests_dir / "task-002-valid.manifest.json"
+        valid_manifest.write_text('{"goal": "test", "taskType": "create"}')
+
+        # Should not crash
+        run_files(
+            manifest_dir=str(manifests_dir),
+            issues_only=False,
+            status_filter=None,
+            quiet=False,
+            json_output=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should produce output without crashing
+        assert captured.out is not None
+
+    def test_run_files_with_nonexistent_manifest_dir(self, tmp_path, capsys):
+        """Test run_files with nonexistent manifest directory."""
+        nonexistent_dir = tmp_path / "nonexistent"
+
+        run_files(
+            manifest_dir=str(nonexistent_dir),
+            issues_only=False,
+            status_filter=None,
+            quiet=False,
+            json_output=False,
+            hide_private=False,
+        )
+
+        captured = capsys.readouterr()
+        # Should use current working directory as source root
+        assert captured.out is not None

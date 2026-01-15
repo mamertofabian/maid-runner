@@ -693,3 +693,51 @@ class TestCheckModuleBoundariesIntegration:
         )
 
         assert isinstance(result, list)
+
+    def test_expected_artifacts_with_empty_file_path(
+        self,
+        empty_knowledge_graph: KnowledgeGraph,
+    ) -> None:
+        """check_module_boundaries handles expectedArtifacts with empty file path."""
+        manifest_with_empty_file = {
+            "version": "1",
+            "goal": "Test with empty file",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "expectedArtifacts": {
+                "file": "",  # Empty file path
+                "contains": [{"type": "function", "name": "test"}],
+            },
+        }
+
+        result = check_module_boundaries(
+            manifest_data=manifest_with_empty_file,
+            graph=empty_knowledge_graph,
+        )
+
+        assert isinstance(result, list)
+        assert len(result) == 0  # Should return early
+
+    def test_expected_artifacts_with_missing_contains(
+        self,
+        empty_knowledge_graph: KnowledgeGraph,
+    ) -> None:
+        """check_module_boundaries handles expectedArtifacts with missing contains."""
+        manifest_without_contains = {
+            "version": "1",
+            "goal": "Test without contains",
+            "taskType": "create",
+            "creatableFiles": ["test.py"],
+            "expectedArtifacts": {
+                "file": "src/module/test.py",
+                # No "contains" key
+            },
+        }
+
+        result = check_module_boundaries(
+            manifest_data=manifest_without_contains,
+            graph=empty_knowledge_graph,
+        )
+
+        assert isinstance(result, list)
+        assert len(result) == 0  # Should return early

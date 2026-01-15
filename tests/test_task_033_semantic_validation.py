@@ -293,3 +293,19 @@ class TestEdgeCases:
         }
         # Should complete quickly without raising error
         validate_manifest_semantics(manifest)
+
+    def test_manifest_data_not_dict_raises_error(self):
+        """Should raise TypeError when manifest_data is not a dict."""
+        with pytest.raises(TypeError) as exc_info:
+            validate_manifest_semantics("not a dict")
+        assert "must be dict" in str(exc_info.value)
+
+    def test_manifest_data_list_raises_error(self):
+        """Should raise TypeError when manifest_data is a list."""
+        with pytest.raises(TypeError):
+            validate_manifest_semantics([{"goal": "test"}])
+
+    def test_manifest_data_int_raises_error(self):
+        """Should raise TypeError when manifest_data is an int."""
+        with pytest.raises(TypeError):
+            validate_manifest_semantics(123)

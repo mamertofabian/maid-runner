@@ -6,6 +6,8 @@ categorized by how the manifest references the file (created, edited, read).
 
 import json
 
+import pytest
+
 
 def test_run_list_manifests_exists():
     """Test that run_list_manifests function exists and can be imported."""
@@ -326,3 +328,129 @@ def test_cli_integration_manifests_command():
     finally:
         sys.stdout = old_stdout
         sys.argv = old_argv
+
+
+def test_run_list_manifests_handles_invalid_json(tmp_path, capsys):
+    """Test that run_list_manifests handles invalid JSON manifests gracefully."""
+    from maid_runner.cli.list_manifests import run_list_manifests
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    # Create a valid manifest
+    valid_manifest = manifest_dir / "task-001.manifest.json"
+    valid_manifest.write_text(
+        json.dumps(
+            {
+                "creatableFiles": ["test.py"],
+                "editableFiles": [],
+                "readonlyFiles": [],
+            }
+        )
+    )
+
+    # Create an invalid manifest with bad JSON
+    invalid_manifest = manifest_dir / "task-002.manifest.json"
+    invalid_manifest.write_text("not valid json {{{")
+
+    # Should not raise, should skip the invalid manifest with warning
+    run_list_manifests("test.py", str(manifest_dir), quiet=False)
+
+    captured = capsys.readouterr()
+    # Should show a warning about the invalid manifest
+    assert "Warning" in captured.err or "task-001" in captured.out
+
+
+def test_run_list_manifests_handles_io_error(tmp_path, capsys):
+    """Test that run_list_manifests handles IO errors gracefully."""
+    from maid_runner.cli.list_manifests import run_list_manifests
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    # Create a valid manifest
+    valid_manifest = manifest_dir / "task-001.manifest.json"
+    valid_manifest.write_text(
+        json.dumps(
+            {
+                "creatableFiles": ["test.py"],
+                "editableFiles": [],
+                "readonlyFiles": [],
+            }
+        )
+    )
+
+    # Should not raise
+    run_list_manifests("test.py", str(manifest_dir), quiet=False)
+
+    captured = capsys.readouterr()
+    # Should show the valid manifest
+    assert "task-001" in captured.out
+
+
+def test_main_entry_point_exists():
+    """Test that _main entry point exists for standalone testing."""
+    from maid_runner.cli.list_manifests import _main
+
+    assert callable(_main)
+
+
+def test_run_list_manifests_missing_directory_exits(tmp_path, capsys):
+    """Test that run_list_manifests exits when manifest directory doesn't exist."""
+    from maid_runner.cli.list_manifests import run_list_manifests
+
+    nonexistent_dir = tmp_path / "nonexistent"
+
+    with pytest.raises(SystemExit) as exc_info:
+        run_list_manifests("test.py", str(nonexistent_dir), quiet=False)
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    # Should print a message about MAID not being enabled
+    assert "not enabled" in captured.err.lower() or "not found" in captured.err.lower()
+
+
+def test_run_list_manifests_empty_directory(tmp_path, capsys):
+    """Test that run_list_manifests handles empty manifest directory."""
+    from maid_runner.cli.list_manifests import run_list_manifests
+
+    # Create an empty manifest directory
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    # Should not raise, but indicate no manifests found
+    run_list_manifests("test.py", str(manifest_dir), quiet=False)
+
+    captured = capsys.readouterr()
+    # Should indicate no manifests found
+    assert "no manifest" in captured.out.lower()
+
+
+def test_run_list_manifests_json_output(tmp_path, capsys):
+    """Test that run_list_manifests outputs valid JSON when json_output=True."""
+    from maid_runner.cli.list_manifests import run_list_manifests
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    # Create a test manifest
+    manifest = {
+        "goal": "Create test.py",
+        "creatableFiles": ["test.py"],
+        "editableFiles": [],
+        "readonlyFiles": [],
+    }
+
+    (manifest_dir / "task-001.manifest.json").write_text(json.dumps(manifest))
+
+    # Run with JSON output
+    run_list_manifests("test.py", str(manifest_dir), quiet=False, json_output=True)
+
+    captured = capsys.readouterr()
+
+    # Should be valid JSON
+    parsed = json.loads(captured.out)
+    # JSON output is a list of manifest paths
+    assert isinstance(parsed, list)
+    # Should include the manifest path
+    assert any("task-001" in str(path) for path in parsed)

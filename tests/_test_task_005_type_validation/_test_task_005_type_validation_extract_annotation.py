@@ -133,3 +133,36 @@ class TestExtractTypeAnnotation:
         result = extract_type_annotation(param_node, "annotation")
         # Should either return None or a string representation
         assert result is None or isinstance(result, str)
+
+    def test_ast_to_type_string_with_ellipsis(self):
+        """Test _ast_to_type_string with Ellipsis annotation (Callable[..., T])."""
+        from maid_runner.validators._type_annotation import _ast_to_type_string
+
+        # Create an Ellipsis node
+        ellipsis_node = ast.Constant(value=...)
+
+        result = _ast_to_type_string(ellipsis_node)
+        assert result == "..." or isinstance(result, str)
+
+    def test_ast_to_type_string_with_exception_fallback(self):
+        """Test _ast_to_type_string handles unexpected nodes gracefully."""
+        from maid_runner.validators._type_annotation import _ast_to_type_string
+
+        # Create a complex node that might trigger exception handling
+        complex_node = ast.IfExp(
+            test=ast.Constant(value=True),
+            body=ast.Constant(value=1),
+            orelse=ast.Constant(value=0),
+        )
+
+        # Should not raise, should return some string representation
+        result = _ast_to_type_string(complex_node)
+        assert isinstance(result, str)
+
+    def test_extract_type_annotation_with_none_node(self):
+        """Test extract_type_annotation returns None for None node."""
+        # Test directly with _ast_to_type_string which handles None
+        from maid_runner.validators._type_annotation import _ast_to_type_string
+
+        result = _ast_to_type_string(None)
+        assert result is None

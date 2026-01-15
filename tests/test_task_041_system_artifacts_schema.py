@@ -254,3 +254,48 @@ class TestBackwardCompatibility:
         for manifest in manifests:
             # Should not raise ValidationError
             validate(instance=manifest, schema=manifest_schema)
+
+
+class TestSystemArtifactsSchemaValidationErrors:
+    """Test error handling in system artifacts schema validation."""
+
+    def test_validate_system_artifacts_non_dict_block(self):
+        """_validate_system_artifacts_structure raises AlignmentError for non-dict blocks."""
+        from maid_runner.validators._schema_validation import (
+            _validate_system_artifacts_structure,
+        )
+        from maid_runner.validators.manifest_validator import AlignmentError
+
+        # systemArtifacts with a non-dict element
+        manifest_data = {
+            "systemArtifacts": [
+                "not a dict",  # Invalid - should be a dict
+            ]
+        }
+
+        with pytest.raises(AlignmentError) as exc_info:
+            _validate_system_artifacts_structure(manifest_data)
+
+        assert "must be an object/dict" in str(exc_info.value)
+
+    def test_validate_system_artifacts_missing_file_field(self):
+        """_validate_system_artifacts_structure raises AlignmentError for missing 'file' field."""
+        from maid_runner.validators._schema_validation import (
+            _validate_system_artifacts_structure,
+        )
+        from maid_runner.validators.manifest_validator import AlignmentError
+
+        # systemArtifacts with block missing 'file' field
+        manifest_data = {
+            "systemArtifacts": [
+                {
+                    "contains": [{"type": "function", "name": "func"}],
+                    # Missing 'file' field
+                }
+            ]
+        }
+
+        with pytest.raises(AlignmentError) as exc_info:
+            _validate_system_artifacts_structure(manifest_data)
+
+        assert "missing required 'file' field" in str(exc_info.value)

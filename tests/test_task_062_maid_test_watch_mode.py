@@ -673,3 +673,434 @@ def test_manifest_path_resolution_accepts_multiple_formats(tmp_path: Path):
 
     finally:
         os.chdir(original_cwd)
+
+
+class TestFileChangeHandler:
+    """Tests for _FileChangeHandler class behavior."""
+
+    def test_file_change_handler_ignores_directory_events(self, tmp_path: Path):
+        """Test that _FileChangeHandler ignores directory events."""
+        from maid_runner.cli.test import _FileChangeHandler
+        from unittest.mock import Mock
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_data = {"editableFiles": ["src/test.py"]}
+
+        handler = _FileChangeHandler(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Create a directory event
+        event = Mock()
+        event.is_directory = True
+        event.src_path = str(tmp_path / "some_dir")
+
+        # Should return early for directory events
+        initial_last_run = handler.last_run
+        handler.on_modified(event)
+        assert handler.last_run == initial_last_run
+
+    def test_file_change_handler_ignores_unwatched_files(self, tmp_path: Path):
+        """Test that _FileChangeHandler ignores changes to unwatched files."""
+        from maid_runner.cli.test import _FileChangeHandler
+        from unittest.mock import Mock
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_data = {"editableFiles": ["src/test.py"]}
+
+        handler = _FileChangeHandler(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Create an event for an unwatched file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(tmp_path / "unwatched.py")
+
+        # Should not update last_run for unwatched files
+        initial_last_run = handler.last_run
+        handler.on_modified(event)
+        assert handler.last_run == initial_last_run
+
+    def test_file_change_handler_triggers_validation_for_watched_file(
+        self, tmp_path: Path
+    ):
+        """Test that _FileChangeHandler triggers validation for watched files."""
+        from maid_runner.cli.test import _FileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifest_path = tmp_path / "test.manifest.json"
+        test_file = tmp_path / "src" / "test.py"
+        test_file.parent.mkdir(parents=True)
+        test_file.touch()
+
+        manifest_data = {"editableFiles": ["src/test.py"]}
+
+        handler = _FileChangeHandler(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Create an event for a watched file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(test_file)
+
+        # Mock execute_validation_commands
+        with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
+            mock_execute.return_value = (1, 0, 1)
+            handler.on_modified(event)
+
+            # Should have triggered validation
+            assert mock_execute.called
+
+    def test_file_change_handler_debounces_rapid_changes(self, tmp_path: Path):
+        """Test that _FileChangeHandler debounces rapid changes."""
+        from maid_runner.cli.test import _FileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifest_path = tmp_path / "test.manifest.json"
+        test_file = tmp_path / "src" / "test.py"
+        test_file.parent.mkdir(parents=True)
+        test_file.touch()
+
+        manifest_data = {"editableFiles": ["src/test.py"]}
+
+        handler = _FileChangeHandler(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            timeout=300,
+            verbose=False,
+            project_root=tmp_path,
+        )
+
+        # Create an event for a watched file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(test_file)
+
+        validation_count = 0
+
+        with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
+
+            def count_calls(*args, **kwargs):
+                nonlocal validation_count
+                validation_count += 1
+                return (1, 0, 1)
+
+            mock_execute.side_effect = count_calls
+
+            # Trigger multiple rapid changes
+            handler.on_modified(event)
+            handler.on_modified(event)
+            handler.on_modified(event)
+
+            # Due to debouncing, should only have one call
+            assert validation_count == 1
+
+
+class TestMultiManifestFileChangeHandler:
+    """Tests for _MultiManifestFileChangeHandler class behavior."""
+
+    def test_multi_manifest_handler_ignores_directory_events(self, tmp_path: Path):
+        """Test that _MultiManifestFileChangeHandler ignores directory events."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests={},
+            timeout=300,
+            verbose=False,
+            quiet=True,
+            project_root=tmp_path,
+        )
+
+        # Create a directory event
+        event = Mock()
+        event.is_directory = True
+        event.src_path = str(tmp_path / "some_dir")
+
+        # Should return early
+        handler.on_modified(event)
+        # No assertion needed - just verifying no exception
+
+    def test_multi_manifest_handler_triggers_validation_for_tracked_file(
+        self, tmp_path: Path
+    ):
+        """Test that _MultiManifestFileChangeHandler triggers validation for tracked files."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+        manifest_path.write_text('{"validationCommand": ["echo", "test"]}')
+
+        test_file = tmp_path / "src" / "test.py"
+        test_file.parent.mkdir(parents=True)
+        test_file.touch()
+
+        file_to_manifests = {test_file.resolve(): [manifest_path]}
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests=file_to_manifests,
+            timeout=300,
+            verbose=False,
+            quiet=False,
+            project_root=tmp_path,
+        )
+
+        # Create an event for a tracked file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(test_file)
+
+        # Mock execute_validation_commands
+        with patch("maid_runner.cli.test.execute_validation_commands") as mock_execute:
+            mock_execute.return_value = (1, 0, 1)
+            handler.on_modified(event)
+
+            # Should have triggered validation
+            assert mock_execute.called
+
+    def test_multi_manifest_handler_handles_invalid_json_manifest(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that _MultiManifestFileChangeHandler handles invalid JSON gracefully."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+        manifest_path.write_text("not valid json {{{")
+
+        test_file = tmp_path / "src" / "test.py"
+        test_file.parent.mkdir(parents=True)
+        test_file.touch()
+
+        file_to_manifests = {test_file.resolve(): [manifest_path]}
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests=file_to_manifests,
+            timeout=300,
+            verbose=False,
+            quiet=False,
+            project_root=tmp_path,
+        )
+
+        # Create an event for a tracked file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(test_file)
+
+        # Should not raise an exception
+        handler.on_modified(event)
+
+        captured = capsys.readouterr()
+        # Should have printed an error message
+        assert "Error" in captured.out or "⚠️" in captured.out
+
+    def test_multi_manifest_handler_on_created_detects_new_manifest(
+        self, tmp_path: Path
+    ):
+        """Test that on_created detects new manifest files."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests={},
+            timeout=300,
+            verbose=False,
+            quiet=False,
+            project_root=tmp_path,
+            manifests_dir=manifests_dir,
+        )
+
+        # Create an event for a new manifest file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(manifests_dir / "task-001.manifest.json")
+
+        # Mock refresh_file_mappings
+        with patch.object(handler, "refresh_file_mappings") as mock_refresh:
+            handler.on_created(event)
+            # Should have called refresh_file_mappings
+            mock_refresh.assert_called_once()
+
+    def test_multi_manifest_handler_on_deleted_handles_manifest_deletion(
+        self, tmp_path: Path
+    ):
+        """Test that on_deleted handles manifest file deletion."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests={},
+            timeout=300,
+            verbose=False,
+            quiet=False,
+            project_root=tmp_path,
+            manifests_dir=manifests_dir,
+        )
+
+        # Create an event for a deleted manifest file
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(manifests_dir / "task-001.manifest.json")
+
+        # Mock refresh_file_mappings
+        with patch.object(handler, "refresh_file_mappings") as mock_refresh:
+            handler.on_deleted(event)
+            # Should have called refresh_file_mappings
+            mock_refresh.assert_called_once()
+
+    def test_multi_manifest_handler_on_moved_detects_new_manifest(self, tmp_path: Path):
+        """Test that on_moved detects manifest files moved into manifests dir."""
+        from maid_runner.cli.test import _MultiManifestFileChangeHandler
+        from unittest.mock import Mock, patch
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        handler = _MultiManifestFileChangeHandler(
+            file_to_manifests={},
+            timeout=300,
+            verbose=False,
+            quiet=False,
+            project_root=tmp_path,
+            manifests_dir=manifests_dir,
+        )
+
+        # Create an event for a manifest file being moved
+        event = Mock()
+        event.is_directory = False
+        event.src_path = str(tmp_path / "temp.tmp")
+        event.dest_path = str(manifests_dir / "task-001.manifest.json")
+
+        # Mock refresh_file_mappings
+        with patch.object(handler, "refresh_file_mappings") as mock_refresh:
+            handler.on_moved(event)
+            # Should have called refresh_file_mappings
+            mock_refresh.assert_called_once()
+
+
+class TestWatchAllManifests:
+    """Tests for watch_all_manifests function."""
+
+    def test_watch_all_manifests_is_importable(self):
+        """Test that watch_all_manifests is importable."""
+        from maid_runner.cli.test import watch_all_manifests
+
+        assert callable(watch_all_manifests)
+
+    def test_watch_all_manifests_checks_watchdog_availability(self, tmp_path: Path):
+        """Test that watch_all_manifests checks if watchdog is available."""
+        from maid_runner.cli.test import watch_all_manifests
+        from unittest.mock import patch
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Mock watchdog as unavailable
+        with patch("maid_runner.cli.test.WATCHDOG_AVAILABLE", False):
+            with pytest.raises(SystemExit) as exc_info:
+                watch_all_manifests(
+                    manifests_dir=manifests_dir,
+                    active_manifests=[],
+                    timeout=300,
+                    verbose=False,
+                    quiet=False,
+                    project_root=tmp_path,
+                    debounce_seconds=2.0,
+                )
+
+            assert exc_info.value.code == 1
+
+    def test_watch_all_manifests_handles_invalid_manifest(self, tmp_path: Path, capsys):
+        """Test that watch_all_manifests handles invalid JSON manifests gracefully."""
+        from maid_runner.cli.test import watch_all_manifests
+        from unittest.mock import patch, MagicMock
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create an invalid manifest
+        invalid_manifest = manifests_dir / "task-001.manifest.json"
+        invalid_manifest.write_text("not valid json {{{")
+
+        with patch("maid_runner.cli.test.Observer") as mock_observer_class:
+            mock_observer = MagicMock()
+            mock_observer_class.return_value = mock_observer
+            mock_observer.start.side_effect = KeyboardInterrupt()
+
+            watch_all_manifests(
+                manifests_dir=manifests_dir,
+                active_manifests=[invalid_manifest],
+                timeout=300,
+                verbose=False,
+                quiet=False,
+                project_root=tmp_path,
+                debounce_seconds=2.0,
+            )
+
+            captured = capsys.readouterr()
+            # Should have printed an error about the invalid manifest
+            assert "Error" in captured.out or "⚠️" in captured.out
+
+
+class TestBuildFileToManifestsMap:
+    """Tests for build_file_to_manifests_map function."""
+
+    def test_build_file_to_manifests_map_handles_invalid_json(self, tmp_path: Path):
+        """Test that build_file_to_manifests_map handles invalid JSON gracefully."""
+        from maid_runner.cli.test import build_file_to_manifests_map
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create an invalid manifest
+        invalid_manifest = manifests_dir / "task-001.manifest.json"
+        invalid_manifest.write_text("not valid json {{{")
+
+        # Should not raise, should skip the invalid manifest
+        result = build_file_to_manifests_map(manifests_dir, [invalid_manifest])
+        assert isinstance(result, dict)
+
+    def test_build_file_to_manifests_map_builds_correct_mapping(self, tmp_path: Path):
+        """Test that build_file_to_manifests_map creates correct file mappings."""
+        from maid_runner.cli.test import build_file_to_manifests_map
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a valid manifest
+        manifest = manifests_dir / "task-001.manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "editableFiles": ["src/test.py"],
+                    "validationCommand": ["pytest", "tests/test_file.py"],
+                }
+            )
+        )
+
+        result = build_file_to_manifests_map(manifests_dir, [manifest])
+
+        # Should have entries for the editable files and test files
+        assert len(result) > 0

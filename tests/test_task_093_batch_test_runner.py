@@ -474,3 +474,312 @@ class TestRunBatchPytest:
         assert passed == 0
         assert failed == 1
         assert total == 1
+
+
+class TestExtractTestFileEdgeCases:
+    """Test edge cases in test file extraction (lines 64, 68, 74-75, 89-94)."""
+
+    def test_extract_returns_none_for_empty_command(self):
+        """Should return None for empty command list."""
+        command = []
+        result = extract_test_file_from_command(command)
+        assert result is None
+
+    def test_extract_returns_none_for_none_runner(self):
+        """Should return None when detect_test_runner returns None."""
+        command = ["make", "test"]  # Unknown runner
+        result = extract_test_file_from_command(command)
+        assert result is None
+
+    def test_extract_handles_pytest_node_id(self):
+        """Should extract file path from pytest node ID format."""
+        command = ["pytest", "tests/test_example.py::TestClass::test_method", "-v"]
+        result = extract_test_file_from_command(command)
+        assert result == "tests/test_example.py"
+
+    def test_extract_handles_pytest_node_id_class_only(self):
+        """Should extract file path from pytest node ID with class only."""
+        command = ["pytest", "tests/test_example.py::TestClass", "-v"]
+        result = extract_test_file_from_command(command)
+        assert result == "tests/test_example.py"
+
+    def test_extract_handles_runner_not_in_command(self):
+        """Should return None when runner name is not found in command."""
+        # This case is rare but possible with edge case commands
+        command = ["./custom_script"]
+        result = extract_test_file_from_command(command)
+        assert result is None
+
+    def test_extract_from_npm_run_test(self):
+        """Should handle npm run test command."""
+        command = ["npm", "run", "test"]
+        result = extract_test_file_from_command(command)
+        # No test file specified, just "npm run test"
+        assert result is None
+
+
+class TestRunBatchTestsRunners:
+    """Test batch test execution with different runners (lines 371-399)."""
+
+    @patch("subprocess.run")
+    def test_runs_vitest_with_yarn(self, mock_run, tmp_path):
+        """Should use yarn exec vitest when yarn.lock exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        (project_root / "package.json").write_text('{"name":"test"}')
+        (project_root / "yarn.lock").write_text("")
+
+        test_files = {"test1.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "yarn" in call_args
+        assert "exec" in call_args
+        assert "vitest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_vitest_with_npm(self, mock_run, tmp_path):
+        """Should use npm exec vitest when only package.json exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        (project_root / "package.json").write_text('{"name":"test"}')
+
+        test_files = {"test1.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "npm" in call_args
+        assert "exec" in call_args
+        assert "vitest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_vitest_standalone(self, mock_run, tmp_path):
+        """Should use vitest directly when no package.json exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        test_files = {"test1.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        # Should be vitest directly
+        assert "vitest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_jest_with_pnpm(self, mock_run, tmp_path):
+        """Should use pnpm exec jest when pnpm-lock.yaml exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        (project_root / "package.json").write_text('{"name":"test"}')
+        (project_root / "pnpm-lock.yaml").write_text("")
+
+        test_files = {"test1.test.js"}
+
+        passed, failed, total = run_batch_tests(
+            "jest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "pnpm" in call_args
+        assert "exec" in call_args
+        assert "jest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_jest_with_yarn(self, mock_run, tmp_path):
+        """Should use yarn exec jest when yarn.lock exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        (project_root / "package.json").write_text('{"name":"test"}')
+        (project_root / "yarn.lock").write_text("")
+
+        test_files = {"test1.test.js"}
+
+        passed, failed, total = run_batch_tests(
+            "jest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "yarn" in call_args
+        assert "exec" in call_args
+        assert "jest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_jest_with_npm(self, mock_run, tmp_path):
+        """Should use npm exec jest when only package.json exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        (project_root / "package.json").write_text('{"name":"test"}')
+
+        test_files = {"test1.test.js"}
+
+        passed, failed, total = run_batch_tests(
+            "jest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "npm" in call_args
+        assert "exec" in call_args
+        assert "jest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_jest_standalone(self, mock_run, tmp_path):
+        """Should use jest directly when no package.json exists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        test_files = {"test1.test.js"}
+
+        passed, failed, total = run_batch_tests(
+            "jest", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "jest" in call_args
+
+    @patch("subprocess.run")
+    def test_runs_generic_runner(self, mock_run, tmp_path):
+        """Should handle generic unknown runner."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        project_root = tmp_path
+        test_files = {"test1.py"}
+
+        passed, failed, total = run_batch_tests(
+            "custom-runner", test_files, project_root, verbose=False, timeout=300
+        )
+
+        assert passed == 1
+        call_args = mock_run.call_args[0][0]
+        assert "custom-runner" in call_args
+
+
+class TestRunBatchTestsErrorHandling:
+    """Test error handling in batch test execution (lines 438-446)."""
+
+    @patch("subprocess.run")
+    def test_handles_timeout(self, mock_run, tmp_path):
+        """Should handle subprocess timeout."""
+        mock_run.side_effect = subprocess.TimeoutExpired("vitest", 300)
+
+        test_files = {"test.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, tmp_path, verbose=False, timeout=300
+        )
+
+        assert passed == 0
+        assert failed == 1
+        assert total == 1
+
+    @patch("subprocess.run")
+    def test_handles_file_not_found(self, mock_run, tmp_path):
+        """Should handle FileNotFoundError when command not found."""
+        mock_run.side_effect = FileNotFoundError("vitest not found")
+
+        test_files = {"test.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, tmp_path, verbose=False, timeout=300
+        )
+
+        assert passed == 0
+        assert failed == 1
+        assert total == 1
+
+    @patch("subprocess.run")
+    def test_handles_generic_exception(self, mock_run, tmp_path):
+        """Should handle generic exceptions during test execution."""
+        mock_run.side_effect = Exception("Something went wrong")
+
+        test_files = {"test.spec.ts"}
+
+        passed, failed, total = run_batch_tests(
+            "vitest", test_files, tmp_path, verbose=False, timeout=300
+        )
+
+        assert passed == 0
+        assert failed == 1
+        assert total == 1
+
+    @patch("subprocess.run")
+    def test_shows_stdout_on_success(self, mock_run, tmp_path, capsys):
+        """Should print stdout when tests pass."""
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="All 5 tests passed", stderr=""
+        )
+
+        test_files = {"test.spec.ts"}
+
+        run_batch_tests("vitest", test_files, tmp_path, verbose=False, timeout=300)
+
+        captured = capsys.readouterr()
+        assert "All 5 tests passed" in captured.out
+
+    @patch("subprocess.run")
+    def test_shows_stderr_on_failure(self, mock_run, tmp_path, capsys):
+        """Should print stderr when tests fail."""
+        mock_run.return_value = MagicMock(
+            returncode=1, stdout="", stderr="Test assertions failed"
+        )
+
+        test_files = {"test.spec.ts"}
+
+        run_batch_tests("vitest", test_files, tmp_path, verbose=False, timeout=300)
+
+        captured = capsys.readouterr()
+        assert "Test assertions failed" in captured.out
+
+
+class TestExtractTestFilesEdgeCases:
+    """Test edge cases in test file extraction from validation commands."""
+
+    def test_extract_handles_vitest_run_subcommand(self):
+        """_extract_from_single_command handles 'vitest run' subcommand."""
+        from maid_runner.cli._test_file_extraction import _extract_from_single_command
+
+        command = ["npx", "vitest", "run", "tests/app.spec.ts"]
+
+        result = _extract_from_single_command(command)
+
+        assert "tests/app.spec.ts" in result
+
+    def test_extract_handles_pnpm_exec_vitest(self):
+        """_extract_from_single_command handles pnpm exec vitest."""
+        from maid_runner.cli._test_file_extraction import _extract_from_single_command
+
+        command = ["pnpm", "exec", "vitest", "run", "src/test.spec.ts"]
+
+        result = _extract_from_single_command(command)
+
+        assert "src/test.spec.ts" in result
+
+    def test_extract_handles_string_command_with_run_subcommand(self):
+        """_extract_from_string_commands handles vitest run subcommand."""
+        from maid_runner.cli._test_file_extraction import _extract_from_string_commands
+
+        command = ["vitest run tests/app.spec.ts"]
+
+        result = _extract_from_string_commands(command)
+
+        assert "tests/app.spec.ts" in result

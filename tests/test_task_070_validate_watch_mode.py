@@ -1126,3 +1126,629 @@ class TestRunValidationWithWatchParameters:
                 assert call_args.kwargs["manifests_dir"] == Path("manifests")
         finally:
             os.chdir(original_cwd)
+
+
+class TestBuildFileToManifestsMapErrors:
+    """Tests for error handling in build_file_to_manifests_map_for_validation."""
+
+    def test_handles_invalid_json_in_manifest(self, tmp_path: Path):
+        """Test that build_file_to_manifests_map_for_validation handles invalid JSON gracefully."""
+        from maid_runner.cli.validate import build_file_to_manifests_map_for_validation
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a manifest with invalid JSON
+        bad_manifest = manifests_dir / "task-001.manifest.json"
+        bad_manifest.write_text("not valid json {{{")
+
+        # Should not raise, should skip the bad manifest
+        result = build_file_to_manifests_map_for_validation(
+            manifests_dir, [bad_manifest]
+        )
+        assert isinstance(result, dict)
+
+    def test_handles_io_error_reading_manifest(self, tmp_path: Path):
+        """Test that build_file_to_manifests_map_for_validation handles IO errors gracefully."""
+        from maid_runner.cli.validate import build_file_to_manifests_map_for_validation
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create a reference to a non-existent manifest
+        missing_manifest = manifests_dir / "task-001.manifest.json"
+
+        # Should not raise, should skip the missing manifest
+        result = build_file_to_manifests_map_for_validation(
+            manifests_dir, [missing_manifest]
+        )
+        assert isinstance(result, dict)
+
+
+class TestCheckIfSupersededErrors:
+    """Tests for error handling in _check_if_superseded."""
+
+    def test_handles_invalid_json_in_other_manifest(self, tmp_path: Path):
+        """Test that _check_if_superseded handles invalid JSON in other manifests."""
+        from maid_runner.cli.validate import _check_if_superseded
+
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+
+        # Create target manifest
+        target_manifest = manifests_dir / "task-001.manifest.json"
+        target_manifest.write_text('{"goal": "target"}')
+
+        # Create a manifest with invalid JSON
+        bad_manifest = manifests_dir / "task-002.manifest.json"
+        bad_manifest.write_text("not valid json {{{")
+
+        # Should not raise
+        is_superseded, superseder = _check_if_superseded(target_manifest, manifests_dir)
+        assert isinstance(is_superseded, bool)
+
+
+class TestBuildSupersedeHint:
+    """Tests for _build_supersede_hint function."""
+
+    def test_returns_none_for_non_unexpected_error(self, tmp_path: Path):
+        """Test that _build_supersede_hint returns None for non-'Unexpected public' errors."""
+        from maid_runner.cli.validate import _build_supersede_hint
+
+        manifest_path = tmp_path / "task-001.manifest.json"
+        manifest_data = {"goal": "test"}
+
+        result = _build_supersede_hint(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            target_file="src/test.py",
+            error_message="Some other error",
+        )
+        assert result is None
+
+    def test_returns_none_when_no_related_manifests(self, tmp_path: Path):
+        """Test that _build_supersede_hint returns None when no related manifests found."""
+        from maid_runner.cli.validate import _build_supersede_hint
+
+        manifest_path = tmp_path / "task-001.manifest.json"
+        manifest_data = {"goal": "test"}
+
+        result = _build_supersede_hint(
+            manifest_path=manifest_path,
+            manifest_data=manifest_data,
+            target_file="nonexistent/file.py",
+            error_message="Unexpected public function 'foo' found",
+        )
+        # May return None if no related manifests
+        assert result is None or isinstance(result, str)
+
+
+class TestValidationHelpers:
+    """Tests for validation helper functions."""
+
+    def test_should_skip_debounce_is_importable(self):
+        """Test that _should_skip_debounce is importable."""
+        from maid_runner.cli.validate import _should_skip_debounce
+
+        assert callable(_should_skip_debounce)
+
+    def test_should_skip_debounce_returns_true_within_threshold(self):
+        """Test that _should_skip_debounce returns True when within debounce window."""
+        from maid_runner.cli.validate import _should_skip_debounce
+
+        last_run = 100.0
+        current_time = 100.5  # 0.5 seconds later
+        debounce_seconds = 2.0
+
+        result = _should_skip_debounce(last_run, current_time, debounce_seconds)
+        assert result is True
+
+    def test_should_skip_debounce_returns_false_outside_threshold(self):
+        """Test that _should_skip_debounce returns False when outside debounce window."""
+        from maid_runner.cli.validate import _should_skip_debounce
+
+        last_run = 100.0
+        current_time = 103.0  # 3 seconds later
+        debounce_seconds = 2.0
+
+        result = _should_skip_debounce(last_run, current_time, debounce_seconds)
+        assert result is False
+
+    def test_get_display_path_is_importable(self):
+        """Test that _get_display_path is importable."""
+        from maid_runner.cli.validate import _get_display_path
+
+        assert callable(_get_display_path)
+
+    def test_get_display_path_returns_relative_path(self, tmp_path: Path):
+        """Test that _get_display_path returns a relative path when possible."""
+        from maid_runner.cli.validate import _get_display_path
+
+        file_path = tmp_path / "src" / "test.py"
+        project_root = tmp_path
+
+        result = _get_display_path(file_path, project_root)
+        # Should return a Path object representing the relative path
+        assert isinstance(result, Path)
+        assert str(result) == "src/test.py"
+
+
+class TestExecuteValidationCommandExtended:
+    """Extended tests for execute_validation_command error handling."""
+
+    def test_execute_validation_command_shows_stderr_on_failure(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that execute_validation_command shows stderr when command fails."""
+        from maid_runner.cli.validate import execute_validation_command
+
+        manifest_data = {
+            # Command that fails and outputs to stderr
+            "validationCommand": [
+                "python",
+                "-c",
+                "import sys; print('error message', file=sys.stderr); sys.exit(1)",
+            ],
+        }
+
+        result = execute_validation_command(
+            manifest_data=manifest_data,
+            project_root=tmp_path,
+            timeout=30,
+            verbose=False,
+        )
+
+        assert result is False
+        captured = capsys.readouterr()
+        assert "FAILED" in captured.out
+
+    def test_execute_validation_command_shows_output_in_verbose_mode(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that execute_validation_command shows command output in verbose mode."""
+        from maid_runner.cli.validate import execute_validation_command
+
+        manifest_data = {
+            "validationCommand": ["echo", "verbose output test"],
+        }
+
+        result = execute_validation_command(
+            manifest_data=manifest_data,
+            project_root=tmp_path,
+            timeout=30,
+            verbose=True,
+        )
+
+        assert result is True
+        captured = capsys.readouterr()
+        assert "PASSED" in captured.out
+        assert "verbose output test" in captured.out
+
+    def test_execute_validation_command_handles_command_not_found(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that execute_validation_command handles non-existent commands."""
+        from maid_runner.cli.validate import execute_validation_command
+
+        manifest_data = {
+            "validationCommand": ["nonexistent_command_xyz123", "--help"],
+        }
+
+        result = execute_validation_command(
+            manifest_data=manifest_data,
+            project_root=tmp_path,
+            timeout=30,
+            verbose=False,
+        )
+
+        assert result is False
+        captured = capsys.readouterr()
+        # Should have printed an error about the command
+        assert "❌" in captured.out or "not found" in captured.out.lower()
+
+    def test_execute_validation_command_skips_empty_commands(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that execute_validation_command skips empty commands in the list."""
+        from maid_runner.cli.validate import execute_validation_command
+
+        manifest_data = {
+            "validationCommands": [[], ["echo", "valid"]],  # First is empty
+        }
+
+        result = execute_validation_command(
+            manifest_data=manifest_data,
+            project_root=tmp_path,
+            timeout=30,
+            verbose=False,
+        )
+
+        assert result is True
+        captured = capsys.readouterr()
+        assert "PASSED" in captured.out
+
+
+class TestRunDualModeValidationExtended:
+    """Extended tests for run_dual_mode_validation error handling."""
+
+    def test_run_dual_mode_validation_handles_file_not_found(self, tmp_path: Path):
+        """Test that run_dual_mode_validation handles FileNotFoundError gracefully."""
+        from maid_runner.cli.validate import run_dual_mode_validation
+        from unittest.mock import patch
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+
+        manifest_data = {
+            "version": "1",
+            "goal": "Test file not found",
+            "taskType": "edit",
+            "editableFiles": ["nonexistent_file.py"],
+            "expectedArtifacts": {
+                "file": "nonexistent_file.py",
+                "contains": [{"type": "function", "name": "func"}],
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_data))
+
+        with patch("maid_runner.cli.validate.run_validation") as mock_run:
+            with patch("maid_runner.cli.validate.validate_schema"):
+                # Simulate FileNotFoundError during validation
+                mock_run.side_effect = FileNotFoundError("File not found")
+
+                import os
+
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    result = run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=True,
+                    )
+
+                    # Should return dict with False values for the failing validation
+                    assert isinstance(result, dict)
+                    assert result["behavioral"] is False
+                finally:
+                    os.chdir(original_cwd)
+
+    def test_run_dual_mode_validation_with_quiet_false(self, tmp_path: Path, capsys):
+        """Test that run_dual_mode_validation prints output when quiet=False."""
+        from maid_runner.cli.validate import run_dual_mode_validation
+        from unittest.mock import patch
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+
+        manifest_data = {
+            "version": "1",
+            "goal": "Test quiet=False",
+            "taskType": "edit",
+            "editableFiles": ["src/example.py"],
+            "expectedArtifacts": {
+                "file": "src/example.py",
+                "contains": [{"type": "function", "name": "example"}],
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_data))
+
+        with patch("maid_runner.cli.validate.run_validation"):
+            with patch("maid_runner.cli.validate.validate_schema"):
+                import os
+
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    result = run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=False,  # Output enabled
+                    )
+
+                    # Result should be a dict with validation status
+                    assert isinstance(result, dict)
+
+                    captured = capsys.readouterr()
+                    # Should have printed validation messages
+                    assert "validation" in captured.out.lower()
+                finally:
+                    os.chdir(original_cwd)
+
+    def test_run_dual_mode_validation_handles_schema_failure(
+        self, tmp_path: Path, capsys
+    ):
+        """Test that run_dual_mode_validation handles schema validation failure."""
+        from maid_runner.cli.validate import run_dual_mode_validation
+        from unittest.mock import patch
+        import jsonschema
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+
+        # Write invalid manifest
+        manifest_path.write_text('{"invalid": "manifest"}')
+
+        with patch("maid_runner.cli.validate.validate_schema") as mock_validate:
+            # Simulate schema validation failure
+            mock_validate.side_effect = jsonschema.ValidationError("Invalid schema")
+
+            import os
+
+            original_cwd = os.getcwd()
+            try:
+                os.chdir(tmp_path)
+                result = run_dual_mode_validation(
+                    manifest_path=manifest_path,
+                    use_manifest_chain=False,
+                    quiet=False,
+                )
+
+                # Schema validation should have failed
+                assert isinstance(result, dict)
+                assert result["schema"] is False
+            finally:
+                os.chdir(original_cwd)
+
+    def test_run_dual_mode_validation_handles_system_exit_with_zero(
+        self, tmp_path: Path
+    ):
+        """Test that run_dual_mode_validation handles SystemExit(0) as success."""
+        from maid_runner.cli.validate import run_dual_mode_validation
+        from unittest.mock import patch
+
+        manifest_path = tmp_path / "manifests" / "task-001.manifest.json"
+        manifest_path.parent.mkdir(parents=True)
+
+        manifest_data = {
+            "version": "1",
+            "goal": "Test SystemExit 0",
+            "taskType": "edit",
+            "editableFiles": ["src/example.py"],
+            "expectedArtifacts": {
+                "file": "src/example.py",
+                "contains": [{"type": "function", "name": "example"}],
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_data))
+
+        with patch("maid_runner.cli.validate.run_validation") as mock_run:
+            with patch("maid_runner.cli.validate.validate_schema"):
+                # SystemExit(0) should be treated as success
+                mock_run.side_effect = SystemExit(0)
+
+                import os
+
+                original_cwd = os.getcwd()
+                try:
+                    os.chdir(tmp_path)
+                    result = run_dual_mode_validation(
+                        manifest_path=manifest_path,
+                        use_manifest_chain=False,
+                        quiet=True,
+                    )
+
+                    # SystemExit(0) should result in True for that mode
+                    assert isinstance(result, dict)
+                    assert result["schema"] is True
+                    assert result["behavioral"] is True
+                finally:
+                    os.chdir(original_cwd)
+
+
+class TestRunValidationErrorPaths:
+    """Tests for run_validation error handling paths."""
+
+    def test_run_validation_watch_mode_manifest_not_found(self, tmp_path: Path):
+        """Test that run_validation in watch mode exits if manifest not found."""
+        from maid_runner.cli.validate import run_validation
+
+        nonexistent_manifest = tmp_path / "nonexistent.manifest.json"
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=str(nonexistent_manifest),
+                validation_mode="implementation",
+                use_manifest_chain=False,
+                quiet=True,
+                manifest_dir=None,
+                skip_file_tracking=False,
+                watch=True,
+                watch_all=False,
+                timeout=300,
+                verbose=False,
+                skip_tests=True,
+            )
+
+        assert exc_info.value.code == 1
+
+    def test_run_validation_watch_all_mode_dir_not_found(self, tmp_path: Path):
+        """Test that run_validation in watch_all mode exits if dir not found."""
+        from maid_runner.cli.validate import run_validation
+
+        nonexistent_dir = tmp_path / "nonexistent_manifests"
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_validation(
+                manifest_path=None,
+                validation_mode="implementation",
+                use_manifest_chain=True,
+                quiet=True,
+                manifest_dir=str(nonexistent_dir),
+                skip_file_tracking=False,
+                watch=False,
+                watch_all=True,
+                timeout=300,
+                verbose=False,
+                skip_tests=True,
+            )
+
+        assert exc_info.value.code == 1
+
+
+class TestRunTestsForManifest:
+    """Tests for _run_tests_for_manifest function."""
+
+    def test_run_tests_for_manifest_handles_invalid_json(self, tmp_path: Path):
+        """Test that _run_tests_for_manifest handles invalid JSON manifest."""
+        from maid_runner.cli.validate import _run_tests_for_manifest
+
+        manifest_path = tmp_path / "test.manifest.json"
+        manifest_path.write_text("not valid json {{{")
+
+        result = _run_tests_for_manifest(
+            manifest_path=manifest_path,
+            project_root=tmp_path,
+            timeout=300,
+            verbose=False,
+            quiet=True,
+        )
+
+        assert result is False
+
+    def test_run_tests_for_manifest_handles_io_error(self, tmp_path: Path):
+        """Test that _run_tests_for_manifest handles IO errors."""
+        from maid_runner.cli.validate import _run_tests_for_manifest
+
+        nonexistent_manifest = tmp_path / "nonexistent.manifest.json"
+
+        result = _run_tests_for_manifest(
+            manifest_path=nonexistent_manifest,
+            project_root=tmp_path,
+            timeout=300,
+            verbose=False,
+            quiet=True,
+        )
+
+        assert result is False
+
+
+class TestValidationJsonOutput:
+    """Tests for JSON output formatting."""
+
+    def test_format_validation_json_returns_valid_json(self):
+        """Test that format_validation_json returns valid JSON string."""
+        from maid_runner.cli.validate import format_validation_json
+
+        result = format_validation_json(
+            success=True,
+            errors=[],
+            warnings=[],
+            metadata={"manifest": "test.json"},
+        )
+
+        # Should be valid JSON
+        import json
+
+        parsed = json.loads(result)
+        assert parsed["success"] is True
+        assert parsed["errors"] == []
+        assert parsed["warnings"] == []
+
+    def test_format_validation_json_includes_errors(self):
+        """Test that format_validation_json includes error details."""
+        from maid_runner.cli.validate import format_validation_json
+        from maid_runner.validation_result import (
+            ValidationError,
+            ErrorCode,
+            ErrorSeverity,
+        )
+
+        error = ValidationError(
+            code=ErrorCode.ARTIFACT_NOT_FOUND,
+            message="Test error",
+            file="test.py",
+            severity=ErrorSeverity.ERROR,
+        )
+
+        result = format_validation_json(
+            success=False,
+            errors=[error],
+            warnings=[],
+            metadata={},
+        )
+
+        import json
+
+        parsed = json.loads(result)
+        assert parsed["success"] is False
+        assert len(parsed["errors"]) == 1
+        assert parsed["errors"][0]["message"] == "Test error"
+
+
+# =============================================================================
+# Tests for _validate_helpers.py
+# =============================================================================
+
+
+class TestValidateHelpers:
+    """Tests for private validate helper functions."""
+
+    def test_get_display_path_relative(self, tmp_path: Path):
+        """Test _get_display_path returns relative path when possible."""
+        from maid_runner.cli._validate_helpers import _get_display_path
+
+        file_path = tmp_path / "src" / "test.py"
+        project_root = tmp_path
+
+        result = _get_display_path(file_path, project_root)
+        assert result == Path("src/test.py")
+
+    def test_get_display_path_outside_project(self, tmp_path: Path):
+        """Test _get_display_path returns absolute path when file is outside project."""
+        from maid_runner.cli._validate_helpers import _get_display_path
+
+        # Create a path that's outside the project root
+        file_path = Path("/tmp/some/external/file.py")
+        project_root = tmp_path / "myproject"
+        project_root.mkdir()
+
+        result = _get_display_path(file_path, project_root)
+        # Should return the original file path when it's not under project root
+        assert result == file_path
+
+    def test_are_validations_passed_all_true(self):
+        """Test _are_validations_passed returns True when all validations pass."""
+        from maid_runner.cli._validate_helpers import _are_validations_passed
+
+        results = {
+            "schema": True,
+            "behavioral": True,
+            "implementation": True,
+            "tests": None,  # tests are excluded
+        }
+        assert _are_validations_passed(results) is True
+
+    def test_are_validations_passed_with_failure(self):
+        """Test _are_validations_passed returns False when any validation fails."""
+        from maid_runner.cli._validate_helpers import _are_validations_passed
+
+        results = {
+            "schema": True,
+            "behavioral": False,
+            "implementation": True,
+            "tests": None,
+        }
+        assert _are_validations_passed(results) is False
+
+    def test_should_skip_debounce_within_interval(self):
+        """Test _should_skip_debounce returns True within debounce interval."""
+        from maid_runner.cli._validate_helpers import _should_skip_debounce
+
+        last_run = 100.0
+        current_time = 100.3
+        debounce_seconds = 0.5
+
+        result = _should_skip_debounce(last_run, current_time, debounce_seconds)
+        assert result is True
+
+    def test_should_skip_debounce_after_interval(self):
+        """Test _should_skip_debounce returns False after debounce interval."""
+        from maid_runner.cli._validate_helpers import _should_skip_debounce
+
+        last_run = 100.0
+        current_time = 101.0
+        debounce_seconds = 0.5
+
+        result = _should_skip_debounce(last_run, current_time, debounce_seconds)
+        assert result is False

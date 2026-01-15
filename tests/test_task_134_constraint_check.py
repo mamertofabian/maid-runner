@@ -1095,3 +1095,33 @@ class TestCheckArchitecturalConstraintsIntegration:
         )
 
         assert isinstance(result, list)
+
+
+class TestLoadConstraintConfigErrors:
+    """Test error handling in load_constraint_config."""
+
+    def test_handles_invalid_json_config(self, tmp_path: Path) -> None:
+        """load_constraint_config returns empty config for invalid JSON."""
+        from maid_runner.coherence.checks.constraint_check import load_constraint_config
+
+        # Create a file with invalid JSON
+        config_path = tmp_path / "bad_config.json"
+        config_path.write_text("not valid json {{{")
+
+        result = load_constraint_config(config_path)
+
+        # Should return empty config, not raise
+        assert result.rules == []
+
+    def test_handles_os_error(self, tmp_path: Path) -> None:
+        """load_constraint_config handles OS errors gracefully."""
+        from maid_runner.coherence.checks.constraint_check import load_constraint_config
+
+        # Reference non-existent file
+        config_path = tmp_path / "nonexistent.json"
+
+        # Should not raise - returns empty config
+        result = load_constraint_config(config_path)
+
+        # Should return empty config with no rules
+        assert result.rules == []

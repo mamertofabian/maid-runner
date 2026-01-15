@@ -1135,3 +1135,61 @@ function logout() {
         result = validator.collect_artifacts(str(test_file), "implementation")
         assert "updateProfile" in result["found_functions"]
         assert "logout" in result["found_functions"]
+
+
+class TestSvelteValidatorEdgeCases:
+    """Test edge cases and error handling in SvelteValidator."""
+
+    def test_get_language_for_file_with_typescript_single_quotes(self, tmp_path):
+        """Test that _get_language_for_file detects TypeScript with single quotes."""
+        from maid_runner.validators.svelte_validator import SvelteValidator
+
+        test_file = tmp_path / "TypeScriptComponent.svelte"
+        test_file.write_text(
+            """
+<script lang='ts'>
+let count: number = 0;
+function increment(): void {
+    count += 1;
+}
+</script>
+"""
+        )
+
+        validator = SvelteValidator()
+        result = validator._get_language_for_file(str(test_file))
+        assert result == "typescript"
+
+    def test_extract_script_content_empty_file(self, tmp_path):
+        """Test handling of empty Svelte file."""
+        from maid_runner.validators.svelte_validator import SvelteValidator
+
+        test_file = tmp_path / "Empty.svelte"
+        test_file.write_text("")
+
+        validator = SvelteValidator()
+        result = validator.collect_artifacts(str(test_file), "implementation")
+        # found_functions may be a dict or empty for empty files
+        assert len(result.get("found_functions", {})) == 0
+
+    def test_extract_script_content_no_script_tag(self, tmp_path):
+        """Test handling of Svelte file without script tag."""
+        from maid_runner.validators.svelte_validator import SvelteValidator
+
+        test_file = tmp_path / "NoScript.svelte"
+        test_file.write_text(
+            """
+<div>
+    <h1>Hello World</h1>
+</div>
+
+<style>
+    h1 { color: red; }
+</style>
+"""
+        )
+
+        validator = SvelteValidator()
+        result = validator.collect_artifacts(str(test_file), "implementation")
+        # Should have no functions or classes
+        assert len(result.get("found_functions", {})) == 0

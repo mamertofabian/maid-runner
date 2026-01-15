@@ -994,3 +994,487 @@ class Foo {
         # Non-function properties should not be detected
         assert "value" not in arrow_functions
         assert "name" not in arrow_functions
+
+
+# =============================================================================
+# SECTION 11: Single Parameter Arrow Functions Without Parentheses
+# =============================================================================
+
+
+class TestSingleParameterArrowFunctions:
+    """Tests for single-parameter arrow functions without parentheses (lines 439-456, 480-483, 509-512)."""
+
+    def test_const_single_param_arrow_no_parens(self, tmp_path):
+        """const single = x => x * 2 pattern."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+const double = x => x * 2;
+const triple = y => y * 3;
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        arrow_functions = validator._extract_arrow_functions(tree, source_code)
+
+        # Single parameter without parens should be detected
+        assert "double" in arrow_functions
+        assert "triple" in arrow_functions
+        # Parameters should be extracted
+        assert len(arrow_functions["double"]) == 1
+        assert arrow_functions["double"][0]["name"] == "x"
+
+    def test_class_property_single_param_no_parens(self, tmp_path):
+        """Class property arrow function with single param, no parentheses."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+class Transformer {
+    transform = x => x.toUpperCase()
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        arrow_functions = validator._extract_arrow_functions(tree, source_code)
+
+        assert "transform" in arrow_functions
+        params = arrow_functions["transform"]
+        assert len(params) == 1
+        assert params[0]["name"] == "x"
+
+    def test_object_property_single_param_no_parens(self, tmp_path):
+        """Object property arrow function with single param, no parentheses."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+const utils = {
+    double: n => n * 2,
+    stringify: v => String(v)
+};
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        arrow_functions = validator._extract_arrow_functions(tree, source_code)
+
+        assert "double" in arrow_functions
+        assert "stringify" in arrow_functions
+        assert arrow_functions["double"][0]["name"] == "n"
+        assert arrow_functions["stringify"][0]["name"] == "v"
+
+
+# =============================================================================
+# SECTION 12: Parameter Type Edge Cases
+# =============================================================================
+
+
+class TestParameterTypeEdgeCases:
+    """Tests for parameter extraction edge cases (lines 572, 578-579, 593-598, 618, 621-622, 626-628)."""
+
+    def test_rest_parameter_with_type_annotation(self, tmp_path):
+        """Rest parameter with type annotation (...args: string[])."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function logAll(...messages: string[]) {
+    console.log(messages);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        functions = validator._extract_functions(tree, source_code)
+
+        assert "logAll" in functions
+        params = functions["logAll"]
+        assert len(params) == 1
+        assert params[0]["name"] == "messages"
+        assert "string" in params[0].get("type", "")
+
+    def test_optional_parameter_extraction(self, tmp_path):
+        """Optional parameter without default value."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function greet(name?: string) {
+    return name || "Guest";
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        functions = validator._extract_functions(tree, source_code)
+
+        assert "greet" in functions
+        params = functions["greet"]
+        assert len(params) == 1
+        assert params[0]["name"] == "name"
+        assert params[0]["type"] == "string"
+
+    def test_destructured_object_parameter_detection(self, tmp_path):
+        """Destructured object parameter function should be detected."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function process({ id, name, value }: Record<string, any>) {
+    console.log(id, name, value);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        functions = validator._extract_functions(tree, source_code)
+
+        # Function should be detected even with destructured params
+        assert "process" in functions
+        # Note: Destructured params inside required_parameter are complex to extract
+        # The function is still detected and can be validated
+
+    def test_destructured_array_parameter_detection(self, tmp_path):
+        """Destructured array parameter function should be detected."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function processArray([first, second]: [string, number]) {
+    console.log(first, second);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        functions = validator._extract_functions(tree, source_code)
+
+        # Function should be detected even with destructured array params
+        assert "processArray" in functions
+
+
+# =============================================================================
+# SECTION 13: Class and Function Name Edge Cases
+# =============================================================================
+
+
+class TestClassAndFunctionNameEdgeCases:
+    """Tests for edge cases in class/function name extraction (lines 1070, 1085)."""
+
+    def test_get_class_name_from_malformed_node(self, tmp_path):
+        """Test _get_class_name_from_node with node missing type_identifier."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        # Create a file with anonymous class expression
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+const cls = class {
+    method() {}
+};
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        artifacts = validator._collect_implementation_artifacts(tree, source_code)
+
+        # Anonymous class should still be processable without crash
+        assert isinstance(artifacts["found_classes"], set)
+
+    def test_get_function_name_missing_identifier(self, tmp_path):
+        """Test function declaration parsing resilience."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+export default function() {
+    return 42;
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        functions = validator._extract_functions(tree, source_code)
+
+        # Should not crash, may or may not detect anonymous function
+        assert isinstance(functions, dict)
+
+
+# =============================================================================
+# SECTION 14: Method Extraction Edge Cases
+# =============================================================================
+
+
+class TestMethodExtractionEdgeCases:
+    """Tests for method extraction edge cases (lines 1133-1136)."""
+
+    def test_arrow_function_method_in_class_body(self, tmp_path):
+        """Arrow function as class method with single param."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+class Handler {
+    handle = event => {
+        console.log(event);
+    }
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        arrow_functions = validator._extract_arrow_functions(tree, source_code)
+
+        assert "handle" in arrow_functions
+        params = arrow_functions["handle"]
+        assert len(params) == 1
+        assert params[0]["name"] == "event"
+
+
+# =============================================================================
+# SECTION 15: Static and Decorator Checks
+# =============================================================================
+
+
+class TestStaticAndDecoratorChecks:
+    """Tests for static method and decorator detection (lines 1177-1218)."""
+
+    def test_is_static_method_detection(self, tmp_path):
+        """Static methods should be detected."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+class Utils {
+    static format(value: string): string {
+        return value.trim();
+    }
+
+    static parse(data: string): any {
+        return JSON.parse(data);
+    }
+
+    regularMethod() {
+        return true;
+    }
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        artifacts = validator._collect_implementation_artifacts(tree, source_code)
+
+        # All methods should be found
+        assert "Utils" in artifacts["found_methods"]
+        methods = artifacts["found_methods"]["Utils"]
+        assert "format" in methods
+        assert "parse" in methods
+        assert "regularMethod" in methods
+
+    def test_getter_setter_in_class(self, tmp_path):
+        """Getters and setters in class."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+class Person {
+    private _name: string = "";
+
+    get name(): string {
+        return this._name;
+    }
+
+    set name(value: string) {
+        this._name = value;
+    }
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        artifacts = validator._collect_implementation_artifacts(tree, source_code)
+
+        # Class should be found
+        assert "Person" in artifacts["found_classes"]
+
+    def test_abstract_method_signature(self, tmp_path):
+        """Abstract method signatures in abstract class."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+abstract class Shape {
+    abstract getArea(): number;
+    abstract getPerimeter(): number;
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        artifacts = validator._collect_implementation_artifacts(tree, source_code)
+
+        # Abstract class should be found
+        assert "Shape" in artifacts["found_classes"]
+        # Abstract methods should be in found_methods
+        assert "Shape" in artifacts["found_methods"]
+        methods = artifacts["found_methods"]["Shape"]
+        assert "getArea" in methods
+        assert "getPerimeter" in methods
+
+
+# =============================================================================
+# SECTION: Edge Cases for Parameter Extraction
+# =============================================================================
+
+
+class TestParameterExtractionEdgeCases:
+    """Test edge cases in parameter extraction from TypeScript."""
+
+    def test_rest_parameter_with_type(self, tmp_path):
+        """Test that rest parameters with type annotations are extracted correctly."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function sum(...numbers: number[]): number {
+    return numbers.reduce((a, b) => a + b, 0);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        artifacts = validator.collect_artifacts(str(ts_file), "implementation")
+
+        # Should find the function with rest parameter
+        found_functions = artifacts.get("found_functions", {})
+        assert "sum" in found_functions
+
+    def test_destructured_parameter(self, tmp_path):
+        """Test that destructured parameters are handled."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function processUser({ name, age }: { name: string; age: number }): void {
+    console.log(name, age);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        artifacts = validator.collect_artifacts(str(ts_file), "implementation")
+
+        # Should find the function
+        found_functions = artifacts.get("found_functions", {})
+        assert "processUser" in found_functions
+
+    def test_optional_parameter_with_default(self, tmp_path):
+        """Test that optional parameters with defaults are extracted."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function greet(name: string, prefix = "Hello"): string {
+    return `${prefix}, ${name}!`;
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        artifacts = validator.collect_artifacts(str(ts_file), "implementation")
+
+        # Should find the function
+        found_functions = artifacts.get("found_functions", {})
+        assert "greet" in found_functions
+
+    def test_arrow_function_with_rest_parameter(self, tmp_path):
+        """Test arrow function with rest parameter."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+const concat = (...strings: string[]): string => {
+    return strings.join('');
+};
+"""
+        )
+
+        validator = TypeScriptValidator()
+        tree, source_code = validator._parse_typescript_file(str(ts_file))
+        arrow_functions = validator._extract_arrow_functions(tree, source_code)
+
+        # Should detect the arrow function
+        assert "concat" in arrow_functions
+
+    def test_method_with_complex_generic_type(self, tmp_path):
+        """Test method with complex generic type parameters."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+class Repository<T> {
+    findAll<K extends keyof T>(keys: K[]): Pick<T, K>[] {
+        return [];
+    }
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        artifacts = validator.collect_artifacts(str(ts_file), "implementation")
+
+        # Should find the class and method
+        assert "Repository" in artifacts.get("found_classes", {})
+
+    def test_function_with_function_type_parameter(self, tmp_path):
+        """Test function that takes a function type parameter."""
+        from maid_runner.validators.typescript_validator import TypeScriptValidator
+
+        ts_file = tmp_path / "test.ts"
+        ts_file.write_text(
+            """
+function map<T, U>(arr: T[], fn: (item: T) => U): U[] {
+    return arr.map(fn);
+}
+"""
+        )
+
+        validator = TypeScriptValidator()
+        artifacts = validator.collect_artifacts(str(ts_file), "implementation")
+
+        # Should find the function
+        found_functions = artifacts.get("found_functions", {})
+        assert "map" in found_functions

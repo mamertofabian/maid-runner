@@ -142,3 +142,136 @@ executeCommand("test", "/path", 5000);
             assert "executeCommand" in artifacts["used_functions"]
         finally:
             os.unlink(filepath)
+
+
+class TestShorthandPropertyIdentifiers:
+    """Tests for shorthand property identifier argument extraction (lines 209-211)."""
+
+    def test_shorthand_property_in_object_argument(self):
+        """Shorthand property identifiers like { foo } should be detected."""
+        ts_code = b"""
+const foo = "value";
+const bar = 123;
+configure({ foo, bar });
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            used_args = validator._extract_used_arguments(tree, source_code)
+            # Shorthand properties should be detected
+            assert "foo" in used_args
+            assert "bar" in used_args
+            assert "__positional__" in used_args
+        finally:
+            os.unlink(filepath)
+
+    def test_mixed_shorthand_and_regular_properties(self):
+        """Mix of shorthand and regular properties in object argument."""
+        ts_code = b"""
+const name = "test";
+setup({ name, value: 42, enabled: true });
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            used_args = validator._extract_used_arguments(tree, source_code)
+            # Both shorthand and regular properties should be detected
+            assert "name" in used_args
+            assert "value" in used_args
+            assert "enabled" in used_args
+        finally:
+            os.unlink(filepath)
+
+    def test_shorthand_only_object_argument(self):
+        """Object with only shorthand properties."""
+        ts_code = b"""
+const id = 1;
+const type = "user";
+const active = true;
+createRecord({ id, type, active });
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            used_args = validator._extract_used_arguments(tree, source_code)
+            assert "id" in used_args
+            assert "type" in used_args
+            assert "active" in used_args
+        finally:
+            os.unlink(filepath)
+
+
+class TestClassInstantiationPatterns:
+    """Tests for class instantiation patterns with call_expression (lines 722-725, 852-855, 895-900)."""
+
+    def test_new_class_with_call_expression_in_variable_declaration(self):
+        """new ClassName() with parentheses in variable declaration."""
+        ts_code = b"""
+const service = new UserService();
+service.fetchUser();
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            mapping = validator._extract_variable_to_class_mapping(tree, source_code)
+            assert "service" in mapping
+            assert mapping["service"] == "UserService"
+        finally:
+            os.unlink(filepath)
+
+    def test_new_class_with_call_expression_in_assignment(self):
+        """new ClassName() with parentheses in assignment expression."""
+        ts_code = b"""
+let service;
+service = new DatabaseService();
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            mapping = validator._extract_assignment_instantiations(tree, source_code)
+            assert "service" in mapping
+            assert mapping["service"] == "DatabaseService"
+        finally:
+            os.unlink(filepath)
+
+    def test_extract_class_usage_with_call_expression(self):
+        """Class usage extraction with new ClassName() call expression."""
+        ts_code = b"""
+const a = new ClassA();
+const b = new ClassB();
+const c = new ClassC();
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            class_usage = validator._extract_class_usage(tree, source_code)
+            assert "ClassA" in class_usage
+            assert "ClassB" in class_usage
+            assert "ClassC" in class_usage
+        finally:
+            os.unlink(filepath)
+
+    def test_new_class_with_arguments_and_call_expression(self):
+        """new ClassName(args) with call expression pattern."""
+        ts_code = b"""
+const config = { timeout: 5000 };
+const client = new HttpClient(config);
+const db = new Database("localhost", 5432);
+"""
+        filepath = _create_temp_ts_file(ts_code)
+        try:
+            validator = TypeScriptValidator()
+            tree, source_code = validator._parse_typescript_file(filepath)
+            mapping = validator._extract_variable_to_class_mapping(tree, source_code)
+            assert "client" in mapping
+            assert mapping["client"] == "HttpClient"
+            assert "db" in mapping
+            assert mapping["db"] == "Database"
+        finally:
+            os.unlink(filepath)

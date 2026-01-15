@@ -653,3 +653,102 @@ class TestIntegration:
         related = registry.get_related_manifests("src/file.py")
         assert len(related) == 1
         assert any("task-002-replacement" in str(p) for p in related)
+
+
+# =============================================================================
+# Error handling and edge case tests
+# =============================================================================
+
+
+class TestCacheErrorHandling:
+    """Tests for error handling in manifest cache."""
+
+    def test_cache_handles_invalid_json_manifest(
+        self, temp_manifest_dir: Path, create_manifest
+    ) -> None:
+        """Verify cache skips manifests with invalid JSON."""
+        # Create a valid manifest
+        create_manifest("task-001-valid.manifest.json", "src/module.py")
+
+        # Create an invalid JSON manifest
+        invalid_manifest = temp_manifest_dir / "task-002-invalid.manifest.json"
+        invalid_manifest.write_text("not valid json {{{")
+
+        # Registry should load successfully, skipping invalid file
+        registry = ManifestRegistry.get_instance(temp_manifest_dir)
+        related = registry.get_related_manifests("src/module.py")
+
+        # Only the valid manifest should be found
+        assert len(related) == 1
+
+    def test_cache_handles_nonexistent_directory(self, tmp_path: Path) -> None:
+        """Verify cache handles non-existent manifest directory gracefully."""
+        nonexistent_dir = tmp_path / "nonexistent"
+
+        registry = ManifestRegistry.get_instance(nonexistent_dir)
+
+        # Should return empty results without error
+        related = registry.get_related_manifests("src/module.py")
+        assert related == []
+        assert registry.get_superseded_manifests() == set()
+
+    def test_cache_detects_file_changes(
+        self, temp_manifest_dir: Path, create_manifest
+    ) -> None:
+        """Verify cache detects when manifest file contents change."""
+        # Create initial manifest
+        manifest_path = create_manifest(
+            "task-001-module.manifest.json", "src/module.py"
+        )
+
+        registry = ManifestRegistry.get_instance(temp_manifest_dir)
+        initial_manifests = registry.get_related_manifests("src/module.py")
+        assert len(initial_manifests) == 1
+
+        # Modify the manifest file (wait for mtime to change)
+        time.sleep(0.1)
+        manifest_data = json.loads(manifest_path.read_text())
+        manifest_data["editableFiles"].append("src/extra.py")
+        manifest_path.write_text(json.dumps(manifest_data))
+
+        # Cache should be invalid
+        assert registry.is_cache_valid() is False
+
+    def test_cache_detects_file_deletion(
+        self, temp_manifest_dir: Path, create_manifest
+    ) -> None:
+        """Verify cache detects when manifest files are deleted."""
+        create_manifest("task-001-module.manifest.json", "src/module.py")
+        manifest_to_delete = create_manifest(
+            "task-002-utils.manifest.json", "src/utils.py"
+        )
+
+        registry = ManifestRegistry.get_instance(temp_manifest_dir)
+        # Load cache by accessing data
+        registry.get_related_manifests("src/module.py")
+        assert registry.is_cache_valid() is True
+
+        # Delete one manifest
+        manifest_to_delete.unlink()
+
+        # Cache should be invalid (file set changed)
+        assert registry.is_cache_valid() is False
+
+    def test_cache_invalidation_forces_reload(
+        self, temp_manifest_dir: Path, create_manifest
+    ) -> None:
+        """Verify invalidate_cache forces reload on next access."""
+        create_manifest("task-001-module.manifest.json", "src/module.py")
+
+        registry = ManifestRegistry.get_instance(temp_manifest_dir)
+        # Load cache by accessing data
+        registry.get_related_manifests("src/module.py")
+        assert registry.is_cache_valid() is True
+
+        # Invalidate
+        registry.invalidate_cache()
+        assert registry.is_cache_valid() is False
+
+        # Accessing data should reload and restore validity
+        registry.get_related_manifests("src/module.py")
+        assert registry.is_cache_valid() is True

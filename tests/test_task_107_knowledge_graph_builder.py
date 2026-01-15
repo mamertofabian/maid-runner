@@ -629,3 +629,47 @@ class TestKnowledgeGraphBuilderIntegration:
                 assert (
                     edge.target_id in node_ids
                 ), f"Missing target node: {edge.target_id}"
+
+
+class TestGraphBuilderErrorHandling:
+    """Test error handling in knowledge graph builder."""
+
+    def test_skips_invalid_json_manifests(
+        self, manifest_dir: Path, sample_manifest_data: Dict[str, Any]
+    ) -> None:
+        """Invalid JSON manifests are skipped without error."""
+        # Create a valid manifest
+        create_manifest_file(
+            manifest_dir, "task-001.manifest.json", sample_manifest_data
+        )
+
+        # Create an invalid JSON manifest
+        invalid_path = manifest_dir / "task-002.manifest.json"
+        invalid_path.write_text("not valid json {{{")
+
+        builder = KnowledgeGraphBuilder(manifest_dir)
+
+        # Should not raise
+        graph = builder.build()
+
+        # Should only have nodes from the valid manifest
+        manifest_nodes = [n for n in graph.nodes if n.node_type == NodeType.MANIFEST]
+        assert len(manifest_nodes) == 1
+
+    def test_skips_missing_manifest_files(
+        self, manifest_dir: Path, sample_manifest_data: Dict[str, Any]
+    ) -> None:
+        """Missing manifest files referenced during loading are skipped."""
+        # Create a valid manifest
+        create_manifest_file(
+            manifest_dir, "task-001.manifest.json", sample_manifest_data
+        )
+
+        builder = KnowledgeGraphBuilder(manifest_dir)
+
+        # Should not raise
+        graph = builder.build()
+
+        # Should have one manifest node
+        manifest_nodes = [n for n in graph.nodes if n.node_type == NodeType.MANIFEST]
+        assert len(manifest_nodes) == 1

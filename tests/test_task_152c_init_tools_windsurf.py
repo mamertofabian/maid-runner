@@ -47,3 +47,39 @@ class TestCreateWindsurfRules:
 
         assert "MAID Methodology" in content
         assert "Manifest-driven AI Development" in content
+
+    def test_dry_run_shows_create_action(self, tmp_path, capsys):
+        """Verify dry_run shows [CREATE] action for new file."""
+        create_windsurf_rules(str(tmp_path), force=False, dry_run=True)
+
+        captured = capsys.readouterr()
+        assert "[CREATE]" in captured.out
+        assert "maid-runner.md" in captured.out
+
+        # File should NOT be created in dry run
+        rule_file = tmp_path / ".windsurf" / "rules" / "maid-runner.md"
+        assert not rule_file.exists()
+
+    def test_dry_run_shows_update_action_for_existing_file(self, tmp_path, capsys):
+        """Verify dry_run shows [UPDATE] action for existing file."""
+        # First create the file
+        create_windsurf_rules(str(tmp_path), force=True, dry_run=False)
+
+        # Now run dry_run - should show UPDATE
+        create_windsurf_rules(str(tmp_path), force=False, dry_run=True)
+
+        captured = capsys.readouterr()
+        assert "[UPDATE]" in captured.out
+        assert "maid-runner.md" in captured.out
+
+    def test_existing_file_without_force_warns_user(self, tmp_path, capsys):
+        """Verify existing file without force shows warning."""
+        # First create the file
+        create_windsurf_rules(str(tmp_path), force=True, dry_run=False)
+
+        # Now try without force - should warn
+        create_windsurf_rules(str(tmp_path), force=False, dry_run=False)
+
+        captured = capsys.readouterr()
+        assert "already exists" in captured.out
+        assert "--force" in captured.out

@@ -49,6 +49,7 @@ dev = [
     "watchdog>=6.0.0",
     "pre-commit>=4.0.0",
     "vulture>=2.0",
+    "pytest-cov>=7.0.0",
 ]
 
 [project.scripts]

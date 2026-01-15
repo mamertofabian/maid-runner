@@ -935,3 +935,396 @@ class DataProcessor:
         assert (
             result is not None or True
         )  # validate_with_ast may return None on success
+
+
+class TestExtractArtifactsEdgeCases:
+    """Test edge cases in extract_artifacts_from_code."""
+
+    def test_raises_error_for_non_code_file_type(self, tmp_path: Path):
+        """Test that ValueError is raised for known non-code file types."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        # Create a file with known non-code extension (txt, md, json, etc.)
+        non_code_file = tmp_path / "test.md"
+        non_code_file.write_text("# Some markdown content")
+
+        with pytest.raises(ValueError) as exc_info:
+            extract_artifacts_from_code(str(non_code_file))
+
+        assert "Unsupported file type" in str(exc_info.value)
+
+    def test_raises_error_for_file_without_extension(self, tmp_path: Path):
+        """Test that ValueError is raised for files without extension."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        # Create a file without extension
+        no_ext_file = tmp_path / "noextension"
+        no_ext_file.write_text("some content")
+
+        with pytest.raises(ValueError) as exc_info:
+            extract_artifacts_from_code(str(no_ext_file))
+
+        assert "Unsupported file type" in str(exc_info.value)
+        assert "(no extension)" in str(exc_info.value)
+
+
+class TestAggregateValidationCommandsErrors:
+    """Test error handling in _aggregate_validation_commands_from_superseded."""
+
+    def test_handles_invalid_json_in_superseded_manifest(self, tmp_path: Path, capsys):
+        """Test that invalid JSON in superseded manifests is handled gracefully."""
+        from maid_runner.cli.snapshot import (
+            _aggregate_validation_commands_from_superseded,
+        )
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        # Create a manifest with invalid JSON
+        bad_manifest = manifest_dir / "task-001.manifest.json"
+        bad_manifest.write_text("not valid json {{{")
+
+        superseded = [str(bad_manifest)]
+
+        # Should not raise, should skip the bad manifest with warning
+        result = _aggregate_validation_commands_from_superseded(
+            superseded, manifest_dir
+        )
+
+        assert isinstance(result, list)
+
+        # Should print a warning
+        captured = capsys.readouterr()
+        assert "Skipping invalid manifest" in captured.err or len(result) == 0
+
+    def test_handles_missing_superseded_manifest(self, tmp_path: Path):
+        """Test that missing superseded manifests are handled gracefully."""
+        from maid_runner.cli.snapshot import (
+            _aggregate_validation_commands_from_superseded,
+        )
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        superseded = ["nonexistent-manifest.json"]
+
+        # Should not raise
+        result = _aggregate_validation_commands_from_superseded(
+            superseded, manifest_dir
+        )
+
+        assert isinstance(result, list)
+
+
+class TestTestFileReferencesArtifacts:
+    """Test _test_file_references_artifacts function."""
+
+    def test_detects_class_usage_in_test_file(self, tmp_path: Path):
+        """Test that class usage is detected in test files."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Create a test file that uses a class
+        test_code = """
+from src.service import UserService
+
+def test_user_service():
+    service = UserService()
+    result = service.get_user(1)
+    assert result is not None
+"""
+        test_file = tmp_path / "test_service.py"
+        test_file.write_text(test_code)
+
+        # Expected artifacts include a class with a method
+        expected_artifacts = [
+            {"type": "class", "name": "UserService"},
+            {"type": "function", "name": "get_user", "class": "UserService"},
+        ]
+
+        result = _test_file_references_artifacts(
+            test_file, expected_artifacts, "src/service.py"
+        )
+
+        # Should return True since the test uses UserService class
+        assert result is True
+
+    def test_returns_true_on_syntax_error(self, tmp_path: Path):
+        """Test that True is returned on parsing errors (include test to be safe)."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Create a test file with invalid Python syntax
+        test_file = tmp_path / "test_invalid.py"
+        test_file.write_text("def broken(:\n    pass")  # Invalid syntax
+
+        expected_artifacts = [{"type": "function", "name": "something"}]
+
+        # Should return True when there's a parsing error (include to be safe)
+        result = _test_file_references_artifacts(
+            test_file, expected_artifacts, "src/something.py"
+        )
+
+        assert result is True
+
+    def test_detects_function_usage_in_test_file(self, tmp_path: Path):
+        """Test that standalone function usage is detected in test files."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Create a test file that calls a standalone function
+        test_code = """
+from src.utils import helper_function
+
+def test_helper():
+    result = helper_function("test")
+    assert result is not None
+"""
+        test_file = tmp_path / "test_utils.py"
+        test_file.write_text(test_code)
+
+        # Expected artifacts include a standalone function
+        expected_artifacts = [{"type": "function", "name": "helper_function"}]
+
+        result = _test_file_references_artifacts(
+            test_file, expected_artifacts, "src/utils.py"
+        )
+
+        # Should return True since the test uses helper_function
+        assert result is True
+
+    def test_returns_false_for_nonexistent_file(self, tmp_path: Path):
+        """Test that False is returned for nonexistent test files."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Reference a nonexistent test file
+        nonexistent_file = tmp_path / "nonexistent_test.py"
+
+        expected_artifacts = [{"type": "function", "name": "something"}]
+
+        result = _test_file_references_artifacts(
+            nonexistent_file, expected_artifacts, "src/something.py"
+        )
+
+        assert result is False
+
+    def test_returns_false_for_unrelated_test(self, tmp_path: Path):
+        """Test that False is returned for tests not using expected artifacts."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Create a test file that doesn't use the expected artifacts
+        test_code = """
+def test_something_else():
+    assert True
+"""
+        test_file = tmp_path / "test_other.py"
+        test_file.write_text(test_code)
+
+        # Expected artifacts that aren't used in the test
+        expected_artifacts = [
+            {"type": "class", "name": "UnusedClass"},
+            {"type": "function", "name": "unused_function"},
+        ]
+
+        result = _test_file_references_artifacts(
+            test_file, expected_artifacts, "src/unused.py"
+        )
+
+        # Should return False since the test doesn't use any expected artifacts
+        assert result is False
+
+    def test_detects_method_usage_through_class(self, tmp_path: Path):
+        """Test that method usage is detected via class -> method mapping."""
+        from maid_runner.cli.snapshot import _test_file_references_artifacts
+
+        # Create a test file that uses a method on a class
+        test_code = """
+from src.repo import Repository
+
+def test_repo_save():
+    repo = Repository()
+    repo.save({"id": 1})
+    assert True
+"""
+        test_file = tmp_path / "test_repo.py"
+        test_file.write_text(test_code)
+
+        # Expected artifacts include a method within a class
+        expected_artifacts = [
+            {"type": "class", "name": "Repository"},
+            {"type": "function", "name": "save", "class": "Repository"},
+        ]
+
+        result = _test_file_references_artifacts(
+            test_file, expected_artifacts, "src/repo.py"
+        )
+
+        # Should return True since the test uses Repository class
+        assert result is True
+
+
+class TestRunSnapshotErrorHandling:
+    """Test error handling in run_snapshot function."""
+
+    def test_run_snapshot_handles_file_not_found(self, tmp_path: Path):
+        """Test that run_snapshot handles FileNotFoundError gracefully."""
+        from maid_runner.cli.snapshot import run_snapshot
+
+        nonexistent_file = tmp_path / "nonexistent.py"
+        output_dir = tmp_path / "output"
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_snapshot(str(nonexistent_file), str(output_dir), False, True)
+
+        assert exc_info.value.code == 1
+
+    def test_run_snapshot_handles_syntax_error(self, tmp_path: Path):
+        """Test that run_snapshot handles SyntaxError gracefully."""
+        from maid_runner.cli.snapshot import run_snapshot
+
+        # Create a file with invalid Python syntax
+        bad_file = tmp_path / "bad_syntax.py"
+        bad_file.write_text("def broken(:\n    pass")
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_snapshot(str(bad_file), str(output_dir), False, True)
+
+        assert exc_info.value.code == 1
+
+
+class TestDetectFileLanguage:
+    """Test detect_file_language function."""
+
+    def test_detect_file_language_defaults_to_python_for_unusual_extensions(self):
+        """Test that unusual extensions default to Python for backward compatibility."""
+        from maid_runner.cli.snapshot import detect_file_language
+
+        # Unknown but could be code extension
+        result = detect_file_language("file.unusual")
+
+        # Should default to Python for backward compatibility
+        assert result == "python"
+
+    def test_detect_file_language_recognizes_svelte(self):
+        """Test that detect_file_language recognizes Svelte files."""
+        from maid_runner.cli.snapshot import detect_file_language
+
+        result = detect_file_language("component.svelte")
+        assert result == "svelte"
+
+    def test_detect_file_language_returns_unknown_for_non_code(self):
+        """Test that detect_file_language returns unknown for non-code files."""
+        from maid_runner.cli.snapshot import detect_file_language
+
+        # Known non-code extensions
+        assert detect_file_language("readme.md") == "unknown"
+        assert detect_file_language("data.json") == "unknown"
+        assert detect_file_language("image.png") == "unknown"
+
+    def test_detect_file_language_returns_unknown_for_no_extension(self):
+        """Test that detect_file_language returns unknown for files without extension."""
+        from maid_runner.cli.snapshot import detect_file_language
+
+        result = detect_file_language("Makefile")
+        assert result == "unknown"
+
+
+class TestArtifactCollectorEdgeCases:
+    """Test edge cases in ArtifactCollector class."""
+
+    def test_extracts_class_with_multiple_bases(self, tmp_path: Path):
+        """Test extraction of class with multiple base classes."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        code = """
+class MultiBase(Base1, Base2, Base3):
+    '''Class with multiple bases'''
+    def method(self):
+        pass
+"""
+        test_file = tmp_path / "multi_base.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+        assert "MultiBase" in str(result)
+
+    def test_extracts_decorated_methods(self, tmp_path: Path):
+        """Test extraction of methods with decorators."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        code = """
+class Service:
+    @staticmethod
+    def static_method():
+        pass
+
+    @classmethod
+    def class_method(cls):
+        pass
+
+    @property
+    def prop(self):
+        return self._value
+"""
+        test_file = tmp_path / "decorated.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+        assert "Service" in str(result)
+        # Should extract the decorated methods
+        result_str = str(result)
+        assert "static_method" in result_str or "class_method" in result_str
+
+    def test_extracts_nested_generic_types(self, tmp_path: Path):
+        """Test extraction of nested generic type annotations."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        code = """
+from typing import Dict, List, Optional
+
+def complex_types(
+    data: Dict[str, List[int]],
+    options: Optional[Dict[str, Dict[str, List[str]]]]
+) -> List[Dict[str, int]]:
+    pass
+"""
+        test_file = tmp_path / "complex_types.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+        assert "complex_types" in str(result)
+
+    def test_extracts_qualified_decorator(self, tmp_path: Path):
+        """Test extraction of decorators with qualified names."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        code = """
+import functools
+
+@functools.lru_cache(maxsize=100)
+def cached_function(x: int) -> int:
+    return x * 2
+"""
+        test_file = tmp_path / "qualified_decorator.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+        assert "cached_function" in str(result)
+
+    def test_extracts_module_level_constants(self, tmp_path: Path):
+        """Test extraction of module-level constants/attributes."""
+        from maid_runner.cli.snapshot import extract_artifacts_from_code
+
+        code = """
+MODULE_CONSTANT = 42
+CONFIG_VALUE = "test"
+
+def function():
+    pass
+"""
+        test_file = tmp_path / "constants.py"
+        test_file.write_text(code)
+
+        result = extract_artifacts_from_code(str(test_file))
+        # Should extract at least the function
+        assert "function" in str(result)
