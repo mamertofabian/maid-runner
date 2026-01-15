@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-15
+
+### Added
+- **`--dry-run` option for `maid init` command** (Task 149)
+  - Preview generated files without writing them to disk
+  - Useful for reviewing CLAUDE.md and other initialization outputs before committing
+  - Shows exactly what files would be created or modified
+
+### Changed
+- **Improved validation for older manifests with unexpected artifacts**
+  - Older manifests now emit warnings instead of failing validation when they contain artifacts not present in the current codebase
+  - Prevents validation failures for historical manifests when code evolves through newer manifests
+  - Maintains full validation strictness for the latest manifest of each file
+- **Simplified command and test file validation** (refactoring)
+  - Cleaner internal validation logic for validation commands and test file paths
+
+### Fixed
+- **Command and test file existence validation**
+  - Validation now properly checks that commands and test files referenced in manifests exist
+  - Provides clearer error messages when referenced files are missing
+
 ## [0.9.4] - 2026-01-12
 
 ### Fixed
@@ -544,6 +565,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.10.0]: https://github.com/mamertofabian/maid-runner/compare/v0.9.4...v0.10.0
 [0.9.4]: https://github.com/mamertofabian/maid-runner/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/mamertofabian/maid-runner/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/mamertofabian/maid-runner/compare/v0.9.1...v0.9.2
