@@ -200,7 +200,7 @@ class TestRunInitWithoutExampleManifest:
     @patch("builtins.input", return_value="s")
     def test_does_not_create_example_manifest(self, mock_input, tmp_path):
         """Verify example.manifest.json is NOT created."""
-        run_init(str(tmp_path), force=False)
+        run_init(str(tmp_path), tools=[], force=False)
 
         # Verify directories are created
         assert (tmp_path / "manifests").exists()
@@ -212,7 +212,7 @@ class TestRunInitWithoutExampleManifest:
     @patch("builtins.input", return_value="s")
     def test_still_creates_directories(self, mock_input, tmp_path):
         """Verify directories are still created."""
-        run_init(str(tmp_path), force=False)
+        run_init(str(tmp_path), tools=[], force=False)
 
         assert (tmp_path / "manifests").exists()
         assert (tmp_path / "tests").exists()
@@ -221,7 +221,7 @@ class TestRunInitWithoutExampleManifest:
     @patch("builtins.input", return_value="s")
     def test_still_copies_maid_specs(self, mock_input, tmp_path):
         """Verify maid_specs.md is still copied."""
-        run_init(str(tmp_path), force=False)
+        run_init(str(tmp_path), tools=[], force=False)
 
         # Check if .maid/docs/maid_specs.md exists (might not if source missing)
         # The copy_maid_specs function handles missing source gracefully

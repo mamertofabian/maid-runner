@@ -1071,48 +1071,12 @@ def copy_claude_agents(target_dir: str, force: bool, dry_run: bool = False) -> N
         force: If True, copy without prompting
         dry_run: If True, show what would be copied without making changes
     """
-    # Get source location from package
-    current_file = Path(__file__)
-    maid_runner_package = current_file.parent.parent
-    source_agents = maid_runner_package / "claude" / "agents"
+    # Backward compatibility wrapper - delegates to claude module
+    from maid_runner.cli.init_tools.claude import (
+        copy_claude_agents as _copy_claude_agents,
+    )
 
-    if not source_agents.exists():
-        print(
-            f"⚠️  Warning: Could not find claude/agents at {source_agents}. Skipping copy."
-        )
-        return
-
-    # Prompt user if not forcing and not dry-run
-    if not force and not dry_run:
-        response = input("Copy Claude Code agent files (.claude/agents)? (Y/n): ")
-        if response.lower() in ("n", "no"):
-            print("⊘ Skipped Claude Code agent files")
-            return
-
-    # Create destination directory
-    dest_agents = Path(target_dir) / ".claude" / "agents"
-    if not dry_run:
-        dest_agents.mkdir(parents=True, exist_ok=True)
-
-    # Load manifest and get distributable files
-    manifest = load_claude_manifest()
-    distributable = get_distributable_files(manifest, "agents")
-
-    # Copy only distributable agent files
-    copied_count = 0
-    for filename in distributable:
-        source_file = source_agents / filename
-        if source_file.exists():
-            dest_file = dest_agents / filename
-            if dry_run:
-                action = "[UPDATE]" if dest_file.exists() else "[CREATE]"
-                print(f"{action} {dest_file}")
-            else:
-                shutil.copy2(source_file, dest_file)
-            copied_count += 1
-
-    if not dry_run:
-        print(f"✓ Copied {copied_count} Claude Code agent files to {dest_agents}")
+    _copy_claude_agents(target_dir, force, dry_run)
 
 
 def copy_claude_commands(target_dir: str, force: bool, dry_run: bool = False) -> None:
@@ -1123,58 +1087,32 @@ def copy_claude_commands(target_dir: str, force: bool, dry_run: bool = False) ->
         force: If True, copy without prompting
         dry_run: If True, show what would be copied without making changes
     """
-    # Get source location from package
-    current_file = Path(__file__)
-    maid_runner_package = current_file.parent.parent
-    source_commands = maid_runner_package / "claude" / "commands"
+    # Backward compatibility wrapper - delegates to claude module
+    from maid_runner.cli.init_tools.claude import (
+        copy_claude_commands as _copy_claude_commands,
+    )
 
-    if not source_commands.exists():
-        print(
-            f"⚠️  Warning: Could not find claude/commands at {source_commands}. Skipping copy."
-        )
-        return
-
-    # Prompt user if not forcing and not dry-run
-    if not force and not dry_run:
-        response = input("Copy Claude Code command files (.claude/commands)? (Y/n): ")
-        if response.lower() in ("n", "no"):
-            print("⊘ Skipped Claude Code command files")
-            return
-
-    # Create destination directory
-    dest_commands = Path(target_dir) / ".claude" / "commands"
-    if not dry_run:
-        dest_commands.mkdir(parents=True, exist_ok=True)
-
-    # Load manifest and get distributable files
-    manifest = load_claude_manifest()
-    distributable = get_distributable_files(manifest, "commands")
-
-    # Copy only distributable command files
-    copied_count = 0
-    for filename in distributable:
-        source_file = source_commands / filename
-        if source_file.exists():
-            dest_file = dest_commands / filename
-            if dry_run:
-                action = "[UPDATE]" if dest_file.exists() else "[CREATE]"
-                print(f"{action} {dest_file}")
-            else:
-                shutil.copy2(source_file, dest_file)
-            copied_count += 1
-
-    if not dry_run:
-        print(f"✓ Copied {copied_count} Claude Code command files to {dest_commands}")
+    _copy_claude_commands(target_dir, force, dry_run)
 
 
-def run_init(target_dir: str, force: bool, dry_run: bool = False) -> None:
+def run_init(
+    target_dir: str, tools: list[str], force: bool, dry_run: bool = False
+) -> None:
     """Initialize MAID methodology in a repository.
 
     Args:
         target_dir: Target directory to initialize MAID in
+        tools: List of tools to set up ("claude", "cursor", "windsurf", "generic").
+               If empty, defaults to ["claude"] for backward compatibility.
         force: If True, overwrite files without prompting
         dry_run: If True, show what would be done without making changes
     """
+    from maid_runner.cli.init_tools import setup_tool
+
+    # Default to Claude if no tools specified (backward compatibility)
+    if not tools:
+        tools = ["claude"]
+
     print(f"\n{'=' * 60}")
     if dry_run:
         print("MAID Initialization (DRY-RUN MODE)")
@@ -1183,12 +1121,18 @@ def run_init(target_dir: str, force: bool, dry_run: bool = False) -> None:
         print("Initializing MAID Methodology")
     print(f"{'=' * 60}\n")
 
+    # Core MAID setup (always done)
     create_directories(target_dir, dry_run)
     copy_maid_specs(target_dir, dry_run)
     copy_unit_testing_rules(target_dir, dry_run)
-    handle_claude_md(target_dir, force, dry_run)
-    copy_claude_agents(target_dir, force, dry_run)
-    copy_claude_commands(target_dir, force, dry_run)
+
+    # Only create CLAUDE.md if Claude Code is being set up
+    if "claude" in tools:
+        handle_claude_md(target_dir, force, dry_run)
+
+    # Set up requested tools
+    for tool in tools:
+        setup_tool(target_dir, tool, force, dry_run)
 
     print(f"\n{'=' * 60}")
     if dry_run:

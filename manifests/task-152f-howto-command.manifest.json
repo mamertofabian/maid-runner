@@ -1,0 +1,27 @@
+{
+  "version": "1",
+  "goal": "Create howto.py module for interactive MAID methodology guide command",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/howto.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152f_howto_command.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/howto.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_howto",
+        "args": [
+          {"name": "section", "type": "str | None"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152f_howto_command.py", "-v"]
+}

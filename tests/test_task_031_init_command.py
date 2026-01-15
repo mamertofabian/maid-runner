@@ -237,7 +237,7 @@ class TestRunInit:
     @patch("builtins.input", return_value="s")
     def test_creates_complete_structure(self, mock_input, tmp_path):
         """Verify run_init creates all necessary files and directories."""
-        run_init(str(tmp_path), force=False)
+        run_init(str(tmp_path), tools=[], force=False)
 
         # Check directories
         assert (tmp_path / "manifests").exists()
@@ -253,7 +253,7 @@ class TestRunInit:
         # Pre-create CLAUDE.md
         (tmp_path / "CLAUDE.md").write_text("Old content")
 
-        run_init(str(tmp_path), force=True)
+        run_init(str(tmp_path), tools=[], force=True)
 
         # Should overwrite without prompting
         content = (tmp_path / "CLAUDE.md").read_text()

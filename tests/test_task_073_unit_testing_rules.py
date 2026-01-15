@@ -260,7 +260,7 @@ class TestRunInitIntegration:
         from maid_runner.cli.init import run_init
 
         # Act
-        run_init(str(tmp_path), force=True)
+        run_init(str(tmp_path), tools=[], force=True)
 
         # Assert: Both spec files should exist
         maid_docs_dir = tmp_path / ".maid" / "docs"
@@ -277,7 +277,7 @@ class TestRunInitIntegration:
         from maid_runner.cli.init import run_init
 
         # Act
-        run_init(str(tmp_path), force=True)
+        run_init(str(tmp_path), tools=[], force=True)
 
         # Assert
         unit_testing_rules = tmp_path / ".maid" / "docs" / "unit-testing-rules.md"

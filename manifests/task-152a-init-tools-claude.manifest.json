@@ -1,0 +1,50 @@
+{
+  "version": "1",
+  "goal": "Create init_tools/claude.py module to extract Claude Code setup from init.py",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init_tools/claude.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152a_init_tools_claude.py",
+    "maid_runner/cli/init.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init_tools/claude.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "setup_claude",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_claude_agents",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "copy_claude_commands",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152a_init_tools_claude.py", "-v"]
+}

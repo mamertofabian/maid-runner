@@ -1,0 +1,40 @@
+{
+  "version": "1",
+  "goal": "Create init_tools/generic.py module for generic MAID.md file setup",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init_tools/generic.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152d_init_tools_generic.py",
+    "maid_runner/cli/init.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init_tools/generic.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "setup_generic",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_generic_maid_doc",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152d_init_tools_generic.py", "-v"]
+}

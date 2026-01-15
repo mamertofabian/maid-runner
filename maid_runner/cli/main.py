@@ -437,6 +437,42 @@ mixed test runners (pytest + vitest, etc.).""",
         action="store_true",
         help="Show which files would be created or updated without making changes",
     )
+    init_parser.add_argument(
+        "--claude",
+        action="store_true",
+        help="Set up Claude Code integration (default if no tool specified)",
+    )
+    init_parser.add_argument(
+        "--cursor",
+        action="store_true",
+        help="Set up Cursor IDE rules",
+    )
+    init_parser.add_argument(
+        "--windsurf",
+        action="store_true",
+        help="Set up Windsurf IDE rules",
+    )
+    init_parser.add_argument(
+        "--generic",
+        action="store_true",
+        help="Create generic MAID.md documentation file",
+    )
+    init_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Set up all supported dev tools",
+    )
+
+    # Howto subcommand
+    howto_parser = subparsers.add_parser(
+        "howto",
+        help="Interactive guide to MAID methodology",
+        description="Display an interactive walkthrough of the MAID methodology",
+    )
+    howto_parser.add_argument(
+        "--section",
+        help="Jump directly to a specific section (intro|principles|workflow|quickstart|patterns|commands|troubleshooting)",
+    )
 
     # Generate-stubs subcommand
     generate_stubs_parser = subparsers.add_parser(
@@ -676,7 +712,23 @@ Automatically handles:
     elif args.command == "init":
         from maid_runner.cli.init import run_init
 
-        run_init(args.target_dir, args.force, args.dry_run)
+        # Determine which tools to enable
+        tools = []
+        if args.all:
+            tools = ["claude", "cursor", "windsurf", "generic"]
+        else:
+            if args.claude or (
+                not args.cursor and not args.windsurf and not args.generic
+            ):
+                tools.append("claude")
+            if args.cursor:
+                tools.append("cursor")
+            if args.windsurf:
+                tools.append("windsurf")
+            if args.generic:
+                tools.append("generic")
+
+        run_init(args.target_dir, tools, args.force, args.dry_run)
     elif args.command == "generate-stubs":
         from maid_runner.cli.snapshot import generate_test_stub
         import json
@@ -711,6 +763,10 @@ Automatically handles:
         except Exception as e:
             print(f"Error generating stub: {e}", file=sys.stderr)
             sys.exit(1)
+    elif args.command == "howto":
+        from maid_runner.cli.howto import run_howto
+
+        run_howto(section=args.section)
     elif args.command == "schema":
         from maid_runner.cli.schema import run_schema
 

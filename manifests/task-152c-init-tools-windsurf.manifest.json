@@ -1,0 +1,40 @@
+{
+  "version": "1",
+  "goal": "Create init_tools/windsurf.py module for Windsurf IDE rules setup",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init_tools/windsurf.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152c_init_tools_windsurf.py",
+    "maid_runner/cli/init.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init_tools/windsurf.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "setup_windsurf",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_windsurf_rules",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152c_init_tools_windsurf.py", "-v"]
+}

@@ -207,7 +207,7 @@ class TestRunInitDryRun:
     @patch("builtins.input", return_value="s")
     def test_shows_all_operations_in_dry_run(self, mock_input, tmp_path, capsys):
         """Verify dry-run shows all files and directories that would be created."""
-        run_init(str(tmp_path), force=False, dry_run=True)
+        run_init(str(tmp_path), tools=[], force=False, dry_run=True)
         captured = capsys.readouterr()
         output = captured.out
 
@@ -219,7 +219,7 @@ class TestRunInitDryRun:
     @patch("builtins.input", return_value="s")
     def test_does_not_create_anything_in_dry_run(self, mock_input, tmp_path):
         """Verify dry-run does not actually create any files or directories."""
-        run_init(str(tmp_path), force=False, dry_run=True)
+        run_init(str(tmp_path), tools=[], force=False, dry_run=True)
 
         # Should not create main directories
         assert not (tmp_path / "manifests").exists()
@@ -230,7 +230,7 @@ class TestRunInitDryRun:
     def test_works_with_force_flag_in_dry_run(self, tmp_path, capsys):
         """Verify dry-run works correctly with --force flag."""
         (tmp_path / "CLAUDE.md").write_text("# Existing")
-        run_init(str(tmp_path), force=True, dry_run=True)
+        run_init(str(tmp_path), tools=[], force=True, dry_run=True)
         captured = capsys.readouterr()
         output = captured.out
 
@@ -238,7 +238,7 @@ class TestRunInitDryRun:
 
     def test_shows_correct_summary_in_dry_run(self, tmp_path, capsys):
         """Verify dry-run shows appropriate summary message."""
-        run_init(str(tmp_path), force=False, dry_run=True)
+        run_init(str(tmp_path), tools=[], force=False, dry_run=True)
         captured = capsys.readouterr()
         output = captured.out
 

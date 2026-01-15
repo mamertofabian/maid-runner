@@ -102,11 +102,11 @@ class TestCopyClaudeAgents:
     def test_handles_missing_source_gracefully(self, tmp_path, capsys, monkeypatch):
         """Verify graceful handling when source files not found."""
         # Mock the package location to point to non-existent location
-        from maid_runner.cli import init as init_module
+        from maid_runner.cli.init_tools import claude as claude_module
 
-        original_file = init_module.__file__
+        original_file = claude_module.__file__
         # Point to a location where claude/ directory doesn't exist
-        monkeypatch.setattr(init_module, "__file__", str(tmp_path / "fake_module.py"))
+        monkeypatch.setattr(claude_module, "__file__", str(tmp_path / "fake_module.py"))
 
         # Should not raise, should print warning
         copy_claude_agents(str(tmp_path), force=True)
@@ -116,7 +116,7 @@ class TestCopyClaudeAgents:
         assert "Warning" in captured.out or "warning" in captured.out.lower()
 
         # Restore
-        monkeypatch.setattr(init_module, "__file__", original_file)
+        monkeypatch.setattr(claude_module, "__file__", original_file)
 
 
 class TestCopyClaudeCommands:
@@ -208,11 +208,11 @@ class TestCopyClaudeCommands:
     def test_handles_missing_source_gracefully(self, tmp_path, capsys, monkeypatch):
         """Verify graceful handling when source files not found."""
         # Mock the package location to point to non-existent location
-        from maid_runner.cli import init as init_module
+        from maid_runner.cli.init_tools import claude as claude_module
 
-        original_file = init_module.__file__
+        original_file = claude_module.__file__
         # Point to a location where claude/ directory doesn't exist
-        monkeypatch.setattr(init_module, "__file__", str(tmp_path / "fake_module.py"))
+        monkeypatch.setattr(claude_module, "__file__", str(tmp_path / "fake_module.py"))
 
         # Should not raise, should print warning
         copy_claude_commands(str(tmp_path), force=True)
@@ -222,7 +222,7 @@ class TestCopyClaudeCommands:
         assert "Warning" in captured.out or "warning" in captured.out.lower()
 
         # Restore
-        monkeypatch.setattr(init_module, "__file__", original_file)
+        monkeypatch.setattr(claude_module, "__file__", original_file)
 
 
 class TestIntegration:

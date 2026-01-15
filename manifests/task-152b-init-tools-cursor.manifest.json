@@ -1,0 +1,40 @@
+{
+  "version": "1",
+  "goal": "Create init_tools/cursor.py module for Cursor IDE rules setup",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init_tools/cursor.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152b_init_tools_cursor.py",
+    "maid_runner/cli/init.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init_tools/cursor.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "setup_cursor",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      },
+      {
+        "type": "function",
+        "name": "create_cursor_rules",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152b_init_tools_cursor.py", "-v"]
+}

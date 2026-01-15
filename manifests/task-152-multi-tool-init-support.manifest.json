@@ -1,0 +1,44 @@
+{
+  "version": "1",
+  "goal": "Update init.py and main.py to support multiple AI dev tools via flags and register howto command",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/init.py",
+    "maid_runner/cli/main.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_152_multi_tool_init_support.py",
+    "maid_runner/cli/init_tools/__init__.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "run_init",
+        "args": [
+          {
+            "name": "target_dir",
+            "type": "str"
+          },
+          {
+            "name": "tools",
+            "type": "list[str]"
+          },
+          {
+            "name": "force",
+            "type": "bool"
+          },
+          {
+            "name": "dry_run",
+            "type": "bool"
+          }
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152_multi_tool_init_support.py", "-v"]
+}

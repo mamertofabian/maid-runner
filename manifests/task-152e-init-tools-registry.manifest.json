@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "goal": "Create init_tools/__init__.py module with tool registry and dispatcher",
+  "taskType": "create",
+  "supersedes": [],
+  "creatableFiles": [
+    "maid_runner/cli/init_tools/__init__.py"
+  ],
+  "editableFiles": [],
+  "readonlyFiles": [
+    "tests/test_task_152e_init_tools_registry.py",
+    "maid_runner/cli/init_tools/claude.py",
+    "maid_runner/cli/init_tools/cursor.py",
+    "maid_runner/cli/init_tools/windsurf.py",
+    "maid_runner/cli/init_tools/generic.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/init_tools/__init__.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "setup_tool",
+        "args": [
+          {"name": "target_dir", "type": "str"},
+          {"name": "tool_name", "type": "str"},
+          {"name": "force", "type": "bool"},
+          {"name": "dry_run", "type": "bool"}
+        ],
+        "returns": "None"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_152e_init_tools_registry.py", "-v"]
+}
