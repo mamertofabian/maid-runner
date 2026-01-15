@@ -344,3 +344,137 @@ def test_collect_tracked_files_no_validationcommand():
     # No test files should be extracted (none specified)
     test_files = [f for f in tracked.keys() if f.startswith("tests/")]
     assert len(test_files) == 0
+
+
+# ============================================================================
+# Test vitest and other test runners are supported
+# ============================================================================
+
+
+def test_collect_tracked_files_includes_test_from_vitest_command():
+    """Test that test files from vitest validationCommand are tracked."""
+    manifest_chain = [
+        {
+            "goal": "Create TypeScript module",
+            "creatableFiles": ["src/module.ts"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "src/module.ts",
+                "contains": [{"type": "function", "name": "my_func"}],
+            },
+            "validationCommand": [
+                "pnpm",
+                "exec",
+                "vitest",
+                "run",
+                "tests/test_module.spec.ts",
+            ],
+        }
+    ]
+
+    tracked = collect_tracked_files(manifest_chain)
+
+    # Test file from vitest validationCommand should be tracked
+    assert "tests/test_module.spec.ts" in tracked
+    assert tracked["tests/test_module.spec.ts"]["has_tests"] is True
+
+
+def test_collect_tracked_files_includes_test_from_vitest_without_exec():
+    """Test that test files from vitest command without pnpm exec are tracked."""
+    manifest_chain = [
+        {
+            "goal": "Create feature",
+            "creatableFiles": ["feature.ts"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "feature.ts",
+                "contains": [{"type": "function", "name": "run"}],
+            },
+            "validationCommand": ["vitest", "run", "tests/test_feature.spec.ts"],
+        }
+    ]
+
+    tracked = collect_tracked_files(manifest_chain)
+
+    # Test file from vitest command should be tracked
+    assert "tests/test_feature.spec.ts" in tracked
+
+
+def test_collect_tracked_files_includes_test_from_jest_command():
+    """Test that test files from jest validationCommand are tracked."""
+    manifest_chain = [
+        {
+            "goal": "Create component",
+            "creatableFiles": ["component.js"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "component.js",
+                "contains": [{"type": "function", "name": "render"}],
+            },
+            "validationCommand": ["jest", "tests/test_component.test.js"],
+        }
+    ]
+
+    tracked = collect_tracked_files(manifest_chain)
+
+    # Test file from jest validationCommand should be tracked
+    assert "tests/test_component.test.js" in tracked
+
+
+def test_collect_tracked_files_handles_vitest_with_flags():
+    """Test that vitest commands with flags still extract test files correctly."""
+    manifest_chain = [
+        {
+            "goal": "Create service",
+            "creatableFiles": ["service.ts"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "service.ts",
+                "contains": [{"type": "class", "name": "Service"}],
+            },
+            "validationCommand": [
+                "vitest",
+                "run",
+                "--reporter=verbose",
+                "tests/test_service.spec.ts",
+            ],
+        }
+    ]
+
+    tracked = collect_tracked_files(manifest_chain)
+
+    # Test file should be tracked, flags should be ignored
+    assert "tests/test_service.spec.ts" in tracked
+    assert "--reporter=verbose" not in tracked
+
+
+def test_analyze_file_tracking_vitest_tests_not_in_untracked(tmp_path: Path):
+    """Test that test files from vitest validationCommand do NOT appear in untracked_tests."""
+    # Create the test file in the filesystem
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_extension.test.ts").write_text("// test file")
+
+    manifest_chain = [
+        {
+            "goal": "Create extension",
+            "creatableFiles": ["extension.ts"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "extension.ts",
+                "contains": [{"type": "function", "name": "activate"}],
+            },
+            "validationCommand": [
+                "pnpm",
+                "exec",
+                "vitest",
+                "run",
+                "tests/test_extension.test.ts",
+            ],
+        }
+    ]
+
+    analysis = analyze_file_tracking(manifest_chain, str(tmp_path))
+
+    # Test file should be tracked, NOT in untracked_tests
+    assert "tests/test_extension.test.ts" not in analysis["untracked_tests"]
+    assert "tests/test_extension.test.ts" in analysis["tracked"]

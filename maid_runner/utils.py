@@ -4,7 +4,7 @@ import json
 import shlex
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from maid_runner.cache.manifest_cache import ManifestRegistry
 
@@ -86,6 +86,31 @@ def validate_manifest_version(
             f"Only version '1' is currently supported. "
             f"Manifest: {manifest_name}"
         )
+
+
+def check_command_exists(command: List[str]) -> Tuple[bool, Optional[str]]:
+    """Check if a command exists in the system PATH.
+
+    Args:
+        command: List of command arguments, where the first element is the command name
+
+    Returns:
+        Tuple of (exists: bool, error_message: Optional[str])
+        If command doesn't exist, returns (False, error_message)
+        If command exists, returns (True, None)
+    """
+    import shutil
+
+    if not command:
+        return (False, "Empty command")
+
+    cmd_name = command[0]
+
+    # Check if command exists in PATH
+    if shutil.which(cmd_name) is None:
+        return (False, f"Command '{cmd_name}' not found in PATH")
+
+    return (True, None)
 
 
 def normalize_validation_commands(manifest_data: dict) -> List[List[str]]:

@@ -58,9 +58,11 @@ def _extract_from_single_command(command: List[str]) -> list:
 
 
 def _extract_from_string_commands(command: List[str]) -> List[str]:
-    """Extract test files from string-based pytest commands.
+    """Extract test files from string-based test commands.
 
-    Handles formats like: ["pytest test1.py", "pytest test2.py"]
+    Handles formats like:
+    - ["pytest test1.py", "pytest test2.py"]
+    - ["vitest run test1.spec.ts", "vitest run test2.spec.ts"]
 
     Args:
         command: List of command strings
@@ -69,25 +71,42 @@ def _extract_from_string_commands(command: List[str]) -> List[str]:
         List of test file paths
     """
     test_files = []
+    test_runners = ["pytest", "vitest", "jest"]
 
     for cmd in command:
-        if not isinstance(cmd, str) or "pytest" not in cmd:
+        if not isinstance(cmd, str):
+            continue
+
+        # Check if command contains any test runner
+        has_runner = any(runner in cmd for runner in test_runners)
+        if not has_runner:
             continue
 
         cmd_parts = cmd.split() if " " in cmd else [cmd]
-        pytest_index = _find_pytest_index(cmd_parts)
+        runner_index = _find_test_runner_index(cmd_parts)
 
-        if pytest_index != -1:
-            pytest_args = cmd_parts[pytest_index + 1 :]
-            test_files.extend(_filter_test_paths_from_args(pytest_args))
+        if runner_index != -1:
+            # Skip subcommand if present
+            start_index = runner_index + 1
+            if start_index < len(cmd_parts) and cmd_parts[start_index] in [
+                "run",
+                "test",
+            ]:
+                start_index += 1
+            test_args = cmd_parts[start_index:]
+            test_files.extend(_filter_test_paths_from_args(test_args))
 
     return test_files
 
 
 def _extract_from_list_command(command: List[str]) -> List[str]:
-    """Extract test files from list-based pytest command.
+    """Extract test files from list-based test command.
 
-    Handles formats like: ["pytest", "test.py", "-v"]
+    Handles formats like:
+    - ["pytest", "test.py", "-v"]
+    - ["vitest", "run", "test.spec.ts"]
+    - ["pnpm", "exec", "vitest", "run", "test.spec.ts"]
+    - ["jest", "test.test.js"]
 
     Args:
         command: List of command parts
@@ -98,12 +117,17 @@ def _extract_from_list_command(command: List[str]) -> List[str]:
     if len(command) <= 1:
         return []
 
-    pytest_index = _find_pytest_index(command)
-    if pytest_index == -1:
+    runner_index = _find_test_runner_index(command)
+    if runner_index == -1:
         return []
 
-    pytest_args = command[pytest_index + 1 :]
-    return _filter_test_paths_from_args(pytest_args)
+    # Skip the next arg if it's a subcommand (like "run" or "test")
+    start_index = runner_index + 1
+    if start_index < len(command) and command[start_index] in ["run", "test"]:
+        start_index += 1
+
+    test_args = command[start_index:]
+    return _filter_test_paths_from_args(test_args)
 
 
 def _find_pytest_index(command_parts: List[str]) -> int:
@@ -121,34 +145,79 @@ def _find_pytest_index(command_parts: List[str]) -> int:
     return -1
 
 
-def _filter_test_paths_from_args(pytest_args: List[str]) -> List[str]:
-    """Filter test file/directory paths from pytest arguments.
+def _find_test_runner_index(command_parts: List[str]) -> int:
+    """Find the index of any test runner (pytest, vitest, jest) in command parts.
+
+    Supports common test runners and handles package manager exec patterns:
+    - pytest, vitest, jest (direct)
+    - pnpm exec vitest, npm exec jest, yarn exec vitest
+    - python -m pytest, uv run pytest
 
     Args:
-        pytest_args: List of pytest arguments
+        command_parts: List of command components
+
+    Returns:
+        Index of test runner or -1 if not found
+    """
+    test_runners = ["pytest", "vitest", "jest"]
+
+    for i, part in enumerate(command_parts):
+        # Direct test runner
+        if part in test_runners:
+            return i
+        # Handle package manager exec patterns: pnpm exec vitest, npm exec jest
+        if part in ["exec"] and i + 1 < len(command_parts):
+            if command_parts[i + 1] in test_runners:
+                return i + 1
+        # Handle python -m pytest, uv run pytest
+        if part in ["-m", "run"] and i + 1 < len(command_parts):
+            if command_parts[i + 1] in test_runners:
+                return i + 1
+
+    return -1
+
+
+def _filter_test_paths_from_args(test_args: List[str]) -> List[str]:
+    """Filter test file/directory paths from test runner arguments.
+
+    Supports pytest, vitest, jest, and other test runners.
+
+    Args:
+        test_args: List of test runner arguments
 
     Returns:
         List of test file/directory paths
     """
-    PYTEST_OPTIONS_WITH_VALUES = {"--tb", "--cov", "--maxfail", "--timeout"}
+    TEST_OPTIONS_WITH_VALUES = {
+        "--tb",
+        "--cov",
+        "--maxfail",
+        "--timeout",
+        "--reporter",
+        "--config",
+    }
     test_files = []
 
-    for arg in pytest_args:
-        # Skip pytest flags
+    for arg in test_args:
+        # Skip flags
         if arg.startswith("-"):
             continue
 
-        # Skip common pytest options that take values
-        if arg in PYTEST_OPTIONS_WITH_VALUES:
+        # Skip common test options that take values
+        if arg in TEST_OPTIONS_WITH_VALUES:
             continue
 
-        # Extract file path from node IDs (file::class::method)
+        # Extract file path from node IDs (file::class::method for pytest)
         if "::" in arg:
             file_path = arg.split("::")[0]
             test_files.append(file_path)
         else:
             # Regular file or directory path
-            test_files.append(arg)
+            # Also check for common test file patterns
+            if "test" in arg.lower() or arg.endswith(
+                (".py", ".ts", ".js", ".spec.ts", ".spec.js", ".test.ts", ".test.js")
+            ):
+                test_files.append(arg)
 
     return test_files
 

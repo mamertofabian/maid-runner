@@ -1,0 +1,32 @@
+{
+  "version": "1",
+  "goal": "Add check_command_exists function to validate that validation commands exist in PATH before execution, and integrate it into behavioral and implementation validation modes",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/utils.py",
+    "maid_runner/cli/validate.py",
+    "maid_runner/cli/test.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_150_validate_command_existence.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/utils.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "check_command_exists",
+        "args": [
+          {
+            "name": "command",
+            "type": "List[str]"
+          }
+        ],
+        "returns": "Tuple[bool, Optional[str]]"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_150_validate_command_existence.py", "-v"]
+}

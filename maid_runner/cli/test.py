@@ -24,6 +24,7 @@ from maid_runner.utils import (
     print_maid_not_enabled_message,
     print_no_manifests_found_message,
     validate_manifest_version,
+    check_command_exists,
 )
 from maid_runner.validators.typescript_test_runner import (
     is_typescript_command,
@@ -698,6 +699,13 @@ def execute_validation_commands(
 
         cmd_str = " ".join(normalized_cmd)
         print(f"  [{i+1}/{total}] {cmd_str}")
+
+        # Check if command exists before attempting to run it
+        cmd_exists, error_msg = check_command_exists(normalized_cmd)
+        if not cmd_exists:
+            failed += 1
+            print(f"    ❌ {error_msg}")
+            continue
 
         try:
             result = subprocess.run(
