@@ -73,7 +73,7 @@ class UserService {
         assert "fetchUser" in result["found_methods"]["UserService"]
 
     def test_private_methods(self, tmp_path):
-        """Must detect private methods."""
+        """Private methods should be excluded from implementation artifacts."""
         test_file = tmp_path / "test.ts"
         test_file.write_text(
             """
@@ -81,16 +81,20 @@ class DataProcessor {
     private validate(data: any): boolean {
         return true;
     }
+    public process(): void {}
 }
 """
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
+        # Public method should be found
         assert "DataProcessor" in result["found_methods"]
-        assert "validate" in result["found_methods"]["DataProcessor"]
+        assert "process" in result["found_methods"]["DataProcessor"]
+        # Private method should NOT be found
+        assert "validate" not in result["found_methods"]["DataProcessor"]
 
     def test_protected_methods(self, tmp_path):
-        """Must detect protected methods."""
+        """Protected methods should be excluded from implementation artifacts."""
         test_file = tmp_path / "test.ts"
         test_file.write_text(
             """
@@ -98,13 +102,17 @@ class BaseService {
     protected log(message: string): void {
         console.log(message);
     }
+    public execute(): void {}
 }
 """
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "implementation")
+        # Public method should be found
         assert "BaseService" in result["found_methods"]
-        assert "log" in result["found_methods"]["BaseService"]
+        assert "execute" in result["found_methods"]["BaseService"]
+        # Protected method should NOT be found
+        assert "log" not in result["found_methods"]["BaseService"]
 
     def test_public_methods(self, tmp_path):
         """Must detect public methods (explicit public modifier)."""

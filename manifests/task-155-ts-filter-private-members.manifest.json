@@ -1,0 +1,31 @@
+{
+  "goal": "Filter TypeScript private and protected members from implementation validation",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/typescript_validator.py"],
+  "readonlyFiles": [],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_is_private_member",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "node"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_find_class_methods",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "class_node"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_155_ts_filter_private_members.py", "-v"]
+}

@@ -482,8 +482,11 @@ class TypeScriptValidator(BaseValidator):
                                 )
                                 params = [{"name": param_name}]
 
-                if name and any(
-                    child.type == "arrow_function" for child in node.children
+                # Skip private/protected class property arrow functions
+                if (
+                    name
+                    and any(child.type == "arrow_function" for child in node.children)
+                    and not self._is_private_member(node)
                 ):
                     functions[name] = params
 
@@ -1132,15 +1135,33 @@ class TypeScriptValidator(BaseValidator):
                                         )
                                         params = [{"name": param_name}]
 
-                        # Skip constructors and skip arrow functions (they're handled by _extract_arrow_functions)
+                        # Skip constructors, arrow functions, and private/protected members
                         if (
                             method_name
                             and method_name != "constructor"
                             and not is_arrow_function
+                            and not self._is_private_member(body_child)
                         ):
                             methods[method_name] = params
 
         return methods
+
+    def _is_private_member(self, node) -> bool:
+        """Check if a class member has private or protected visibility.
+
+        Args:
+            node: Method definition or field definition node
+
+        Returns:
+            True if member has private or protected accessibility modifier
+        """
+        for child in node.children:
+            if child.type == "accessibility_modifier":
+                # Get the modifier text
+                modifier_text = child.text.decode("utf-8") if child.text else ""
+                if modifier_text in ("private", "protected"):
+                    return True
+        return False
 
     def _is_abstract_class(self, node) -> bool:
         """Check if class is abstract.

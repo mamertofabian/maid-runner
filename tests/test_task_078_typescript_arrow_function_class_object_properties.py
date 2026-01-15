@@ -169,7 +169,7 @@ class Utilities {
         assert params[0]["type"] == "string"
 
     def test_private_class_property_arrow_function(self, tmp_path):
-        """Private class property arrow function must be detected."""
+        """Private class property arrow functions should be excluded."""
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -177,6 +177,7 @@ class Utilities {
             """
 class Foo {
     private helper = (x: number) => x * 2
+    public publicHelper = (y: number) => y + 1
 }
 """
         )
@@ -185,10 +186,12 @@ class Foo {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        # Private methods should still be detected
-        assert "helper" in arrow_functions
-        params = arrow_functions["helper"]
-        assert params[0]["name"] == "x"
+        # Public arrow function should be detected
+        assert "publicHelper" in arrow_functions
+        params = arrow_functions["publicHelper"]
+        assert params[0]["name"] == "y"
+        # Private arrow function should NOT be detected
+        assert "helper" not in arrow_functions
 
 
 # =============================================================================
