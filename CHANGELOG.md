@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-01-15
+
+### Added
+- **Multi-tool support for `maid init` and `maid howto`** (Tasks 152a-f)
+  - Initialize MAID workflow for different AI coding tools: Claude Code, Cursor, Windsurf, or generic
+  - New `--tool` flag for `maid init` to specify target tool (default: claude)
+  - Tool-specific configuration files: CLAUDE.md for Claude Code, .cursorrules for Cursor, .windsurfrules for Windsurf
+  - New `maid howto` command to display tool-specific MAID guidance at any time
+  - Extensible tool registry architecture for adding new tool support
+- **MAID specification and unit testing rules documentation**
+  - Packaged `maid_specs.md` and `unit-testing-rules.md` with PyPI distribution
+  - Available for reference via `maid init` generated files
+
+### Fixed
+- **Batch mode test file extraction for pytest node IDs**
+  - Properly extracts test file paths from pytest node IDs (e.g., `tests/foo.py::test_bar`)
+  - Ensures correct test file discovery in multi-runner batch mode
+- **Function reference detection in behavioral validation**
+  - Added missing `used_arguments` key in AST collection
+  - Enhanced function reference detection for more accurate behavioral validation
+
 ## [0.10.0] - 2026-01-15
 
 ### Added
@@ -565,6 +586,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[0.11.0]: https://github.com/mamertofabian/maid-runner/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/mamertofabian/maid-runner/compare/v0.9.4...v0.10.0
 [0.9.4]: https://github.com/mamertofabian/maid-runner/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/mamertofabian/maid-runner/compare/v0.9.2...v0.9.3
