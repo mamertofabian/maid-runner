@@ -1,0 +1,41 @@
+{
+  "goal": "Enhance TypeScript validator to map variables to classes from type annotations and assignment expressions",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/typescript_validator.py"],
+  "readonlyFiles": ["maid_runner/validators/base_validator.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_variable_to_class_mapping",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_extract_type_annotated_variables",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      },
+      {
+        "type": "function",
+        "name": "_extract_assignment_instantiations",
+        "class": "TypeScriptValidator",
+        "args": [
+          {"name": "tree"},
+          {"name": "source_code", "type": "bytes"}
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_153_ts_variable_class_mapping.py", "-v"]
+}

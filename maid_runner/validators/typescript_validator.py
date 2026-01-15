@@ -131,10 +131,15 @@ class TypeScriptValidator(BaseValidator):
         Returns:
             Dictionary with class usage, function calls, method calls, and used arguments
         """
+        # Extract variable-to-class mapping for method call resolution
+        variable_to_class = self._extract_variable_to_class_mapping(tree, source_code)
+
         return {
             "used_classes": self._extract_class_usage(tree, source_code),
             "used_functions": self._extract_function_calls(tree, source_code),
-            "used_methods": self._extract_method_calls(tree, source_code),
+            "used_methods": self._extract_method_calls(
+                tree, source_code, variable_to_class
+            ),
             "used_arguments": set(),  # TypeScript argument tracking not yet implemented
         }
 
@@ -619,6 +624,184 @@ class TypeScriptValidator(BaseValidator):
             return True
         return False
 
+    def _extract_variable_to_class_mapping(self, tree, source_code: bytes) -> dict:
+        """Extract mapping from variable names to class names.
+
+        Combines three sources of variable-to-class mappings:
+        1. Direct instantiation: const statusBar = new MaidStatusBar()
+        2. Type annotations: let statusBar: MaidStatusBar;
+        3. Assignment expressions: statusBar = new MaidStatusBar();
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Dictionary mapping variable names to class names
+        """
+        variable_to_class = {}
+
+        # Source 1: Direct instantiation in variable declaration
+        def _get_class_from_new_expression(node):
+            """Extract class name from a new_expression node."""
+            for child in node.children:
+                if child.type == "identifier":
+                    return self._get_node_text(child, source_code)
+                elif child.type == "call_expression":
+                    # Handle new ClassName()
+                    for call_child in child.children:
+                        if call_child.type == "identifier":
+                            return self._get_node_text(call_child, source_code)
+            return None
+
+        def _visit(node):
+            # Match variable declarations: const/let/var name = new ClassName()
+            if node.type in ("variable_declarator", "lexical_declaration"):
+                # Find variable_declarator children
+                declarators = []
+                if node.type == "variable_declarator":
+                    declarators = [node]
+                else:
+                    for child in node.children:
+                        if child.type == "variable_declarator":
+                            declarators.append(child)
+
+                for declarator in declarators:
+                    var_name = None
+                    class_name = None
+
+                    for child in declarator.children:
+                        if child.type == "identifier" and var_name is None:
+                            var_name = self._get_node_text(child, source_code)
+                        elif child.type == "new_expression":
+                            class_name = _get_class_from_new_expression(child)
+
+                    if var_name and class_name:
+                        variable_to_class[var_name] = class_name
+
+        self._traverse_tree(tree.root_node, _visit)
+
+        # Source 2: Type annotations (let statusBar: MaidStatusBar;)
+        type_annotated = self._extract_type_annotated_variables(tree, source_code)
+        for var_name, class_name in type_annotated.items():
+            if var_name not in variable_to_class:
+                variable_to_class[var_name] = class_name
+
+        # Source 3: Assignment expressions (statusBar = new MaidStatusBar();)
+        assignment_instantiations = self._extract_assignment_instantiations(
+            tree, source_code
+        )
+        for var_name, class_name in assignment_instantiations.items():
+            if var_name not in variable_to_class:
+                variable_to_class[var_name] = class_name
+
+        return variable_to_class
+
+    def _extract_type_annotated_variables(self, tree, source_code: bytes) -> dict:
+        """Extract variable-to-class mapping from type annotations.
+
+        Tracks patterns like:
+        - let statusBar: MaidStatusBar;
+        - const service: UserService;
+
+        Only maps to class/interface types, not primitive types.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Dictionary mapping variable names to class/type names
+        """
+        variable_to_class = {}
+        # Primitive types to ignore
+        primitive_types = {
+            "string",
+            "number",
+            "boolean",
+            "any",
+            "void",
+            "null",
+            "undefined",
+            "never",
+            "unknown",
+            "object",
+            "symbol",
+            "bigint",
+        }
+
+        def _visit(node):
+            # Match variable declarations with type annotations
+            if node.type == "variable_declarator":
+                var_name = None
+                type_name = None
+
+                for child in node.children:
+                    if child.type == "identifier" and var_name is None:
+                        var_name = self._get_node_text(child, source_code)
+                    elif child.type == "type_annotation":
+                        # Extract the type from the annotation
+                        for type_child in child.children:
+                            if type_child.type == "type_identifier":
+                                type_name = self._get_node_text(type_child, source_code)
+                                break
+
+                # Only map if it's a class/interface type, not a primitive
+                if var_name and type_name and type_name.lower() not in primitive_types:
+                    variable_to_class[var_name] = type_name
+
+        self._traverse_tree(tree.root_node, _visit)
+        return variable_to_class
+
+    def _extract_assignment_instantiations(self, tree, source_code: bytes) -> dict:
+        """Extract variable-to-class mapping from assignment expressions.
+
+        Tracks patterns like:
+        - statusBar = new MaidStatusBar();
+        - service = new UserService();
+
+        This handles cases where variable is declared separately from instantiation,
+        often seen in test setup (beforeEach) callbacks.
+
+        Args:
+            tree: Parsed AST tree
+            source_code: Source code as bytes
+
+        Returns:
+            Dictionary mapping variable names to class names
+        """
+        variable_to_class = {}
+
+        def _get_class_from_new_expression(node):
+            """Extract class name from a new_expression node."""
+            for child in node.children:
+                if child.type == "identifier":
+                    return self._get_node_text(child, source_code)
+                elif child.type == "call_expression":
+                    # Handle new ClassName()
+                    for call_child in child.children:
+                        if call_child.type == "identifier":
+                            return self._get_node_text(call_child, source_code)
+            return None
+
+        def _visit(node):
+            # Match assignment expressions: varName = new ClassName()
+            if node.type == "assignment_expression":
+                var_name = None
+                class_name = None
+
+                for child in node.children:
+                    if child.type == "identifier" and var_name is None:
+                        var_name = self._get_node_text(child, source_code)
+                    elif child.type == "new_expression":
+                        class_name = _get_class_from_new_expression(child)
+
+                if var_name and class_name:
+                    variable_to_class[var_name] = class_name
+
+        self._traverse_tree(tree.root_node, _visit)
+        return variable_to_class
+
     def _extract_class_usage(self, tree, source_code: bytes) -> set:
         """Extract class instantiations (new ClassName).
 
@@ -752,17 +935,24 @@ class TypeScriptValidator(BaseValidator):
         self._traverse_tree(tree.root_node, _visit)
         return imported_functions
 
-    def _extract_method_calls(self, tree, source_code: bytes) -> dict:
+    def _extract_method_calls(
+        self, tree, source_code: bytes, variable_to_class: dict = None
+    ) -> dict:
         """Extract method calls (object.method()).
 
         Args:
             tree: Parsed AST tree
             source_code: Source code as bytes
+            variable_to_class: Optional mapping from variable names to class names.
+                When provided, method calls on variables are mapped to their class names
+                for behavioral validation.
 
         Returns:
-            Dictionary mapping object names to sets of method names
+            Dictionary mapping class/object names to sets of method names.
+            If variable_to_class is provided, variable names are resolved to class names.
         """
         method_calls = {}
+        var_to_class = variable_to_class or {}
 
         def _visit(node):
             if node.type == "call_expression":
@@ -785,9 +975,11 @@ class TypeScriptValidator(BaseValidator):
                                 )
 
                         if obj_name and method_name:
-                            if obj_name not in method_calls:
-                                method_calls[obj_name] = set()
-                            method_calls[obj_name].add(method_name)
+                            # Map variable name to class name if mapping exists
+                            key = var_to_class.get(obj_name, obj_name)
+                            if key not in method_calls:
+                                method_calls[key] = set()
+                            method_calls[key].add(method_name)
 
         self._traverse_tree(tree.root_node, _visit)
         return method_calls

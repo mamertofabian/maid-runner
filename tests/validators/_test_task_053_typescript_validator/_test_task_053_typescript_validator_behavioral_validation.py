@@ -53,10 +53,11 @@ service.deleteUser(456);
         )
         validator = TypeScriptValidator()
         result = validator.collect_artifacts(str(test_file), "behavioral")
-        assert "service" in result["used_methods"]
-        assert "fetchUser" in result["used_methods"]["service"]
-        assert "updateUser" in result["used_methods"]["service"]
-        assert "deleteUser" in result["used_methods"]["service"]
+        # Methods should be mapped to UserService class, not variable name
+        assert "UserService" in result["used_methods"]
+        assert "fetchUser" in result["used_methods"]["UserService"]
+        assert "updateUser" in result["used_methods"]["UserService"]
+        assert "deleteUser" in result["used_methods"]["UserService"]
 
     def test_chained_method_calls(self, tmp_path):
         """Must detect chained method calls."""
