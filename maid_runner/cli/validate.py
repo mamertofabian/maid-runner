@@ -199,6 +199,58 @@ def _build_supersede_hint(
     return hint
 
 
+def _is_latest_manifest_for_file(
+    manifest_path: Path, target_file: str, use_cache: bool = False
+) -> bool:
+    """Check if this manifest is the latest active manifest for the target file.
+
+    Args:
+        manifest_path: Path to the manifest being checked.
+        target_file: The target file path.
+        use_cache: Whether to use manifest chain caching.
+
+    Returns:
+        True if this manifest is the latest active manifest for the file, False otherwise.
+    """
+    related_manifests = discover_related_manifests(target_file, use_cache=use_cache)
+    if not related_manifests:
+        return True  # Only manifest for this file (or no manifests found)
+    latest_manifest = Path(related_manifests[-1])
+    return latest_manifest.resolve() == manifest_path.resolve()
+
+
+def _build_new_manifest_hint(
+    error_message: str,
+) -> Optional[str]:
+    """Build hint for latest manifest when unexpected artifacts are found.
+
+    Args:
+        error_message: The error message from validation.
+
+    Returns:
+        A hint string if the error is about unexpected public artifacts, None otherwise.
+    """
+    if "Unexpected public" not in error_message:
+        return None
+    return "\n\nHint: Create a new manifest to declare the new public function and create a new behavioral test."
+
+
+def _get_latest_manifest_name(target_file: str, use_cache: bool = False) -> str:
+    """Get the name of the latest manifest for a file.
+
+    Args:
+        target_file: The target file path.
+        use_cache: Whether to use manifest chain caching.
+
+    Returns:
+        The name of the latest manifest, or 'unknown' if no manifests exist.
+    """
+    related_manifests = discover_related_manifests(target_file, use_cache=use_cache)
+    if not related_manifests:
+        return "unknown"
+    return Path(related_manifests[-1]).name
+
+
 def _format_file_tracking_output(
     analysis: dict,
     quiet: bool = False,
@@ -1899,26 +1951,75 @@ def _perform_core_validation(
                 )
             except AlignmentError as e:
                 error_message = str(e)
-                # Check if we should add a hint about superseding
-                hint = _build_supersede_hint(
-                    manifest_path=manifest_path_obj,
-                    manifest_data=manifest_data,
-                    target_file=file_path,
-                    error_message=error_message,
-                )
-                if hint:
-                    error_message += hint
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.ARTIFACT_NOT_FOUND,
-                        message=error_message,
-                        file=getattr(e, "file", None) or file_path,
-                        line=getattr(e, "line", None),
-                        column=getattr(e, "column", None),
-                        severity=ErrorSeverity.ERROR,
+
+                # Handle unexpected artifacts with manifest chain
+                if (
+                    "Unexpected public" in error_message
+                    and use_manifest_chain
+                    and file_path
+                ):
+                    is_latest = _is_latest_manifest_for_file(
+                        manifest_path_obj, file_path, use_cache
                     )
-                )
-                return _make_result(False)
+
+                    if not is_latest:
+                        # Older manifest: Convert to warning and pass
+                        latest_manifest_name = _get_latest_manifest_name(
+                            file_path, use_cache
+                        )
+                        warnings.append(
+                            ValidationError(
+                                code=ErrorCode.ARTIFACT_NOT_FOUND,
+                                message=(
+                                    f"Validation Warning: {error_message} "
+                                    f"in the manifest chain. "
+                                    f"See validation result for {latest_manifest_name} "
+                                    f"for more details."
+                                ),
+                                file=getattr(e, "file", None) or file_path,
+                                line=getattr(e, "line", None),
+                                column=getattr(e, "column", None),
+                                severity=ErrorSeverity.WARNING,
+                            )
+                        )
+                        return _make_result(True)  # Pass with warning
+                    else:
+                        # Latest manifest: Fail with new hint
+                        hint = _build_new_manifest_hint(error_message)
+                        if hint:
+                            error_message += hint
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.ARTIFACT_NOT_FOUND,
+                                message=error_message,
+                                file=getattr(e, "file", None) or file_path,
+                                line=getattr(e, "line", None),
+                                column=getattr(e, "column", None),
+                                severity=ErrorSeverity.ERROR,
+                            )
+                        )
+                        return _make_result(False)
+                else:
+                    # Original behavior for other errors or when not using manifest chain
+                    hint = _build_supersede_hint(
+                        manifest_path=manifest_path_obj,
+                        manifest_data=manifest_data,
+                        target_file=file_path,
+                        error_message=error_message,
+                    )
+                    if hint:
+                        error_message += hint
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.ARTIFACT_NOT_FOUND,
+                            message=error_message,
+                            file=getattr(e, "file", None) or file_path,
+                            line=getattr(e, "line", None),
+                            column=getattr(e, "column", None),
+                            severity=ErrorSeverity.ERROR,
+                        )
+                    )
+                    return _make_result(False)
 
         # Success
         return _make_result(True)
@@ -2387,20 +2488,59 @@ def run_validation(
 
         if isinstance(e, AlignmentError):
             error_message = str(e)
-            # Check if we should add a hint about superseding
-            hint = _build_supersede_hint(
-                manifest_path=Path(manifest_path),
-                manifest_data=manifest_data,
-                target_file=file_path,
-                error_message=error_message,
-            )
-            if hint:
-                error_message += hint
-            print(f"✗ Validation FAILED: {error_message}")
-            if not quiet:
-                print(f"  Manifest: {manifest_path}")
-                print(f"  Mode:     {validation_mode}")
-            sys.exit(1)
+            manifest_path_obj = Path(manifest_path)
+
+            # Handle unexpected artifacts with manifest chain
+            if (
+                "Unexpected public" in error_message
+                and use_manifest_chain
+                and file_path
+            ):
+                is_latest = _is_latest_manifest_for_file(
+                    manifest_path_obj, file_path, use_cache
+                )
+
+                if not is_latest:
+                    # Older manifest: Show warning and pass
+                    latest_manifest_name = _get_latest_manifest_name(
+                        file_path, use_cache
+                    )
+                    print(
+                        f"✗ Validation Warning: {error_message} "
+                        f"in the manifest chain. "
+                        f"See validation result for {latest_manifest_name} "
+                        f"for more details."
+                    )
+                    if not quiet:
+                        print(f"  Manifest: {manifest_path}")
+                        print(f"  Mode:     {validation_mode}")
+                        print("  ✅ PASSED")
+                    return  # Success with warning
+                else:
+                    # Latest manifest: Fail with new hint
+                    hint = _build_new_manifest_hint(error_message)
+                    if hint:
+                        error_message += hint
+                    print(f"✗ Validation FAILED: {error_message}")
+                    if not quiet:
+                        print(f"  Manifest: {manifest_path}")
+                        print(f"  Mode:     {validation_mode}")
+                    sys.exit(1)
+            else:
+                # Original behavior for other errors or when not using manifest chain
+                hint = _build_supersede_hint(
+                    manifest_path=manifest_path_obj,
+                    manifest_data=manifest_data,
+                    target_file=file_path,
+                    error_message=error_message,
+                )
+                if hint:
+                    error_message += hint
+                print(f"✗ Validation FAILED: {error_message}")
+                if not quiet:
+                    print(f"  Manifest: {manifest_path}")
+                    print(f"  Mode:     {validation_mode}")
+                sys.exit(1)
         else:
             # Re-raise if it's not an AlignmentError
             raise

@@ -1,0 +1,64 @@
+{
+  "version": "1",
+  "goal": "Modify validation logic so that when validating with --use-manifest-chain, older manifests show warnings (not errors) for unexpected artifacts, and only the latest manifest fails with a hint to create a new manifest",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": [
+    "maid_runner/cli/validate.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_151_warn_older_manifests_unexpected_artifacts.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/cli/validate.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_is_latest_manifest_for_file",
+        "args": [
+          {
+            "name": "manifest_path",
+            "type": "Path"
+          },
+          {
+            "name": "target_file",
+            "type": "str"
+          },
+          {
+            "name": "use_cache",
+            "type": "bool"
+          }
+        ],
+        "returns": "bool"
+      },
+      {
+        "type": "function",
+        "name": "_build_new_manifest_hint",
+        "args": [
+          {
+            "name": "error_message",
+            "type": "str"
+          }
+        ],
+        "returns": "Optional[str]"
+      },
+      {
+        "type": "function",
+        "name": "_get_latest_manifest_name",
+        "args": [
+          {
+            "name": "target_file",
+            "type": "str"
+          },
+          {
+            "name": "use_cache",
+            "type": "bool"
+          }
+        ],
+        "returns": "str"
+      }
+    ]
+  },
+  "validationCommand": ["pytest", "tests/test_task_151_warn_older_manifests_unexpected_artifacts.py", "-v"]
+}
