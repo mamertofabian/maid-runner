@@ -398,6 +398,59 @@ def _format_coherence_issues(result: CoherenceResult, quiet: bool) -> None:
         print(output)
 
 
+def _validate_commands_exist(
+    manifest_data: dict,
+) -> tuple[bool, List[tuple[str, str]]]:
+    """Validate that all validation commands exist in PATH.
+
+    Args:
+        manifest_data: Dictionary containing manifest data
+
+    Returns:
+        Tuple of (all_exist: bool, missing_commands: List[tuple[cmd_name, error_msg]])
+    """
+    validation_commands = manifest_data.get("validationCommands", [])
+    if not validation_commands:
+        validation_commands = manifest_data.get("validationCommand", [])
+
+    if not validation_commands:
+        return (True, [])
+
+    normalized_commands = normalize_validation_commands(manifest_data)
+    missing_commands = []
+    for cmd in normalized_commands:
+        if not cmd:
+            continue
+        cmd_exists, error_msg = check_command_exists(cmd)
+        if not cmd_exists:
+            missing_commands.append((cmd[0], error_msg))
+
+    return (len(missing_commands) == 0, missing_commands)
+
+
+def _validate_test_files_from_commands(
+    validation_commands: List[Any],
+) -> tuple[bool, List[str]]:
+    """Validate that all test files extracted from validation commands exist.
+
+    Args:
+        validation_commands: Validation command(s) from manifest
+
+    Returns:
+        Tuple of (all_exist: bool, missing_files: List[str])
+    """
+    test_files = extract_test_files_from_command(validation_commands)
+    if not test_files:
+        return (True, [])
+
+    missing_test_files = []
+    for test_file in test_files:
+        if not Path(test_file).exists():
+            missing_test_files.append(test_file)
+
+    return (len(missing_test_files) == 0, missing_test_files)
+
+
 def extract_test_files_from_command(validation_command: List[Any]) -> list:
     """Extract test file paths from pytest validation commands.
 
@@ -1807,24 +1860,10 @@ def _perform_core_validation(
             has_validation = bool(validation_commands)
 
             if has_validation:
-                from maid_runner.utils import (
-                    normalize_validation_commands,
-                    check_command_exists,
-                )
-
-                normalized_commands = normalize_validation_commands(manifest_data)
-                missing_commands = []
-                for cmd in normalized_commands:
-                    if not cmd:
-                        continue
-                    cmd_exists, error_msg = check_command_exists(cmd)
-                    if not cmd_exists:
-                        missing_commands.append((cmd[0], error_msg))
-
-                if missing_commands:
-                    error_messages = [
-                        f"{error_msg}" for _, error_msg in missing_commands
-                    ]
+                # Validate that validation commands exist in PATH
+                all_exist, missing_commands = _validate_commands_exist(manifest_data)
+                if not all_exist:
+                    error_messages = [error_msg for _, error_msg in missing_commands]
                     errors.append(
                         ValidationError(
                             code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
@@ -1835,25 +1874,20 @@ def _perform_core_validation(
                     )
                     return _make_result(False)
 
-                # Extract and validate test files exist
-                # Use the same format as regular validation flow
-                test_files = extract_test_files_from_command(validation_commands)
-                if test_files:
-                    missing_test_files = []
-                    for test_file in test_files:
-                        if not Path(test_file).exists():
-                            missing_test_files.append(test_file)
-
-                    if missing_test_files:
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.FILE_NOT_FOUND,
-                                message=f"Test file(s) not found: {', '.join(missing_test_files)}",
-                                file=manifest_path,
-                                severity=ErrorSeverity.ERROR,
-                            )
+                # Validate test files exist
+                all_exist, missing_test_files = _validate_test_files_from_commands(
+                    validation_commands
+                )
+                if not all_exist:
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.FILE_NOT_FOUND,
+                            message=f"Test file(s) not found: {', '.join(missing_test_files)}",
+                            file=manifest_path,
+                            severity=ErrorSeverity.ERROR,
                         )
-                        return _make_result(False)
+                    )
+                    return _make_result(False)
 
             try:
                 validate_with_ast(
@@ -2178,38 +2212,28 @@ def run_validation(
             # Behavioral mode: Check test files exist and USE artifacts
             if validation_commands:
                 # Validate that validation commands exist in PATH
-                normalized_commands = normalize_validation_commands(manifest_data)
-                missing_commands = []
-                for cmd in normalized_commands:
-                    if not cmd:
-                        continue
-                    cmd_exists, error_msg = check_command_exists(cmd)
-                    if not cmd_exists:
-                        missing_commands.append((cmd[0], error_msg))
-
-                if missing_commands:
+                all_exist, missing_commands = _validate_commands_exist(manifest_data)
+                if not all_exist:
                     print(
                         "✗ Error: Validation command(s) not found in PATH:",
                         file=sys.stderr,
                     )
-                    for cmd_name, error_msg in missing_commands:
+                    for _, error_msg in missing_commands:
                         print(f"  - {error_msg}", file=sys.stderr)
+                    sys.exit(1)
+
+                # Validate test files exist
+                all_exist, missing_test_files = _validate_test_files_from_commands(
+                    validation_commands
+                )
+                if not all_exist:
+                    print(
+                        f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
+                    )
                     sys.exit(1)
 
                 test_files = extract_test_files_from_command(validation_commands)
                 if test_files:
-                    # Validate test files exist
-                    missing_test_files = []
-                    for test_file in test_files:
-                        if not Path(test_file).exists():
-                            missing_test_files.append(test_file)
-
-                    if missing_test_files:
-                        print(
-                            f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
-                        )
-                        sys.exit(1)
-
                     if not quiet:
                         print("Running behavioral test validation...")
                     validate_behavioral_tests(
@@ -2254,38 +2278,28 @@ def run_validation(
             # Also run behavioral test validation if validation commands are present
             if validation_commands:
                 # Validate that validation commands exist in PATH
-                normalized_commands = normalize_validation_commands(manifest_data)
-                missing_commands = []
-                for cmd in normalized_commands:
-                    if not cmd:
-                        continue
-                    cmd_exists, error_msg = check_command_exists(cmd)
-                    if not cmd_exists:
-                        missing_commands.append((cmd[0], error_msg))
-
-                if missing_commands:
+                all_exist, missing_commands = _validate_commands_exist(manifest_data)
+                if not all_exist:
                     print(
                         "✗ Error: Validation command(s) not found in PATH:",
                         file=sys.stderr,
                     )
-                    for cmd_name, error_msg in missing_commands:
+                    for _, error_msg in missing_commands:
                         print(f"  - {error_msg}", file=sys.stderr)
+                    sys.exit(1)
+
+                # Validate test files exist
+                all_exist, missing_test_files = _validate_test_files_from_commands(
+                    validation_commands
+                )
+                if not all_exist:
+                    print(
+                        f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
+                    )
                     sys.exit(1)
 
                 test_files = extract_test_files_from_command(validation_commands)
                 if test_files:
-                    # Check if test files exist (TDD: tests may not exist yet)
-                    missing_test_files = []
-                    for test_file in test_files:
-                        if not Path(test_file).exists():
-                            missing_test_files.append(test_file)
-
-                    if missing_test_files:
-                        print(
-                            f"✗ Error: Test file(s) not found: {', '.join(missing_test_files)}"
-                        )
-                        sys.exit(1)
-
                     if not quiet:
                         print("Running behavioral test validation...")
                     validate_behavioral_tests(
