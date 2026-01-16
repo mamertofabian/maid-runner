@@ -577,13 +577,48 @@ class TypeScriptValidator(BaseValidator):
 
         return functions
 
+    def _is_at_module_scope(self, node) -> bool:
+        """Check if a node is at module scope (not nested inside a function).
+
+        A node is at module scope if none of its ancestors are function-like nodes.
+        This prevents detecting nested arrow functions as public declarations.
+
+        Args:
+            node: AST node to check
+
+        Returns:
+            True if the node is at module scope, False if nested in a function
+        """
+        function_like_types = {
+            "function_declaration",
+            "function_expression",
+            "arrow_function",
+            "method_definition",
+            "generator_function",
+            "generator_function_declaration",
+        }
+
+        current = node.parent
+        while current is not None:
+            if current.type in function_like_types:
+                return False
+            if current.type == "program":
+                return True
+            current = current.parent
+
+        return (
+            True  # If we reach the root without finding a function, it's module scope
+        )
+
     def _extract_arrow_functions(self, tree, source_code: bytes) -> dict:
         """Extract arrow function declarations with their parameters.
 
         Arrow functions are found in:
-        - lexical_declaration -> variable_declarator (const/let variables)
+        - lexical_declaration -> variable_declarator (const/let variables) at MODULE SCOPE
         - public_field_definition (class properties)
-        - pair (object properties)
+
+        Only extracts declarations at module scope. Nested arrow functions inside
+        other functions are local variables and not public declarations.
 
         Args:
             tree: Parsed AST tree
@@ -595,8 +630,12 @@ class TypeScriptValidator(BaseValidator):
         functions = {}
 
         def _visit(node):
-            # Handle variable declarations (const/let)
+            # Handle variable declarations (const/let) - only at module scope
             if node.type == "lexical_declaration":
+                # Skip if not at module scope (nested inside a function)
+                if not self._is_at_module_scope(node):
+                    return
+
                 for child in node.children:
                     if child.type == "variable_declarator":
                         name = None

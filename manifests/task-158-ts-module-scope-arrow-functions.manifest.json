@@ -1,0 +1,28 @@
+{
+  "goal": "Fix TypeScript validator to only extract module-scope arrow function declarations. Nested arrow functions inside other functions are local variables and should not be detected as public declarations.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_is_at_module_scope",
+        "class": "TypeScriptValidator",
+        "description": "Check if a node is at module scope (not nested inside a function)"
+      },
+      {
+        "type": "function",
+        "name": "_extract_arrow_functions",
+        "class": "TypeScriptValidator",
+        "description": "Extract arrow function declarations at module scope only"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_158_ts_module_scope_arrow_functions.py", "-v"]
+}
