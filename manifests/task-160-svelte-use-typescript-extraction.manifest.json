@@ -1,0 +1,33 @@
+{
+  "goal": "Refactor Svelte validator to delegate script content extraction to TypeScript validator, eliminating code duplication and ensuring consistent behavior.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/svelte_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/typescript_validator.py",
+    "tests/test_task_160_svelte_use_typescript_extraction.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/svelte_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "SvelteValidator"
+      },
+      {
+        "type": "function",
+        "name": "_collect_implementation_artifacts",
+        "class": "SvelteValidator",
+        "description": "Delegates to TypeScript validator for script extraction"
+      },
+      {
+        "type": "function",
+        "name": "_collect_behavioral_artifacts",
+        "class": "SvelteValidator",
+        "description": "Delegates to TypeScript validator for behavioral extraction"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_160_svelte_use_typescript_extraction.py", "-v"]
+}
