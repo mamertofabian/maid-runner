@@ -80,12 +80,16 @@ class TestCLISchemaMode:
         manifest_path.write_text(json.dumps(manifest_data))
 
         # Mock the validation functions to track calls
-        with patch("maid_runner.cli.validate.validate_schema") as mock_schema:
+        with patch(
+            "maid_runner.cli._text_mode_validation.validate_schema"
+        ) as mock_schema:
             with patch(
-                "maid_runner.cli.validate.validate_manifest_semantics"
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
             ) as mock_semantics:
                 with patch("maid_runner.utils.validate_manifest_version"):
-                    with patch("maid_runner.cli.validate.validate_with_ast"):
+                    with patch(
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
+                    ):
                         # Call run_validation with schema mode
                         try:
                             run_validation(
@@ -142,8 +146,10 @@ class TestSchemaOnlyValidation:
         manifest_path.write_text(json.dumps(manifest_data))
 
         # Mock validation functions to succeed
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     # Schema mode should pass without checking if file exists
                     try:
@@ -182,8 +188,10 @@ class TestSchemaOnlyValidation:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     with patch(
                         "maid_runner.cli.validate.validate_behavioral_tests"
@@ -220,11 +228,13 @@ class TestSchemaOnlyValidation:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     with patch(
-                        "maid_runner.cli.validate.validate_with_ast"
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
                     ) as mock_ast:
                         try:
                             run_validation(
@@ -259,9 +269,11 @@ class TestSchemaOnlyValidation:
         manifest_path.write_text(json.dumps(manifest_data))
 
         with patch(
-            "maid_runner.cli.validate.validate_schema"
+            "maid_runner.cli._text_mode_validation.validate_schema"
         ) as mock_schema_validation:
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     try:
                         run_validation(
@@ -295,9 +307,9 @@ class TestSchemaOnlyValidation:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
             with patch(
-                "maid_runner.cli.validate.validate_manifest_semantics"
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
             ) as mock_semantics:
                 with patch("maid_runner.utils.validate_manifest_version"):
                     try:
@@ -332,8 +344,10 @@ class TestSchemaOnlyValidation:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch(
                     "maid_runner.utils.validate_manifest_version"
                 ) as mock_version:
@@ -370,7 +384,7 @@ class TestSchemaValidationErrorHandling:
 
         # Mock validate_schema to raise ValidationError
         with patch(
-            "maid_runner.cli.validate.validate_schema"
+            "maid_runner.cli._text_mode_validation.validate_schema"
         ) as mock_schema_validation:
             mock_schema_validation.side_effect = jsonschema.ValidationError("Invalid")
 
@@ -406,9 +420,9 @@ class TestSchemaValidationErrorHandling:
         manifest_path.write_text(json.dumps(manifest_data))
 
         # Mock semantic validation to raise error
-        with patch("maid_runner.cli.validate.validate_schema"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
             with patch(
-                "maid_runner.cli.validate.validate_manifest_semantics"
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
             ) as mock_semantics:
                 mock_semantics.side_effect = ManifestSemanticError("Semantic error")
 
@@ -443,8 +457,10 @@ class TestSchemaValidationErrorHandling:
         manifest_path.write_text(json.dumps(manifest_data))
 
         # Mock version validation to raise error
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch(
                     "maid_runner.utils.validate_manifest_version"
                 ) as mock_version:
@@ -486,8 +502,10 @@ class TestEarlyExitBehavior:
         manifest_path.write_text(json.dumps(manifest_data))
 
         # All validation steps should succeed
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     # Should succeed without checking if file exists
                     try:
@@ -524,8 +542,10 @@ class TestEarlyExitBehavior:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     # Should succeed without checking if test file exists
                     try:
@@ -570,8 +590,10 @@ class TestSchemaModePracticalUseCases:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     # Should validate successfully in schema mode
                     try:
@@ -607,8 +629,10 @@ class TestSchemaModePracticalUseCases:
         }
         manifest_path.write_text(json.dumps(manifest_data))
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
                 with patch("maid_runner.utils.validate_manifest_version"):
                     # Schema mode should validate structure
                     try:

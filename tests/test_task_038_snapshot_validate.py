@@ -3,8 +3,8 @@
 This test file documents the actual behavior of the existing code.
 """
 
-import json
 from io import StringIO
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -433,25 +433,29 @@ class TestRunValidation:
             "manifests", "implementation", False, False, use_cache=False
         )
 
-    @patch("maid_runner.cli.validate.validate_schema")
+    @patch("maid_runner.cli._text_mode_validation.validate_schema")
     @patch("builtins.open")
+    @patch("maid_runner.cli._text_mode_validation.Path")
     @patch("maid_runner.cli.validate.Path")
-    def test_invalid_json_handled(self, mock_path, mock_open, mock_validate):
+    def test_invalid_json_handled(
+        self, mock_path_validate, mock_path_text, mock_open, mock_validate
+    ):
         """Test handling of invalid JSON in manifest file.
 
-        Note: Due to exception handler ordering in run_validation, JSONDecodeError
-        is caught by the generic Exception handler, which re-raises it. The specific
-        json.JSONDecodeError handler is unreachable, so the exception propagates up.
+        The JSONDecodeError is caught by the text-mode validation handler and
+        converted to a clean error message with SystemExit(1).
         """
-        mock_path.return_value.exists.return_value = True
+        mock_path_text.return_value.exists.return_value = True
+        mock_path_text.return_value.parent = Path(".")
+        mock_path_validate.return_value.exists.return_value = True
 
         # Create a real file-like object that contains invalid JSON
 
         mock_file = StringIO("{invalid json")
         mock_open.return_value.__enter__.return_value = mock_file
 
-        # The actual behavior is that JSONDecodeError is re-raised and propagates
-        with pytest.raises(json.JSONDecodeError):
+        # The actual behavior is that JSONDecodeError is caught and exits with code 1
+        with pytest.raises(SystemExit) as exc_info:
             run_validation(
                 manifest_path="manifest.json",
                 validation_mode="implementation",
@@ -460,6 +464,8 @@ class TestRunValidation:
                 manifest_dir=None,
                 skip_file_tracking=False,
             )
+
+        assert exc_info.value.code == 1
 
 
 class TestMain:

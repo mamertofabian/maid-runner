@@ -71,10 +71,16 @@ class TestRunValidationUseCacheParameter:
         (src_dir / "test.py").write_text("def test_func(): pass")
 
         # Mock to prevent actual validation and check the call completes
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
-                with patch("maid_runner.cli.validate.validate_supersession"):
-                    with patch("maid_runner.cli.validate.validate_with_ast"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
+                with patch(
+                    "maid_runner.cli._text_mode_validation.validate_supersession"
+                ):
+                    with patch(
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
+                    ):
                         import os
 
                         original_cwd = os.getcwd()
@@ -121,10 +127,16 @@ class TestRunValidationUseCacheParameter:
         src_dir.mkdir()
         (src_dir / "test.py").write_text("def test_func(): pass")
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
-                with patch("maid_runner.cli.validate.validate_supersession"):
-                    with patch("maid_runner.cli.validate.validate_with_ast"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
+                with patch(
+                    "maid_runner.cli._text_mode_validation.validate_supersession"
+                ):
+                    with patch(
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
+                    ):
                         import os
 
                         original_cwd = os.getcwd()
@@ -184,11 +196,15 @@ class TestCacheFlagPropagationToDiscoverRelatedManifests:
             discover_calls.append({"target_file": target_file, "use_cache": use_cache})
             return []  # Return empty list of related manifests
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
-                with patch("maid_runner.cli.validate.validate_supersession"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
+                with patch(
+                    "maid_runner.cli._text_mode_validation.validate_supersession"
+                ):
                     with patch(
-                        "maid_runner.cli.validate.validate_with_ast"
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
                     ) as mock_ast:
                         # Mock validate_with_ast to prevent actual validation
                         mock_ast.return_value = None
@@ -257,11 +273,15 @@ class TestCacheFlagPropagationToDiscoverRelatedManifests:
             discover_calls.append({"target_file": target_file, "use_cache": use_cache})
             return []
 
-        with patch("maid_runner.cli.validate.validate_schema"):
-            with patch("maid_runner.cli.validate.validate_manifest_semantics"):
-                with patch("maid_runner.cli.validate.validate_supersession"):
+        with patch("maid_runner.cli._text_mode_validation.validate_schema"):
+            with patch(
+                "maid_runner.cli._text_mode_validation.validate_manifest_semantics"
+            ):
+                with patch(
+                    "maid_runner.cli._text_mode_validation.validate_supersession"
+                ):
                     with patch(
-                        "maid_runner.cli.validate.validate_with_ast"
+                        "maid_runner.cli._text_mode_validation.validate_with_ast"
                     ) as mock_ast:
                         mock_ast.return_value = None
 
