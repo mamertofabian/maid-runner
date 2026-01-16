@@ -1,0 +1,22 @@
+{
+  "goal": "Fix TypeScript validator to detect generator functions (function* and async function*) as public functions.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "readonlyFiles": [
+    "tests/test_task_159_ts_generator_function_detection.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_functions",
+        "class": "TypeScriptValidator",
+        "description": "Extract function declarations including generator functions"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_159_ts_generator_function_detection.py", "-v"]
+}

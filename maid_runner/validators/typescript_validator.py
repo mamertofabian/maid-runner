@@ -545,6 +545,9 @@ class TypeScriptValidator(BaseValidator):
     def _extract_functions(self, tree, source_code: bytes) -> dict:
         """Extract function declarations with their parameters.
 
+        Extracts regular functions, generator functions, and async generator
+        functions at module scope.
+
         Args:
             tree: Parsed AST tree
             source_code: Source code as bytes
@@ -554,9 +557,20 @@ class TypeScriptValidator(BaseValidator):
         """
         functions = {}
 
+        # Node types for function declarations (including generators)
+        function_node_types = (
+            "function_declaration",
+            "function_signature",
+            "generator_function_declaration",
+        )
+
         def _visit(node):
-            # Handle both regular function declarations and ambient function signatures
-            if node.type in ("function_declaration", "function_signature"):
+            # Handle function declarations, signatures, and generators
+            if node.type in function_node_types:
+                # Skip nested functions (not at module scope)
+                if not self._is_at_module_scope(node):
+                    return
+
                 name = None
                 params = []
 
