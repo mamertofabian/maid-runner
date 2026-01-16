@@ -323,10 +323,17 @@ class Processor {
 
 
 class TestObjectPropertyArrowFunctions:
-    """Test detection of arrow functions as object properties."""
+    """Test that object property arrow functions are NOT detected as functions.
+
+    Object property arrow functions (e.g., { queryFn: () => {} }) are anonymous
+    functions assigned to object properties, not public function declarations.
+    They cannot be exported and should not appear in found_functions.
+
+    Updated by task-157 to correct the behavior.
+    """
 
     def test_simple_object_property_arrow_function(self, tmp_path):
-        """Simple object property arrow function must be detected."""
+        """Object property arrow functions should NOT be detected."""
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -342,15 +349,11 @@ const obj = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        # Object property arrow functions should be detected
-        assert "method" in arrow_functions
-        params = arrow_functions["method"]
-        assert len(params) == 1
-        assert params[0]["name"] == "x"
-        assert params[0]["type"] == "number"
+        # Object property arrow functions should NOT be detected
+        assert "method" not in arrow_functions
 
     def test_multiple_object_property_arrow_functions(self, tmp_path):
-        """Multiple object property arrow functions must be detected."""
+        """Multiple object property arrow functions should NOT be detected."""
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -368,12 +371,13 @@ const handlers = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        assert "onClick" in arrow_functions
-        assert "onChange" in arrow_functions
-        assert "onSubmit" in arrow_functions
+        # Object property arrow functions should NOT be detected
+        assert "onClick" not in arrow_functions
+        assert "onChange" not in arrow_functions
+        assert "onSubmit" not in arrow_functions
 
     def test_nested_object_property_arrow_function(self, tmp_path):
-        """Nested object property arrow functions must be detected."""
+        """Nested object property arrow functions should NOT be detected."""
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -392,11 +396,12 @@ const config = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        # Nested object properties should be detected
-        assert "success" in arrow_functions or "error" in arrow_functions
+        # Nested object property arrow functions should NOT be detected
+        assert "success" not in arrow_functions
+        assert "error" not in arrow_functions
 
     def test_object_property_without_type_annotation(self, tmp_path):
-        """Object property arrow function without type annotations."""
+        """Object property arrow function without type annotations should NOT be detected."""
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -412,9 +417,8 @@ const utils = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        assert "double" in arrow_functions
-        params = arrow_functions["double"]
-        assert params[0]["name"] == "x"
+        # Object property arrow functions should NOT be detected
+        assert "double" not in arrow_functions
 
 
 # =============================================================================
@@ -525,7 +529,11 @@ class Component {
         assert params[0]["name"] == "e"
 
     def test_object_property_arrow_in_found_functions(self, tmp_path):
-        """Object property arrow functions must appear in found_functions."""
+        """Object property arrow functions should NOT appear in found_functions.
+
+        Updated by task-157: Object property arrow functions are anonymous
+        functions, not public function declarations.
+        """
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -541,7 +549,8 @@ const api = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         artifacts = validator._collect_implementation_artifacts(tree, source_code)
 
-        assert "fetch" in artifacts["found_functions"]
+        # Object property arrow functions should NOT be in found_functions
+        assert "fetch" not in artifacts["found_functions"]
 
 
 # =============================================================================
@@ -842,8 +851,12 @@ class Component {
         assert len(params) == 1
         assert params[0]["name"] == "e"
 
-    def test_snapshot_includes_object_property_arrow_functions(self, tmp_path):
-        """Generated snapshot must include object property arrow functions."""
+    def test_snapshot_excludes_object_property_arrow_functions(self, tmp_path):
+        """Generated snapshot should NOT include object property arrow functions.
+
+        Updated by task-157: Object property arrow functions are anonymous
+        functions, not public function declarations.
+        """
         from maid_runner.cli.snapshot import generate_snapshot
         import json
 
@@ -869,8 +882,8 @@ export const handlers = {
         artifacts = manifest["expectedArtifacts"]["contains"]
         functions = [a for a in artifacts if a.get("name") == "onClick"]
 
-        # Should find the object property arrow function
-        assert len(functions) >= 1
+        # Object property arrow functions should NOT be in snapshot
+        assert len(functions) == 0
 
     def test_snapshot_real_world_react_component(self, tmp_path):
         """Snapshot of real React component with event handlers."""
@@ -1050,7 +1063,11 @@ class Transformer {
         assert params[0]["name"] == "x"
 
     def test_object_property_single_param_no_parens(self, tmp_path):
-        """Object property arrow function with single param, no parentheses."""
+        """Object property arrow function with single param should NOT be detected.
+
+        Updated by task-157: Object property arrow functions are anonymous
+        functions, not public function declarations.
+        """
         from maid_runner.validators.typescript_validator import TypeScriptValidator
 
         ts_file = tmp_path / "test.ts"
@@ -1067,10 +1084,9 @@ const utils = {
         tree, source_code = validator._parse_typescript_file(str(ts_file))
         arrow_functions = validator._extract_arrow_functions(tree, source_code)
 
-        assert "double" in arrow_functions
-        assert "stringify" in arrow_functions
-        assert arrow_functions["double"][0]["name"] == "n"
-        assert arrow_functions["stringify"][0]["name"] == "v"
+        # Object property arrow functions should NOT be detected
+        assert "double" not in arrow_functions
+        assert "stringify" not in arrow_functions
 
 
 # =============================================================================

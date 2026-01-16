@@ -667,31 +667,10 @@ class TypeScriptValidator(BaseValidator):
                 ):
                     functions[name] = params
 
-            # Handle object property arrow functions
-            elif node.type == "pair":
-                name = None
-                params = []
-
-                for child in node.children:
-                    if child.type == "property_identifier":
-                        name = self._get_node_text(child, source_code)
-                    elif child.type == "arrow_function":
-                        for arrow_child in child.children:
-                            if arrow_child.type == "formal_parameters":
-                                params = self._extract_parameters(
-                                    arrow_child, source_code
-                                )
-                            elif arrow_child.type == "identifier":
-                                # Single parameter without parentheses
-                                param_name = self._get_node_text(
-                                    arrow_child, source_code
-                                )
-                                params = [{"name": param_name}]
-
-                if name and any(
-                    child.type == "arrow_function" for child in node.children
-                ):
-                    functions[name] = params
+            # NOTE: Object property arrow functions (node.type == "pair") are intentionally
+            # NOT extracted. Arrow functions in object literals like { queryFn: () => {} }
+            # are anonymous functions assigned to properties, not public function declarations.
+            # They cannot be exported and should not appear in found_functions.
 
         self._traverse_tree(tree.root_node, _visit)
         return functions

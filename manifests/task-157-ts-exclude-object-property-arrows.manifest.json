@@ -1,0 +1,23 @@
+{
+  "goal": "Fix TypeScript validator to exclude object property arrow functions from found_functions. Arrow functions assigned to object properties (like queryFn, mutationFn, onSuccess in React Query) are anonymous functions, not public function declarations, and should not be extracted as artifacts. This corrects the behavior introduced in task-078 which incorrectly treated object literal properties as function declarations.",
+  "taskType": "edit",
+  "editableFiles": [
+    "maid_runner/validators/typescript_validator.py"
+  ],
+  "readonlyFiles": [
+    "maid_runner/validators/base_validator.py",
+    "tests/test_task_078_typescript_arrow_function_class_object_properties.py"
+  ],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/typescript_validator.py",
+    "contains": [
+      {
+        "type": "function",
+        "name": "_extract_arrow_functions",
+        "class": "TypeScriptValidator",
+        "description": "Extract arrow function declarations, excluding object property arrow functions which are not public declarations"
+      }
+    ]
+  },
+  "validationCommand": ["uv", "run", "python", "-m", "pytest", "tests/test_task_157_ts_exclude_object_property_arrows.py", "-v"]
+}
