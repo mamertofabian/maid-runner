@@ -206,6 +206,14 @@ MAID Runner provides **validation and helper utilities** for manifest-driven dev
 
 **[MAID Agents](https://github.com/mamertofabian/maid-agents)** - Automated orchestration using Claude Code agents. Handles the complete development lifecycle from idea to validated implementation.
 
+**[MAID Runner MCP](https://github.com/mamertofabian/maid-runner-mcp)** - Model Context Protocol server that exposes MAID Runner validation capabilities to AI agents via standardized MCP protocol.
+
+**[MAID LSP](https://github.com/mamertofabian/maid-lsp)** - Language Server Protocol implementation providing real-time manifest validation, code actions, and hover information in IDEs (VS Code, JetBrains, Claude Code).
+
+**[MAID for VS Code](https://github.com/mamertofabian/vscode-maid)** - VS Code and Cursor extension with manifest explorer, test execution, knowledge graph visualization, and real-time diagnostics via MAID LSP.
+
+**[Claude Plugins Marketplace](https://github.com/aidrivencoder/claude-plugins)** - Central repository for Claude Code plugins including MAID Runner, MAID Runner MCP, Everything Search, and ElevenLabs.
+
 ### How They Work Together
 
 - **MAID Runner** (this tool) = Validation layer
@@ -220,7 +228,28 @@ MAID Runner provides **validation and helper utilities** for manifest-driven dev
   - Implements code via Claude Code
   - Uses MAID Runner for validation
 
-Most users start with MAID Runner for validation, then add MAID Agents for full automation.
+- **MAID Runner MCP** = Protocol bridge
+  - Exposes MAID Runner to AI agents via MCP
+  - Provides tools, resources, and prompts
+  - Enables programmatic access without subprocess calls
+
+- **MAID LSP** = IDE integration layer
+  - Real-time validation in editors
+  - Code actions and hover information
+  - Supports VS Code, JetBrains, Claude Code, and LSP-compatible IDEs
+
+- **MAID for VS Code** = VS Code extension
+  - Manifest explorer and navigation
+  - Test execution with watch mode
+  - Knowledge graph visualization
+  - Auto-install detection for MAID LSP
+
+- **Claude Plugins Marketplace** = Plugin distribution
+  - Easy installation via `/plugin install`
+  - Central plugin management
+  - Automatic dependency handling
+
+Most users start with MAID Runner for validation, then integrate with IDEs and automation tools as needed.
 
 ### Python API
 
