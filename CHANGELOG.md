@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.4] - 2026-01-16
+
+### Changed
+- **Svelte validator delegates to TypeScript validator** (Task 160)
+  - Refactored Svelte script extraction to use TypeScript validator's extraction logic
+  - Eliminates code duplication between validators (~350 lines removed)
+  - Svelte files now automatically inherit all TypeScript validation improvements:
+    - Module scope checking for nested functions
+    - Generator function detection
+    - Object property arrow function exclusion
+    - Private/protected member filtering
+    - Variable-to-class mapping for behavioral validation
+    - JSX and type annotation usage detection
+
 ## [0.11.3] - 2026-01-16
 
 ### Added
