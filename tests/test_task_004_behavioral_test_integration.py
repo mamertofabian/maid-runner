@@ -6,6 +6,7 @@ This test validates the integration of behavioral test validation into the main
 validation flow, ensuring test files are validated BEFORE implementation validation
 as part of the MAID workflow.
 """
+
 import pytest
 import json
 import sys
@@ -710,7 +711,7 @@ class OrderService:
 
         with patch("sys.argv", test_args):
             with patch(
-                "maid_runner.cli.validate.validate_with_ast",
+                "maid_runner.cli._text_mode_validation.validate_with_ast",
                 side_effect=track_validation_calls,
             ):
                 with patch("sys.exit") as mock_exit:
