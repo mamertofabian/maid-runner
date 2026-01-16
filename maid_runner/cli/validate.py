@@ -60,6 +60,7 @@ from maid_runner.coherence import CoherenceValidator, CoherenceResult
 from . import _validate_helpers
 from . import _test_file_extraction
 from . import _behavioral_validation
+from . import _validation_orchestration
 
 
 def format_validation_json(
@@ -1285,7 +1286,7 @@ def execute_validation_command(
             continue
 
         cmd_str = " ".join(cmd)
-        print(f"  [{i+1}/{total}] {cmd_str}", flush=True)
+        print(f"  [{i + 1}/{total}] {cmd_str}", flush=True)
 
         # Check if command exists before attempting to run it
         cmd_exists, error_msg = check_command_exists(cmd)
@@ -1735,17 +1736,6 @@ def _perform_core_validation(
     Returns:
         _CoreValidationResult with success status, errors, warnings, and metadata.
     """
-    from maid_runner.validators.manifest_validator import (
-        AlignmentError,
-        validate_schema,
-        validate_with_ast,
-    )
-    from maid_runner.validators.semantic_validator import (
-        ManifestSemanticError,
-        validate_manifest_semantics,
-        validate_supersession,
-    )
-
     errors: List[ValidationError] = []
     warnings: List[ValidationError] = []
     metadata: Dict[str, Any] = {
@@ -1773,14 +1763,12 @@ def _perform_core_validation(
             )
             return _make_result(False)
 
-        # Check if this manifest is superseded by another manifest
+        # Check if this manifest is superseded
         manifests_dir = manifest_path_obj.parent
         is_superseded, superseding_manifest = _check_if_superseded(
             manifest_path_obj, manifests_dir
         )
         if is_superseded:
-            # Return success with informational warning - superseded manifests
-            # are inactive and should not produce validation errors
             superseding_name = (
                 superseding_manifest.name
                 if superseding_manifest
@@ -1798,242 +1786,69 @@ def _perform_core_validation(
             metadata["superseded_by"] = (
                 str(superseding_manifest) if superseding_manifest else None
             )
-            return _make_result(True)  # Success - not an error condition
+            return _make_result(True)
 
-        # Load the manifest
-        with open(manifest_path_obj, "r") as f:
-            manifest_data = json.load(f)
-
-        # Validate against JSON schema
+        # Load and validate manifest schema
         schema_path = (
             Path(__file__).parent.parent
             / "validators"
             / "schemas"
             / "manifest.schema.json"
         )
-        try:
-            validate_schema(manifest_data, str(schema_path))
-        except jsonschema.ValidationError as e:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.SCHEMA_VALIDATION_FAILED,
-                    message=f"Schema validation failed: {e.message}",
-                    file=manifest_path,
-                    severity=ErrorSeverity.ERROR,
-                )
-            )
+        manifest_data = _validation_orchestration._load_and_validate_manifest_schema(
+            manifest_path_obj, schema_path, errors
+        )
+        if manifest_data is None:
             return _make_result(False)
 
-        # Validate MAID semantics
-        try:
-            validate_manifest_semantics(manifest_data)
-        except ManifestSemanticError as e:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
-                    message=str(e),
-                    file=manifest_path,
-                    severity=ErrorSeverity.ERROR,
-                )
-            )
-            return _make_result(False)
-
-        # Validate supersession
-        try:
-            manifests_dir = manifest_path_obj.parent
-            validate_supersession(manifest_data, manifests_dir, manifest_path_obj)
-        except ManifestSemanticError as e:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.SUPERSESSION_VALIDATION_FAILED,
-                    message=str(e),
-                    file=manifest_path,
-                    severity=ErrorSeverity.ERROR,
-                )
-            )
+        # Validate MAID semantics and supersession
+        if not _validation_orchestration._validate_manifest_semantics(
+            manifest_data, manifest_path_obj, manifests_dir, errors
+        ):
             return _make_result(False)
 
         # Schema-only mode early exit
         if validation_mode == "schema":
             return _make_result(True)
 
-        # Get file to validate
-        expected_artifacts = manifest_data.get("expectedArtifacts", {})
-        file_path = expected_artifacts.get("file", "")
-
-        if not file_path:
-            creatable = manifest_data.get("creatableFiles", [])
-            editable = manifest_data.get("editableFiles", [])
-            if creatable:
-                file_path = creatable[0]
-            elif editable:
-                file_path = editable[0]
-
-        # Validate that we have a target file
-        if not file_path:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
-                    message="Manifest has no target file to validate (no expectedArtifacts.file, creatableFiles, or editableFiles)",
-                    file=manifest_path,
-                    severity=ErrorSeverity.ERROR,
-                )
-            )
+        # Extract target file
+        file_path = _validation_orchestration._extract_target_file(
+            manifest_data, manifest_path_obj, errors
+        )
+        if file_path is None:
             return _make_result(False)
 
         metadata["target_file"] = file_path
 
-        # Run AST validation based on mode
-        file_status = expected_artifacts.get("status", "present")
-
+        # Validation mode-specific checks
         if validation_mode in ("implementation", "behavioral"):
-            # Check file exists for implementation mode
-            if (
-                validation_mode == "implementation"
-                and file_status != "absent"
-                and not Path(file_path).exists()
+            # Check file existence for implementation mode
+            if not _validation_orchestration._check_file_existence(
+                file_path, validation_mode, manifest_data, errors
             ):
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.ALIGNMENT_ERROR,
-                        message=f"Target file not found: {file_path}",
-                        file=file_path,
-                        severity=ErrorSeverity.ERROR,
-                    )
-                )
                 return _make_result(False)
 
-            # Validate that validation commands exist in PATH
-            # This check happens in both behavioral and implementation modes
-            # Support both legacy (validationCommand) and enhanced (validationCommands) formats
-            validation_commands = manifest_data.get("validationCommands", [])
-            if not validation_commands:
-                validation_commands = manifest_data.get("validationCommand", [])
-            has_validation = bool(validation_commands)
+            # Validate commands and test files
+            if not _validation_orchestration._validate_commands_and_test_files(
+                manifest_data, manifest_path_obj, errors
+            ):
+                return _make_result(False)
 
-            if has_validation:
-                # Validate that validation commands exist in PATH
-                all_exist, missing_commands = _validate_commands_exist(manifest_data)
-                if not all_exist:
-                    error_messages = [error_msg for _, error_msg in missing_commands]
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.SEMANTIC_VALIDATION_FAILED,
-                            message=f"Validation command(s) not found in PATH: {', '.join(error_messages)}",
-                            file=manifest_path,
-                            severity=ErrorSeverity.ERROR,
-                        )
-                    )
-                    return _make_result(False)
-
-                # Validate test files exist
-                all_exist, missing_test_files = _validate_test_files_from_commands(
-                    validation_commands
-                )
-                if not all_exist:
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.FILE_NOT_FOUND,
-                            message=f"Test file(s) not found: {', '.join(missing_test_files)}",
-                            file=manifest_path,
-                            severity=ErrorSeverity.ERROR,
-                        )
-                    )
-                    return _make_result(False)
-
-            try:
-                validate_with_ast(
-                    manifest_data,
-                    file_path,
-                    use_manifest_chain=use_manifest_chain,
-                    validation_mode=validation_mode,
-                    use_cache=use_cache,
-                )
-            except AlignmentError as e:
-                error_message = str(e)
-
-                # Handle unexpected artifacts with manifest chain
-                if (
-                    "Unexpected public" in error_message
-                    and use_manifest_chain
-                    and file_path
-                ):
-                    is_latest = _is_latest_manifest_for_file(
-                        manifest_path_obj, file_path, use_cache
-                    )
-
-                    if not is_latest:
-                        # Older manifest: Convert to warning and pass
-                        latest_manifest_name = _get_latest_manifest_name(
-                            file_path, use_cache
-                        )
-                        warnings.append(
-                            ValidationError(
-                                code=ErrorCode.ARTIFACT_NOT_FOUND,
-                                message=(
-                                    f"Validation Warning: {error_message} "
-                                    f"in the manifest chain. "
-                                    f"See validation result for {latest_manifest_name} "
-                                    f"for more details."
-                                ),
-                                file=getattr(e, "file", None) or file_path,
-                                line=getattr(e, "line", None),
-                                column=getattr(e, "column", None),
-                                severity=ErrorSeverity.WARNING,
-                            )
-                        )
-                        return _make_result(True)  # Pass with warning
-                    else:
-                        # Latest manifest: Fail with new hint
-                        hint = _build_new_manifest_hint(error_message)
-                        if hint:
-                            error_message += hint
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.ARTIFACT_NOT_FOUND,
-                                message=error_message,
-                                file=getattr(e, "file", None) or file_path,
-                                line=getattr(e, "line", None),
-                                column=getattr(e, "column", None),
-                                severity=ErrorSeverity.ERROR,
-                            )
-                        )
-                        return _make_result(False)
-                else:
-                    # Original behavior for other errors or when not using manifest chain
-                    hint = _build_supersede_hint(
-                        manifest_path=manifest_path_obj,
-                        manifest_data=manifest_data,
-                        target_file=file_path,
-                        error_message=error_message,
-                    )
-                    if hint:
-                        error_message += hint
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.ARTIFACT_NOT_FOUND,
-                            message=error_message,
-                            file=getattr(e, "file", None) or file_path,
-                            line=getattr(e, "line", None),
-                            column=getattr(e, "column", None),
-                            severity=ErrorSeverity.ERROR,
-                        )
-                    )
-                    return _make_result(False)
+            # Perform AST validation
+            if not _validation_orchestration._perform_ast_validation(
+                manifest_data,
+                file_path,
+                use_manifest_chain,
+                validation_mode,
+                use_cache,
+                errors,
+                warnings,
+                manifest_path_obj,
+            ):
+                return _make_result(False)
 
         # Success
         return _make_result(True)
-
-    except json.JSONDecodeError as e:
-        errors.append(
-            ValidationError(
-                code=ErrorCode.FILE_NOT_FOUND,
-                message=f"Invalid JSON in manifest: {e}",
-                file=manifest_path,
-                severity=ErrorSeverity.ERROR,
-            )
-        )
-        return _make_result(False)
 
     except Exception as e:
         errors.append(

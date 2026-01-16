@@ -56,8 +56,6 @@
     ]
   },
   "validationCommand": [
-    "python",
-    "-m",
     "pytest",
     "tests/validators/test_ast_validator_structure.py",
     "tests/validators/test_ast_validator_strict.py",
