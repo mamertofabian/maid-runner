@@ -4,9 +4,7 @@
   "taskType": "edit",
   "supersedes": [],
   "creatableFiles": [],
-  "editableFiles": [
-    "maid_runner/validators/manifest_validator.py"
-  ],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
   "readonlyFiles": [
     "maid_runner/utils.py",
     "tests/test_task_092_filter_superseded_in_discover_related.py"
@@ -28,8 +26,6 @@
     ]
   },
   "validationCommand": [
-    "python",
-    "-m",
     "pytest",
     "tests/test_task_092_filter_superseded_in_discover_related.py",
     "-v"
