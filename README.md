@@ -198,7 +198,6 @@ maid init --claude --force  # Updates .claude/ files and CLAUDE.md
 - `maid init --windsurf` - Windsurf IDE
 - `maid init --generic` - Generic MAID.md for any tool
 - `maid init --all` - All supported tools
-```
 
 ## The MAID Ecosystem
 
