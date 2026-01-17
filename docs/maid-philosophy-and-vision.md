@@ -205,6 +205,129 @@ Not the verbose intermediate output of each subagent and validation step.
 
 ---
 
+## The Scaffolding Vision
+
+Manifests are **temporary construction scaffolding**, not permanent artifacts.
+
+### The Construction Metaphor
+
+| Phase | Scaffolding | Building |
+|-------|-------------|----------|
+| **During construction** | Manifests (constraints, contracts) | Code + Tests |
+| **After construction** | Remove/archive manifests | Code + Tests remain |
+| **Renovation needed** | Re-erect scaffolding | Modify Code + Tests |
+
+### What Stays Permanently
+
+- **The working code** — The actual implementation
+- **The tests** — Regression protection and living documentation
+
+### What's Temporary
+
+- **Manifests** — Development scaffolding, removed after construction
+
+### Why This Works
+
+1. **Tests ARE the durable contract** — Once code works and tests pass, the tests become the ongoing specification. Manifests were just the construction guide.
+
+2. **Manifests are AI-facing, not human-facing** — Humans read tests. AI needs manifests to stay constrained during generation. After generation, the AI's constraint system is no longer needed.
+
+3. **Clean codebase** — No `manifests/` folder polluting production code. Just code and tests—what humans expect.
+
+4. **Re-scaffolding is cheap** — If you need to modify the code later, `maid snapshot` can regenerate manifests from existing code, or the orchestrator can create new ones for the change.
+
+### Requirements for the Scaffolding Model
+
+1. **Snapshot capability** — `maid snapshot` generates manifests from existing code. This is how you "re-erect scaffolding."
+
+2. **Clean archive/removal** — Commands to move manifests to `.maid-history/` or remove them entirely after development completes.
+
+3. **Tests must be self-sufficient** — After manifest removal, tests must run independently. No manifest dependencies in test code.
+
+4. **Optional manifest persistence** — For regulated industries (audit trails), manifests can stay. For most projects, they go.
+
+### The Compiler Parallel Deepens
+
+```
+Source Code → [Compiler] → Binary
+                  ↓
+            (IR, AST, etc.)  ← Internal representations, discarded
+
+Goal → [MAID Agent] → Code + Tests
+             ↓
+        (Manifests)  ← Internal representations, archivable
+```
+
+Manifests are MAID's intermediate representation. Essential during compilation, optional afterward.
+
+---
+
+## Two-Project Architecture
+
+The MAID ecosystem splits into two complementary projects:
+
+### maid-runner (Validation Engine)
+
+- Pure deterministic CLI tool
+- No AI generation capabilities
+- Validates manifests against schema
+- Runs behavioral and implementation validation
+- Tool-agnostic foundation
+
+```bash
+maid validate    # Validate manifests
+maid test        # Run validation commands
+maid snapshot    # Generate manifest from existing code
+```
+
+### maid-agents (Orchestration Layer)
+
+- AI-powered automation
+- Uses Claude Code for generation
+- Chains agents: ManifestArchitect → TestDesigner → Developer → Refactorer
+- MAIDOrchestrator manages state machine and retry loops
+- Calls maid-runner for validation
+
+```bash
+ccmaid run "Add user authentication"    # Full automated workflow
+ccmaid plan "Add feature X"             # Phase 1-2 only
+ccmaid implement manifest.json          # Phase 3 only
+```
+
+### The Split
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  User: "Add JWT authentication"                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  maid-agents (ccmaid) - Orchestration                           │
+│  ├── MAIDOrchestrator (state machine, retry loops)              │
+│  ├── Agents (ManifestArchitect, TestDesigner, Developer, etc.)  │
+│  └── ClaudeWrapper (invokes Claude Code headless)               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌──────────────────────────┐   ┌──────────────────────────────────┐
+│  maid-runner (maid)      │   │  Claude Code API                 │
+│  - Validate manifests    │   │  - Generate manifests            │
+│  - Run behavioral tests  │   │  - Generate tests                │
+│  - Check compliance      │   │  - Generate code                 │
+│  - Pure deterministic    │   │  - Iterate on feedback           │
+└──────────────────────────┘   └──────────────────────────────────┘
+```
+
+This separation ensures:
+- **maid-runner** remains stable, testable, AI-independent
+- **maid-agents** can evolve with AI capabilities (swap Claude for other models)
+- **Validation logic** is centralized and deterministic
+- **Generation logic** is isolated and replaceable
+
+---
+
 ## Conclusion
 
 The pieces exist. The gap is **orchestration robustness** and **failure recovery**. That's engineering work, not conceptual work.
@@ -212,3 +335,5 @@ The pieces exist. The gap is **orchestration robustness** and **failure recovery
 The hard part—defining what MAID *is*—is done. Now it's about making it disappear into infrastructure.
 
 The compiler analogy points to the end state: humans don't think about register allocation because compilers handle it. Humans shouldn't think about manifest schemas because MAID handles it.
+
+**The scaffolding vision completes the picture**: manifests are temporary construction aids. The durable outputs are working code and tests. Any project can use MAID-enabled AI agents to build safely, then remove the scaffolding when construction is complete. If renovation is needed, the scaffolding goes back up.
