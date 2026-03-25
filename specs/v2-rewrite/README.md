@@ -4,6 +4,18 @@ This directory contains the complete architectural specification for the MAID Ru
 
 ## How to Use These Specs
 
+### For Autonomous Implementation (New Session)
+
+1. **Read [14-progress-tracker.md](14-progress-tracker.md) FIRST** to determine current state
+2. Find the current phase and task from the progress tracker
+3. Read the spec document(s) for that task
+4. Read [15-golden-tests.md](15-golden-tests.md) for concrete test cases
+5. Read [16-porting-reference.md](16-porting-reference.md) when porting algorithms from current code
+6. Implement with TDD: write tests from golden cases, then implement to pass
+7. Update the progress tracker checkboxes and session state when done
+
+### For Initial Understanding
+
 1. **Start with [00-overview.md](00-overview.md)** for context, principles, and success criteria
 2. **Read [01-architecture.md](01-architecture.md)** for the complete package structure and data flow
 3. **Follow [12-migration-plan.md](12-migration-plan.md)** for the phased implementation order
@@ -50,6 +62,13 @@ This directory contains the complete architectural specification for the MAID Ru
 | [11-testing-strategy.md](11-testing-strategy.md) | Test organization, fixtures, patterns, migration |
 | [12-migration-plan.md](12-migration-plan.md) | 7-phase migration with acceptance criteria |
 | [13-backward-compatibility.md](13-backward-compatibility.md) | V1 JSON manifest support and conversion |
+
+### Autonomous Implementation Support
+| Doc | Scope |
+|-----|-------|
+| [14-progress-tracker.md](14-progress-tracker.md) | Machine-readable progress checklist and session handoff protocol |
+| [15-golden-tests.md](15-golden-tests.md) | Concrete input/output test cases for every module |
+| [16-porting-reference.md](16-porting-reference.md) | Critical algorithms extracted from current codebase |
 
 ## Implementation Order
 

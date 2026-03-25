@@ -107,6 +107,9 @@ YAML is the primary manifest format (comments, less noise, readable). JSON manif
 | [11-testing-strategy.md](11-testing-strategy.md) | Test organization and approach |
 | [12-migration-plan.md](12-migration-plan.md) | Phased migration from v1 |
 | [13-backward-compatibility.md](13-backward-compatibility.md) | V1 manifest support |
+| [14-progress-tracker.md](14-progress-tracker.md) | Machine-readable progress checklist, session handoff protocol |
+| [15-golden-tests.md](15-golden-tests.md) | Concrete input/output test cases for every module |
+| [16-porting-reference.md](16-porting-reference.md) | Critical algorithms from current codebase to preserve |
 
 ## Conventions Used in These Specs
 
