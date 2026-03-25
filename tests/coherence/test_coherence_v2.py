@@ -9,9 +9,9 @@ from maid_runner.core.types import (
     Manifest,
     TaskType,
 )
-from maid_runner.graph.builder_v2 import GraphBuilder
+from maid_runner.graph.builder import GraphBuilder
 from maid_runner.coherence.engine import CoherenceEngine
-from maid_runner.coherence.result_v2 import (
+from maid_runner.coherence.result import (
     CoherenceIssue,
     CoherenceResult,
     IssueSeverity,

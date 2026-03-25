@@ -1,18 +1,17 @@
-"""V2 CoherenceEngine using v2 Manifest/ManifestChain types.
+"""CoherenceEngine for cross-manifest validation.
 
 Spec: 08-coherence-module.md - coherence/engine.py
-Coexists with the v1 CoherenceValidator (coherence/validator.py) until Phase 7.
 """
 
 from __future__ import annotations
 
 import time
-from typing import Optional
+from typing import Optional, Sequence, Union
 
 from maid_runner.core.types import Manifest
 from maid_runner.coherence.checks.base import BaseCheck, get_checks
-from maid_runner.coherence.result_v2 import CoherenceResult, IssueSeverity
-from maid_runner.graph.builder_v2 import GraphBuilder
+from maid_runner.coherence.result import CoherenceResult, IssueSeverity
+from maid_runner.graph.builder import GraphBuilder
 from maid_runner.graph.model import KnowledgeGraph
 
 
@@ -23,7 +22,8 @@ class CoherenceEngine:
 
     Usage:
         engine = CoherenceEngine()
-        result = engine.validate(chain.active_manifests())
+        result = engine.validate(chain)          # ManifestChain
+        result = engine.validate(manifest_list)  # list[Manifest]
     """
 
     def __init__(self, checks: Optional[list[BaseCheck]] = None):
@@ -36,34 +36,42 @@ class CoherenceEngine:
 
     def validate(
         self,
-        manifests: list[Manifest],
+        manifests: Union[Sequence[Manifest], object],
         *,
         graph: Optional[KnowledgeGraph] = None,
     ) -> CoherenceResult:
         """Run all configured coherence checks.
 
         Args:
-            manifests: List of manifests to validate.
+            manifests: ManifestChain or list/sequence of Manifest objects.
+                       If it has an active_manifests() method, that is called.
             graph: Pre-built graph (optional; built from manifests if not provided).
 
         Returns:
             CoherenceResult with aggregated issues from all checks.
         """
+        manifest_list: list[Manifest]
+        if hasattr(manifests, "active_manifests"):
+            manifest_list = manifests.active_manifests()  # type: ignore[union-attr]
+        elif isinstance(manifests, list):
+            manifest_list = manifests
+        else:
+            manifest_list = list(manifests)  # type: ignore[call-overload]
+
         if graph is None:
-            graph = GraphBuilder().build_from_manifests(manifests)
+            graph = GraphBuilder().build_from_manifests(manifest_list)
 
         start = time.monotonic()
         all_issues = []
         checks_run = []
 
         for check in self._checks:
-            issues = check.run(graph, manifests)
+            issues = check.run(graph, manifest_list)
             all_issues.extend(issues)
             checks_run.append(check.name)
 
         duration = (time.monotonic() - start) * 1000
 
-        # Sort: errors first, then by file, then by type
         all_issues.sort(
             key=lambda i: (
                 (
@@ -85,7 +93,7 @@ class CoherenceEngine:
     def validate_single(
         self,
         manifest: Manifest,
-        all_manifests: list[Manifest],
+        all_manifests: Union[Sequence[Manifest], object],
         *,
         graph: Optional[KnowledgeGraph] = None,
     ) -> CoherenceResult:
@@ -95,7 +103,6 @@ class CoherenceEngine:
         """
         result = self.validate(all_manifests, graph=graph)
 
-        # Filter to only issues involving this manifest
         relevant = [
             i for i in result.issues if not i.manifests or manifest.slug in i.manifests
         ]

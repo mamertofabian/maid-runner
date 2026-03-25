@@ -254,9 +254,11 @@ class ValidationEngine:
             source = full_path.read_text()
             collection = validator.collect_implementation_artifacts(source, fs.path)
 
-            # Get expected artifacts
+            # Get expected artifacts (chain may not cover this file)
             if chain:
                 expected = chain.merged_artifacts_for(fs.path)
+                if not expected:
+                    expected = list(fs.artifacts)
             else:
                 expected = list(fs.artifacts)
 
@@ -363,8 +365,8 @@ def _compare_artifacts(
 
     # Build lookup of found artifacts by merge_key
     found_by_key: dict[str, FoundArtifact] = {}
-    for fa in found:
-        found_by_key[fa.merge_key()] = fa
+    for found_art in found:
+        found_by_key[found_art.merge_key()] = found_art
 
     # Check each expected artifact exists
     for spec in expected:

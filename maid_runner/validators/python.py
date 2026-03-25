@@ -74,9 +74,8 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._in_function: bool = False
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        bases = tuple(
-            _extract_base_name(b) for b in node.bases if _extract_base_name(b)
-        )
+        base_names = [_extract_base_name(b) for b in node.bases]
+        bases = tuple(name for name in base_names if name is not None)
 
         self.artifacts.append(
             FoundArtifact(

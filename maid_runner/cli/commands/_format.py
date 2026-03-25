@@ -12,6 +12,7 @@ from maid_runner.core.result import (
     FileTrackingReport,
     ValidationResult,
 )
+from maid_runner.coherence.result import CoherenceResult
 
 if TYPE_CHECKING:
     pass
@@ -204,5 +205,31 @@ def format_file_tracking(
         lines.append(f"Tracked ({len(report.tracked)}):")
         for e in report.tracked:
             lines.append(f"  {e.path}")
+
+    return "\n".join(lines)
+
+
+def format_coherence_result(
+    result: CoherenceResult,
+    *,
+    json_mode: bool = False,
+) -> str:
+    if json_mode:
+        return json.dumps(result.to_dict(), indent=2)
+
+    lines = []
+    status = "PASS" if result.success else "FAIL"
+    lines.append(f"Coherence: {status}")
+    lines.append(f"  Checks run: {', '.join(result.checks_run)}")
+    lines.append(
+        f"  Issues: {result.error_count} errors, {result.warning_count} warnings"
+    )
+    if result.duration_ms is not None:
+        lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+
+    for issue in result.issues:
+        sev = issue.severity.value.upper()
+        loc = f" [{issue.file}]" if issue.file else ""
+        lines.append(f"  {sev}{loc} {issue.message}")
 
     return "\n".join(lines)

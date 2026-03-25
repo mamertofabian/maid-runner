@@ -16,8 +16,8 @@ from maid_runner.graph.model import (
     EdgeType,
     NodeType,
 )
-from maid_runner.graph.builder_v2 import GraphBuilder
-from maid_runner.graph.query_v2 import GraphQuery
+from maid_runner.graph.builder import GraphBuilder
+from maid_runner.graph.query import GraphQuery
 
 
 # ---------------------------------------------------------------------------

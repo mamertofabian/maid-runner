@@ -16,24 +16,7 @@ Quick start:
 
 from maid_runner.__version__ import __version__
 
-# --- v1 API (preserved until Phase 7) ---
-from maid_runner.validators import (
-    AlignmentError,
-    collect_behavioral_artifacts,
-    discover_related_manifests,
-    validate_schema,
-    validate_with_ast,
-)
-from maid_runner.cli.snapshot import generate_snapshot
-from maid_runner.graph import (
-    KnowledgeGraph,
-    KnowledgeGraphBuilder,
-    NodeType,
-    EdgeType,
-)
-from maid_runner import coherence
-
-# --- v2 API ---
+# --- Core API ---
 from maid_runner.core.validate import validate, validate_all, ValidationEngine
 from maid_runner.core.manifest import (
     load_manifest,
@@ -42,7 +25,7 @@ from maid_runner.core.manifest import (
     ManifestSchemaError,
 )
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.snapshot import generate_snapshot  # noqa: F811 - overrides v1
+from maid_runner.core.snapshot import generate_snapshot
 from maid_runner.core.types import (
     ArtifactKind,
     ArtifactSpec,
@@ -70,37 +53,27 @@ from maid_runner.core.result import (
 from maid_runner.validators.registry import ValidatorRegistry, UnsupportedLanguageError
 from maid_runner.validators.base import BaseValidator, FoundArtifact, CollectionResult
 
-# Explicit re-exports for MAID validation
-KnowledgeGraph = KnowledgeGraph
-KnowledgeGraphBuilder = KnowledgeGraphBuilder
-NodeType = NodeType
-EdgeType = EdgeType
-coherence = coherence
+# --- Graph & Coherence ---
+from maid_runner.graph import (
+    KnowledgeGraph,
+    NodeType,
+    EdgeType,
+)
+from maid_runner.coherence import CoherenceEngine, CoherenceResult
 
 __all__ = [
     # Version
     "__version__",
-    # v1 API (preserved until Phase 7)
-    "AlignmentError",
-    "collect_behavioral_artifacts",
-    "discover_related_manifests",
-    "validate_schema",
-    "validate_with_ast",
-    "generate_snapshot",
-    "KnowledgeGraph",
-    "KnowledgeGraphBuilder",
-    "NodeType",
-    "EdgeType",
-    "coherence",
-    # v2 convenience functions
+    # Convenience functions
     "validate",
     "validate_all",
-    # v2 core classes
+    "generate_snapshot",
+    # Core classes
     "ValidationEngine",
     "load_manifest",
     "save_manifest",
     "ManifestChain",
-    # v2 types
+    # Types
     "ArtifactKind",
     "ArtifactSpec",
     "ArgSpec",
@@ -110,7 +83,7 @@ __all__ = [
     "Manifest",
     "TaskType",
     "ValidationMode",
-    # v2 results
+    # Results
     "ValidationResult",
     "BatchValidationResult",
     "ValidationError",
@@ -122,13 +95,20 @@ __all__ = [
     "FileTrackingEntry",
     "TestRunResult",
     "BatchTestResult",
-    # v2 validators
+    # Validators
     "ValidatorRegistry",
     "UnsupportedLanguageError",
     "BaseValidator",
     "FoundArtifact",
     "CollectionResult",
-    # v2 exceptions
+    # Exceptions
     "ManifestLoadError",
     "ManifestSchemaError",
+    # Graph
+    "KnowledgeGraph",
+    "NodeType",
+    "EdgeType",
+    # Coherence
+    "CoherenceEngine",
+    "CoherenceResult",
 ]

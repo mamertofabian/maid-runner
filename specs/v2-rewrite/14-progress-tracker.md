@@ -38,24 +38,34 @@ This document is the **machine-readable progress tracker** for the v2 rewrite. A
 
 ## Session State
 
-**Current Phase:** Phase 7 - Cleanup
-**Current Task:** Phase 7, Task 7.1
-**Notes:** Phase 6 (Integration & Ecosystem) complete. 61 Phase 6 tests + 4704 prior tests = 4765 total, all passing.
+**Current Phase:** Complete - All phases done
+**Current Task:** None
+**Notes:** v2 rewrite complete. Version 2.0.0.
 
 ```
-Last working on: Phase 6 Integration & Ecosystem - complete
-Files created/modified (Phase 6):
-  tests/integration/__init__.py (new)
-  tests/integration/test_full_workflow.py (17 tests - full pipeline: load/validate/chain/snapshot/behavioral/delete)
-  tests/integration/test_library_api.py (25 tests - public API imports, convenience functions, round-trips, extension point)
-  tests/integration/test_backward_compat.py (18 tests - v1 detection, conversion, full pipeline, mixed chains)
-  maid_runner/__init__.py (fixed: generate_snapshot now re-exports v2 from core.snapshot)
-  tests/test_task_013_packaging.py (updated: generate_snapshot signature test for v2 + v1 still-importable test)
-  README.md (added v2 library API examples and YAML manifest format section)
-Tests status: 61 Phase 6 tests + 4704 prior tests = 4765 total
-Public API verified against 10-public-api.md spec - all 33 required symbols exported.
-V1 code fully preserved. V1 generate_snapshot still importable from maid_runner.cli.snapshot.
-Note: pyproject.toml entry point still points to old cli/main.py - switched in Phase 7.
+Last working on: Phase 7 Cleanup - complete (with post-cleanup fixes)
+Phase 7 cleanup:
+  Removed all v1 code (CLI, validators, cache, utils, graph/builder, coherence v1, old scripts)
+  Removed 186+ old test files
+  Updated all __init__.py to export v2-only API
+  Updated pyproject.toml - version 2.0.0, entry point to cli.commands._main:main
+  Fixed mypy errors, snapshot CLI API mismatches, stale tests
+Post-cleanup fixes (spec compliance):
+  1. Moved tree-sitter deps to [project.optional-dependencies] (typescript, svelte, all extras)
+     Core install (pip install maid-runner) has no tree-sitter dependency - Python-only
+  2. Renamed _v2 suffix files: result_v2.py -> result.py, builder_v2.py -> builder.py
+     Merged query_v2.py GraphQuery class into query.py
+  3. Archived 165 old v1 manifests to manifests/v1-archive/
+  4. Added CoherenceEngine, CoherenceResult to maid_runner.__init__.__all__
+Post-audit fixes (functional issues):
+  5. Wired --coherence and --coherence-only flags in validate command
+  6. Implemented maid coherence command (was stub, now fully functional)
+  7. Fixed CoherenceEngine.validate() to accept ManifestChain or list[Manifest]
+  8. Wired --watch and --watch-all flags in validate command (watchdog-based)
+  9. Fixed snapshot.manifest.yaml test fixture (pointed to non-matching artifacts)
+Tests status: 476 tests passing, 0 failures
+Quality checks: mypy 0 errors (53 files), black clean, ruff clean
+CLI version: maid 2.0.0
 Blockers: none
 ```
 
@@ -299,19 +309,19 @@ uv run mypy maid_runner/
 
 ## Phase 7: Cleanup
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [12-migration-plan.md](12-migration-plan.md)
 
 ### Tasks
 
-- [ ] **7.1** Remove old CLI modules (cli/validate.py, cli/test.py, cli/snapshot.py, cli/init.py, cli/_*.py)
-- [ ] **7.2** Remove old validator integration code (validators/manifest_validator.py, validators/semantic_validator.py, validators/_*.py)
-- [ ] **7.3** Remove old cache module
-- [ ] **7.4** Remove old test files (tests/test_task_*.py, tests/_test_task_*.py)
-- [ ] **7.5** Run full test suite and coverage report
-- [ ] **7.6** Run linting and type checking: `make lint && make type-check`
-- [ ] **7.7** Update pyproject.toml version to 2.0.0
-- [ ] **7.8** Final verification: `uv run maid validate` on project's own manifests (if using v2 manifests)
+- [x] **7.1** Remove old CLI modules (cli/validate.py, cli/test.py, cli/snapshot.py, cli/init.py, cli/_*.py, cli/init_tools/)
+- [x] **7.2** Remove old validator integration code (validators/manifest_validator.py, validators/semantic_validator.py, validators/_*.py, etc.)
+- [x] **7.3** Remove old cache module, utils.py, validation_result.py, old graph/coherence v1 files
+- [x] **7.4** Remove old test files (159 test_task_*.py + 27 other old test files)
+- [x] **7.5** Run full test suite and coverage report (476 tests, 81% coverage)
+- [x] **7.6** Run linting and type checking (mypy clean, black clean, ruff clean)
+- [x] **7.7** Update pyproject.toml version to 2.0.0, entry point to v2 CLI, add pyyaml dependency
+- [x] **7.8** Final verification: all quality checks pass, CLI v2.0.0 working
 
 ### Phase 7 Verification
 

@@ -28,18 +28,6 @@ from maid_runner.graph.exporters import (
     graph_to_dot,
     graph_to_graphml,
 )
-from maid_runner.graph.builder import (
-    load_manifest,
-    load_manifests,
-    create_manifest_node,
-    create_file_node,
-    create_artifact_node,
-    create_module_node,
-    create_supersedes_edges,
-    create_file_edges,
-    create_artifact_edges,
-    KnowledgeGraphBuilder,
-)
 from maid_runner.graph.query import (
     find_nodes_by_type,
     find_node_by_name,
@@ -58,16 +46,8 @@ from maid_runner.graph.query import (
     QueryResult,
     QueryExecutor,
 )
-
-# Explicit re-exports for MAID validation
-# These assignments make imported names visible as module-level attributes
-KnowledgeGraph = KnowledgeGraph
-export_json = export_json
-export_dot = export_dot
-export_graphml = export_graphml
-graph_to_dict = graph_to_dict
-graph_to_dot = graph_to_dot
-graph_to_graphml = graph_to_graphml
+from maid_runner.graph.builder import GraphBuilder
+from maid_runner.graph.query import GraphQuery
 
 __all__ = [
     "NodeType",
@@ -90,16 +70,6 @@ __all__ = [
     "graph_to_dict",
     "graph_to_dot",
     "graph_to_graphml",
-    "load_manifest",
-    "load_manifests",
-    "create_manifest_node",
-    "create_file_node",
-    "create_artifact_node",
-    "create_module_node",
-    "create_supersedes_edges",
-    "create_file_edges",
-    "create_artifact_edges",
-    "KnowledgeGraphBuilder",
     "find_nodes_by_type",
     "find_node_by_name",
     "get_neighbors",
@@ -116,4 +86,6 @@ __all__ = [
     "QueryParser",
     "QueryResult",
     "QueryExecutor",
+    "GraphBuilder",
+    "GraphQuery",
 ]

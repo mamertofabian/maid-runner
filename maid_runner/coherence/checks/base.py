@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from maid_runner.core.types import Manifest
-from maid_runner.coherence.result_v2 import CoherenceIssue
+from maid_runner.coherence.result import CoherenceIssue
 from maid_runner.graph.model import KnowledgeGraph
 
 

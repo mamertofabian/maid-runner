@@ -14,6 +14,7 @@ Query parsing capabilities:
 - QueryParser: Parser for natural language-style queries
 """
 
+import fnmatch
 from enum import Enum
 import re
 from typing import Any, Dict, List, Optional, Set
@@ -305,9 +306,8 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
                 normalized = _normalize_cycle(cycle_ids)
                 if normalized not in seen_cycles:
                     seen_cycles.add(normalized)
-                    cycle_nodes = [
-                        graph.get_node(nid) for nid in cycle_ids if graph.get_node(nid)
-                    ]
+                    cycle_nodes_raw = [graph.get_node(nid) for nid in cycle_ids]
+                    cycle_nodes = [n for n in cycle_nodes_raw if n is not None]
                     if cycle_nodes:
                         cycles.append(cycle_nodes)
 
@@ -802,3 +802,165 @@ class QueryExecutor:
         return QueryResult(
             True, query_type, artifacts, f"Found {len(artifacts)} artifact(s)"
         )
+
+
+class GraphQuery:
+    """Query interface for the knowledge graph.
+
+    Provides high-level analysis operations built on graph traversal.
+    """
+
+    def __init__(self, graph: KnowledgeGraph):
+        self._graph = graph
+
+    def find_node(
+        self, name: str, node_type: Optional[NodeType] = None
+    ) -> Optional[Node]:
+        """Find a node by name, optionally filtered by type."""
+        node = find_node_by_name(self._graph, name)
+        if node and node_type and node.node_type != node_type:
+            for n in self._graph.nodes:
+                if n.node_type != node_type:
+                    continue
+                if hasattr(n, "name") and n.name == name:
+                    return n
+            return None
+        if node:
+            return node
+
+        for n in self._graph.nodes:
+            if node_type and n.node_type != node_type:
+                continue
+            if hasattr(n, "name") and n.name == name:
+                return n
+        return None
+
+    def find_nodes(
+        self, pattern: str, node_type: Optional[NodeType] = None
+    ) -> list[Node]:
+        """Find nodes matching a glob pattern, optionally filtered by type."""
+        results = []
+        for node in self._graph.nodes:
+            if node_type and node.node_type != node_type:
+                continue
+            node_name = getattr(node, "name", "") or ""
+            if fnmatch.fnmatch(node_name, pattern) or fnmatch.fnmatch(node.id, pattern):
+                results.append(node)
+        return results
+
+    def get_dependents(self, node_id: str) -> list[Node]:
+        """Find all nodes that depend on the given node (reverse dependencies)."""
+        dependents: list[Node] = []
+        for edge in self._graph.edges:
+            if edge.target_id == node_id:
+                source = self._graph.get_node(edge.source_id)
+                if source and source not in dependents:
+                    dependents.append(source)
+        return dependents
+
+    def get_dependencies(self, node_id: str) -> list[Node]:
+        """Find all nodes that the given node depends on."""
+        deps: list[Node] = []
+        for edge in self._graph.edges:
+            if edge.source_id == node_id:
+                target = self._graph.get_node(edge.target_id)
+                if target and target not in deps:
+                    deps.append(target)
+            if edge.target_id == node_id and edge.edge_type in (
+                EdgeType.CONTAINS,
+                EdgeType.DEFINES,
+            ):
+                parent = self._graph.get_node(edge.source_id)
+                if parent and parent not in deps:
+                    deps.append(parent)
+        return deps
+
+    def get_transitive_dependents(self, node_id: str) -> list[Node]:
+        """Find all transitive dependents (full impact set)."""
+        visited: set[str] = set()
+        result: list[Node] = []
+        stack = [node_id]
+
+        while stack:
+            current = stack.pop()
+            for edge in self._graph.edges:
+                if edge.target_id == current and edge.source_id not in visited:
+                    visited.add(edge.source_id)
+                    node = self._graph.get_node(edge.source_id)
+                    if node:
+                        result.append(node)
+                        stack.append(edge.source_id)
+
+        return result
+
+    def find_cycles(self) -> list[list[str]]:
+        """Detect cycles in the graph. Returns list of cycle paths."""
+        cycles = find_cycles(self._graph)
+        return [[n.id for n in cycle] for cycle in cycles]
+
+    def is_acyclic(self) -> bool:
+        """Check if the graph has no cycles."""
+        return is_acyclic(self._graph)
+
+    def dependency_analysis(self, file_path: str) -> dict[str, Any]:
+        """Analyze dependencies for a file."""
+        file_id = f"file:{file_path}"
+        file_node = self._graph.get_node(file_id)
+
+        manifests: list[str] = []
+        artifacts: list[str] = []
+
+        if file_node:
+            for edge in self._graph.edges:
+                if edge.target_id == file_id and edge.edge_type in (
+                    EdgeType.CREATES,
+                    EdgeType.EDITS,
+                    EdgeType.READS,
+                ):
+                    source = self._graph.get_node(edge.source_id)
+                    if source and isinstance(source, ManifestNode):
+                        manifests.append(source.id)
+
+                if edge.source_id == file_id and edge.edge_type == EdgeType.DEFINES:
+                    target = self._graph.get_node(edge.target_id)
+                    if target and isinstance(target, ArtifactNode):
+                        artifacts.append(target.name)
+
+        return {
+            "file": file_path,
+            "manifests": manifests,
+            "artifacts": artifacts,
+            "depends_on": [],
+            "depended_by": [],
+        }
+
+    def impact_analysis(self, artifact_name: str) -> dict[str, Any]:
+        """Analyze the impact of changing an artifact."""
+        affected_files = get_affected_files(self._graph, artifact_name)
+        affected_manifests = get_affected_manifests(self._graph, artifact_name)
+
+        artifact_node = None
+        for n in self._graph.nodes:
+            if isinstance(n, ArtifactNode) and n.name == artifact_name:
+                artifact_node = n
+                break
+
+        defined_in = None
+        if artifact_node:
+            for edge in self._graph.edges:
+                if (
+                    edge.target_id == artifact_node.id
+                    and edge.edge_type == EdgeType.DEFINES
+                ):
+                    source = self._graph.get_node(edge.source_id)
+                    if source and isinstance(source, FileNode):
+                        defined_in = source.path
+                        break
+
+        return {
+            "artifact": artifact_name,
+            "defined_in": defined_in,
+            "manifests": affected_manifests,
+            "direct_dependents": affected_files,
+            "transitive_impact": [],
+        }

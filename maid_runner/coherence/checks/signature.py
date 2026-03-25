@@ -6,7 +6,7 @@ Spec: 08-coherence-module.md - coherence/checks/signature.py
 from __future__ import annotations
 
 from maid_runner.core.types import ArtifactSpec, Manifest
-from maid_runner.coherence.result_v2 import (
+from maid_runner.coherence.result import (
     CoherenceIssue,
     IssueSeverity,
     IssueType,

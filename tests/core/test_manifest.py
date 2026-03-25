@@ -137,7 +137,7 @@ class TestLoadManifest:
         assert greet.returns == "str"
 
         assert manifest.files_read == ("tests/test_greet.py",)
-        assert manifest.validate_commands == (("pytest", "tests/test_greet.py", "-v"),)
+        assert manifest.validate_commands == (("python", "-c", "pass"),)
         assert manifest.created == "2025-06-15T10:30:00Z"
 
     def test_load_multi_file(self):
@@ -195,7 +195,7 @@ class TestLoadManifest:
     def test_validate_command_string_form(self):
         """Single string commands are split into tuples."""
         manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
-        assert manifest.validate_commands == (("pytest", "tests/test_greet.py", "-v"),)
+        assert manifest.validate_commands == (("python", "-c", "pass"),)
 
     def test_async_artifact(self, tmp_path):
         content = """schema: "2"

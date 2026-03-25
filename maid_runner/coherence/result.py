@@ -1,78 +1,23 @@
-"""
-Result types for coherence validation.
+"""V2 coherence result types using frozen dataclasses.
 
-This module provides data structures for representing coherence validation
-results, including severity levels, issue types, and result containers.
-These types are used by all coherence validation checks to report issues
-with consistent structure.
-
-Module Organization:
-    - IssueSeverity: Enum for severity levels (ERROR, WARNING, INFO)
-    - IssueType: Enum for types of coherence issues
-    - CoherenceIssue: Dataclass representing a single coherence issue
-    - CoherenceResult: Dataclass containing validation results and issue list
-
-Usage:
-    from maid_runner.coherence.result import (
-        IssueSeverity,
-        IssueType,
-        CoherenceIssue,
-        CoherenceResult,
-    )
-
-    issue = CoherenceIssue(
-        issue_type=IssueType.DUPLICATE,
-        severity=IssueSeverity.ERROR,
-        message="Duplicate artifact found",
-        suggestion="Remove one of the duplicates",
-        location="manifests/task-001.manifest.json",
-    )
-
-    result = CoherenceResult(valid=False, issues=[issue])
+Coexists with the v1 result module until Phase 7.
 """
 
-from dataclasses import dataclass
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 
-class IssueSeverity(Enum):
-    """Severity levels for coherence issues.
-
-    Defines the importance and urgency of detected coherence issues:
-    - ERROR: Critical issues that must be fixed
-    - WARNING: Issues that should be addressed but are not blocking
-    - INFO: Informational notices and suggestions
-
-    Example:
-        severity = IssueSeverity.ERROR
-        if severity == IssueSeverity.ERROR:
-            print("Critical issue detected")
-    """
-
+class IssueSeverity(str, Enum):
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
 
 
-class IssueType(Enum):
-    """Types of coherence issues that can be detected.
-
-    Categorizes different kinds of coherence problems:
-    - DUPLICATE: Same artifact declared in multiple manifests
-    - SIGNATURE_CONFLICT: Conflicting function/method signatures
-    - BOUNDARY_VIOLATION: Cross-boundary access violations
-    - NAMING: Naming convention violations
-    - DEPENDENCY: Dependency-related issues
-    - PATTERN: Pattern usage issues or suggestions
-    - CONSTRAINT: Constraint violations
-
-    Example:
-        issue_type = IssueType.DUPLICATE
-        if issue_type == IssueType.DUPLICATE:
-            print("Duplicate artifact found")
-    """
-
+class IssueType(str, Enum):
     DUPLICATE = "duplicate"
     SIGNATURE_CONFLICT = "signature_conflict"
     BOUNDARY_VIOLATION = "boundary_violation"
@@ -82,72 +27,64 @@ class IssueType(Enum):
     CONSTRAINT = "constraint"
 
 
-@dataclass
+@dataclass(frozen=True)
 class CoherenceIssue:
-    """Represents a single coherence issue detected during validation.
-
-    Contains all information needed to understand and address a coherence
-    issue, including its type, severity, description, and suggested fix.
-
-    Attributes:
-        issue_type: The category of coherence issue
-        severity: How critical the issue is
-        message: Human-readable description of the issue
-        suggestion: Recommended action to resolve the issue
-        location: Optional file path or location where the issue was found
-
-    Example:
-        issue = CoherenceIssue(
-            issue_type=IssueType.NAMING,
-            severity=IssueSeverity.WARNING,
-            message="Function name does not follow snake_case convention",
-            suggestion="Rename 'validateManifest' to 'validate_manifest'",
-            location="src/validators.py:42",
-        )
-    """
+    """A single coherence issue found during analysis."""
 
     issue_type: IssueType
     severity: IssueSeverity
     message: str
-    suggestion: str
-    location: Optional[str] = None
+    file: Optional[str] = None
+    artifact: Optional[str] = None
+    manifests: tuple[str, ...] = ()
+    suggestion: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        d: dict = {
+            "type": self.issue_type.value,
+            "severity": self.severity.value,
+            "message": self.message,
+        }
+        if self.file:
+            d["file"] = self.file
+        if self.artifact:
+            d["artifact"] = self.artifact
+        if self.manifests:
+            d["manifests"] = list(self.manifests)
+        if self.suggestion:
+            d["suggestion"] = self.suggestion
+        return d
 
 
 @dataclass
 class CoherenceResult:
-    """Container for coherence validation results.
+    """Complete result of coherence validation."""
 
-    Aggregates all issues found during coherence validation along with
-    the overall validation status. Provides convenient properties for
-    counting errors and warnings.
-
-    Attributes:
-        valid: Whether the validation passed (no errors)
-        issues: List of all coherence issues found
-
-    Properties:
-        errors: Count of issues with ERROR severity
-        warnings: Count of issues with WARNING severity
-
-    Example:
-        result = CoherenceResult(
-            valid=False,
-            issues=[error_issue, warning_issue],
-        )
-        print(f"Found {result.errors} errors and {result.warnings} warnings")
-    """
-
-    valid: bool
-    issues: List[CoherenceIssue]
+    issues: list[CoherenceIssue] = field(default_factory=list)
+    checks_run: list[str] = field(default_factory=list)
+    duration_ms: Optional[float] = None
 
     @property
-    def errors(self) -> int:
-        """Return count of ERROR severity issues."""
-        return sum(1 for issue in self.issues if issue.severity == IssueSeverity.ERROR)
+    def error_count(self) -> int:
+        return sum(1 for i in self.issues if i.severity == IssueSeverity.ERROR)
 
     @property
-    def warnings(self) -> int:
-        """Return count of WARNING severity issues."""
-        return sum(
-            1 for issue in self.issues if issue.severity == IssueSeverity.WARNING
-        )
+    def warning_count(self) -> int:
+        return sum(1 for i in self.issues if i.severity == IssueSeverity.WARNING)
+
+    @property
+    def success(self) -> bool:
+        return self.error_count == 0
+
+    def to_dict(self) -> dict:
+        return {
+            "success": self.success,
+            "errors": self.error_count,
+            "warnings": self.warning_count,
+            "checks_run": self.checks_run,
+            "issues": [i.to_dict() for i in self.issues],
+            "duration_ms": self.duration_ms,
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2)

@@ -33,4 +33,4 @@ files:
   read:
     - src/database.py
 validate:
-  - pytest tests/test_auth.py -v
+  - python -c pass

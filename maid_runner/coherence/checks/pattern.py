@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from maid_runner.core.types import ArtifactKind, Manifest
-from maid_runner.coherence.result_v2 import (
+from maid_runner.coherence.result import (
     CoherenceIssue,
     IssueSeverity,
     IssueType,

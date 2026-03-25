@@ -9,7 +9,7 @@ import re
 from typing import Optional
 
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
-from maid_runner.coherence.result_v2 import (
+from maid_runner.coherence.result import (
     CoherenceIssue,
     IssueSeverity,
     IssueType,

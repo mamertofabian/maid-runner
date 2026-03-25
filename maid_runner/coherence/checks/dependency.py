@@ -7,7 +7,7 @@ Ported from v1: coherence/checks/dependency_check.py
 from __future__ import annotations
 
 from maid_runner.core.types import Manifest
-from maid_runner.coherence.result_v2 import (
+from maid_runner.coherence.result import (
     CoherenceIssue,
     IssueSeverity,
     IssueType,
