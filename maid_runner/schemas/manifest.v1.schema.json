@@ -1,0 +1,239 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MAID Task Manifest",
+    "type": "object",
+    "required": ["goal", "readonlyFiles"],
+    "oneOf": [
+      { "required": ["expectedArtifacts"] },
+      { "required": ["systemArtifacts"] }
+    ],
+    "anyOf": [
+      { "required": ["validationCommand"] },
+      { "required": ["validationCommands"] }
+    ],
+    "properties": {
+      "version": {
+        "type": "string",
+        "enum": ["1"],
+        "description": "Schema version (defaults to '1' if not specified). Currently only version '1' is supported.",
+        "default": "1"
+      },
+      "goal": { 
+        "type": "string",
+        "description": "A concise description of what this task aims to achieve. This should be a clear, single-sentence statement of the task's primary objective."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional detailed description of the task, providing additional context, rationale, or implementation notes beyond the goal statement."
+      },
+      "taskType": {
+        "type": "string",
+        "enum": ["create", "edit", "refactor", "snapshot", "system-snapshot"],
+        "description": "The type of task being performed. 'create' for new files/features, 'edit' for modifying existing code, 'refactor' for restructuring without changing behavior, 'snapshot' for single-file snapshots, 'system-snapshot' for system-wide snapshots."
+      },
+      "supersedes": { "type": "array", "items": { "type": "string" }, "description": "Paths to manifests that this one replaces/obsoletes" },
+      "creatableFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of new files to be created by this task. Files in this list are subject to strict validation - implementation must exactly match expectedArtifacts with no additional public APIs."
+      },
+      "editableFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of existing files to be modified by this task. Files in this list are subject to permissive validation - implementation must contain at least the expectedArtifacts but may include additional existing code."
+      },
+      "readonlyFiles": { 
+        "type": "array", 
+        "items": { "type": "string" },
+        "description": "List of files that can be read for context but must not be modified. Typically includes test files, dependencies, and reference documentation."
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "author": { "type": "string" },
+          "created": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "priority": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "expectedArtifacts": {
+        "type": "object",
+        "description": "Specification of the code artifacts (functions, classes, attributes) that must be present in the implementation. This serves as the contract between the manifest and the actual code.",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Path to the file containing the expected artifacts, relative to the project root."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["present", "absent"],
+            "default": "present",
+            "description": "Indicates whether the file should be present or absent. Use 'absent' for file deletion tracking."
+          },
+          "contains": {
+            "type": "array",
+            "description": "List of code artifacts (functions, classes, attributes, parameters) that must be implemented in the specified file.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "enum": ["class", "function", "attribute", "parameter", "interface", "type", "enum", "namespace"] },
+                "name": { "type": "string" },
+                "description": { "type": "string", "description": "Optional description of what this artifact does" },
+                "artifactKind": { "type": "string", "description": "Optional semantic kind of artifact (e.g., 'type', 'interface', 'utility')" },
+                "class": { "type": "string", "description": "The parent class for attributes or methods" },
+                "bases": { "type": "array", "items": { "type": "string" }, "description": "The base classes for a class (optional)" },
+                "function": { "type": "string", "description": "The parent function for parameters" },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "type": { "type": "string" }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                  },
+                  "description": "List of parameter names for a function (legacy format)"
+                },
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "type": { "type": "string" },
+                      "default": { "type": "string" }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                  },
+                  "description": "List of function arguments (enhanced format)"
+                },
+                "returns": {
+                  "anyOf": [
+                    { "type": "string", "description": "The return type of a function (string format)" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": { "type": "string" }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false,
+                      "description": "The return type of a function (object format)"
+                    }
+                  ],
+                  "description": "The return type of a function (optional)"
+                },
+                "raises": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "List of exception types that may be raised (optional)"
+                }
+              },
+              "required": ["type", "name"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["file", "contains"],
+        "additionalProperties": false
+      },
+      "systemArtifacts": {
+        "type": "array",
+        "description": "System-wide artifact specification for aggregating artifacts from multiple files. ONLY used in system-snapshot manifests (taskType: system-snapshot). This field is mutually exclusive with expectedArtifacts to prevent regular manifests from using it for multi-file features.",
+        "items": {
+          "type": "object",
+          "description": "Artifact block for a single file in the system snapshot",
+          "properties": {
+            "file": {
+              "type": "string",
+              "description": "Path to the file containing these artifacts, relative to the project root."
+            },
+            "contains": {
+              "type": "array",
+              "description": "List of code artifacts (functions, classes, attributes, parameters) present in this file.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": { "enum": ["class", "function", "attribute", "parameter", "interface", "type", "enum", "namespace"] },
+                  "name": { "type": "string" },
+                  "description": { "type": "string", "description": "Optional description of what this artifact does" },
+                  "artifactKind": { "type": "string", "description": "Optional semantic kind of artifact (e.g., 'type', 'interface', 'utility')" },
+                  "class": { "type": "string", "description": "The parent class for attributes or methods" },
+                  "bases": { "type": "array", "items": { "type": "string" }, "description": "The base classes for a class (optional)" },
+                  "function": { "type": "string", "description": "The parent function for parameters" },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "type": { "type": "string" }
+                      },
+                      "required": ["name"],
+                      "additionalProperties": false
+                    },
+                    "description": "List of parameter names for a function (legacy format)"
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "type": { "type": "string" },
+                        "default": { "type": "string" }
+                      },
+                      "required": ["name"],
+                      "additionalProperties": false
+                    },
+                    "description": "List of function arguments (enhanced format)"
+                  },
+                  "returns": {
+                    "anyOf": [
+                      { "type": "string", "description": "The return type of a function (string format)" },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": { "type": "string" }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "The return type of a function (object format)"
+                      }
+                    ],
+                    "description": "The return type of a function (optional)"
+                  },
+                  "raises": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of exception types that may be raised (optional)"
+                  }
+                },
+                "required": ["type", "name"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["file", "contains"],
+          "additionalProperties": false
+        }
+      },
+      "validationCommand": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Single validation command (legacy format)"
+      },
+      "validationCommands": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": "Multiple validation commands (enhanced format)"
+      }
+    },
+    "additionalProperties": false
+  }

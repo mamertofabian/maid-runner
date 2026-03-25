@@ -38,55 +38,57 @@ This document is the **machine-readable progress tracker** for the v2 rewrite. A
 
 ## Session State
 
-**Current Phase:** Not started
-**Current Task:** Phase 1, Task 1
-**Notes:** (Agent should update this section when stopping mid-task)
+**Current Phase:** Phase 4 - CLI Rewrite
+**Current Task:** Phase 4, Task 4.1
+**Notes:** Phases 1-3 completed and audited. 266 new tests passing, 4292 existing tests still passing.
 
 ```
-Last working on: (describe what was in progress)
-Files modified: (list files changed but not yet tested)
-Tests status: (which tests pass, which are pending)
-Blockers: (any issues discovered)
+Last working on: Phase 3 audit and fixes - added abstract classes, arrow class properties,
+  namespaces, constructor skipping, public_field_definition, #private handling,
+  generate_test_stub, registry clear/supported_extensions/auto_register
+Files modified: validators/typescript.py, validators/base.py, validators/registry.py, core/validate.py
+Tests status: 266 new v2 tests + 4292 existing tests all passing
+Blockers: none
 ```
 
 ---
 
 ## Phase 1: Foundation
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [03-data-types.md](03-data-types.md), [04-core-manifest.md](04-core-manifest.md), [13-backward-compatibility.md](13-backward-compatibility.md)
 
 ### Tasks
 
-- [ ] **1.1** Create package structure directories
+- [x] **1.1** Create package structure directories
   ```
   mkdir -p maid_runner/core maid_runner/compat maid_runner/schemas
   mkdir -p tests/core tests/compat tests/fixtures/manifests/v2 tests/fixtures/manifests/v1
   mkdir -p tests/fixtures/source/python tests/fixtures/source/typescript tests/fixtures/source/svelte
   ```
 
-- [ ] **1.2** Create `maid_runner/core/types.py` with all enums and dataclasses
+- [x] **1.2** Create `maid_runner/core/types.py` with all enums and dataclasses
   - All types from [03-data-types.md](03-data-types.md): ArtifactKind, TaskType, ValidationMode, FileMode, ArgSpec, ArtifactSpec, FileSpec, DeleteSpec, Manifest
   - Write tests first: `tests/core/test_types.py`
   - Test: frozen dataclasses, merge_key(), qualified_name, is_private, all_file_specs, etc.
 
-- [ ] **1.3** Create `maid_runner/core/result.py` with all result types
+- [x] **1.3** Create `maid_runner/core/result.py` with all result types
   - ErrorCode, Severity, Location, ValidationError, FileTrackingStatus, FileTrackingEntry, FileTrackingReport, ValidationResult, BatchValidationResult, TestRunResult, BatchTestResult
   - Write tests: `tests/core/test_result.py`
   - Test: to_dict(), to_json() serialization, success property
 
-- [ ] **1.4** Create `maid_runner/schemas/manifest.v2.schema.json`
+- [x] **1.4** Create `maid_runner/schemas/manifest.v2.schema.json`
   - JSON Schema for v2 YAML manifests per [02-manifest-schema-v2.md](02-manifest-schema-v2.md)
   - Test with sample manifests
 
-- [ ] **1.5** Copy `maid_runner/schemas/manifest.v1.schema.json` from current `validators/schemas/manifest.schema.json`
+- [x] **1.5** Copy `maid_runner/schemas/manifest.v1.schema.json` from current `validators/schemas/manifest.schema.json`
 
-- [ ] **1.6** Create `maid_runner/core/manifest.py`
+- [x] **1.6** Create `maid_runner/core/manifest.py`
   - load_manifest(), save_manifest(), validate_manifest_schema(), slug_from_path()
   - Write tests first: `tests/core/test_manifest.py`
   - Use golden tests from [15-golden-tests.md](15-golden-tests.md)
 
-- [ ] **1.7** Create test fixture manifests
+- [x] **1.7** Create test fixture manifests
   - `tests/fixtures/manifests/v2/simple-feature.manifest.yaml`
   - `tests/fixtures/manifests/v2/multi-file.manifest.yaml`
   - `tests/fixtures/manifests/v2/with-supersession.manifest.yaml`
@@ -94,12 +96,12 @@ Blockers: (any issues discovered)
   - `tests/fixtures/manifests/v2/snapshot.manifest.yaml`
   - Copy some v1 manifests from current `manifests/` to `tests/fixtures/manifests/v1/`
 
-- [ ] **1.8** Create `maid_runner/compat/v1_loader.py`
+- [x] **1.8** Create `maid_runner/compat/v1_loader.py`
   - is_v1_manifest(), convert_v1_to_v2(), convert_v1_file()
   - Write tests: `tests/compat/test_v1_loader.py`
   - Test with actual v1 manifests from this project
 
-- [ ] **1.9** Create `maid_runner/core/config.py`
+- [x] **1.9** Create `maid_runner/core/config.py`
   - MaidConfig loading from .maidrc.yaml
   - Write tests: `tests/core/test_config.py`
 
@@ -120,30 +122,30 @@ uv run pytest tests/ -v --ignore=tests/core --ignore=tests/compat --ignore=tests
 
 ## Phase 2: Validation Engine
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [04-core-manifest.md](04-core-manifest.md), [05-core-validation.md](05-core-validation.md), [05b-core-test-runner.md](05b-core-test-runner.md)
 
 ### Tasks
 
-- [ ] **2.1** Create `maid_runner/core/chain.py` - ManifestChain
+- [x] **2.1** Create `maid_runner/core/chain.py` - ManifestChain
   - Write tests first: `tests/core/test_chain.py`
   - Test: discovery, supersession, merge, active/superseded sets, file modes
   - Use golden tests from [15-golden-tests.md](15-golden-tests.md)
 
-- [ ] **2.2** Create `maid_runner/core/_type_compare.py` - Type normalization
+- [x] **2.2** Create `maid_runner/core/_type_compare.py` - Type normalization
   - Port algorithms from [16-porting-reference.md](16-porting-reference.md)
   - Write tests: `tests/core/test_type_compare.py`
   - Use golden type comparison cases from [15-golden-tests.md](15-golden-tests.md)
 
-- [ ] **2.3** Create `maid_runner/core/_file_discovery.py` - Source file discovery
+- [x] **2.3** Create `maid_runner/core/_file_discovery.py` - Source file discovery
   - Write tests: included in `tests/core/test_validate.py`
 
-- [ ] **2.4** Create `maid_runner/core/validate.py` - ValidationEngine
+- [x] **2.4** Create `maid_runner/core/validate.py` - ValidationEngine
   - Write tests first: `tests/core/test_validate.py`
   - Implement validate(), validate_all(), validate_behavioral(), validate_implementation()
   - Test with golden test cases from [15-golden-tests.md](15-golden-tests.md)
 
-- [ ] **2.5** Create `maid_runner/core/test_runner.py` - Test execution
+- [x] **2.5** Create `maid_runner/core/test_runner.py` - Test execution
   - Write tests: `tests/core/test_test_runner.py`
   - Implement run_tests(), run_manifest_tests(), batch mode
 
@@ -158,30 +160,30 @@ uv run mypy maid_runner/core/
 
 ## Phase 3: Validators (Can Parallel with Phase 2)
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [06-validators.md](06-validators.md)
 
 ### Tasks
 
-- [ ] **3.1** Create `maid_runner/validators/base.py` - BaseValidator ABC, FoundArtifact, CollectionResult
+- [x] **3.1** Create `maid_runner/validators/base.py` - BaseValidator ABC, FoundArtifact, CollectionResult
   - Write tests: `tests/validators/test_base.py`
 
-- [ ] **3.2** Create `maid_runner/validators/__init__.py` - ValidatorRegistry
+- [x] **3.2** Create `maid_runner/validators/registry.py` - ValidatorRegistry
   - Write tests: `tests/validators/test_registry.py`
   - Test: register, get, has_validator, conditional import, UnsupportedLanguageError
 
-- [ ] **3.3** Create `maid_runner/validators/python.py` - PythonValidator
+- [x] **3.3** Create `maid_runner/validators/python.py` - PythonValidator
   - Port from current `_ArtifactCollector` using [16-porting-reference.md](16-porting-reference.md)
   - Write tests first: `tests/validators/test_python.py`
   - Use golden test cases from [15-golden-tests.md](15-golden-tests.md)
   - Test ALL artifact types: class, function, method, attribute, async, enum, decorators, generics, self/cls filtering
 
-- [ ] **3.4** Create `maid_runner/validators/typescript.py` - TypeScriptValidator
+- [x] **3.4** Create `maid_runner/validators/typescript.py` - TypeScriptValidator
   - Port from current `typescript_validator.py` using [16-porting-reference.md](16-porting-reference.md)
   - Write tests first: `tests/validators/test_typescript.py`
   - Use golden test cases from [15-golden-tests.md](15-golden-tests.md)
 
-- [ ] **3.5** Create `maid_runner/validators/svelte.py` - SvelteValidator
+- [x] **3.5** Create `maid_runner/validators/svelte.py` - SvelteValidator
   - Write tests: `tests/validators/test_svelte.py`
 
 ### Phase 3 Verification

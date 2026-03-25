@@ -1,0 +1,36 @@
+schema: "2"
+goal: "Add auth service and models"
+type: feature
+files:
+  create:
+    - path: src/auth/service.py
+      artifacts:
+        - kind: class
+          name: AuthService
+        - kind: method
+          name: login
+          of: AuthService
+          args:
+            - name: username
+              type: str
+            - name: password
+              type: str
+          returns: Token
+    - path: src/auth/models.py
+      artifacts:
+        - kind: class
+          name: Token
+        - kind: attribute
+          name: value
+          of: Token
+          type: str
+  edit:
+    - path: src/config.py
+      artifacts:
+        - kind: attribute
+          name: AUTH_SECRET
+          type: str
+  read:
+    - src/database.py
+validate:
+  - pytest tests/test_auth.py -v

@@ -1,0 +1,18 @@
+schema: "2"
+goal: "Add greeting function"
+type: feature
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+          args:
+            - name: name
+              type: str
+          returns: str
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+created: "2025-06-15T10:30:00Z"

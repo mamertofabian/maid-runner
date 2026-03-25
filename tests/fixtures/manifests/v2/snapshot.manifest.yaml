@@ -1,0 +1,22 @@
+schema: "2"
+goal: "Snapshot current state of validation engine"
+type: snapshot
+created: "2025-06-15T10:30:00Z"
+files:
+  snapshot:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: ManifestChain
+              default: "None"
+          returns: ValidationResult
+validate:
+  - pytest tests/core/test_validate.py -v

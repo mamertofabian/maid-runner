@@ -1,0 +1,11 @@
+schema: "2"
+goal: "Remove deprecated legacy adapter"
+type: refactor
+supersedes:
+  - create-legacy-adapter
+files:
+  delete:
+    - path: src/legacy_adapter.py
+      reason: "All consumers migrated to new API"
+validate:
+  - pytest tests/ -v --ignore=tests/test_legacy_adapter.py
