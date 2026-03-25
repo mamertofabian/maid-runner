@@ -38,23 +38,31 @@ This document is the **machine-readable progress tracker** for the v2 rewrite. A
 
 ## Session State
 
-**Current Phase:** Phase 5 - Features
-**Current Task:** Phase 5, Task 5.1
-**Notes:** Phase 4 (CLI Rewrite) completed. 76 new CLI tests + 266 prior v2 tests + 4293 existing tests all passing (4635 total).
+**Current Phase:** Phase 6 - Integration & Ecosystem
+**Current Task:** Phase 6, Task 6.1
+**Notes:** Phase 5 (Features) completed and spec-aligned. 68 Phase 5 tests + 4636 prior tests = 4704 total, all passing.
 
 ```
-Last working on: Phase 4 CLI rewrite - completed all tasks
-Files created/modified:
-  maid_runner/cli/commands/__init__.py, _main.py, _format.py
-  maid_runner/cli/commands/validate.py, test.py, snapshot.py, init.py
-  maid_runner/cli/commands/manifest.py, files.py, graph.py, coherence.py, schema.py, howto.py
-  maid_runner/core/__init__.py (v2 public API re-exports)
-  maid_runner/__init__.py (added v2 API exports alongside v1 exports)
-  tests/cli/conftest.py, test_format.py, test_main.py, test_validate_cmd.py
-  tests/cli/test_test_cmd.py, test_snapshot_cmd.py, test_init_cmd.py
-  tests/cli/test_schema_cmd.py, test_howto_cmd.py, test_files_cmd.py
-Tests status: 76 CLI tests + 266 v2 core/validator tests + 4293 existing tests = 4635 total
-Note: snapshot/graph/coherence commands are stubs pending Phase 5 modules.
+Last working on: Phase 5 Features - spec alignment pass
+Files created/modified (Phase 5 final state):
+  maid_runner/core/snapshot.py (generate_snapshot, generate_system_snapshot, save_snapshot, generate_test_stub)
+  maid_runner/graph/builder_v2.py (GraphBuilder - _v2 suffix: conflicts with v1 builder.py)
+  maid_runner/graph/query_v2.py (GraphQuery - _v2 suffix: conflicts with v1 query.py)
+  maid_runner/coherence/engine.py (CoherenceEngine - spec path, no v1 conflict)
+  maid_runner/coherence/result_v2.py (CoherenceIssue, CoherenceResult - _v2 suffix: conflicts with v1 result.py)
+  maid_runner/coherence/checks/base.py (BaseCheck ABC, get_checks, get_default_check_classes)
+  maid_runner/coherence/checks/duplicate.py (DuplicateCheck)
+  maid_runner/coherence/checks/signature.py (SignatureCheck)
+  maid_runner/coherence/checks/naming.py (NamingCheck)
+  maid_runner/coherence/checks/boundary.py (ModuleBoundaryCheck - ported from v1)
+  maid_runner/coherence/checks/dependency.py (DependencyCheck - ported from v1)
+  maid_runner/coherence/checks/pattern.py (PatternCheck - ported from v1)
+  maid_runner/coherence/checks/constraint.py (ConstraintCheck - ported from v1)
+  tests/core/test_snapshot.py (17 tests)
+  tests/graph/test_graph_v2.py (16 tests)
+  tests/coherence/test_coherence_v2.py (36 tests)
+Tests status: 68 Phase 5 tests + 4636 prior tests = 4704 total
+V1 code fully preserved. _v2 suffixes used ONLY where v1 files exist with same name.
 Note: pyproject.toml entry point still points to old cli/main.py - switched in Phase 7.
 Blockers: none
 ```
@@ -243,17 +251,27 @@ uv run maid snapshot --help
 
 ## Phase 5: Features
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [05a-core-snapshot.md](05a-core-snapshot.md), [07-graph-module.md](07-graph-module.md), [08-coherence-module.md](08-coherence-module.md)
 
 ### Tasks
 
-- [ ] **5.1** Create `maid_runner/core/snapshot.py`
-  - Write tests: `tests/core/test_snapshot.py`
-- [ ] **5.2** Port `maid_runner/graph/` module
-  - Write tests: `tests/graph/`
-- [ ] **5.3** Port `maid_runner/coherence/` module
-  - Write tests: `tests/coherence/`
+- [x] **5.1** Create `maid_runner/core/snapshot.py`
+  - Write tests: `tests/core/test_snapshot.py` (17 tests)
+- [x] **5.2** Port `maid_runner/graph/` module
+  - Created `graph/builder_v2.py` (GraphBuilder) and `graph/query_v2.py` (GraphQuery)
+  - Write tests: `tests/graph/test_graph_v2.py` (16 tests)
+  - V1 builder.py/query.py preserved unchanged
+- [x] **5.3** Port `maid_runner/coherence/` module
+  - Created `coherence/engine.py` (spec path - no v1 conflict)
+  - Created `coherence/result_v2.py` (_v2 suffix - conflicts with v1 result.py)
+  - Split checks into spec-named individual files in `coherence/checks/`:
+    `base.py`, `duplicate.py`, `signature.py`, `naming.py`,
+    `boundary.py`, `dependency.py`, `pattern.py`, `constraint.py`
+    (all differ from v1 filenames: `*_check.py` / `module_boundary.py`)
+  - All 7 checks fully implemented (ported from v1 logic to v2 types)
+  - Write tests: `tests/coherence/test_coherence_v2.py` (36 tests)
+  - V1 validator.py/result.py/checks/*_check.py preserved unchanged
 
 ### Phase 5 Verification
 
