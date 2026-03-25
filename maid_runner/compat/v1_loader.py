@@ -87,16 +87,19 @@ def convert_v1_to_v2(data: dict) -> dict:
         if f != ea_file:
             pass
 
-    # Snapshot with expected artifacts (non-system)
+    # For v1 snapshot manifests with creatableFiles (not editableFiles),
+    # move to snapshot section for strict validation.
+    # If the file was in editableFiles, keep it in edit section (permissive)
+    # because v1 used editableFiles/creatableFiles to determine validation mode,
+    # not the taskType field.
     if task_type == "snapshot" and ea_file and "snapshot" not in files:
-        # Move from create/edit to snapshot
-        for section in ("create", "edit"):
-            section_files = files.get(section, [])
+        if ea_file in creatable and "create" in files:
+            section_files = files["create"]
             for i, sf in enumerate(section_files):
                 if sf.get("path") == ea_file:
                     files.setdefault("snapshot", []).append(section_files.pop(i))
                     if not section_files:
-                        del files[section]
+                        del files["create"]
                     break
 
     if readonly:

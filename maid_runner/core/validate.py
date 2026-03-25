@@ -262,12 +262,23 @@ class ValidationEngine:
             else:
                 expected = list(fs.artifacts)
 
+            # Determine strict mode: when chain is active and multiple
+            # manifests reference this file, the file has evolved beyond its
+            # creation manifest, so use permissive mode (matching v1 behavior).
+            # Strict mode only applies when the file is referenced by a single
+            # manifest (the creating one) with no subsequent edits.
+            if chain:
+                chain_manifests = chain.manifests_for_file(fs.path)
+                is_strict = fs.is_strict and len(chain_manifests) <= 1
+            else:
+                is_strict = fs.is_strict
+
             # Compare
             file_errors = _compare_artifacts(
                 expected=expected,
                 found=collection.artifacts,
                 file_path=fs.path,
-                is_strict=fs.is_strict,
+                is_strict=is_strict,
             )
             errors.extend(file_errors)
 
@@ -411,25 +422,26 @@ def _compare_single(
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
-    # Compare args types
+    # Compare args types by NAME (not position), matching v1 behavior.
+    # Code may have extra params (e.g. ctx: Context) not in manifest.
     if spec.args:
-        for i, expected_arg in enumerate(spec.args):
-            if i < len(found.args):
-                found_arg = found.args[i]
-                if expected_arg.type and not types_match(
-                    expected_arg.type, found_arg.type
-                ):
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.TYPE_MISMATCH,
-                            message=(
-                                f"Type mismatch for parameter '{expected_arg.name}' "
-                                f"in {spec.kind.value} '{spec.qualified_name}': "
-                                f"expected '{expected_arg.type}', got '{found_arg.type}'"
-                            ),
-                            location=Location(file=file_path, line=found.line),
-                        )
+        found_args_by_name = {a.name: a for a in found.args}
+        for expected_arg in spec.args:
+            found_arg = found_args_by_name.get(expected_arg.name)
+            if found_arg is None:
+                continue  # Parameter not found in code (separate validation)
+            if expected_arg.type and not types_match(expected_arg.type, found_arg.type):
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.TYPE_MISMATCH,
+                        message=(
+                            f"Type mismatch for parameter '{expected_arg.name}' "
+                            f"in {spec.kind.value} '{spec.qualified_name}': "
+                            f"expected '{expected_arg.type}', got '{found_arg.type}'"
+                        ),
+                        location=Location(file=file_path, line=found.line),
                     )
+                )
 
     # Compare return type
     if spec.returns and found.returns:
