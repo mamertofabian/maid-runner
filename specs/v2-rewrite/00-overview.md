@@ -110,6 +110,7 @@ YAML is the primary manifest format (comments, less noise, readable). JSON manif
 | [14-progress-tracker.md](14-progress-tracker.md) | Machine-readable progress checklist, session handoff protocol |
 | [15-golden-tests.md](15-golden-tests.md) | Concrete input/output test cases for every module |
 | [16-porting-reference.md](16-porting-reference.md) | Critical algorithms from current codebase to preserve |
+| [17-orchestration-guide.md](17-orchestration-guide.md) | Human orchestrator prompts for driving each phase |
 
 ## Conventions Used in These Specs
 

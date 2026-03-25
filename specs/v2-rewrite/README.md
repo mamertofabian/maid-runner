@@ -4,7 +4,11 @@ This directory contains the complete architectural specification for the MAID Ru
 
 ## How to Use These Specs
 
-### For Autonomous Implementation (New Session)
+### For Human Orchestrator
+
+**Read [17-orchestration-guide.md](17-orchestration-guide.md)** for copy-pasteable prompts to drive each phase.
+
+### For Autonomous Agent (New Session)
 
 1. **Read [14-progress-tracker.md](14-progress-tracker.md) FIRST** to determine current state
 2. Find the current phase and task from the progress tracker
@@ -69,6 +73,7 @@ This directory contains the complete architectural specification for the MAID Ru
 | [14-progress-tracker.md](14-progress-tracker.md) | Machine-readable progress checklist and session handoff protocol |
 | [15-golden-tests.md](15-golden-tests.md) | Concrete input/output test cases for every module |
 | [16-porting-reference.md](16-porting-reference.md) | Critical algorithms extracted from current codebase |
+| [17-orchestration-guide.md](17-orchestration-guide.md) | Human orchestrator's guide with copy-pasteable prompts per phase |
 
 ## Implementation Order
 
