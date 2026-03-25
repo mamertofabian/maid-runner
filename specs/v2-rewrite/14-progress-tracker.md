@@ -38,31 +38,23 @@ This document is the **machine-readable progress tracker** for the v2 rewrite. A
 
 ## Session State
 
-**Current Phase:** Phase 6 - Integration & Ecosystem
-**Current Task:** Phase 6, Task 6.1
-**Notes:** Phase 5 (Features) completed and spec-aligned. 68 Phase 5 tests + 4636 prior tests = 4704 total, all passing.
+**Current Phase:** Phase 7 - Cleanup
+**Current Task:** Phase 7, Task 7.1
+**Notes:** Phase 6 (Integration & Ecosystem) complete. 61 Phase 6 tests + 4704 prior tests = 4765 total, all passing.
 
 ```
-Last working on: Phase 5 Features - spec alignment pass
-Files created/modified (Phase 5 final state):
-  maid_runner/core/snapshot.py (generate_snapshot, generate_system_snapshot, save_snapshot, generate_test_stub)
-  maid_runner/graph/builder_v2.py (GraphBuilder - _v2 suffix: conflicts with v1 builder.py)
-  maid_runner/graph/query_v2.py (GraphQuery - _v2 suffix: conflicts with v1 query.py)
-  maid_runner/coherence/engine.py (CoherenceEngine - spec path, no v1 conflict)
-  maid_runner/coherence/result_v2.py (CoherenceIssue, CoherenceResult - _v2 suffix: conflicts with v1 result.py)
-  maid_runner/coherence/checks/base.py (BaseCheck ABC, get_checks, get_default_check_classes)
-  maid_runner/coherence/checks/duplicate.py (DuplicateCheck)
-  maid_runner/coherence/checks/signature.py (SignatureCheck)
-  maid_runner/coherence/checks/naming.py (NamingCheck)
-  maid_runner/coherence/checks/boundary.py (ModuleBoundaryCheck - ported from v1)
-  maid_runner/coherence/checks/dependency.py (DependencyCheck - ported from v1)
-  maid_runner/coherence/checks/pattern.py (PatternCheck - ported from v1)
-  maid_runner/coherence/checks/constraint.py (ConstraintCheck - ported from v1)
-  tests/core/test_snapshot.py (17 tests)
-  tests/graph/test_graph_v2.py (16 tests)
-  tests/coherence/test_coherence_v2.py (36 tests)
-Tests status: 68 Phase 5 tests + 4636 prior tests = 4704 total
-V1 code fully preserved. _v2 suffixes used ONLY where v1 files exist with same name.
+Last working on: Phase 6 Integration & Ecosystem - complete
+Files created/modified (Phase 6):
+  tests/integration/__init__.py (new)
+  tests/integration/test_full_workflow.py (17 tests - full pipeline: load/validate/chain/snapshot/behavioral/delete)
+  tests/integration/test_library_api.py (25 tests - public API imports, convenience functions, round-trips, extension point)
+  tests/integration/test_backward_compat.py (18 tests - v1 detection, conversion, full pipeline, mixed chains)
+  maid_runner/__init__.py (fixed: generate_snapshot now re-exports v2 from core.snapshot)
+  tests/test_task_013_packaging.py (updated: generate_snapshot signature test for v2 + v1 still-importable test)
+  README.md (added v2 library API examples and YAML manifest format section)
+Tests status: 61 Phase 6 tests + 4704 prior tests = 4765 total
+Public API verified against 10-public-api.md spec - all 33 required symbols exported.
+V1 code fully preserved. V1 generate_snapshot still importable from maid_runner.cli.snapshot.
 Note: pyproject.toml entry point still points to old cli/main.py - switched in Phase 7.
 Blockers: none
 ```
@@ -283,16 +275,18 @@ uv run pytest tests/core/test_snapshot.py tests/graph/ tests/coherence/ -v
 
 ## Phase 6: Integration & Ecosystem
 
-**Status:** Not started
+**Status:** Complete
 **Spec docs:** [10-public-api.md](10-public-api.md)
 
 ### Tasks
 
-- [ ] **6.1** Write integration tests: `tests/integration/test_full_workflow.py`
-- [ ] **6.2** Write integration tests: `tests/integration/test_library_api.py`
-- [ ] **6.3** Write integration tests: `tests/integration/test_backward_compat.py`
-- [ ] **6.4** Update README.md with v2 examples
-- [ ] **6.5** Verify public API matches [10-public-api.md](10-public-api.md)
+- [x] **6.1** Write integration tests: `tests/integration/test_full_workflow.py` (17 tests)
+- [x] **6.2** Write integration tests: `tests/integration/test_library_api.py` (25 tests)
+- [x] **6.3** Write integration tests: `tests/integration/test_backward_compat.py` (18 tests)
+- [x] **6.4** Update README.md with v2 examples
+- [x] **6.5** Verify public API matches [10-public-api.md](10-public-api.md)
+  - Fixed: `generate_snapshot` top-level export now points to v2 (`maid_runner.core.snapshot`)
+  - All 33 spec-required symbols verified present in `__all__`
 
 ### Phase 6 Verification
 

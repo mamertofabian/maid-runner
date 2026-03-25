@@ -215,7 +215,7 @@ class TestAPIUsage:
             raise AlignmentError("Test error message")
 
     def test_generate_snapshot_signature(self):
-        """Test that generate_snapshot has correct signature."""
+        """Test that generate_snapshot has correct signature (v2 API)."""
         import inspect
         from maid_runner import generate_snapshot
 
@@ -223,5 +223,16 @@ class TestAPIUsage:
         params = list(sig.parameters.keys())
 
         assert "file_path" in params
+        assert "project_root" in params
+        assert "include_private" in params
+
+    def test_generate_snapshot_v1_still_importable(self):
+        """Test that v1 generate_snapshot is still importable from cli.snapshot."""
+        import inspect
+        from maid_runner.cli.snapshot import generate_snapshot as v1_snapshot
+
+        sig = inspect.signature(v1_snapshot)
+        params = list(sig.parameters.keys())
+
+        assert "file_path" in params
         assert "output_dir" in params
-        assert "force" in params

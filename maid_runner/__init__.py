@@ -42,6 +42,7 @@ from maid_runner.core.manifest import (
     ManifestSchemaError,
 )
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.snapshot import generate_snapshot  # noqa: F811 - overrides v1
 from maid_runner.core.types import (
     ArtifactKind,
     ArtifactSpec,
