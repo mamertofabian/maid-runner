@@ -126,6 +126,41 @@ def _collect_impl(
                     line=node.start_point[0] + 1,
                 )
             )
+            body = _child_by_type(node, "interface_body") or _child_by_type(
+                node, "object_type"
+            )
+            if body:
+                for child in body.children:
+                    if child.type == "property_signature":
+                        prop_name = _child_text(child, "property_identifier", source)
+                        if prop_name:
+                            type_ann = None
+                            for tc in child.children:
+                                if tc.type == "type_annotation":
+                                    type_ann = _extract_type_text(tc, source)
+                            artifacts.append(
+                                FoundArtifact(
+                                    kind=ArtifactKind.ATTRIBUTE,
+                                    name=prop_name,
+                                    of=name,
+                                    type_annotation=type_ann,
+                                    line=child.start_point[0] + 1,
+                                )
+                            )
+                    elif child.type == "method_signature":
+                        method_name = _child_text(child, "property_identifier", source)
+                        if method_name:
+                            args, returns = _extract_func_signature(child, source)
+                            artifacts.append(
+                                FoundArtifact(
+                                    kind=ArtifactKind.METHOD,
+                                    name=method_name,
+                                    of=name,
+                                    args=args,
+                                    returns=returns,
+                                    line=child.start_point[0] + 1,
+                                )
+                            )
         return
 
     if ntype == "type_alias_declaration":

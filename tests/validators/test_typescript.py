@@ -380,3 +380,75 @@ class TestPublicFieldDefinition:
         names = _names(result.artifacts, of="Config")
         assert "debug" in names
         assert "port" in names
+
+
+class TestInterfaceMembers:
+    """Interface members should be extracted as attributes/methods."""
+
+    def test_interface_properties_as_attributes(self, validator):
+        source = "interface Todo { id: string; title: string; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+
+        iface = _find(result.artifacts, "Todo", kind=ArtifactKind.INTERFACE)
+        assert iface is not None
+
+        id_attr = _find(result.artifacts, "id", kind=ArtifactKind.ATTRIBUTE, of="Todo")
+        assert id_attr is not None
+        assert id_attr.type_annotation == "string"
+
+        title_attr = _find(
+            result.artifacts, "title", kind=ArtifactKind.ATTRIBUTE, of="Todo"
+        )
+        assert title_attr is not None
+        assert title_attr.type_annotation == "string"
+
+    def test_interface_methods(self, validator):
+        source = """interface Service {
+  start(): void;
+  stop(force: boolean): Promise<void>;
+}
+"""
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+
+        iface = _find(result.artifacts, "Service", kind=ArtifactKind.INTERFACE)
+        assert iface is not None
+
+        start = _find(result.artifacts, "start", kind=ArtifactKind.METHOD, of="Service")
+        assert start is not None
+        assert start.returns == "void"
+
+        stop = _find(result.artifacts, "stop", kind=ArtifactKind.METHOD, of="Service")
+        assert stop is not None
+        assert len(stop.args) == 1
+        assert stop.args[0].name == "force"
+
+    def test_empty_interface_no_members(self, validator):
+        source = "interface Empty {}\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+
+        iface = _find(result.artifacts, "Empty", kind=ArtifactKind.INTERFACE)
+        assert iface is not None
+
+        members = [a for a in result.artifacts if a.of == "Empty"]
+        assert members == []
+
+    def test_extending_interface_with_members(self, validator):
+        source = """interface Animal extends LivingThing {
+  species: string;
+  sound(): string;
+}
+"""
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+
+        iface = _find(result.artifacts, "Animal", kind=ArtifactKind.INTERFACE)
+        assert iface is not None
+        assert "LivingThing" in iface.bases
+
+        species = _find(
+            result.artifacts, "species", kind=ArtifactKind.ATTRIBUTE, of="Animal"
+        )
+        assert species is not None
+        assert species.type_annotation == "string"
+
+        sound = _find(result.artifacts, "sound", kind=ArtifactKind.METHOD, of="Animal")
+        assert sound is not None
