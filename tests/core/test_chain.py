@@ -402,7 +402,7 @@ validate:
         paths = chain.all_tracked_paths()
         assert "src/a.py" in paths
         assert "src/b.py" in paths
-        assert "src/c.py" not in paths  # read-only excluded
+        assert "src/c.py" in paths  # read-only files are tracked too
 
 
 class TestManifestsForFile:

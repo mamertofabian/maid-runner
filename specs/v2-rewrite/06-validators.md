@@ -4,7 +4,8 @@
 
 ## Module Location
 
-- `maid_runner/validators/__init__.py` - Registry
+- `maid_runner/validators/__init__.py` - Re-exports, auto-registration trigger
+- `maid_runner/validators/registry.py` - ValidatorRegistry, auto_register(), UnsupportedLanguageError
 - `maid_runner/validators/base.py` - BaseValidator ABC
 - `maid_runner/validators/python.py` - Python validator (always available)
 - `maid_runner/validators/typescript.py` - TypeScript validator (optional)
@@ -12,7 +13,7 @@
 
 ## Design Principles
 
-1. **Validators are self-contained** - They don't import from `core/` or `cli/`
+1. **Validators are self-contained** - They import only pure value types from `core.types` (enums and frozen dataclasses like `ArtifactKind`, `ArgSpec`)
 2. **Validators receive strings, return data** - Input: source code + file path. Output: list of FoundArtifact.
 3. **Plugin architecture** - New languages are added by implementing BaseValidator and registering
 4. **Optional dependencies** - TypeScript/Svelte validators fail gracefully if tree-sitter not installed
@@ -152,14 +153,28 @@ class BaseValidator(ABC):
         return d
 ```
 
-## Validator Registry (`validators/__init__.py`)
+## Validator Registry (`validators/registry.py`)
+
+The registry lives in a separate `registry.py` module (not `__init__.py`) to avoid circular imports and keep concerns separated. An `auto_register()` function handles conditional registration of built-in validators.
 
 ```python
+# validators/registry.py
+
+class UnsupportedLanguageError(Exception):
+    """No validator available for a file extension."""
+    def __init__(self, extension: str):
+        self.extension = extension
+        super().__init__(
+            f"No validator for '{extension}' files. "
+            f"Install optional dependencies? (e.g., maid-runner[typescript])"
+        )
+
+
 class ValidatorRegistry:
     """Registry of language validators.
 
-    Validators register themselves when their module is imported.
-    The registry provides lookup by file extension.
+    Validators register themselves via auto_register() or manual
+    registration. The registry provides lookup by file extension.
     """
 
     _validators: dict[str, type[BaseValidator]] = {}
@@ -167,11 +182,7 @@ class ValidatorRegistry:
 
     @classmethod
     def register(cls, validator_class: type[BaseValidator]) -> None:
-        """Register a validator for its supported extensions.
-
-        Args:
-            validator_class: Subclass of BaseValidator to register.
-        """
+        """Register a validator for its supported extensions."""
         for ext in validator_class.supported_extensions():
             cls._validators[ext] = validator_class
 
@@ -179,15 +190,8 @@ class ValidatorRegistry:
     def get(cls, file_path: str | Path) -> BaseValidator:
         """Get a validator instance for the given file.
 
-        Args:
-            file_path: Path to the file to validate.
-
-        Returns:
-            A BaseValidator instance.
-
         Raises:
-            UnsupportedLanguageError: If no validator is registered for
-                this file extension.
+            UnsupportedLanguageError: If no validator registered for extension.
         """
         ext = Path(file_path).suffix
         if ext not in cls._validators:
@@ -202,6 +206,11 @@ class ValidatorRegistry:
         return Path(file_path).suffix in cls._validators
 
     @classmethod
+    def has_validator_for_extension(cls, ext: str) -> bool:
+        """Check if a validator is registered for an extension."""
+        return ext in cls._validators
+
+    @classmethod
     def supported_extensions(cls) -> set[str]:
         """All file extensions with registered validators."""
         return set(cls._validators.keys())
@@ -213,34 +222,29 @@ class ValidatorRegistry:
         cls._instances.clear()
 
 
-class UnsupportedLanguageError(Exception):
-    """No validator available for a file extension."""
-    def __init__(self, extension: str):
-        self.extension = extension
-        super().__init__(
-            f"No validator for '{extension}' files. "
-            f"Install optional dependencies? (e.g., maid-runner[typescript])"
-        )
+def auto_register() -> None:
+    """Auto-register all built-in validators.
 
+    Python is always available. TypeScript and Svelte are conditional
+    on tree-sitter being installed.
+    """
+    from .python import PythonValidator
+    ValidatorRegistry.register(PythonValidator)
 
-# Auto-register Python validator (always available)
-from .python import PythonValidator
-ValidatorRegistry.register(PythonValidator)
+    try:
+        from .typescript import TypeScriptValidator
+        ValidatorRegistry.register(TypeScriptValidator)
+    except ImportError:
+        pass
 
-# Conditionally register TypeScript validator
-try:
-    from .typescript import TypeScriptValidator
-    ValidatorRegistry.register(TypeScriptValidator)
-except ImportError:
-    pass  # tree-sitter not installed
-
-# Conditionally register Svelte validator
-try:
-    from .svelte import SvelteValidator
-    ValidatorRegistry.register(SvelteValidator)
-except ImportError:
-    pass  # tree-sitter not installed
+    try:
+        from .svelte import SvelteValidator
+        ValidatorRegistry.register(SvelteValidator)
+    except ImportError:
+        pass
 ```
+
+Callers (e.g., `core/validate.py`) invoke `auto_register()` at module load time to ensure validators are available before any validation runs.
 
 ## Python Validator (`validators/python.py`)
 
@@ -497,15 +501,18 @@ class GoValidator(BaseValidator):
         ...
 ```
 
-### Step 2: Register in `__init__.py`
+### Step 2: Register in `registry.py`
 
 ```python
-# At bottom of validators/__init__.py
-try:
-    from .go import GoValidator
-    ValidatorRegistry.register(GoValidator)
-except ImportError:
-    pass
+# Add to auto_register() in validators/registry.py
+def auto_register() -> None:
+    # ... existing registrations ...
+
+    try:
+        from .go import GoValidator
+        ValidatorRegistry.register(GoValidator)
+    except ImportError:
+        pass
 ```
 
 ### Step 3: Add optional dependency

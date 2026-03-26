@@ -934,6 +934,25 @@ class GraphQuery:
             "depended_by": [],
         }
 
+    def query(self, question: str) -> dict[str, Any]:
+        """Parse a natural language question and dispatch to the appropriate method.
+
+        Args:
+            question: Natural language query string.
+
+        Returns:
+            Dict with 'query_type', 'results', 'summary' fields.
+        """
+        parser = QueryParser()
+        intent = parser.parse(question)
+        executor = QueryExecutor(self._graph)
+        qr = executor.execute(intent)
+        return {
+            "query_type": qr.query_type.value,
+            "results": qr.data,
+            "summary": qr.message,
+        }
+
     def impact_analysis(self, artifact_name: str) -> dict[str, Any]:
         """Analyze the impact of changing an artifact."""
         affected_files = get_affected_files(self._graph, artifact_name)

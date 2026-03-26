@@ -72,11 +72,15 @@ from maid_runner.core.result import (
 )
 
 # Validator extension point
-from maid_runner.validators import ValidatorRegistry, UnsupportedLanguageError
+from maid_runner.validators.registry import ValidatorRegistry, UnsupportedLanguageError
 from maid_runner.validators.base import BaseValidator, FoundArtifact, CollectionResult
 
 # Exceptions
 from maid_runner.core.manifest import ManifestLoadError, ManifestSchemaError
+
+# Graph & Coherence (optional features, always importable)
+from maid_runner.graph import KnowledgeGraph, NodeType, EdgeType
+from maid_runner.coherence import CoherenceEngine, CoherenceResult
 
 # Public API declaration for tools
 __all__ = [
@@ -122,6 +126,13 @@ __all__ = [
     # Exceptions
     "ManifestLoadError",
     "ManifestSchemaError",
+    # Graph
+    "KnowledgeGraph",
+    "NodeType",
+    "EdgeType",
+    # Coherence
+    "CoherenceEngine",
+    "CoherenceResult",
 ]
 ```
 

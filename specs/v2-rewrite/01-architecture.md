@@ -21,7 +21,8 @@ maid-runner/
 │   │   └── types.py                   # Shared type definitions (Artifact, FileSpec, etc.)
 │   │
 │   ├── validators/                    # Language-specific AST analysis
-│   │   ├── __init__.py                # ValidatorRegistry, get_validator()
+│   │   ├── __init__.py                # Re-exports, auto-registration trigger
+│   │   ├── registry.py                # ValidatorRegistry, auto_register(), UnsupportedLanguageError
 │   │   ├── base.py                    # BaseValidator ABC
 │   │   ├── python.py                  # PythonValidator (stdlib ast - always available)
 │   │   ├── typescript.py              # TypeScriptValidator (tree-sitter - optional)
@@ -32,7 +33,7 @@ maid-runner/
 │   │   ├── model.py                   # Node types, Edge types, KnowledgeGraph container
 │   │   ├── builder.py                 # GraphBuilder: manifests -> graph
 │   │   ├── query.py                   # GraphQuery: traversal, search, analysis
-│   │   └── export.py                  # Exporters: JSON, DOT, GraphML
+│   │   └── exporters.py               # Exporters: JSON, DOT, GraphML
 │   │
 │   ├── coherence/                     # Architectural coherence (optional feature)
 │   │   ├── __init__.py                # Re-exports: CoherenceEngine, etc.
@@ -55,9 +56,10 @@ maid-runner/
 │   │
 │   ├── cli/                           # Thin CLI layer
 │   │   ├── __init__.py
-│   │   ├── main.py                    # Entry point, argument parsing, subcommand routing
 │   │   ├── commands/                  # One file per command
 │   │   │   ├── __init__.py
+│   │   │   ├── _main.py               # Entry point, argument parsing, subcommand routing
+│   │   │   ├── _format.py             # Output formatters (text, JSON, LSP-compatible)
 │   │   │   ├── validate.py            # maid validate
 │   │   │   ├── test.py                # maid test
 │   │   │   ├── snapshot.py            # maid snapshot / maid snapshot-system
@@ -68,7 +70,6 @@ maid-runner/
 │   │   │   ├── coherence.py           # maid coherence (also integrated into validate)
 │   │   │   ├── schema.py              # maid schema
 │   │   │   └── howto.py               # maid howto
-│   │   └── format.py                  # Output formatters (text, JSON, LSP-compatible)
 │   │
 │   └── schemas/                       # JSON/YAML schema files
 │       ├── manifest.v2.schema.json    # V2 manifest JSON Schema (for validation)
@@ -122,8 +123,9 @@ maid-runner/
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    CLI Layer                          │
-│   cli/main.py + cli/commands/*.py + cli/format.py   │
-│   ~500 lines total. Argument parsing and output      │
+│   cli/commands/_main.py + cli/commands/*.py          │
+│   + cli/commands/_format.py                          │
+│   ~1,000 lines total. Argument parsing and output    │
 │   formatting ONLY. No business logic.                │
 ├─────────────────────────────────────────────────────┤
 │                  Public API Layer                     │
@@ -161,7 +163,7 @@ core/ ─────────> validators/ (via registry interface only)
 graph/ ────────> core/ (reads manifests, types)
 coherence/ ───> core/ (reads manifests, types), graph/ (uses knowledge graph)
 compat/ ──────> core/ (converts to v2 types)
-validators/ ──> (nothing from maid_runner — self-contained)
+validators/ ──> core.types ONLY (shared value types: ArtifactKind, ArgSpec)
 ```
 
 ### Forbidden Dependencies
@@ -170,15 +172,17 @@ validators/ ──> (nothing from maid_runner — self-contained)
 core/ ──X──> cli/           # Core MUST NOT import CLI
 core/ ──X──> graph/         # Core MUST NOT depend on optional features
 core/ ──X──> coherence/     # Core MUST NOT depend on optional features
-validators/ ──X──> core/    # Validators MUST NOT import core
+validators/ ──X──> core/    # Validators MUST NOT import core (except core.types)
 validators/ ──X──> cli/     # Validators MUST NOT import CLI
 graph/ ──X──> cli/          # Features MUST NOT import CLI
 coherence/ ──X──> cli/      # Features MUST NOT import CLI
 ```
 
-### Why Validators Don't Import Core
+**Exception:** Validators may import pure data types from `core.types` (enums and frozen dataclasses with no business logic, such as `ArtifactKind` and `ArgSpec`). These are shared value types that carry no orchestration logic and create no circular dependencies.
 
-Validators receive data (source code string, file path) and return data (list of found artifacts). They don't need to know about manifests, chains, or validation logic. This keeps them independently testable and pluggable.
+### Why Validators Limit Core Imports
+
+Validators receive data (source code string, file path) and return data (list of found artifacts). They don't need to know about manifests, chains, or validation logic. The sole exception is shared value types (`ArtifactKind`, `ArgSpec`) that both validators and core use to describe artifacts. This keeps validators independently testable and pluggable.
 
 ## Data Flow
 
@@ -334,8 +338,8 @@ coherence:
 | graph/ (all) | ~1,500 | Mostly ported from current |
 | coherence/ (all) | ~1,200 | Mostly ported from current |
 | compat/v1_loader.py | ~200 | V1 JSON -> V2 conversion |
-| cli/ (all) | ~500 | Thin wrappers |
-| **Total** | **~7,300** | Down from 23,500 |
+| cli/ (all) | ~1,000 | Argument parsing, output formatting |
+| **Total** | **~7,800** | Down from 23,500 |
 
 ## External Dependencies
 

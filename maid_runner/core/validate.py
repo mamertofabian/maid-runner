@@ -99,13 +99,16 @@ class ValidationEngine:
 
         duration = (time.monotonic() - start) * 1000
 
+        actual_errors = [e for e in errors if e.severity == Severity.ERROR]
+        actual_warnings = [e for e in errors if e.severity == Severity.WARNING]
+
         return ValidationResult(
-            success=len(errors) == 0,
+            success=len(actual_errors) == 0,
             manifest_slug=manifest.slug,
             manifest_path=manifest.source_path,
             mode=mode,
-            errors=[e for e in errors if e.severity == Severity.ERROR],
-            warnings=[e for e in errors if e.severity == Severity.WARNING],
+            errors=actual_errors,
+            warnings=actual_warnings,
             duration_ms=duration,
         )
 
@@ -292,6 +295,7 @@ class ValidationEngine:
 
         source_files = discover_source_files(self._project_root)
         tracked_paths = chain.all_tracked_paths()
+        read_only_paths = chain.all_read_only_paths()
 
         entries: list[FileTrackingEntry] = []
         for path in source_files:
@@ -305,6 +309,19 @@ class ValidationEngine:
                     FileTrackingEntry(
                         path=path,
                         status=FileTrackingStatus.UNDECLARED,
+                    )
+                )
+            elif path in read_only_paths and not manifests:
+                # File appears only in files.read — REGISTERED, not UNDECLARED
+                read_manifest_slugs = tuple(
+                    m.slug for m in chain.active_manifests() if path in m.files_read
+                )
+                entries.append(
+                    FileTrackingEntry(
+                        path=path,
+                        status=FileTrackingStatus.REGISTERED,
+                        manifests=read_manifest_slugs,
+                        issues=("Only in readonlyFiles",),
                     )
                 )
             elif manifests:
@@ -430,7 +447,23 @@ def _compare_single(
             found_arg = found_args_by_name.get(expected_arg.name)
             if found_arg is None:
                 continue  # Parameter not found in code (separate validation)
-            if expected_arg.type and not types_match(expected_arg.type, found_arg.type):
+            if expected_arg.type and found_arg.type is None:
+                # Manifest declares type but code has no annotation -> WARNING
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.MISSING_RETURN_TYPE,
+                        message=(
+                            f"Missing type annotation for parameter '{expected_arg.name}' "
+                            f"in {spec.kind.value} '{spec.qualified_name}': "
+                            f"expected '{expected_arg.type}'"
+                        ),
+                        severity=Severity.WARNING,
+                        location=Location(file=file_path, line=found.line),
+                    )
+                )
+            elif expected_arg.type and not types_match(
+                expected_arg.type, found_arg.type
+            ):
                 errors.append(
                     ValidationError(
                         code=ErrorCode.TYPE_MISMATCH,
@@ -444,7 +477,20 @@ def _compare_single(
                 )
 
     # Compare return type
-    if spec.returns and found.returns:
+    if spec.returns and found.returns is None:
+        # Manifest declares return type but code has no annotation -> WARNING
+        errors.append(
+            ValidationError(
+                code=ErrorCode.MISSING_RETURN_TYPE,
+                message=(
+                    f"Missing return type annotation for {spec.kind.value} "
+                    f"'{spec.qualified_name}': expected '{spec.returns}'"
+                ),
+                severity=Severity.WARNING,
+                location=Location(file=file_path, line=found.line),
+            )
+        )
+    elif spec.returns and found.returns:
         if not types_match(spec.returns, found.returns):
             errors.append(
                 ValidationError(

@@ -90,11 +90,33 @@ def run_manifest_tests(
     )
 
 
+def _can_batch(commands: list[tuple[str, ...]]) -> bool:
+    """Check if all commands use pytest and can be batched."""
+    if not commands:
+        return False
+    return all(
+        cmd[0] in ("pytest", "python") and "pytest" in " ".join(cmd) for cmd in commands
+    )
+
+
+def _batch_pytest(commands: list[tuple[str, ...]]) -> tuple[str, ...]:
+    """Combine multiple pytest commands into a single invocation."""
+    test_files: list[str] = []
+    seen: set[str] = set()
+    for cmd in commands:
+        for part in cmd:
+            if part.endswith(".py") and part not in seen:
+                seen.add(part)
+                test_files.append(part)
+    return ("pytest",) + tuple(test_files) + ("-v",)
+
+
 def run_tests(
     manifest_dir: Union[str, Path] = "manifests/",
     *,
     fail_fast: bool = False,
     project_root: Union[str, Path] = ".",
+    batch: bool | None = None,
 ) -> BatchTestResult:
     project_root = Path(project_root)
     chain_dir = project_root / manifest_dir
@@ -105,25 +127,43 @@ def run_tests(
     chain = ManifestChain(chain_dir, project_root)
     active = chain.active_manifests()
 
+    # Collect all commands
+    all_commands: list[tuple[tuple[str, ...], str]] = []
+    for manifest in active:
+        for cmd in manifest.validate_commands:
+            all_commands.append((cmd, manifest.slug))
+
+    # Determine batching
+    commands_only = [cmd for cmd, _ in all_commands]
+    should_batch = batch if batch is not None else _can_batch(commands_only)
+
+    if should_batch and _can_batch(commands_only) and len(commands_only) > 1:
+        batched_cmd = _batch_pytest(commands_only)
+        result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
+        if result.success:
+            return BatchTestResult(results=[result], total=1, passed=1, failed=0)
+        else:
+            return BatchTestResult(results=[result], total=1, passed=0, failed=1)
+
+    # Sequential execution
     results: list[TestRunResult] = []
     passed = 0
     failed = 0
 
-    for manifest in active:
-        for cmd in manifest.validate_commands:
-            result = run_command(cmd, cwd=project_root, manifest_slug=manifest.slug)
-            results.append(result)
-            if result.success:
-                passed += 1
-            else:
-                failed += 1
-                if fail_fast:
-                    return BatchTestResult(
-                        results=results,
-                        total=len(results),
-                        passed=passed,
-                        failed=failed,
-                    )
+    for cmd, slug in all_commands:
+        result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+        results.append(result)
+        if result.success:
+            passed += 1
+        else:
+            failed += 1
+            if fail_fast:
+                return BatchTestResult(
+                    results=results,
+                    total=len(results),
+                    passed=passed,
+                    failed=failed,
+                )
 
     return BatchTestResult(
         results=results,

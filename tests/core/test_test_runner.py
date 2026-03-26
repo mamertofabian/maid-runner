@@ -80,6 +80,112 @@ validate:
         assert result.total <= 1
 
 
+class TestBatchMode:
+    def test_batch_combines_pytest_commands(self, tmp_path):
+        """Multiple pytest commands batched into single invocation."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -v
+"""
+        )
+        # With batch=True, should produce fewer commands than manifests
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
+        # Batched: one combined command instead of two separate
+        assert result.total == 1
+
+    def test_batch_false_runs_sequentially(self, tmp_path):
+        """batch=False runs each command separately."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - echo a-passed
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - echo b-passed
+"""
+        )
+        result = run_tests(
+            manifest_dir="manifests/", project_root=tmp_path, batch=False
+        )
+        assert result.total == 2
+
+    def test_mixed_runners_not_batched(self, tmp_path):
+        """Mixed pytest + non-pytest commands cannot be batched."""
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - echo b-passed
+"""
+        )
+        # With batch=True but mixed runners, should fall back to sequential
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
+        assert result.total == 2
+
+
 class TestRunTests:
     def test_all_manifests(self, tmp_path):
         manifests_dir = tmp_path / "manifests"

@@ -341,6 +341,100 @@ validate:
         )
 
 
+class TestMissingAnnotationWarning:
+    def test_missing_return_type_is_warning_not_error(self, project):
+        """Golden test 5.2: manifest says returns: str, code has no annotation -> WARNING E304."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-func.manifest.yaml",
+            """schema: "2"
+goal: "Add func"
+files:
+  create:
+    - path: src/func.py
+      artifacts:
+        - kind: function
+          name: foo
+          returns: str
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/func.py", 'def foo():\n    return "hello"\n')
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Should NOT have E302 TYPE_MISMATCH error
+        assert not any(e.code == ErrorCode.TYPE_MISMATCH for e in result.errors)
+        # Should have E304 MISSING_RETURN_TYPE warning
+        assert any(w.code == ErrorCode.MISSING_RETURN_TYPE for w in result.warnings)
+
+    def test_missing_arg_type_is_warning_not_error(self, project):
+        """Manifest says arg type: str, code has no annotation -> WARNING E304."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-func.manifest.yaml",
+            """schema: "2"
+goal: "Add func"
+files:
+  create:
+    - path: src/func.py
+      artifacts:
+        - kind: function
+          name: foo
+          args:
+            - name: x
+              type: str
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/func.py", "def foo(x):\n    return x\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.TYPE_MISMATCH for e in result.errors)
+        assert any(w.code == ErrorCode.MISSING_RETURN_TYPE for w in result.warnings)
+
+
+class TestFileTracking:
+    def test_read_only_file_classified_as_registered(self, project):
+        """Golden test 9.1: File only in files.read should be REGISTERED, not UNDECLARED."""
+        _write_manifest(
+            project / "manifests",
+            "use-dep.manifest.yaml",
+            """schema: "2"
+goal: "Use dependency"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - src/dep.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/app.py", "def run(): pass\n")
+        _write_source(project, "src/dep.py", "def helper(): pass\n")
+
+        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.result import FileTrackingStatus
+
+        engine = ValidationEngine(project_root=project)
+        chain = ManifestChain(project / "manifests", project_root=project)
+        report = engine.run_file_tracking(chain)
+
+        dep_entries = [e for e in report.entries if e.path == "src/dep.py"]
+        assert len(dep_entries) == 1
+        entry = dep_entries[0]
+        assert entry.status == FileTrackingStatus.REGISTERED
+        assert entry.status != FileTrackingStatus.UNDECLARED
+        assert any("read" in issue.lower() for issue in entry.issues)
+
+
 class TestConvenienceFunction:
     def test_validate_function(self, project):
         manifest_path = _write_manifest(

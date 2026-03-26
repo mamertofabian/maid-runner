@@ -298,6 +298,29 @@ class TestGraphQuery:
         assert "artifact" in result
         assert "manifests" in result
 
+    def test_query_find_definition(self, sample_graph):
+        """query('What defines ServiceClass?') -> finds the artifact."""
+        q = GraphQuery(sample_graph)
+        result = q.query("What defines ServiceClass?")
+        assert result["query_type"] == "find_definition"
+        assert result["results"] is not None
+
+    def test_query_find_cycles(self, sample_graph):
+        """query('Find circular dependencies') -> runs cycle detection."""
+        q = GraphQuery(sample_graph)
+        result = q.query("Find circular dependencies")
+        assert result["query_type"] == "find_cycles"
+        assert "results" in result
+        assert "summary" in result
+
+    def test_query_returns_dict_with_required_keys(self, sample_graph):
+        """query() returns dict with query_type, results, summary."""
+        q = GraphQuery(sample_graph)
+        result = q.query("What depends on ServiceClass?")
+        assert "query_type" in result
+        assert "results" in result
+        assert "summary" in result
+
 
 # ---------------------------------------------------------------------------
 # Export integration (v2 graph exports cleanly)

@@ -158,6 +158,85 @@ class TestValidateDefaults:
         assert args.manifest_dir == "custom/"
 
 
+class TestMissingCLIFlags:
+    """Test CLI flags required by spec 09-cli.md."""
+
+    def test_test_batch_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["test", "--batch"])
+        assert args.batch is True
+
+    def test_test_no_batch_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["test", "--no-batch"])
+        assert args.batch is False
+
+    def test_test_batch_default_none(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["test"])
+        assert args.batch is None
+
+    def test_manifest_create_delete_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            ["manifest", "create", "src/old.py", "--goal", "Remove old", "--delete"]
+        )
+        assert args.delete is True
+
+    def test_manifest_create_rename_to_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "manifest",
+                "create",
+                "src/old.py",
+                "--goal",
+                "Rename",
+                "--rename-to",
+                "src/new.py",
+            ]
+        )
+        assert args.rename_to == "src/new.py"
+
+    def test_snapshot_output_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["snapshot", "src/app.py", "--output", "out.yaml"])
+        assert args.output == "out.yaml"
+
+    def test_snapshot_with_tests_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["snapshot", "src/app.py", "--with-tests"])
+        assert args.with_tests is True
+
+    def test_snapshot_force_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["snapshot", "src/app.py", "--force"])
+        assert args.force is True
+
+    def test_files_hide_private_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["files", "--hide-private"])
+        assert args.hide_private is True
+
+
 class TestTestDefaults:
     def test_default_manifest_dir(self):
         from maid_runner.cli.commands._main import build_parser

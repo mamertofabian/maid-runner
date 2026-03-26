@@ -42,6 +42,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.add_argument("--watch", action="store_true")
     p.add_argument("--watch-all", action="store_true")
+    batch_group = p.add_mutually_exclusive_group()
+    batch_group.add_argument(
+        "--batch", action="store_const", const=True, default=None, dest="batch"
+    )
+    batch_group.add_argument(
+        "--no-batch", action="store_const", const=False, dest="batch"
+    )
 
     # maid snapshot
     p = sub.add_parser("snapshot", help="Generate manifest from existing code")
@@ -71,6 +78,8 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("--output-dir", default="manifests/")
     cp.add_argument("--dry-run", action="store_true")
     cp.add_argument("--json", action="store_true")
+    cp.add_argument("--delete", action="store_true")
+    cp.add_argument("--rename-to", default=None)
 
     # maid manifests (list manifests for a file)
     p = sub.add_parser("manifests", help="List manifests referencing a file")

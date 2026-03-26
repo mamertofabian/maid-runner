@@ -135,7 +135,17 @@ class ManifestChain:
         paths: set[str] = set()
         for m in self.active_manifests():
             paths |= m.all_writable_paths
+            paths |= set(m.files_read)
         return paths
+
+    def all_read_only_paths(self) -> set[str]:
+        """Return paths that appear only in read sections (no writable manifest)."""
+        all_writable: set[str] = set()
+        all_read: set[str] = set()
+        for m in self.active_manifests():
+            all_writable |= m.all_writable_paths
+            all_read |= set(m.files_read)
+        return all_read - all_writable
 
     def validate_supersession_integrity(self) -> list[str]:
         self._ensure_loaded()
