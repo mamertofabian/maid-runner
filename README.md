@@ -56,9 +56,10 @@ maid howto --section quickstart
 ### From PyPI
 
 ```bash
-pip install maid-runner           # Python only (core)
-pip install maid-runner[all]      # All language support (TypeScript, Svelte)
+pip install maid-runner              # Python only (core — no tree-sitter)
+pip install maid-runner[all]         # All language support (TypeScript, Svelte)
 pip install maid-runner[typescript]  # TypeScript/JS only
+pip install maid-runner[watch]       # File watching for TDD mode
 ```
 
 ### Multi-Tool Support
@@ -87,7 +88,7 @@ maid init --tool generic         # Generic MAID.md
 | `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 
-**Exit codes:** `0` = success, `1` = failure. Use `--quiet` for automation.
+**Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
 
 Run `maid howto --section commands` for detailed usage and examples.
 

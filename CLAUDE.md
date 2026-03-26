@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**CRITICAL: This project dogfoods MAID v2. Every code change MUST follow the MAID workflow.**
+**CRITICAL: This project dogfoods MAID v2 (YAML manifests). Every code change MUST follow the MAID workflow.**
 **USE SUBAGENTS: When MAID subagents are available (maid-manifest-architect, maid-test-designer, maid-developer, etc.), INVOKE them via the Task tool for each phase.**
 
 **Note on Documentation Changes:** Pure documentation changes (modifying only `.md` files with no code artifacts) may be exempt from the full MAID workflow, but should still be reviewed for accuracy and consistency. When in doubt, create a manifest.
