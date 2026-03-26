@@ -18,7 +18,7 @@ from maid_runner.core.result import (
     ValidationError,
     ValidationResult,
 )
-from maid_runner.core.types import ValidationMode
+from maid_runner.core.types import TestStream, ValidationMode
 
 
 @pytest.fixture
@@ -190,6 +190,71 @@ class TestFormatTestResult:
         assert data["total"] == 2
         assert data["passed"] == 1
         assert data["failed"] == 1
+
+    def test_json_includes_stream_field(self):
+        from maid_runner.cli.commands._format import format_test_result
+
+        results = BatchTestResult(
+            results=[
+                TestRunResult(
+                    manifest_slug="auth",
+                    command=("echo", "test"),
+                    exit_code=0,
+                    stdout="",
+                    stderr="",
+                    duration_ms=1.0,
+                    stream=TestStream.ACCEPTANCE,
+                ),
+            ],
+            total=1,
+            passed=1,
+            failed=0,
+        )
+        output = format_test_result(results, json_mode=True)
+        data = json.loads(output)
+        assert data["results"][0]["stream"] == "acceptance"
+
+    def test_no_acceptance_legacy_format(self, batch_test_result):
+        """Without acceptance tests, format uses legacy 'Test Results' header."""
+        from maid_runner.cli.commands._format import format_test_result
+
+        output = format_test_result(batch_test_result)
+        assert "Test Results:" in output
+        assert "Acceptance Tests" not in output
+
+    def test_acceptance_and_implementation_sections(self):
+        """With acceptance tests, shows two-section format."""
+        from maid_runner.cli.commands._format import format_test_result
+
+        results = BatchTestResult(
+            results=[
+                TestRunResult(
+                    manifest_slug="auth",
+                    command=("pytest", "tests/acceptance/test_auth.py", "-v"),
+                    exit_code=0,
+                    stdout="1 passed",
+                    stderr="",
+                    duration_ms=100.0,
+                    stream=TestStream.ACCEPTANCE,
+                ),
+                TestRunResult(
+                    manifest_slug="auth",
+                    command=("pytest", "tests/test_auth.py", "-v"),
+                    exit_code=0,
+                    stdout="2 passed",
+                    stderr="",
+                    duration_ms=200.0,
+                    stream=TestStream.IMPLEMENTATION,
+                ),
+            ],
+            total=2,
+            passed=2,
+            failed=0,
+            duration_ms=300.0,
+        )
+        output = format_test_result(results)
+        assert "Acceptance Tests (Stream 1):" in output
+        assert "Implementation Tests (Stream 3):" in output
 
 
 class TestFormatFileTracking:

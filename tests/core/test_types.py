@@ -3,6 +3,7 @@
 import pytest
 
 from maid_runner.core.types import (
+    AcceptanceConfig,
     ArtifactKind,
     ArtifactSpec,
     ArgSpec,
@@ -11,6 +12,7 @@ from maid_runner.core.types import (
     FileSpec,
     Manifest,
     TaskType,
+    TestStream,
     ValidationMode,
 )
 
@@ -445,3 +447,75 @@ class TestManifest:
     def test_is_superseded_by_raises(self, simple_manifest):
         with pytest.raises(NotImplementedError):
             _ = simple_manifest.is_superseded_by
+
+    def test_acceptance_default_none(self):
+        m = Manifest(
+            slug="test",
+            source_path="/test.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+        )
+        assert m.acceptance is None
+
+    def test_acceptance_with_config(self):
+        acc = AcceptanceConfig(
+            tests=(("pytest", "tests/acceptance/test_auth.py", "-v"),),
+            immutable=True,
+        )
+        m = Manifest(
+            slug="test",
+            source_path="/test.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            acceptance=acc,
+        )
+        assert m.acceptance is not None
+        assert m.acceptance.tests == (
+            ("pytest", "tests/acceptance/test_auth.py", "-v"),
+        )
+        assert m.acceptance.immutable is True
+
+
+class TestTestStream:
+    def test_values(self):
+        assert TestStream.ACCEPTANCE == "acceptance"
+        assert TestStream.IMPLEMENTATION == "implementation"
+
+    def test_is_string_enum(self):
+        assert isinstance(TestStream.ACCEPTANCE, str)
+        assert TestStream("acceptance") == TestStream.ACCEPTANCE
+
+
+class TestAcceptanceConfig:
+    def test_basic(self):
+        acc = AcceptanceConfig(
+            tests=(("pytest", "tests/acceptance/test_auth.py", "-v"),),
+        )
+        assert len(acc.tests) == 1
+        assert acc.immutable is True
+
+    def test_immutable_false(self):
+        acc = AcceptanceConfig(
+            tests=(("pytest", "tests/acceptance/test_auth.py"),),
+            immutable=False,
+        )
+        assert acc.immutable is False
+
+    def test_defaults(self):
+        acc = AcceptanceConfig()
+        assert acc.tests == ()
+        assert acc.immutable is True
+
+    def test_frozen(self):
+        acc = AcceptanceConfig(tests=(("echo", "test"),))
+        with pytest.raises(AttributeError):
+            acc.immutable = False  # type: ignore[misc]
+
+    def test_multiple_commands(self):
+        acc = AcceptanceConfig(
+            tests=(
+                ("pytest", "tests/acceptance/test_auth.py", "-v"),
+                ("pytest", "tests/acceptance/test_users.py", "-v"),
+            ),
+        )
+        assert len(acc.tests) == 2

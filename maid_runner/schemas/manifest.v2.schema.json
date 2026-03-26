@@ -58,6 +58,30 @@
         ]
       }
     },
+    "acceptance": {
+      "type": "object",
+      "properties": {
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            ]
+          }
+        },
+        "immutable": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": ["tests"],
+      "additionalProperties": false
+    },
     "supersedes": {
       "type": "array",
       "items": { "type": "string" }

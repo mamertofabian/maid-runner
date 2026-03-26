@@ -86,6 +86,27 @@ files:
       name: SNAPSHOT
       of: FileMode
     - kind: class
+      name: TestStream
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ACCEPTANCE
+      of: TestStream
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: TestStream
+    - kind: class
+      name: AcceptanceConfig
+    - kind: attribute
+      name: tests
+      of: AcceptanceConfig
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: immutable
+      of: AcceptanceConfig
+      type: bool
+    - kind: class
       name: ArgSpec
     - kind: attribute
       name: name
@@ -252,6 +273,10 @@ files:
       of: Manifest
       type: Optional[dict]
     - kind: attribute
+      name: acceptance
+      of: Manifest
+      type: Optional[AcceptanceConfig]
+    - kind: attribute
       name: all_file_specs
       of: Manifest
       type: list[FileSpec]
@@ -283,4 +308,4 @@ files:
       returns: tuple[ArtifactSpec, Ellipsis]
 validate:
 - pytest tests/ -v
-created: '2026-03-26T05:46:09.268721+00:00'
+created: '2026-03-26T06:25:16.937939+00:00'

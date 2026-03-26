@@ -74,6 +74,9 @@ files:
       name: VALIDATOR_NOT_AVAILABLE
       of: ErrorCode
     - kind: attribute
+      name: ACCEPTANCE_TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
       name: COHERENCE_DUPLICATE
       of: ErrorCode
     - kind: attribute
@@ -309,6 +312,10 @@ files:
       of: TestRunResult
       type: float
     - kind: attribute
+      name: stream
+      of: TestRunResult
+      type: TestStream
+    - kind: attribute
       name: success
       of: TestRunResult
       type: bool
@@ -338,6 +345,14 @@ files:
       name: success
       of: BatchTestResult
       type: bool
+    - kind: attribute
+      name: acceptance_results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: implementation_results
+      of: BatchTestResult
+      type: list[TestRunResult]
 validate:
 - pytest tests/ -v
-created: '2026-03-26T05:46:09.385576+00:00'
+created: '2026-03-26T06:25:17.996090+00:00'

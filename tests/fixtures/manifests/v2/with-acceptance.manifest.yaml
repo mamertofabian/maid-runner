@@ -1,0 +1,21 @@
+schema: "2"
+goal: "Add user authentication"
+type: feature
+
+files:
+  create:
+    - path: src/auth/service.py
+      artifacts:
+        - kind: class
+          name: AuthService
+        - kind: method
+          name: login
+          of: AuthService
+
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+  immutable: true
+
+validate:
+  - pytest tests/auth/test_service.py -v

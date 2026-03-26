@@ -97,6 +97,9 @@ class ValidationEngine:
         else:
             errors = self.validate_implementation(manifest, chain)
 
+        if manifest.acceptance is not None:
+            errors.extend(self.validate_acceptance(manifest))
+
         duration = (time.monotonic() - start) * 1000
 
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
@@ -192,6 +195,35 @@ class ValidationEngine:
                             location=Location(file=fs.path),
                         )
                     )
+
+        return errors
+
+    def validate_acceptance(
+        self,
+        manifest: Manifest,
+    ) -> list[ValidationError]:
+        """Validate acceptance test configuration (Stream 1).
+
+        Verifies that acceptance test files referenced in commands exist.
+        """
+        errors: list[ValidationError] = []
+
+        if manifest.acceptance is None:
+            return errors
+
+        for cmd in manifest.acceptance.tests:
+            for part in cmd:
+                if is_test_file(part):
+                    full_path = self._project_root / part
+                    if not full_path.exists():
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND,
+                                message=f"Acceptance test file '{part}' not found",
+                                location=Location(file=part),
+                                suggestion="Create the acceptance test file before implementation",
+                            )
+                        )
 
         return errors
 

@@ -10,6 +10,7 @@ from typing import Union
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import BatchTestResult, TestRunResult
+from maid_runner.core.types import TestStream
 
 
 def run_command(
@@ -18,6 +19,7 @@ def run_command(
     cwd: Union[str, Path] = ".",
     timeout: int = 300,
     manifest_slug: str = "",
+    stream: TestStream = TestStream.IMPLEMENTATION,
 ) -> TestRunResult:
     start = time.monotonic()
     try:
@@ -36,6 +38,7 @@ def run_command(
             stdout=proc.stdout,
             stderr=proc.stderr,
             duration_ms=duration,
+            stream=stream,
         )
     except subprocess.TimeoutExpired:
         duration = (time.monotonic() - start) * 1000
@@ -46,6 +49,7 @@ def run_command(
             stdout="",
             stderr=f"Command timed out after {timeout}s",
             duration_ms=duration,
+            stream=stream,
         )
     except Exception as e:
         duration = (time.monotonic() - start) * 1000
@@ -56,6 +60,7 @@ def run_command(
             stdout="",
             stderr=str(e),
             duration_ms=duration,
+            stream=stream,
         )
 
 
@@ -72,6 +77,29 @@ def run_manifest_tests(
     passed = 0
     failed = 0
 
+    # Stream 1: Acceptance tests (run first)
+    if manifest.acceptance is not None:
+        for cmd in manifest.acceptance.tests:
+            result = run_command(
+                cmd,
+                cwd=project_root,
+                manifest_slug=manifest.slug,
+                stream=TestStream.ACCEPTANCE,
+            )
+            results.append(result)
+            if result.success:
+                passed += 1
+            else:
+                failed += 1
+                if fail_fast:
+                    return BatchTestResult(
+                        results=results,
+                        total=len(results),
+                        passed=passed,
+                        failed=failed,
+                    )
+
+    # Stream 3: Implementation tests
     for cmd in manifest.validate_commands:
         result = run_command(cmd, cwd=project_root, manifest_slug=manifest.slug)
         results.append(result)
@@ -127,31 +155,42 @@ def run_tests(
     chain = ManifestChain(chain_dir, project_root)
     active = chain.active_manifests()
 
-    # Collect all commands
-    all_commands: list[tuple[tuple[str, ...], str]] = []
+    # Collect all commands with stream tags
+    all_commands: list[tuple[tuple[str, ...], str, TestStream]] = []
     for manifest in active:
+        # Stream 1: Acceptance tests first
+        if manifest.acceptance is not None:
+            for cmd in manifest.acceptance.tests:
+                all_commands.append((cmd, manifest.slug, TestStream.ACCEPTANCE))
+        # Stream 3: Implementation tests
         for cmd in manifest.validate_commands:
-            all_commands.append((cmd, manifest.slug))
+            all_commands.append((cmd, manifest.slug, TestStream.IMPLEMENTATION))
 
-    # Determine batching
-    commands_only = [cmd for cmd, _ in all_commands]
-    should_batch = batch if batch is not None else _can_batch(commands_only)
+    # Split acceptance and implementation commands
+    acceptance_commands = [
+        (cmd, slug)
+        for cmd, slug, stream in all_commands
+        if stream == TestStream.ACCEPTANCE
+    ]
+    impl_commands_with_slug = [
+        (cmd, slug)
+        for cmd, slug, stream in all_commands
+        if stream == TestStream.IMPLEMENTATION
+    ]
+    impl_commands = [cmd for cmd, _ in impl_commands_with_slug]
 
-    if should_batch and _can_batch(commands_only) and len(commands_only) > 1:
-        batched_cmd = _batch_pytest(commands_only)
-        result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
-        if result.success:
-            return BatchTestResult(results=[result], total=1, passed=1, failed=0)
-        else:
-            return BatchTestResult(results=[result], total=1, passed=0, failed=1)
+    # Determine batching (only for implementation commands)
+    should_batch = batch if batch is not None else _can_batch(impl_commands)
 
-    # Sequential execution
     results: list[TestRunResult] = []
     passed = 0
     failed = 0
 
-    for cmd, slug in all_commands:
-        result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+    # Stream 1: Run acceptance tests sequentially first
+    for cmd, slug in acceptance_commands:
+        result = run_command(
+            cmd, cwd=project_root, manifest_slug=slug, stream=TestStream.ACCEPTANCE
+        )
         results.append(result)
         if result.success:
             passed += 1
@@ -164,6 +203,31 @@ def run_tests(
                     passed=passed,
                     failed=failed,
                 )
+
+    # Stream 3: Run implementation tests (batched or sequential)
+    if should_batch and _can_batch(impl_commands) and len(impl_commands) > 1:
+        batched_cmd = _batch_pytest(impl_commands)
+        result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
+        results.append(result)
+        if result.success:
+            passed += 1
+        else:
+            failed += 1
+    else:
+        for cmd, slug in impl_commands_with_slug:
+            result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+            results.append(result)
+            if result.success:
+                passed += 1
+            else:
+                failed += 1
+                if fail_fast:
+                    return BatchTestResult(
+                        results=results,
+                        total=len(results),
+                        passed=passed,
+                        failed=failed,
+                    )
 
     return BatchTestResult(
         results=results,

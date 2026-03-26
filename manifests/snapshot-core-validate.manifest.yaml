@@ -33,6 +33,13 @@ files:
         default: None
       returns: list[ValidationError]
     - kind: method
+      name: validate_acceptance
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      returns: list[ValidationError]
+    - kind: method
       name: validate_implementation
       of: ValidationEngine
       args:
@@ -64,4 +71,4 @@ files:
       returns: BatchValidationResult
 validate:
 - pytest tests/ -v
-created: '2026-03-26T05:46:09.739786+00:00'
+created: '2026-03-26T06:25:18.213351+00:00'

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from maid_runner.core.types import ValidationMode
+from maid_runner.core.types import TestStream, ValidationMode
 
 
 class ErrorCode(str, Enum):
@@ -35,6 +35,8 @@ class ErrorCode(str, Enum):
     FILE_SHOULD_BE_ABSENT = "E305"
     FILE_SHOULD_BE_PRESENT = "E306"
     VALIDATOR_NOT_AVAILABLE = "E307"
+
+    ACCEPTANCE_TEST_FILE_NOT_FOUND = "E500"
 
     COHERENCE_DUPLICATE = "E400"
     COHERENCE_SIGNATURE_CONFLICT = "E401"
@@ -184,6 +186,7 @@ class TestRunResult:
     stdout: str
     stderr: str
     duration_ms: float
+    stream: TestStream = TestStream.IMPLEMENTATION
 
     @property
     def success(self) -> bool:
@@ -201,3 +204,11 @@ class BatchTestResult:
     @property
     def success(self) -> bool:
         return self.failed == 0
+
+    @property
+    def acceptance_results(self) -> list[TestRunResult]:
+        return [r for r in self.results if r.stream == TestStream.ACCEPTANCE]
+
+    @property
+    def implementation_results(self) -> list[TestRunResult]:
+        return [r for r in self.results if r.stream == TestStream.IMPLEMENTATION]

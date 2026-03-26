@@ -435,6 +435,130 @@ validate:
         assert any("read" in issue.lower() for issue in entry.issues)
 
 
+class TestAcceptanceValidation:
+    def test_acceptance_files_exist_pass(self, project):
+        """Acceptance test file exists -> no E500 errors."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "with-acceptance.manifest.yaml",
+            """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+validate:
+  - pytest tests/test_auth.py -v
+""",
+        )
+        _write_source(project, "src/auth.py", "class AuthService:\n    pass\n")
+        _write_source(
+            project,
+            "tests/acceptance/test_auth.py",
+            "def test_auth():\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(
+            e.code == ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND for e in result.errors
+        )
+
+    def test_acceptance_files_missing_fail(self, project):
+        """Acceptance test file missing -> E500 error."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "with-acceptance.manifest.yaml",
+            """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+validate:
+  - pytest tests/test_auth.py -v
+""",
+        )
+        _write_source(project, "src/auth.py", "class AuthService:\n    pass\n")
+        # Don't create acceptance test file
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert any(
+            e.code == ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND for e in result.errors
+        )
+
+    def test_no_acceptance_no_errors(self, project):
+        """Manifest without acceptance -> no E500 errors."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "no-acceptance.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(
+            e.code == ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND for e in result.errors
+        )
+
+    def test_acceptance_validation_in_behavioral_mode(self, project):
+        """Acceptance validation also runs in behavioral mode."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "with-acceptance.manifest.yaml",
+            """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+  read:
+    - tests/test_auth.py
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+validate:
+  - pytest tests/test_auth.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_auth.py",
+            "from src.auth import AuthService\ndef test_auth():\n    AuthService()\n",
+        )
+        # Don't create acceptance test file
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+        assert any(
+            e.code == ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND for e in result.errors
+        )
+
+
 class TestConvenienceFunction:
     def test_validate_function(self, project):
         manifest_path = _write_manifest(

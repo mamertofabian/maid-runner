@@ -144,6 +144,7 @@ def format_test_result(
                         "exit_code": r.exit_code,
                         "success": r.success,
                         "duration_ms": r.duration_ms,
+                        "stream": r.stream.value,
                     }
                     for r in result.results
                 ],
@@ -151,14 +152,63 @@ def format_test_result(
             indent=2,
         )
 
+    acceptance = result.acceptance_results
+    implementation = result.implementation_results
+
+    # When no acceptance tests, use the original format for backward compatibility
+    if not acceptance:
+        lines = []
+        lines.append(f"Test Results: {result.total} commands")
+        lines.append(f"  Passed: {result.passed}")
+        lines.append(f"  Failed: {result.failed}")
+        if result.duration_ms is not None:
+            lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+
+        for r in result.results:
+            symbol = "PASS" if r.success else "FAIL"
+            lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
+            if verbose and r.stdout:
+                for line in r.stdout.strip().splitlines():
+                    lines.append(f"    {line}")
+            if not r.success and r.stderr:
+                for line in r.stderr.strip().splitlines():
+                    lines.append(f"    {line}")
+
+        return "\n".join(lines)
+
+    # Two-section format when acceptance tests are present
     lines = []
+
     lines.append(f"Test Results: {result.total} commands")
     lines.append(f"  Passed: {result.passed}")
     lines.append(f"  Failed: {result.failed}")
     if result.duration_ms is not None:
         lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+    lines.append("")
 
-    for r in result.results:
+    acc_passed = sum(1 for r in acceptance if r.success)
+    acc_failed = len(acceptance) - acc_passed
+    lines.append(f"Acceptance Tests (Stream 1): {len(acceptance)} commands")
+    lines.append(f"  Passed: {acc_passed}")
+    lines.append(f"  Failed: {acc_failed}")
+    for r in acceptance:
+        symbol = "PASS" if r.success else "FAIL"
+        lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
+        if verbose and r.stdout:
+            for line in r.stdout.strip().splitlines():
+                lines.append(f"    {line}")
+        if not r.success and r.stderr:
+            for line in r.stderr.strip().splitlines():
+                lines.append(f"    {line}")
+
+    lines.append("")
+
+    imp_passed = sum(1 for r in implementation if r.success)
+    imp_failed = len(implementation) - imp_passed
+    lines.append(f"Implementation Tests (Stream 3): {len(implementation)} commands")
+    lines.append(f"  Passed: {imp_passed}")
+    lines.append(f"  Failed: {imp_failed}")
+    for r in implementation:
         symbol = "PASS" if r.success else "FAIL"
         lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
         if verbose and r.stdout:

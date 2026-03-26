@@ -10,6 +10,7 @@ import jsonschema
 import yaml
 
 from maid_runner.core.types import (
+    AcceptanceConfig,
     ArgSpec,
     ArtifactKind,
     ArtifactSpec,
@@ -118,6 +119,14 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
 
     task_type = TaskType(data["type"]) if "type" in data else None
 
+    acceptance = None
+    if "acceptance" in data:
+        acc_data = data["acceptance"]
+        acceptance = AcceptanceConfig(
+            tests=_parse_validate(acc_data.get("tests", [])),
+            immutable=acc_data.get("immutable", True),
+        )
+
     return Manifest(
         slug=slug,
         source_path=str(path.resolve()),
@@ -134,6 +143,7 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         supersedes=tuple(data.get("supersedes", [])),
         created=data.get("created"),
         metadata=data.get("metadata"),
+        acceptance=acceptance,
     )
 
 
@@ -226,6 +236,14 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
     for cmd in manifest.validate_commands:
         validate.append(" ".join(cmd))
     data["validate"] = validate
+
+    if manifest.acceptance is not None:
+        acc: dict = {
+            "tests": [" ".join(cmd) for cmd in manifest.acceptance.tests],
+        }
+        if not manifest.acceptance.immutable:
+            acc["immutable"] = False
+        data["acceptance"] = acc
 
     if manifest.supersedes:
         data["supersedes"] = list(manifest.supersedes)

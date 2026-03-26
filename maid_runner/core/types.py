@@ -39,6 +39,17 @@ class FileMode(str, Enum):
     SNAPSHOT = "snapshot"
 
 
+class TestStream(str, Enum):
+    ACCEPTANCE = "acceptance"
+    IMPLEMENTATION = "implementation"
+
+
+@dataclass(frozen=True)
+class AcceptanceConfig:
+    tests: tuple[tuple[str, ...], ...] = ()
+    immutable: bool = True
+
+
 @dataclass(frozen=True)
 class ArgSpec:
     name: str
@@ -116,6 +127,7 @@ class Manifest:
     supersedes: tuple[str, ...] = ()
     created: Optional[str] = None
     metadata: Optional[dict] = None
+    acceptance: Optional[AcceptanceConfig] = None
 
     @property
     def all_file_specs(self) -> list[FileSpec]:

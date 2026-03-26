@@ -16,6 +16,7 @@ from maid_runner.core.manifest import (
 )
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.types import (
+    AcceptanceConfig,
     ArtifactKind,
     ArtifactSpec,
     ArgSpec,
@@ -24,6 +25,7 @@ from maid_runner.core.types import (
     DeleteSpec,
     Manifest,
     TaskType,
+    TestStream,
     ValidationMode,
 )
 from maid_runner.core.result import (
@@ -49,6 +51,7 @@ __all__ = [
     "ManifestLoadError",
     "ManifestSchemaError",
     "ManifestChain",
+    "AcceptanceConfig",
     "ArtifactKind",
     "ArtifactSpec",
     "ArgSpec",
@@ -57,6 +60,7 @@ __all__ = [
     "DeleteSpec",
     "Manifest",
     "TaskType",
+    "TestStream",
     "ValidationMode",
     "ValidationResult",
     "BatchValidationResult",

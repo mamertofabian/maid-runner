@@ -17,7 +17,7 @@ from maid_runner.core.result import (
     ValidationError,
     ValidationResult,
 )
-from maid_runner.core.types import ValidationMode
+from maid_runner.core.types import TestStream, ValidationMode
 
 
 class TestErrorCode:
@@ -39,6 +39,9 @@ class TestErrorCode:
         assert ErrorCode.UNEXPECTED_ARTIFACT == "E301"
         assert ErrorCode.TYPE_MISMATCH == "E302"
         assert ErrorCode.FILE_SHOULD_BE_ABSENT == "E305"
+
+    def test_acceptance_errors(self):
+        assert ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND == "E500"
 
     def test_is_string_enum(self):
         assert isinstance(ErrorCode.FILE_NOT_FOUND, str)
@@ -342,6 +345,29 @@ class TestTestRunResult:
         )
         assert r.success is False
 
+    def test_stream_defaults_to_implementation(self):
+        r = TestRunResult(
+            manifest_slug="test",
+            command=("echo",),
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+        assert r.stream == TestStream.IMPLEMENTATION
+
+    def test_stream_acceptance(self):
+        r = TestRunResult(
+            manifest_slug="test",
+            command=("pytest", "tests/acceptance/test_auth.py"),
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=TestStream.ACCEPTANCE,
+        )
+        assert r.stream == TestStream.ACCEPTANCE
+
 
 class TestBatchTestResult:
     def test_success(self):
@@ -351,3 +377,41 @@ class TestBatchTestResult:
     def test_failure(self):
         batch = BatchTestResult(results=[], total=2, passed=1, failed=1)
         assert batch.success is False
+
+    def test_acceptance_results_filtering(self):
+        acc = TestRunResult(
+            manifest_slug="auth",
+            command=("pytest", "tests/acceptance/test_auth.py"),
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=TestStream.ACCEPTANCE,
+        )
+        impl = TestRunResult(
+            manifest_slug="auth",
+            command=("pytest", "tests/test_auth.py"),
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=TestStream.IMPLEMENTATION,
+        )
+        batch = BatchTestResult(results=[acc, impl], total=2, passed=2, failed=0)
+        assert len(batch.acceptance_results) == 1
+        assert batch.acceptance_results[0].stream == TestStream.ACCEPTANCE
+        assert len(batch.implementation_results) == 1
+        assert batch.implementation_results[0].stream == TestStream.IMPLEMENTATION
+
+    def test_no_acceptance_results(self):
+        impl = TestRunResult(
+            manifest_slug="test",
+            command=("echo",),
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+        batch = BatchTestResult(results=[impl], total=1, passed=1, failed=0)
+        assert batch.acceptance_results == []
+        assert len(batch.implementation_results) == 1

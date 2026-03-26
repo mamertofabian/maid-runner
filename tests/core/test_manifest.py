@@ -220,6 +220,133 @@ validate:
         manifest = load_manifest(p)
         assert manifest.files_create[0].artifacts[0].is_async is True
 
+    def test_load_with_acceptance(self, tmp_path):
+        content = """schema: "2"
+goal: "Add auth"
+type: feature
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+  immutable: true
+validate:
+  - pytest tests/test_auth.py -v
+"""
+        p = tmp_path / "with-acceptance.manifest.yaml"
+        p.write_text(content)
+        manifest = load_manifest(p)
+        assert manifest.acceptance is not None
+        assert manifest.acceptance.tests == (
+            ("pytest", "tests/acceptance/test_auth.py", "-v"),
+        )
+        assert manifest.acceptance.immutable is True
+
+    def test_load_with_acceptance_immutable_false(self, tmp_path):
+        content = """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+  immutable: false
+validate:
+  - pytest tests/ -v
+"""
+        p = tmp_path / "mutable-acceptance.manifest.yaml"
+        p.write_text(content)
+        manifest = load_manifest(p)
+        assert manifest.acceptance is not None
+        assert manifest.acceptance.immutable is False
+
+    def test_load_fixture_with_acceptance(self):
+        """Load the v2 fixture manifest with acceptance field."""
+        manifest = load_manifest(V2_FIXTURES / "with-acceptance.manifest.yaml")
+        assert manifest.acceptance is not None
+        assert manifest.acceptance.tests == (
+            ("pytest", "tests/acceptance/test_auth.py", "-v"),
+        )
+        assert manifest.acceptance.immutable is True
+        assert manifest.goal == "Add user authentication"
+        assert manifest.task_type == TaskType.FEATURE
+
+    def test_load_without_acceptance_backward_compat(self):
+        """Existing manifests without acceptance keep working."""
+        manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
+        assert manifest.acceptance is None
+
+
+class TestValidateManifestSchemaAcceptance:
+    def test_valid_acceptance(self):
+        data = {
+            "schema": "2",
+            "goal": "Test",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/app.py",
+                        "artifacts": [{"kind": "function", "name": "main"}],
+                    }
+                ]
+            },
+            "acceptance": {
+                "tests": ["pytest tests/acceptance/test_auth.py -v"],
+            },
+            "validate": ["pytest tests/ -v"],
+        }
+        errors = validate_manifest_schema(data)
+        assert errors == []
+
+    def test_acceptance_missing_tests(self):
+        data = {
+            "schema": "2",
+            "goal": "Test",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/app.py",
+                        "artifacts": [{"kind": "function", "name": "main"}],
+                    }
+                ]
+            },
+            "acceptance": {
+                "immutable": True,
+            },
+            "validate": ["pytest tests/ -v"],
+        }
+        errors = validate_manifest_schema(data)
+        assert len(errors) > 0
+
+    def test_acceptance_with_immutable_false(self):
+        data = {
+            "schema": "2",
+            "goal": "Test",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/app.py",
+                        "artifacts": [{"kind": "function", "name": "main"}],
+                    }
+                ]
+            },
+            "acceptance": {
+                "tests": ["pytest tests/acceptance/ -v"],
+                "immutable": False,
+            },
+            "validate": ["pytest tests/ -v"],
+        }
+        errors = validate_manifest_schema(data)
+        assert errors == []
+
 
 class TestSaveManifest:
     def test_round_trip(self, tmp_path):
@@ -231,3 +358,30 @@ class TestSaveManifest:
         assert reloaded.files_create[0].path == original.files_create[0].path
         assert reloaded.files_create[0].artifacts[0].name == "greet"
         assert reloaded.validate_commands == original.validate_commands
+
+    def test_round_trip_with_acceptance(self, tmp_path):
+        content = """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest tests/acceptance/test_auth.py -v
+validate:
+  - pytest tests/test_auth.py -v
+"""
+        source = tmp_path / "source.manifest.yaml"
+        source.write_text(content)
+        original = load_manifest(source)
+
+        output = tmp_path / "output.manifest.yaml"
+        save_manifest(original, output)
+        reloaded = load_manifest(output)
+
+        assert reloaded.acceptance is not None
+        assert reloaded.acceptance.tests == original.acceptance.tests
+        assert reloaded.acceptance.immutable is True
