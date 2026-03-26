@@ -26,9 +26,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--no-chain", action="store_true")
+    p.add_argument(
+        "--use-manifest-chain", action="store_true", help=argparse.SUPPRESS
+    )  # v1 compat alias (chain is default)
     p.add_argument("--coherence", action="store_true")
     p.add_argument("--coherence-only", action="store_true")
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--json", "--json-output", action="store_true"
+    )  # --json-output is v1 compat alias
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--watch", action="store_true")
     p.add_argument("--watch-all", action="store_true")
