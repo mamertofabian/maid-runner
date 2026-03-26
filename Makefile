@@ -19,11 +19,9 @@ help:
 	@echo "  make build         - Build package (includes sync-claude)"
 	@echo "  make clean         - Clean generated files"
 
-# Run all tests (including structural validation and validation commands from manifests)
+# Run all tests
 test:
 	uv run python -m pytest tests/ -v
-	@echo ""
-	@uv run python scripts/validate_all_manifests.py
 
 # Validate all manifests
 validate:

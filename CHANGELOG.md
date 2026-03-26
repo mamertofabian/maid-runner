@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-26
+
+### Added
+- **Three-stream validation support** — Acceptance testing framework with `AcceptanceConfig` and `TestStream` for validating arch-spec → MAID Runner → implementation pipelines. Supports input/output/acceptance streams with configurable validation rules.
+- **Brownfield bootstrap** — `maid bootstrap` command generates v2 YAML manifests from existing codebases, enabling gradual adoption of MAID v2 without rewriting manifests from scratch.
+
+### Fixed
+- **Top-level package exports** — `AcceptanceConfig` and `TestStream` exported from `maid_runner` package for direct import.
+- **Stale Makefile reference** — Removed reference to deleted `scripts/validate_all_manifests.py` in `make test` target.
+
 ## [2.0.1] - 2026-03-26
 
 ### Fixed
@@ -689,6 +699,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.1.0]: https://github.com/mamertofabian/maid-runner/compare/v0.11.4...v2.1.0
 [0.11.3]: https://github.com/mamertofabian/maid-runner/compare/v0.11.2...v0.11.3
 [0.11.2]: https://github.com/mamertofabian/maid-runner/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/mamertofabian/maid-runner/compare/v0.11.0...v0.11.1
