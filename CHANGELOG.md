@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-03-26
+
+### Fixed
+- **Annotated self-attribute detection** — `self.name: str = value` in `__init__` was silently missed by the Python validator (only untyped `self.name = value` was detected). Found during end-to-end pipeline testing with arch-spec generated manifests.
+- **Strict mode relaxed by manifest chain** — When multiple manifests reference the same file (created by one, edited by later ones), validation now uses permissive mode. Fixes false positives on evolved files.
+- **Parameter type comparison by name** — Matches parameters by name instead of position, fixing false E302 errors when code has extra params (e.g., MCP `ctx: Context`).
+- **V1 compat: snapshot+editableFiles stays permissive** — V1 manifests with `taskType: "snapshot"` + `editableFiles` were incorrectly converted to strict mode. The `editableFiles` section now correctly stays permissive.
+- **ValidationResult.success only counts errors** — Warnings (E304) no longer cause `success=False`.
+
+## [2.0.0] - 2026-03-26
+
+### Changed (Breaking)
+- **Library-first architecture** — Primary interface is now a Python library (`from maid_runner import validate`). CLI is a thin wrapper. Ecosystem tools (maid-lsp, maid-runner-mcp, maid-agents) can import directly instead of subprocess wrapping.
+- **YAML manifest format (v2)** — Multi-file manifests in YAML. One manifest per feature instead of per file. V1 JSON manifests still supported via compatibility layer.
+- **Plugin architecture for validators** — Core package requires only `jsonschema` and `pyyaml`. TypeScript/Svelte support is optional: `pip install maid-runner[typescript]`.
+- **CLI entry point** — `maid_runner.cli.commands._main:main` (was `maid_runner.cli.main:main`).
+- **Package structure** — Reorganized into `core/`, `validators/`, `graph/`, `coherence/`, `compat/`, `cli/commands/`.
+
+### Added
+- **Public API** — `validate()`, `validate_all()`, `ValidationEngine`, `ManifestChain`, `load_manifest()`, `save_manifest()`, `generate_snapshot()` exported from `maid_runner`.
+- **Multi-file manifests** — Single manifest can declare artifacts across multiple files under `files.create`, `files.edit`, `files.read`, `files.delete`.
+- **Manifest chain with merged artifacts** — `ManifestChain` resolves supersession and merges artifacts across active manifests.
+- **Coherence engine** — `CoherenceEngine` with 7 architectural checks (duplicate, signature, boundary, naming, dependency, pattern, constraint). Accessible via `--coherence` flag or standalone `maid coherence`.
+- **Watch mode** — `maid validate --watch` and `--watch-all` for live re-validation on file changes.
+- **Batch test mode** — `maid test --batch` combines compatible pytest commands into single invocation.
+- **GraphQuery.query()** — Natural language query interface for the knowledge graph.
+- **File tracking for read-only files** — Files in `files.read` correctly classified as REGISTERED.
+- **Missing annotation warnings** — E304 WARNING for missing type annotations instead of E302 ERROR.
+- **V1 backward compatibility** — `maid_runner.compat.v1_loader` auto-detects and converts V1 JSON manifests.
+- **Rigor levels** — Manifest export supports O0-O3 optimization levels.
+- **Semantic manifest naming** — Slug-based names (e.g., `add-jwt-auth.manifest.yaml`) instead of sequential task numbers.
+
+### Removed
+- Old CLI modules (validate.py, test.py, snapshot.py, init.py — 7,000+ lines)
+- Old validator integration (manifest_validator.py, semantic_validator.py — 2,000+ lines)
+- Cache module (replaced by ManifestChain built-in caching)
+- 186 old task-numbered test files (replaced by 494 domain-organized tests)
+
 ## [0.11.4] - 2026-01-16
 
 ### Changed
