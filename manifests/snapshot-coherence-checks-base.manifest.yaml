@@ -1,0 +1,40 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/base.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/base.py
+    artifacts:
+    - kind: class
+      name: BaseCheck
+      bases:
+      - ABC
+    - kind: attribute
+      name: name
+      of: BaseCheck
+      type: str
+    - kind: method
+      name: run
+      of: BaseCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+    - kind: function
+      name: get_default_check_classes
+      returns: list[type[BaseCheck]]
+    - kind: function
+      name: get_checks
+      args:
+      - name: enabled
+        type: Optional[list[str]]
+        default: None
+      - name: disabled
+        type: Optional[list[str]]
+        default: None
+      returns: list[BaseCheck]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:46.718632+00:00'

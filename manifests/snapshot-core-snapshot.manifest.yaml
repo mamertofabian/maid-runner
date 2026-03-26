@@ -1,0 +1,35 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/snapshot.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/snapshot.py
+    artifacts:
+    - kind: function
+      name: generate_snapshot
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: Manifest
+    - kind: function
+      name: generate_system_snapshot
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: Manifest
+    - kind: function
+      name: save_snapshot
+      args:
+      - name: manifest
+        type: Manifest
+      returns: Path
+    - kind: function
+      name: generate_test_stub
+      args:
+      - name: manifest
+        type: Manifest
+      returns: dict[str, str]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.853602+00:00'

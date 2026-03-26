@@ -1,0 +1,54 @@
+schema: '2'
+goal: Snapshot of maid_runner/cli/commands/_format.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: print_error
+      args:
+      - name: message
+        type: str
+      returns: None
+    - kind: function
+      name: format_manifests_list
+      args:
+      - name: manifests
+        type: list
+      - name: file_path
+        type: str
+      returns: str
+    - kind: function
+      name: format_validation_result
+      args:
+      - name: result
+        type: ValidationResult
+      returns: str
+    - kind: function
+      name: format_batch_result
+      args:
+      - name: result
+        type: BatchValidationResult
+      returns: str
+    - kind: function
+      name: format_test_result
+      args:
+      - name: result
+        type: BatchTestResult
+      returns: str
+    - kind: function
+      name: format_file_tracking
+      args:
+      - name: report
+        type: FileTrackingReport
+      returns: str
+    - kind: function
+      name: format_coherence_result
+      args:
+      - name: result
+        type: CoherenceResult
+      returns: str
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.733133+00:00'

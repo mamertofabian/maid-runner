@@ -1,0 +1,67 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/validate.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: class
+      name: ValidationEngine
+    - kind: method
+      name: validate
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Union[Manifest, str, Path]
+      returns: ValidationResult
+    - kind: method
+      name: validate_all
+      of: ValidationEngine
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: BatchValidationResult
+    - kind: method
+      name: validate_behavioral
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+        default: None
+      returns: list[ValidationError]
+    - kind: method
+      name: validate_implementation
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+        default: None
+      returns: list[ValidationError]
+    - kind: method
+      name: run_file_tracking
+      of: ValidationEngine
+      args:
+      - name: chain
+        type: ManifestChain
+      returns: FileTrackingReport
+    - kind: function
+      name: validate
+      args:
+      - name: manifest_path
+        type: Union[str, Path]
+      returns: ValidationResult
+    - kind: function
+      name: validate_all
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: BatchValidationResult
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.739786+00:00'

@@ -1,0 +1,118 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/result.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/result.py
+    artifacts:
+    - kind: class
+      name: IssueSeverity
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ERROR
+      of: IssueSeverity
+    - kind: attribute
+      name: WARNING
+      of: IssueSeverity
+    - kind: attribute
+      name: INFO
+      of: IssueSeverity
+    - kind: class
+      name: IssueType
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: DUPLICATE
+      of: IssueType
+    - kind: attribute
+      name: SIGNATURE_CONFLICT
+      of: IssueType
+    - kind: attribute
+      name: BOUNDARY_VIOLATION
+      of: IssueType
+    - kind: attribute
+      name: NAMING
+      of: IssueType
+    - kind: attribute
+      name: DEPENDENCY
+      of: IssueType
+    - kind: attribute
+      name: PATTERN
+      of: IssueType
+    - kind: attribute
+      name: CONSTRAINT
+      of: IssueType
+    - kind: class
+      name: CoherenceIssue
+    - kind: attribute
+      name: issue_type
+      of: CoherenceIssue
+      type: IssueType
+    - kind: attribute
+      name: severity
+      of: CoherenceIssue
+      type: IssueSeverity
+    - kind: attribute
+      name: message
+      of: CoherenceIssue
+      type: str
+    - kind: attribute
+      name: file
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: attribute
+      name: artifact
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: attribute
+      name: manifests
+      of: CoherenceIssue
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: suggestion
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: method
+      name: to_dict
+      of: CoherenceIssue
+      returns: dict
+    - kind: class
+      name: CoherenceResult
+    - kind: attribute
+      name: issues
+      of: CoherenceResult
+      type: list[CoherenceIssue]
+    - kind: attribute
+      name: checks_run
+      of: CoherenceResult
+      type: list[str]
+    - kind: attribute
+      name: duration_ms
+      of: CoherenceResult
+      type: Optional[float]
+    - kind: attribute
+      name: error_count
+      of: CoherenceResult
+      type: int
+    - kind: attribute
+      name: warning_count
+      of: CoherenceResult
+      type: int
+    - kind: attribute
+      name: success
+      of: CoherenceResult
+      type: bool
+    - kind: method
+      name: to_dict
+      of: CoherenceResult
+      returns: dict
+    - kind: method
+      name: to_json
+      of: CoherenceResult
+      returns: str
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:11.588781+00:00'

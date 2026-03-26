@@ -1,0 +1,36 @@
+schema: '2'
+goal: Snapshot of maid_runner/validators/svelte.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/validators/svelte.py
+    artifacts:
+    - kind: class
+      name: SvelteValidator
+      bases:
+      - BaseValidator
+    - kind: method
+      name: supported_extensions
+      of: SvelteValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: collect_implementation_artifacts
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.660775+00:00'

@@ -1,0 +1,20 @@
+schema: '2'
+goal: Snapshot of maid_runner/cli/commands/_main.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: Union[list[str], None]
+        default: None
+      returns: int
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.620271+00:00'

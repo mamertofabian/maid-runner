@@ -1,0 +1,75 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/chain.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/chain.py
+    artifacts:
+    - kind: class
+      name: ManifestChain
+    - kind: attribute
+      name: all_manifests
+      of: ManifestChain
+      type: list[Manifest]
+    - kind: method
+      name: active_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: superseded_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: is_superseded
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: bool
+    - kind: method
+      name: superseded_by
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: Optional[str]
+    - kind: method
+      name: manifests_for_file
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[Manifest]
+    - kind: method
+      name: merged_artifacts_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[ArtifactSpec]
+    - kind: method
+      name: file_mode_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileMode]
+    - kind: method
+      name: all_tracked_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: all_read_only_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: validate_supersession_integrity
+      of: ManifestChain
+      returns: list[str]
+    - kind: method
+      name: reload
+      of: ManifestChain
+      returns: None
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.623824+00:00'

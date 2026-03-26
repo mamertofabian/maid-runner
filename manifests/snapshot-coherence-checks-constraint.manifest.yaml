@@ -1,0 +1,70 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/constraint.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/constraint.py
+    artifacts:
+    - kind: class
+      name: ConstraintRule
+    - kind: attribute
+      name: name
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: description
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: pattern
+      of: ConstraintRule
+      type: dict[str, Any]
+    - kind: attribute
+      name: severity
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: suggestion
+      of: ConstraintRule
+      type: str
+    - kind: class
+      name: ConstraintConfig
+    - kind: attribute
+      name: version
+      of: ConstraintConfig
+      type: str
+    - kind: attribute
+      name: rules
+      of: ConstraintConfig
+      type: list[ConstraintRule]
+    - kind: attribute
+      name: enabled
+      of: ConstraintConfig
+      type: bool
+    - kind: function
+      name: load_constraint_config
+      args:
+      - name: config_path
+        type: Optional[Path]
+        default: None
+      returns: ConstraintConfig
+    - kind: class
+      name: ConstraintCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: ConstraintCheck
+      type: str
+    - kind: method
+      name: run
+      of: ConstraintCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.508551+00:00'

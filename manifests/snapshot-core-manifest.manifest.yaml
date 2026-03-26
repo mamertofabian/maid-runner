@@ -1,0 +1,65 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/manifest.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/manifest.py
+    artifacts:
+    - kind: class
+      name: ManifestLoadError
+      bases:
+      - Exception
+    - kind: attribute
+      name: path
+      of: ManifestLoadError
+    - kind: attribute
+      name: reason
+      of: ManifestLoadError
+    - kind: class
+      name: ManifestSchemaError
+      bases:
+      - Exception
+    - kind: attribute
+      name: path
+      of: ManifestSchemaError
+    - kind: attribute
+      name: errors
+      of: ManifestSchemaError
+    - kind: function
+      name: slug_from_path
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: str
+    - kind: function
+      name: validate_manifest_schema
+      args:
+      - name: data
+        type: dict
+      - name: schema_version
+        type: str
+        default: '''2'''
+      returns: list[str]
+    - kind: function
+      name: load_manifest_raw
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: dict
+    - kind: function
+      name: load_manifest
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: Manifest
+    - kind: function
+      name: save_manifest
+      args:
+      - name: manifest
+        type: Manifest
+      - name: path
+        type: Union[str, Path]
+      returns: None
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.503497+00:00'

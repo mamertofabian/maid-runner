@@ -1,0 +1,26 @@
+schema: '2'
+goal: Snapshot of maid_runner/graph/builder.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/graph/builder.py
+    artifacts:
+    - kind: class
+      name: GraphBuilder
+    - kind: method
+      name: build
+      of: GraphBuilder
+      args:
+      - name: chain
+        type: ManifestChain
+      returns: KnowledgeGraph
+    - kind: method
+      name: build_from_manifests
+      of: GraphBuilder
+      args:
+      - name: manifests
+        type: list[Manifest]
+      returns: KnowledgeGraph
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:11.051196+00:00'

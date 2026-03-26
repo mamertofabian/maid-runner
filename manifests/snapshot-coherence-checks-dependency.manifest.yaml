@@ -1,0 +1,27 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/dependency.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/dependency.py
+    artifacts:
+    - kind: class
+      name: DependencyCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: DependencyCheck
+      type: str
+    - kind: method
+      name: run
+      of: DependencyCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.284769+00:00'

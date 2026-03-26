@@ -1,0 +1,343 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/result.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: class
+      name: ErrorCode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_READ_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: MANIFEST_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: SCHEMA_VALIDATION_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: DUPLICATE_FILE
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_IN_MULTIPLE_SECTIONS
+      of: ErrorCode
+    - kind: attribute
+      name: SUPERSEDED_MANIFEST_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: CIRCULAR_SUPERSESSION
+      of: ErrorCode
+    - kind: attribute
+      name: EMPTY_ARTIFACTS
+      of: ErrorCode
+    - kind: attribute
+      name: INVALID_TASK_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_NOT_USED_IN_TESTS
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_IN_READONLY
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_NOT_DEFINED
+      of: ErrorCode
+    - kind: attribute
+      name: UNEXPECTED_ARTIFACT
+      of: ErrorCode
+    - kind: attribute
+      name: TYPE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: SIGNATURE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_RETURN_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_ABSENT
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_PRESENT
+      of: ErrorCode
+    - kind: attribute
+      name: VALIDATOR_NOT_AVAILABLE
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DUPLICATE
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_SIGNATURE_CONFLICT
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_BOUNDARY_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_NAMING_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DEPENDENCY_MISSING
+      of: ErrorCode
+    - kind: attribute
+      name: INTERNAL_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: UNSUPPORTED_LANGUAGE
+      of: ErrorCode
+    - kind: class
+      name: Severity
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ERROR
+      of: Severity
+    - kind: attribute
+      name: WARNING
+      of: Severity
+    - kind: attribute
+      name: INFO
+      of: Severity
+    - kind: class
+      name: Location
+    - kind: attribute
+      name: file
+      of: Location
+      type: str
+    - kind: attribute
+      name: line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: column
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_column
+      of: Location
+      type: Optional[int]
+    - kind: class
+      name: ValidationError
+    - kind: attribute
+      name: code
+      of: ValidationError
+      type: ErrorCode
+    - kind: attribute
+      name: message
+      of: ValidationError
+      type: str
+    - kind: attribute
+      name: severity
+      of: ValidationError
+      type: Severity
+    - kind: attribute
+      name: location
+      of: ValidationError
+      type: Optional[Location]
+    - kind: attribute
+      name: suggestion
+      of: ValidationError
+      type: Optional[str]
+    - kind: method
+      name: to_dict
+      of: ValidationError
+      returns: dict
+    - kind: class
+      name: FileTrackingStatus
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: UNDECLARED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: REGISTERED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: TRACKED
+      of: FileTrackingStatus
+    - kind: class
+      name: FileTrackingEntry
+    - kind: attribute
+      name: path
+      of: FileTrackingEntry
+      type: str
+    - kind: attribute
+      name: status
+      of: FileTrackingEntry
+      type: FileTrackingStatus
+    - kind: attribute
+      name: manifests
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: issues
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: class
+      name: FileTrackingReport
+    - kind: attribute
+      name: entries
+      of: FileTrackingReport
+      type: tuple[FileTrackingEntry, Ellipsis]
+    - kind: attribute
+      name: undeclared
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: registered
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: tracked
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: class
+      name: ValidationResult
+    - kind: attribute
+      name: success
+      of: ValidationResult
+      type: bool
+    - kind: attribute
+      name: manifest_slug
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: manifest_path
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: mode
+      of: ValidationResult
+      type: ValidationMode
+    - kind: attribute
+      name: errors
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: warnings
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: file_tracking
+      of: ValidationResult
+      type: Optional[FileTrackingReport]
+    - kind: attribute
+      name: duration_ms
+      of: ValidationResult
+      type: Optional[float]
+    - kind: method
+      name: to_dict
+      of: ValidationResult
+      returns: dict
+    - kind: method
+      name: to_json
+      of: ValidationResult
+      returns: str
+    - kind: class
+      name: BatchValidationResult
+    - kind: attribute
+      name: results
+      of: BatchValidationResult
+      type: list[ValidationResult]
+    - kind: attribute
+      name: total_manifests
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: passed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: failed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: skipped
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: duration_ms
+      of: BatchValidationResult
+      type: Optional[float]
+    - kind: attribute
+      name: success
+      of: BatchValidationResult
+      type: bool
+    - kind: method
+      name: to_dict
+      of: BatchValidationResult
+      returns: dict
+    - kind: class
+      name: TestRunResult
+    - kind: attribute
+      name: manifest_slug
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: command
+      of: TestRunResult
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: exit_code
+      of: TestRunResult
+      type: int
+    - kind: attribute
+      name: stdout
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: stderr
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: duration_ms
+      of: TestRunResult
+      type: float
+    - kind: attribute
+      name: success
+      of: TestRunResult
+      type: bool
+    - kind: class
+      name: BatchTestResult
+    - kind: attribute
+      name: results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: total
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: passed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: failed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: duration_ms
+      of: BatchTestResult
+      type: Optional[float]
+    - kind: attribute
+      name: success
+      of: BatchTestResult
+      type: bool
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.385576+00:00'

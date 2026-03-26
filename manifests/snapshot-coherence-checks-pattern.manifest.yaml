@@ -1,0 +1,27 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/pattern.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/pattern.py
+    artifacts:
+    - kind: class
+      name: PatternCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: PatternCheck
+      type: str
+    - kind: method
+      name: run
+      of: PatternCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.397167+00:00'

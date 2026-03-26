@@ -1,0 +1,31 @@
+schema: '2'
+goal: Snapshot of maid_runner/compat/v1_loader.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/compat/v1_loader.py
+    artifacts:
+    - kind: function
+      name: is_v1_manifest
+      args:
+      - name: data
+        type: dict
+      returns: bool
+    - kind: function
+      name: convert_v1_to_v2
+      args:
+      - name: data
+        type: dict
+      returns: dict
+    - kind: function
+      name: convert_v1_file
+      args:
+      - name: input_path
+        type: Union[str, Path]
+      - name: output_path
+        type: Union[str, Path, None]
+        default: None
+      returns: Path
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.779807+00:00'

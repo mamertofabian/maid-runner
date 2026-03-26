@@ -1,0 +1,133 @@
+schema: '2'
+goal: Snapshot of maid_runner/validators/base.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/validators/base.py
+    artifacts:
+    - kind: class
+      name: FoundArtifact
+    - kind: attribute
+      name: kind
+      of: FoundArtifact
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: FoundArtifact
+      type: str
+    - kind: attribute
+      name: of
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: args
+      of: FoundArtifact
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: is_async
+      of: FoundArtifact
+      type: bool
+    - kind: attribute
+      name: bases
+      of: FoundArtifact
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: type_annotation
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: line
+      of: FoundArtifact
+      type: Optional[int]
+    - kind: attribute
+      name: column
+      of: FoundArtifact
+      type: Optional[int]
+    - kind: attribute
+      name: is_private
+      of: FoundArtifact
+      type: bool
+    - kind: attribute
+      name: qualified_name
+      of: FoundArtifact
+      type: str
+    - kind: method
+      name: merge_key
+      of: FoundArtifact
+      returns: str
+    - kind: class
+      name: CollectionResult
+    - kind: attribute
+      name: artifacts
+      of: CollectionResult
+      type: list[FoundArtifact]
+    - kind: attribute
+      name: language
+      of: CollectionResult
+      type: str
+    - kind: attribute
+      name: file_path
+      of: CollectionResult
+      type: str
+    - kind: attribute
+      name: errors
+      of: CollectionResult
+      type: list[str]
+    - kind: class
+      name: BaseValidator
+      bases:
+      - ABC
+    - kind: method
+      name: supported_extensions
+      of: BaseValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: can_validate
+      of: BaseValidator
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: bool
+    - kind: method
+      name: collect_implementation_artifacts
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: generate_test_stub
+      of: BaseValidator
+      args:
+      - name: artifacts
+        type: list[FoundArtifact]
+      - name: file_path
+        type: Union[str, Path]
+      returns: str
+    - kind: method
+      name: generate_snapshot
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: list[dict]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.196203+00:00'

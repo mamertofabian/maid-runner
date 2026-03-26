@@ -1,0 +1,196 @@
+schema: '2'
+goal: Snapshot of maid_runner/graph/model.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/graph/model.py
+    artifacts:
+    - kind: attribute
+      name: MANIFEST_PREFIX
+    - kind: attribute
+      name: FILE_PREFIX
+    - kind: attribute
+      name: ARTIFACT_PREFIX
+    - kind: attribute
+      name: MODULE_PREFIX
+    - kind: attribute
+      name: EDGE_PREFIX
+    - kind: class
+      name: NodeType
+      bases:
+      - Enum
+    - kind: attribute
+      name: MANIFEST
+      of: NodeType
+    - kind: attribute
+      name: FILE
+      of: NodeType
+    - kind: attribute
+      name: ARTIFACT
+      of: NodeType
+    - kind: attribute
+      name: MODULE
+      of: NodeType
+    - kind: class
+      name: Node
+    - kind: attribute
+      name: id
+      of: Node
+    - kind: attribute
+      name: node_type
+      of: Node
+    - kind: attribute
+      name: attributes
+      of: Node
+    - kind: class
+      name: ManifestNode
+      bases:
+      - Node
+    - kind: attribute
+      name: path
+      of: ManifestNode
+    - kind: attribute
+      name: goal
+      of: ManifestNode
+    - kind: attribute
+      name: task_type
+      of: ManifestNode
+    - kind: attribute
+      name: version
+      of: ManifestNode
+    - kind: class
+      name: FileNode
+      bases:
+      - Node
+    - kind: attribute
+      name: path
+      of: FileNode
+    - kind: attribute
+      name: status
+      of: FileNode
+    - kind: class
+      name: ArtifactNode
+      bases:
+      - Node
+    - kind: attribute
+      name: name
+      of: ArtifactNode
+    - kind: attribute
+      name: artifact_type
+      of: ArtifactNode
+    - kind: attribute
+      name: signature
+      of: ArtifactNode
+    - kind: attribute
+      name: parent_class
+      of: ArtifactNode
+    - kind: class
+      name: ModuleNode
+      bases:
+      - Node
+    - kind: attribute
+      name: name
+      of: ModuleNode
+    - kind: attribute
+      name: package
+      of: ModuleNode
+    - kind: class
+      name: EdgeType
+      bases:
+      - Enum
+    - kind: attribute
+      name: SUPERSEDES
+      of: EdgeType
+    - kind: attribute
+      name: CREATES
+      of: EdgeType
+    - kind: attribute
+      name: EDITS
+      of: EdgeType
+    - kind: attribute
+      name: READS
+      of: EdgeType
+    - kind: attribute
+      name: DEFINES
+      of: EdgeType
+    - kind: attribute
+      name: DECLARES
+      of: EdgeType
+    - kind: attribute
+      name: CONTAINS
+      of: EdgeType
+    - kind: attribute
+      name: INHERITS
+      of: EdgeType
+    - kind: attribute
+      name: BELONGS_TO
+      of: EdgeType
+    - kind: class
+      name: Edge
+    - kind: attribute
+      name: id
+      of: Edge
+    - kind: attribute
+      name: edge_type
+      of: Edge
+    - kind: attribute
+      name: source_id
+      of: Edge
+    - kind: attribute
+      name: target_id
+      of: Edge
+    - kind: attribute
+      name: attributes
+      of: Edge
+    - kind: class
+      name: KnowledgeGraph
+    - kind: method
+      name: add_node
+      of: KnowledgeGraph
+      args:
+      - name: node
+        type: Node
+      returns: None
+    - kind: method
+      name: add_edge
+      of: KnowledgeGraph
+      args:
+      - name: edge
+        type: Edge
+      returns: None
+    - kind: method
+      name: get_node
+      of: KnowledgeGraph
+      args:
+      - name: node_id
+        type: str
+      returns: Optional[Node]
+    - kind: method
+      name: get_edges
+      of: KnowledgeGraph
+      args:
+      - name: node_id
+        type: str
+      - name: edge_type
+        type: Optional[EdgeType]
+        default: None
+      returns: List[Edge]
+    - kind: attribute
+      name: nodes
+      of: KnowledgeGraph
+      type: List[Node]
+    - kind: attribute
+      name: edges
+      of: KnowledgeGraph
+      type: List[Edge]
+    - kind: attribute
+      name: node_count
+      of: KnowledgeGraph
+      type: int
+    - kind: attribute
+      name: edge_count
+      of: KnowledgeGraph
+      type: int
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.902042+00:00'

@@ -1,0 +1,52 @@
+schema: '2'
+goal: Snapshot of maid_runner/graph/exporters.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/graph/exporters.py
+    artifacts:
+    - kind: function
+      name: graph_to_dict
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      returns: Dict[str, Any]
+    - kind: function
+      name: export_json
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: output_path
+        type: Path
+      returns: None
+    - kind: function
+      name: graph_to_dot
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      returns: str
+    - kind: function
+      name: export_dot
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: output_path
+        type: Path
+      returns: None
+    - kind: function
+      name: graph_to_graphml
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      returns: str
+    - kind: function
+      name: export_graphml
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: output_path
+        type: Path
+      returns: None
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:11.294866+00:00'

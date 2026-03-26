@@ -1,0 +1,28 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/engine.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/engine.py
+    artifacts:
+    - kind: class
+      name: CoherenceEngine
+    - kind: method
+      name: validate
+      of: CoherenceEngine
+      args:
+      - name: manifests
+        type: Union[Sequence[Manifest], object]
+      returns: CoherenceResult
+    - kind: method
+      name: validate_single
+      of: CoherenceEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: all_manifests
+        type: Union[Sequence[Manifest], object]
+      returns: CoherenceResult
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:11.424704+00:00'

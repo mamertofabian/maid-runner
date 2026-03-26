@@ -1,0 +1,58 @@
+schema: '2'
+goal: Snapshot of maid_runner/validators/registry.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/validators/registry.py
+    artifacts:
+    - kind: class
+      name: UnsupportedLanguageError
+      bases:
+      - Exception
+    - kind: attribute
+      name: extension
+      of: UnsupportedLanguageError
+    - kind: class
+      name: ValidatorRegistry
+    - kind: method
+      name: register
+      of: ValidatorRegistry
+      args:
+      - name: validator_class
+        type: type[BaseValidator]
+      returns: None
+    - kind: method
+      name: get
+      of: ValidatorRegistry
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: BaseValidator
+    - kind: method
+      name: has_validator
+      of: ValidatorRegistry
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: bool
+    - kind: method
+      name: has_validator_for_extension
+      of: ValidatorRegistry
+      args:
+      - name: ext
+        type: str
+      returns: bool
+    - kind: method
+      name: supported_extensions
+      of: ValidatorRegistry
+      returns: set[str]
+    - kind: method
+      name: clear
+      of: ValidatorRegistry
+      returns: None
+    - kind: function
+      name: auto_register
+      returns: None
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.307460+00:00'

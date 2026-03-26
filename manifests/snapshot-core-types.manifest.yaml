@@ -1,0 +1,286 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/types.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: class
+      name: ArtifactKind
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: CLASS
+      of: ArtifactKind
+    - kind: attribute
+      name: FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: METHOD
+      of: ArtifactKind
+    - kind: attribute
+      name: ATTRIBUTE
+      of: ArtifactKind
+    - kind: attribute
+      name: INTERFACE
+      of: ArtifactKind
+    - kind: attribute
+      name: TYPE
+      of: ArtifactKind
+    - kind: attribute
+      name: ENUM
+      of: ArtifactKind
+    - kind: attribute
+      name: NAMESPACE
+      of: ArtifactKind
+    - kind: class
+      name: TaskType
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: FEATURE
+      of: TaskType
+    - kind: attribute
+      name: FIX
+      of: TaskType
+    - kind: attribute
+      name: REFACTOR
+      of: TaskType
+    - kind: attribute
+      name: SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: SYSTEM_SNAPSHOT
+      of: TaskType
+    - kind: class
+      name: ValidationMode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: BEHAVIORAL
+      of: ValidationMode
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: ValidationMode
+    - kind: class
+      name: FileMode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: CREATE
+      of: FileMode
+    - kind: attribute
+      name: EDIT
+      of: FileMode
+    - kind: attribute
+      name: READ
+      of: FileMode
+    - kind: attribute
+      name: DELETE
+      of: FileMode
+    - kind: attribute
+      name: SNAPSHOT
+      of: FileMode
+    - kind: class
+      name: ArgSpec
+    - kind: attribute
+      name: name
+      of: ArgSpec
+      type: str
+    - kind: attribute
+      name: type
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: default
+      of: ArgSpec
+      type: Optional[str]
+    - kind: class
+      name: ArtifactSpec
+    - kind: attribute
+      name: kind
+      of: ArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: description
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: args
+      of: ArtifactSpec
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: raises
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: is_async
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: bases
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: of
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: type_annotation
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: qualified_name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: is_private
+      of: ArtifactSpec
+      type: bool
+    - kind: method
+      name: merge_key
+      of: ArtifactSpec
+      returns: str
+    - kind: class
+      name: FileSpec
+    - kind: attribute
+      name: path
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: artifacts
+      of: FileSpec
+      type: tuple[ArtifactSpec, Ellipsis]
+    - kind: attribute
+      name: status
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: mode
+      of: FileSpec
+      type: FileMode
+    - kind: attribute
+      name: is_strict
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: is_absent
+      of: FileSpec
+      type: bool
+    - kind: class
+      name: DeleteSpec
+    - kind: attribute
+      name: path
+      of: DeleteSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: DeleteSpec
+      type: Optional[str]
+    - kind: class
+      name: Manifest
+    - kind: attribute
+      name: slug
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: source_path
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: goal
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: validate_commands
+      of: Manifest
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: files_create
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_edit
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_read
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: files_delete
+      of: Manifest
+      type: tuple[DeleteSpec, Ellipsis]
+    - kind: attribute
+      name: files_snapshot
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: schema_version
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: task_type
+      of: Manifest
+      type: Optional[TaskType]
+    - kind: attribute
+      name: description
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: supersedes
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: created
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: metadata
+      of: Manifest
+      type: Optional[dict]
+    - kind: attribute
+      name: all_file_specs
+      of: Manifest
+      type: list[FileSpec]
+    - kind: attribute
+      name: all_writable_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: all_referenced_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: is_superseded_by
+      of: Manifest
+      type: bool
+    - kind: method
+      name: file_spec_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileSpec]
+    - kind: method
+      name: artifacts_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: tuple[ArtifactSpec, Ellipsis]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:09.268721+00:00'

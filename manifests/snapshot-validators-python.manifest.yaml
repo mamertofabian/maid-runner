@@ -1,0 +1,107 @@
+schema: '2'
+goal: Snapshot of maid_runner/validators/python.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: class
+      name: PythonValidator
+      bases:
+      - BaseValidator
+    - kind: method
+      name: supported_extensions
+      of: PythonValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: collect_implementation_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: attribute
+      name: artifacts
+      of: _ImplementationCollector
+      type: list[FoundArtifact]
+    - kind: method
+      name: visit_ClassDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.ClassDef
+      returns: None
+    - kind: method
+      name: visit_FunctionDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.FunctionDef
+      returns: None
+    - kind: method
+      name: visit_AsyncFunctionDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.AsyncFunctionDef
+      returns: None
+    - kind: method
+      name: visit_Assign
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.Assign
+      returns: None
+    - kind: method
+      name: visit_AnnAssign
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.AnnAssign
+      returns: None
+    - kind: attribute
+      name: artifacts
+      of: _BehavioralCollector
+      type: list[FoundArtifact]
+    - kind: method
+      name: visit_ImportFrom
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.ImportFrom
+      returns: None
+    - kind: method
+      name: visit_Import
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Import
+      returns: None
+    - kind: method
+      name: visit_Call
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Call
+      returns: None
+    - kind: method
+      name: visit_Name
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Name
+      returns: None
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:10.423774+00:00'

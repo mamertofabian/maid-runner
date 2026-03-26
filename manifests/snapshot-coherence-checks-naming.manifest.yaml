@@ -1,0 +1,27 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/naming.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/naming.py
+    artifacts:
+    - kind: class
+      name: NamingCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: NamingCheck
+      type: str
+    - kind: method
+      name: run
+      of: NamingCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:47.172166+00:00'

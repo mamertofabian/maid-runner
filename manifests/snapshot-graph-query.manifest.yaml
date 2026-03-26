@@ -1,0 +1,243 @@
+schema: '2'
+goal: Snapshot of maid_runner/graph/query.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/graph/query.py
+    artifacts:
+    - kind: function
+      name: find_nodes_by_type
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: node_type
+        type: NodeType
+      returns: List[Node]
+    - kind: function
+      name: find_node_by_name
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: name
+        type: str
+      returns: Optional[Node]
+    - kind: function
+      name: get_neighbors
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: node
+        type: Node
+      - name: edge_type
+        type: Optional[EdgeType]
+        default: None
+      returns: List[Node]
+    - kind: function
+      name: find_dependents
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: artifact_name
+        type: str
+      returns: List[Node]
+    - kind: function
+      name: find_dependencies
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: artifact_name
+        type: str
+      returns: List[Node]
+    - kind: function
+      name: get_dependency_tree
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: node
+        type: Node
+      - name: depth
+        type: int
+        default: '-1'
+      - name: _visited
+        type: Optional[set]
+        default: None
+      returns: Dict[str, Any]
+    - kind: function
+      name: find_cycles
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      returns: List[List[Node]]
+    - kind: function
+      name: is_acyclic
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      returns: bool
+    - kind: function
+      name: get_affected_files
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: artifact_name
+        type: str
+      returns: List[str]
+    - kind: function
+      name: get_affected_manifests
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: artifact_name
+        type: str
+      returns: List[str]
+    - kind: function
+      name: analyze_impact
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: artifact_name
+        type: str
+      returns: Dict[str, Any]
+    - kind: class
+      name: QueryType
+      bases:
+      - Enum
+    - kind: attribute
+      name: FIND_DEFINITION
+      of: QueryType
+    - kind: attribute
+      name: FIND_DEPENDENTS
+      of: QueryType
+    - kind: attribute
+      name: FIND_DEPENDENCIES
+      of: QueryType
+    - kind: attribute
+      name: FIND_IMPACT
+      of: QueryType
+    - kind: attribute
+      name: FIND_CYCLES
+      of: QueryType
+    - kind: attribute
+      name: LIST_ARTIFACTS
+      of: QueryType
+    - kind: class
+      name: QueryIntent
+    - kind: attribute
+      name: query_type
+      of: QueryIntent
+    - kind: attribute
+      name: target
+      of: QueryIntent
+    - kind: attribute
+      name: original_query
+      of: QueryIntent
+    - kind: class
+      name: QueryParser
+    - kind: method
+      name: parse
+      of: QueryParser
+      args:
+      - name: query
+        type: str
+      returns: QueryIntent
+    - kind: class
+      name: QueryResult
+    - kind: attribute
+      name: success
+      of: QueryResult
+    - kind: attribute
+      name: query_type
+      of: QueryResult
+    - kind: attribute
+      name: data
+      of: QueryResult
+    - kind: attribute
+      name: message
+      of: QueryResult
+    - kind: class
+      name: QueryExecutor
+    - kind: attribute
+      name: graph
+      of: QueryExecutor
+    - kind: method
+      name: execute
+      of: QueryExecutor
+      args:
+      - name: intent
+        type: QueryIntent
+      returns: QueryResult
+    - kind: class
+      name: GraphQuery
+    - kind: method
+      name: find_node
+      of: GraphQuery
+      args:
+      - name: name
+        type: str
+      - name: node_type
+        type: Optional[NodeType]
+        default: None
+      returns: Optional[Node]
+    - kind: method
+      name: find_nodes
+      of: GraphQuery
+      args:
+      - name: pattern
+        type: str
+      - name: node_type
+        type: Optional[NodeType]
+        default: None
+      returns: list[Node]
+    - kind: method
+      name: get_dependents
+      of: GraphQuery
+      args:
+      - name: node_id
+        type: str
+      returns: list[Node]
+    - kind: method
+      name: get_dependencies
+      of: GraphQuery
+      args:
+      - name: node_id
+        type: str
+      returns: list[Node]
+    - kind: method
+      name: get_transitive_dependents
+      of: GraphQuery
+      args:
+      - name: node_id
+        type: str
+      returns: list[Node]
+    - kind: method
+      name: find_cycles
+      of: GraphQuery
+      returns: list[list[str]]
+    - kind: method
+      name: is_acyclic
+      of: GraphQuery
+      returns: bool
+    - kind: method
+      name: dependency_analysis
+      of: GraphQuery
+      args:
+      - name: file_path
+        type: str
+      returns: dict[str, Any]
+    - kind: method
+      name: query
+      of: GraphQuery
+      args:
+      - name: question
+        type: str
+      returns: dict[str, Any]
+    - kind: method
+      name: impact_analysis
+      of: GraphQuery
+      args:
+      - name: artifact_name
+        type: str
+      returns: dict[str, Any]
+validate:
+- pytest tests/ -v
+created: '2026-03-26T05:46:11.173352+00:00'
