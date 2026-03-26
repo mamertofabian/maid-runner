@@ -208,10 +208,14 @@ class _ImplementationCollector(ast.NodeVisitor):
                             )
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
-        if node.target and isinstance(node.target, ast.Name):
-            type_ann = _ast_to_type_string(node.annotation) if node.annotation else None
+        if not node.target:
+            return
+
+        type_ann = _ast_to_type_string(node.annotation) if node.annotation else None
+
+        if isinstance(node.target, ast.Name):
             if self._current_class is not None and not self._in_function:
-                # Class-level annotated attribute
+                # Class-level annotated attribute: field: type
                 self.artifacts.append(
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
@@ -227,6 +231,25 @@ class _ImplementationCollector(ast.NodeVisitor):
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
                         name=node.target.id,
+                        type_annotation=type_ann,
+                        line=node.lineno,
+                    )
+                )
+        elif (
+            isinstance(node.target, ast.Attribute)
+            and isinstance(node.target.value, ast.Name)
+            and node.target.value.id == "self"
+            and self._current_class is not None
+            and self._in_function
+        ):
+            # Annotated self attribute inside method: self.name: str = value
+            attr_name = node.target.attr
+            if not self._has_artifact(attr_name, self._current_class):
+                self.artifacts.append(
+                    FoundArtifact(
+                        kind=ArtifactKind.ATTRIBUTE,
+                        name=attr_name,
+                        of=self._current_class,
                         type_annotation=type_ann,
                         line=node.lineno,
                     )
