@@ -4,21 +4,24 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with their declarative manifests, ensuring architectural integrity in AI-assisted development.
+A tool-agnostic validation framework and Python library for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with declarative YAML manifests, ensuring architectural integrity in AI-assisted development. Integrates with [ArchSpec](https://archspec.dev) for spec-to-code pipelines.
 
-📹 **[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**
+**[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**
+
+> [Full AI Compiler workflow guide](docs/ai-compiler-workflow.md)
 
 ## Why MAID Runner?
 
-LLMs generate code based on statistical likelihood, optimizing for "plausibility" rather than architectural soundness. Without intervention, this leads to "AI Slop"—code that is syntactically valid but architecturally chaotic.
+LLMs generate code based on statistical likelihood, optimizing for "plausibility" rather than architectural soundness. Without intervention, this leads to "AI Slop" -- code that is syntactically valid but architecturally chaotic.
 
-**MAID Runner enforces dual-constraint validation:**
-- **Behavioral (Coordinate A)**: Code must pass the test suite
-- **Structural (Coordinate B)**: Code must adhere to a pre-designed JSON manifest
+**MAID Runner enforces three-stream validation:**
+- **Acceptance (WHAT)**: Immutable tests from specifications define system behavior
+- **Structural (SKELETON)**: AST-level verification that code matches manifest contracts
+- **Unit (HOW)**: Implementation-level tests verify internal correctness
 
 This transforms AI from a "Junior Developer" requiring reactive code review into a "Stochastic Compiler" that translates rigid specifications into implementation details.
 
-→ [Full philosophy documentation](docs/maid-philosophy-and-vision.md)
+> [Full philosophy documentation](docs/maid-philosophy-and-vision.md)
 
 ## Supported Languages
 
@@ -53,30 +56,34 @@ maid howto --section quickstart
 ### From PyPI
 
 ```bash
-pip install maid-runner      # or: uv pip install maid-runner
+pip install maid-runner           # Python only (core)
+pip install maid-runner[all]      # All language support (TypeScript, Svelte)
+pip install maid-runner[typescript]  # TypeScript/JS only
 ```
 
 ### Multi-Tool Support
 
 ```bash
-maid init                    # Claude Code (default)
-maid init --cursor           # Cursor IDE
-maid init --windsurf         # Windsurf IDE
-maid init --generic          # Generic MAID.md
-maid init --all              # All tools
+maid init                        # Claude Code (default)
+maid init --tool cursor          # Cursor IDE
+maid init --tool windsurf        # Windsurf IDE
+maid init --tool generic         # Generic MAID.md
 ```
 
 ## CLI Reference
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
-| `maid validate <manifest>` | Validate manifest against code | `--validation-mode behavioral\|implementation`, `--use-manifest-chain`, `--watch`, `--watch-all` |
-| `maid test` | Run validation commands from manifests | `--manifest <path>`, `--watch`, `--watch-all`, `--fail-fast` |
+| `maid validate [manifest]` | Validate manifest against code | `--mode behavioral\|implementation`, `--no-chain`, `--coherence`, `--json`, `--watch`, `--watch-all` |
+| `maid test` | Run validation commands from manifests | `--manifest <path>`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--force` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
 | `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
-| `maid init` | Initialize MAID in project | `--claude`, `--cursor`, `--windsurf`, `--generic`, `--all` |
+| `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
+| `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
+| `maid schema` | Display manifest JSON Schema | |
+| `maid init` | Initialize MAID in project | `--tool claude\|cursor\|windsurf\|generic\|auto` |
 | `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 
@@ -87,67 +94,79 @@ Run `maid howto --section commands` for detailed usage and examples.
 ### Common Workflows
 
 ```bash
-# Validate implementation (default mode)
-maid validate manifests/task-013.manifest.json --use-manifest-chain
+# Validate all manifests (chains enabled by default)
+maid validate
+
+# Validate a single manifest
+maid validate manifests/add-auth.manifest.yaml
+
+# Validate without chain merging
+maid validate manifests/add-auth.manifest.yaml --no-chain
 
 # Validate behavioral tests
-maid validate manifests/task-013.manifest.json --validation-mode behavioral
+maid validate manifests/add-auth.manifest.yaml --mode behavioral
+
+# Validate with coherence checks
+maid validate --coherence
 
 # TDD watch mode (single manifest)
-maid test --manifest manifests/task-013.manifest.json --watch
+maid test --manifest manifests/add-auth.manifest.yaml --watch
 
 # Multi-manifest watch (entire codebase)
 maid test --watch-all
 
 # Run all validation commands
 maid test
+
+# JSON output for CI/CD
+maid validate --json
 ```
 
 ### File Tracking
 
-When using `--use-manifest-chain`, MAID Runner reports file compliance status:
+When validating with manifest chains (default), MAID Runner reports file compliance status:
 
-- **🔴 UNDECLARED**: Files not in any manifest (no audit trail)
-- **🟡 REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
-- **✓ TRACKED**: Files with full MAID compliance
+- **UNDECLARED**: Files not in any manifest (no audit trail)
+- **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
+- **TRACKED**: Files with full MAID compliance
 
-## Manifest Structure
+## Manifest Structure (v2 YAML)
 
-```json
-{
-  "goal": "Implement email validation",
-  "taskType": "create",
-  "supersedes": [],
-  "creatableFiles": ["validators/email_validator.py"],
-  "editableFiles": [],
-  "readonlyFiles": ["tests/test_email_validation.py"],
-  "expectedArtifacts": {
-    "file": "validators/email_validator.py",
-    "contains": [
-      {"type": "class", "name": "EmailValidator"},
-      {
-        "type": "function",
-        "name": "validate",
-        "class": "EmailValidator",
-        "parameters": [{"name": "email", "type": "str"}],
-        "returns": "bool"
-      }
-    ]
-  },
-  "validationCommand": ["pytest", "tests/test_email_validation.py", "-v"]
-}
+```yaml
+schema: "2"
+goal: "Implement email validation"
+type: feature
+files:
+  create:
+    - path: validators/email_validator.py
+      artifacts:
+        - kind: class
+          name: EmailValidator
+        - kind: method
+          name: validate
+          of: EmailValidator
+          args:
+            - name: email
+              type: str
+          returns: bool
+  read:
+    - tests/test_email_validation.py
+validate:
+  - pytest tests/test_email_validation.py -v
 ```
+
+V1 JSON manifests are auto-converted when loaded.
 
 ### Validation Modes
 
 | Mode | Files | Behavior |
 |------|-------|----------|
-| **Strict** | `creatableFiles` | Implementation must EXACTLY match `expectedArtifacts` |
-| **Permissive** | `editableFiles` | Implementation must CONTAIN `expectedArtifacts` |
+| **Strict** | `files.create` | Implementation must EXACTLY match declared artifacts |
+| **Permissive** | `files.edit` | Implementation must CONTAIN declared artifacts |
 
-### Artifact Types
+### Artifact Kinds
 
-**Common:** `class`, `function`, `attribute`
+**Common:** `class`, `function`, `method`, `attribute`
 
 **TypeScript-specific:** `interface`, `type`, `enum`, `namespace`
 
@@ -158,20 +177,20 @@ Define the high-level feature or bug fix.
 
 ### Phase 2: Planning Loop
 1. Create manifest: `maid manifest create <file> --goal "Description"`
-2. Create behavioral tests in `tests/test_task_XXX_*.py`
-3. Validate: `maid validate <manifest> --validation-mode behavioral`
+2. Create behavioral tests in `tests/`
+3. Validate: `maid validate <manifest> --mode behavioral`
 4. Iterate until validation passes
 
 ### Phase 3: Implementation Loop
 1. Implement code per manifest
-2. Validate: `maid validate <manifest> --use-manifest-chain`
+2. Validate: `maid validate <manifest>`
 3. Run tests: `maid test --manifest <manifest>`
 4. Iterate until all tests pass
 
 ### Phase 4: Integration
 Verify complete chain: `maid validate` and `maid test` pass for all active manifests.
 
-## Library API (v2)
+## Library API
 
 MAID Runner provides a Python library API for direct integration with tools, CI/CD, and custom scripts.
 
@@ -253,33 +272,6 @@ class GoValidator(BaseValidator):
 ValidatorRegistry.register(GoValidator)
 ```
 
-## V2 Manifest Format (YAML)
-
-```yaml
-schema: "2"
-goal: "Implement email validation"
-type: feature
-files:
-  create:
-    - path: validators/email_validator.py
-      artifacts:
-        - kind: class
-          name: EmailValidator
-        - kind: method
-          name: validate
-          of: EmailValidator
-          args:
-            - name: email
-              type: str
-          returns: bool
-  read:
-    - tests/test_email_validation.py
-validate:
-  - pytest tests/test_email_validation.py -v
-```
-
-V1 JSON manifests are auto-converted when loaded.
-
 ## MAID Ecosystem
 
 | Tool | Purpose |
@@ -289,6 +281,7 @@ V1 JSON manifests are auto-converted when loaded.
 | **[MAID LSP](https://github.com/mamertofabian/maid-lsp)** | Language Server Protocol for real-time IDE validation |
 | **[MAID for VS Code](https://github.com/mamertofabian/vscode-maid)** | VS Code/Cursor extension with manifest explorer and diagnostics |
 | **[Claude Plugins](https://github.com/aidrivencoder/claude-plugins)** | Plugin marketplace including MAID Runner |
+| **[ArchSpec](https://archspec.dev)** | AI-powered spec generation with MAID manifest export |
 
 ## Development Setup
 
@@ -311,11 +304,24 @@ make type-check  # Type checking
 ```
 maid-runner/
 ├── docs/                    # Documentation
-├── manifests/               # Task manifests (chronological)
-├── tests/                   # Test suite
+├── manifests/               # Task manifests (YAML v2)
+├── tests/
+│   ├── core/                # Core module tests
+│   ├── validators/          # Validator tests
+│   ├── coherence/           # Coherence check tests
+│   ├── graph/               # Knowledge graph tests
+│   ├── compat/              # Compatibility tests
+│   ├── cli/                 # CLI tests
+│   ├── integration/         # Integration tests
+│   └── e2e/                 # End-to-end tests
 ├── maid_runner/
-│   ├── cli/                 # CLI modules
-│   └── validators/          # Core validation logic
+│   ├── core/                # Manifest loading, validation, chain, types
+│   ├── validators/          # Language-specific artifact collectors
+│   ├── graph/               # Knowledge graph (manifest relationships)
+│   ├── coherence/           # Architectural coherence checks
+│   ├── compat/              # V1 JSON backward compatibility
+│   ├── cli/commands/        # CLI command modules
+│   └── schemas/             # JSON Schema (v1, v2)
 ├── examples/                # Example scripts
 └── .claude/                 # Claude Code configuration
 ```
@@ -324,15 +330,17 @@ maid-runner/
 
 ```bash
 uv run python -m pytest tests/ -v                    # All tests
-uv run python -m pytest tests/test_task_*.py -v      # Task-specific tests
+uv run python -m pytest tests/core/ -v               # Core tests
+uv run python -m pytest tests/validators/ -v          # Validator tests
 maid test                                            # MAID validation commands
 ```
 
 ## Requirements
 
 - Python 3.10+
-- Core: `jsonschema`, `pytest`, `tree-sitter`, `tree-sitter-typescript`
-- Dev: `black`, `ruff`, `mypy`
+- Core: `jsonschema`, `pyyaml`
+- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS support), `tree-sitter-svelte` (Svelte support)
+- Dev: `black`, `ruff`, `mypy`, `pytest`
 
 ## Contributing
 

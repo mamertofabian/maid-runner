@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-**⚠️ CRITICAL: This project dogfoods MAID v1.3. Every code change MUST follow the MAID workflow.**
-**⚠️ USE SUBAGENTS: When MAID subagents are available (maid-manifest-architect, maid-test-designer, maid-developer, etc.), INVOKE them via the Task tool for each phase.**
+**CRITICAL: This project dogfoods MAID v2. Every code change MUST follow the MAID workflow.**
+**USE SUBAGENTS: When MAID subagents are available (maid-manifest-architect, maid-test-designer, maid-developer, etc.), INVOKE them via the Task tool for each phase.**
 
 **Note on Documentation Changes:** Pure documentation changes (modifying only `.md` files with no code artifacts) may be exempt from the full MAID workflow, but should still be reviewed for accuracy and consistency. When in doubt, create a manifest.
 
@@ -12,18 +12,18 @@ Confirm the high-level goal with user before proceeding.
 
 ### Phase 2: Planning Loop
 **Before ANY implementation - iterative refinement:**
-1. Draft manifest (`manifests/task-XXX.manifest.json`) - **PRIMARY CONTRACT**
-2. Draft behavioral tests (`tests/test_task_XXX_*.py`) to support and verify the manifest
+1. Draft manifest (`manifests/<slug>.manifest.yaml`) - **PRIMARY CONTRACT**
+2. Draft behavioral tests in the appropriate `tests/` subdirectory (e.g., `tests/core/`, `tests/validators/`)
 3. Run behavioral validation (checks that tests USE declared artifacts):
-   `uv run maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain`
+   `uv run maid validate manifests/<slug>.manifest.yaml --mode behavioral`
 4. Refine BOTH tests & manifest together until validation passes
 
 ### Phase 3: Implementation
-1. Load ONLY files from manifest (`editableFiles` + `readonlyFiles`)
+1. Load ONLY files from manifest (`files.edit` + `files.read`)
 2. Implement code to pass tests
 3. Run implementation validation (checks that code DEFINES declared artifacts):
-   `uv run maid validate manifests/task-XXX.manifest.json --validation-mode implementation --use-manifest-chain`
-4. Run behavioral tests (from `validationCommand`)
+   `uv run maid validate manifests/<slug>.manifest.yaml --mode implementation`
+4. Run behavioral tests (from `validate` commands)
 5. Iterate until all validations and tests pass
 
 ### Phase 3.5: Refactoring
@@ -52,40 +52,53 @@ Confirm the high-level goal with user before proceeding.
 
 **Note:** MAID Runner is a validation-only tool. The subagents above are provided by the MAID Runner plugin or configured in `.claude/agents/`. They use MAID Runner CLI commands internally.
 
-See `docs/future/claude-code-integration/` for subagent configuration examples.
-
 **Note:** The MAID workflow embodies TDD at two levels:
 - **Planning Loop**: Iterative test-manifest refinement (micro TDD)
-- **Overall Workflow**: Red (failing tests) → Green (passing implementation) → Refactor (quality improvement)
+- **Overall Workflow**: Red (failing tests) -> Green (passing implementation) -> Refactor (quality improvement)
 
 ## Project Overview
 
-MAID Runner implements and enforces the Manifest-driven AI Development (MAID) methodology from `docs/maid_specs.md`. It validates that code artifacts match their declarative manifests, ensuring AI-generated code aligns with architectural specifications through strict chronological tracking.
+MAID Runner implements and enforces the Manifest-driven AI Development (MAID) methodology. It validates that code artifacts match their declarative YAML manifests, ensuring AI-generated code aligns with architectural specifications. It provides both a CLI (`maid`) and a Python library API (`from maid_runner import validate, ManifestChain`).
+
+> See `docs/ai-compiler-workflow.md` for the full ArchSpec + MAID Runner pipeline.
 
 ## Architecture
 
+### Package Structure
+
+```
+maid_runner/
+├── core/                # Manifest loading, validation engine, chain, types, results
+├── validators/          # Language-specific artifact collectors (Python, TypeScript, Svelte)
+├── graph/               # Knowledge graph (manifest relationship analysis)
+├── coherence/           # Architectural coherence checks
+├── compat/              # V1 JSON backward compatibility layer
+├── cli/commands/        # CLI command modules
+└── schemas/             # JSON Schema (manifest.v1.schema.json, manifest.v2.schema.json)
+```
+
 ### Core Components
 
-1. **Manifest Validator** (CLI: `maid validate`)
-   - Validates manifest JSON against schema
+1. **Validation Engine** (CLI: `maid validate`, Library: `validate()`)
+   - Validates manifest YAML against JSON Schema (`schemas/manifest.v2.schema.json`)
    - Behavioral test validation: Verifies tests USE declared artifacts
    - Implementation validation: Verifies code DEFINES artifacts
-   - Enforces manifest chain chronology
+   - Manifest chain merging (enabled by default)
+   - Coherence checks (optional, `--coherence`)
 
-2. **Manifest Schema** (`validators/schemas/manifest.schema.json`)
-   - Defines the required structure for task manifests
-   - Artifact types: class, function, attribute, parameter
+2. **Manifest Schema** (`schemas/manifest.v2.schema.json`)
+   - Defines the required structure for v2 YAML manifests
+   - Artifact kinds: class, function, method, attribute, interface, type, enum, namespace
 
 3. **Manifest Files** (`manifests/`)
-   - Chronologically ordered task records
+   - YAML v2 format with semantic slug names (e.g., `add-auth.manifest.yaml`)
+   - Chronological ordering via `created` timestamp
+   - Multi-file support: one manifest can declare artifacts across multiple files
    - Current task's manifest can be modified during active development; all prior tasks' manifests are immutable
-   - Sequential naming: task-001, task-002, task-003, etc.
-   - Each represents a single atomic change
 
 4. **Development Tools**
    - `Makefile`: Convenience commands for development workflow
    - `maid test`: TDD runner with watch mode support
-   - Enables building MAID tools using MAID methodology
 
 ### Key MAID Principles in This Codebase
 
@@ -97,11 +110,11 @@ MAID Runner implements and enforces the Manifest-driven AI Development (MAID) me
 ## Key Rules
 
 **NEVER:** Modify code without manifest | Skip validation | Access unlisted files
-**ALWAYS:** Manifest first → Tests → Implementation → Validate
+**ALWAYS:** Manifest first -> Tests -> Implementation -> Validate
 
 ## Refactoring Private Implementation
 
-MAID provides flexibility for refactoring private implementation details without requiring new manifests:
+MAID provides flexibility for refactoring private implementation details without requiring manifests:
 
 - **Private code** (functions, classes, variables with `_` prefix) can be refactored freely
 - **Internal logic changes** that don't affect the public API are allowed
@@ -113,24 +126,16 @@ MAID provides flexibility for refactoring private implementation details without
 - Public API must remain unchanged (no changes to public functions, classes, or signatures)
 - No MAID rules are violated
 
-**When No New Manifest Is Needed:**
+**When No Manifest Is Needed:**
 
-If a change only modifies private implementation (no new public methods/classes) and doesn't change the public API:
+If a change only modifies private implementation (no public methods/classes changed) and doesn't change the public API:
 
-1. **Do NOT create a new manifest**
+1. **Do NOT create a manifest**
 2. **Update the tests** of the existing latest manifest for the file being edited
 3. Add test cases to cover the new behavior or fix
 4. Ensure all existing tests continue to pass
 
 This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements.
-
-**Example:**
-- File `utils.py` has manifest `task-014-validation-command-utils.manifest.json`
-- You need to fix a bug in private function `_extract_from_list_command()` to support vitest
-- **Action**: Update `tests/test_task_014_validation_command_utils.py` with vitest test cases
-- **Do NOT**: Create `task-151-support-vitest.manifest.json`
-
-This breathing room allows practical development without bureaucracy while maintaining accountability for public interface changes.
 
 **For complete methodology details**, see `docs/maid_specs.md`.
 
@@ -143,6 +148,16 @@ All tests must follow the unit testing rules defined in `docs/unit-testing-rules
 - Test for failure conditions, not just happy paths
 - Keep tests simple, readable, and maintainable
 
+Tests are domain-organized:
+- `tests/core/` - Core module tests (manifest, chain, validate, types, result)
+- `tests/validators/` - Language-specific validator tests
+- `tests/coherence/` - Coherence check tests
+- `tests/graph/` - Knowledge graph tests
+- `tests/compat/` - V1 compatibility tests
+- `tests/cli/` - CLI command tests
+- `tests/integration/` - Integration tests
+- `tests/e2e/` - End-to-end tests
+
 See `docs/unit-testing-rules.md` for complete guidelines on writing effective unit tests.
 
 ## Documentation Standards
@@ -150,16 +165,16 @@ See `docs/unit-testing-rules.md` for complete guidelines on writing effective un
 **Focus on current state, not temporal comparisons:**
 
 **NEVER use in documentation or code:**
-- ❌ Temporal markers: "NEW", "⭐", "UPDATED", "ADDED", "LATEST"
-- ❌ Temporal comparisons: "Before/After", "What's Missing", "What We Currently Have"
-- ❌ Marketing language: "Exciting new feature", "Now available", "Just released"
-- ❌ Date-based qualifiers: "As of today", "Recently added", "Coming soon"
+- Temporal markers: "NEW", "UPDATED", "ADDED", "LATEST"
+- Temporal comparisons: "Before/After", "What's Missing", "What We Currently Have"
+- Marketing language: "Exciting new feature", "Now available", "Just released"
+- Date-based qualifiers: "As of today", "Recently added", "Coming soon"
 
 **ALWAYS:**
-- ✅ State facts clearly: "System supports X", "Feature Y validates Z"
-- ✅ Use present tense: "This validates", not "This will validate"
-- ✅ Document current capabilities: "The system provides", not "We've added"
-- ✅ Let git history track changes
+- State facts clearly: "System supports X", "Feature Y validates Z"
+- Use present tense: "This validates", not "This will validate"
+- Document current capabilities: "The system provides", not "We've added"
+- Let git history track changes
 
 **Rationale:** Git history handles temporal tracking. Documentation should describe the current state objectively. We're building technical documentation, not marketing pages.
 
@@ -169,74 +184,86 @@ See `docs/unit-testing-rules.md` for complete guidelines on writing effective un
 
 The `maid validate` command supports two validation modes:
 
-### Behavioral Mode (`--validation-mode behavioral`)
+### Behavioral Mode (`--mode behavioral`)
 **Use during Phase 2 (Planning Loop) when writing tests**
 
-1. **Schema Validation**: Ensures manifest follows the JSON schema
+1. **Schema Validation**: Ensures manifest follows the JSON Schema
 2. **Behavioral Test Validation**: Verifies test files USE the declared artifacts (AST-based)
 
 Note: Behavioral validation only checks artifacts from the current manifest, not the merged chain.
 
-### Implementation Mode (`--validation-mode implementation`, default)
+### Implementation Mode (`--mode implementation`, default)
 **Use during Phase 3 (Implementation) when writing code**
 
-1. **Schema Validation**: Ensures manifest follows the JSON schema
+1. **Schema Validation**: Ensures manifest follows the JSON Schema
 2. **Implementation Validation**: Verifies code DEFINES the declared artifacts
-3. **File Tracking Analysis** (when using `--use-manifest-chain`): Detects undeclared and partially compliant files
+3. **File Tracking Analysis** (with chain, enabled by default): Detects undeclared and partially compliant files
+
+### Coherence Mode (`--coherence`)
+**Use during Phase 4 (Integration) for architectural checks**
+
+1. Builds knowledge graph from all manifests
+2. Checks for naming violations, duplicate artifacts, boundary issues
+3. Can run standalone: `maid coherence`
 
 ### File Tracking Analysis
 
-When using `--use-manifest-chain` in implementation mode, MAID Runner performs automatic file tracking analysis with a two-level warning system:
+When validating with manifest chains (default), MAID Runner performs automatic file tracking analysis with a two-level warning system:
 
-- **🔴 UNDECLARED** (High Priority): Files exist in codebase but not in any manifest
+- **UNDECLARED** (High Priority): Files exist in codebase but not in any manifest
   - No audit trail of when/why created
-  - **Action**: Add to `creatableFiles` or `editableFiles` in a manifest
+  - **Action**: Add to `files.create` or `files.edit` in a manifest
 
-- **🟡 REGISTERED** (Medium Priority): Files in manifests but incomplete compliance
-  - Issues: Missing `expectedArtifacts`, no tests, or only in `readonlyFiles`
-  - **Action**: Add `expectedArtifacts` and `validationCommand` for full compliance
+- **REGISTERED** (Medium Priority): Files in manifests but incomplete compliance
+  - Issues: Missing `artifacts`, no tests, or only in `files.read`
+  - **Action**: Add `artifacts` and `validate` commands for full compliance
 
-- **✓ TRACKED** (Clean): Files with full MAID compliance
+- **TRACKED** (Clean): Files with full MAID compliance
   - Properly documented with artifacts and behavioral tests
 
 This progressive compliance system helps identify accountability gaps and supports gradual migration to MAID.
 
-## Validation Modes (MAID v1.3)
+## Validation Modes
 
-- **Strict Mode** (`creatableFiles`): Implementation must EXACTLY match `expectedArtifacts`
-- **Permissive Mode** (`editableFiles`): Implementation must CONTAIN `expectedArtifacts` (allows existing code)
+- **Strict Mode** (`files.create`): Implementation must EXACTLY match declared `artifacts`
+- **Permissive Mode** (`files.edit`): Implementation must CONTAIN declared `artifacts` (allows existing code)
 
 ## Manifest Template
 
-**⚠️ CRITICAL: `expectedArtifacts` is an OBJECT, not an array!**
+V2 manifests use YAML with multi-file support:
 
-- `expectedArtifacts` defines artifacts for **ONE file only**
-- For multi-file tasks: Create **separate manifests** for each file
-- Structure: `{"file": "...", "contains": [...]}`
-- **NOT** an array of file objects
+```yaml
+schema: "2"
+goal: "Clear task description"
+type: feature|fix|refactor|snapshot
+supersedes:                    # Optional: slugs of obsolete manifests
+  - old-manifest-slug
 
-```json
-{
-  "goal": "Clear task description",
-  "taskType": "edit|create|refactor",
-  "supersedes": [],  // Optional: paths to obsolete manifests
-  "creatableFiles": [],  // New files (Strict Mode)
-  "editableFiles": [],   // Existing files (Permissive Mode)
-  "readonlyFiles": [],   // Dependencies and tests
-  "expectedArtifacts": {
-    "file": "path/to/file.py",  // ← Single file path
-    "contains": [                // ← Array of artifacts for THIS file
-      {
-        "type": "function|class|attribute",
-        "name": "artifact_name",
-        "class": "ParentClass",  // For methods/attributes
-        "args": [{"name": "arg1", "type": "str"}],  // For functions
-        "returns": "ReturnType"  // Optional
-      }
-    ]
-  },
-  "validationCommand": ["pytest tests/test_file.py -v"]
-}
+files:
+  create:                      # New files (Strict Mode)
+    - path: path/to/new_file.py
+      artifacts:
+        - kind: function|class|method|attribute
+          name: artifact_name
+          of: ParentClass       # For methods/attributes
+          args:                 # For functions/methods
+            - name: arg1
+              type: str
+          returns: ReturnType   # Optional
+  edit:                        # Existing files (Permissive Mode)
+    - path: path/to/existing.py
+      artifacts:
+        - kind: method
+          name: new_method
+          of: ExistingClass
+  read:                        # Dependencies and tests (paths only)
+    - tests/test_file.py
+  delete:                      # Files to remove
+    - path: path/to/remove.py
+      reason: "Explanation"
+
+validate:
+  - pytest tests/test_file.py -v
 ```
 
 ## MAID CLI Commands
@@ -246,12 +273,10 @@ This progressive compliance system helps identify accountability gaps and suppor
 ### Whole-Codebase Validation (Recommended)
 
 ```bash
-# Validate ALL active manifests with proper chaining
-# Automatically excludes superseded manifests and uses manifest chain
+# Validate ALL active manifests with chain merging (default)
 uv run maid validate
 
 # Run ALL validation commands from all active manifests
-# Intelligent enough to exclude inactive manifests
 uv run maid test
 ```
 
@@ -260,13 +285,22 @@ uv run maid test
 ### Individual Commands
 
 ```bash
-# Validate a specific manifest (with optional manifest chain)
-uv run maid validate <manifest-path> [--use-manifest-chain] [--quiet]
+# Validate a specific manifest
+uv run maid validate <manifest-path> [--mode behavioral|implementation] [--quiet]
+
+# Validate without chain merging
+uv run maid validate <manifest-path> --no-chain
+
+# Validate with coherence checks
+uv run maid validate --coherence
+
+# JSON output (for CI/CD and tool integration)
+uv run maid validate --json
 
 # Generate a snapshot manifest from existing code
 uv run maid snapshot <file-path> [--output-dir <dir>]
 
-# Create a new manifest for a file (auto-numbers, auto-supersedes snapshots)
+# Create a new manifest for a file
 uv run maid manifest create <file-path> --goal "Description" [--artifacts JSON] [--dry-run] [--json]
 
 # Generate system-wide manifest aggregating all active manifests
@@ -276,7 +310,7 @@ uv run maid snapshot-system [--output <file>] [--manifest-dir <dir>] [--quiet]
 uv run maid manifests <file-path> [--manifest-dir <dir>] [--quiet]
 
 # Run validation commands from specific manifests
-uv run maid test [--manifest-dir <dir>] [--fail-fast] [--verbose]
+uv run maid test [--manifest-dir <dir>] [--fail-fast] [--verbose] [--json]
 
 # Watch mode: Single-manifest watch (re-run tests on file changes)
 uv run maid test --manifest <manifest-path> --watch
@@ -284,45 +318,44 @@ uv run maid test --manifest <manifest-path> --watch
 # Watch mode: Multi-manifest watch (run affected tests on changes)
 uv run maid test --watch-all
 
+# Knowledge graph operations
+uv run maid graph query|export|analyze
+
+# Run coherence checks
+uv run maid coherence [--checks <checks>] [--exclude <exclude>] [--json]
+
+# Display JSON Schema
+uv run maid schema
+
 # Get help
 uv run maid --help
 uv run maid validate --help
-uv run maid snapshot --help
-uv run maid manifest create --help
-uv run maid snapshot-system --help
-uv run maid manifests --help
-uv run maid test --help
 ```
 
 ## Quick Commands
 
 ```bash
 # Whole-Codebase Validation (Primary Commands)
-uv run maid validate     # Validate ALL active manifests with proper chaining
+uv run maid validate     # Validate ALL active manifests with chain merging
 uv run maid test         # Run ALL validation commands from active manifests
 make test                # Run full pytest suite
 
 # Watch Mode (Live TDD workflow)
-uv run maid test --manifest manifests/task-XXX.manifest.json --watch  # Single-manifest watch
-uv run maid test --watch-all                                          # Multi-manifest watch
+uv run maid test --manifest manifests/<slug>.manifest.yaml --watch  # Single-manifest watch
+uv run maid test --watch-all                                        # Multi-manifest watch
 
 # Development Shortcuts (Makefile)
-make dev TASK=005        # Run tests once for task-005
-make watch TASK=005      # Watch mode with auto-test for task-005
 make validate            # Validate all manifests with chain
 
-# Find next manifest number
-ls manifests/task-*.manifest.json | tail -1
-
-# Individual Task Validation Flow
+# Individual Manifest Validation Flow
 # 1. During Planning: Behavioral validation (checks tests USE artifacts)
-uv run maid validate manifests/task-XXX.manifest.json --validation-mode behavioral --use-manifest-chain
+uv run maid validate manifests/<slug>.manifest.yaml --mode behavioral
 
 # 2. During Implementation: Implementation validation (checks code DEFINES artifacts)
-uv run maid validate manifests/task-XXX.manifest.json --validation-mode implementation --use-manifest-chain
+uv run maid validate manifests/<slug>.manifest.yaml --mode implementation
 
 # 3. Behavioral test execution (run actual tests)
-uv run python -m pytest tests/test_task_XXX_*.py -v
+uv run python -m pytest tests/core/test_<module>.py -v
 
 # Note: Each validation mode runs schema validation first, then:
 #   - behavioral mode: Verifies test files USE the declared artifacts
@@ -338,18 +371,20 @@ make format      # Auto-fix formatting issues
 
 - **Public** (no `_` prefix): MUST be in manifest
 - **Private** (`_` prefix): Optional in manifest
-- **creatableFiles**: Strict validation (exact match)
-- **editableFiles**: Permissive validation (contains at least)
+- **`files.create`**: Strict validation (exact match)
+- **`files.edit`**: Permissive validation (contains at least)
+- **`kind`**: `class`, `function`, `method`, `attribute`, `interface`, `type`, `enum`, `namespace`
+- **`of`**: Parent class name (required for methods and class attributes)
 
 ## Superseded Manifests and Test Execution
 
 **Critical Behavior:** When a manifest is superseded, it is completely excluded from MAID operations:
 
 - `uv run maid validate` ignores superseded manifests when merging manifest chains
-- `uv run maid test` does NOT execute `validationCommand` from superseded manifests
-- Superseded manifests serve as historical documentation only—they are archived, not active
+- `uv run maid test` does NOT execute `validate` commands from superseded manifests
+- Superseded manifests serve as historical documentation only -- they are archived, not active
 
-**Why this matters:** If you supersede a manifest, its tests will no longer run. This is by design—superseded manifests represent obsolete contracts that have been replaced.
+**Why this matters:** If you supersede a manifest, its tests will no longer run. This is by design -- superseded manifests represent obsolete contracts that have been replaced.
 
 ## Transitioning from Snapshots to Natural Evolution
 
@@ -359,39 +394,39 @@ make format      # Auto-fix formatting issues
 
 1. **Snapshot Phase** (Initial baseline):
    - Use `maid snapshot` to capture complete public API of existing code
-   - `taskType: "snapshot"` declares ALL functions/classes at that point in time
+   - `type: snapshot` declares ALL functions/classes at that point in time
 
 2. **Transition Manifest** (First evolution):
    - When file needs changes, create an edit manifest that:
      - Declares ALL current functions (existing + new)
      - Supersedes the snapshot manifest
-     - Uses `taskType: "edit"` (not "snapshot")
+     - Uses `type: feature` or `type: fix` (not "snapshot")
    - This is the bridge from frozen state to natural evolution
 
 3. **Future Evolution** (Natural MAID flow):
    - Subsequent manifests only declare NEW changes
-   - With `--use-manifest-chain`, validator merges all active manifests
-   - No need to update previous manifests when adding new APIs
+   - With chain merging (default), validator merges all active manifests
+   - No need to update previous manifests when adding APIs
 
 ### Example Evolution
 
 ```
 File history: src/service.py
 
-task-015-snapshot-service.manifest.json (snapshot)
-├─ Declares: func_1, func_2, func_3
-└─ Status: SUPERSEDED by task-123
+snapshot-service.manifest.yaml (snapshot)
+|-- Declares: func_1, func_2, func_3
+`-- Status: SUPERSEDED by add-new-feature
 
-task-123-add-new-feature.manifest.json (edit, supersedes task-015)
-├─ Declares: func_1, func_2, func_3, new_func  // ALL current functions
-└─ Supersedes: ["task-015-snapshot-service.manifest.json"]
+add-new-feature.manifest.yaml (feature, supersedes snapshot-service)
+|-- Declares: func_1, func_2, func_3, new_func  // ALL current functions
+`-- Supersedes: [snapshot-service]
 
-task-126-another-feature.manifest.json (edit)
-└─ Declares: another_func  // Only the new addition
+add-another-feature.manifest.yaml (feature)
+`-- Declares: another_func  // Only the new addition
 
-With --use-manifest-chain:
-  Merged = task-123 + task-126
-  = {func_1, func_2, func_3, new_func, another_func} ✅
+With chain merging (default):
+  Merged = add-new-feature + add-another-feature
+  = {func_1, func_2, func_3, new_func, another_func}
 ```
 
 ### Why This Pattern Works
@@ -409,17 +444,17 @@ With --use-manifest-chain:
 
 ## File Deletion Pattern
 
-When removing a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Delete file and tests → Validate deletion.
+When removing a file tracked by MAID: Create refactor manifest -> Supersede creation manifest -> Delete file and tests -> Validate deletion.
 
-**Manifest**: `taskType: "refactor"`, supersedes original, `status: "absent"` in expectedArtifacts
+**Manifest**: `type: refactor`, supersedes original, file listed under `files.delete` with reason
 
 **Validation**: File deleted, tests deleted, no remaining imports
 
 ## File Rename Pattern
 
-When renaming a file tracked by MAID: Create refactor manifest → Supersede creation manifest → Use `git mv` → Update manifest → Validate rename.
+When renaming a file tracked by MAID: Create refactor manifest -> Supersede creation manifest -> Use `git mv` -> Update manifest -> Validate rename.
 
-**Manifest**: `taskType: "refactor"`, supersedes original, new filename in `creatableFiles`, same API in `expectedArtifacts` under new location
+**Manifest**: `type: refactor`, supersedes original, new filename in `files.create`, old file in `files.delete`, same API in `artifacts` under new location
 
 **Validation**: Old file deleted, new file exists with working functionality, no old imports, git history preserved
 
@@ -430,34 +465,27 @@ When renaming a file tracked by MAID: Create refactor manifest → Supersede cre
 - This codebase **IS** the MAID implementation - exemplify the methodology
 - Manifest chain = source of truth for file state
 - Manifest = contract; tests support implementation and verification
-- Every change needs a manifest with sequential numbering
+- Every change needs a manifest with a descriptive slug name
 - **Manifest immutability**: Current task's manifest can be modified during active development; all prior tasks' manifests are immutable
-- **One file per manifest**: `expectedArtifacts` defines artifacts for ONE file only; multi-file changes require separate manifests
+- **Multi-file support**: V2 manifests support artifacts across multiple files in a single manifest
 
 ## Lessons Learned: Handling Prerequisite Discovery
 
-### The Challenge (Task-007)
-When implementing Task-007 (Type Definitions Module), we discovered that the validator couldn't detect module-level attributes like type aliases (`ManifestData = Dict[str, Any]`). The `_ArtifactCollector` only tracked class attributes and function definitions, not module-level assignments.
+### The Challenge
+When implementing a task, you may discover that the validator or framework lacks a capability needed for the current work.
 
 ### The MAID-Compliant Solution
 
 **What NOT to do:**
-- ❌ Create workarounds in tests (artificial assertions)
-- ❌ Document limitations and continue
-- ❌ Modify the manifest to hide the problem
+- Create workarounds in tests (artificial assertions)
+- Document limitations and continue
+- Modify the manifest to hide the problem
 
 **The Correct Approach:**
-1. **Stash Current Work**: `git stash` Task-007 implementation
-2. **Create Prerequisite Task**: Task-006a to fix the validator
-3. **Complete Prerequisite**: Full MAID workflow for Task-006a
-4. **Restore and Complete**: Task-007 now works cleanly
-
-### Task Numbering Strategy
-
-When discovering prerequisites mid-task, use alphabetic suffixes:
-- Task-006a, Task-006b, etc. for discovered prerequisites
-- Preserves original task numbers (Task-007 remains Task-007)
-- Maintains clean chronological ordering
+1. **Stash Current Work**: `git stash` current implementation
+2. **Create Prerequisite Manifest**: A separate manifest to fix the underlying issue
+3. **Complete Prerequisite**: Full MAID workflow for the prerequisite
+4. **Restore and Complete**: Original task works cleanly
 
 ### Key Principle: No Partial Solutions
 
@@ -468,48 +496,9 @@ When discovering prerequisites mid-task, use alphabetic suffixes:
 
 Never leave a task partially complete or with failing validations.
 
-### The Pattern for Prerequisite Discovery
-
-```bash
-# 1. Discovery Phase
-> Implement Task-N
-> Run validation
-> ❌ Validation fails due to system limitation
-
-# 2. Stash and Fix Phase
-git stash push -m "Task-N implementation"
-> Create Task-(N-1)a: Fix the limitation
-> Complete Task-(N-1)a with full MAID workflow
-
-# 3. Restore and Complete Phase
-git stash pop
-> Run validation again
-> ✅ Validation passes
-> Task-N complete
-```
-
-### Benefits of This Approach
-
-1. **Clean History**: Each task in the chain is complete and valid
-2. **No Technical Debt**: No workarounds accumulate
-3. **Clear Dependencies**: Prerequisites are explicit in task ordering
-4. **Maintainability**: Future developers understand the progression
-
-### Example: Tasks 006a and 007
-
-- **Task-007**: Create type definitions module
-  - **Discovered**: Validator can't detect module-level attributes
-- **Task-006a**: Fix validator to detect module-level attributes
-  - **Implementation**: Enhanced `_ArtifactCollector.visit_Assign`
-  - **Result**: Module attributes stored under `found_attributes[None]`
-- **Task-007** (restored): Type definitions module
-  - **Result**: Now validates completely with fixed validator
-
-This pattern ensures every task contributes to a stronger, more capable system.
-
 **Note:** Documents in the `./.claude/conversations` directory contain conversational history with Claude from experimentation and exploration. They should not be treated as a source of truth or referenced unnecessarily.
 
-## ⚠️ CRITICAL: Commit Policy ⚠️
+## CRITICAL: Commit Policy
 
 **NEVER AUTO-COMMIT WITHOUT EXPLICIT PERMISSION!**
 
