@@ -1,0 +1,34 @@
+{
+  "goal": "Add behavioral test validation support to AST validator to enable validation of function/method calls and class usage in test files, not just definitions",
+  "taskType": "edit",
+  "supersedes": [],
+  "creatableFiles": [],
+  "editableFiles": ["maid_runner/validators/manifest_validator.py"],
+  "readonlyFiles": ["tests/test_task_003_behavioral_validation.py"],
+  "expectedArtifacts": {
+    "file": "maid_runner/validators/manifest_validator.py",
+    "contains": [
+      {
+        "type": "class",
+        "name": "AlignmentError",
+        "bases": ["Exception"]
+      },
+      {
+        "type": "function",
+        "name": "validate_schema",
+        "parameters": [{ "name": "manifest_data" }, { "name": "schema_path" }]
+      },
+      {
+        "type": "function",
+        "name": "validate_with_ast",
+        "parameters": [
+          { "name": "manifest_data" },
+          { "name": "test_file_path" },
+          { "name": "use_manifest_chain" },
+          { "name": "validation_mode" }
+        ]
+      }
+    ]
+  },
+  "validationCommand": ["pytest tests/test_task_003_behavioral_validation.py"]
+}

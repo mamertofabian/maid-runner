@@ -5,26 +5,15 @@ from pathlib import Path
 
 def _get_version() -> str:
     """Get version dynamically from pyproject.toml or installed package."""
-    # First, try to get version from installed package (when installed via pip/uv)
     try:
         from importlib.metadata import version
 
         return version("maid-runner")
-    except ImportError:
-        # Python < 3.8 fallback
-        try:
-            from importlib_metadata import version
-
-            return version("maid-runner")
-        except ImportError:
-            pass
     except Exception:
-        # Package not installed, read from source
         pass
 
     # Read from pyproject.toml when running from source
     try:
-        # Try tomllib (Python 3.11+)
         import tomllib
 
         pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
@@ -46,7 +35,6 @@ def _get_version() -> str:
     except Exception:
         pass
 
-    # Final fallback
     return "0.0.0"
 
 

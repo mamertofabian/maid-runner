@@ -1,6 +1,6 @@
 [project]
 name = "maid-runner"
-version = "0.11.4"
+version = "2.0.0"
 description = "Tool-agnostic validation framework for the Manifest-driven AI Development (MAID) methodology. Validates that code artifacts align with declarative manifests."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,9 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "jsonschema>=4.25.1",
-    "tree-sitter-svelte>=1.0.2",
-    "tree-sitter>=0.23.2",
-    "tree-sitter-typescript>=0.23.2",
+    "pyyaml>=6.0",
 ]
 
 [project.urls]
@@ -35,6 +33,20 @@ Issues = "https://github.com/mamertofabian/maid-runner/issues"
 Documentation = "https://github.com/mamertofabian/maid-runner#readme"
 
 [project.optional-dependencies]
+typescript = [
+    "tree-sitter>=0.23.2",
+    "tree-sitter-typescript>=0.23.2",
+]
+svelte = [
+    "tree-sitter>=0.23.2",
+    "tree-sitter-svelte>=1.0.2",
+    "tree-sitter-typescript>=0.23.2",
+]
+all = [
+    "tree-sitter>=0.23.2",
+    "tree-sitter-typescript>=0.23.2",
+    "tree-sitter-svelte>=1.0.2",
+]
 watch = [
     "watchdog>=6.0.0",
 ]
@@ -50,10 +62,15 @@ dev = [
     "pre-commit>=4.0.0",
     "vulture>=2.0",
     "pytest-cov>=7.0.0",
+    "mypy>=1.19.1",
+    "types-pyyaml>=6.0.12.20250915",
+    "tree-sitter>=0.23.2",
+    "tree-sitter-typescript>=0.23.2",
+    "tree-sitter-svelte>=1.0.2",
 ]
 
 [project.scripts]
-maid = "maid_runner.cli.main:main"
+maid = "maid_runner.cli.commands._main:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -64,4 +81,9 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "validators/schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md"]
+maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::pytest.PytestCollectionWarning",
+]

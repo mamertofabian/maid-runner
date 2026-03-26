@@ -1,0 +1,42 @@
+schema: "2"
+goal: "Snapshot of config module"
+type: snapshot
+created: "2025-06-15T10:30:00Z"
+files:
+  snapshot:
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: class
+          name: MaidConfig
+        - kind: attribute
+          name: manifest_dir
+          of: MaidConfig
+          type: str
+        - kind: attribute
+          name: schema_version
+          of: MaidConfig
+          type: str
+        - kind: attribute
+          name: default_validation_mode
+          of: MaidConfig
+          type: ValidationMode
+        - kind: attribute
+          name: languages
+          of: MaidConfig
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: coherence_enabled
+          of: MaidConfig
+          type: bool
+        - kind: attribute
+          name: coherence_checks
+          of: MaidConfig
+          type: "tuple[str, ...]"
+        - kind: function
+          name: load_config
+          args:
+            - name: project_root
+              type: Union[str, Path]
+          returns: MaidConfig
+validate:
+  - python -c pass

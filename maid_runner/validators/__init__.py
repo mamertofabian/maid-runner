@@ -1,21 +1,17 @@
 """MAID Runner validators package.
 
-Provides validation of manifest files against schema and verification that
-code artifacts match their declarative specifications.
+Provides language-specific validators for collecting artifacts from source code.
 """
 
-from maid_runner.validators.manifest_validator import (
-    AlignmentError,
-    collect_behavioral_artifacts,
-    discover_related_manifests,
-    validate_schema,
-    validate_with_ast,
-)
+from maid_runner.validators.base import BaseValidator, FoundArtifact, CollectionResult
+from maid_runner.validators.registry import ValidatorRegistry, UnsupportedLanguageError
+from maid_runner.validators.python import PythonValidator
 
 __all__ = [
-    "AlignmentError",
-    "collect_behavioral_artifacts",
-    "discover_related_manifests",
-    "validate_schema",
-    "validate_with_ast",
+    "BaseValidator",
+    "FoundArtifact",
+    "CollectionResult",
+    "ValidatorRegistry",
+    "UnsupportedLanguageError",
+    "PythonValidator",
 ]

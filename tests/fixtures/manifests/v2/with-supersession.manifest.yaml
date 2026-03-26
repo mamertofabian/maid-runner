@@ -1,0 +1,23 @@
+schema: "2"
+goal: "Replace old greeting with new implementation"
+type: refactor
+supersedes:
+  - simple-feature
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+          args:
+            - name: name
+              type: str
+            - name: formal
+              type: bool
+              default: "False"
+          returns: str
+  read:
+    - tests/test_greet.py
+validate:
+  - python -c pass
+created: "2025-06-20T14:00:00Z"

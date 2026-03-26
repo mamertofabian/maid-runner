@@ -171,24 +171,114 @@ Define the high-level feature or bug fix.
 ### Phase 4: Integration
 Verify complete chain: `maid validate` and `maid test` pass for all active manifests.
 
-## Python API
+## Library API (v2)
+
+MAID Runner provides a Python library API for direct integration with tools, CI/CD, and custom scripts.
+
+### Basic Validation
 
 ```python
-from maid_runner import (
-    validate_schema,
-    validate_with_ast,
-    discover_related_manifests,
-    generate_snapshot,
-    AlignmentError,
-)
+from maid_runner import validate, validate_all
 
-# Validate a manifest
-validate_schema(manifest_data, schema_path)
-validate_with_ast(manifest_data, file_path, use_manifest_chain=True)
+# Validate a single manifest
+result = validate("manifests/add-auth.manifest.yaml")
+if result.success:
+    print("All checks passed")
+else:
+    for error in result.errors:
+        print(f"{error.code.value}: {error.message}")
 
-# Generate snapshot manifest
-generate_snapshot("path/to/file.py", output_dir="manifests")
+# Validate all manifests in directory
+batch = validate_all("manifests/")
+print(f"{batch.passed}/{batch.total_manifests} passed")
 ```
+
+### Manifest Chain Operations
+
+```python
+from maid_runner import ManifestChain
+
+chain = ManifestChain("manifests/")
+
+for m in chain.active_manifests():
+    print(f"{m.slug}: {m.goal}")
+
+artifacts = chain.merged_artifacts_for("src/auth/service.py")
+```
+
+### Loading and Saving Manifests
+
+```python
+from maid_runner import load_manifest, save_manifest
+
+manifest = load_manifest("manifests/add-auth.manifest.yaml")  # YAML v2 or JSON v1
+print(manifest.goal)
+save_manifest(manifest, "manifests/copy.manifest.yaml")
+```
+
+### Snapshot Generation
+
+```python
+from maid_runner import generate_snapshot
+
+manifest = generate_snapshot("src/auth/service.py")
+print(f"Found {len(manifest.all_file_specs[0].artifacts)} artifacts")
+```
+
+### JSON Output for Tool Integration
+
+```python
+from maid_runner import validate
+
+result = validate("manifests/add-auth.manifest.yaml")
+print(result.to_json())  # Structured JSON output
+```
+
+### Custom Validator Registration
+
+```python
+from maid_runner import ValidatorRegistry, BaseValidator, CollectionResult
+
+class GoValidator(BaseValidator):
+    @classmethod
+    def supported_extensions(cls):
+        return (".go",)
+
+    def collect_implementation_artifacts(self, source, file_path):
+        return CollectionResult(artifacts=[], language="go", file_path=str(file_path))
+
+    def collect_behavioral_artifacts(self, source, file_path):
+        return CollectionResult(artifacts=[], language="go", file_path=str(file_path))
+
+ValidatorRegistry.register(GoValidator)
+```
+
+## V2 Manifest Format (YAML)
+
+```yaml
+schema: "2"
+goal: "Implement email validation"
+type: feature
+files:
+  create:
+    - path: validators/email_validator.py
+      artifacts:
+        - kind: class
+          name: EmailValidator
+        - kind: method
+          name: validate
+          of: EmailValidator
+          args:
+            - name: email
+              type: str
+          returns: bool
+  read:
+    - tests/test_email_validation.py
+validate:
+  - pytest tests/test_email_validation.py -v
+```
+
+V1 JSON manifests are auto-converted when loaded.
 
 ## MAID Ecosystem
 
