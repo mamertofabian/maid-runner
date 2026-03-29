@@ -1,0 +1,59 @@
+schema: '2'
+goal: >
+  Fix two coherence check issues:
+  (1) NamingCheck should allow PascalCase functions in .tsx files (React components).
+  (2) DependencyCheck should use WARNING severity for read deps not created by any manifest,
+  since they may be infrastructure files, third-party modules, or pre-existing code.
+type: fix
+supersedes:
+  - snapshot-coherence-checks-naming
+  - snapshot-coherence-checks-dependency
+
+files:
+  edit:
+    - path: maid_runner/coherence/checks/naming.py
+      artifacts:
+        - kind: class
+          name: NamingCheck
+          bases:
+            - BaseCheck
+        - kind: attribute
+          name: name
+          of: NamingCheck
+          type: str
+        - kind: method
+          name: run
+          of: NamingCheck
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: manifests
+              type: list[Manifest]
+          returns: list[CoherenceIssue]
+
+    - path: maid_runner/coherence/checks/dependency.py
+      artifacts:
+        - kind: class
+          name: DependencyCheck
+          bases:
+            - BaseCheck
+        - kind: attribute
+          name: name
+          of: DependencyCheck
+          type: str
+        - kind: method
+          name: run
+          of: DependencyCheck
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: manifests
+              type: list[Manifest]
+          returns: list[CoherenceIssue]
+
+  read:
+    - tests/coherence/test_coherence_v2.py
+
+validate:
+  - pytest tests/coherence/test_coherence_v2.py -v
+created: '2026-03-29T00:00:00+00:00'

@@ -301,6 +301,41 @@ class TestNamingCheck:
         errors = [i for i in issues if i.severity == IssueSeverity.ERROR]
         assert len(errors) == 0
 
+    def test_tsx_pascal_case_function_accepted(self):
+        """PascalCase functions in .tsx files are valid React components."""
+        m = _make_manifest(
+            "m1",
+            files_create=(_make_fs("src/App.tsx", (_make_art("UserProfile"),)),),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_tsx_camel_case_function_still_accepted(self):
+        """camelCase functions in .tsx files remain valid."""
+        m = _make_manifest(
+            "m1",
+            files_create=(_make_fs("src/hooks.tsx", (_make_art("useAuth"),)),),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_ts_pascal_case_function_still_flagged(self):
+        """PascalCase functions in .ts files (not .tsx) should still be flagged."""
+        m = _make_manifest(
+            "m1",
+            files_create=(_make_fs("src/utils.ts", (_make_art("MyHelper"),)),),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        naming_issues = [i for i in issues if i.issue_type == IssueType.NAMING]
+        assert len(naming_issues) == 1
+        assert naming_issues[0].severity == IssueSeverity.INFO
+
 
 # ---------------------------------------------------------------------------
 # get_checks
@@ -485,7 +520,8 @@ class TestDependencyCheck:
         ]
         assert len(dep_errors) == 0
 
-    def test_missing_dep_flagged(self):
+    def test_missing_read_dep_is_warning_not_error(self):
+        """Read deps not created by any manifest should be WARNING, not ERROR."""
         m = Manifest(
             slug="m1",
             source_path="manifests/m1.manifest.yaml",
@@ -498,14 +534,32 @@ class TestDependencyCheck:
         graph = GraphBuilder().build_from_manifests([m])
         check = DependencyCheck()
         issues = check.run(graph, [m])
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) >= 1
+        assert dep_issues[0].severity == IssueSeverity.WARNING
+        assert "nonexistent" in dep_issues[0].message
+
+    def test_missing_read_dep_does_not_cause_error(self):
+        """Read deps should never produce ERROR severity."""
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/infrastructure.py",),
+            task_type=TaskType.FEATURE,
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = DependencyCheck()
+        issues = check.run(graph, [m])
         dep_errors = [
             i
             for i in issues
             if i.issue_type == IssueType.DEPENDENCY
             and i.severity == IssueSeverity.ERROR
         ]
-        assert len(dep_errors) >= 1
-        assert "nonexistent" in dep_errors[0].message
+        assert len(dep_errors) == 0
 
     def test_missing_base_class_warning(self):
         m = _make_manifest(

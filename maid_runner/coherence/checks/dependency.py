@@ -47,13 +47,14 @@ class DependencyCheck(BaseCheck):
                     issues.append(
                         CoherenceIssue(
                             issue_type=IssueType.DEPENDENCY,
-                            severity=IssueSeverity.ERROR,
+                            severity=IssueSeverity.WARNING,
                             message=f"Dependency not found: {read_path}",
                             file=read_path,
                             manifests=(m.slug,),
                             suggestion=(
-                                "Create the dependency file first or reorder manifests "
-                                "so this file is created before being referenced."
+                                "This file is referenced as a dependency but not created by any manifest. "
+                                "This is expected for infrastructure files, third-party modules, or "
+                                "pre-existing code. Create a manifest for it to resolve this warning."
                             ),
                         )
                     )

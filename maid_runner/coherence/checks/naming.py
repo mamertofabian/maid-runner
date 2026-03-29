@@ -105,7 +105,9 @@ def _check_typescript_naming(
     kind = art.kind
 
     if kind in (ArtifactKind.FUNCTION, ArtifactKind.METHOD):
-        if not _is_camel_case(name) and not name.startswith("_"):
+        if file_path.endswith(".tsx") and _is_pascal_case(name):
+            pass  # PascalCase is valid for React components in .tsx files
+        elif not _is_camel_case(name) and not name.startswith("_"):
             return CoherenceIssue(
                 issue_type=IssueType.NAMING,
                 severity=IssueSeverity.INFO,
