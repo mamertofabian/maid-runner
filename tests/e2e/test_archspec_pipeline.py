@@ -284,6 +284,17 @@ def write_todo_routes(project_dir: Path) -> None:
     )
 
 
+def write_auth_middleware(project_dir: Path) -> None:
+    """Write auth middleware matching the exporter's auth manifest."""
+    path = project_dir / "src" / "routes" / "middleware" / "auth.py"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "def require_auth():\n"
+        '    """Middleware to verify authentication"""\n'
+        "    pass\n"
+    )
+
+
 def write_acceptance_tests(project_dir: Path) -> None:
     """Write acceptance test stubs matching the arch-spec TestCases."""
     tests_dir = project_dir / "tests" / "acceptance"
@@ -363,6 +374,7 @@ class TestArchSpecPipeline:
         patch_route_manifests_to_edit_mode(manifests_dir)
 
         # Step 3: "AI agent" writes code matching the manifests
+        write_auth_middleware(project_dir)
         write_user_model(project_dir)
         write_todo_model(project_dir)
         write_user_routes(project_dir)
