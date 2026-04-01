@@ -86,6 +86,93 @@ def _text(node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8")
 
 
+def _is_stub_body_ts(node, source: bytes) -> bool:
+    """Check if a function body is a stub (no real implementation).
+
+    Works with tree-sitter AST nodes. Checks statement_block children.
+    """
+    # Find the statement_block (function body)
+    body = None
+    for child in node.children:
+        if child.type == "statement_block":
+            body = child
+            break
+
+    if body is None:
+        # Arrow function with expression body (e.g., () => null)
+        for child in node.children:
+            if child.type in ("null", "undefined"):
+                return True
+            if child.type == "number" and _text(child, source) in ("0", "0.0"):
+                return True
+            if child.type in ("string", "template_string"):
+                txt = _text(child, source)
+                if txt in ('""', "''", "``"):
+                    return True
+            if child.type == "false":
+                return True
+            if child.type == "object" and not any(
+                c.type == "pair" for c in child.children
+            ):
+                return True
+            if child.type == "array" and not any(
+                c.type not in ("[", "]", ",") for c in child.children
+            ):
+                return True
+        return False
+
+    # Filter out { and } tokens
+    statements = [c for c in body.children if c.type not in ("{", "}", "comment")]
+
+    if not statements:
+        return True  # empty body {}
+
+    if len(statements) > 1:
+        return False  # multiple statements = likely real code
+
+    stmt = statements[0]
+
+    # throw new Error("Not implemented") / throw new Error("TODO")
+    if stmt.type == "throw_statement":
+        return True
+
+    # return <literal>
+    if stmt.type == "return_statement":
+        # return; (no value)
+        children = [c for c in stmt.children if c.type not in ("return", ";")]
+        if not children:
+            return True
+        if len(children) == 1:
+            val = children[0]
+            if val.type in ("null", "undefined", "false", "true"):
+                return True
+            if val.type == "number":
+                return True
+            if val.type == "string":
+                return True
+            if val.type == "template_string":
+                # Only stub if no template substitutions (e.g., `Hello, ${name}!` is real)
+                has_substitution = any(
+                    c.type == "template_substitution" for c in val.children
+                )
+                if not has_substitution:
+                    return True
+            if val.type == "object" and not any(c.type == "pair" for c in val.children):
+                return True
+            if val.type == "array" and not any(
+                c.type not in ("[", "]", ",") for c in val.children
+            ):
+                return True
+
+    # expression_statement with just a string literal (like a comment)
+    if stmt.type == "expression_statement":
+        children = [c for c in stmt.children if c.type != ";"]
+        if len(children) == 1 and children[0].type in ("string", "template_string"):
+            return True
+
+    return False
+
+
 def _collect_impl(
     node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
 ) -> None:
@@ -215,6 +302,7 @@ def _collect_impl(
                     args=args,
                     returns=returns,
                     is_async=is_async,
+                    is_stub=_is_stub_body_ts(node, source),
                     line=node.start_point[0] + 1,
                 )
             )
@@ -240,6 +328,7 @@ def _collect_impl(
                     args=args,
                     returns=returns,
                     is_async=is_async,
+                    is_stub=_is_stub_body_ts(node, source),
                     line=node.start_point[0] + 1,
                 )
             )
@@ -303,6 +392,7 @@ def _handle_variable_declarator(
                 args=args,
                 returns=returns,
                 is_async=is_async,
+                is_stub=_is_stub_body_ts(value, source),
                 line=node.start_point[0] + 1,
             )
         )
@@ -368,6 +458,7 @@ def _handle_class_field(
                 args=args,
                 returns=returns,
                 is_async=is_async,
+                is_stub=_is_stub_body_ts(arrow_fn, source),
                 line=node.start_point[0] + 1,
             )
         )

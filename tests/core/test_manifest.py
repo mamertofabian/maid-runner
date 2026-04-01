@@ -385,3 +385,76 @@ validate:
         assert reloaded.acceptance is not None
         assert reloaded.acceptance.tests == original.acceptance.tests
         assert reloaded.acceptance.immutable is True
+
+
+class TestImportsField:
+    """Tests for the optional imports field on FileSpec."""
+
+    def test_imports_parsed_from_yaml(self, tmp_path):
+        """FileSpec.imports is populated from manifest YAML."""
+        content = """\
+schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src.api.budgets
+        - src.stores.budget_store
+validate:
+  - pytest tests/ -v
+"""
+        path = tmp_path / "page.manifest.yaml"
+        path.write_text(content)
+        manifest = load_manifest(path)
+        fs = manifest.files_create[0]
+        assert fs.imports == ("src.api.budgets", "src.stores.budget_store")
+
+    def test_missing_imports_defaults_empty(self, tmp_path):
+        """FileSpec.imports defaults to empty tuple when not in YAML."""
+        content = """\
+schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+"""
+        path = tmp_path / "greet.manifest.yaml"
+        path.write_text(content)
+        manifest = load_manifest(path)
+        fs = manifest.files_create[0]
+        assert fs.imports == ()
+
+    def test_imports_roundtrip(self, tmp_path):
+        """Imports survive save_manifest -> load_manifest round-trip."""
+        content = """\
+schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src.api.budgets
+validate:
+  - pytest tests/ -v
+"""
+        source = tmp_path / "source.manifest.yaml"
+        source.write_text(content)
+        original = load_manifest(source)
+
+        output = tmp_path / "output.manifest.yaml"
+        save_manifest(original, output)
+        reloaded = load_manifest(output)
+
+        assert reloaded.files_create[0].imports == ("src.api.budgets",)

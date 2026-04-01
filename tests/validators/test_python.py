@@ -250,3 +250,107 @@ def test_greet():
         result = validator.collect_behavioral_artifacts(source, "test_greet.py")
         names = [a.name for a in result.artifacts]
         assert "greet" in names
+
+
+class TestStubDetection:
+    """Tests for is_stub detection on Python functions."""
+
+    def test_pass_is_stub(self, validator):
+        source = "def foo():\n    pass\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is True
+
+    def test_ellipsis_is_stub(self, validator):
+        source = "def foo():\n    ...\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_raise_not_implemented_is_stub(self, validator):
+        source = 'def foo():\n    raise NotImplementedError("TODO")\n'
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_raise_not_implemented_bare_is_stub(self, validator):
+        source = "def foo():\n    raise NotImplementedError\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_none_is_stub(self, validator):
+        source = "def foo():\n    return None\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_literal_is_stub(self, validator):
+        source = 'def foo():\n    return ""\n'
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_zero_is_stub(self, validator):
+        source = "def foo():\n    return 0\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_empty_dict_is_stub(self, validator):
+        source = "def foo():\n    return {}\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_empty_list_is_stub(self, validator):
+        source = "def foo():\n    return []\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_docstring_then_pass_is_stub(self, validator):
+        source = 'def foo():\n    """Docstring."""\n    pass\n'
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_docstring_only_is_stub(self, validator):
+        source = 'def foo():\n    """Docstring only."""\n'
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_real_function_is_not_stub(self, validator):
+        source = "def greet(name: str) -> str:\n    return f'Hello, {name}!'\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "greet")
+        assert a.is_stub is False
+
+    def test_multi_statement_is_not_stub(self, validator):
+        source = "def foo():\n    x = 1\n    return x + 1\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is False
+
+    def test_method_stub_detected(self, validator):
+        source = "class Foo:\n    def bar(self):\n        pass\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "bar", kind=ArtifactKind.METHOD)
+        assert a is not None
+        assert a.is_stub is True
+
+    def test_async_stub_detected(self, validator):
+        source = "async def fetch():\n    pass\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "fetch")
+        assert a.is_stub is True
+
+    def test_class_not_affected(self, validator):
+        source = "class Foo:\n    pass\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        a = _find(result.artifacts, "Foo")
+        assert a is not None
+        # Classes don't have is_stub (always False by default)
+        assert a.is_stub is False

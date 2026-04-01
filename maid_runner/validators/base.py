@@ -22,6 +22,7 @@ class FoundArtifact:
     is_async: bool = False
     bases: tuple[str, ...] = ()
     type_annotation: Optional[str] = None
+    is_stub: bool = False
     line: Optional[int] = None
     column: Optional[int] = None
 

@@ -588,3 +588,387 @@ validate:
             project_root=project,
         )
         assert result.success is True
+
+
+class TestStubDetection:
+    """Tests for check_stubs=True detecting hollow implementations."""
+
+    def test_stub_function_detected_as_warning(self, project):
+        """Stub function detected when check_stubs=True -> E310 WARNING."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+        )
+        # Structural validation passes (function exists)
+        assert result.success is True
+        # But stub is flagged as warning
+        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
+
+    def test_stub_not_detected_without_flag(self, project):
+        """Stub function NOT flagged when check_stubs=False (default)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+        assert not any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings
+        )
+
+    def test_real_function_no_stub_warning(self, project):
+        """Real function -> no stub warning even with check_stubs=True."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/greet.py",
+            'def greet(name):\n    return f"Hello, {name}!"\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+        )
+        assert result.success is True
+        assert not any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings
+        )
+
+
+class TestAssertionChecking:
+    """Tests for check_assertions=True in behavioral mode."""
+
+    def test_test_with_assertions_passes(self, project):
+        """Test function with assert -> no E210."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_greet.py",
+            'from src.greet import greet\n\ndef test_greet():\n    assert greet("World") == "Hello, World!"\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.BEHAVIORAL,
+            check_assertions=True,
+        )
+        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
+
+    def test_test_without_assertions_warned(self, project):
+        """Test function with no assert -> E210 WARNING."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_greet.py",
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.BEHAVIORAL,
+            check_assertions=True,
+        )
+        assert any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
+
+    def test_assertions_not_checked_without_flag(self, project):
+        """No E210 when check_assertions=False (default)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_greet.py",
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
+
+    def test_pytest_raises_counts_as_assertion(self, project):
+        """pytest.raises is recognized as an assertion."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-calc.manifest.yaml",
+            """schema: "2"
+goal: "Add calc"
+files:
+  create:
+    - path: src/calc.py
+      artifacts:
+        - kind: function
+          name: divide
+  read:
+    - tests/test_calc.py
+validate:
+  - pytest tests/test_calc.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_calc.py",
+            "import pytest\nfrom src.calc import divide\n\ndef test_divide_zero():\n    with pytest.raises(ZeroDivisionError):\n        divide(1, 0)\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.BEHAVIORAL,
+            check_assertions=True,
+        )
+        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
+
+
+class TestImportVerification:
+    """Tests for required imports field on FileSpec."""
+
+    def test_required_import_present_passes(self, project):
+        """File has required import -> no E320."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src.api.budgets
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/budget.py",
+            "from src.api.budgets import list_budgets\n\ndef BudgetPage():\n    data = list_budgets()\n    return data\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+        assert not any(
+            e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+            for e in result.errors + result.warnings
+        )
+
+    def test_required_import_missing_fails(self, project):
+        """File missing required import -> E320."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src.api.budgets
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/budget.py",
+            "def BudgetPage():\n    return 'placeholder'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Import check is always active when imports are declared
+        assert any(e.code == ErrorCode.MISSING_REQUIRED_IMPORT for e in result.errors)
+
+    def test_no_imports_field_no_check(self, project):
+        """Manifest without imports field -> no import checking."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/budget.py",
+            "def BudgetPage():\n    return 'placeholder'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+        assert not any(
+            e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+            for e in result.errors + result.warnings
+        )
+
+    def test_import_symbol_name_passes(self, project):
+        """Import by symbol name (e.g., 'list_budgets') matches."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - list_budgets
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/budget.py",
+            "from src.api.budgets import list_budgets\n\ndef BudgetPage():\n    return list_budgets()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+
+
+class TestConvenienceFunctionWithDepthFlags:
+    """Test that top-level validate() threads check_stubs and check_assertions."""
+
+    def test_validate_with_check_stubs(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+
+        result = validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            project_root=project,
+            check_stubs=True,
+        )
+        assert result.success is True  # stubs are warnings, not errors
+        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)

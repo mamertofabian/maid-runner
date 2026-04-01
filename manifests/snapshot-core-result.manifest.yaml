@@ -50,6 +50,9 @@ files:
       name: TEST_FILE_NOT_IN_READONLY
       of: ErrorCode
     - kind: attribute
+      name: MISSING_ASSERTIONS
+      of: ErrorCode
+    - kind: attribute
       name: ARTIFACT_NOT_DEFINED
       of: ErrorCode
     - kind: attribute
@@ -72,6 +75,12 @@ files:
       of: ErrorCode
     - kind: attribute
       name: VALIDATOR_NOT_AVAILABLE
+      of: ErrorCode
+    - kind: attribute
+      name: STUB_FUNCTION_DETECTED
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_REQUIRED_IMPORT
       of: ErrorCode
     - kind: attribute
       name: ACCEPTANCE_TEST_FILE_NOT_FOUND
@@ -355,4 +364,4 @@ files:
       type: list[TestRunResult]
 validate:
 - pytest tests/ -v
-created: '2026-03-26T06:25:17.996090+00:00'
+created: '2026-04-01T07:49:11.944383+00:00'

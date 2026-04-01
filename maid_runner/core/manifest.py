@@ -154,6 +154,7 @@ def _parse_file_spec(data: dict, mode: FileMode) -> FileSpec:
         artifacts=artifacts,
         status=data.get("status", "present"),
         mode=mode,
+        imports=tuple(data.get("imports", [])),
     )
 
 
@@ -260,6 +261,8 @@ def _file_spec_to_dict(fs: FileSpec) -> dict:
     if fs.status != "present":
         d["status"] = fs.status
     d["artifacts"] = [_artifact_to_dict(a) for a in fs.artifacts]
+    if fs.imports:
+        d["imports"] = list(fs.imports)
     return d
 
 

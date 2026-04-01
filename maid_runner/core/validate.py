@@ -52,6 +52,8 @@ class ValidationEngine:
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
         use_chain: bool = False,
         manifest_dir: Union[str, Path] = "manifests/",
+        check_stubs: bool = False,
+        check_assertions: bool = False,
     ) -> ValidationResult:
         start = time.monotonic()
 
@@ -93,9 +95,13 @@ class ValidationEngine:
                 chain = ManifestChain(chain_dir, self._project_root)
 
         if mode == ValidationMode.BEHAVIORAL:
-            errors = self.validate_behavioral(manifest, chain)
+            errors = self.validate_behavioral(
+                manifest, chain, check_assertions=check_assertions
+            )
         else:
-            errors = self.validate_implementation(manifest, chain)
+            errors = self.validate_implementation(
+                manifest, chain, check_stubs=check_stubs
+            )
 
         if manifest.acceptance is not None:
             errors.extend(self.validate_acceptance(manifest))
@@ -162,6 +168,8 @@ class ValidationEngine:
         self,
         manifest: Manifest,
         chain: Optional[ManifestChain] = None,
+        *,
+        check_assertions: bool = False,
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
@@ -195,6 +203,16 @@ class ValidationEngine:
                             location=Location(file=fs.path),
                         )
                     )
+
+        # Check assertions in test files
+        if check_assertions:
+            for tf_path in test_files:
+                full_path = self._project_root / tf_path
+                if not full_path.exists():
+                    continue
+                source = full_path.read_text()
+                assertion_errors = _check_test_assertions(source, tf_path)
+                errors.extend(assertion_errors)
 
         return errors
 
@@ -231,6 +249,8 @@ class ValidationEngine:
         self,
         manifest: Manifest,
         chain: Optional[ManifestChain] = None,
+        *,
+        check_stubs: bool = False,
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
@@ -317,6 +337,30 @@ class ValidationEngine:
             )
             errors.extend(file_errors)
 
+            # Stub detection: check matched artifacts for stub bodies
+            if check_stubs:
+                found_by_key = {fa.merge_key(): fa for fa in collection.artifacts}
+                for spec in expected:
+                    fa = found_by_key.get(spec.merge_key())
+                    if fa and fa.is_stub and not fa.is_private:
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.STUB_FUNCTION_DETECTED,
+                                message=(
+                                    f"Function '{fa.qualified_name}' appears to be "
+                                    f"a stub in {fs.path}"
+                                ),
+                                severity=Severity.WARNING,
+                                location=Location(file=fs.path, line=fa.line),
+                                suggestion="Implement the function body with real logic",
+                            )
+                        )
+
+            # Import verification: check required imports exist
+            if fs.imports:
+                import_errors = _check_required_imports(source, fs.path, fs.imports)
+                errors.extend(import_errors)
+
         return errors
 
     def run_file_tracking(
@@ -398,10 +442,17 @@ def validate(
     use_chain: bool = True,
     manifest_dir: Union[str, Path] = "manifests/",
     project_root: Union[str, Path] = ".",
+    check_stubs: bool = False,
+    check_assertions: bool = False,
 ) -> ValidationResult:
     engine = ValidationEngine(project_root=project_root)
     return engine.validate(
-        manifest_path, mode=mode, use_chain=use_chain, manifest_dir=manifest_dir
+        manifest_path,
+        mode=mode,
+        use_chain=use_chain,
+        manifest_dir=manifest_dir,
+        check_stubs=check_stubs,
+        check_assertions=check_assertions,
     )
 
 
@@ -561,3 +612,157 @@ def _get_validator_for_test(test_path: str):
         return ValidatorRegistry.get(test_path)
     except UnsupportedLanguageError:
         return None
+
+
+def _check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
+    """Check that test functions in a file contain at least one assertion.
+
+    For Python: checks for assert statements, pytest.raises, or assert* calls.
+    For TypeScript/JavaScript: checks for expect() calls.
+    """
+    import ast as _ast
+
+    errors: list[ValidationError] = []
+
+    if test_path.endswith(".py"):
+        try:
+            tree = _ast.parse(source, filename=test_path)
+        except SyntaxError:
+            return errors
+
+        for node in _ast.walk(tree):
+            if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
+                if not node.name.startswith("test_"):
+                    continue
+                if _python_func_has_assertion(node):
+                    continue
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.MISSING_ASSERTIONS,
+                        message=(
+                            f"Test function '{node.name}' has no assertions "
+                            f"in {test_path}"
+                        ),
+                        severity=Severity.WARNING,
+                        location=Location(file=test_path, line=node.lineno),
+                        suggestion="Add assert statements to verify behavior",
+                    )
+                )
+    elif test_path.endswith((".ts", ".tsx", ".js", ".jsx")):
+        # Simple text-based check for expect() in test blocks
+        # This is approximate but catches the common case
+        import re
+
+        test_pattern = re.compile(
+            r"(?:it|test)\s*\(\s*['\"].*?['\"]\s*,\s*(?:async\s*)?"
+            r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{(.*?)\}",
+            re.DOTALL,
+        )
+        for match in test_pattern.finditer(source):
+            body = match.group(1)
+            if "expect(" not in body and "assert" not in body.lower():
+                # Extract test name from the match
+                name_match = re.search(r"['\"](.+?)['\"]", match.group(0))
+                test_name = name_match.group(1) if name_match else "unknown"
+                # Find line number
+                line = source[: match.start()].count("\n") + 1
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.MISSING_ASSERTIONS,
+                        message=(
+                            f"Test '{test_name}' has no assertions in {test_path}"
+                        ),
+                        severity=Severity.WARNING,
+                        location=Location(file=test_path, line=line),
+                        suggestion="Add expect() statements to verify behavior",
+                    )
+                )
+
+    return errors
+
+
+def _python_func_has_assertion(node) -> bool:
+    """Check if a Python function AST node contains any assertion."""
+    import ast as _ast
+
+    for child in _ast.walk(node):
+        # Direct assert statement
+        if isinstance(child, _ast.Assert):
+            return True
+        # pytest.raises or similar context managers
+        if isinstance(child, _ast.Call):
+            func = child.func
+            # pytest.raises(...)
+            if isinstance(func, _ast.Attribute) and func.attr == "raises":
+                return True
+            # assertXxx() calls (unittest style)
+            if isinstance(func, _ast.Attribute) and func.attr.startswith("assert"):
+                return True
+            if isinstance(func, _ast.Name) and func.id.startswith("assert"):
+                return True
+    return False
+
+
+def _check_required_imports(
+    source: str, file_path: str, required_imports: tuple[str, ...]
+) -> list[ValidationError]:
+    """Check that required import modules/symbols appear in the source file."""
+    import ast as _ast
+
+    errors: list[ValidationError] = []
+
+    # Collect all import references from the source
+    found_imports: set[str] = set()
+
+    if file_path.endswith(".py"):
+        try:
+            tree = _ast.parse(source, filename=file_path)
+        except SyntaxError:
+            return errors
+
+        for node in _ast.walk(tree):
+            if isinstance(node, _ast.ImportFrom):
+                if node.module:
+                    found_imports.add(node.module)
+                    # Also add each dotted prefix
+                    parts = node.module.split(".")
+                    for i in range(1, len(parts) + 1):
+                        found_imports.add(".".join(parts[:i]))
+                if node.names:
+                    for alias in node.names:
+                        found_imports.add(alias.name)
+            elif isinstance(node, _ast.Import):
+                for alias in node.names:
+                    found_imports.add(alias.name)
+    else:
+        # TypeScript/JavaScript: simple text search for import patterns
+        import re
+
+        # import ... from 'module'
+        for match in re.finditer(r"""(?:import|from)\s+['"](.+?)['"]""", source):
+            found_imports.add(match.group(1))
+        # import { X } from 'module'
+        for match in re.finditer(
+            r"""import\s+\{([^}]+)\}\s+from\s+['"](.+?)['"]""", source
+        ):
+            names = match.group(1)
+            module = match.group(2)
+            found_imports.add(module)
+            for name in names.split(","):
+                name = name.strip().split(" as ")[0].strip()
+                if name:
+                    found_imports.add(name)
+
+    # Check each required import
+    for req in required_imports:
+        if req not in found_imports:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.MISSING_REQUIRED_IMPORT,
+                    message=f"Required import '{req}' not found in {file_path}",
+                    location=Location(file=file_path),
+                    suggestion=f"Add an import for '{req}'",
+                )
+            )
+
+    return errors

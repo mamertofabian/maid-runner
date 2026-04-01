@@ -452,3 +452,97 @@ class TestInterfaceMembers:
 
         sound = _find(result.artifacts, "sound", kind=ArtifactKind.METHOD, of="Animal")
         assert sound is not None
+
+
+class TestStubDetection:
+    """Tests for is_stub detection on TypeScript functions."""
+
+    def test_empty_body_is_stub(self, validator):
+        source = "export function foo(): void {}\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is True
+
+    def test_throw_not_implemented_is_stub(self, validator):
+        source = 'function foo(): string { throw new Error("Not implemented"); }\n'
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_null_is_stub(self, validator):
+        source = "function foo(): string | null { return null; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_empty_string_is_stub(self, validator):
+        source = 'function foo(): string { return ""; }\n'
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_zero_is_stub(self, validator):
+        source = "function foo(): number { return 0; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_empty_object_is_stub(self, validator):
+        source = "function foo(): object { return {}; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_return_empty_array_is_stub(self, validator):
+        source = "function foo(): string[] { return []; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is True
+
+    def test_real_function_not_stub(self, validator):
+        source = "function greet(name: string): string { return `Hello, ${name}!`; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "greet")
+        assert a.is_stub is False
+
+    def test_multi_statement_not_stub(self, validator):
+        source = "function foo(): number { const x = 1; return x + 1; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a.is_stub is False
+
+    def test_arrow_function_stub(self, validator):
+        source = "export const foo = (): void => {};\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is True
+
+    def test_arrow_function_real(self, validator):
+        source = (
+            "export const add = (a: number, b: number): number => { return a + b; };\n"
+        )
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "add")
+        assert a.is_stub is False
+
+    def test_class_method_stub(self, validator):
+        source = "class Foo {\n  bar(): void {}\n}\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "bar", kind=ArtifactKind.METHOD, of="Foo")
+        assert a is not None
+        assert a.is_stub is True
+
+    def test_class_method_real(self, validator):
+        source = 'class Foo {\n  bar(): string { return "hello"; }\n}\n'
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "bar", kind=ArtifactKind.METHOD, of="Foo")
+        # Single return with literal is a stub
+        assert a.is_stub is True
+
+    def test_class_method_with_logic(self, validator):
+        source = "class Foo {\n  bar(x: number): number { const y = x * 2; return y + 1; }\n}\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "bar", kind=ArtifactKind.METHOD, of="Foo")
+        assert a.is_stub is False

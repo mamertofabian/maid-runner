@@ -138,6 +138,11 @@
           "type": "array",
           "minItems": 1,
           "items": { "$ref": "#/definitions/ArtifactSpec" }
+        },
+        "imports": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required import modules/symbols that must appear in this file"
         }
       },
       "additionalProperties": false

@@ -860,3 +860,162 @@ class TestPrivateArtifacts:
         )
 
         assert result.success is True
+
+
+# ---------------------------------------------------------------------------
+# Behavioral depth checks (stub detection, assertion checking, imports)
+# ---------------------------------------------------------------------------
+
+
+class TestDepthChecks:
+    """Integration tests for check_stubs, check_assertions, and imports."""
+
+    def test_stub_detected_in_full_pipeline(self, project: Path):
+        """Stub function flagged as warning when check_stubs=True."""
+        manifest_path = project / "manifests" / "add-greet.manifest.yaml"
+        _write_yaml(
+            manifest_path,
+            {
+                "schema": "2",
+                "goal": "Add greeter",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/greet.py",
+                            "artifacts": [{"kind": "function", "name": "greet"}],
+                        }
+                    ]
+                },
+                "validate": ["pytest tests/ -v"],
+            },
+        )
+        (project / "src" / "greet.py").write_text("def greet():\n    pass\n")
+
+        result = validate(
+            str(manifest_path),
+            use_chain=False,
+            project_root=str(project),
+            check_stubs=True,
+        )
+        assert result.success is True  # stubs are warnings
+        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
+
+    def test_missing_assertion_in_full_pipeline(self, project: Path):
+        """Test without assertions flagged when check_assertions=True."""
+        manifest_path = project / "manifests" / "add-greet.manifest.yaml"
+        _write_yaml(
+            manifest_path,
+            {
+                "schema": "2",
+                "goal": "Add greeter",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/greet.py",
+                            "artifacts": [{"kind": "function", "name": "greet"}],
+                        }
+                    ],
+                    "read": ["tests/test_greet.py"],
+                },
+                "validate": ["pytest tests/test_greet.py -v"],
+            },
+        )
+        (project / "src" / "greet.py").write_text(
+            'def greet(name):\n    return f"Hello, {name}!"\n'
+        )
+        (project / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\ndef test_greet():\n    greet('World')\n"
+        )
+
+        result = validate(
+            str(manifest_path),
+            mode=ValidationMode.BEHAVIORAL,
+            use_chain=False,
+            project_root=str(project),
+            check_assertions=True,
+        )
+        assert any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
+
+    def test_missing_import_in_full_pipeline(self, project: Path):
+        """Required import missing from source -> E320 error."""
+        manifest_path = project / "manifests" / "add-page.manifest.yaml"
+        _write_yaml(
+            manifest_path,
+            {
+                "schema": "2",
+                "goal": "Add page",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/pages/budget.py",
+                            "artifacts": [{"kind": "function", "name": "BudgetPage"}],
+                            "imports": ["src.api.budgets"],
+                        }
+                    ]
+                },
+                "validate": ["pytest tests/ -v"],
+            },
+        )
+        pages_dir = project / "src" / "pages"
+        pages_dir.mkdir(parents=True)
+        (pages_dir / "budget.py").write_text(
+            "def BudgetPage():\n    return {'title': 'Budget'}\n"
+        )
+
+        result = validate(
+            str(manifest_path),
+            use_chain=False,
+            project_root=str(project),
+        )
+        assert result.success is False
+        assert any(e.code == ErrorCode.MISSING_REQUIRED_IMPORT for e in result.errors)
+
+    def test_all_depth_checks_pass_clean_code(self, project: Path):
+        """Well-implemented code passes all depth checks."""
+        manifest_path = project / "manifests" / "add-greet.manifest.yaml"
+        _write_yaml(
+            manifest_path,
+            {
+                "schema": "2",
+                "goal": "Add greeter",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/greet.py",
+                            "artifacts": [{"kind": "function", "name": "greet"}],
+                            "imports": ["os"],
+                        }
+                    ],
+                    "read": ["tests/test_greet.py"],
+                },
+                "validate": ["pytest tests/test_greet.py -v"],
+            },
+        )
+        (project / "src" / "greet.py").write_text(
+            'import os\n\ndef greet(name):\n    prefix = os.getenv("GREETING", "Hello")\n    return f"{prefix}, {name}!"\n'
+        )
+        (project / "tests" / "test_greet.py").write_text(
+            'from src.greet import greet\n\ndef test_greet():\n    assert greet("World") == "Hello, World!"\n'
+        )
+
+        result_impl = validate(
+            str(manifest_path),
+            use_chain=False,
+            project_root=str(project),
+            check_stubs=True,
+        )
+        assert result_impl.success is True
+        assert not any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result_impl.warnings
+        )
+
+        result_beh = validate(
+            str(manifest_path),
+            mode=ValidationMode.BEHAVIORAL,
+            use_chain=False,
+            project_root=str(project),
+            check_assertions=True,
+        )
+        assert not any(
+            w.code == ErrorCode.MISSING_ASSERTIONS for w in result_beh.warnings
+        )

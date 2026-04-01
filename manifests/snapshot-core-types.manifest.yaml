@@ -193,6 +193,10 @@ files:
       of: FileSpec
       type: FileMode
     - kind: attribute
+      name: imports
+      of: FileSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
       name: is_strict
       of: FileSpec
       type: bool
@@ -308,4 +312,4 @@ files:
       returns: tuple[ArtifactSpec, Ellipsis]
 validate:
 - pytest tests/ -v
-created: '2026-03-26T06:25:16.937939+00:00'
+created: '2026-04-01T07:49:11.835276+00:00'

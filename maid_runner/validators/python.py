@@ -103,6 +103,8 @@ class _ImplementationCollector(ast.NodeVisitor):
     def _handle_function(
         self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_async: bool
     ) -> None:
+        stub = _is_stub_body(node)
+
         if self._current_class is not None:
             # Inside a class
             if _has_property_decorator(node):
@@ -128,6 +130,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                         args=args,
                         returns=_get_return_type(node),
                         is_async=is_async,
+                        is_stub=stub,
                         line=node.lineno,
                         column=node.col_offset,
                     )
@@ -148,6 +151,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                     args=args,
                     returns=_get_return_type(node),
                     is_async=is_async,
+                    is_stub=stub,
                     line=node.lineno,
                     column=node.col_offset,
                 )
@@ -299,6 +303,69 @@ class _BehavioralCollector(ast.NodeVisitor):
                     name=name,
                 )
             )
+
+
+def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Check if a function body is a stub (no real implementation).
+
+    Detects: pass, ..., raise NotImplementedError, single return with literal,
+    or empty body after docstring.
+    """
+    body = node.body[:]
+
+    # Strip leading docstring
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        body = body[1:]
+
+    if not body:
+        return True  # empty body after docstring
+
+    if len(body) != 1:
+        return False  # multiple statements = likely real code
+
+    stmt = body[0]
+
+    # pass
+    if isinstance(stmt, ast.Pass):
+        return True
+
+    # ... (Ellipsis)
+    if (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and stmt.value.value is ...
+    ):
+        return True
+
+    # raise NotImplementedError(...)
+    if isinstance(stmt, ast.Raise) and stmt.exc is not None:
+        exc = stmt.exc
+        if isinstance(exc, ast.Call) and isinstance(exc.func, ast.Name):
+            if exc.func.id == "NotImplementedError":
+                return True
+        elif isinstance(exc, ast.Name) and exc.id == "NotImplementedError":
+            return True
+
+    # return <literal> (None, 0, "", False, {}, [], ())
+    if isinstance(stmt, ast.Return):
+        if stmt.value is None:
+            return True
+        if isinstance(stmt.value, ast.Constant):
+            return True
+        # return {} / return [] / return ()
+        if isinstance(stmt.value, ast.Dict) and not stmt.value.keys:
+            return True
+        if isinstance(stmt.value, ast.List) and not stmt.value.elts:
+            return True
+        if isinstance(stmt.value, ast.Tuple) and not stmt.value.elts:
+            return True
+
+    return False
 
 
 def _extract_args(

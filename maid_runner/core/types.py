@@ -94,6 +94,7 @@ class FileSpec:
     artifacts: tuple[ArtifactSpec, ...]
     status: str = "present"
     mode: FileMode = FileMode.CREATE
+    imports: tuple[str, ...] = ()
 
     @property
     def is_strict(self) -> bool:
