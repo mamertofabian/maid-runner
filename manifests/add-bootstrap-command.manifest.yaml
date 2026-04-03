@@ -1,0 +1,72 @@
+schema: "2"
+goal: "Add maid bootstrap command for brownfield project onboarding"
+type: feature
+
+files:
+  create:
+    - path: maid_runner/cli/commands/bootstrap.py
+      artifacts:
+        - kind: function
+          name: cmd_bootstrap
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+  edit:
+    - path: maid_runner/core/bootstrap.py
+      artifacts:
+        - kind: class
+          name: BootstrapFileResult
+        - kind: class
+          name: BootstrapReport
+        - kind: function
+          name: bootstrap_project
+          args:
+            - name: project_root
+              type: Union[str, Path]
+          returns: BootstrapReport
+
+    - path: maid_runner/core/_file_discovery.py
+      artifacts:
+        - kind: function
+          name: discover_source_files
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: extensions
+              type: set[str] | None
+          returns: list[str]
+
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+          returns: int
+
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_bootstrap_report
+          args:
+            - name: report
+              type: BootstrapReport
+          returns: str
+
+  read:
+    - tests/core/test_bootstrap.py
+    - tests/cli/test_bootstrap_cmd.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - maid_runner/core/__init__.py
+
+validate:
+  - pytest tests/core/test_bootstrap.py -v
+  - pytest tests/cli/test_bootstrap_cmd.py -v
+
+created: "2026-04-03T10:00:00+00:00"

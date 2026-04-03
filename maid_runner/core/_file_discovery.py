@@ -36,10 +36,27 @@ _TEST_PATTERNS = [
 def discover_source_files(
     project_root: Union[str, Path],
     extensions: set[str] | None = None,
+    *,
+    exclude_patterns: set[str] | None = None,
+    respect_gitignore: bool = False,
 ) -> list[str]:
-    """Discover all source files in a project, excluding common non-source dirs."""
+    """Discover all source files in a project, excluding common non-source dirs.
+
+    Args:
+        project_root: Root directory to search.
+        extensions: File extensions to include (default: common source extensions).
+        exclude_patterns: Glob patterns to exclude (e.g. ``{"vendor/*"}``).
+        respect_gitignore: When True, also exclude files ignored by git.
+    """
+    from fnmatch import fnmatch
+
     root = Path(project_root)
     exts = extensions or _SOURCE_EXTENSIONS
+
+    git_ignored: set[str] | None = None
+    if respect_gitignore:
+        git_ignored = _get_git_ignored_files(root)
+
     files: list[str] = []
 
     for path in root.rglob("*"):
@@ -47,13 +64,39 @@ def discover_source_files(
             continue
         if path.suffix not in exts:
             continue
+        rel = str(path.relative_to(root))
         # Skip excluded directories
         parts = path.relative_to(root).parts
         if any(part in _EXCLUDE_DIRS for part in parts):
             continue
-        files.append(str(path.relative_to(root)))
+        # Skip gitignored files
+        if git_ignored is not None and rel in git_ignored:
+            continue
+        # Skip user-specified exclude patterns
+        if exclude_patterns and any(fnmatch(rel, p) for p in exclude_patterns):
+            continue
+        files.append(rel)
 
     return sorted(files)
+
+
+def _get_git_ignored_files(root: Path) -> set[str] | None:
+    """Get files ignored by git. Returns None if git is unavailable."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--others", "--ignored", "--exclude-standard", "-z"],
+            capture_output=True,
+            text=True,
+            cwd=str(root),
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return None
+        return {f for f in result.stdout.split("\0") if f}
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
 
 
 def is_test_file(path: str) -> bool:

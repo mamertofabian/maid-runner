@@ -7,6 +7,11 @@ Quick start:
     print(result.success)
 """
 
+from maid_runner.core.bootstrap import (
+    BootstrapFileResult,
+    BootstrapReport,
+    bootstrap_project,
+)
 from maid_runner.core.validate import validate, validate_all, ValidationEngine
 from maid_runner.core.manifest import (
     load_manifest,
@@ -43,6 +48,9 @@ from maid_runner.core.result import (
 )
 
 __all__ = [
+    "BootstrapFileResult",
+    "BootstrapReport",
+    "bootstrap_project",
     "validate",
     "validate_all",
     "ValidationEngine",

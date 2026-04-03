@@ -72,6 +72,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--json", action="store_true")
 
+    # maid bootstrap
+    p = sub.add_parser("bootstrap", help="Bootstrap MAID for an existing project")
+    p.add_argument("directory", nargs="?", default=".")
+    p.add_argument("--output-dir", default="manifests/")
+    p.add_argument("--exclude", action="append", default=None)
+    p.add_argument("--no-gitignore", action="store_true")
+    p.add_argument("--include-private", action="store_true")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--json", action="store_true")
+    p.add_argument("--quiet", action="store_true")
+    p.add_argument("--verbose", action="store_true")
+
     # maid manifest create
     p = sub.add_parser("manifest", help="Manifest operations")
     msub = p.add_subparsers(dest="manifest_command")
@@ -155,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         "test": "_cmd_test",
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
+        "bootstrap": "_cmd_bootstrap",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -175,6 +188,7 @@ def main(argv: list[str] | None = None) -> int:
         validate as validate_mod,
         test as test_mod,
         snapshot as snapshot_mod,
+        bootstrap as bootstrap_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -189,6 +203,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_test": test_mod.cmd_test,
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
+        "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

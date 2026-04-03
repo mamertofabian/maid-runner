@@ -15,7 +15,7 @@ from maid_runner.core.result import (
 from maid_runner.coherence.result import CoherenceResult
 
 if TYPE_CHECKING:
-    pass
+    from maid_runner.core.bootstrap import BootstrapReport
 
 
 def print_error(message: str, *, json_mode: bool = False) -> None:
@@ -255,6 +255,83 @@ def format_file_tracking(
         lines.append(f"Tracked ({len(report.tracked)}):")
         for e in report.tracked:
             lines.append(f"  {e.path}")
+
+    return "\n".join(lines)
+
+
+def format_bootstrap_report(
+    report: "BootstrapReport",
+    *,
+    json_mode: bool = False,
+    quiet: bool = False,
+    verbose: bool = False,
+) -> str:
+    if json_mode:
+        return json.dumps(
+            {
+                "total_discovered": report.total_discovered,
+                "captured": report.captured,
+                "skipped": report.skipped,
+                "failed": report.failed,
+                "excluded": report.excluded,
+                "total_artifacts": report.total_artifacts,
+                "manifests_dir": report.manifests_dir,
+                "duration_ms": report.duration_ms,
+                "results": [
+                    {
+                        "path": r.path,
+                        "status": r.status,
+                        "artifact_count": r.artifact_count,
+                        "error": r.error,
+                        "manifest_slug": r.manifest_slug,
+                    }
+                    for r in report.results
+                ],
+            },
+            indent=2,
+        )
+
+    if quiet:
+        if report.captured == 0:
+            return ""
+        return f"{report.captured} files captured ({report.total_artifacts} artifacts)"
+
+    lines = []
+    lines.append(f"Bootstrap: {report.total_discovered} source files discovered")
+    lines.append(
+        f"  Captured:  {report.captured} files ({report.total_artifacts} artifacts)"
+    )
+    lines.append(f"  Skipped:   {report.skipped} files (already tracked)")
+    lines.append(f"  Failed:    {report.failed} files")
+
+    if report.failed > 0:
+        for r in report.results:
+            if r.status == "failed":
+                lines.append(f"    {r.path}: {r.error}")
+
+    lines.append(f"  Excluded:  {report.excluded} files")
+
+    if report.duration_ms is not None:
+        lines.append(f"  Duration:  {report.duration_ms:.0f}ms")
+
+    if report.manifests_dir:
+        lines.append(f"  Manifests written to: {report.manifests_dir}")
+
+    if verbose:
+        lines.append("")
+        for r in report.results:
+            symbol = {
+                "captured": "SNAP",
+                "skipped": "SKIP",
+                "failed": "FAIL",
+                "excluded": "EXCL",
+            }.get(r.status, "????")
+            detail = ""
+            if r.artifact_count:
+                detail = f" ({r.artifact_count} artifacts)"
+            if r.error:
+                detail = f" — {r.error}"
+            lines.append(f"  {symbol} {r.path}{detail}")
 
     return "\n".join(lines)
 
