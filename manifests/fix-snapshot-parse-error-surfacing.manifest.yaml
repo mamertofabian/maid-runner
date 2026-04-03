@@ -1,0 +1,33 @@
+schema: '2'
+goal: >
+  Make generate_snapshot raise SnapshotError when the source file has parse
+  errors instead of silently returning a manifest with 0 artifacts. This
+  prevents unparseable files from being marked as successfully captured
+  during bootstrap.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: class
+          name: SnapshotError
+          bases:
+            - Exception
+        - kind: function
+          name: generate_snapshot
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Union[str, Path]
+            - name: include_private
+              type: bool
+          returns: Manifest
+
+  read:
+    - tests/core/test_snapshot.py
+
+validate:
+  - pytest tests/core/test_snapshot.py -v -k "TestSnapshotParseError"
+created: '2026-04-03T12:20:00+00:00'

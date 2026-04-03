@@ -1,0 +1,59 @@
+schema: '2'
+goal: >
+  Fix O(n^2) chain merging performance by (1) caching active_manifests()
+  result in ManifestChain and (2) passing the pre-built chain from
+  validate_all to validate instead of creating a new chain per manifest.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: active_manifests
+          of: ManifestChain
+          returns: list[Manifest]
+        - kind: method
+          name: reload
+          of: ManifestChain
+          returns: None
+
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+            - name: use_chain
+              type: bool
+            - name: chain
+              type: Optional[ManifestChain]
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: check_stubs
+              type: bool
+            - name: check_assertions
+              type: bool
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: mode
+              type: ValidationMode
+          returns: BatchValidationResult
+
+  read:
+    - tests/core/test_chain.py
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/core/test_chain.py -v -k "TestChainCaching"
+  - pytest tests/core/test_validate.py -v -k "TestValidateAllChainReuse"
+created: '2026-04-03T12:30:00+00:00'

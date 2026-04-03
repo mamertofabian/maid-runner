@@ -24,6 +24,7 @@ class ManifestChain:
         self._manifests: list[Manifest] | None = None
         self._superseded_set: set[str] | None = None
         self._superseded_by_map: dict[str, str] | None = None
+        self._active_cache: list[Manifest] | None = None
 
     def _load(self) -> None:
         paths = _discover_manifest_files(self._manifest_dir)
@@ -60,11 +61,14 @@ class ManifestChain:
         return list(self._manifests)
 
     def active_manifests(self) -> list[Manifest]:
+        if self._active_cache is not None:
+            return list(self._active_cache)
         self._ensure_loaded()
         assert self._manifests is not None
         assert self._superseded_set is not None
         active = [m for m in self._manifests if m.slug not in self._superseded_set]
-        return _sort_manifests(active)
+        self._active_cache = _sort_manifests(active)
+        return list(self._active_cache)
 
     def superseded_manifests(self) -> list[Manifest]:
         self._ensure_loaded()
@@ -176,6 +180,7 @@ class ManifestChain:
         self._manifests = None
         self._superseded_set = None
         self._superseded_by_map = None
+        self._active_cache = None
 
 
 def _discover_manifest_files(manifest_dir: Path) -> list[Path]:

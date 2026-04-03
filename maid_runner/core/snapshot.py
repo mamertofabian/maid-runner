@@ -23,6 +23,14 @@ from maid_runner.validators.base import FoundArtifact
 from maid_runner.validators.registry import ValidatorRegistry, auto_register
 
 
+class SnapshotError(Exception):
+    """Raised when snapshot generation fails due to source file errors."""
+
+    def __init__(self, message: str, path: Union[str, Path]):
+        super().__init__(message)
+        self.path = path
+
+
 def generate_snapshot(
     file_path: Union[str, Path],
     *,
@@ -42,6 +50,12 @@ def generate_snapshot(
     validator = ValidatorRegistry.get(file_path)
     source = file_path.read_text()
     result = validator.collect_implementation_artifacts(source, file_path)
+
+    if result.errors:
+        raise SnapshotError(
+            f"Failed to parse {file_path}: {'; '.join(result.errors)}",
+            path=file_path,
+        )
 
     # Filter artifacts
     artifacts = result.artifacts

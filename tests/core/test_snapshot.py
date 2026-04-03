@@ -132,6 +132,43 @@ class TestGenerateSnapshot:
 
 
 # ---------------------------------------------------------------------------
+# parse error surfacing
+# ---------------------------------------------------------------------------
+
+
+class TestSnapshotParseError:
+    def test_syntax_error_raises_SnapshotError(self, tmp_path):
+        """Unparseable Python file should raise SnapshotError, not return empty manifest."""
+        from maid_runner.core.snapshot import SnapshotError
+
+        bad_file = tmp_path / "broken.py"
+        bad_file.write_text("def broken(\n")
+
+        with pytest.raises(SnapshotError, match="broken.py"):
+            generate_snapshot(str(bad_file), project_root=str(tmp_path))
+
+    def test_snapshot_error_has_path(self, tmp_path):
+        """SnapshotError should carry the file path for caller context."""
+        from maid_runner.core.snapshot import SnapshotError
+
+        bad_file = tmp_path / "bad.py"
+        bad_file.write_text("class Oops(\n")
+
+        with pytest.raises(SnapshotError) as exc_info:
+            generate_snapshot(str(bad_file), project_root=str(tmp_path))
+        assert str(bad_file) in str(exc_info.value.path)
+
+    def test_empty_init_py_succeeds(self, tmp_path):
+        """Legitimate empty __init__.py should not raise (no false positive)."""
+        init = tmp_path / "__init__.py"
+        init.write_text("")
+
+        m = generate_snapshot(str(init), project_root=str(tmp_path))
+        assert len(m.files_snapshot) == 1
+        assert len(m.files_snapshot[0].artifacts) == 0
+
+
+# ---------------------------------------------------------------------------
 # generate_system_snapshot
 # ---------------------------------------------------------------------------
 

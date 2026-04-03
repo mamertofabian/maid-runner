@@ -515,6 +515,65 @@ validate:
         assert active[1].slug == "no-time"
 
 
+class TestChainCaching:
+    def test_active_manifests_cached(self, chain_dir):
+        """Repeated calls to active_manifests return same result without re-filtering."""
+        _write_manifest(
+            chain_dir / "a.manifest.yaml",
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest
+""",
+        )
+        chain = ManifestChain(chain_dir)
+        first = chain.active_manifests()
+        second = chain.active_manifests()
+        assert first == second
+
+    def test_reload_invalidates_cache(self, chain_dir):
+        """reload() should clear the active_manifests cache."""
+        _write_manifest(
+            chain_dir / "a.manifest.yaml",
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest
+""",
+        )
+        chain = ManifestChain(chain_dir)
+        assert len(chain.active_manifests()) == 1
+
+        _write_manifest(
+            chain_dir / "b.manifest.yaml",
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest
+""",
+        )
+        chain.reload()
+        assert len(chain.active_manifests()) == 2
+
+
 class TestReload:
     def test_reload_picks_up_changes(self, chain_dir):
         _write_manifest(

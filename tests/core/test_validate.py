@@ -5,6 +5,7 @@ Golden test cases from 15-golden-tests.md sections 6 and 7.
 
 import pytest
 
+from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
 from maid_runner.core.validate import ValidationEngine, validate
@@ -941,6 +942,128 @@ validate:
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert result.success is True
+
+
+class TestValidateAllChainReuse:
+    """Tests that validate_all passes pre-built chain to validate, not creating new ones."""
+
+    def test_validate_all_creates_single_chain(self, project):
+        """With multiple manifests, validate_all should create exactly one ManifestChain."""
+        from unittest.mock import patch
+
+        for i in range(5):
+            _write_manifest(
+                project / "manifests",
+                f"m{i}.manifest.yaml",
+                f"""schema: "2"
+goal: "M{i}"
+files:
+  create:
+    - path: src/m{i}.py
+      artifacts:
+        - kind: function
+          name: func_{i}
+validate:
+  - pytest
+""",
+            )
+            _write_source(project, f"src/m{i}.py", f"def func_{i}():\n    return {i}\n")
+
+        engine = ValidationEngine(project)
+        with patch(
+            "maid_runner.core.validate.ManifestChain", wraps=ManifestChain
+        ) as mock_chain_cls:
+            result = engine.validate_all()
+        assert result.passed == 5
+        assert result.failed == 0
+        # validate_all creates one chain; individual validate() calls reuse it
+        assert mock_chain_cls.call_count == 1
+
+    def test_validate_accepts_chain_parameter(self, project):
+        """validate() should accept an optional chain parameter to avoid re-creating it."""
+        from maid_runner.core.chain import ManifestChain
+
+        _write_manifest(
+            project / "manifests",
+            "a.manifest.yaml",
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: func_a
+validate:
+  - pytest
+""",
+        )
+        _write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project)
+        manifest = chain.active_manifests()[0]
+        result = engine.validate(manifest, use_chain=True, chain=chain)
+        assert result.success is True
+
+    def test_validate_ignores_chain_when_use_chain_false(self, project):
+        """Passing chain with use_chain=False should not use the chain."""
+        _write_manifest(
+            project / "manifests",
+            "a.manifest.yaml",
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: func_a
+validate:
+  - pytest
+""",
+        )
+        _write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project)
+        manifest = chain.active_manifests()[0]
+        # use_chain=False should ignore the passed chain
+        result = engine.validate(manifest, use_chain=False, chain=chain)
+        assert result.success is True
+        # No file tracking report when chain is not used
+        assert result.file_tracking is None
+
+    def test_validate_all_performance_with_many_manifests(self, project):
+        """validate_all with 20 manifests should complete quickly (under 5s)."""
+        import time
+
+        for i in range(20):
+            _write_manifest(
+                project / "manifests",
+                f"perf{i}.manifest.yaml",
+                f"""schema: "2"
+goal: "Perf{i}"
+files:
+  create:
+    - path: src/perf{i}.py
+      artifacts:
+        - kind: function
+          name: perf_func_{i}
+validate:
+  - pytest
+""",
+            )
+            _write_source(
+                project, f"src/perf{i}.py", f"def perf_func_{i}():\n    return {i}\n"
+            )
+
+        engine = ValidationEngine(project)
+        start = time.monotonic()
+        result = engine.validate_all()
+        elapsed = time.monotonic() - start
+        assert result.passed == 20
+        assert elapsed < 5.0, f"validate_all took {elapsed:.1f}s, expected < 5s"
 
 
 class TestConvenienceFunctionWithDepthFlags:

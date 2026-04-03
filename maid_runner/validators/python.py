@@ -33,7 +33,7 @@ class PythonValidator(BaseValidator):
                 errors=[f"Syntax error: {e}"],
             )
 
-        collector = _ImplementationCollector()
+        collector = _ImplementationCollector(file_path=str(file_path))
         collector.visit(tree)
 
         return CollectionResult(
@@ -68,10 +68,11 @@ class PythonValidator(BaseValidator):
 
 
 class _ImplementationCollector(ast.NodeVisitor):
-    def __init__(self) -> None:
+    def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
         self._current_class: Optional[str] = None
         self._in_function: bool = False
+        self._is_init = Path(file_path).name == "__init__.py"
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         base_names = [_extract_base_name(b) for b in node.bases]
@@ -259,6 +260,30 @@ class _ImplementationCollector(ast.NodeVisitor):
                     )
                 )
 
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        # Only collect re-exports in __init__.py files at module level.
+        # Regular files import for USE, not re-export.
+        if not self._is_init:
+            return
+        if self._current_class is not None:
+            return
+        if node.names:
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                name = alias.asname or alias.name
+                kind = (
+                    ArtifactKind.CLASS if name[0].isupper() else ArtifactKind.FUNCTION
+                )
+                self.artifacts.append(
+                    FoundArtifact(
+                        kind=kind,
+                        name=name,
+                        line=node.lineno,
+                        column=node.col_offset,
+                    )
+                )
+
     def _has_artifact(self, name: str, of: Optional[str]) -> bool:
         return any(a.name == name and a.of == of for a in self.artifacts)
 
@@ -292,6 +317,10 @@ class _BehavioralCollector(ast.NodeVisitor):
 
     def visit_Name(self, node: ast.Name) -> None:
         self._add_reference(node.id)
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        self._add_reference(node.attr)
         self.generic_visit(node)
 
     def _add_reference(self, name: str) -> None:

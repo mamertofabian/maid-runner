@@ -1,0 +1,26 @@
+schema: '2'
+goal: >
+  Add visit_Attribute to _BehavioralCollector so that dot-notation attribute
+  access (e.g. report.captured) is collected during behavioral validation.
+  Without this, attribute artifacts declared in manifests always fail E200
+  even when tests clearly access them.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Attribute
+          of: _BehavioralCollector
+          args:
+            - name: node
+              type: ast.Attribute
+          returns: None
+
+  read:
+    - tests/validators/test_python.py
+
+validate:
+  - pytest tests/validators/test_python.py -v -k "TestBehavioral"
+created: '2026-04-03T12:00:00+00:00'

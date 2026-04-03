@@ -51,6 +51,7 @@ class ValidationEngine:
         *,
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
         use_chain: bool = False,
+        chain: Optional[ManifestChain] = None,
         manifest_dir: Union[str, Path] = "manifests/",
         check_stubs: bool = False,
         check_assertions: bool = False,
@@ -88,8 +89,9 @@ class ValidationEngine:
                     ],
                 )
 
-        chain: Optional[ManifestChain] = None
-        if use_chain:
+        if not use_chain:
+            chain = None
+        elif chain is None:
             chain_dir = self._project_root / manifest_dir
             if chain_dir.exists():
                 chain = ManifestChain(chain_dir, self._project_root)
@@ -145,7 +147,11 @@ class ValidationEngine:
 
         for manifest in active:
             result = self.validate(
-                manifest, mode=mode, use_chain=True, manifest_dir=manifest_dir
+                manifest,
+                mode=mode,
+                use_chain=True,
+                chain=chain,
+                manifest_dir=manifest_dir,
             )
             results.append(result)
             if result.success:

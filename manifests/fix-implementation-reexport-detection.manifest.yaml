@@ -1,0 +1,25 @@
+schema: '2'
+goal: >
+  Add visit_ImportFrom to _ImplementationCollector so that re-exported names
+  in __init__.py files (e.g. from .bootstrap import BootstrapReport) are
+  recognized as defined artifacts during implementation validation.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_ImportFrom
+          of: _ImplementationCollector
+          args:
+            - name: node
+              type: ast.ImportFrom
+          returns: None
+
+  read:
+    - tests/validators/test_python.py
+
+validate:
+  - pytest tests/validators/test_python.py -v -k "TestImplementationReexport"
+created: '2026-04-03T12:10:00+00:00'

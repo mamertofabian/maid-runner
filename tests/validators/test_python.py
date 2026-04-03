@@ -252,6 +252,125 @@ def test_greet():
         assert "greet" in names
 
 
+class TestBehavioralAttributeAccess:
+    """Tests that dot-notation attribute access is collected by _BehavioralCollector."""
+
+    def test_visit_Attribute_collects_attr_name(self):
+        """Direct test: _BehavioralCollector.visit_Attribute extracts attr field."""
+        import ast
+
+        from maid_runner.validators.python import _BehavioralCollector
+
+        collector = _BehavioralCollector()
+        node = ast.parse("obj.some_attr", mode="eval").body
+        collector.visit_Attribute(node)
+        names = [a.name for a in collector.artifacts]
+        assert "some_attr" in names
+
+    def test_simple_attribute_access(self, validator):
+        source = """obj = get_thing()
+result = obj.some_attr
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_attr.py")
+        names = [a.name for a in result.artifacts]
+        assert "some_attr" in names
+
+    def test_nested_attribute_access(self, validator):
+        source = """result = obj.some_attr.nested
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_attr.py")
+        names = [a.name for a in result.artifacts]
+        assert "some_attr" in names
+        assert "nested" in names
+
+    def test_attribute_in_assertion(self, validator):
+        source = """from mymod import Report
+
+def test_report():
+    report = Report()
+    assert report.captured == 2
+    assert report.total_artifacts == 5
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_report.py")
+        names = [a.name for a in result.artifacts]
+        assert "captured" in names
+        assert "total_artifacts" in names
+
+    def test_attribute_deduplication(self, validator):
+        source = """x = obj.name
+y = other.name
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_dedup.py")
+        name_count = sum(1 for a in result.artifacts if a.name == "name")
+        assert name_count == 1
+
+
+class TestImplementationReexport:
+    """Tests that _ImplementationCollector detects re-exported names via ImportFrom."""
+
+    def test_visit_ImportFrom_collects_reexports(self):
+        """Direct test: _ImplementationCollector.visit_ImportFrom extracts names in __init__.py."""
+        import ast
+
+        from maid_runner.validators.python import _ImplementationCollector
+
+        collector = _ImplementationCollector(file_path="__init__.py")
+        tree = ast.parse("from .sub import MyClass, my_func")
+        node = tree.body[0]
+        collector.visit_ImportFrom(node)
+        names = {a.name for a in collector.artifacts}
+        assert "MyClass" in names
+        assert "my_func" in names
+
+    def test_reexport_kind_inference(self, validator):
+        source = "from .sub import MyClass, my_func\n"
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+        my_class = _find(result.artifacts, "MyClass")
+        my_func = _find(result.artifacts, "my_func")
+        assert my_class is not None
+        assert my_class.kind == ArtifactKind.CLASS
+        assert my_func is not None
+        assert my_func.kind == ArtifactKind.FUNCTION
+
+    def test_reexport_alias(self, validator):
+        source = "from .module import OriginalName as AliasName\n"
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+        alias = _find(result.artifacts, "AliasName")
+        original = _find(result.artifacts, "OriginalName")
+        assert alias is not None
+        assert original is None
+
+    def test_star_import_skipped(self, validator):
+        source = "from .module import *\n"
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+        assert len(result.artifacts) == 0
+
+    def test_import_inside_class_not_collected(self, validator):
+        source = """class Foo:
+    from .bar import baz
+"""
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+        baz = _find(result.artifacts, "baz")
+        assert baz is None
+
+    def test_non_init_file_skips_reexports(self, validator):
+        source = "from .sub import MyClass\n"
+        result = validator.collect_implementation_artifacts(source, "regular.py")
+        assert _find(result.artifacts, "MyClass") is None
+
+    def test_reexport_with_existing_definitions(self, validator):
+        source = """from .sub import ReExported
+
+def local_func():
+    return True
+"""
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+        reexported = _find(result.artifacts, "ReExported")
+        local = _find(result.artifacts, "local_func")
+        assert reexported is not None
+        assert local is not None
+
+
 class TestStubDetection:
     """Tests for is_stub detection on Python functions."""
 
