@@ -313,6 +313,9 @@ class _BehavioralCollector(ast.NodeVisitor):
             self._add_reference(node.func.id)
         elif isinstance(node.func, ast.Attribute):
             self._add_reference(node.func.attr)
+        for kw in node.keywords:
+            if kw.arg is not None:  # **kwargs has arg=None
+                self._add_reference(kw.arg)
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:

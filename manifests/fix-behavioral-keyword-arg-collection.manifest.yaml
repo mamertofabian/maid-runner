@@ -1,0 +1,25 @@
+schema: '2'
+goal: >
+  Collect keyword argument names in _BehavioralCollector.visit_Call so that
+  Foo(bar=1) registers 'bar' as a used artifact. Without this, attribute
+  artifacts referenced only as constructor kwargs fail behavioral validation.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Call
+          of: _BehavioralCollector
+          args:
+            - name: node
+              type: ast.Call
+          returns: None
+
+  read:
+    - tests/validators/test_python.py
+
+validate:
+  - pytest tests/validators/test_python.py -v -k "TestBehavioral"
+created: '2026-04-03T13:00:00+00:00'

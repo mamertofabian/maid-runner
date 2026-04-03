@@ -305,6 +305,49 @@ y = other.name
         assert name_count == 1
 
 
+class TestBehavioralKeywordArgs:
+    """Tests that keyword argument names in calls are collected."""
+
+    def test_keyword_arg_in_constructor(self, validator):
+        source = """report = Report(captured=5, failed=0)
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_kwarg.py")
+        names = [a.name for a in result.artifacts]
+        assert "captured" in names
+        assert "failed" in names
+
+    def test_keyword_arg_in_function_call(self, validator):
+        source = """result = process(timeout=30, retries=3)
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_kwarg.py")
+        names = [a.name for a in result.artifacts]
+        assert "timeout" in names
+        assert "retries" in names
+
+    def test_double_star_kwargs_skipped(self, validator):
+        source = """data = {"x": 1}
+result = Foo(**data)
+"""
+        result = validator.collect_behavioral_artifacts(source, "test_kwarg.py")
+        names = [a.name for a in result.artifacts]
+        # **data should not produce a None artifact
+        assert None not in names
+
+    def test_visit_Call_collects_keyword_args(self):
+        """Direct test: visit_Call extracts keyword argument names."""
+        import ast
+
+        from maid_runner.validators.python import _BehavioralCollector
+
+        collector = _BehavioralCollector()
+        tree = ast.parse("Foo(bar=1, baz=2)")
+        call_node = tree.body[0].value
+        collector.visit_Call(call_node)
+        names = [a.name for a in collector.artifacts]
+        assert "bar" in names
+        assert "baz" in names
+
+
 class TestImplementationReexport:
     """Tests that _ImplementationCollector detects re-exported names via ImportFrom."""
 
