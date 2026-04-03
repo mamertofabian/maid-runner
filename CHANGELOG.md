@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-04-03
+
+### Added
+- **Behavioral depth validation** — Three new opt-in checks to catch hollow implementations: `E310 STUB_FUNCTION_DETECTED` (Python AST and TypeScript tree-sitter detect pass/ellipsis/NotImplementedError bodies), `E210 MISSING_ASSERTIONS` (test functions must contain assert/expect), `E320 MISSING_REQUIRED_IMPORT` (new `imports` field on FileSpec for required import verification). All opt-in via `check_stubs`/`check_assertions` params.
+- **Bootstrap command** — `maid bootstrap` batch-discovers source files in existing projects and generates snapshot manifests for gradual MAID adoption. Supports exclude patterns, .gitignore respect, dry-run, and multiple output modes.
+- **Self-snapshot manifests** — Added MAID manifests for the maid-runner packages themselves (dogfooding).
+
+### Fixed
+- **Behavioral attribute visitor** — Dot-notation attribute access (e.g. `report.captured`) now collected during behavioral validation.
+- **Keyword argument collection** — Constructor kwargs like `Foo(bar=1)` now register `bar` as a used artifact in behavioral validation, fixing false failures on dataclass attributes.
+- **Re-export detection** — `ImportFrom` in `__init__.py` files now recognized as defined artifacts during implementation validation.
+- **Snapshot parse error surfacing** — `generate_snapshot()` raises `SnapshotError` on parse failures instead of silently returning empty manifests.
+- **Chain validation performance** — Cached `active_manifests()` and pre-built chain passing in `validate_all` reduces validation from O(n²) to O(n) — 22x speedup (3.6s → 161ms for 37 manifests).
+
 ## [2.1.0] - 2026-03-26
 
 ### Added
