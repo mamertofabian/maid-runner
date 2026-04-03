@@ -1,0 +1,86 @@
+schema: '2'
+goal: Snapshot of maid_runner/graph/__init__.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/graph/__init__.py
+    artifacts:
+    - kind: class
+      name: NodeType
+    - kind: class
+      name: Node
+    - kind: class
+      name: ManifestNode
+    - kind: class
+      name: FileNode
+    - kind: class
+      name: ArtifactNode
+    - kind: class
+      name: ModuleNode
+    - kind: class
+      name: EdgeType
+    - kind: class
+      name: Edge
+    - kind: class
+      name: KnowledgeGraph
+    - kind: class
+      name: MANIFEST_PREFIX
+    - kind: class
+      name: FILE_PREFIX
+    - kind: class
+      name: ARTIFACT_PREFIX
+    - kind: class
+      name: MODULE_PREFIX
+    - kind: class
+      name: EDGE_PREFIX
+    - kind: function
+      name: export_json
+    - kind: function
+      name: export_dot
+    - kind: function
+      name: export_graphml
+    - kind: function
+      name: graph_to_dict
+    - kind: function
+      name: graph_to_dot
+    - kind: function
+      name: graph_to_graphml
+    - kind: function
+      name: find_nodes_by_type
+    - kind: function
+      name: find_node_by_name
+    - kind: function
+      name: get_neighbors
+    - kind: function
+      name: find_dependents
+    - kind: function
+      name: find_dependencies
+    - kind: function
+      name: get_dependency_tree
+    - kind: function
+      name: find_cycles
+    - kind: function
+      name: is_acyclic
+    - kind: function
+      name: get_affected_files
+    - kind: function
+      name: get_affected_manifests
+    - kind: function
+      name: analyze_impact
+    - kind: class
+      name: QueryType
+    - kind: class
+      name: QueryIntent
+    - kind: class
+      name: QueryParser
+    - kind: class
+      name: QueryResult
+    - kind: class
+      name: QueryExecutor
+    - kind: class
+      name: GraphBuilder
+    - kind: class
+      name: GraphQuery
+validate:
+- pytest tests/ -v
+created: '2026-04-03T04:42:05.367643+00:00'

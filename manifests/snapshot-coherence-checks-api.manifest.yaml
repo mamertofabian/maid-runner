@@ -1,0 +1,32 @@
+schema: '2'
+goal: Snapshot of maid_runner/coherence/checks/__init__.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/coherence/checks/__init__.py
+    artifacts:
+    - kind: class
+      name: BaseCheck
+    - kind: function
+      name: get_checks
+    - kind: class
+      name: DuplicateCheck
+    - kind: class
+      name: SignatureCheck
+    - kind: class
+      name: NamingCheck
+    - kind: class
+      name: ModuleBoundaryCheck
+    - kind: class
+      name: DependencyCheck
+    - kind: class
+      name: PatternCheck
+    - kind: class
+      name: ConstraintCheck
+    - kind: class
+      name: ConstraintConfig
+    - kind: class
+      name: ConstraintRule
+validate:
+- pytest tests/ -v
+created: '2026-04-03T04:42:06.250696+00:00'

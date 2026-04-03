@@ -1,0 +1,16 @@
+schema: '2'
+goal: Snapshot of maid_runner/cli/commands/test.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/cli/commands/test.py
+    artifacts:
+    - kind: function
+      name: cmd_test
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+validate:
+- pytest tests/ -v
+created: '2026-04-03T04:41:53.117622+00:00'

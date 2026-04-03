@@ -1,0 +1,22 @@
+schema: '2'
+goal: Snapshot of maid_runner/validators/__init__.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/validators/__init__.py
+    artifacts:
+    - kind: class
+      name: BaseValidator
+    - kind: class
+      name: FoundArtifact
+    - kind: class
+      name: CollectionResult
+    - kind: class
+      name: ValidatorRegistry
+    - kind: class
+      name: UnsupportedLanguageError
+    - kind: class
+      name: PythonValidator
+validate:
+- pytest tests/ -v
+created: '2026-04-03T04:42:06.363184+00:00'

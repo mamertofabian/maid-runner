@@ -1,0 +1,76 @@
+schema: '2'
+goal: Snapshot of maid_runner/core/__init__.py
+type: snapshot
+files:
+  snapshot:
+  - path: maid_runner/core/__init__.py
+    artifacts:
+    - kind: class
+      name: BootstrapFileResult
+    - kind: class
+      name: BootstrapReport
+    - kind: function
+      name: bootstrap_project
+    - kind: function
+      name: validate
+    - kind: function
+      name: validate_all
+    - kind: class
+      name: ValidationEngine
+    - kind: function
+      name: load_manifest
+    - kind: function
+      name: save_manifest
+    - kind: class
+      name: ManifestLoadError
+    - kind: class
+      name: ManifestSchemaError
+    - kind: class
+      name: ManifestChain
+    - kind: class
+      name: AcceptanceConfig
+    - kind: class
+      name: ArtifactKind
+    - kind: class
+      name: ArtifactSpec
+    - kind: class
+      name: ArgSpec
+    - kind: class
+      name: FileSpec
+    - kind: class
+      name: FileMode
+    - kind: class
+      name: DeleteSpec
+    - kind: class
+      name: Manifest
+    - kind: class
+      name: TaskType
+    - kind: class
+      name: TestStream
+    - kind: class
+      name: ValidationMode
+    - kind: class
+      name: ValidationResult
+    - kind: class
+      name: BatchValidationResult
+    - kind: class
+      name: ValidationError
+    - kind: class
+      name: ErrorCode
+    - kind: class
+      name: Severity
+    - kind: class
+      name: Location
+    - kind: class
+      name: FileTrackingReport
+    - kind: class
+      name: FileTrackingStatus
+    - kind: class
+      name: FileTrackingEntry
+    - kind: class
+      name: TestRunResult
+    - kind: class
+      name: BatchTestResult
+validate:
+- pytest tests/ -v
+created: '2026-04-03T04:42:05.258469+00:00'
