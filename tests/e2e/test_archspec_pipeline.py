@@ -337,9 +337,9 @@ def write_all_stubs_from_manifests(project_dir: Path) -> None:
                 full = project_dir / path
                 full.parent.mkdir(parents=True, exist_ok=True)
 
-                # Build imports from required_imports
+                # Build imports from imports field (schema-standard name)
                 lines: list[str] = []
-                for imp in f.get("required_imports", []):
+                for imp in f.get("imports", []):
                     # Convert path-like imports to Python imports
                     if imp.endswith(".py"):
                         mod = imp.replace("/", ".").removesuffix(".py")
@@ -448,15 +448,11 @@ class TestArchSpecPipeline:
         engine = ValidationEngine(project_root=project_dir)
         batch = engine.validate_all(manifests_dir)
 
-        # Assert manifests pass (allow E320 import path mismatches from arch-spec
-        # generating path-style imports like "src/models/user.py" that don't match
-        # Python's dotted module imports collected by the validator)
+        # Assert all manifests pass validation (including E320 import checks —
+        # path-style imports like "src/models/user.py" are normalized to dotted form)
         for r in batch.results:
-            non_import_errors = [e for e in r.errors if e.code.value != "E320"]
-            assert (
-                not non_import_errors
-            ), f"Manifest '{r.manifest_slug}' failed: " + "; ".join(
-                e.message for e in non_import_errors
+            assert not r.errors, f"Manifest '{r.manifest_slug}' failed: " + "; ".join(
+                e.message for e in r.errors
             )
 
         # Verify the pipeline ran and produced meaningful results

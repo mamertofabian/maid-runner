@@ -829,7 +829,15 @@ def _check_required_imports(
 
     # Check each required import
     for req in required_imports:
-        if req not in found_imports:
+        candidates = {req}
+        # Normalize path-style imports to dotted module notation for Python files
+        # (arch-spec generates "src/models/user.py" but Python AST collects "src.models.user")
+        if file_path.endswith(".py") and "/" in req:
+            dotted = req.replace("/", ".")
+            if dotted.endswith(".py"):
+                dotted = dotted[:-3]
+            candidates.add(dotted)
+        if not candidates & found_imports:
             errors.append(
                 ValidationError(
                     code=ErrorCode.MISSING_REQUIRED_IMPORT,

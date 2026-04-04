@@ -1265,6 +1265,102 @@ validate:
         # project root — filtered out. So "outside/module" won't match.
         assert len(import_errors) == 1
 
+    def test_python_path_style_import_matches_dotted(self, project):
+        """Path-style required_import 'src/models/user.py' matches dotted 'src.models.user'."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-user.manifest.yaml",
+            """schema: "2"
+goal: "Add user model"
+files:
+  create:
+    - path: src/routes/users.py
+      artifacts:
+        - kind: function
+          name: get_users
+      imports:
+        - src/models/user.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/routes/users.py",
+            "from src.models.user import User\n\ndef get_users():\n    return User.all()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_python_path_style_without_extension_matches(self, project):
+        """Path-style required_import 'src/models/user' (no .py) matches dotted import."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-user2.manifest.yaml",
+            """schema: "2"
+goal: "Add user routes"
+files:
+  create:
+    - path: src/routes/users.py
+      artifacts:
+        - kind: function
+          name: list_users
+      imports:
+        - src/models/user
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/routes/users.py",
+            "from src.models.user import User\n\ndef list_users():\n    return []\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_python_dotted_import_still_works(self, project):
+        """Dotted required_import 'src.models.user' still matches directly (regression check)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-user3.manifest.yaml",
+            """schema: "2"
+goal: "Add user views"
+files:
+  create:
+    - path: src/views/users.py
+      artifacts:
+        - kind: function
+          name: show_users
+      imports:
+        - src.models.user
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/views/users.py",
+            "from src.models.user import User\n\ndef show_users():\n    return User.all()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
 
 class TestValidateAllChainReuse:
     """Tests that validate_all passes pre-built chain to validate, not creating new ones."""
