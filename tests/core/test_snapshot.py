@@ -364,3 +364,113 @@ class TestSnapshotSlug:
         src.write_text("def main():\n    pass\n")
         m = generate_snapshot(str(src), project_root=str(tmp_path))
         assert m.slug == "snapshot-main"
+
+
+# ---------------------------------------------------------------------------
+# Edge cases for snapshot
+# ---------------------------------------------------------------------------
+
+
+class TestSnapshotEdgeCases:
+    def test_file_outside_project_root(self, tmp_path):
+        """Snapshot of file outside project root uses absolute path."""
+        other = tmp_path / "outside"
+        other.mkdir()
+        src = other / "service.py"
+        src.write_text("def svc():\n    pass\n")
+        project = tmp_path / "project"
+        project.mkdir()
+        # File is outside project_root, so relative_to raises ValueError
+        m = generate_snapshot(str(src), project_root=str(project))
+        # Should fall back to absolute path
+        assert m.slug is not None
+
+    def test_system_snapshot_missing_dir(self, tmp_path):
+        """System snapshot with nonexistent manifest dir returns empty."""
+        m = generate_system_snapshot(
+            manifest_dir=str(tmp_path / "nonexistent"),
+            project_root=str(tmp_path),
+        )
+        assert m.task_type == TaskType.SYSTEM_SNAPSHOT
+        assert not m.files_create
+        assert not m.files_edit
+
+    def test_system_snapshot_empty_dir(self, tmp_path):
+        """System snapshot with empty manifest dir returns empty."""
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        m = generate_system_snapshot(
+            manifest_dir=str(manifest_dir),
+            project_root=str(tmp_path),
+        )
+        assert m.task_type == TaskType.SYSTEM_SNAPSHOT
+
+    def test_system_snapshot_with_tracked_files(self, tmp_path):
+        """System snapshot captures artifacts from tracked files."""
+        # Create a manifest
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "example.py").write_text(
+            "def greet(name: str) -> str:\n    return name\n"
+        )
+
+        manifest = {
+            "schema": "2",
+            "goal": "Add greeting",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/example.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ]
+            },
+            "validate": ["echo ok"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        m = generate_system_snapshot(
+            manifest_dir=str(manifest_dir),
+            project_root=str(tmp_path),
+        )
+        # Should have found the tracked file
+        assert m.task_type == TaskType.SYSTEM_SNAPSHOT
+
+    def test_infer_test_path_typescript(self):
+        """Test path inference for TypeScript files."""
+        from maid_runner.core.snapshot import _infer_test_path
+
+        result = _infer_test_path("src/auth.ts", "tests")
+        assert result.endswith(".test.ts")
+        assert "auth" in result
+
+    def test_infer_test_path_tsx(self):
+        """Test path inference for TSX files."""
+        from maid_runner.core.snapshot import _infer_test_path
+
+        result = _infer_test_path("src/App.tsx", "tests")
+        assert result.endswith(".test.tsx")
+
+    def test_infer_test_path_unknown(self):
+        """Test path inference for unknown file types."""
+        from maid_runner.core.snapshot import _infer_test_path
+
+        result = _infer_test_path("src/config.json", "tests")
+        assert "test_config" in result
+
+    def test_infer_validation_command_typescript(self):
+        """TypeScript files get vitest command."""
+        from maid_runner.core.snapshot import _infer_validation_command
+
+        cmd = _infer_validation_command("src/auth.ts")
+        assert ("vitest", "run") in cmd
+
+    def test_infer_validation_command_default(self):
+        """Unknown file types default to pytest."""
+        from maid_runner.core.snapshot import _infer_validation_command
+
+        cmd = _infer_validation_command("src/config.json")
+        assert cmd[0][0] == "pytest"

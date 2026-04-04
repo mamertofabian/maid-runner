@@ -335,3 +335,261 @@ class TestConvertV1File:
         result = convert_v1_file(input_path, output_path)
         assert result == output_path
         assert result.exists()
+
+
+# ---------------------------------------------------------------------------
+# _convert_artifact edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestConvertArtifactEdgeCases:
+    """Tests for uncovered conversion paths in _convert_artifact."""
+
+    def test_attribute_kind_conversion(self):
+        """V1 attribute type should convert to v2 attribute kind."""
+        v1 = {
+            "taskDescription": "Add config",
+            "taskType": "feature",
+            "goal": "Add config",
+            "creatableFiles": ["src/config.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "src/config.py",
+                "contains": [{"name": "DEBUG", "type": "attribute"}],
+            },
+            "validationCommand": ["echo", "ok"],
+        }
+        result = convert_v1_to_v2(v1)
+        arts = result["files"]["create"][0]["artifacts"]
+        assert arts[0]["kind"] == "attribute"
+        assert arts[0]["name"] == "DEBUG"
+
+    def test_returns_as_plain_string(self):
+        """V1 returns as a plain string (not a dict) should pass through."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.py",
+                "contains": [{"type": "function", "name": "greet", "returns": "str"}],
+            },
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["returns"] == "str"
+
+    def test_raises_field_included(self):
+        """V1 raises field should appear in the v2 artifact."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.py",
+                "contains": [
+                    {
+                        "type": "function",
+                        "name": "validate",
+                        "raises": ["ValueError", "TypeError"],
+                    }
+                ],
+            },
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["raises"] == ["ValueError", "TypeError"]
+
+    def test_interface_kind_passthrough(self):
+        """V1 type 'interface' should pass through as kind 'interface'."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.ts"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.ts",
+                "contains": [{"type": "interface", "name": "UserProps"}],
+            },
+            "validationCommand": ["vitest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["kind"] == "interface"
+
+    def test_enum_kind_passthrough(self):
+        """V1 type 'enum' should pass through as kind 'enum'."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.py",
+                "contains": [{"type": "enum", "name": "Color"}],
+            },
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["kind"] == "enum"
+
+    def test_bases_field_included(self):
+        """V1 bases field should appear in the v2 artifact."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.py",
+                "contains": [
+                    {
+                        "type": "class",
+                        "name": "AdminService",
+                        "bases": ["BaseService", "Auditable"],
+                    }
+                ],
+            },
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["bases"] == ["BaseService", "Auditable"]
+
+    def test_description_field_included(self):
+        """V1 description field should appear in the v2 artifact."""
+        v1 = {
+            "goal": "Test",
+            "creatableFiles": ["a.py"],
+            "readonlyFiles": [],
+            "expectedArtifacts": {
+                "file": "a.py",
+                "contains": [
+                    {
+                        "type": "function",
+                        "name": "process",
+                        "description": "Process incoming data",
+                    }
+                ],
+            },
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        artifact = result["files"]["create"][0]["artifacts"][0]
+        assert artifact["description"] == "Process incoming data"
+
+
+# ---------------------------------------------------------------------------
+# _path_to_slug edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestPathToSlug:
+    """Tests for _path_to_slug with various suffixes."""
+
+    def test_json_suffix_stripped(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert _path_to_slug("add-auth.manifest.json") == "add-auth"
+
+    def test_yaml_suffix_stripped(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert _path_to_slug("add-auth.manifest.yaml") == "add-auth"
+
+    def test_yml_suffix_stripped(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert _path_to_slug("add-auth.manifest.yml") == "add-auth"
+
+    def test_full_path_uses_basename(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert (
+            _path_to_slug("manifests/task-001-add-schema.manifest.json")
+            == "task-001-add-schema"
+        )
+
+    def test_no_manifest_suffix_returns_filename(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert _path_to_slug("some-file.txt") == "some-file.txt"
+
+    def test_plain_name_returns_as_is(self):
+        from maid_runner.compat.v1_loader import _path_to_slug
+
+        assert _path_to_slug("my-slug") == "my-slug"
+
+
+# ---------------------------------------------------------------------------
+# System artifacts edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestSystemArtifactConversion:
+    """Tests for systemArtifacts conversion paths."""
+
+    def test_snapshot_task_type_converts(self):
+        """taskType 'snapshot' with systemArtifacts should create snapshot files."""
+        v1 = {
+            "goal": "Snapshot baseline",
+            "taskType": "snapshot",
+            "readonlyFiles": [],
+            "systemArtifacts": [
+                {
+                    "file": "src/core.py",
+                    "contains": [
+                        {"type": "class", "name": "Engine"},
+                        {"type": "function", "name": "run"},
+                    ],
+                }
+            ],
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        assert result["type"] == "snapshot"
+        snapshot = result["files"]["snapshot"]
+        assert len(snapshot) == 1
+        assert snapshot[0]["path"] == "src/core.py"
+        assert len(snapshot[0]["artifacts"]) == 2
+        assert snapshot[0]["artifacts"][0]["kind"] == "class"
+        assert snapshot[0]["artifacts"][1]["kind"] == "function"
+
+    def test_empty_system_artifacts_no_snapshot_key(self):
+        """Empty systemArtifacts should not create a snapshot section."""
+        v1 = {
+            "goal": "Empty snapshot",
+            "taskType": "system-snapshot",
+            "readonlyFiles": [],
+            "systemArtifacts": [],
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        assert result["type"] == "system-snapshot"
+        # With empty systemArtifacts and no expectedArtifacts,
+        # the files dict should not have a snapshot key
+        files = result.get("files", {})
+        assert "snapshot" not in files
+
+    def test_system_artifacts_with_parameter_skipped(self):
+        """Parameter artifacts inside systemArtifacts should be skipped."""
+        v1 = {
+            "goal": "Snapshot with params",
+            "taskType": "system-snapshot",
+            "readonlyFiles": [],
+            "systemArtifacts": [
+                {
+                    "file": "src/api.py",
+                    "contains": [
+                        {"type": "function", "name": "handle"},
+                        {"type": "parameter", "name": "request", "function": "handle"},
+                    ],
+                }
+            ],
+            "validationCommand": ["pytest"],
+        }
+        result = convert_v1_to_v2(v1)
+        snapshot = result["files"]["snapshot"]
+        # Only the function should survive, parameter is skipped
+        assert len(snapshot[0]["artifacts"]) == 1
+        assert snapshot[0]["artifacts"][0]["name"] == "handle"

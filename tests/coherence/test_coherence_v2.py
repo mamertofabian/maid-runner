@@ -913,3 +913,338 @@ class TestLoadConstraintConfig:
         assert config.version == "2"
         assert len(config.rules) == 1
         assert config.rules[0].name == "test-rule"
+
+
+# ---------------------------------------------------------------------------
+# Boundary check - forbidden patterns coverage
+# ---------------------------------------------------------------------------
+
+
+class TestBoundaryCheckForbiddenPatterns:
+    """Tests for _BOUNDARY_VIOLATION_PATTERNS defined in boundary.py.
+
+    The boundary module defines forbidden patterns:
+        controllers -> data
+        cli -> data
+    Only the 'Repository' heuristic (which maps to 'data') was previously tested.
+    These tests exercise the explicit pattern matching via type hints resolved
+    through the knowledge graph.
+    """
+
+    def test_controller_accessing_data_module_via_graph(self):
+        """A controller artifact with a type hint that resolves to the data module
+        should be flagged as a boundary violation."""
+        # Create a data module artifact so the graph can resolve the type hint
+        m_data = _make_manifest(
+            "m-data",
+            files_create=(
+                _make_fs(
+                    "src/data/store.py",
+                    (_make_art("DataStore", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        # Controller references DataStore via a type hint
+        m_ctrl = _make_manifest(
+            "m-ctrl",
+            files_create=(
+                _make_fs(
+                    "src/controllers/user_ctrl.py",
+                    (
+                        _make_art(
+                            "list_users",
+                            args=(ArgSpec("store", "DataStore"),),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m_data, m_ctrl])
+        check = ModuleBoundaryCheck()
+        issues = check.run(graph, [m_data, m_ctrl])
+        boundary_issues = [
+            i for i in issues if i.issue_type == IssueType.BOUNDARY_VIOLATION
+        ]
+        assert len(boundary_issues) >= 1
+        assert any("controllers" in i.message for i in boundary_issues)
+
+    def test_cli_accessing_data_module_via_graph(self):
+        """A CLI artifact with a type hint that resolves to the data module
+        should be flagged as a boundary violation."""
+        m_data = _make_manifest(
+            "m-data",
+            files_create=(
+                _make_fs(
+                    "src/data/connector.py",
+                    (_make_art("DbConnector", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        m_cli = _make_manifest(
+            "m-cli",
+            files_create=(
+                _make_fs(
+                    "src/cli/run.py",
+                    (
+                        _make_art(
+                            "execute",
+                            args=(ArgSpec("conn", "DbConnector"),),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m_data, m_cli])
+        check = ModuleBoundaryCheck()
+        issues = check.run(graph, [m_data, m_cli])
+        boundary_issues = [
+            i for i in issues if i.issue_type == IssueType.BOUNDARY_VIOLATION
+        ]
+        assert len(boundary_issues) >= 1
+        assert any("cli" in i.message for i in boundary_issues)
+
+    def test_controller_accessing_non_forbidden_module_no_issue(self):
+        """A controller referencing a services module should not be flagged."""
+        m_svc = _make_manifest(
+            "m-svc",
+            files_create=(
+                _make_fs(
+                    "src/services/auth.py",
+                    (_make_art("AuthService", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        m_ctrl = _make_manifest(
+            "m-ctrl",
+            files_create=(
+                _make_fs(
+                    "src/controllers/auth_ctrl.py",
+                    (
+                        _make_art(
+                            "login",
+                            args=(ArgSpec("svc", "AuthService"),),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m_svc, m_ctrl])
+        check = ModuleBoundaryCheck()
+        issues = check.run(graph, [m_svc, m_ctrl])
+        boundary_issues = [
+            i for i in issues if i.issue_type == IssueType.BOUNDARY_VIOLATION
+        ]
+        assert len(boundary_issues) == 0
+
+    def test_base_class_from_data_module_flagged(self):
+        """A controller class inheriting from a data-module class should be flagged."""
+        m_data = _make_manifest(
+            "m-data",
+            files_create=(
+                _make_fs(
+                    "src/data/base_repo.py",
+                    (_make_art("BaseRepo", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        m_ctrl = _make_manifest(
+            "m-ctrl",
+            files_create=(
+                _make_fs(
+                    "src/controllers/mixed.py",
+                    (
+                        _make_art(
+                            "MixedCtrl",
+                            kind=ArtifactKind.CLASS,
+                            bases=("BaseRepo",),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m_data, m_ctrl])
+        check = ModuleBoundaryCheck()
+        issues = check.run(graph, [m_data, m_ctrl])
+        boundary_issues = [
+            i for i in issues if i.issue_type == IssueType.BOUNDARY_VIOLATION
+        ]
+        assert len(boundary_issues) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Naming check - private artifacts and unknown language
+# ---------------------------------------------------------------------------
+
+
+class TestNamingPrivateArtifacts:
+    """Private artifacts (is_private=True) should be skipped by NamingCheck."""
+
+    def test_private_function_skipped(self):
+        """A private function (name starts with _) that violates naming should not
+        produce any issues because private artifacts are skipped."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "a.py",
+                    # PascalCase for a function is a naming violation, but since
+                    # the name starts with _, it should be skipped
+                    (_make_art("_BadName", ArtifactKind.FUNCTION),),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_private_method_skipped(self):
+        """A private method should not be checked for naming conventions."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "svc.py",
+                    (
+                        ArtifactSpec(
+                            kind=ArtifactKind.METHOD,
+                            name="_InternalHelper",
+                            of="Service",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_private_class_skipped(self):
+        """A private class (name starts with _) should not be checked."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "mod.py",
+                    (_make_art("_bad_class_name", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+
+class TestNamingUnknownLanguage:
+    """Files with unknown extensions should not produce naming issues."""
+
+    def test_unknown_extension_no_issues(self):
+        """A .rs file (Rust) is not recognized by _detect_language,
+        so NamingCheck should produce no issues regardless of naming."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "src/lib.rs",
+                    (_make_art("BadlyNamedThing", ArtifactKind.FUNCTION),),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_unknown_extension_java(self):
+        """A .java file should also be treated as unknown language."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "Main.java",
+                    (_make_art("snake_case_class", ArtifactKind.CLASS),),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+    def test_no_extension_no_issues(self):
+        """A file without any extension should produce no naming issues."""
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "Makefile",
+                    (_make_art("BAD_NAME", ArtifactKind.FUNCTION),),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = NamingCheck()
+        issues = check.run(graph, [m])
+        assert len(issues) == 0
+
+
+# ---------------------------------------------------------------------------
+# Naming regex helpers - direct unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestNamingRegexHelpers:
+    """Direct tests for _is_snake_case, _is_pascal_case, _is_camel_case."""
+
+    def test_is_snake_case_valid(self):
+        from maid_runner.coherence.checks.naming import _is_snake_case
+
+        assert _is_snake_case("my_func") is True
+        assert _is_snake_case("a") is True
+        assert _is_snake_case("get_user_by_id") is True
+        assert _is_snake_case("_private") is True
+        assert _is_snake_case("x2") is True
+
+    def test_is_snake_case_invalid(self):
+        from maid_runner.coherence.checks.naming import _is_snake_case
+
+        assert _is_snake_case("MyFunc") is False
+        assert _is_snake_case("myFunc") is False
+        assert _is_snake_case("2bad") is False
+        assert _is_snake_case("has-dash") is False
+        assert _is_snake_case("") is False
+
+    def test_is_pascal_case_valid(self):
+        from maid_runner.coherence.checks.naming import _is_pascal_case
+
+        assert _is_pascal_case("MyClass") is True
+        assert _is_pascal_case("A") is True
+        assert _is_pascal_case("HTMLParser") is True
+        assert _is_pascal_case("X2") is True
+
+    def test_is_pascal_case_invalid(self):
+        from maid_runner.coherence.checks.naming import _is_pascal_case
+
+        assert _is_pascal_case("myClass") is False
+        assert _is_pascal_case("my_class") is False
+        assert _is_pascal_case("_Private") is False
+        assert _is_pascal_case("") is False
+
+    def test_is_camel_case_valid(self):
+        from maid_runner.coherence.checks.naming import _is_camel_case
+
+        assert _is_camel_case("myFunc") is True
+        assert _is_camel_case("a") is True
+        assert _is_camel_case("getUserById") is True
+        assert _is_camel_case("x2") is True
+
+    def test_is_camel_case_invalid(self):
+        from maid_runner.coherence.checks.naming import _is_camel_case
+
+        assert _is_camel_case("MyFunc") is False
+        assert _is_camel_case("my_func") is False
+        assert _is_camel_case("_private") is False
+        assert _is_camel_case("2bad") is False
+        assert _is_camel_case("") is False

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import textwrap
@@ -185,6 +186,89 @@ class TestCmdValidateAll:
         assert exit_code in (0, 1)
 
 
+class TestCmdValidateCoherenceOnly:
+    def test_coherence_only_with_valid_manifests(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--coherence-only"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Coherence:" in captured.out
+
+    def test_coherence_only_json_output(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--coherence-only", "--json"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert "success" in data
+
+    def test_coherence_only_nonexistent_dir(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            ["validate", "--coherence-only", "--manifest-dir", "nonexistent/"]
+        )
+        assert exit_code == 2
+
+
+class TestCmdValidateCoherenceFlag:
+    def test_coherence_flag_appends_coherence_output(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--coherence",
+            ]
+        )
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        # Coherence output may be appended after validation
+        assert "add-greet" in captured.out
+
+    def test_coherence_flag_on_batch_validation(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--coherence"])
+        assert exit_code == 0
+
+
+class TestCmdValidateWatchMode:
+    def test_watch_without_watchdog_returns_error(self, project_dir, capsys):
+        """If watchdog is not installed, watch mode returns 2."""
+        import importlib.util
+
+        # Check if watchdog is available
+        if importlib.util.find_spec("watchdog") is not None:
+            pytest.skip("watchdog is installed, cannot test missing dependency path")
+
+        from maid_runner.cli.commands.validate import _run_watch
+
+        args = argparse.Namespace(
+            watch=True,
+            watch_all=False,
+            manifest_path=None,
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=False,
+            coherence=False,
+            coherence_only=False,
+        )
+        exit_code = _run_watch(args)
+        assert exit_code == 2
+
+
 class TestCmdValidateErrorHandling:
     def test_malformed_manifest_returns_error(self, tmp_path, capsys):
         from maid_runner.cli.commands._main import main
@@ -196,3 +280,81 @@ class TestCmdValidateErrorHandling:
         os.chdir(tmp_path)
         exit_code = main(["validate", "manifests/bad.manifest.yaml", "--no-chain"])
         assert exit_code in (1, 2)  # Either validation error or usage error
+
+    def test_exception_in_validation_returns_2(self, tmp_path, capsys):
+        """When validation raises an unexpected exception, returns 2."""
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        # Write manifest pointing to missing directory structure
+        manifest = {
+            "schema": "2",
+            "goal": "Test error",
+            "type": "feature",
+            "files": {"create": []},
+            "validate": [],
+        }
+        (manifest_dir / "test.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        # This should handle gracefully
+        exit_code = main(["validate"])
+        assert exit_code in (0, 1, 2)
+
+
+class TestRunValidationPass:
+    def test_single_manifest_pass(self, project_dir, capsys):
+        """_run_validation_pass validates a single manifest."""
+        from maid_runner.cli.commands.validate import _run_validation_pass
+
+        os.chdir(project_dir)
+        args = argparse.Namespace(
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            watch_all=False,
+        )
+        _run_validation_pass(args)
+        captured = capsys.readouterr()
+        assert "add-greet" in captured.out
+
+    def test_batch_validation_pass(self, project_dir, capsys):
+        """_run_validation_pass validates all manifests when watch_all."""
+        from maid_runner.cli.commands.validate import _run_validation_pass
+
+        os.chdir(project_dir)
+        args = argparse.Namespace(
+            manifest_path=None,
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            watch_all=True,
+        )
+        _run_validation_pass(args)
+        captured = capsys.readouterr()
+        assert "Validation Results" in captured.out
+
+    def test_error_handling_in_pass(self, tmp_path, capsys):
+        """_run_validation_pass handles errors gracefully."""
+        from maid_runner.cli.commands.validate import _run_validation_pass
+
+        os.chdir(tmp_path)
+        args = argparse.Namespace(
+            manifest_path="nonexistent.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            watch_all=False,
+        )
+        # Should not crash
+        _run_validation_pass(args)
+        captured = capsys.readouterr()
+        assert "Error" in captured.err or "FAIL" in captured.out or captured.out

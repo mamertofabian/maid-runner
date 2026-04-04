@@ -8,7 +8,7 @@ import pytest
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
-from maid_runner.core.validate import ValidationEngine, validate
+from maid_runner.core.validate import ValidationEngine, validate, _check_test_assertions
 
 
 @pytest.fixture()
@@ -1692,3 +1692,413 @@ validate:
         # test_logout is declared but missing -> E300
         assert result.success is False
         assert any(e.code == ErrorCode.ARTIFACT_NOT_DEFINED for e in result.errors)
+
+
+class TestSchemaErrorHandling:
+    """Schema errors during manifest loading should return E004."""
+
+    def test_schema_error_returns_e004(self, project):
+        """Manifest with schema error returns SCHEMA_VALIDATION_ERROR."""
+        bad_manifest = _write_manifest(
+            project / "manifests",
+            "bad.manifest.yaml",
+            "schema: '2'\ntype: feature\nfiles:\n  create: []\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(str(bad_manifest), use_chain=False)
+        assert not result.success
+        error_codes = {e.code for e in result.errors}
+        assert ErrorCode.SCHEMA_VALIDATION_ERROR in error_codes
+
+    def test_manifest_load_error_returns_e001(self, project):
+        """Non-existent manifest path returns FILE_NOT_FOUND."""
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            str(project / "manifests" / "nonexistent.manifest.yaml"),
+            use_chain=False,
+        )
+        assert not result.success
+        error_codes = {e.code for e in result.errors}
+        assert ErrorCode.FILE_NOT_FOUND in error_codes
+
+
+class TestFileAbsentValidation:
+    """FileSpec with is_absent=True should fail when the file exists."""
+
+    def test_is_absent_file_still_present_fails(self, project):
+        """File marked absent in a create spec with status='absent' triggers E305."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "remove-mod.manifest.yaml",
+            """schema: "2"
+goal: "Remove module"
+type: refactor
+files:
+  delete:
+    - path: src/old.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/old.py", "# should be deleted\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not result.success
+        assert any(e.code == ErrorCode.FILE_SHOULD_BE_ABSENT for e in result.errors)
+
+    def test_is_absent_file_actually_absent_passes(self, project):
+        """File marked absent that does not exist passes validation."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "remove-mod.manifest.yaml",
+            """schema: "2"
+goal: "Remove module"
+type: refactor
+files:
+  delete:
+    - path: src/old.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+        # Don't create src/old.py
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success
+
+
+class TestUnsupportedLanguage:
+    """Files with unsupported extensions should produce VALIDATOR_NOT_AVAILABLE warning."""
+
+    def test_unsupported_extension_warns(self, project):
+        """A .rb file triggers VALIDATOR_NOT_AVAILABLE warning."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-ruby.manifest.yaml",
+            """schema: "2"
+goal: "Add ruby module"
+files:
+  create:
+    - path: src/helper.rb
+      artifacts:
+        - kind: function
+          name: helper
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/helper.rb", "def helper\n  'hello'\nend\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Unsupported language is a warning, not an error, so validation passes
+        assert result.success
+        assert any(w.code == ErrorCode.VALIDATOR_NOT_AVAILABLE for w in result.warnings)
+
+    def test_supported_extension_no_warning(self, project):
+        """A .py file should NOT trigger VALIDATOR_NOT_AVAILABLE."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-py.manifest.yaml",
+            """schema: "2"
+goal: "Add python module"
+files:
+  create:
+    - path: src/mod.py
+      artifacts:
+        - kind: function
+          name: helper
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/mod.py", "def helper():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(
+            w.code == ErrorCode.VALIDATOR_NOT_AVAILABLE for w in result.warnings
+        )
+
+
+class TestCheckTestAssertionsUnit:
+    """Direct unit tests for _check_test_assertions function."""
+
+    def test_python_test_no_assertions(self):
+        """Python test function without any assertion triggers MISSING_ASSERTIONS."""
+        source = "def test_example():\n    x = 1 + 1\n    print(x)\n"
+        errors = _check_test_assertions(source, "test_example.py")
+        assert len(errors) == 1
+        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
+        assert "test_example" in errors[0].message
+
+    def test_python_test_with_assert(self):
+        """Python test function with assert statement should not trigger warning."""
+        source = "def test_example():\n    assert 1 + 1 == 2\n"
+        errors = _check_test_assertions(source, "test_example.py")
+        assert len(errors) == 0
+
+    def test_python_non_test_function_ignored(self):
+        """Functions not starting with test_ should be ignored."""
+        source = "def helper():\n    x = 1\n"
+        errors = _check_test_assertions(source, "test_helpers.py")
+        assert len(errors) == 0
+
+    def test_python_multiple_test_functions(self):
+        """Multiple test functions: only assertion-less ones are flagged."""
+        source = (
+            "def test_good():\n    assert True\n\n"
+            "def test_bad():\n    x = 1\n\n"
+            "def test_also_good():\n    assert 1 == 1\n"
+        )
+        errors = _check_test_assertions(source, "test_multi.py")
+        assert len(errors) == 1
+        assert "test_bad" in errors[0].message
+
+    def test_js_test_no_expect(self):
+        """JS test without expect() triggers MISSING_ASSERTIONS."""
+        source = (
+            "test('does something', () => {\n  const x = 1;\n  console.log(x);\n});\n"
+        )
+        errors = _check_test_assertions(source, "example.test.js")
+        assert len(errors) == 1
+        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
+
+    def test_js_test_with_expect(self):
+        """JS test with expect() should not trigger warning."""
+        source = "test('does something', () => {\n  expect(1 + 1).toBe(2);\n});\n"
+        errors = _check_test_assertions(source, "example.test.js")
+        assert len(errors) == 0
+
+    def test_ts_it_block_no_expect(self):
+        """TS it() block without expect() triggers MISSING_ASSERTIONS."""
+        source = (
+            "it('should work', () => {\n"
+            "  const val = calculate();\n"
+            "  console.log(val);\n"
+            "});\n"
+        )
+        errors = _check_test_assertions(source, "example.test.ts")
+        assert len(errors) == 1
+        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
+
+    def test_non_test_file_returns_empty(self):
+        """Non-test file (e.g. .go) returns no errors."""
+        source = "package main\nfunc main() {}\n"
+        errors = _check_test_assertions(source, "main.go")
+        assert len(errors) == 0
+
+    def test_python_syntax_error_returns_empty(self):
+        """Python file with syntax error returns no assertion errors."""
+        source = "def test_broken(:\n    assert True\n"
+        errors = _check_test_assertions(source, "test_broken.py")
+        assert len(errors) == 0
+
+
+class TestRequiredImportsMissing:
+    """Edge cases for required imports checking."""
+
+    def test_multiple_missing_imports(self, project):
+        """Multiple missing imports each produce an E320 error."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-svc.manifest.yaml",
+            """schema: "2"
+goal: "Add service"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: run_service
+      imports:
+        - some.module
+        - another.module
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/service.py",
+            "def run_service():\n    return 'ok'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 2
+
+    def test_partial_imports_missing(self, project):
+        """When one import is present and another is missing, only the missing one errors."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-svc.manifest.yaml",
+            """schema: "2"
+goal: "Add service"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: run_service
+      imports:
+        - os
+        - missing_module
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/service.py",
+            "import os\n\ndef run_service():\n    return os.getcwd()\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 1
+        assert "missing_module" in import_errors[0].message
+
+
+# ---------------------------------------------------------------------------
+# File deletion validation (is_absent)
+# ---------------------------------------------------------------------------
+
+
+class TestFileDeletionValidation:
+    def test_absent_file_that_exists_fails(self, project):
+        """File marked as absent but still exists should fail with E307."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "delete-old.manifest.yaml",
+            """schema: "2"
+goal: "Remove old module"
+type: refactor
+files:
+  delete:
+    - path: src/old_module.py
+      reason: "Migrated to new architecture"
+validate:
+  - echo ok
+""",
+        )
+        # Create the file that should be deleted
+        _write_source(project, "src/old_module.py", "# should be deleted\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not result.success
+        error_codes = {e.code for e in result.errors}
+        assert ErrorCode.FILE_SHOULD_BE_ABSENT in error_codes
+
+    def test_absent_file_that_is_missing_passes(self, project):
+        """File marked as absent that doesn't exist passes."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "delete-old.manifest.yaml",
+            """schema: "2"
+goal: "Remove old module"
+type: refactor
+files:
+  delete:
+    - path: src/old_module.py
+      reason: "Migrated to new architecture"
+validate:
+  - echo ok
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Should not have E307 since file correctly doesn't exist
+        absent_errors = [
+            e for e in result.errors if e.code == ErrorCode.FILE_SHOULD_BE_ABSENT
+        ]
+        assert len(absent_errors) == 0
+
+
+# ---------------------------------------------------------------------------
+# Unsupported language validation
+# ---------------------------------------------------------------------------
+
+
+class TestUnsupportedLanguageValidation:
+    def test_unsupported_file_extension_warns(self, project):
+        """File with unsupported extension gets VALIDATOR_NOT_AVAILABLE warning."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-config.manifest.yaml",
+            """schema: "2"
+goal: "Add config"
+type: feature
+files:
+  create:
+    - path: src/config.rb
+      artifacts:
+        - kind: function
+          name: load_config
+validate:
+  - echo ok
+""",
+        )
+        # Create a Ruby file (no validator for Ruby)
+        _write_source(project, "src/config.rb", "def load_config\n  nil\nend\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Should have a warning about no validator
+        all_issues = list(result.errors) + list(result.warnings)
+        warn_codes = {e.code for e in all_issues}
+        assert ErrorCode.VALIDATOR_NOT_AVAILABLE in warn_codes
+
+
+# ---------------------------------------------------------------------------
+# Test assertion checking
+# ---------------------------------------------------------------------------
+
+
+class TestAssertionCheckingFunction:
+    def test_python_test_with_no_assertions(self):
+        """Python test function with no assertions is flagged."""
+        source = "def test_something():\n    x = 1 + 1\n"
+        errors = _check_test_assertions(source, "tests/test_foo.py")
+        assert len(errors) >= 1
+        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
+
+    def test_python_test_with_assert(self):
+        """Python test function with assert statement is OK."""
+        source = "def test_something():\n    assert 1 + 1 == 2\n"
+        errors = _check_test_assertions(source, "tests/test_foo.py")
+        assert len(errors) == 0
+
+    def test_python_test_with_pytest_raises(self):
+        """Python test using pytest.raises is OK."""
+        source = (
+            "import pytest\n"
+            "def test_error():\n"
+            "    with pytest.raises(ValueError):\n"
+            "        raise ValueError('boom')\n"
+        )
+        errors = _check_test_assertions(source, "tests/test_foo.py")
+        assert len(errors) == 0
+
+    def test_python_non_test_function_ignored(self):
+        """Non-test functions (no test_ prefix) are not checked."""
+        source = "def helper():\n    x = 1\n"
+        errors = _check_test_assertions(source, "tests/test_foo.py")
+        assert len(errors) == 0
+
+    def test_python_syntax_error_returns_empty(self):
+        """Syntax error in test file returns empty list (no crash)."""
+        source = "def test_broken(:\n    pass\n"
+        errors = _check_test_assertions(source, "tests/test_foo.py")
+        assert errors == []

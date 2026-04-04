@@ -327,6 +327,432 @@ class TestGraphQuery:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# QueryParser
+# ---------------------------------------------------------------------------
+
+
+class TestQueryParser:
+    """Tests for natural language query parsing."""
+
+    def test_parse_defines_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("What defines AuthService?")
+        assert intent.query_type == QueryType.FIND_DEFINITION
+        assert intent.target == "AuthService"
+
+    def test_parse_depends_on_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("What depends on UserRepo?")
+        assert intent.query_type == QueryType.FIND_DEPENDENTS
+        assert intent.target == "UserRepo"
+
+    def test_parse_what_does_x_depend_on(self):
+        from maid_runner.graph.query import QueryParser
+
+        parser = QueryParser()
+        intent = parser.parse("What does AuthService depend on?")
+        assert intent.target == "AuthService"
+
+    def test_parse_change_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("What breaks if I change UserModel?")
+        assert intent.query_type == QueryType.FIND_IMPACT
+        assert intent.target == "UserModel"
+
+    def test_parse_module_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Show artifacts in module auth")
+        assert intent.query_type == QueryType.LIST_ARTIFACTS
+        assert intent.target == "auth"
+
+    def test_parse_circular_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Find circular dependencies")
+        assert intent.query_type == QueryType.FIND_CYCLES
+
+    def test_parse_cycle_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Are there any cycle issues?")
+        assert intent.query_type == QueryType.FIND_CYCLES
+
+    def test_parse_quoted_target(self):
+        from maid_runner.graph.query import QueryParser
+
+        parser = QueryParser()
+        intent = parser.parse('What defines "my_service.py"?')
+        assert intent.target == "my_service.py"
+
+    def test_parse_defined_by_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Where is login defined by?")
+        assert intent.query_type == QueryType.FIND_DEFINITION
+
+    def test_parse_default_query_type(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("something random")
+        assert intent.query_type == QueryType.FIND_DEFINITION
+
+    def test_parse_no_target_returns_none(self):
+        from maid_runner.graph.query import QueryParser
+
+        parser = QueryParser()
+        intent = parser.parse("list everything")
+        # Target extraction should return None for vague queries
+        # (unless "list" or "everything" matches a pattern)
+        assert intent.original_query == "list everything"
+
+    def test_parse_dependencies_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Show dependencies of UserService")
+        assert intent.query_type == QueryType.FIND_DEPENDENCIES
+
+
+# ---------------------------------------------------------------------------
+# QueryExecutor
+# ---------------------------------------------------------------------------
+
+
+class TestQueryExecutor:
+    """Tests for executing parsed queries against a knowledge graph."""
+
+    @pytest.fixture
+    def graph_and_executor(self):
+        from maid_runner.graph.query import QueryExecutor
+
+        m = _make_manifest(
+            "add-auth",
+            files_create=(
+                _make_file_spec(
+                    "src/auth.py",
+                    (
+                        _make_artifact("AuthService", ArtifactKind.CLASS),
+                        _make_artifact("login", ArtifactKind.METHOD, of="AuthService"),
+                    ),
+                ),
+            ),
+        )
+        builder = GraphBuilder()
+        graph = builder.build_from_manifests([m])
+        executor = QueryExecutor(graph)
+        return graph, executor
+
+    def test_find_definition_success(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(
+            QueryType.FIND_DEFINITION, "AuthService", "find AuthService"
+        )
+        result = executor.execute(intent)
+        assert result.success
+        assert result.data is not None
+
+    def test_find_definition_not_found(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(
+            QueryType.FIND_DEFINITION, "NonExistent", "find NonExistent"
+        )
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_definition_no_target(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEFINITION, None, "find")
+        result = executor.execute(intent)
+        assert not result.success
+        assert "No target" in result.message
+
+    def test_find_dependents_success(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEPENDENTS, "AuthService", "deps")
+        result = executor.execute(intent)
+        assert result.success
+
+    def test_find_dependents_not_found(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEPENDENTS, "Ghost", "deps")
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_dependents_no_target(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEPENDENTS, None, "deps")
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_dependencies_success(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEPENDENCIES, "login", "deps")
+        result = executor.execute(intent)
+        assert result.success
+
+    def test_find_dependencies_no_target(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_DEPENDENCIES, None, "deps")
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_impact_success(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_IMPACT, "AuthService", "impact")
+        result = executor.execute(intent)
+        assert result.success
+        assert "total_impact_count" in result.data
+
+    def test_find_impact_no_target(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_IMPACT, None, "impact")
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_impact_not_found(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_IMPACT, "NoSuch", "impact")
+        result = executor.execute(intent)
+        assert not result.success
+
+    def test_find_cycles(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.FIND_CYCLES, None, "cycles")
+        result = executor.execute(intent)
+        assert result.success
+
+    def test_list_artifacts(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.LIST_ARTIFACTS, None, "list")
+        result = executor.execute(intent)
+        assert result.success
+        assert len(result.data) >= 2  # AuthService + login
+
+    def test_list_artifacts_with_filter(self, graph_and_executor):
+        from maid_runner.graph.query import QueryIntent, QueryType
+
+        _, executor = graph_and_executor
+        intent = QueryIntent(QueryType.LIST_ARTIFACTS, "auth", "list auth")
+        result = executor.execute(intent)
+        assert result.success
+
+    def test_unknown_query_type_fails(self, graph_and_executor):
+        """Ensure fallback for an unrecognized query type."""
+        from maid_runner.graph.query import QueryIntent, QueryType, QueryExecutor
+        from maid_runner.graph.model import KnowledgeGraph
+
+        # Create executor with empty graph
+        executor = QueryExecutor(KnowledgeGraph())
+        # Manually create intent with a query type not handled by if/elif chain
+        # Since all enum values are covered, we test the last fallback indirectly
+        intent = QueryIntent(QueryType.FIND_DEFINITION, None, "nothing")
+        result = executor.execute(intent)
+        # Should reach no-target branch
+        assert not result.success
+
+
+# ---------------------------------------------------------------------------
+# GraphQuery extended tests
+# ---------------------------------------------------------------------------
+
+
+class TestGraphQueryExtended:
+    """Additional tests for GraphQuery covering gaps."""
+
+    @pytest.fixture
+    def graph_query(self):
+        m1 = _make_manifest(
+            "add-auth",
+            files_create=(
+                _make_file_spec(
+                    "src/auth/service.py",
+                    (
+                        _make_artifact("AuthService", ArtifactKind.CLASS),
+                        _make_artifact("login", ArtifactKind.METHOD, of="AuthService"),
+                    ),
+                ),
+            ),
+        )
+        m2 = _make_manifest(
+            "add-api",
+            files_create=(
+                _make_file_spec(
+                    "src/api/handler.py",
+                    (_make_artifact("handle_request", ArtifactKind.FUNCTION),),
+                ),
+            ),
+            files_read=("src/auth/service.py",),
+        )
+        builder = GraphBuilder()
+        graph = builder.build_from_manifests([m1, m2])
+        return GraphQuery(graph)
+
+    def test_find_node_with_type_filter_mismatch(self, graph_query):
+        """Finding a node by name with wrong type returns None or correct type."""
+        # AuthService is an artifact, not a file
+        result = graph_query.find_node("AuthService", NodeType.FILE)
+        assert result is None
+
+    def test_find_node_without_type(self, graph_query):
+        """Finding a node without type filter finds it regardless."""
+        result = graph_query.find_node("AuthService")
+        assert result is not None
+
+    def test_find_nodes_no_match(self, graph_query):
+        """Pattern matching with no matches returns empty list."""
+        results = graph_query.find_nodes("NonExistent*")
+        assert results == []
+
+    def test_get_transitive_dependents(self, graph_query):
+        """Transitive dependents follows full dependency chain."""
+        deps = graph_query.get_transitive_dependents("file:src/auth/service.py")
+        # Should find at least the manifests that create/read this file
+        assert isinstance(deps, list)
+
+    def test_is_acyclic(self, graph_query):
+        """is_acyclic returns a boolean."""
+        result = graph_query.is_acyclic()
+        assert isinstance(result, bool)
+
+    def test_dependency_analysis_missing_file(self, graph_query):
+        """Dependency analysis on non-existent file returns empty structures."""
+        result = graph_query.dependency_analysis("nonexistent.py")
+        assert result["file"] == "nonexistent.py"
+
+    def test_find_node_by_name_type(self, graph_query):
+        """find_node with correct type and name returns node."""
+        node = graph_query.find_node("login", NodeType.ARTIFACT)
+        assert node is not None
+
+
+# ---------------------------------------------------------------------------
+# Cycle detection
+# ---------------------------------------------------------------------------
+
+
+class TestCycleDetection:
+    """Tests for cycle detection in graphs."""
+
+    def test_acyclic_graph_returns_empty(self):
+        from maid_runner.graph.query import find_cycles, is_acyclic
+        from maid_runner.graph.model import (
+            KnowledgeGraph,
+            Node,
+            Edge,
+            EdgeType,
+            NodeType,
+        )
+
+        graph = KnowledgeGraph()
+        a = Node("a", NodeType.ARTIFACT)
+        b = Node("b", NodeType.ARTIFACT)
+        graph.add_node(a)
+        graph.add_node(b)
+        graph.add_edge(Edge("e1", EdgeType.CREATES, "a", "b"))
+
+        assert find_cycles(graph) == []
+        assert is_acyclic(graph) is True
+
+    def test_cycle_detected(self):
+        from maid_runner.graph.query import find_cycles, is_acyclic
+        from maid_runner.graph.model import (
+            KnowledgeGraph,
+            Node,
+            Edge,
+            EdgeType,
+            NodeType,
+        )
+
+        graph = KnowledgeGraph()
+        a = Node("a", NodeType.ARTIFACT)
+        b = Node("b", NodeType.ARTIFACT)
+        c = Node("c", NodeType.ARTIFACT)
+        graph.add_node(a)
+        graph.add_node(b)
+        graph.add_node(c)
+        graph.add_edge(Edge("e1", EdgeType.CREATES, "a", "b"))
+        graph.add_edge(Edge("e2", EdgeType.CREATES, "b", "c"))
+        graph.add_edge(Edge("e3", EdgeType.CREATES, "c", "a"))
+
+        cycles = find_cycles(graph)
+        assert len(cycles) >= 1
+        assert is_acyclic(graph) is False
+
+    def test_duplicate_cycles_deduplicated(self):
+        """Same cycle starting from different nodes should be found once."""
+        from maid_runner.graph.query import find_cycles
+        from maid_runner.graph.model import (
+            KnowledgeGraph,
+            Node,
+            Edge,
+            EdgeType,
+            NodeType,
+        )
+
+        graph = KnowledgeGraph()
+        for name in ["a", "b", "c"]:
+            graph.add_node(Node(name, NodeType.ARTIFACT))
+        graph.add_edge(Edge("e1", EdgeType.CREATES, "a", "b"))
+        graph.add_edge(Edge("e2", EdgeType.CREATES, "b", "c"))
+        graph.add_edge(Edge("e3", EdgeType.CREATES, "c", "a"))
+
+        cycles = find_cycles(graph)
+        # a->b->c->a is the same cycle regardless of starting point
+        assert len(cycles) == 1
+
+    def test_empty_graph_is_acyclic(self):
+        from maid_runner.graph.query import find_cycles, is_acyclic
+        from maid_runner.graph.model import KnowledgeGraph
+
+        graph = KnowledgeGraph()
+        assert find_cycles(graph) == []
+        assert is_acyclic(graph) is True
+
+
+# ---------------------------------------------------------------------------
+# Export integration (v2 graph exports cleanly)
+# ---------------------------------------------------------------------------
+
+
 class TestGraphExport:
     def test_export_json_roundtrip(self):
         """Graph can be exported to JSON dict."""

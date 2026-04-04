@@ -516,3 +516,53 @@ class TestStubDetection:
         assert a is not None
         # Classes don't have is_stub (always False by default)
         assert a.is_stub is False
+
+
+class TestPythonBehavioralErrorHandling:
+    def test_syntax_error_returns_empty_result(self, validator):
+        """Invalid Python syntax should return empty collection, not crash."""
+        result = validator.collect_behavioral_artifacts("def broken(:\n", "test.py")
+        assert result.artifacts == []
+        assert len(result.errors) >= 1
+
+    def test_syntax_error_in_implementation_returns_empty(self, validator):
+        """Implementation collection on invalid syntax returns empty with errors."""
+        result = validator.collect_implementation_artifacts("class :\n", "test.py")
+        assert result.artifacts == []
+        assert len(result.errors) >= 1
+
+
+class TestPythonTupleUnpackingAttributes:
+    def test_tuple_unpacking_module_level(self, validator):
+        """Tuple unpacking at module level collects each name as attribute."""
+        source = "x, y = get_coords()\n"
+        result = validator.collect_implementation_artifacts(source, "test.py")
+        x = _find(result.artifacts, "x")
+        y = _find(result.artifacts, "y")
+        assert x is not None
+        assert x.kind == ArtifactKind.ATTRIBUTE
+        assert y is not None
+        assert y.kind == ArtifactKind.ATTRIBUTE
+
+
+class TestPythonDottedImports:
+    def test_dotted_import_collected(self, validator):
+        """from a.b.c import D should be collected."""
+        source = "from maid_runner.core.types import Manifest\nManifest()\n"
+        result = validator.collect_behavioral_artifacts(source, "test.py")
+        names = {a.name for a in result.artifacts}
+        assert "Manifest" in names
+
+    def test_plain_import_collected(self, validator):
+        """import os collects 'os' as reference."""
+        source = "import os\nos.path.exists('/')\n"
+        result = validator.collect_behavioral_artifacts(source, "test.py")
+        names = {a.name for a in result.artifacts}
+        assert "os" in names
+
+    def test_aliased_import_uses_alias(self, validator):
+        """from x import Y as Z collects Z, not Y."""
+        source = "from pathlib import Path as P\nP('.')\n"
+        result = validator.collect_behavioral_artifacts(source, "test.py")
+        names = {a.name for a in result.artifacts}
+        assert "P" in names

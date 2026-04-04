@@ -300,3 +300,342 @@ class TestFormatFileTracking:
         output = format_file_tracking(report, json_mode=True)
         data = json.loads(output)
         assert "tracked" in data
+
+
+class TestPrintError:
+    def test_text_mode_prints_to_stderr(self, capsys):
+        from maid_runner.cli.commands._format import print_error
+
+        print_error("something went wrong")
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert "Error: something went wrong" in captured.err
+
+    def test_json_mode_prints_to_stdout(self, capsys):
+        from maid_runner.cli.commands._format import print_error
+
+        print_error("bad input", json_mode=True)
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        data = json.loads(captured.out)
+        assert data == {"error": "bad input"}
+
+
+class TestFormatManifestsList:
+    def _make_manifest(self, slug, goal, source_path):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(slug=slug, goal=goal, source_path=source_path)
+
+    def test_json_mode_returns_valid_json(self):
+        from maid_runner.cli.commands._format import format_manifests_list
+
+        manifests = [
+            self._make_manifest(
+                "add-auth", "Add auth", "manifests/add-auth.manifest.yaml"
+            ),
+            self._make_manifest(
+                "add-db", "Add database", "manifests/add-db.manifest.yaml"
+            ),
+        ]
+        output = format_manifests_list(manifests, "src/auth.py", json_mode=True)
+        data = json.loads(output)
+        assert len(data) == 2
+        assert data[0]["slug"] == "add-auth"
+        assert data[0]["goal"] == "Add auth"
+        assert data[0]["path"] == "manifests/add-auth.manifest.yaml"
+        assert data[1]["slug"] == "add-db"
+
+    def test_quiet_mode_returns_paths_only(self):
+        from maid_runner.cli.commands._format import format_manifests_list
+
+        manifests = [
+            self._make_manifest(
+                "add-auth", "Add auth", "manifests/add-auth.manifest.yaml"
+            ),
+            self._make_manifest(
+                "add-db", "Add database", "manifests/add-db.manifest.yaml"
+            ),
+        ]
+        output = format_manifests_list(manifests, "src/auth.py", quiet=True)
+        lines = output.strip().split("\n")
+        assert lines == [
+            "manifests/add-auth.manifest.yaml",
+            "manifests/add-db.manifest.yaml",
+        ]
+
+    def test_empty_list_returns_no_manifests_message(self):
+        from maid_runner.cli.commands._format import format_manifests_list
+
+        output = format_manifests_list([], "src/orphan.py")
+        assert output == "No manifests reference 'src/orphan.py'"
+
+    def test_text_mode_shows_slug_and_goal(self):
+        from maid_runner.cli.commands._format import format_manifests_list
+
+        manifests = [
+            self._make_manifest(
+                "add-auth", "Add authentication", "manifests/add-auth.manifest.yaml"
+            ),
+        ]
+        output = format_manifests_list(manifests, "src/auth.py")
+        assert "Manifests referencing 'src/auth.py':" in output
+        assert "add-auth: Add authentication" in output
+
+
+class TestFormatBootstrapReport:
+    def _make_report(self, **overrides):
+        from maid_runner.core.bootstrap import BootstrapReport
+
+        defaults = dict(
+            results=(),
+            total_discovered=0,
+            captured=0,
+            skipped=0,
+            failed=0,
+            excluded=0,
+            total_artifacts=0,
+            manifests_dir=None,
+            duration_ms=None,
+        )
+        defaults.update(overrides)
+        return BootstrapReport(**defaults)
+
+    def _make_file_result(self, **overrides):
+        from maid_runner.core.bootstrap import BootstrapFileResult
+
+        defaults = dict(
+            path="src/example.py",
+            status="captured",
+            artifact_count=0,
+            error=None,
+            manifest_slug=None,
+        )
+        defaults.update(overrides)
+        return BootstrapFileResult(**defaults)
+
+    def test_json_mode_returns_valid_json(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        file_result = self._make_file_result(
+            path="src/auth.py",
+            status="captured",
+            artifact_count=3,
+            manifest_slug="snapshot-auth",
+        )
+        report = self._make_report(
+            results=(file_result,),
+            total_discovered=5,
+            captured=1,
+            skipped=2,
+            failed=1,
+            excluded=1,
+            total_artifacts=3,
+            manifests_dir="manifests/",
+            duration_ms=120.0,
+        )
+        output = format_bootstrap_report(report, json_mode=True)
+        data = json.loads(output)
+        assert data["total_discovered"] == 5
+        assert data["captured"] == 1
+        assert data["skipped"] == 2
+        assert data["failed"] == 1
+        assert data["excluded"] == 1
+        assert data["total_artifacts"] == 3
+        assert data["manifests_dir"] == "manifests/"
+        assert data["duration_ms"] == 120.0
+        assert len(data["results"]) == 1
+        assert data["results"][0]["path"] == "src/auth.py"
+        assert data["results"][0]["status"] == "captured"
+        assert data["results"][0]["artifact_count"] == 3
+        assert data["results"][0]["manifest_slug"] == "snapshot-auth"
+
+    def test_quiet_mode_no_captures_returns_empty(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        report = self._make_report(captured=0, total_artifacts=0)
+        output = format_bootstrap_report(report, quiet=True)
+        assert output == ""
+
+    def test_quiet_mode_with_captures(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        report = self._make_report(captured=3, total_artifacts=12)
+        output = format_bootstrap_report(report, quiet=True)
+        assert output == "3 files captured (12 artifacts)"
+
+    def test_text_mode_shows_summary(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        report = self._make_report(
+            total_discovered=10,
+            captured=4,
+            skipped=3,
+            failed=1,
+            excluded=2,
+            total_artifacts=15,
+            manifests_dir="manifests/",
+            duration_ms=250.0,
+        )
+        output = format_bootstrap_report(report)
+        assert "Bootstrap: 10 source files discovered" in output
+        assert "Captured:  4 files (15 artifacts)" in output
+        assert "Skipped:   3 files (already tracked)" in output
+        assert "Failed:    1 files" in output
+        assert "Excluded:  2 files" in output
+        assert "Duration:  250ms" in output
+        assert "Manifests written to: manifests/" in output
+
+    def test_verbose_mode_shows_per_file_details(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        results = (
+            self._make_file_result(
+                path="src/auth.py", status="captured", artifact_count=5
+            ),
+            self._make_file_result(path="src/config.py", status="skipped"),
+            self._make_file_result(path="src/test_util.py", status="excluded"),
+        )
+        report = self._make_report(
+            results=results,
+            total_discovered=3,
+            captured=1,
+            skipped=1,
+            failed=0,
+            excluded=1,
+            total_artifacts=5,
+        )
+        output = format_bootstrap_report(report, verbose=True)
+        assert "SNAP src/auth.py (5 artifacts)" in output
+        assert "SKIP src/config.py" in output
+        assert "EXCL src/test_util.py" in output
+
+    def test_failed_files_show_errors(self):
+        from maid_runner.cli.commands._format import format_bootstrap_report
+
+        results = (
+            self._make_file_result(
+                path="src/broken.py",
+                status="failed",
+                error="SyntaxError: invalid syntax",
+            ),
+        )
+        report = self._make_report(
+            results=results,
+            total_discovered=1,
+            captured=0,
+            skipped=0,
+            failed=1,
+            excluded=0,
+            total_artifacts=0,
+        )
+        output = format_bootstrap_report(report)
+        assert "src/broken.py: SyntaxError: invalid syntax" in output
+
+
+class TestFormatCoherenceResult:
+    def test_json_mode_returns_valid_json(self):
+        from maid_runner.cli.commands._format import format_coherence_result
+        from maid_runner.coherence.result import (
+            CoherenceResult,
+            CoherenceIssue,
+            IssueSeverity,
+            IssueType,
+        )
+
+        issue = CoherenceIssue(
+            issue_type=IssueType.NAMING,
+            severity=IssueSeverity.WARNING,
+            message="Inconsistent naming",
+            file="src/auth.py",
+        )
+        result = CoherenceResult(
+            issues=[issue],
+            checks_run=["naming", "duplicates"],
+            duration_ms=80.0,
+        )
+        output = format_coherence_result(result, json_mode=True)
+        data = json.loads(output)
+        assert data["success"] is True  # warnings don't cause failure
+        assert data["errors"] == 0
+        assert data["warnings"] == 1
+        assert data["checks_run"] == ["naming", "duplicates"]
+        assert len(data["issues"]) == 1
+        assert data["issues"][0]["severity"] == "warning"
+        assert data["duration_ms"] == 80.0
+
+    def test_passing_result_shows_pass(self):
+        from maid_runner.cli.commands._format import format_coherence_result
+        from maid_runner.coherence.result import CoherenceResult
+
+        result = CoherenceResult(
+            issues=[],
+            checks_run=["naming"],
+        )
+        output = format_coherence_result(result)
+        assert "Coherence: PASS" in output
+        assert "Issues: 0 errors, 0 warnings" in output
+
+    def test_failing_result_shows_fail(self):
+        from maid_runner.cli.commands._format import format_coherence_result
+        from maid_runner.coherence.result import (
+            CoherenceResult,
+            CoherenceIssue,
+            IssueSeverity,
+            IssueType,
+        )
+
+        issue = CoherenceIssue(
+            issue_type=IssueType.DUPLICATE,
+            severity=IssueSeverity.ERROR,
+            message="Duplicate artifact 'login'",
+        )
+        result = CoherenceResult(
+            issues=[issue],
+            checks_run=["duplicates"],
+        )
+        output = format_coherence_result(result)
+        assert "Coherence: FAIL" in output
+        assert "Issues: 1 errors, 0 warnings" in output
+
+    def test_issues_displayed_with_severity(self):
+        from maid_runner.cli.commands._format import format_coherence_result
+        from maid_runner.coherence.result import (
+            CoherenceResult,
+            CoherenceIssue,
+            IssueSeverity,
+            IssueType,
+        )
+
+        issues = [
+            CoherenceIssue(
+                issue_type=IssueType.DUPLICATE,
+                severity=IssueSeverity.ERROR,
+                message="Duplicate artifact 'login'",
+                file="src/auth.py",
+            ),
+            CoherenceIssue(
+                issue_type=IssueType.NAMING,
+                severity=IssueSeverity.WARNING,
+                message="Non-standard name 'doStuff'",
+            ),
+        ]
+        result = CoherenceResult(
+            issues=issues,
+            checks_run=["duplicates", "naming"],
+        )
+        output = format_coherence_result(result)
+        assert "ERROR [src/auth.py] Duplicate artifact 'login'" in output
+        assert "WARNING Non-standard name 'doStuff'" in output
+
+    def test_duration_displayed_when_present(self):
+        from maid_runner.cli.commands._format import format_coherence_result
+        from maid_runner.coherence.result import CoherenceResult
+
+        result = CoherenceResult(
+            issues=[],
+            checks_run=["naming"],
+            duration_ms=42.5,
+        )
+        output = format_coherence_result(result)
+        assert "Duration: 42ms" in output

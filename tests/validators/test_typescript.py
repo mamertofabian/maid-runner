@@ -546,3 +546,48 @@ class TestStubDetection:
         result = validator.collect_implementation_artifacts(source, "test.ts")
         a = _find(result.artifacts, "bar", kind=ArtifactKind.METHOD, of="Foo")
         assert a.is_stub is False
+
+
+class TestTypeScriptArrowFunctions:
+    def test_arrow_expression_body_detected(self, validator):
+        """Arrow function with expression body (no braces) collected."""
+        source = "export const add = (a: number, b: number): number => a + b;\n"
+        result = validator.collect_implementation_artifacts(source, "math.ts")
+        names = {a.name for a in result.artifacts}
+        assert "add" in names
+
+    def test_arrow_expression_body_is_function_kind(self, validator):
+        """Arrow function with expression body has FUNCTION kind."""
+        source = "export const double = (x: number): number => x * 2;\n"
+        result = validator.collect_implementation_artifacts(source, "math.ts")
+        a = _find(result.artifacts, "double")
+        assert a is not None
+        assert a.kind == ArtifactKind.FUNCTION
+
+    def test_arrow_expression_body_args(self, validator):
+        """Arrow function with expression body has correct args."""
+        source = "export const greet = (name: string): string => `Hello, ${name}!`;\n"
+        result = validator.collect_implementation_artifacts(source, "math.ts")
+        a = _find(result.artifacts, "greet")
+        assert a is not None
+        assert len(a.args) == 1
+        assert a.args[0].name == "name"
+        assert a.args[0].type == "string"
+
+
+class TestTypeScriptTemplateStringStub:
+    def test_template_string_with_substitution_not_stub(self, validator):
+        """Template string with substitution is not a stub."""
+        source = "function greet(name: string): string { return `Hello, ${name}!`; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "greet")
+        assert a is not None
+        assert a.is_stub is False
+
+    def test_template_string_without_substitution_is_stub(self, validator):
+        """Plain template string (no substitution) is a stub."""
+        source = "function foo(): string { return ``; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is True

@@ -73,3 +73,34 @@ class TestSupportedExtensions:
     def test_can_validate(self, validator):
         assert validator.can_validate("App.svelte") is True
         assert validator.can_validate("app.ts") is False
+
+
+class TestSvelteNoScript:
+    def test_no_script_tag_returns_empty(self, validator):
+        """Svelte file with only markup returns empty artifacts."""
+        source = "<div>Hello</div>"
+        result = validator.collect_implementation_artifacts(source, "comp.svelte")
+        assert result.artifacts == []
+
+    def test_no_script_behavioral_returns_empty(self, validator):
+        """Behavioral collection on markup-only Svelte file returns empty."""
+        source = "<p>Just markup</p>"
+        result = validator.collect_behavioral_artifacts(source, "comp.svelte")
+        assert result.artifacts == []
+
+
+class TestSvelteBehavioralCollection:
+    def test_behavioral_collection_from_script(self, validator):
+        """Behavioral artifacts collected from script block."""
+        source = '<script lang="ts">\nimport { onMount } from "svelte";\nonMount(() => {});\n</script>\n<div>Hello</div>'
+        result = validator.collect_behavioral_artifacts(source, "test.svelte")
+        # Should not crash, may or may not find artifacts
+        assert hasattr(result, "artifacts")
+        names = {a.name for a in result.artifacts}
+        assert "onMount" in names
+
+    def test_behavioral_empty_script(self, validator):
+        """Behavioral collection on empty script returns empty artifacts."""
+        source = "<script></script>\n<div>Hi</div>"
+        result = validator.collect_behavioral_artifacts(source, "test.svelte")
+        assert hasattr(result, "artifacts")
