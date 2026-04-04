@@ -2599,3 +2599,257 @@ validate:
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+
+class TestStrictModeChainEnforcement:
+    """When chain is active, ALL non-test files should use strict mode.
+
+    The chain merges artifacts across all active manifests, giving the
+    complete declared public API. Any undeclared public artifact must
+    be flagged as E301 (UNEXPECTED_ARTIFACT), regardless of CREATE/EDIT mode.
+    """
+
+    def test_edit_mode_with_chain_rejects_undeclared(self, project):
+        """EDIT manifest + chain active: undeclared public artifacts fail."""
+        # Manifest 1: creates the file with func_a
+        _write_manifest(
+            project / "manifests",
+            "create-service.manifest.yaml",
+            """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+        )
+        # Manifest 2: edits the file, adding func_b
+        manifest2_path = _write_manifest(
+            project / "manifests",
+            "add-func-b.manifest.yaml",
+            """schema: "2"
+goal: "Add func_b"
+type: feature
+created: "2026-01-02"
+files:
+  edit:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_b
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+        )
+        # Code has func_a, func_b, AND undeclared func_c
+        _write_source(
+            project,
+            "src/service.py",
+            "def func_a():\n    pass\n\ndef func_b():\n    pass\n\ndef func_c():\n    pass\n",
+        )
+        _add_test_file(
+            project, "tests/test_service.py", "src.service", ["func_a", "func_b"]
+        )
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest2_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            use_chain=True,
+            chain=chain,
+        )
+        assert result.success is False
+        assert any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+        # Verify it's specifically func_c that's flagged
+        e301_msgs = [
+            e.message for e in result.errors if e.code == ErrorCode.UNEXPECTED_ARTIFACT
+        ]
+        assert any("func_c" in m for m in e301_msgs)
+
+    def test_create_with_multiple_chain_manifests_stays_strict(self, project):
+        """CREATE file referenced by multiple manifests: still strict with chain."""
+        # Manifest 1: creates the file with func_a
+        manifest1_path = _write_manifest(
+            project / "manifests",
+            "create-service.manifest.yaml",
+            """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+        )
+        # Manifest 2: edits the same file, adding func_b
+        _write_manifest(
+            project / "manifests",
+            "add-func-b.manifest.yaml",
+            """schema: "2"
+goal: "Add func_b"
+type: feature
+created: "2026-01-02"
+files:
+  edit:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_b
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+        )
+        # Code has func_a, func_b, AND undeclared func_c
+        _write_source(
+            project,
+            "src/service.py",
+            "def func_a():\n    pass\n\ndef func_b():\n    pass\n\ndef func_c():\n    pass\n",
+        )
+        _add_test_file(
+            project, "tests/test_service.py", "src.service", ["func_a", "func_b"]
+        )
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project_root=project)
+        # Validate the CREATE manifest — should still be strict even with 2 manifests in chain
+        result = engine.validate(
+            manifest1_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            use_chain=True,
+            chain=chain,
+        )
+        assert result.success is False
+        assert any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_edit_without_chain_remains_permissive(self, project):
+        """Without chain, EDIT mode is permissive (no chain = incomplete picture)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-farewell.manifest.yaml",
+            """schema: "2"
+goal: "Add farewell"
+type: feature
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: farewell
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        # Code has both greet (undeclared) and farewell (declared)
+        _write_source(
+            project,
+            "src/greet.py",
+            'def greet(name):\n    return f"Hello, {name}!"\n\ndef farewell(name):\n    return f"Goodbye, {name}!"\n',
+        )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["farewell"])
+
+        engine = ValidationEngine(project_root=project)
+        # No chain — EDIT is permissive (can't know full API without chain)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+
+    def test_chain_strict_still_allows_private(self, project):
+        """Private artifacts (_prefix) are always allowed, even in chain strict mode."""
+        _write_manifest(
+            project / "manifests",
+            "create-service.manifest.yaml",
+            """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: do_work
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+        )
+        # Code has do_work (declared) and _helper (private, allowed)
+        _write_source(
+            project,
+            "src/service.py",
+            "def do_work():\n    return _helper()\n\ndef _helper():\n    return 42\n",
+        )
+        _add_test_file(project, "tests/test_service.py", "src.service", ["do_work"])
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            project / "manifests" / "create-service.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            use_chain=True,
+            chain=chain,
+        )
+        assert result.success is True
+
+    def test_chain_strict_test_files_remain_permissive(self, project):
+        """Test files always use permissive mode even with chain active."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "create-with-tests.manifest.yaml",
+            """schema: "2"
+goal: "Create module with tests"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/calc.py
+      artifacts:
+        - kind: function
+          name: add
+    - path: tests/test_calc.py
+      artifacts:
+        - kind: function
+          name: test_add
+validate:
+  - pytest tests/test_calc.py -v
+""",
+        )
+        _write_source(project, "src/calc.py", "def add(a, b):\n    return a + b\n")
+        # Test file has declared test_add PLUS undeclared test_add_negative
+        _write_source(
+            project,
+            "tests/test_calc.py",
+            "from src.calc import add\n\ndef test_add():\n    assert add(1, 2) == 3\n\ndef test_add_negative():\n    assert add(-1, -2) == -3\n",
+        )
+
+        chain = ManifestChain(project / "manifests", project)
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            use_chain=True,
+            chain=chain,
+        )
+        assert result.success is True

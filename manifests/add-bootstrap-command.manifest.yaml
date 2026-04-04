@@ -18,8 +18,50 @@ files:
       artifacts:
         - kind: class
           name: BootstrapFileResult
+        - kind: attribute
+          name: path
+          of: BootstrapFileResult
+        - kind: attribute
+          name: status
+          of: BootstrapFileResult
+        - kind: attribute
+          name: artifact_count
+          of: BootstrapFileResult
+        - kind: attribute
+          name: error
+          of: BootstrapFileResult
+        - kind: attribute
+          name: manifest_slug
+          of: BootstrapFileResult
         - kind: class
           name: BootstrapReport
+        - kind: attribute
+          name: results
+          of: BootstrapReport
+        - kind: attribute
+          name: total_discovered
+          of: BootstrapReport
+        - kind: attribute
+          name: captured
+          of: BootstrapReport
+        - kind: attribute
+          name: skipped
+          of: BootstrapReport
+        - kind: attribute
+          name: failed
+          of: BootstrapReport
+        - kind: attribute
+          name: excluded
+          of: BootstrapReport
+        - kind: attribute
+          name: total_artifacts
+          of: BootstrapReport
+        - kind: attribute
+          name: manifests_dir
+          of: BootstrapReport
+        - kind: attribute
+          name: duration_ms
+          of: BootstrapReport
         - kind: function
           name: bootstrap_project
           args:
@@ -36,6 +78,18 @@ files:
               type: Union[str, Path]
             - name: extensions
               type: set[str] | None
+          returns: list[str]
+        - kind: function
+          name: is_test_file
+          args:
+            - name: path
+              type: str
+          returns: bool
+        - kind: function
+          name: find_test_files_from_manifest
+          args:
+            - name: manifest_data
+              type: dict
           returns: list[str]
 
     - path: maid_runner/cli/commands/_main.py

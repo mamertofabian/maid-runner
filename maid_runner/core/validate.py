@@ -419,14 +419,13 @@ class ValidationEngine:
             else:
                 expected = list(fs.artifacts)
 
-            # Determine strict mode: when chain is active and multiple
-            # manifests reference this file, the file has evolved beyond its
-            # creation manifest, so use permissive mode (matching v1 behavior).
-            # Strict mode only applies when the file is referenced by a single
-            # manifest (the creating one) with no subsequent edits.
-            if chain:
-                chain_manifests = chain.manifests_for_file(fs.path)
-                is_strict = fs.is_strict and len(chain_manifests) <= 1
+            # Determine strict mode: when chain is active, the merged
+            # artifacts represent the COMPLETE declared public API for
+            # this file. Enforce strict mode so any undeclared public
+            # artifact is flagged. Without chain, only CREATE/SNAPSHOT
+            # files can be strict (EDIT has an incomplete picture).
+            if chain and chain.manifests_for_file(fs.path):
+                is_strict = True
             else:
                 is_strict = fs.is_strict
 

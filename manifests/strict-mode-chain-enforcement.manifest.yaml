@@ -1,0 +1,17 @@
+schema: "2"
+goal: "Enforce strict validation by default when chain is active — EDIT mode files with merged artifacts must have ALL public API declared in manifests"
+type: fix
+created: "2026-04-04"
+
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+  read:
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/core/test_validate.py -v -k "TestStrictModeChainEnforcement"

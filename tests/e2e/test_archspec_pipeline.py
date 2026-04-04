@@ -379,30 +379,48 @@ def write_all_stubs_from_manifests(project_dir: Path) -> None:
                 full.write_text("# auto-generated stub\n")
 
 
-def patch_route_manifests_to_edit_mode(manifests_dir: Path) -> None:
-    """Change route files from create (strict) to edit (permissive) mode.
+def patch_route_manifests_add_helpers(manifests_dir: Path) -> None:
+    """Add undeclared route helper artifacts to manifests.
 
-    Route files naturally have helper classes (UserCreate, TodoCreate, etc.)
-    that aren't declared in the manifest. Permissive mode allows these.
+    Route files have helper classes (UserCreate, TodoCreate, TodoUpdate)
+    that arch-spec doesn't generate in manifests. Declare them so strict
+    validation passes.
     """
     import yaml
+
+    # Map route files to their helper artifacts
+    route_helpers: dict[str, list[dict]] = {
+        "src/routes/users.py": [
+            {"kind": "class", "name": "UserCreate"},
+            {"kind": "attribute", "name": "email", "of": "UserCreate"},
+            {"kind": "attribute", "name": "name", "of": "UserCreate"},
+        ],
+        "src/routes/todos.py": [
+            {"kind": "class", "name": "TodoCreate"},
+            {"kind": "attribute", "name": "title", "of": "TodoCreate"},
+            {"kind": "attribute", "name": "user_id", "of": "TodoCreate"},
+            {"kind": "class", "name": "TodoUpdate"},
+            {"kind": "attribute", "name": "title", "of": "TodoUpdate"},
+            {"kind": "attribute", "name": "completed", "of": "TodoUpdate"},
+        ],
+    }
 
     for manifest_path in manifests_dir.glob("feature-*.manifest.yaml"):
         data = yaml.safe_load(manifest_path.read_text())
 
-        creates = data.get("files", {}).get("create", [])
-        edits = data.get("files", {}).get("edit", [])
-
-        new_creates = []
-        for f in creates:
-            if "/routes/" in f["path"]:
-                edits.append(f)
-            else:
-                new_creates.append(f)
-
-        data["files"]["create"] = new_creates
-        if edits:
-            data["files"]["edit"] = edits
+        for section in ("create", "edit"):
+            for f in data.get("files", {}).get(section, []):
+                helpers = route_helpers.get(f["path"], [])
+                if helpers:
+                    existing = f.get("artifacts", [])
+                    existing_keys = {
+                        (a["kind"], a["name"], a.get("of")) for a in existing
+                    }
+                    for h in helpers:
+                        key = (h["kind"], h["name"], h.get("of"))
+                        if key not in existing_keys:
+                            existing.append(h)
+                    f["artifacts"] = existing
 
         manifest_path.write_text(
             yaml.dump(data, default_flow_style=False, sort_keys=False)
@@ -429,9 +447,9 @@ class TestArchSpecPipeline:
         )
         assert len(paths) >= 4, f"Expected at least 4 manifest files, got {len(paths)}"
 
-        # Step 2: Patch route manifests to permissive mode
-        # (route files have helper classes not in manifest)
-        patch_route_manifests_to_edit_mode(manifests_dir)
+        # Step 2: Declare route helper classes in manifests
+        # (arch-spec doesn't generate UserCreate, TodoCreate, etc.)
+        patch_route_manifests_add_helpers(manifests_dir)
 
         # Step 3: "AI agent" writes code matching the manifests
         # First generate stubs for ALL files referenced in manifests
@@ -527,7 +545,7 @@ class TestArchSpecPipeline:
             todo_app_specs,
             output_dir=manifests_dir,
         )
-        patch_route_manifests_to_edit_mode(manifests_dir)
+        patch_route_manifests_add_helpers(manifests_dir)
 
         # Write incomplete code (User model without all attributes)
         path = project_dir / "src" / "models" / "user.py"

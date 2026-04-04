@@ -14,6 +14,9 @@ files:
           name: SnapshotError
           bases:
             - Exception
+        - kind: attribute
+          name: path
+          of: SnapshotError
         - kind: function
           name: generate_snapshot
           args:
