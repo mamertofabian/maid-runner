@@ -339,6 +339,11 @@ class ValidationEngine:
             else:
                 is_strict = fs.is_strict
 
+            # Test files always use permissive mode — they naturally contain
+            # helpers, fixtures, and utilities that aren't manifest artifacts.
+            if is_strict and is_test_file(fs.path):
+                is_strict = False
+
             # Compare
             file_errors = _compare_artifacts(
                 expected=expected,

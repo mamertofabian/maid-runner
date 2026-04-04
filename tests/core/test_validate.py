@@ -1305,3 +1305,68 @@ validate:
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert result.success is True
+
+
+class TestStrictModeTestFiles:
+    """Test files should always use permissive mode, even when in files.create."""
+
+    def test_test_file_in_create_allows_undeclared_helpers(self, project):
+        """Test helper functions in files.create test files should not trigger E301."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-auth.manifest.yaml",
+            """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: tests/test_auth.py
+      artifacts:
+        - kind: function
+          name: test_authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_auth.py",
+            "def _make_user():\n    return {'name': 'test'}\n\n"
+            "def test_authenticate():\n    user = _make_user()\n    assert user\n\n"
+            "def test_login():\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # test_login is undeclared but test files use permissive mode
+        assert result.success is True
+
+    def test_test_file_in_create_still_validates_declared_artifacts(self, project):
+        """Declared artifacts in test files should still be validated."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-auth.manifest.yaml",
+            """schema: "2"
+goal: "Add auth"
+files:
+  create:
+    - path: tests/test_auth.py
+      artifacts:
+        - kind: function
+          name: test_authenticate
+        - kind: function
+          name: test_logout
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_auth.py",
+            "def test_authenticate():\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # test_logout is declared but missing -> E300
+        assert result.success is False
+        assert any(e.code == ErrorCode.ARTIFACT_NOT_DEFINED for e in result.errors)
