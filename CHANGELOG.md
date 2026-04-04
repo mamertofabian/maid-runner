@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.3] - 2026-04-04
+
+### Fixed
+- **E320 import path normalization** — Python path-style imports (e.g., `path/to/module`) are now normalized to dotted form (`path.to.module`) before matching against declared imports in E320 validation.
+- **Strict mode E301 for test files** — Test files are now exempt from strict mode E301 checking, preventing false positives on test helpers and fixtures.
+- **Parent privacy inheritance** — `is_private` now correctly inherits parent class privacy for nested artifacts, and strict mode is relaxed for structural artifacts (classes containing only private members).
+- **Maid test uv run** — `maid test` now correctly invokes test commands via `uv run`, fixing execution failures in virtual environments.
+- **Dependency false positives** — Dependency validation no longer produces false positives for standard library and common third-party imports.
+
+### Changed
+- **Test coverage** — Comprehensive coverage audit increased test coverage from 83% to 92% (688 to 948 tests).
+
 ## [2.2.0] - 2026-04-03
 
 ### Added
@@ -713,6 +725,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.2.3]: https://github.com/mamertofabian/maid-runner/compare/v2.2.0...v2.2.3
+[2.2.0]: https://github.com/mamertofabian/maid-runner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mamertofabian/maid-runner/compare/v0.11.4...v2.1.0
 [0.11.3]: https://github.com/mamertofabian/maid-runner/compare/v0.11.2...v0.11.3
 [0.11.2]: https://github.com/mamertofabian/maid-runner/compare/v0.11.1...v0.11.2
