@@ -1,0 +1,38 @@
+schema: "2"
+goal: "Fix E301 false positives for members of private types and relax strict mode for structural TypeScript artifacts"
+type: fix
+created: "2026-04-04"
+description: |
+  Two related fixes:
+  1. FoundArtifact.is_private and ArtifactSpec.is_private should consider the parent
+     type's privacy. Members of _-prefixed types (e.g. _AuthRequest.headers) should
+     inherit privacy from their parent.
+  2. Strict mode (files.create) should not flag undeclared type aliases or interfaces
+     (structural artifacts). Only behavioral artifacts (functions, classes, etc.) require
+     manifest declaration. Members of undeclared structural types are also skipped.
+
+files:
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: attribute
+          name: is_private
+          of: FoundArtifact
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: attribute
+          name: is_private
+          of: ArtifactSpec
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _compare_artifacts
+  read:
+    - tests/validators/test_base.py
+    - tests/core/test_types.py
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/validators/test_base.py -v
+  - pytest tests/core/test_types.py -v
+  - pytest tests/core/test_validate.py -v

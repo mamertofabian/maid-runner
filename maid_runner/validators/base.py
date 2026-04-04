@@ -28,7 +28,11 @@ class FoundArtifact:
 
     @property
     def is_private(self) -> bool:
-        return self.name.startswith("_") or self.name.startswith("#")
+        if self.name.startswith("_") or self.name.startswith("#"):
+            return True
+        if self.of and (self.of.startswith("_") or self.of.startswith("#")):
+            return True
+        return False
 
     @property
     def qualified_name(self) -> str:

@@ -1095,3 +1095,213 @@ validate:
         )
         assert result.success is True  # stubs are warnings, not errors
         assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
+
+
+class TestStrictModeStructuralArtifacts:
+    """Strict mode should not flag undeclared type aliases or interfaces (structural artifacts)."""
+
+    def test_strict_mode_allows_undeclared_type_alias(self, project):
+        """Undeclared type alias in files.create should not trigger E301."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.ts",
+            "type AuthConfig = { host: string; port: number };\n\n"
+            "export function authenticate(): boolean { return true; }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+
+    def test_strict_mode_allows_undeclared_interface(self, project):
+        """Undeclared interface in files.create should not trigger E301."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.ts",
+            "interface AuthProvider {\n  validate(): boolean;\n}\n\n"
+            "export function authenticate(): boolean { return true; }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+
+    def test_strict_mode_allows_members_of_undeclared_interface(self, project):
+        """Members of undeclared interfaces should not trigger E301."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.ts",
+            "interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+            "export function authenticate(): boolean { return true; }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
+
+    def test_strict_mode_still_flags_undeclared_function(self, project):
+        """Undeclared functions should still trigger E301 in strict mode."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.py",
+            "def authenticate():\n    pass\n\ndef helper():\n    pass\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is False
+        assert any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_strict_mode_still_flags_undeclared_class(self, project):
+        """Undeclared classes should still trigger E301 in strict mode."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.py",
+            "def authenticate():\n    pass\n\nclass Helper:\n    pass\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is False
+        assert any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_strict_mode_validates_declared_interface_members(self, project):
+        """If an interface IS declared, its members should still be validated."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: interface
+          name: AuthConfig
+        - kind: attribute
+          name: host
+          of: AuthConfig
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.ts",
+            "interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+            "export function authenticate(): boolean { return true; }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # port is undeclared but AuthConfig IS declared, so port triggers E301
+        assert result.success is False
+        e301_messages = [
+            e.message for e in result.errors if e.code == ErrorCode.UNEXPECTED_ARTIFACT
+        ]
+        assert any("AuthConfig.port" in m for m in e301_messages)
+
+    def test_strict_mode_private_type_members_allowed(self, project):
+        """Members of _-prefixed types should not trigger E301 (parent privacy)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-service.manifest.yaml",
+            """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/auth.py",
+            "class _Internal:\n    def helper(self):\n        pass\n\n"
+            "def authenticate():\n    pass\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True

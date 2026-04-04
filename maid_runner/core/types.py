@@ -78,7 +78,11 @@ class ArtifactSpec:
 
     @property
     def is_private(self) -> bool:
-        return self.name.startswith("_")
+        if self.name.startswith("_"):
+            return True
+        if self.of and self.of.startswith("_"):
+            return True
+        return False
 
     def merge_key(self) -> str:
         if self.kind == ArtifactKind.METHOD and self.of:

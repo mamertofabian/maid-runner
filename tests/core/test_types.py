@@ -168,6 +168,18 @@ class TestArtifactSpec:
         spec = ArtifactSpec(kind=ArtifactKind.FUNCTION, name="greet")
         assert spec.is_private is False
 
+    def test_is_private_inherited_from_parent(self):
+        """Members of _-prefixed types inherit privacy."""
+        spec = ArtifactSpec(
+            kind=ArtifactKind.ATTRIBUTE, name="headers", of="_AuthRequest"
+        )
+        assert spec.is_private is True
+
+    def test_is_not_private_public_parent(self):
+        """Members of public types are not private."""
+        spec = ArtifactSpec(kind=ArtifactKind.ATTRIBUTE, name="status", of="Response")
+        assert spec.is_private is False
+
     def test_merge_key_method(self):
         spec = ArtifactSpec(kind=ArtifactKind.METHOD, name="login", of="AuthService")
         assert spec.merge_key() == "AuthService.login"

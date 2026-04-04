@@ -26,6 +26,7 @@ from maid_runner.core.result import (
     ValidationResult,
 )
 from maid_runner.core.types import (
+    ArtifactKind,
     ArtifactSpec,
     Manifest,
     ValidationMode,
@@ -39,6 +40,10 @@ from maid_runner.validators.registry import (
 
 # Register all built-in validators (Python always, TS/Svelte if available)
 auto_register()
+
+# Structural artifact kinds that define shapes rather than behavior.
+# These don't require manifest declaration in strict mode.
+_STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
 
 
 class ValidationEngine:
@@ -506,8 +511,23 @@ def _compare_artifacts(
     # Strict mode: check for unexpected public artifacts
     if is_strict:
         expected_keys = {spec.merge_key() for spec in expected}
+        # Collect names of undeclared structural artifacts whose members
+        # should also be exempt from strict checking.
+        undeclared_structural = {
+            fa.name
+            for fa in found
+            if fa.kind in _STRUCTURAL_KINDS
+            and not fa.is_private
+            and fa.merge_key() not in expected_keys
+        }
         for fa in found:
             if fa.is_private:
+                continue
+            # Skip undeclared structural artifacts (type aliases, interfaces)
+            if fa.kind in _STRUCTURAL_KINDS and fa.merge_key() not in expected_keys:
+                continue
+            # Skip members of undeclared structural artifacts
+            if fa.of and fa.of in undeclared_structural:
                 continue
             if fa.merge_key() not in expected_keys:
                 errors.append(

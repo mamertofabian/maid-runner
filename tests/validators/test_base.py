@@ -32,6 +32,25 @@ class TestFoundArtifact:
         fa = FoundArtifact(kind=ArtifactKind.METHOD, name="#secret", of="Foo")
         assert fa.is_private is True
 
+    def test_private_inherited_from_underscore_parent(self):
+        """Members of _-prefixed types inherit privacy."""
+        fa = FoundArtifact(
+            kind=ArtifactKind.ATTRIBUTE, name="headers", of="_AuthRequest"
+        )
+        assert fa.is_private is True
+
+    def test_private_inherited_from_hash_parent(self):
+        """Members of #-prefixed types inherit privacy."""
+        fa = FoundArtifact(kind=ArtifactKind.METHOD, name="validate", of="#Internal")
+        assert fa.is_private is True
+
+    def test_not_private_public_parent(self):
+        """Members of public types are not private."""
+        fa = FoundArtifact(
+            kind=ArtifactKind.ATTRIBUTE, name="status", of="AuthResponse"
+        )
+        assert fa.is_private is False
+
     def test_qualified_name(self):
         fa = FoundArtifact(kind=ArtifactKind.METHOD, name="login", of="AuthService")
         assert fa.qualified_name == "AuthService.login"
