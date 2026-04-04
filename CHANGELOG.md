@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.4] - 2026-04-04
+
+### Added
+- **E220 test coverage enforcement** — Implementation validation now checks that declared artifacts have corresponding test coverage, ensuring behavioral tests exist for all manifest-declared artifacts.
+
+### Fixed
+- **Strict validation with active chain** — When a manifest chain is active, validation now correctly enforces strict mode for `files.create` entries, closing a loophole where permissive EDIT mode was incorrectly applied to files that should be strictly validated.
+
 ## [2.2.3] - 2026-04-04
 
 ### Fixed
@@ -725,6 +733,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.2.4]: https://github.com/mamertofabian/maid-runner/compare/v2.2.3...v2.2.4
 [2.2.3]: https://github.com/mamertofabian/maid-runner/compare/v2.2.0...v2.2.3
 [2.2.0]: https://github.com/mamertofabian/maid-runner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mamertofabian/maid-runner/compare/v0.11.4...v2.1.0
