@@ -585,6 +585,125 @@ class TestDependencyCheck:
         ]
         assert len(base_warnings) >= 1
 
+    def test_existing_file_no_false_positive(self, tmp_path):
+        """Read dep that exists on disk but not in any manifest should NOT warn."""
+        # Create the infrastructure file on disk
+        infra = tmp_path / "src" / "utils.py"
+        infra.parent.mkdir(parents=True)
+        infra.write_text("def helper(): pass\n")
+
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/utils.py",),
+            task_type=TaskType.FEATURE,
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = DependencyCheck()
+        issues = check.run(graph, [m], project_root=tmp_path)
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) == 0
+
+    def test_missing_file_still_warns(self, tmp_path):
+        """Read dep that doesn't exist on disk AND not in manifests should warn."""
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/truly_missing.py",),
+            task_type=TaskType.FEATURE,
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = DependencyCheck()
+        issues = check.run(graph, [m], project_root=tmp_path)
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) >= 1
+        assert "truly_missing" in dep_issues[0].message
+
+    def test_no_project_root_preserves_old_behavior(self):
+        """Without project_root, read deps not in manifests still warn (backward compat)."""
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/infrastructure.py",),
+            task_type=TaskType.FEATURE,
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = DependencyCheck()
+        issues = check.run(graph, [m])
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) >= 1
+
+    def test_engine_passes_project_root(self, tmp_path):
+        """CoherenceEngine.validate() with project_root threads it to checks."""
+        from maid_runner.coherence.engine import CoherenceEngine
+
+        infra = tmp_path / "src" / "utils.py"
+        infra.parent.mkdir(parents=True)
+        infra.write_text("def helper(): pass\n")
+
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/utils.py",),
+            task_type=TaskType.FEATURE,
+        )
+        engine = CoherenceEngine(checks=[DependencyCheck()])
+        result = engine.validate([m], project_root=tmp_path)
+        dep_issues = [i for i in result.issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) == 0
+
+    def test_validate_single_threads_project_root(self, tmp_path):
+        """validate_single passes project_root through to checks."""
+        from maid_runner.coherence.engine import CoherenceEngine
+
+        infra = tmp_path / "src" / "utils.py"
+        infra.parent.mkdir(parents=True)
+        infra.write_text("def helper(): pass\n")
+
+        m1 = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/utils.py",),
+            task_type=TaskType.FEATURE,
+        )
+        engine = CoherenceEngine(checks=[DependencyCheck()])
+        result = engine.validate_single(m1, [m1], project_root=tmp_path)
+        dep_issues = [i for i in result.issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) == 0
+
+    def test_missing_file_suggestion_mentions_disk(self, tmp_path):
+        """Suggestion text for missing deps mentions 'not found on disk'."""
+        m = Manifest(
+            slug="m1",
+            source_path="manifests/m1.manifest.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            files_create=(_make_fs("src/svc.py", (_make_art("svc"),)),),
+            files_read=("src/gone.py",),
+            task_type=TaskType.FEATURE,
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+        check = DependencyCheck()
+        issues = check.run(graph, [m], project_root=tmp_path)
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) == 1
+        assert "not found on disk" in dep_issues[0].suggestion
+
 
 # ---------------------------------------------------------------------------
 # PatternCheck

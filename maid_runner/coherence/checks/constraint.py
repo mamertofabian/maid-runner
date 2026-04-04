@@ -91,7 +91,7 @@ class ConstraintCheck(BaseCheck):
         return "constraint"
 
     def run(
-        self, graph: KnowledgeGraph, manifests: list[Manifest]
+        self, graph: KnowledgeGraph, manifests: list[Manifest], **kwargs: object
     ) -> list[CoherenceIssue]:
         config = load_constraint_config(self._config_path)
         if not config.enabled:

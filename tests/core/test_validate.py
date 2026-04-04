@@ -943,6 +943,328 @@ validate:
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert result.success is True
 
+    def test_ts_relative_import_resolves_to_manifest_path(self, project):
+        """TS relative import ../../src/models/Budget resolves to match manifest declaration."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-budget-page.manifest.yaml",
+            """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import { Budget } from "../models/Budget";\n\nexport function BudgetPage() { return new Budget(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_deep_relative_import_resolves(self, project):
+        """Deep relative import ../../src/models/Budget from tests/ resolves correctly."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-test.manifest.yaml",
+            """schema: "2"
+goal: "Add test"
+files:
+  create:
+    - path: tests/pages/test_budget.ts
+      artifacts:
+        - kind: function
+          name: testBudget
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/pages/test_budget.ts",
+            'import { Budget } from "../../src/models/Budget";\n\nexport function testBudget() { return new Budget(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_dot_slash_import_resolves(self, project):
+        """TS ./sibling import resolves to match manifest path."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/pages/utils
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import { helper } from "./utils";\n\nexport function BudgetPage() { return helper(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_absolute_import_still_works(self, project):
+        """Non-relative TS imports (package names) still match exactly."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - react
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import React from "react";\n\nexport function BudgetPage() { return React.createElement("div"); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_relative_import_with_extension_stripped(self, project):
+        """Import with .ts extension resolves to match manifest path without extension."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import { Budget } from "../models/Budget.ts";\n\nexport function BudgetPage() { return new Budget(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_js_require_import_detected(self, project):
+        """CommonJS require() calls are captured for import checking."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-util.manifest.yaml",
+            """schema: "2"
+goal: "Add util"
+files:
+  create:
+    - path: src/utils/helper.js
+      artifacts:
+        - kind: function
+          name: helper
+      imports:
+        - lodash
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/utils/helper.js",
+            'const _ = require("lodash");\n\nfunction helper() { return _.get({}, "a"); }\nmodule.exports = { helper };\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_js_require_relative_resolves(self, project):
+        """CommonJS require() with relative path resolves correctly."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-svc.manifest.yaml",
+            """schema: "2"
+goal: "Add service"
+files:
+  create:
+    - path: src/services/api.js
+      artifacts:
+        - kind: function
+          name: callApi
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/services/api.js",
+            'const Budget = require("../models/Budget");\n\nfunction callApi() { return new Budget(); }\nmodule.exports = { callApi };\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_export_from_detected(self, project):
+        """Re-export: export { X } from './module' captures module path and symbols."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-index.manifest.yaml",
+            """schema: "2"
+goal: "Add barrel export"
+files:
+  create:
+    - path: src/index.ts
+      artifacts:
+        - kind: function
+          name: barrel
+      imports:
+        - src/utils
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/index.ts",
+            'export { helper } from "./utils";\n\nexport function barrel() {}\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_import_star_detected(self, project):
+        """import * as X from './module' captures both namespace name and module path."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - Models
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import * as Models from "../models";\n\nexport function BudgetPage() { return Models; }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_root_file_escape_not_resolved(self, project):
+        """Import from root-level file that escapes project with .. is not falsely matched."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: app.ts
+      artifacts:
+        - kind: function
+          name: app
+      imports:
+        - outside/module
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "app.ts",
+            'import { X } from "../outside/module";\n\nexport function app() { return X; }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        # ../outside/module from root resolves to ../outside/module which escapes
+        # project root — filtered out. So "outside/module" won't match.
+        assert len(import_errors) == 1
+
 
 class TestValidateAllChainReuse:
     """Tests that validate_all passes pre-built chain to validate, not creating new ones."""

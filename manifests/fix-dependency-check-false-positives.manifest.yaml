@@ -1,0 +1,74 @@
+schema: "2"
+goal: "Fix dependency check false positives by adding filesystem existence fallback"
+type: fix
+created: "2026-04-04"
+description: |
+  DependencyCheck flags files.read paths as missing when they exist on disk
+  but aren't created by any manifest. Fix by threading project_root through
+  the coherence pipeline and falling back to Path.exists() check.
+
+files:
+  edit:
+    - path: maid_runner/coherence/checks/base.py
+      artifacts:
+        - kind: method
+          name: run
+          of: BaseCheck
+    - path: maid_runner/coherence/checks/dependency.py
+      artifacts:
+        - kind: method
+          name: run
+          of: DependencyCheck
+    - path: maid_runner/coherence/checks/duplicate.py
+      artifacts:
+        - kind: method
+          name: run
+          of: DuplicateCheck
+    - path: maid_runner/coherence/checks/signature.py
+      artifacts:
+        - kind: method
+          name: run
+          of: SignatureCheck
+    - path: maid_runner/coherence/checks/naming.py
+      artifacts:
+        - kind: method
+          name: run
+          of: NamingCheck
+    - path: maid_runner/coherence/checks/boundary.py
+      artifacts:
+        - kind: method
+          name: run
+          of: ModuleBoundaryCheck
+    - path: maid_runner/coherence/checks/pattern.py
+      artifacts:
+        - kind: method
+          name: run
+          of: PatternCheck
+    - path: maid_runner/coherence/checks/constraint.py
+      artifacts:
+        - kind: method
+          name: run
+          of: ConstraintCheck
+    - path: maid_runner/coherence/engine.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: CoherenceEngine
+        - kind: method
+          name: validate_single
+          of: CoherenceEngine
+    - path: maid_runner/cli/commands/coherence.py
+      artifacts:
+        - kind: function
+          name: cmd_coherence
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: _run_coherence_only
+        - kind: function
+          name: _print_coherence
+  read:
+    - tests/coherence/test_coherence_v2.py
+
+validate:
+  - pytest tests/coherence/test_coherence_v2.py -v

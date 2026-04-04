@@ -767,14 +767,22 @@ def _check_required_imports(
                     found_imports.add(alias.name)
     else:
         # TypeScript/JavaScript: simple text search for import patterns
+        import posixpath
         import re
 
-        # import ... from 'module'
-        for match in re.finditer(r"""(?:import|from)\s+['"](.+?)['"]""", source):
-            found_imports.add(match.group(1))
-        # import { X } from 'module'
+        _JS_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs")
+
+        # import/export ... from 'module' (covers default, namespace, re-exports)
         for match in re.finditer(
-            r"""import\s+\{([^}]+)\}\s+from\s+['"](.+?)['"]""", source
+            r"""(?:import|export)\s+.*?from\s+['"](.+?)['"]""", source
+        ):
+            found_imports.add(match.group(1))
+        # import 'module' (side-effect imports)
+        for match in re.finditer(r"""import\s+['"](.+?)['"]""", source):
+            found_imports.add(match.group(1))
+        # import { X, Y } from 'module' / export { X, Y } from 'module'
+        for match in re.finditer(
+            r"""(?:import|export)\s+\{([^}]+)\}\s+from\s+['"](.+?)['"]""", source
         ):
             names = match.group(1)
             module = match.group(2)
@@ -783,6 +791,41 @@ def _check_required_imports(
                 name = name.strip().split(" as ")[0].strip()
                 if name:
                     found_imports.add(name)
+        # import * as X from 'module'
+        for match in re.finditer(
+            r"""import\s+\*\s+as\s+(\w+)\s+from\s+['"](.+?)['"]""", source
+        ):
+            found_imports.add(match.group(1))  # namespace name
+            found_imports.add(match.group(2))  # module path
+        # CommonJS require('module') — also captures destructured: const { X } = require('...')
+        for match in re.finditer(r"""require\s*\(\s*['"](.+?)['"]\s*\)""", source):
+            found_imports.add(match.group(1))
+
+        # Resolve relative imports against the importing file's directory
+        # so that ../../src/models/Budget matches manifest's src/models/Budget.
+        # Also strip known JS/TS extensions for extensionless matching.
+        file_dir = posixpath.dirname(file_path)
+        normalized: set[str] = set()
+        for imp in list(found_imports):
+            if imp.startswith("."):
+                resolved = posixpath.normpath(posixpath.join(file_dir, imp))
+                # Skip paths that escape the project root (start with ..)
+                if resolved.startswith(".."):
+                    continue
+                normalized.add(resolved)
+                # Also add without extension so "src/models/Budget.ts"
+                # matches manifest's "src/models/Budget"
+                for ext in _JS_EXTENSIONS:
+                    if resolved.endswith(ext):
+                        normalized.add(resolved[: -len(ext)])
+                        break
+            else:
+                # Strip extensions from non-relative imports too
+                for ext in _JS_EXTENSIONS:
+                    if imp.endswith(ext):
+                        normalized.add(imp[: -len(ext)])
+                        break
+        found_imports |= normalized
 
     # Check each required import
     for req in required_imports:

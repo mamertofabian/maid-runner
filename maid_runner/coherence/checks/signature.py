@@ -29,7 +29,7 @@ class SignatureCheck(BaseCheck):
         return "signature"
 
     def run(
-        self, graph: KnowledgeGraph, manifests: list[Manifest]
+        self, graph: KnowledgeGraph, manifests: list[Manifest], **kwargs: object
     ) -> list[CoherenceIssue]:
         issues: list[CoherenceIssue] = []
 

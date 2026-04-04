@@ -6,6 +6,8 @@ Ported from v1: coherence/checks/dependency_check.py
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from maid_runner.core.types import Manifest
 from maid_runner.coherence.result import (
     CoherenceIssue,
@@ -21,9 +23,10 @@ class DependencyCheck(BaseCheck):
 
     Checks:
     - Files in files.read exist in the knowledge graph (tracked by some manifest)
+      or on disk (when project_root is provided)
     - Base classes referenced in artifacts exist somewhere in the chain
 
-    Severity: ERROR for missing dependencies.
+    Severity: WARNING for missing dependencies.
     """
 
     @property
@@ -31,9 +34,11 @@ class DependencyCheck(BaseCheck):
         return "dependency"
 
     def run(
-        self, graph: KnowledgeGraph, manifests: list[Manifest]
+        self, graph: KnowledgeGraph, manifests: list[Manifest], **kwargs: object
     ) -> list[CoherenceIssue]:
         issues: list[CoherenceIssue] = []
+        _root = kwargs.get("project_root")
+        project_root = Path(_root) if isinstance(_root, (str, Path)) else None
 
         # Collect all file paths that are created/edited by any manifest
         writable_files: set[str] = set()
@@ -42,8 +47,12 @@ class DependencyCheck(BaseCheck):
 
         for m in manifests:
             # Check read dependencies - must be created/edited by some other manifest
+            # OR exist on disk (when project_root is provided)
             for read_path in m.files_read:
                 if read_path not in writable_files:
+                    # Filesystem fallback: if file exists on disk, not a real problem
+                    if project_root is not None and (project_root / read_path).exists():
+                        continue
                     issues.append(
                         CoherenceIssue(
                             issue_type=IssueType.DEPENDENCY,
@@ -52,9 +61,8 @@ class DependencyCheck(BaseCheck):
                             file=read_path,
                             manifests=(m.slug,),
                             suggestion=(
-                                "This file is referenced as a dependency but not created by any manifest. "
-                                "This is expected for infrastructure files, third-party modules, or "
-                                "pre-existing code. Create a manifest for it to resolve this warning."
+                                "This file is referenced as a dependency but not created by any manifest "
+                                "and not found on disk. Create a manifest for it or remove the reference."
                             ),
                         )
                     )

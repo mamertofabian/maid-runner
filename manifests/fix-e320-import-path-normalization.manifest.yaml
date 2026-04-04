@@ -1,0 +1,22 @@
+schema: "2"
+goal: "Fix E320 import validation to normalize relative paths before comparison"
+type: fix
+created: "2026-04-04"
+description: |
+  E320 import matching uses exact string comparison. TS/JS relative imports
+  like ../../src/models/Budget.ts never match manifest declarations like
+  src/models/Budget even though they resolve to the same file.
+  Fix by normalizing import paths using posixpath before comparison,
+  stripping known JS/TS extensions, and capturing CommonJS require() calls.
+
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _check_required_imports
+  read:
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/core/test_validate.py::TestImportVerification -v

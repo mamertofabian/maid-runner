@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from maid_runner.cli.commands._format import format_coherence_result, print_error
 
@@ -32,6 +33,6 @@ def cmd_coherence(args: argparse.Namespace) -> int:
         checks = [c for c in checks if c.name not in exclude]
 
     engine = CoherenceEngine(checks=checks)
-    result = engine.validate(chain)
+    result = engine.validate(chain, project_root=Path.cwd())
     print(format_coherence_result(result, json_mode=args.json))
     return 0 if result.success else 1

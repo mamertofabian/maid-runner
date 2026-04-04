@@ -59,13 +59,15 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 def _run_coherence_only(args: argparse.Namespace) -> int:
     """Run only coherence checks, no structural validation."""
+    from pathlib import Path
+
     from maid_runner.coherence.engine import CoherenceEngine
     from maid_runner.core.chain import ManifestChain
 
     try:
         chain = ManifestChain(args.manifest_dir)
         engine = CoherenceEngine()
-        result = engine.validate(chain)
+        result = engine.validate(chain, project_root=Path.cwd())
         print(format_coherence_result(result, json_mode=args.json))
         return 0 if result.success else 1
     except Exception as e:
@@ -75,13 +77,15 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
 
 def _print_coherence(args: argparse.Namespace) -> None:
     """Run and print coherence checks as an addition to structural validation."""
+    from pathlib import Path
+
     from maid_runner.coherence.engine import CoherenceEngine
     from maid_runner.core.chain import ManifestChain
 
     try:
         chain = ManifestChain(args.manifest_dir)
         engine = CoherenceEngine()
-        result = engine.validate(chain)
+        result = engine.validate(chain, project_root=Path.cwd())
         print()
         print(format_coherence_result(result, json_mode=args.json))
     except Exception:

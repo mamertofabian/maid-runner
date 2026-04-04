@@ -13,6 +13,42 @@ from maid_runner.core.result import BatchTestResult, TestRunResult
 from maid_runner.core.types import TestStream
 
 
+_PYTHON_COMMANDS = frozenset({"pytest", "python", "python3", "py.test"})
+
+
+def _is_python_command(cmd: str) -> bool:
+    """Check if a command is a Python ecosystem command."""
+    if cmd in _PYTHON_COMMANDS:
+        return True
+    # Versioned interpreters: python3.12, python3.11, etc.
+    if cmd.startswith("python3."):
+        return True
+    return False
+
+
+def _is_uv_project(cwd: Union[str, Path]) -> bool:
+    """Check if directory is a uv-managed project (uv.lock present)."""
+    return Path(cwd).joinpath("uv.lock").exists()
+
+
+def _resolve_command(
+    command: tuple[str, ...], *, cwd: Union[str, Path] = "."
+) -> tuple[str, ...]:
+    """Prepend ``uv run`` to Python commands when running in a uv-managed project."""
+    if not command:
+        return command
+    # Already wrapped — don't double-prefix
+    if command[0] == "uv":
+        return command
+    # Only wrap known Python ecosystem commands
+    if not _is_python_command(command[0]):
+        return command
+    # Only when uv.lock exists (definitive uv-managed project marker)
+    if not _is_uv_project(cwd):
+        return command
+    return ("uv", "run") + command
+
+
 def run_command(
     command: tuple[str, ...],
     *,
@@ -21,6 +57,7 @@ def run_command(
     manifest_slug: str = "",
     stream: TestStream = TestStream.IMPLEMENTATION,
 ) -> TestRunResult:
+    command = _resolve_command(command, cwd=cwd)
     start = time.monotonic()
     try:
         proc = subprocess.run(
@@ -123,12 +160,15 @@ def _can_batch(commands: list[tuple[str, ...]]) -> bool:
     if not commands:
         return False
     return all(
-        cmd[0] in ("pytest", "python") and "pytest" in " ".join(cmd) for cmd in commands
+        _is_python_command(cmd[0]) and "pytest" in " ".join(cmd) for cmd in commands
     )
 
 
 def _batch_pytest(commands: list[tuple[str, ...]]) -> tuple[str, ...]:
-    """Combine multiple pytest commands into a single invocation."""
+    """Combine multiple pytest commands into a single invocation.
+
+    Returns the raw command tuple — caller (run_command) handles uv resolution.
+    """
     test_files: list[str] = []
     seen: set[str] = set()
     for cmd in commands:

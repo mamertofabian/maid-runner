@@ -46,7 +46,7 @@ class PatternCheck(BaseCheck):
         return "pattern"
 
     def run(
-        self, graph: KnowledgeGraph, manifests: list[Manifest]
+        self, graph: KnowledgeGraph, manifests: list[Manifest], **kwargs: object
     ) -> list[CoherenceIssue]:
         issues: list[CoherenceIssue] = []
 

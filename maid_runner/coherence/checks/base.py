@@ -27,7 +27,7 @@ class BaseCheck(ABC):
 
     @abstractmethod
     def run(
-        self, graph: KnowledgeGraph, manifests: list[Manifest]
+        self, graph: KnowledgeGraph, manifests: list[Manifest], **kwargs: object
     ) -> list[CoherenceIssue]:
         """Execute the check and return any issues found."""
 

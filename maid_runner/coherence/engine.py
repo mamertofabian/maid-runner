@@ -6,6 +6,7 @@ Spec: 08-coherence-module.md - coherence/engine.py
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Optional, Sequence, Union
 
 from maid_runner.core.types import Manifest
@@ -39,6 +40,7 @@ class CoherenceEngine:
         manifests: Union[Sequence[Manifest], object],
         *,
         graph: Optional[KnowledgeGraph] = None,
+        project_root: Optional[Path] = None,
     ) -> CoherenceResult:
         """Run all configured coherence checks.
 
@@ -46,6 +48,7 @@ class CoherenceEngine:
             manifests: ManifestChain or list/sequence of Manifest objects.
                        If it has an active_manifests() method, that is called.
             graph: Pre-built graph (optional; built from manifests if not provided).
+            project_root: Project root for filesystem checks (e.g. dependency existence).
 
         Returns:
             CoherenceResult with aggregated issues from all checks.
@@ -65,8 +68,12 @@ class CoherenceEngine:
         all_issues = []
         checks_run = []
 
+        check_kwargs: dict[str, object] = {}
+        if project_root is not None:
+            check_kwargs["project_root"] = project_root
+
         for check in self._checks:
-            issues = check.run(graph, manifest_list)
+            issues = check.run(graph, manifest_list, **check_kwargs)
             all_issues.extend(issues)
             checks_run.append(check.name)
 
@@ -96,12 +103,13 @@ class CoherenceEngine:
         all_manifests: Union[Sequence[Manifest], object],
         *,
         graph: Optional[KnowledgeGraph] = None,
+        project_root: Optional[Path] = None,
     ) -> CoherenceResult:
         """Run coherence checks focused on a single manifest.
 
         Only reports issues related to the specified manifest.
         """
-        result = self.validate(all_manifests, graph=graph)
+        result = self.validate(all_manifests, graph=graph, project_root=project_root)
 
         relevant = [
             i for i in result.issues if not i.manifests or manifest.slug in i.manifests

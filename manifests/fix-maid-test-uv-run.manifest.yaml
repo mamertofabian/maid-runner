@@ -1,0 +1,29 @@
+schema: "2"
+goal: "Fix maid test to use uv run for Python commands in uv-managed projects"
+type: fix
+created: "2026-04-04"
+description: |
+  maid test passes validate commands directly to subprocess.run(), invoking
+  system python/pytest instead of the project venv. Fix by detecting
+  uv-managed projects (via uv.lock) and prepending uv run to Python
+  ecosystem commands. Also fixes _can_batch consistency.
+
+files:
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: _resolve_command
+        - kind: function
+          name: _is_python_command
+        - kind: function
+          name: _is_uv_project
+        - kind: function
+          name: _can_batch
+        - kind: function
+          name: _batch_pytest
+  read:
+    - tests/core/test_test_runner.py
+
+validate:
+  - pytest tests/core/test_test_runner.py -v
