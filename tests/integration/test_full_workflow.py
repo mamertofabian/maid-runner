@@ -41,6 +41,22 @@ def _write_yaml(path: Path, data: dict) -> None:
     path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
+def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
+    """Write a minimal test file that references the given artifacts."""
+    public_names = [n for n in artifact_names if not n.startswith("_")]
+    if not public_names:
+        public_names = artifact_names
+    imports = ", ".join(public_names)
+    tests = "\n".join(
+        f"def test_{n}():\n    assert {n} is not None\n" for n in public_names
+    )
+    content = f"from {source_module} import {imports}\n\n{tests}\n"
+    path = project_dir / test_rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    return test_rel_path
+
+
 # ---------------------------------------------------------------------------
 # 1. Load v2 YAML manifest -> validate -> pass
 # ---------------------------------------------------------------------------
@@ -119,9 +135,10 @@ class TestV2ManifestValidatePass:
                                 },
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_service.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_service.py -v"],
             },
         )
         (project / "src" / "service.py").write_text(
@@ -133,6 +150,7 @@ class TestV2ManifestValidatePass:
             """
             )
         )
+        _add_test_file(project, "tests/test_service.py", "src.service", ["AuthService"])
 
         result = validate(
             str(manifest_path),
@@ -293,9 +311,10 @@ class TestPermissiveMode:
                                 {"kind": "function", "name": "farewell"},
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_farewell.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_farewell.py -v"],
             },
         )
         (project / "src" / "greet.py").write_text(
@@ -309,6 +328,7 @@ class TestPermissiveMode:
             """
             )
         )
+        _add_test_file(project, "tests/test_farewell.py", "src.greet", ["farewell"])
 
         result = validate(
             str(manifest_path),
@@ -346,9 +366,10 @@ class TestMultiFileChainMerge:
                                 },
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_service_base.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_service_base.py -v"],
                 "created": "2025-06-01T00:00:00Z",
             },
         )
@@ -371,9 +392,10 @@ class TestMultiFileChainMerge:
                                 },
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_service_stop.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_service_stop.py -v"],
                 "created": "2025-06-15T00:00:00Z",
             },
         )
@@ -390,6 +412,12 @@ class TestMultiFileChainMerge:
                         pass
             """
             )
+        )
+        _add_test_file(
+            project, "tests/test_service_base.py", "src.service", ["Service"]
+        )
+        _add_test_file(
+            project, "tests/test_service_stop.py", "src.service", ["Service"]
         )
 
         # Validate with chain
@@ -518,9 +546,10 @@ class TestSupersessionWorkflow:
                             "path": "src/x.py",
                             "artifacts": [{"kind": "function", "name": "x"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_x.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_x.py -v"],
             },
         )
         _write_yaml(
@@ -536,9 +565,10 @@ class TestSupersessionWorkflow:
                             "path": "src/x.py",
                             "artifacts": [{"kind": "function", "name": "x_new"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_x_new.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_x_new.py -v"],
             },
         )
         (project / "src" / "x.py").write_text(
@@ -549,6 +579,8 @@ class TestSupersessionWorkflow:
             """
             )
         )
+        _add_test_file(project, "tests/test_x.py", "src.x", ["x"])
+        _add_test_file(project, "tests/test_x_new.py", "src.x", ["x_new"])
 
         engine = ValidationEngine(project_root=project)
         batch = engine.validate_all("manifests/")
@@ -790,12 +822,14 @@ class TestResultSerialization:
                                 {"kind": "function", "name": "greet"},
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_greet.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_greet.py -v"],
             },
         )
         (project / "src" / "greet.py").write_text("def greet(): pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         result = validate(
             str(manifest_path),
@@ -836,9 +870,10 @@ class TestPrivateArtifacts:
                                 {"kind": "function", "name": "greet"},
                             ],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_greet.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_greet.py -v"],
             },
         )
         (project / "src" / "greet.py").write_text(
@@ -852,6 +887,7 @@ class TestPrivateArtifacts:
             """
             )
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         result = validate(
             str(manifest_path),
@@ -884,12 +920,14 @@ class TestDepthChecks:
                             "path": "src/greet.py",
                             "artifacts": [{"kind": "function", "name": "greet"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_greet.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_greet.py -v"],
             },
         )
         (project / "src" / "greet.py").write_text("def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         result = validate(
             str(manifest_path),

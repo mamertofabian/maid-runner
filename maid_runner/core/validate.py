@@ -256,6 +256,97 @@ class ValidationEngine:
 
         return errors
 
+    def _check_test_coverage(
+        self,
+        manifest: Manifest,
+    ) -> list[ValidationError]:
+        """Check that manifests with public artifacts have test coverage.
+
+        Returns errors/warnings:
+        - E220 (ERROR) if manifest has public artifacts but zero test files
+        - E200 (WARNING) if a public artifact is not referenced in any test
+        """
+        errors: list[ValidationError] = []
+
+        # Snapshot manifests capture existing state — exempt from test coverage
+        if manifest.task_type and manifest.task_type.value in (
+            "snapshot",
+            "system-snapshot",
+        ):
+            return errors
+
+        # Only check artifacts from non-test source files.
+        # Manifests that create/edit test files don't need meta-test coverage.
+        source_file_specs = [
+            fs for fs in manifest.all_file_specs if not is_test_file(fs.path)
+        ]
+
+        has_public_artifacts = any(
+            not artifact.is_private
+            for fs in source_file_specs
+            for artifact in fs.artifacts
+        )
+
+        if not has_public_artifacts:
+            return errors
+
+        # Find test files
+        test_files = _find_test_files(manifest, self._project_root)
+
+        if not test_files:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.NO_TEST_FILES,
+                    message=(
+                        f"Manifest '{manifest.slug}' declares public artifacts "
+                        f"but has no test files — add test file paths to "
+                        f"files.read or validate commands"
+                    ),
+                    suggestion=(
+                        "Add test files to the 'files.read' section or reference "
+                        "them in 'validate' commands (e.g., pytest tests/test_foo.py -v)"
+                    ),
+                )
+            )
+            return errors
+
+        # Check each public artifact is referenced in at least one test (WARNING)
+        for fs in source_file_specs:
+            for artifact in fs.artifacts:
+                if artifact.is_private:
+                    continue
+                used = False
+                for tf_path in test_files:
+                    full_path = self._project_root / tf_path
+                    if not full_path.exists():
+                        continue
+                    source = full_path.read_text()
+                    validator = _get_validator_for_test(tf_path)
+                    if validator is None:
+                        continue
+                    result = validator.collect_behavioral_artifacts(source, tf_path)
+                    ref_names = {a.name for a in result.artifacts}
+                    if artifact.name in ref_names:
+                        used = True
+                        break
+                if not used:
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
+                            message=(
+                                f"Artifact '{artifact.name}' not referenced in "
+                                f"any test file"
+                            ),
+                            severity=Severity.WARNING,
+                            location=Location(file=fs.path),
+                            suggestion=(
+                                f"Add a test that imports and exercises '{artifact.name}'"
+                            ),
+                        )
+                    )
+
+        return errors
+
     def validate_implementation(
         self,
         manifest: Manifest,
@@ -376,6 +467,10 @@ class ValidationEngine:
             if fs.imports:
                 import_errors = _check_required_imports(source, fs.path, fs.imports)
                 errors.extend(import_errors)
+
+        # Test coverage: verify artifacts have tests
+        test_coverage_errors = self._check_test_coverage(manifest)
+        errors.extend(test_coverage_errors)
 
         return errors
 

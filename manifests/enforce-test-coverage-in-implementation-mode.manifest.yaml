@@ -1,0 +1,48 @@
+schema: "2"
+goal: "Enforce test coverage during implementation validation — manifests with public artifacts must have test files"
+type: feature
+created: "2026-04-04"
+description: |
+  Implementation mode (the default for maid validate) only checks that code
+  defines the declared artifacts. It silently passes manifests with zero test
+  files. This defeats MAID's core TDD principle — a manifest can ship without
+  any test coverage at all.
+
+  Fix: during implementation validation, also verify test coverage:
+  1. If a manifest declares public artifacts but has no discoverable test files,
+     emit E220 (NO_TEST_FILES) as a hard error.
+  2. For each public artifact not referenced in any test file, emit E200
+     (ARTIFACT_NOT_USED_IN_TESTS) as a warning.
+
+  This makes implementation mode the comprehensive gate it should be:
+  code exists + tests exist + tests reference artifacts.
+
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: NO_TEST_FILES
+          of: ErrorCode
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+        - kind: method
+          name: _check_test_coverage
+          of: ValidationEngine
+        - kind: function
+          name: _find_test_files
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: class
+          name: TestImplementationTestCoverage
+  read:
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/core/test_validate.py::TestImplementationTestCoverage -v

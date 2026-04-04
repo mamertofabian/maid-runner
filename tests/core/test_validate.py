@@ -36,6 +36,23 @@ def _write_source(project_dir, rel_path, content):
     return path
 
 
+def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
+    """Write a minimal test file that references the given artifacts.
+
+    Returns the test_rel_path for inclusion in manifest YAML.
+    """
+    public_names = [n for n in artifact_names if not n.startswith("_")]
+    if not public_names:
+        public_names = artifact_names
+    imports = ", ".join(public_names)
+    tests = "\n".join(
+        f"def test_{n}():\n    assert {n} is not None\n" for n in public_names
+    )
+    content = f"from {source_module} import {imports}\n\n{tests}\n"
+    _write_source(project_dir, test_rel_path, content)
+    return test_rel_path
+
+
 class TestImplementationValidation:
     def test_strict_mode_all_present_pass(self, project):
         """Golden test 6.1: All artifacts present -> PASS."""
@@ -54,8 +71,10 @@ files:
             - name: name
               type: str
           returns: str
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(
@@ -63,6 +82,7 @@ validate:
             "src/greet.py",
             'def greet(name: str) -> str:\n    return f"Hello, {name}!"\n',
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -138,8 +158,10 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(
@@ -147,6 +169,7 @@ validate:
             "src/greet.py",
             'def greet(name):\n    return _format(name)\n\ndef _format(name):\n    return f"Hello, {name}!"\n',
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -165,8 +188,10 @@ files:
       artifacts:
         - kind: function
           name: farewell
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(
@@ -174,6 +199,7 @@ validate:
             "src/greet.py",
             'def greet(name):\n    return f"Hello, {name}!"\n\ndef farewell(name):\n    return f"Goodbye, {name}!"\n',
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["farewell"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -573,8 +599,10 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(
@@ -582,6 +610,7 @@ validate:
             "src/greet.py",
             'def greet(name):\n    return f"Hello, {name}!"\n',
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         result = validate(
             manifest_path,
@@ -607,11 +636,14 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(
@@ -637,11 +669,14 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -663,8 +698,10 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(
@@ -672,6 +709,7 @@ validate:
             "src/greet.py",
             'def greet(name):\n    return f"Hello, {name}!"\n',
         )
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(
@@ -835,14 +873,19 @@ files:
           name: BudgetPage
       imports:
         - src.api.budgets
+  read:
+    - tests/test_budget.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_budget.py -v
 """,
         )
         _write_source(
             project,
             "src/pages/budget.py",
             "from src.api.budgets import list_budgets\n\ndef BudgetPage():\n    data = list_budgets()\n    return data\n",
+        )
+        _add_test_file(
+            project, "tests/test_budget.py", "src.pages.budget", ["BudgetPage"]
         )
 
         engine = ValidationEngine(project_root=project)
@@ -896,14 +939,19 @@ files:
       artifacts:
         - kind: function
           name: BudgetPage
+  read:
+    - tests/test_budget.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_budget.py -v
 """,
         )
         _write_source(
             project,
             "src/pages/budget.py",
             "def BudgetPage():\n    return 'placeholder'\n",
+        )
+        _add_test_file(
+            project, "tests/test_budget.py", "src.pages.budget", ["BudgetPage"]
         )
 
         engine = ValidationEngine(project_root=project)
@@ -929,14 +977,19 @@ files:
           name: BudgetPage
       imports:
         - list_budgets
+  read:
+    - tests/test_budget.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_budget.py -v
 """,
         )
         _write_source(
             project,
             "src/pages/budget.py",
             "from src.api.budgets import list_budgets\n\ndef BudgetPage():\n    return list_budgets()\n",
+        )
+        _add_test_file(
+            project, "tests/test_budget.py", "src.pages.budget", ["BudgetPage"]
         )
 
         engine = ValidationEngine(project_root=project)
@@ -1381,11 +1434,14 @@ files:
       artifacts:
         - kind: function
           name: func_{i}
+  read:
+    - tests/test_m{i}.py
 validate:
-  - pytest
+  - pytest tests/test_m{i}.py
 """,
             )
             _write_source(project, f"src/m{i}.py", f"def func_{i}():\n    return {i}\n")
+            _add_test_file(project, f"tests/test_m{i}.py", f"src.m{i}", [f"func_{i}"])
 
         engine = ValidationEngine(project)
         with patch(
@@ -1412,11 +1468,14 @@ files:
       artifacts:
         - kind: function
           name: func_a
+  read:
+    - tests/test_a.py
 validate:
-  - pytest
+  - pytest tests/test_a.py
 """,
         )
         _write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+        _add_test_file(project, "tests/test_a.py", "src.a", ["func_a"])
 
         chain = ManifestChain(project / "manifests", project)
         engine = ValidationEngine(project)
@@ -1437,11 +1496,14 @@ files:
       artifacts:
         - kind: function
           name: func_a
+  read:
+    - tests/test_a.py
 validate:
-  - pytest
+  - pytest tests/test_a.py
 """,
         )
         _write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+        _add_test_file(project, "tests/test_a.py", "src.a", ["func_a"])
 
         chain = ManifestChain(project / "manifests", project)
         engine = ValidationEngine(project)
@@ -1468,12 +1530,17 @@ files:
       artifacts:
         - kind: function
           name: perf_func_{i}
+  read:
+    - tests/test_perf{i}.py
 validate:
-  - pytest
+  - pytest tests/test_perf{i}.py
 """,
             )
             _write_source(
                 project, f"src/perf{i}.py", f"def perf_func_{i}():\n    return {i}\n"
+            )
+            _add_test_file(
+                project, f"tests/test_perf{i}.py", f"src.perf{i}", [f"perf_func_{i}"]
             )
 
         engine = ValidationEngine(project)
@@ -1499,11 +1566,14 @@ files:
       artifacts:
         - kind: function
           name: greet
+  read:
+    - tests/test_greet.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_greet.py -v
 """,
         )
         _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
 
         result = validate(
             manifest_path,
@@ -1531,8 +1601,10 @@ files:
       artifacts:
         - kind: function
           name: authenticate
+  read:
+    - tests/test_auth.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_auth.py -v
 """,
         )
         _write_source(
@@ -1541,6 +1613,7 @@ validate:
             "type AuthConfig = { host: string; port: number };\n\n"
             "export function authenticate(): boolean { return true; }\n",
         )
+        _add_test_file(project, "tests/test_auth.py", "src.auth", ["authenticate"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -1559,8 +1632,10 @@ files:
       artifacts:
         - kind: function
           name: authenticate
+  read:
+    - tests/test_auth.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_auth.py -v
 """,
         )
         _write_source(
@@ -1569,6 +1644,7 @@ validate:
             "interface AuthProvider {\n  validate(): boolean;\n}\n\n"
             "export function authenticate(): boolean { return true; }\n",
         )
+        _add_test_file(project, "tests/test_auth.py", "src.auth", ["authenticate"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -1587,8 +1663,10 @@ files:
       artifacts:
         - kind: function
           name: authenticate
+  read:
+    - tests/test_auth.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_auth.py -v
 """,
         )
         _write_source(
@@ -1597,6 +1675,7 @@ validate:
             "interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
             "export function authenticate(): boolean { return true; }\n",
         )
+        _add_test_file(project, "tests/test_auth.py", "src.auth", ["authenticate"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -1709,8 +1788,10 @@ files:
       artifacts:
         - kind: function
           name: authenticate
+  read:
+    - tests/test_auth.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_auth.py -v
 """,
         )
         _write_source(
@@ -1719,6 +1800,7 @@ validate:
             "class _Internal:\n    def helper(self):\n        pass\n\n"
             "def authenticate():\n    pass\n",
         )
+        _add_test_file(project, "tests/test_auth.py", "src.auth", ["authenticate"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -1882,11 +1964,14 @@ files:
       artifacts:
         - kind: function
           name: helper
+  read:
+    - tests/test_helper.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_helper.py -v
 """,
         )
         _write_source(project, "src/helper.rb", "def helper\n  'hello'\nend\n")
+        _add_test_file(project, "tests/test_helper.py", "src.helper", ["helper"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
@@ -2198,3 +2283,319 @@ class TestAssertionCheckingFunction:
         source = "def test_broken(:\n    pass\n"
         errors = _check_test_assertions(source, "tests/test_foo.py")
         assert errors == []
+
+
+class TestImplementationTestCoverage:
+    """Test that implementation mode enforces test coverage.
+
+    Manifests with public artifacts MUST have test files.
+    Artifacts not referenced in tests produce warnings.
+    """
+
+    def test_no_test_files_with_public_artifacts_fails(self, project):
+        """Manifest with public artifacts but zero test files -> E220 error."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+validate:
+  - make check
+""",
+        )
+        _write_source(project, "src/widget.py", "def render():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is False
+        assert any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_test_file_in_read_section_passes(self, project):
+        """Manifest with test file in files.read -> no E220."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def render():\n    pass\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render\n\ndef test_render():\n    render()\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_test_file_in_validate_command_passes(self, project):
+        """Manifest with test file path in validate commands -> no E220."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def render():\n    pass\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render\n\ndef test_render():\n    render()\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_only_private_artifacts_no_test_required(self, project):
+        """Manifest with only private artifacts -> no E220 (private doesn't need tests)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-helper.manifest.yaml",
+            """schema: "2"
+goal: "Add helper"
+files:
+  create:
+    - path: src/helper.py
+      artifacts:
+        - kind: function
+          name: _internal_helper
+validate:
+  - make check
+""",
+        )
+        _write_source(project, "src/helper.py", "def _internal_helper():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_no_artifacts_no_test_required(self, project):
+        """Manifest with no artifacts (read-only files) -> no E220."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "read-only.manifest.yaml",
+            """schema: "2"
+goal: "Read-only task"
+files:
+  read:
+    - src/config.py
+validate:
+  - make check
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_artifact_not_in_test_warns(self, project):
+        """Public artifact not referenced in any test -> E200 warning."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.py",
+            "def render():\n    pass\n\ndef update():\n    pass\n",
+        )
+        # Test only references 'render', not 'update'
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render\n\ndef test_render():\n    render()\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        # Should be warning, not error
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_all_artifacts_in_tests_no_warnings(self, project):
+        """All public artifacts referenced in tests -> no E200 warnings."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.py",
+            "def render():\n    pass\n\ndef update():\n    pass\n",
+        )
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render, update\n\ndef test_render():\n    render()\n    assert True\n\ndef test_update():\n    update()\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert untested == []
+
+    def test_private_artifact_not_in_test_no_warning(self, project):
+        """Private artifacts not in tests -> no warning (private is optional)."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: _helper
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.py",
+            "def render():\n    pass\n\ndef _helper():\n    pass\n",
+        )
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render\n\ndef test_render():\n    render()\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert untested == []
+
+    def test_make_check_validate_no_test_files_fails(self, project):
+        """Real-world case: validate has 'make check' only, no test paths -> E220."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "enhance-widget.manifest.yaml",
+            """schema: "2"
+goal: "Enhance widget"
+type: feature
+files:
+  edit:
+    - path: src/components/Widget.svelte
+      artifacts:
+        - kind: attribute
+          name: STORAGE_KEY
+        - kind: interface
+          name: Props
+        - kind: function
+          name: toggleCollapsed
+validate:
+  - make check
+""",
+        )
+        # Don't need the source file for this test - E220 fires before artifact checks
+        # But we need it to avoid E306 (file not found)
+        _write_source(
+            project,
+            "src/components/Widget.svelte",
+            """<script>
+const STORAGE_KEY = 'widget';
+interface Props { title: string }
+function toggleCollapsed() {}
+</script>
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is False
+        assert any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_snapshot_manifest_exempt_from_test_coverage(self, project):
+        """Snapshot manifests capture existing state — they don't require new tests."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "snapshot-utils.manifest.yaml",
+            """schema: "2"
+goal: "Snapshot utils"
+type: snapshot
+files:
+  create:
+    - path: src/utils.py
+      artifacts:
+        - kind: function
+          name: helper
+validate:
+  - make check
+""",
+        )
+        _write_source(project, "src/utils.py", "def helper():\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)

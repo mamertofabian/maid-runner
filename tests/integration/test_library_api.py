@@ -193,6 +193,22 @@ def _write_yaml(path: Path, data: dict) -> None:
     path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
+def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
+    """Write a minimal test file that references the given artifacts."""
+    public_names = [n for n in artifact_names if not n.startswith("_")]
+    if not public_names:
+        public_names = artifact_names
+    imports = ", ".join(public_names)
+    tests = "\n".join(
+        f"def test_{n}():\n    assert {n} is not None\n" for n in public_names
+    )
+    content = f"from {source_module} import {imports}\n\n{tests}\n"
+    path = project_dir / test_rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    return test_rel_path
+
+
 @pytest.fixture
 def project(tmp_path: Path) -> Path:
     (tmp_path / "manifests").mkdir()
@@ -218,12 +234,14 @@ class TestValidateConvenience:
                             "path": "src/foo.py",
                             "artifacts": [{"kind": "function", "name": "foo"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_foo.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_foo.py -v"],
             },
         )
         (project / "src" / "foo.py").write_text("def foo(): pass\n")
+        _add_test_file(project, "tests/test_foo.py", "src.foo", ["foo"])
 
         result = validate(
             str(manifest_path), use_chain=False, project_root=str(project)
@@ -287,12 +305,14 @@ class TestValidateAllConvenience:
                             "path": "src/a.py",
                             "artifacts": [{"kind": "function", "name": "a"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_a.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_a.py -v"],
             },
         )
         (project / "src" / "a.py").write_text("def a(): pass\n")
+        _add_test_file(project, "tests/test_a.py", "src.a", ["a"])
 
         batch = validate_all("manifests/", project_root=str(project))
 
@@ -372,12 +392,14 @@ class TestValidationEngineAPI:
                             "path": "src/bar.py",
                             "artifacts": [{"kind": "function", "name": "bar"}],
                         }
-                    ]
+                    ],
+                    "read": ["tests/test_bar.py"],
                 },
-                "validate": ["pytest tests/ -v"],
+                "validate": ["pytest tests/test_bar.py -v"],
             },
         )
         (project / "src" / "bar.py").write_text("def bar(): pass\n")
+        _add_test_file(project, "tests/test_bar.py", "src.bar", ["bar"])
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(str(manifest_path), use_chain=False)

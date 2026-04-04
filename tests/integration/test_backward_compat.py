@@ -29,6 +29,22 @@ from maid_runner.core.validate import validate
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "manifests" / "v1"
 
 
+def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
+    """Write a minimal test file that references the given artifacts."""
+    public_names = [n for n in artifact_names if not n.startswith("_")]
+    if not public_names:
+        public_names = artifact_names
+    imports = ", ".join(public_names)
+    tests = "\n".join(
+        f"def test_{n}():\n    assert {n} is not None\n" for n in public_names
+    )
+    content = f"from {source_module} import {imports}\n\n{tests}\n"
+    path = project_dir / test_rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    return test_rel_path
+
+
 # ---------------------------------------------------------------------------
 # 1. V1 detection
 # ---------------------------------------------------------------------------
@@ -288,11 +304,16 @@ class TestV1ValidatePipeline:
         src = tmp_path / "src"
         src.mkdir()
 
+        # Create test file that references the artifact
+        test_rel = _add_test_file(
+            tmp_path, "tests/test_helper.py", "src.helper", ["helper"]
+        )
+
         v1_data = {
             "goal": "Add helper",
             "taskType": "create",
             "creatableFiles": ["src/helper.py"],
-            "readonlyFiles": [],
+            "readonlyFiles": [test_rel],
             "expectedArtifacts": {
                 "file": "src/helper.py",
                 "contains": [
@@ -304,7 +325,7 @@ class TestV1ValidatePipeline:
                     }
                 ],
             },
-            "validationCommand": ["pytest tests/ -v"],
+            "validationCommand": ["pytest", "tests/test_helper.py", "-v"],
         }
 
         manifest_path = manifests / "add-helper.manifest.json"
@@ -424,16 +445,25 @@ class TestV1InChainWithV2:
         src = tmp_path / "src"
         src.mkdir()
 
+        # Create test files that reference the artifacts
+        test_base_rel = _add_test_file(
+            tmp_path, "tests/test_base.py", "src.mixed", ["base_func"]
+        )
+        test_extra_rel = _add_test_file(
+            tmp_path, "tests/test_extra.py", "src.mixed", ["extra_func"]
+        )
+
         # V1 manifest (JSON)
         v1_data = {
             "goal": "Add base function",
             "taskType": "create",
             "creatableFiles": ["src/mixed.py"],
+            "readonlyFiles": [test_base_rel],
             "expectedArtifacts": {
                 "file": "src/mixed.py",
                 "contains": [{"type": "function", "name": "base_func"}],
             },
-            "validationCommand": ["pytest tests/ -v"],
+            "validationCommand": ["pytest", "tests/test_base.py", "-v"],
         }
         (manifests / "add-base.manifest.json").write_text(json.dumps(v1_data))
 
@@ -448,9 +478,10 @@ class TestV1InChainWithV2:
                         "path": "src/mixed.py",
                         "artifacts": [{"kind": "function", "name": "extra_func"}],
                     }
-                ]
+                ],
+                "read": [test_extra_rel],
             },
-            "validate": ["pytest tests/ -v"],
+            "validate": ["pytest tests/test_extra.py -v"],
             "created": "2025-07-01T00:00:00Z",
         }
         v2_path = manifests / "add-extra.manifest.yaml"
