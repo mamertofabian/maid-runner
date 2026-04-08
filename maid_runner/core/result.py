@@ -37,6 +37,7 @@ class ErrorCode(str, Enum):
     FILE_SHOULD_BE_ABSENT = "E305"
     FILE_SHOULD_BE_PRESENT = "E306"
     VALIDATOR_NOT_AVAILABLE = "E307"
+    SOURCE_PARSE_ERROR = "E308"
     STUB_FUNCTION_DETECTED = "E310"
     MISSING_REQUIRED_IMPORT = "E320"
 
@@ -164,11 +165,14 @@ class BatchValidationResult:
     passed: int
     failed: int
     skipped: int
+    chain_errors: list[ValidationError] = field(default_factory=list)
     duration_ms: Optional[float] = None
 
     @property
     def success(self) -> bool:
-        return self.failed == 0
+        return self.failed == 0 and not any(
+            e.severity == Severity.ERROR for e in self.chain_errors
+        )
 
     def to_dict(self) -> dict:
         return {
@@ -177,6 +181,7 @@ class BatchValidationResult:
             "passed": self.passed,
             "failed": self.failed,
             "skipped": self.skipped,
+            "chain_errors": [e.to_dict() for e in self.chain_errors],
             "results": [r.to_dict() for r in self.results],
             "duration_ms": self.duration_ms,
         }
@@ -203,11 +208,14 @@ class BatchTestResult:
     total: int
     passed: int
     failed: int
+    chain_errors: list[ValidationError] = field(default_factory=list)
     duration_ms: Optional[float] = None
 
     @property
     def success(self) -> bool:
-        return self.failed == 0
+        return self.failed == 0 and not any(
+            e.severity == Severity.ERROR for e in self.chain_errors
+        )
 
     @property
     def acceptance_results(self) -> list[TestRunResult]:

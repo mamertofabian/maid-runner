@@ -1514,6 +1514,46 @@ validate:
         # No file tracking report when chain is not used
         assert result.file_tracking is None
 
+    def test_validate_all_reports_invalid_manifests_as_chain_errors(self, project):
+        _write_manifest(
+            project / "manifests",
+            "good.manifest.yaml",
+            """schema: "2"
+goal: "Good"
+files:
+  create:
+    - path: src/good.py
+      artifacts:
+        - kind: function
+          name: good
+  read:
+    - tests/test_good.py
+validate:
+  - pytest tests/test_good.py
+""",
+        )
+        _write_source(project, "src/good.py", "def good():\n    return 1\n")
+        _add_test_file(project, "tests/test_good.py", "src.good", ["good"])
+        _write_manifest(
+            project / "manifests",
+            "bad.manifest.yaml",
+            """schema: "2"
+goal: "Bad"
+files:
+  create:
+    - path: src/bad.py
+validate:
+  - pytest
+""",
+        )
+
+        engine = ValidationEngine(project)
+        result = engine.validate_all()
+
+        assert result.success is False
+        assert len(result.results) == 1
+        assert any(e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors)
+
     def test_validate_all_performance_with_many_manifests(self, project):
         """validate_all with 20 manifests should complete quickly (under 5s)."""
         import time
@@ -1899,6 +1939,60 @@ class TestSchemaErrorHandling:
         assert not result.success
         error_codes = {e.code for e in result.errors}
         assert ErrorCode.FILE_NOT_FOUND in error_codes
+
+
+class TestParseErrorHandling:
+    def test_python_source_syntax_error_returns_parse_error(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "broken-src.manifest.yaml",
+            """schema: "2"
+goal: "Broken source"
+files:
+  create:
+    - path: src/broken.py
+      artifacts:
+        - kind: function
+          name: broken
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(project, "src/broken.py", "def broken(:\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert not result.success
+        assert any(e.code == ErrorCode.SOURCE_PARSE_ERROR for e in result.errors)
+
+    def test_test_file_syntax_error_returns_parse_error(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "broken-test.manifest.yaml",
+            """schema: "2"
+goal: "Broken test"
+files:
+  create:
+    - path: src/example.py
+      artifacts:
+        - kind: function
+          name: example
+  read:
+    - tests/test_example.py
+validate:
+  - pytest tests/test_example.py -v
+""",
+        )
+        _write_source(project, "src/example.py", "def example():\n    return 1\n")
+        _write_source(project, "tests/test_example.py", "def test_example(:\n    pass\n")
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        warn_codes = {w.code for w in result.warnings}
+        error_codes = {e.code for e in result.errors}
+        assert ErrorCode.SOURCE_PARSE_ERROR in error_codes | warn_codes
 
 
 class TestFileAbsentValidation:

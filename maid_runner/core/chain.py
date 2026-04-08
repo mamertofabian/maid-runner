@@ -5,7 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Union
 
-from maid_runner.core.manifest import load_manifest
+from maid_runner.core.manifest import (
+    ManifestLoadError,
+    ManifestSchemaError,
+    load_manifest,
+)
+from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.types import ArtifactSpec, FileMode, Manifest
 
 
@@ -25,16 +30,46 @@ class ManifestChain:
         self._superseded_set: set[str] | None = None
         self._superseded_by_map: dict[str, str] | None = None
         self._active_cache: list[Manifest] | None = None
+        self._load_errors: list[ValidationError] | None = None
 
     def _load(self) -> None:
         paths = _discover_manifest_files(self._manifest_dir)
         manifests = []
+        load_errors: list[ValidationError] = []
         for p in paths:
             try:
                 manifests.append(load_manifest(p))
-            except Exception:
-                continue
+            except ManifestSchemaError as exc:
+                load_errors.append(
+                    ValidationError(
+                        code=ErrorCode.SCHEMA_VALIDATION_ERROR,
+                        message=str(exc),
+                        location=Location(file=str(p)),
+                    )
+                )
+            except ManifestLoadError as exc:
+                code = (
+                    ErrorCode.FILE_NOT_FOUND
+                    if exc.reason == "File not found"
+                    else ErrorCode.MANIFEST_PARSE_ERROR
+                )
+                load_errors.append(
+                    ValidationError(
+                        code=code,
+                        message=str(exc),
+                        location=Location(file=str(p)),
+                    )
+                )
+            except Exception as exc:
+                load_errors.append(
+                    ValidationError(
+                        code=ErrorCode.INTERNAL_ERROR,
+                        message=f"Unexpected manifest-chain load failure for {p}: {exc}",
+                        location=Location(file=str(p)),
+                    )
+                )
         self._manifests = manifests
+        self._load_errors = load_errors
         self._resolve_supersession()
 
     def _resolve_supersession(self) -> None:
@@ -59,6 +94,12 @@ class ManifestChain:
         self._ensure_loaded()
         assert self._manifests is not None
         return list(self._manifests)
+
+    @property
+    def load_errors(self) -> list[ValidationError]:
+        self._ensure_loaded()
+        assert self._load_errors is not None
+        return list(self._load_errors)
 
     def active_manifests(self) -> list[Manifest]:
         if self._active_cache is not None:
@@ -151,10 +192,10 @@ class ManifestChain:
             all_read |= set(m.files_read)
         return all_read - all_writable
 
-    def validate_supersession_integrity(self) -> list[str]:
+    def validate_supersession_integrity(self) -> list[ValidationError]:
         self._ensure_loaded()
         assert self._manifests is not None
-        errors: list[str] = []
+        errors: list[ValidationError] = []
         slug_set = {m.slug for m in self._manifests}
 
         # Check for non-existent superseded manifests
@@ -162,7 +203,15 @@ class ManifestChain:
             for s in m.supersedes:
                 if s not in slug_set:
                     errors.append(
-                        f"Manifest '{m.slug}' supersedes non-existent manifest '{s}'"
+                        ValidationError(
+                            code=ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND,
+                            message=(
+                                f"Manifest '{m.slug}' supersedes non-existent "
+                                f"manifest '{s}'"
+                            ),
+                            severity=Severity.WARNING,
+                            location=Location(file=m.source_path),
+                        )
                     )
 
         # Check for circular supersession
@@ -172,15 +221,25 @@ class ManifestChain:
                 supersedes_graph[m.slug] = list(m.supersedes)
 
         if _has_cycle(supersedes_graph, slug_set):
-            errors.append("Circular supersession detected in manifest chain")
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.CIRCULAR_SUPERSESSION,
+                    message="Circular supersession detected in manifest chain",
+                )
+            )
 
         return errors
+
+    def diagnostics(self) -> list[ValidationError]:
+        """Return all chain-level diagnostics discovered during loading."""
+        return self.load_errors + self.validate_supersession_integrity()
 
     def reload(self) -> None:
         self._manifests = None
         self._superseded_set = None
         self._superseded_by_map = None
         self._active_cache = None
+        self._load_errors = None
 
 
 def _discover_manifest_files(manifest_dir: Path) -> list[Path]:

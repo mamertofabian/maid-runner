@@ -99,6 +99,8 @@ def format_batch_result(
 
     if quiet:
         lines = []
+        for err in result.chain_errors:
+            lines.append(f"{err.code.value} {err.message}")
         for r in result.results:
             if not r.success:
                 lines.append(f"FAIL {r.manifest_slug}")
@@ -114,6 +116,12 @@ def format_batch_result(
         lines.append(f"  Skipped: {result.skipped} (superseded)")
     if result.duration_ms is not None:
         lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+
+    if result.chain_errors:
+        lines.append("")
+        lines.append(f"Chain Issues ({len(result.chain_errors)}):")
+        for err in result.chain_errors:
+            lines.append(f"  {err.code.value} {err.message}")
 
     for r in result.results:
         if not r.success:
@@ -137,6 +145,7 @@ def format_test_result(
                 "passed": result.passed,
                 "failed": result.failed,
                 "duration_ms": result.duration_ms,
+                "chain_errors": [e.to_dict() for e in result.chain_errors],
                 "results": [
                     {
                         "manifest": r.manifest_slug,
@@ -163,6 +172,10 @@ def format_test_result(
         lines.append(f"  Failed: {result.failed}")
         if result.duration_ms is not None:
             lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+        if result.chain_errors:
+            lines.append(f"  Chain issues: {len(result.chain_errors)}")
+            for err in result.chain_errors:
+                lines.append(f"  {err.code.value} {err.message}")
 
         for r in result.results:
             symbol = "PASS" if r.success else "FAIL"
@@ -184,6 +197,10 @@ def format_test_result(
     lines.append(f"  Failed: {result.failed}")
     if result.duration_ms is not None:
         lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+    if result.chain_errors:
+        lines.append(f"  Chain issues: {len(result.chain_errors)}")
+        for err in result.chain_errors:
+            lines.append(f"  {err.code.value} {err.message}")
     lines.append("")
 
     acc_passed = sum(1 for r in acceptance if r.success)

@@ -23,45 +23,70 @@ class _TestValidator(BaseValidator):
 
 
 class TestValidatorRegistry:
-    def setup_method(self):
-        ValidatorRegistry.clear()
-
     def test_register_and_get(self):
-        ValidatorRegistry.register(_TestValidator)
-        v = ValidatorRegistry.get("file.test")
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        v = registry.get("file.test")
         assert isinstance(v, _TestValidator)
 
+    def test_instance_isolation(self):
+        first = ValidatorRegistry()
+        second = ValidatorRegistry()
+        first.register(_TestValidator)
+        assert first.has_validator("file.test") is True
+        assert second.has_validator("file.test") is False
+
     def test_get_caches_instances(self):
-        ValidatorRegistry.register(_TestValidator)
-        v1 = ValidatorRegistry.get("file.test")
-        v2 = ValidatorRegistry.get("other.test")
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        v1 = registry.get("file.test")
+        v2 = registry.get("other.test")
         assert v1 is v2
 
     def test_get_unsupported_raises(self):
+        registry = ValidatorRegistry()
         with pytest.raises(UnsupportedLanguageError):
-            ValidatorRegistry.get("file.xyz")
+            registry.get("file.xyz")
 
     def test_has_validator(self):
-        ValidatorRegistry.register(_TestValidator)
-        assert ValidatorRegistry.has_validator("file.test") is True
-        assert ValidatorRegistry.has_validator("file.xyz") is False
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        assert registry.has_validator("file.test") is True
+        assert registry.has_validator("file.xyz") is False
 
     def test_has_validator_for_extension(self):
-        ValidatorRegistry.register(_TestValidator)
-        assert ValidatorRegistry.has_validator_for_extension(".test") is True
-        assert ValidatorRegistry.has_validator_for_extension(".xyz") is False
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        assert registry.has_validator_for_extension(".test") is True
+        assert registry.has_validator_for_extension(".xyz") is False
 
     def test_supported_extensions(self):
-        ValidatorRegistry.register(_TestValidator)
-        exts = ValidatorRegistry.supported_extensions()
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        exts = registry.supported_extensions()
         assert ".test" in exts
 
     def test_clear(self):
-        ValidatorRegistry.register(_TestValidator)
-        assert ValidatorRegistry.has_validator_for_extension(".test") is True
-        ValidatorRegistry.clear()
-        assert ValidatorRegistry.has_validator_for_extension(".test") is False
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+        assert registry.has_validator_for_extension(".test") is True
+        registry.clear()
+        assert registry.has_validator_for_extension(".test") is False
 
     def test_auto_register_includes_python(self):
-        auto_register()
-        assert ValidatorRegistry.has_validator_for_extension(".py") is True
+        registry = ValidatorRegistry()
+        auto_register(registry)
+        assert registry.has_validator_for_extension(".py") is True
+
+    def test_with_builtin_validators_returns_isolated_registry(self):
+        registry = ValidatorRegistry.with_builtin_validators()
+        assert registry.has_validator_for_extension(".py") is True
+        registry.register(_TestValidator)
+        assert registry.has_validator_for_extension(".test") is True
+
+    def test_builtin_registries_are_independent(self):
+        first = ValidatorRegistry.with_builtin_validators()
+        second = ValidatorRegistry.with_builtin_validators()
+        first.register(_TestValidator)
+        assert first.has_validator_for_extension(".test") is True
+        assert second.has_validator_for_extension(".test") is False

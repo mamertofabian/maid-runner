@@ -20,7 +20,7 @@ from maid_runner.core.types import (
     TaskType,
 )
 from maid_runner.validators.base import FoundArtifact
-from maid_runner.validators.registry import ValidatorRegistry, auto_register
+from maid_runner.validators.registry import ValidatorRegistry
 
 
 class SnapshotError(Exception):
@@ -36,6 +36,7 @@ def generate_snapshot(
     *,
     project_root: Union[str, Path] = ".",
     include_private: bool = False,
+    registry: ValidatorRegistry | None = None,
 ) -> Manifest:
     """Generate a snapshot manifest from an existing source file."""
     file_path = Path(file_path).resolve()
@@ -44,10 +45,8 @@ def generate_snapshot(
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
-    # Ensure validators are registered
-    auto_register()
-
-    validator = ValidatorRegistry.get(file_path)
+    registry = registry or ValidatorRegistry.with_builtin_validators()
+    validator = registry.get(file_path)
     source = file_path.read_text()
     result = validator.collect_implementation_artifacts(source, file_path)
 
@@ -91,6 +90,7 @@ def generate_system_snapshot(
     *,
     project_root: Union[str, Path] = ".",
     include_private: bool = False,
+    registry: ValidatorRegistry | None = None,
 ) -> Manifest:
     """Generate a system-wide snapshot aggregating all tracked files."""
     from maid_runner.core.chain import ManifestChain
@@ -106,18 +106,18 @@ def generate_system_snapshot(
     if not tracked:
         return _empty_system_snapshot()
 
-    auto_register()
+    registry = registry or ValidatorRegistry.with_builtin_validators()
 
     file_specs = []
     for rel_path in sorted(tracked):
         abs_path = project_root / rel_path
         if not abs_path.exists():
             continue
-        if not ValidatorRegistry.has_validator(abs_path):
+        if not registry.has_validator(abs_path):
             continue
 
         try:
-            validator = ValidatorRegistry.get(abs_path)
+            validator = registry.get(abs_path)
             source = abs_path.read_text()
             result = validator.collect_implementation_artifacts(source, abs_path)
         except Exception:
@@ -175,18 +175,19 @@ def generate_test_stub(
     manifest: Manifest,
     *,
     output_dir: Union[str, Path] = "tests/",
+    registry: ValidatorRegistry | None = None,
 ) -> dict[str, str]:
     """Generate test stub files for a manifest."""
-    auto_register()
+    registry = registry or ValidatorRegistry.with_builtin_validators()
 
     stubs: dict[str, str] = {}
     for file_spec in manifest.all_file_specs:
         if not file_spec.artifacts:
             continue
-        if not ValidatorRegistry.has_validator(file_spec.path):
+        if not registry.has_validator(file_spec.path):
             continue
 
-        validator = ValidatorRegistry.get(file_spec.path)
+        validator = registry.get(file_spec.path)
         found_artifacts = [_spec_to_found(a) for a in file_spec.artifacts]
         content = validator.generate_test_stub(found_artifacts, file_spec.path)
         if content:

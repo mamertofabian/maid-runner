@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import shlex
 from typing import Union
 
 import jsonschema
@@ -191,18 +192,13 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
 def _parse_validate(data: list) -> tuple[tuple[str, ...], ...]:
     if not data:
         return ()
-    # Detect: list of strings (single command) vs list of lists (multiple commands)
-    if all(isinstance(item, str) for item in data):
-        # Single command: ["pytest", "tests/", "-v"] or ["pytest tests/ -v"]
-        # If it's a list of strings where each is a full command, split them
-        commands = []
-        for item in data:
-            parts = item.split()
-            commands.append(tuple(parts))
-        return tuple(commands)
-    else:
-        # Multiple commands: [["pytest", "tests/"], ["vitest", "run"]]
-        return tuple(tuple(cmd) for cmd in data)
+    commands = []
+    for item in data:
+        if isinstance(item, str):
+            commands.append(tuple(shlex.split(item)))
+        else:
+            commands.append(tuple(item))
+    return tuple(commands)
 
 
 def _manifest_to_dict(manifest: Manifest) -> dict:
@@ -232,15 +228,12 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
     if files:
         data["files"] = files
 
-    # Serialize validate_commands back to list of strings
-    validate = []
-    for cmd in manifest.validate_commands:
-        validate.append(" ".join(cmd))
-    data["validate"] = validate
+    # Preserve argv structure losslessly on write.
+    data["validate"] = [list(cmd) for cmd in manifest.validate_commands]
 
     if manifest.acceptance is not None:
         acc: dict = {
-            "tests": [" ".join(cmd) for cmd in manifest.acceptance.tests],
+            "tests": [list(cmd) for cmd in manifest.acceptance.tests],
         }
         if not manifest.acceptance.immutable:
             acc["immutable"] = False

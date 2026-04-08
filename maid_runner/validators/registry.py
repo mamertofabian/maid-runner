@@ -20,76 +20,74 @@ class UnsupportedLanguageError(Exception):
 
 
 class ValidatorRegistry:
-    """Registry of language validators.
+    """Instance-scoped registry of language validators."""
 
-    Validators register themselves when their module is imported.
-    The registry provides lookup by file extension.
-    """
-
-    _validators: dict[str, type[BaseValidator]] = {}
-    _instances: dict[str, BaseValidator] = {}
+    def __init__(self) -> None:
+        self._validators: dict[str, type[BaseValidator]] = {}
+        self._instances: dict[str, BaseValidator] = {}
 
     @classmethod
-    def register(cls, validator_class: type[BaseValidator]) -> None:
+    def with_builtin_validators(cls) -> ValidatorRegistry:
+        registry = cls()
+        auto_register(registry)
+        return registry
+
+    def clone(self) -> ValidatorRegistry:
+        clone = type(self)()
+        clone._validators = dict(self._validators)
+        return clone
+
+    def register(self, validator_class: type[BaseValidator]) -> None:
         """Register a validator for its supported extensions."""
         for ext in validator_class.supported_extensions():
-            cls._validators[ext] = validator_class
+            self._validators[ext] = validator_class
+            self._instances.pop(ext, None)
 
-    @classmethod
-    def get(cls, file_path: Union[str, Path]) -> BaseValidator:
-        """Get a validator instance for the given file.
-
-        Raises:
-            UnsupportedLanguageError: If no validator registered for extension.
-        """
+    def get(self, file_path: Union[str, Path]) -> BaseValidator:
+        """Get a validator instance for the given file."""
         ext = Path(file_path).suffix
-        if ext not in cls._validators:
+        if ext not in self._validators:
             raise UnsupportedLanguageError(ext)
-        if ext not in cls._instances:
-            cls._instances[ext] = cls._validators[ext]()
-        return cls._instances[ext]
+        if ext not in self._instances:
+            self._instances[ext] = self._validators[ext]()
+        return self._instances[ext]
 
-    @classmethod
-    def has_validator(cls, file_path: Union[str, Path]) -> bool:
+    def has_validator(self, file_path: Union[str, Path]) -> bool:
         """Check if a validator is available for the given file."""
-        return Path(file_path).suffix in cls._validators
+        return Path(file_path).suffix in self._validators
 
-    @classmethod
-    def has_validator_for_extension(cls, ext: str) -> bool:
+    def has_validator_for_extension(self, ext: str) -> bool:
         """Check if a validator is registered for an extension."""
-        return ext in cls._validators
+        return ext in self._validators
 
-    @classmethod
-    def supported_extensions(cls) -> set[str]:
+    def supported_extensions(self) -> set[str]:
         """All file extensions with registered validators."""
-        return set(cls._validators.keys())
+        return set(self._validators.keys())
 
-    @classmethod
-    def clear(cls) -> None:
-        """Clear all registrations. Used in testing."""
-        cls._validators.clear()
-        cls._instances.clear()
+    def clear(self) -> None:
+        """Clear all registrations."""
+        self._validators.clear()
+        self._instances.clear()
 
 
-def auto_register() -> None:
-    """Auto-register all built-in validators.
-
-    Python is always available. TypeScript and Svelte are conditional.
-    """
+def auto_register(registry: ValidatorRegistry) -> ValidatorRegistry:
+    """Auto-register all built-in validators into the provided registry."""
     from maid_runner.validators.python import PythonValidator
 
-    ValidatorRegistry.register(PythonValidator)
+    registry.register(PythonValidator)
 
     try:
         from maid_runner.validators.typescript import TypeScriptValidator
 
-        ValidatorRegistry.register(TypeScriptValidator)
+        registry.register(TypeScriptValidator)
     except ImportError:
         pass
 
     try:
         from maid_runner.validators.svelte import SvelteValidator
 
-        ValidatorRegistry.register(SvelteValidator)
+        registry.register(SvelteValidator)
     except ImportError:
         pass
+
+    return registry

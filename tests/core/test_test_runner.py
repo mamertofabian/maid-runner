@@ -101,7 +101,59 @@ validate:
         assert result.total <= 1
 
 
+class TestRunTestsChainDiagnostics:
+    def test_invalid_manifest_prevents_batch_run(self, tmp_path):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "broken.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Broken"
+files:
+  create:
+    - path: src/broken.py
+validate:
+  - echo broken
+"""
+        )
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+        assert result.success is False
+        assert result.total == 0
+        assert len(result.chain_errors) == 1
+
+
 class TestBatchMode:
+    def test_default_does_not_auto_batch(self, tmp_path):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -v
+"""
+        )
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+        assert result.total == 2
+
     def test_batch_combines_pytest_commands(self, tmp_path):
         """Multiple pytest commands batched into single invocation."""
         manifests_dir = tmp_path / "manifests"
@@ -242,6 +294,38 @@ validate:
 """
         )
         # With batch=True but mixed runners, should fall back to sequential
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
+        assert result.total == 2
+
+    def test_complex_pytest_commands_are_not_batched(self, tmp_path):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -k auth
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -k auth
+"""
+        )
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
         assert result.total == 2
 
@@ -556,7 +640,7 @@ class TestBatchPytest:
     def test_extracts_only_py_files(self):
         cmds = [("pytest", "tests/test_a.py", "-v", "--tb=short")]
         result = _batch_pytest(cmds)
-        assert result == ("pytest", "tests/test_a.py", "-v")
+        assert result == ("pytest", "tests/test_a.py", "-v", "--tb=short")
 
 
 class TestRunCommandExceptionPath:

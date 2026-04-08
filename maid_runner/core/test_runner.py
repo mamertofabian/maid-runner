@@ -9,11 +9,25 @@ from typing import Union
 
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.manifest import load_manifest
-from maid_runner.core.result import BatchTestResult, TestRunResult
+from maid_runner.core.result import BatchTestResult, Severity, TestRunResult
 from maid_runner.core.types import TestStream
 
 
 _PYTHON_COMMANDS = frozenset({"pytest", "python", "python3", "py.test"})
+_SAFE_PYTEST_FLAGS = frozenset(
+    {
+        "-q",
+        "-qq",
+        "-v",
+        "-vv",
+        "-vvv",
+        "-s",
+        "-x",
+        "--lf",
+        "--ff",
+        "--maxfail",
+    }
+)
 
 
 def _is_python_command(cmd: str) -> bool:
@@ -159,8 +173,14 @@ def _can_batch(commands: list[tuple[str, ...]]) -> bool:
     """Check if all commands use pytest and can be batched."""
     if not commands:
         return False
+    normalized = [_normalize_pytest_command(cmd) for cmd in commands]
+    if any(item is None for item in normalized):
+        return False
+    assert normalized[0] is not None
+    base_prefix, _, base_options = normalized[0]
     return all(
-        _is_python_command(cmd[0]) and "pytest" in " ".join(cmd) for cmd in commands
+        item is not None and item[0] == base_prefix and item[2] == base_options
+        for item in normalized
     )
 
 
@@ -169,14 +189,80 @@ def _batch_pytest(commands: list[tuple[str, ...]]) -> tuple[str, ...]:
 
     Returns the raw command tuple — caller (run_command) handles uv resolution.
     """
+    normalized = [_normalize_pytest_command(cmd) for cmd in commands]
+    if any(item is None for item in normalized):
+        raise ValueError("Cannot batch non-equivalent pytest commands")
+
+    assert normalized[0] is not None
+    prefix, _, options = normalized[0]
     test_files: list[str] = []
     seen: set[str] = set()
-    for cmd in commands:
-        for part in cmd:
-            if part.endswith(".py") and part not in seen:
+    for item in normalized:
+        assert item is not None
+        _, targets, _ = item
+        for part in targets:
+            if part not in seen:
                 seen.add(part)
                 test_files.append(part)
-    return ("pytest",) + tuple(test_files) + ("-v",)
+    return prefix + tuple(test_files) + options
+
+
+def _normalize_pytest_command(
+    command: tuple[str, ...],
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]] | None:
+    """Normalize simple pytest invocations for safe batching.
+
+    Only batches commands when we can preserve semantics exactly:
+    direct ``pytest`` or ``python -m pytest`` invocations, explicit test file
+    targets, and only simple standalone flags or ``--opt=value`` style options.
+    """
+    if not command:
+        return None
+
+    prefix: tuple[str, ...]
+    args: tuple[str, ...]
+    if command[0] == "pytest":
+        prefix = ("pytest",)
+        args = command[1:]
+    elif (
+        len(command) >= 3
+        and _is_python_command(command[0])
+        and command[1] == "-m"
+        and command[2] == "pytest"
+    ):
+        prefix = command[:3]
+        args = command[3:]
+    else:
+        return None
+
+    targets: list[str] = []
+    options: list[str] = []
+    idx = 0
+    while idx < len(args):
+        part = args[idx]
+        if part.startswith("-"):
+            if "=" in part:
+                options.append(part)
+                idx += 1
+                continue
+            if part not in _SAFE_PYTEST_FLAGS:
+                return None
+            options.append(part)
+            if part == "--maxfail":
+                if idx + 1 >= len(args):
+                    return None
+                options.append(args[idx + 1])
+                idx += 2
+                continue
+            idx += 1
+            continue
+        targets.append(part)
+        idx += 1
+
+    if not targets:
+        return None
+
+    return prefix, tuple(targets), tuple(options)
 
 
 def run_tests(
@@ -193,6 +279,15 @@ def run_tests(
         return BatchTestResult(results=[], total=0, passed=0, failed=0)
 
     chain = ManifestChain(chain_dir, project_root)
+    chain_errors = chain.diagnostics()
+    if any(error.severity == Severity.ERROR for error in chain_errors):
+        return BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=chain_errors,
+        )
     active = chain.active_manifests()
 
     # Collect all commands with stream tags
@@ -220,7 +315,7 @@ def run_tests(
     impl_commands = [cmd for cmd, _ in impl_commands_with_slug]
 
     # Determine batching (only for implementation commands)
-    should_batch = batch if batch is not None else _can_batch(impl_commands)
+    should_batch = bool(batch)
 
     results: list[TestRunResult] = []
     passed = 0
@@ -242,6 +337,7 @@ def run_tests(
                     total=len(results),
                     passed=passed,
                     failed=failed,
+                    chain_errors=chain_errors,
                 )
 
     # Stream 3: Run implementation tests (batched or sequential)
@@ -267,6 +363,7 @@ def run_tests(
                         total=len(results),
                         passed=passed,
                         failed=failed,
+                        chain_errors=chain_errors,
                     )
 
     return BatchTestResult(
@@ -274,4 +371,5 @@ def run_tests(
         total=len(results),
         passed=passed,
         failed=failed,
+        chain_errors=chain_errors,
     )

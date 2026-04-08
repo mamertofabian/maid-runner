@@ -39,6 +39,7 @@ class TestErrorCode:
         assert ErrorCode.UNEXPECTED_ARTIFACT == "E301"
         assert ErrorCode.TYPE_MISMATCH == "E302"
         assert ErrorCode.FILE_SHOULD_BE_ABSENT == "E305"
+        assert ErrorCode.SOURCE_PARSE_ERROR == "E308"
 
     def test_acceptance_errors(self):
         assert ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND == "E500"
@@ -305,6 +306,22 @@ class TestBatchValidationResult:
         )
         assert batch.success is False
 
+    def test_chain_errors_affect_success(self):
+        batch = BatchValidationResult(
+            results=[],
+            total_manifests=1,
+            passed=1,
+            failed=0,
+            skipped=0,
+            chain_errors=[
+                ValidationError(
+                    code=ErrorCode.CIRCULAR_SUPERSESSION,
+                    message="Circular supersession detected in manifest chain",
+                )
+            ],
+        )
+        assert batch.success is False
+
     def test_to_dict(self):
         batch = BatchValidationResult(
             results=[],
@@ -319,6 +336,7 @@ class TestBatchValidationResult:
         assert d["total"] == 3
         assert d["passed"] == 2
         assert d["skipped"] == 1
+        assert d["chain_errors"] == []
         assert d["duration_ms"] == 100.0
 
 
@@ -376,6 +394,21 @@ class TestBatchTestResult:
 
     def test_failure(self):
         batch = BatchTestResult(results=[], total=2, passed=1, failed=1)
+        assert batch.success is False
+
+    def test_chain_errors_affect_success(self):
+        batch = BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=[
+                ValidationError(
+                    code=ErrorCode.MANIFEST_PARSE_ERROR,
+                    message="Broken manifest",
+                )
+            ],
+        )
         assert batch.success is False
 
     def test_acceptance_results_filtering(self):

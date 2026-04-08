@@ -48,6 +48,14 @@ class TypeScriptValidator(BaseValidator):
             else self._ts_parser
         )
         tree = parser.parse(source_bytes)
+        parse_errors = _collect_parse_errors(tree.root_node)
+        if parse_errors:
+            return CollectionResult(
+                artifacts=[],
+                language="typescript",
+                file_path=str(file_path),
+                errors=parse_errors,
+            )
 
         artifacts: list[FoundArtifact] = []
         _collect_impl(tree.root_node, source_bytes, artifacts, current_class=None)
@@ -70,6 +78,14 @@ class TypeScriptValidator(BaseValidator):
             else self._ts_parser
         )
         tree = parser.parse(source_bytes)
+        parse_errors = _collect_parse_errors(tree.root_node)
+        if parse_errors:
+            return CollectionResult(
+                artifacts=[],
+                language="typescript",
+                file_path=str(file_path),
+                errors=parse_errors,
+            )
 
         artifacts: list[FoundArtifact] = []
         seen: set[str] = set()
@@ -84,6 +100,27 @@ class TypeScriptValidator(BaseValidator):
 
 def _text(node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8")
+
+
+def _collect_parse_errors(node) -> list[str]:
+    errors: list[str] = []
+    stack = [node]
+    while stack:
+        current = stack.pop()
+        if current.type == "ERROR":
+            line = current.start_point[0] + 1
+            errors.append(f"Syntax error near line {line}")
+            continue
+        if getattr(current, "is_missing", False):
+            line = current.start_point[0] + 1
+            errors.append(f"Missing syntax node near line {line}")
+            continue
+        stack.extend(reversed(current.children))
+
+    if getattr(node, "has_error", False) and not errors:
+        errors.append("Syntax error")
+
+    return errors
 
 
 def _is_stub_body_ts(node, source: bytes) -> bool:

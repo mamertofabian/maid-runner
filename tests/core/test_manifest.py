@@ -197,6 +197,26 @@ class TestLoadManifest:
         manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
         assert manifest.validate_commands == (("python", "-c", "pass"),)
 
+    def test_validate_command_string_preserves_quoted_args(self, tmp_path):
+        path = tmp_path / "quoted.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Quoted"
+files:
+  create:
+    - path: src/q.py
+      artifacts:
+        - kind: function
+          name: q
+validate:
+  - python -c "print('hello world')"
+"""
+        )
+        manifest = load_manifest(path)
+        assert manifest.validate_commands == (
+            ("python", "-c", "print('hello world')"),
+        )
+
     def test_async_artifact(self, tmp_path):
         content = """schema: "2"
 goal: "Add async function"
@@ -358,6 +378,7 @@ class TestSaveManifest:
         assert reloaded.files_create[0].path == original.files_create[0].path
         assert reloaded.files_create[0].artifacts[0].name == "greet"
         assert reloaded.validate_commands == original.validate_commands
+        assert "[python, -c, pass]" not in output.read_text()
 
     def test_round_trip_with_acceptance(self, tmp_path):
         content = """schema: "2"

@@ -3,6 +3,7 @@
 import pytest
 
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.result import ErrorCode, Severity
 from maid_runner.core.types import ArtifactKind, FileMode
 
 
@@ -191,7 +192,7 @@ validate:
         chain = ManifestChain(chain_dir)
         errors = chain.validate_supersession_integrity()
         assert len(errors) > 0
-        assert any("circular" in e.lower() for e in errors)
+        assert any(e.code == ErrorCode.CIRCULAR_SUPERSESSION for e in errors)
 
     def test_nonexistent_superseded_manifest(self, chain_dir):
         """Superseding a non-existent manifest is a warning, not an error."""
@@ -212,9 +213,25 @@ validate:
         )
         chain = ManifestChain(chain_dir)
         errors = chain.validate_supersession_integrity()
-        assert any("nonexistent" in e.lower() for e in errors)
+        assert any(e.code == ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND for e in errors)
+        assert any(e.severity == Severity.WARNING for e in errors)
         # But manifest is still active
         assert len(chain.active_manifests()) == 1
+
+    def test_invalid_manifest_is_reported_not_silently_skipped(self, chain_dir):
+        (chain_dir / "broken.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Broken"
+files:
+  create:
+    - path: src/broken.py
+validate:
+  - pytest
+"""
+        )
+        chain = ManifestChain(chain_dir)
+        assert chain.active_manifests() == []
+        assert any(e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in chain.load_errors)
 
 
 class TestArtifactMerge:

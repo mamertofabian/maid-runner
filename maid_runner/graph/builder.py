@@ -125,7 +125,7 @@ class GraphBuilder:
         file_path: str,
         artifact: ArtifactSpec,
     ) -> None:
-        art_id = f"{ARTIFACT_PREFIX}{file_path}:{artifact.name}"
+        art_id = _artifact_id(file_path, artifact)
 
         if graph.get_node(art_id) is None:
             node = ArtifactNode(
@@ -162,6 +162,12 @@ def _edge(edge_type: EdgeType, source: str, target: str) -> Edge:
         source_id=source,
         target_id=target,
     )
+
+
+def _artifact_id(file_path: str, artifact: ArtifactSpec) -> str:
+    if artifact.of:
+        return f"{ARTIFACT_PREFIX}{file_path}:{artifact.of}.{artifact.name}"
+    return f"{ARTIFACT_PREFIX}{file_path}:{artifact.name}"
 
 
 def _ensure_file_node(

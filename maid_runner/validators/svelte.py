@@ -51,8 +51,14 @@ class SvelteValidator(BaseValidator):
                 artifacts=[], language="svelte", file_path=str(file_path)
             )
         # Delegate to TypeScript validator with .ts extension
-        return self._ts_validator.collect_implementation_artifacts(
+        result = self._ts_validator.collect_implementation_artifacts(
             script_content, str(file_path).replace(".svelte", ".ts")
+        )
+        return CollectionResult(
+            artifacts=result.artifacts,
+            language="svelte",
+            file_path=str(file_path),
+            errors=result.errors,
         )
 
     def collect_behavioral_artifacts(
@@ -65,8 +71,14 @@ class SvelteValidator(BaseValidator):
             return CollectionResult(
                 artifacts=[], language="svelte", file_path=str(file_path)
             )
-        return self._ts_validator.collect_behavioral_artifacts(
+        result = self._ts_validator.collect_behavioral_artifacts(
             script_content, str(file_path).replace(".svelte", ".ts")
+        )
+        return CollectionResult(
+            artifacts=result.artifacts,
+            language="svelte",
+            file_path=str(file_path),
+            errors=result.errors,
         )
 
 

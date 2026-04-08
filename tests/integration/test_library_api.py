@@ -522,13 +522,15 @@ class TestValidatorRegistryExtension:
     def test_has_validator_for_python(self):
         from maid_runner import ValidatorRegistry
 
-        assert ValidatorRegistry.has_validator("foo.py") is True
+        registry = ValidatorRegistry.with_builtin_validators()
+        assert registry.has_validator("foo.py") is True
 
     def test_no_validator_for_unknown(self):
         from maid_runner import UnsupportedLanguageError, ValidatorRegistry
 
+        registry = ValidatorRegistry.with_builtin_validators()
         with pytest.raises(UnsupportedLanguageError):
-            ValidatorRegistry.get("foo.unknown_ext")
+            registry.get("foo.unknown_ext")
 
     def test_register_custom_validator(self):
         from maid_runner import (
@@ -552,16 +554,77 @@ class TestValidatorRegistryExtension:
                     artifacts=[], language="ruby", file_path=str(file_path)
                 )
 
-        ValidatorRegistry.register(RubyValidator)
+        registry = ValidatorRegistry.with_builtin_validators()
+        registry.register(RubyValidator)
+        assert registry.has_validator("test.rb") is True
+        validator = registry.get("test.rb")
+        assert isinstance(validator, RubyValidator)
 
-        try:
-            assert ValidatorRegistry.has_validator("test.rb") is True
-            validator = ValidatorRegistry.get("test.rb")
-            assert isinstance(validator, RubyValidator)
-        finally:
-            # Clean up to avoid affecting other tests
-            ValidatorRegistry._validators.pop(".rb", None)
-            ValidatorRegistry._instances.pop(".rb", None)
+    def test_engine_can_use_isolated_registry(self, project: Path):
+        from maid_runner import (
+            ArtifactKind,
+            BaseValidator,
+            CollectionResult,
+            FoundArtifact,
+            ValidationEngine,
+            ValidatorRegistry,
+        )
+
+        class RubyValidator(BaseValidator):
+            @classmethod
+            def supported_extensions(cls):
+                return (".rb",)
+
+            def collect_implementation_artifacts(self, source, file_path):
+                return CollectionResult(
+                    artifacts=[
+                        FoundArtifact(
+                            kind=ArtifactKind.FUNCTION,
+                            name="helper",
+                        )
+                    ],
+                    language="ruby",
+                    file_path=str(file_path),
+                )
+
+            def collect_behavioral_artifacts(self, source, file_path):
+                return CollectionResult(
+                    artifacts=[], language="ruby", file_path=str(file_path)
+                )
+
+        manifest_path = project / "manifests" / "add-ruby.manifest.yaml"
+        _write_yaml(
+            manifest_path,
+            {
+                "schema": "2",
+                "goal": "Add ruby",
+                "type": "feature",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/helper.rb",
+                            "artifacts": [{"kind": "function", "name": "helper"}],
+                        }
+                    ],
+                    "read": ["tests/test_helper.py"],
+                },
+                "validate": ["true"],
+            },
+        )
+        (project / "src" / "helper.rb").write_text("def helper\n  :ok\nend\n")
+        (project / "tests" / "test_helper.py").write_text("from src.helper import helper\n")
+
+        registry = ValidatorRegistry.with_builtin_validators()
+        registry.register(RubyValidator)
+
+        isolated_engine = ValidationEngine(project_root=project, registry=registry)
+        isolated = isolated_engine.validate(str(manifest_path), use_chain=False)
+        assert isolated.success is True
+        assert not isolated.warnings
+
+        default_engine = ValidationEngine(project_root=project)
+        default = default_engine.validate(str(manifest_path), use_chain=False)
+        assert any(w.code.value == "E307" for w in default.warnings)
 
 
 # ---------------------------------------------------------------------------

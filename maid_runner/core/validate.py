@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+import re
 from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
@@ -35,11 +36,7 @@ from maid_runner.validators.base import FoundArtifact
 from maid_runner.validators.registry import (
     UnsupportedLanguageError,
     ValidatorRegistry,
-    auto_register,
 )
-
-# Register all built-in validators (Python always, TS/Svelte if available)
-auto_register()
 
 # Structural artifact kinds that define shapes rather than behavior.
 # These don't require manifest declaration in strict mode.
@@ -47,8 +44,14 @@ _STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
 
 
 class ValidationEngine:
-    def __init__(self, project_root: Union[str, Path] = "."):
+    def __init__(
+        self,
+        project_root: Union[str, Path] = ".",
+        *,
+        registry: ValidatorRegistry | None = None,
+    ):
         self._project_root = Path(project_root)
+        self._registry = registry or ValidatorRegistry.with_builtin_validators()
 
     def validate(
         self,
@@ -60,6 +63,7 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         check_stubs: bool = False,
         check_assertions: bool = False,
+        include_chain_diagnostics: bool = True,
     ) -> ValidationResult:
         start = time.monotonic()
 
@@ -110,6 +114,9 @@ class ValidationEngine:
                 manifest, chain, check_stubs=check_stubs
             )
 
+        if include_chain_diagnostics and chain is not None:
+            errors.extend(chain.diagnostics())
+
         if manifest.acceptance is not None:
             errors.extend(self.validate_acceptance(manifest))
 
@@ -143,6 +150,7 @@ class ValidationEngine:
             )
 
         chain = ManifestChain(chain_dir, self._project_root)
+        chain_errors = chain.diagnostics()
         active = chain.active_manifests()
         superseded = chain.superseded_manifests()
 
@@ -157,6 +165,7 @@ class ValidationEngine:
                 use_chain=True,
                 chain=chain,
                 manifest_dir=manifest_dir,
+                include_chain_diagnostics=False,
             )
             results.append(result)
             if result.success:
@@ -168,10 +177,11 @@ class ValidationEngine:
 
         return BatchValidationResult(
             results=results,
-            total_manifests=len(active) + len(superseded),
+            total_manifests=len(active) + len(superseded) + len(chain.load_errors),
             passed=passed,
             failed=failed,
             skipped=len(superseded),
+            chain_errors=chain_errors,
             duration_ms=duration,
         )
 
@@ -186,6 +196,9 @@ class ValidationEngine:
 
         # Find test files
         test_files = _find_test_files(manifest, self._project_root)
+        test_artifacts = _collect_test_artifacts(
+            test_files, self._project_root, registry=self._registry, errors=errors
+        )
 
         # Check each artifact is used in at least one test
         for fs in manifest.all_file_specs:
@@ -193,16 +206,7 @@ class ValidationEngine:
                 if artifact.is_private:
                     continue
                 used = False
-                for tf_path in test_files:
-                    full_path = self._project_root / tf_path
-                    if not full_path.exists():
-                        continue
-                    source = full_path.read_text()
-                    validator = _get_validator_for_test(tf_path)
-                    if validator is None:
-                        continue
-                    result = validator.collect_behavioral_artifacts(source, tf_path)
-                    ref_names = {a.name for a in result.artifacts}
+                for ref_names in test_artifacts.values():
                     if artifact.name in ref_names:
                         used = True
                         break
@@ -221,7 +225,17 @@ class ValidationEngine:
                 full_path = self._project_root / tf_path
                 if not full_path.exists():
                     continue
-                source = full_path.read_text()
+                try:
+                    source = full_path.read_text()
+                except OSError as exc:
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.FILE_READ_ERROR,
+                            message=f"Failed to read test file '{tf_path}': {exc}",
+                            location=Location(file=tf_path),
+                        )
+                    )
+                    continue
                 assertion_errors = _check_test_assertions(source, tf_path)
                 errors.extend(assertion_errors)
 
@@ -292,6 +306,9 @@ class ValidationEngine:
 
         # Find test files
         test_files = _find_test_files(manifest, self._project_root)
+        test_artifacts = _collect_test_artifacts(
+            test_files, self._project_root, registry=self._registry, errors=errors
+        )
 
         if not test_files:
             errors.append(
@@ -316,16 +333,7 @@ class ValidationEngine:
                 if artifact.is_private:
                     continue
                 used = False
-                for tf_path in test_files:
-                    full_path = self._project_root / tf_path
-                    if not full_path.exists():
-                        continue
-                    source = full_path.read_text()
-                    validator = _get_validator_for_test(tf_path)
-                    if validator is None:
-                        continue
-                    result = validator.collect_behavioral_artifacts(source, tf_path)
-                    ref_names = {a.name for a in result.artifacts}
+                for ref_names in test_artifacts.values():
                     if artifact.name in ref_names:
                         used = True
                         break
@@ -395,7 +403,7 @@ class ValidationEngine:
 
             # Get validator
             try:
-                validator = ValidatorRegistry.get(fs.path)
+                validator = self._registry.get(fs.path)
             except UnsupportedLanguageError:
                 errors.append(
                     ValidationError(
@@ -408,8 +416,23 @@ class ValidationEngine:
                 continue
 
             # Collect artifacts from source
-            source = full_path.read_text()
+            try:
+                source = full_path.read_text()
+            except OSError as exc:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.FILE_READ_ERROR,
+                        message=f"Failed to read file '{fs.path}': {exc}",
+                        location=Location(file=fs.path),
+                    )
+                )
+                continue
             collection = validator.collect_implementation_artifacts(source, fs.path)
+            if collection.errors:
+                errors.extend(
+                    _collection_errors_to_validation_errors(collection.errors, fs.path)
+                )
+                continue
 
             # Get expected artifacts (chain may not cover this file)
             if chain:
@@ -554,8 +577,9 @@ def validate(
     project_root: Union[str, Path] = ".",
     check_stubs: bool = False,
     check_assertions: bool = False,
+    registry: ValidatorRegistry | None = None,
 ) -> ValidationResult:
-    engine = ValidationEngine(project_root=project_root)
+    engine = ValidationEngine(project_root=project_root, registry=registry)
     return engine.validate(
         manifest_path,
         mode=mode,
@@ -571,8 +595,9 @@ def validate_all(
     *,
     mode: ValidationMode = ValidationMode.IMPLEMENTATION,
     project_root: Union[str, Path] = ".",
+    registry: ValidatorRegistry | None = None,
 ) -> BatchValidationResult:
-    engine = ValidationEngine(project_root=project_root)
+    engine = ValidationEngine(project_root=project_root, registry=registry)
     return engine.validate_all(manifest_dir, mode=mode)
 
 
@@ -731,12 +756,73 @@ def _find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
     return test_files
 
 
-def _get_validator_for_test(test_path: str):
+def _get_validator_for_test(test_path: str, registry: ValidatorRegistry):
     """Get a validator for a test file, or None if unsupported."""
     try:
-        return ValidatorRegistry.get(test_path)
+        return registry.get(test_path)
     except UnsupportedLanguageError:
         return None
+
+
+def _collect_test_artifacts(
+    test_files: list[str],
+    project_root: Path,
+    *,
+    registry: ValidatorRegistry,
+    errors: list[ValidationError],
+) -> dict[str, set[str]]:
+    collected: dict[str, set[str]] = {}
+
+    for tf_path in test_files:
+        full_path = project_root / tf_path
+        if not full_path.exists():
+            continue
+
+        try:
+            source = full_path.read_text()
+        except OSError as exc:
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.FILE_READ_ERROR,
+                    message=f"Failed to read test file '{tf_path}': {exc}",
+                    location=Location(file=tf_path),
+                )
+            )
+            continue
+
+        validator = _get_validator_for_test(tf_path, registry)
+        if validator is None:
+            continue
+
+        result = validator.collect_behavioral_artifacts(source, tf_path)
+        if result.errors:
+            errors.extend(_collection_errors_to_validation_errors(result.errors, tf_path))
+            continue
+
+        collected[tf_path] = {artifact.name for artifact in result.artifacts}
+
+    return collected
+
+
+def _collection_errors_to_validation_errors(
+    collection_errors: list[str],
+    file_path: str,
+) -> list[ValidationError]:
+    errors: list[ValidationError] = []
+    for message in collection_errors:
+        line = None
+        match = re.search(r"line\s+(\d+)", message)
+        if match:
+            line = int(match.group(1))
+        errors.append(
+            ValidationError(
+                code=ErrorCode.SOURCE_PARSE_ERROR,
+                message=f"Failed to parse '{file_path}': {message}",
+                location=Location(file=file_path, line=line),
+                suggestion="Fix syntax errors before re-running validation",
+            )
+        )
+    return errors
 
 
 def _check_test_assertions(source: str, test_path: str) -> list[ValidationError]:

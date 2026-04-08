@@ -182,6 +182,26 @@ class TestGraphBuilder:
             for e in defines
         )
 
+    def test_member_artifact_ids_use_qualified_names(self):
+        m = _make_manifest(
+            "add-auth",
+            files_create=(
+                _make_file_spec(
+                    "src/auth.py",
+                    (
+                        _make_artifact("AuthService", ArtifactKind.CLASS),
+                        _make_artifact("login", ArtifactKind.METHOD, of="AuthService"),
+                        _make_artifact("login", ArtifactKind.METHOD, of="AdminService"),
+                    ),
+                ),
+            ),
+        )
+        builder = GraphBuilder()
+        graph = builder.build_from_manifests([m])
+
+        assert graph.get_node("artifact:src/auth.py:AuthService.login") is not None
+        assert graph.get_node("artifact:src/auth.py:AdminService.login") is not None
+
     def test_module_nodes_derived(self):
         """Module nodes are derived from file paths."""
         m = _make_manifest(
@@ -272,7 +292,7 @@ class TestGraphQuery:
 
     def test_get_dependencies(self, sample_graph):
         q = GraphQuery(sample_graph)
-        deps = q.get_dependencies("artifact:src/service.py:process")
+        deps = q.get_dependencies("artifact:src/service.py:ServiceClass.process")
         # Should include file and class
         assert len(deps) >= 1
 
