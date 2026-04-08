@@ -77,6 +77,9 @@ files:
       name: VALIDATOR_NOT_AVAILABLE
       of: ErrorCode
     - kind: attribute
+      name: SOURCE_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
       name: STUB_FUNCTION_DETECTED
       of: ErrorCode
     - kind: attribute
@@ -283,6 +286,10 @@ files:
       of: BatchValidationResult
       type: int
     - kind: attribute
+      name: chain_errors
+      of: BatchValidationResult
+      type: list[ValidationError]
+    - kind: attribute
       name: duration_ms
       of: BatchValidationResult
       type: Optional[float]
@@ -346,6 +353,10 @@ files:
       name: failed
       of: BatchTestResult
       type: int
+    - kind: attribute
+      name: chain_errors
+      of: BatchTestResult
+      type: list[ValidationError]
     - kind: attribute
       name: duration_ms
       of: BatchTestResult

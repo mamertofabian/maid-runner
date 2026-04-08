@@ -14,6 +14,10 @@ files:
           of: ManifestChain
           returns: list[Manifest]
         - kind: method
+          name: validate_supersession_integrity
+          of: ManifestChain
+          returns: list[ValidationError]
+        - kind: method
           name: reload
           of: ManifestChain
           returns: None

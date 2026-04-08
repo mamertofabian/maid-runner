@@ -11,6 +11,10 @@ files:
       name: all_manifests
       of: ManifestChain
       type: list[Manifest]
+    - kind: attribute
+      name: load_errors
+      of: ManifestChain
+      type: list[ValidationError]
     - kind: method
       name: active_manifests
       of: ManifestChain
@@ -65,7 +69,11 @@ files:
     - kind: method
       name: validate_supersession_integrity
       of: ManifestChain
-      returns: list[str]
+      returns: list[ValidationError]
+    - kind: method
+      name: diagnostics
+      of: ManifestChain
+      returns: list[ValidationError]
     - kind: method
       name: reload
       of: ManifestChain

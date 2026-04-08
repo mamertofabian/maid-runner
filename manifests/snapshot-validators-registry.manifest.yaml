@@ -15,6 +15,14 @@ files:
     - kind: class
       name: ValidatorRegistry
     - kind: method
+      name: with_builtin_validators
+      of: ValidatorRegistry
+      returns: ValidatorRegistry
+    - kind: method
+      name: clone
+      of: ValidatorRegistry
+      returns: ValidatorRegistry
+    - kind: method
       name: register
       of: ValidatorRegistry
       args:
@@ -52,7 +60,10 @@ files:
       returns: None
     - kind: function
       name: auto_register
-      returns: None
+      args:
+      - name: registry
+        type: ValidatorRegistry
+      returns: ValidatorRegistry
 validate:
 - pytest tests/ -v
 created: '2026-03-26T05:46:10.307460+00:00'
