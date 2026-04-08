@@ -33,6 +33,8 @@ archspec_available = ARCHSPEC_BACKEND.exists()
 if archspec_available and str(ARCHSPEC_BACKEND) not in sys.path:
     sys.path.insert(0, str(ARCHSPEC_BACKEND))
 
+ARCHSPEC_IMPORT_ERROR: ImportError | None = None
+
 try:
     from app.services.maid_exporter import export_maid_manifests
     from app.schemas.shared_schemas import (
@@ -55,13 +57,23 @@ try:
     from maid_runner.core.validate import ValidationEngine  # noqa: E402
 
     HAS_ARCHSPEC = True
-except ImportError:
+except ImportError as exc:
+    ARCHSPEC_IMPORT_ERROR = exc
     HAS_ARCHSPEC = False
     from maid_runner.core.validate import ValidationEngine  # noqa: E402
 
+if archspec_available and ARCHSPEC_IMPORT_ERROR is not None:
+    raise RuntimeError(
+        "ArchSpec backend was found at "
+        f"{ARCHSPEC_BACKEND}, but maid-runner's test environment could not import it: "
+        f"{ARCHSPEC_IMPORT_ERROR.__class__.__name__}: {ARCHSPEC_IMPORT_ERROR}. "
+        "Install the ArchSpec backend test dependencies or run this e2e test in an "
+        "environment where the sibling backend is importable."
+    ) from ARCHSPEC_IMPORT_ERROR
+
 pytestmark = pytest.mark.skipif(
     not HAS_ARCHSPEC,
-    reason="arch-spec backend not available",
+    reason=f"arch-spec backend not available at {ARCHSPEC_BACKEND}",
 )
 
 
