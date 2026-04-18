@@ -30,6 +30,8 @@ from maid_runner.core.types import (
     ArtifactKind,
     ArtifactSpec,
     Manifest,
+    TestFunctionDetails,
+    TestFunctionSetup,
     ValidationMode,
 )
 from maid_runner.validators.base import FoundArtifact
@@ -201,9 +203,13 @@ class ValidationEngine:
         )
 
         # Check each artifact is used in at least one test
+        # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
+        # validated separately by _validate_test_function_names
         for fs in manifest.all_file_specs:
             for artifact in fs.artifacts:
                 if artifact.is_private:
+                    continue
+                if artifact.kind == ArtifactKind.TEST_FUNCTION:
                     continue
                 used = False
                 for ref_names in test_artifacts.values():
@@ -219,7 +225,16 @@ class ValidationEngine:
                         )
                     )
 
-        # Check assertions in test files
+        # Guard 3: Validate test_function artifact names exist in test files
+        test_func_errors = self._validate_test_function_names(
+            manifest, is_behavioral=True, chain=chain
+        )
+        errors.extend(test_func_errors)
+
+        # Validate behavioral alignment of test_function details
+        behavior_errors = self._validate_test_function_behavior(manifest, chain=chain)
+        errors.extend(behavior_errors)
+
         if check_assertions:
             for tf_path in test_files:
                 full_path = self._project_root / tf_path
@@ -265,6 +280,185 @@ class ValidationEngine:
                                 message=f"Acceptance test file '{part}' not found",
                                 location=Location(file=part),
                                 suggestion="Create the acceptance test file before implementation",
+                            )
+                        )
+
+        return errors
+
+    def _validate_test_function_names(
+        self,
+        manifest: Manifest,
+        *,
+        is_behavioral: bool = True,
+        chain: Optional[ManifestChain] = None,
+    ) -> list[ValidationError]:
+        """Guard 3: validate test_function artifacts exist in test files.
+
+        Checks that each declared test_function artifact exists as an
+        *actual test declaration* (function/arrow-function definition or
+        ``it``/``test`` string label) in the test file — not merely as an
+        incidental identifier reference such as an import or variable.
+
+        When ``chain`` is provided, the set of required test functions for
+        each file is merged across all active manifests so later manifests
+        cannot silently drop historical test_function requirements.
+        """
+        errors: list[ValidationError] = []
+
+        required: dict[str, dict[str, ArtifactSpec]] = {}
+        for fs in manifest.all_file_specs:
+            for artifact in fs.artifacts:
+                if artifact.kind != ArtifactKind.TEST_FUNCTION:
+                    continue
+                required.setdefault(fs.path, {}).setdefault(artifact.name, artifact)
+
+        if chain is not None:
+            paths = {fs.path for fs in manifest.all_file_specs}
+            for path in paths:
+                for artifact in chain.merged_artifacts_for(path):
+                    if artifact.kind != ArtifactKind.TEST_FUNCTION:
+                        continue
+                    required.setdefault(path, {}).setdefault(artifact.name, artifact)
+
+        for path, specs_by_name in required.items():
+            full_path = self._project_root / path
+            if not full_path.exists():
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.TEST_FILE_NOT_FOUND,
+                        message=f"Test file '{path}' not found",
+                        location=Location(file=path),
+                    )
+                )
+                continue
+
+            try:
+                source = full_path.read_text()
+            except OSError as exc:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.FILE_READ_ERROR,
+                        message=f"Failed to read test file '{path}': {exc}",
+                        location=Location(file=path),
+                    )
+                )
+                continue
+
+            try:
+                validator = self._registry.get(path)
+            except UnsupportedLanguageError:
+                continue
+
+            collection = validator.collect_behavioral_artifacts(source, path)
+            if collection.errors:
+                errors.extend(
+                    _collection_errors_to_validation_errors(collection.errors, path)
+                )
+                continue
+
+            found_names = {
+                a.name
+                for a in collection.artifacts
+                if a.kind == ArtifactKind.TEST_FUNCTION
+            }
+
+            for name in specs_by_name:
+                if name not in found_names:
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.TEST_FUNCTION_MISSING_IN_CODE,
+                            message=(
+                                f"Test function '{name}' declared in manifest "
+                                f"not found as a test declaration in {path}"
+                            ),
+                            location=Location(file=path),
+                            suggestion="Add the test function to the test file",
+                        )
+                    )
+
+        return errors
+
+    def _validate_test_function_behavior(
+        self,
+        manifest: Manifest,
+        *,
+        chain: Optional[ManifestChain] = None,
+    ) -> list[ValidationError]:
+        """Validate behavioral alignment of test_function details.
+
+        Cross-checks that the declared actions in ``test_function_details``
+        appear in the *specific* test body, not anywhere in the file.
+        Whole-file substring checks let one test satisfy another test's
+        manifest metadata, so this scopes each check to the body of the
+        named test. If the validator cannot locate a body, Guard 3 will
+        already report the missing test declaration separately.
+        """
+        errors: list[ValidationError] = []
+
+        required = _merged_test_function_behavior_requirements(manifest, chain)
+        for path, details_by_name in required.items():
+            if not details_by_name:
+                continue
+
+            full_path = self._project_root / path
+            if not full_path.exists():
+                continue
+
+            try:
+                source = full_path.read_text()
+            except OSError:
+                continue
+
+            try:
+                validator = self._registry.get(path)
+            except UnsupportedLanguageError:
+                continue
+
+            bodies = validator.get_test_function_bodies(source, path)
+
+            for name, details in details_by_name.items():
+                if details is None:
+                    continue
+
+                body = bodies.get(name)
+                if body is None:
+                    # No body available: either the language doesn't support
+                    # body extraction (falls back silently — never claim
+                    # spurious mismatches) or the test is missing. Guard 3
+                    # reports the missing test; nothing to add here.
+                    continue
+
+                for action in details.actions:
+                    if not isinstance(action, dict):
+                        continue
+                    if action.get("type") != "api_call":
+                        continue
+                    subject = action.get("subject", {})
+                    export = subject.get("export")
+                    if export and export not in body:
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH,
+                                message=(
+                                    f"Test function '{name}' declares api_call "
+                                    f"to '{export}' but it is not referenced in its body in {path}"
+                                ),
+                                severity=Severity.WARNING,
+                                location=Location(file=path),
+                            )
+                        )
+
+                    endpoint = action.get("endpoint")
+                    if endpoint and endpoint not in body:
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH,
+                                message=(
+                                    f"Test function '{name}' declares endpoint "
+                                    f"'{endpoint}' not found in its body in {path}"
+                                ),
+                                severity=Severity.WARNING,
+                                location=Location(file=path),
                             )
                         )
 
@@ -442,6 +636,12 @@ class ValidationEngine:
             else:
                 expected = list(fs.artifacts)
 
+            # TEST_FUNCTION artifacts are validated via the behavioral
+            # collector (see _validate_test_function_names) because
+            # implementation collectors cannot see string-label tests
+            # like it("name", fn) / test("name", fn).
+            expected = [a for a in expected if a.kind != ArtifactKind.TEST_FUNCTION]
+
             # Determine strict mode: when chain is active, the merged
             # artifacts represent the COMPLETE declared public API for
             # this file. Enforce strict mode so any undeclared public
@@ -489,6 +689,12 @@ class ValidationEngine:
             if fs.imports:
                 import_errors = _check_required_imports(source, fs.path, fs.imports)
                 errors.extend(import_errors)
+
+        # Guard 3: Validate test_function artifact names exist in test files
+        tf_errors = self._validate_test_function_names(
+            manifest, is_behavioral=False, chain=chain
+        )
+        errors.extend(tf_errors)
 
         # Test coverage: verify artifacts have tests
         test_coverage_errors = self._check_test_coverage(manifest)
@@ -566,6 +772,78 @@ class ValidationEngine:
                 )
 
         return FileTrackingReport(entries=tuple(entries))
+
+
+def _merged_test_function_behavior_requirements(
+    manifest: Manifest,
+    chain: Optional[ManifestChain],
+) -> dict[str, dict[str, Optional[TestFunctionDetails]]]:
+    """Merge behavioral test requirements across the active manifest chain."""
+    required: dict[str, dict[str, Optional[TestFunctionDetails]]] = {}
+    paths = {fs.path for fs in manifest.all_file_specs}
+
+    if chain is not None:
+        for path in paths:
+            for historical in chain.manifests_for_file(path):
+                fs = historical.file_spec_for(path)
+                if fs is None:
+                    continue
+                for artifact in fs.artifacts:
+                    if artifact.kind != ArtifactKind.TEST_FUNCTION:
+                        continue
+                    names = required.setdefault(path, {})
+                    names[artifact.name] = _merge_test_function_details(
+                        names.get(artifact.name), artifact.test_details
+                    )
+
+    for fs in manifest.all_file_specs:
+        for artifact in fs.artifacts:
+            if artifact.kind != ArtifactKind.TEST_FUNCTION:
+                continue
+            names = required.setdefault(fs.path, {})
+            names[artifact.name] = _merge_test_function_details(
+                names.get(artifact.name), artifact.test_details
+            )
+
+    return required
+
+
+def _merge_test_function_details(
+    existing: Optional[TestFunctionDetails],
+    incoming: Optional[TestFunctionDetails],
+) -> Optional[TestFunctionDetails]:
+    """Preserve historical behavior metadata unless a newer manifest adds detail."""
+    if existing is None:
+        return incoming
+    if incoming is None:
+        return existing
+
+    return TestFunctionDetails(
+        source_scenario=incoming.source_scenario or existing.source_scenario,
+        tags=_dedupe_preserve_order(existing.tags + incoming.tags),
+        setup=TestFunctionSetup(
+            auth_required=existing.setup.auth_required or incoming.setup.auth_required,
+            test_data={**existing.setup.test_data, **incoming.setup.test_data},
+            setup_actions=_dedupe_preserve_order(
+                existing.setup.setup_actions + incoming.setup.setup_actions
+            ),
+        ),
+        actions=_dedupe_preserve_order(existing.actions + incoming.actions),
+        expected={**existing.expected, **incoming.expected},
+        dependencies={**existing.dependencies, **incoming.dependencies},
+    )
+
+
+def _dedupe_preserve_order(values):
+    seen: set[str] = set()
+    result = []
+    for value in values:
+        marker = repr(value)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        result.append(value)
+    return tuple(result)
 
 
 def validate(
@@ -796,10 +1074,19 @@ def _collect_test_artifacts(
 
         result = validator.collect_behavioral_artifacts(source, tf_path)
         if result.errors:
-            errors.extend(_collection_errors_to_validation_errors(result.errors, tf_path))
+            errors.extend(
+                _collection_errors_to_validation_errors(result.errors, tf_path)
+            )
             continue
 
-        collected[tf_path] = {artifact.name for artifact in result.artifacts}
+        # Exclude TEST_FUNCTION declarations so a test labeled `it("createLogin", ...)`
+        # does not masquerade as a reference to a source artifact named `createLogin`.
+        # Only real identifier/call references count as artifact usage.
+        collected[tf_path] = {
+            artifact.name
+            for artifact in result.artifacts
+            if artifact.kind != ArtifactKind.TEST_FUNCTION
+        }
 
     return collected
 

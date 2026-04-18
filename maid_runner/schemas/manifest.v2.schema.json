@@ -167,7 +167,7 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["class", "function", "method", "attribute", "interface", "type", "enum", "namespace"]
+          "enum": ["class", "function", "method", "attribute", "interface", "type", "enum", "namespace", "test_function"]
         },
         "name": {
           "type": "string",
@@ -199,9 +199,161 @@
         },
         "type": {
           "type": "string"
-        }
+        },
+        "test_function_details": {
+          "$ref": "#/definitions/TestFunctionDetails"
+        },
+        "source_scenario": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "setup": { "type": "object" },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TestCaseAction" }
+        },
+        "expected": { "type": "object" },
+        "dependencies": { "type": "object" }
       },
       "additionalProperties": false
+    },
+    "TestCaseActionSubject": {
+      "type": "object",
+      "properties": {
+        "module": { "type": "string" },
+        "export": { "type": "string" },
+        "target": {
+          "type": "object",
+          "properties": {
+            "kind": { "type": "string" },
+            "value": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "AuthHeader": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "TestCaseAction": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ui_interaction", "api_call"]
+        },
+        "subject": { "$ref": "#/definitions/TestCaseActionSubject" },
+        "method": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "body": { "type": "object" },
+        "body_from": { "type": "object" },
+        "action": { "type": "string" },
+        "value": {},
+        "auth_header": { "$ref": "#/definitions/AuthHeader" }
+      },
+      "additionalProperties": true
+    },
+    "SetupAction": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "key": { "type": "string" },
+        "value": {},
+        "defaults": { "type": "string" },
+        "target": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "Provider": {
+      "type": "object",
+      "properties": {
+        "component": { "type": "string" },
+        "props": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "TestFunctionDetails": {
+      "type": "object",
+      "properties": {
+        "source_scenario": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "setup": {
+          "type": "object",
+          "properties": {
+            "auth_required": { "type": "boolean" },
+            "test_data": { "type": "object" },
+            "setup_actions": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/SetupAction" }
+            }
+          },
+          "additionalProperties": true
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TestCaseAction" }
+        },
+        "expected": {
+          "type": "object",
+          "properties": {
+            "response": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "integer" },
+                "body_type": { "type": "string" }
+              },
+              "additionalProperties": true
+            },
+            "localStorage": { "type": "object" },
+            "navigation": {
+              "type": "object",
+              "properties": {
+                "redirect": { "type": "string" }
+              },
+              "additionalProperties": true
+            },
+            "ui": {
+              "type": "object",
+              "properties": {
+                "elements_present": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "text_present": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "dependencies": {
+          "type": "object",
+          "properties": {
+            "environment": { "type": "string" },
+            "mocks": { "type": "array" },
+            "providers": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Provider" }
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
     },
     "ArgSpec": {
       "type": "object",

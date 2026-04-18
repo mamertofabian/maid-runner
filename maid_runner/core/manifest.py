@@ -20,6 +20,8 @@ from maid_runner.core.types import (
     FileSpec,
     Manifest,
     TaskType,
+    TestFunctionDetails,
+    TestFunctionSetup,
 )
 
 _SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
@@ -175,6 +177,33 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
 
     kind = ArtifactKind(data["kind"])
 
+    test_details = None
+    if kind == ArtifactKind.TEST_FUNCTION:
+        # Test function details may be at artifact level or nested in test_function_details
+        # The enriched manifests have source_scenario, tags, setup, actions, expected,
+        # dependencies directly on the artifact object.
+        # Also check test_function_details for backwards compat with the nested format.
+        nest = data.get("test_function_details", {})
+        # Merge: artifact-level fields take precedence over nested
+        source = data.get("source_scenario", nest.get("source_scenario", ""))
+        tags = data.get("tags", nest.get("tags", []))
+        nested_setup = nest.get("setup", {})
+        setup_data = data.get("setup", {})
+        # Merge setup: artifact-level wins
+        merged_setup = {**nested_setup, **setup_data}
+        test_details = TestFunctionDetails(
+            source_scenario=source,
+            tags=tuple(tags),
+            setup=TestFunctionSetup(
+                auth_required=merged_setup.get("auth_required", False),
+                test_data=merged_setup.get("test_data", {}),
+                setup_actions=tuple(merged_setup.get("setup_actions", [])),
+            ),
+            actions=tuple(data.get("actions", nest.get("actions", []))),
+            expected=data.get("expected", nest.get("expected", {})),
+            dependencies=data.get("dependencies", nest.get("dependencies", {})),
+        )
+
     return ArtifactSpec(
         kind=kind,
         name=data["name"],
@@ -186,6 +215,7 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
         bases=tuple(data.get("bases", [])),
         of=data.get("of"),
         type_annotation=data.get("type"),
+        test_details=test_details,
     )
 
 
@@ -284,4 +314,26 @@ def _artifact_to_dict(spec: ArtifactSpec) -> dict:
         d["bases"] = list(spec.bases)
     if spec.type_annotation:
         d["type"] = spec.type_annotation
+    if spec.test_details is not None:
+        td = spec.test_details
+        # Serialize test function fields at artifact level
+        if td.source_scenario:
+            d["source_scenario"] = td.source_scenario
+        if td.tags:
+            d["tags"] = list(td.tags)
+        setup: dict = {}
+        if td.setup.auth_required:
+            setup["auth_required"] = td.setup.auth_required
+        if td.setup.test_data:
+            setup["test_data"] = td.setup.test_data
+        if td.setup.setup_actions:
+            setup["setup_actions"] = list(td.setup.setup_actions)
+        if setup:
+            d["setup"] = setup
+        if td.actions:
+            d["actions"] = list(td.actions)
+        if td.expected:
+            d["expected"] = td.expected
+        if td.dependencies:
+            d["dependencies"] = td.dependencies
     return d

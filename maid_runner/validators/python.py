@@ -66,6 +66,21 @@ class PythonValidator(BaseValidator):
             file_path=str(file_path),
         )
 
+    def get_test_function_bodies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> dict[str, str]:
+        try:
+            tree = ast.parse(source, filename=str(file_path))
+        except SyntaxError:
+            return {}
+
+        bodies: dict[str, str] = {}
+        lines = source.splitlines(keepends=True)
+        _walk_for_test_bodies(tree, lines, bodies, in_test_class=False)
+        return bodies
+
 
 class _ImplementationCollector(ast.NodeVisitor):
     def __init__(self, file_path: str = "") -> None:
@@ -294,6 +309,9 @@ class _BehavioralCollector(ast.NodeVisitor):
     def __init__(self) -> None:
         self.artifacts: list[FoundArtifact] = []
         self._seen: set[str] = set()
+        self._seen_test_funcs: set[str] = set()
+        self._function_depth = 0
+        self._class_stack: list[bool] = []
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if node.names:
@@ -325,6 +343,51 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_Attribute(self, node: ast.Attribute) -> None:
         self._add_reference(node.attr)
         self.generic_visit(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        is_top_level = self._function_depth == 0 and not self._class_stack
+        self._class_stack.append(
+            is_top_level and _is_pytest_discoverable_test_class(node)
+        )
+        self.generic_visit(node)
+        self._class_stack.pop()
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        if self._is_pytest_discoverable_test_function(node.name):
+            self._add_test_function(node.name, node.lineno)
+            self._add_reference(node.name)
+        self._function_depth += 1
+        self.generic_visit(node)
+        self._function_depth -= 1
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        if self._is_pytest_discoverable_test_function(node.name):
+            self._add_test_function(node.name, node.lineno)
+            self._add_reference(node.name)
+        self._function_depth += 1
+        self.generic_visit(node)
+        self._function_depth -= 1
+
+    def _is_pytest_discoverable_test_function(self, name: str) -> bool:
+        if not name.startswith("test_"):
+            return False
+        if self._function_depth > 0:
+            return False
+        if not self._class_stack:
+            return True
+        return len(self._class_stack) == 1 and self._class_stack[-1]
+
+    def _add_test_function(self, name: str, line: int) -> None:
+        if name in self._seen_test_funcs:
+            return
+        self._seen_test_funcs.add(name)
+        self.artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.TEST_FUNCTION,
+                name=name,
+                line=line,
+            )
+        )
 
     def _add_reference(self, name: str) -> None:
         if name not in self._seen:
@@ -398,6 +461,17 @@ def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
             return True
 
     return False
+
+
+def _is_pytest_discoverable_test_class(node: ast.ClassDef) -> bool:
+    """Return True when pytest would discover tests inside this class."""
+    if not node.name.startswith("Test"):
+        return False
+    return not any(
+        isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and child.name == "__init__"
+        for child in node.body
+    )
 
 
 def _extract_args(
@@ -494,3 +568,43 @@ def _ast_to_default_string(node: Optional[ast.expr]) -> Optional[str]:
         return ast.unparse(node)
     except Exception:
         return str(node)
+
+
+def _slice_node_text(node: ast.AST, lines: list[str]) -> Optional[str]:
+    start = getattr(node, "lineno", None)
+    end = getattr(node, "end_lineno", None)
+    if start is None or end is None:
+        return None
+    return "".join(lines[start - 1 : end])
+
+
+def _walk_for_test_bodies(
+    node: ast.AST,
+    lines: list[str],
+    bodies: dict[str, str],
+    in_test_class: bool,
+) -> None:
+    """Collect bodies of top-level and Test*-class ``test_*`` functions.
+
+    Nested helper defs named ``test_*`` are intentionally skipped — they
+    aren't pytest-discoverable and would pollute the body map.
+    """
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not child.name.startswith("test_"):
+                continue
+            # Accept module-level test_* funcs and methods of test classes.
+            if (isinstance(node, ast.Module) and not in_test_class) or (
+                isinstance(node, ast.ClassDef) and in_test_class
+            ):
+                text = _slice_node_text(child, lines)
+                if text is not None:
+                    bodies.setdefault(child.name, text)
+            continue
+        if isinstance(child, ast.ClassDef):
+            if isinstance(node, ast.Module) and _is_pytest_discoverable_test_class(
+                child
+            ):
+                _walk_for_test_bodies(child, lines, bodies, in_test_class=True)
+            continue
+        _walk_for_test_bodies(child, lines, bodies, in_test_class=in_test_class)

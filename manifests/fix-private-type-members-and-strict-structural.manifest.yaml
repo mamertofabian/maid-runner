@@ -18,21 +18,90 @@ files:
         - kind: attribute
           name: is_private
           of: FoundArtifact
+        - kind: method
+          name: get_test_function_bodies
+          of: BaseValidator
     - path: maid_runner/core/types.py
       artifacts:
         - kind: attribute
           name: is_private
           of: ArtifactSpec
+        - kind: attribute
+          name: TEST_FUNCTION
+          of: ArtifactKind
+        - kind: class
+          name: TestFunctionSetup
+        - kind: class
+          name: TestFunctionDetails
+        - kind: attribute
+          name: test_details
+          of: ArtifactSpec
+        - kind: attribute
+          name: auth_required
+          of: TestFunctionSetup
+        - kind: attribute
+          name: test_data
+          of: TestFunctionSetup
+        - kind: attribute
+          name: setup_actions
+          of: TestFunctionSetup
+        - kind: attribute
+          name: source_scenario
+          of: TestFunctionDetails
+        - kind: attribute
+          name: tags
+          of: TestFunctionDetails
+        - kind: attribute
+          name: setup
+          of: TestFunctionDetails
+        - kind: attribute
+          name: actions
+          of: TestFunctionDetails
+        - kind: attribute
+          name: expected
+          of: TestFunctionDetails
+        - kind: attribute
+          name: dependencies
+          of: TestFunctionDetails
     - path: maid_runner/core/validate.py
       artifacts:
         - kind: function
           name: _compare_artifacts
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: TEST_FUNCTION_MISSING_IN_CODE
+          of: ErrorCode
+        - kind: attribute
+          name: TEST_FUNCTION_BEHAVIOR_MISMATCH
+          of: ErrorCode
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+        - kind: method
+          name: get_test_function_bodies
+          of: PythonValidator
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: function
+          name: _collect_refs
+        - kind: method
+          name: get_test_function_bodies
+          of: TypeScriptValidator
   read:
     - tests/validators/test_base.py
     - tests/core/test_types.py
     - tests/core/test_validate.py
+    - tests/core/test_validate_test_functions.py
+    - tests/validators/test_behavioral_test_functions.py
+    - maid_runner/validators/python.py
+    - maid_runner/validators/typescript.py
 
 validate:
   - pytest tests/validators/test_base.py -v
   - pytest tests/core/test_types.py -v
   - pytest tests/core/test_validate.py -v
+  - pytest tests/core/test_test_functions.py -v
+  - pytest tests/core/test_validate_test_functions.py -v
+  - pytest tests/validators/test_behavioral_test_functions.py -v

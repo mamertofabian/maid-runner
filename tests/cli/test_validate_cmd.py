@@ -142,6 +142,69 @@ class TestCmdValidateSingleManifest:
         # Should return 1 (validation failure - manifest not found is a validation error)
         assert exit_code == 1
 
+    def test_behavioral_mode_reports_test_function_behavior_warnings_by_default(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        manifest = {
+            "schema": "2",
+            "goal": "Behavior check",
+            "type": "feature",
+            "files": {
+                "edit": [
+                    {
+                        "path": "tests/test_api.test.ts",
+                        "artifacts": [
+                            {
+                                "kind": "test_function",
+                                "name": "test_api_call",
+                                "test_function_details": {
+                                    "actions": [
+                                        {
+                                            "type": "api_call",
+                                            "subject": {
+                                                "module": "src/api.ts",
+                                                "export": "createLogin",
+                                            },
+                                            "endpoint": "/api/v1/auth/login",
+                                        }
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                ]
+            },
+            "validate": ["echo ok"],
+        }
+        (manifest_dir / "behavior.manifest.yaml").write_text(yaml.dump(manifest))
+        (tests_dir / "test_api.test.ts").write_text(
+            'it("test_api_call", () => { expect(true).toBe(true); });\n'
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/behavior.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert any(w["code"] == "E610" for w in data["warnings"])
+
 
 class TestCmdValidateAll:
     def test_validate_all_returns_0_on_success(self, project_dir, capsys):

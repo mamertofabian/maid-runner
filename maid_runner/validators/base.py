@@ -83,6 +83,21 @@ class BaseValidator(ABC):
     ) -> CollectionResult:
         """Collect artifact REFERENCES from source code (test files)."""
 
+    def get_test_function_bodies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> dict[str, str]:
+        """Return a mapping of test_function name -> body source text.
+
+        The body is the text of the test's implementation scope, used to
+        check behavioral metadata (imports, endpoints, exports) against the
+        specific test rather than the whole file. Languages that can parse
+        test functions must override this; the default returns an empty
+        mapping so callers fall back gracefully.
+        """
+        return {}
+
     def generate_test_stub(
         self,
         artifacts: list[FoundArtifact],

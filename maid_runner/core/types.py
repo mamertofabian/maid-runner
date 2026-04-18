@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
@@ -16,6 +16,7 @@ class ArtifactKind(str, Enum):
     TYPE = "type"
     ENUM = "enum"
     NAMESPACE = "namespace"
+    TEST_FUNCTION = "test_function"
 
 
 class TaskType(str, Enum):
@@ -51,6 +52,23 @@ class AcceptanceConfig:
 
 
 @dataclass(frozen=True)
+class TestFunctionSetup:
+    auth_required: bool = False
+    test_data: dict = field(default_factory=dict)
+    setup_actions: tuple[dict, ...] = ()
+
+
+@dataclass(frozen=True)
+class TestFunctionDetails:
+    source_scenario: str = ""
+    tags: tuple[str, ...] = ()
+    setup: TestFunctionSetup = field(default_factory=TestFunctionSetup)
+    actions: tuple[dict, ...] = ()
+    expected: dict = field(default_factory=dict)
+    dependencies: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class ArgSpec:
     name: str
     type: Optional[str] = None
@@ -69,6 +87,7 @@ class ArtifactSpec:
     bases: tuple[str, ...] = ()
     of: Optional[str] = None
     type_annotation: Optional[str] = None
+    test_details: Optional[TestFunctionDetails] = None
 
     @property
     def qualified_name(self) -> str:
@@ -89,6 +108,8 @@ class ArtifactSpec:
             return f"{self.of}.{self.name}"
         if self.kind == ArtifactKind.ATTRIBUTE and self.of:
             return f"{self.of}.{self.name}"
+        if self.kind == ArtifactKind.TEST_FUNCTION:
+            return self.name
         return self.name
 
 

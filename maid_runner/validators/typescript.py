@@ -97,6 +97,25 @@ class TypeScriptValidator(BaseValidator):
             file_path=str(file_path),
         )
 
+    def get_test_function_bodies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> dict[str, str]:
+        source_bytes = source.encode("utf-8")
+        parser = (
+            self._tsx_parser
+            if str(file_path).endswith((".tsx", ".jsx"))
+            else self._ts_parser
+        )
+        tree = parser.parse(source_bytes)
+        if _collect_parse_errors(tree.root_node):
+            return {}
+
+        bodies: dict[str, str] = {}
+        _collect_test_bodies(tree.root_node, source_bytes, bodies)
+        return bodies
+
 
 def _text(node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8")
@@ -596,21 +615,278 @@ def _child_text(node, type_name: str, source: bytes) -> Optional[str]:
     return _text(child, source) if child else None
 
 
+_TEST_CALLEE_NAMES = frozenset({"it", "test", "fit", "xit"})
+_DIRECT_TEST_MODIFIERS = frozenset(
+    {"only", "skip", "todo", "concurrent", "fails", "fixme"}
+)
+_SUITE_HELPERS = frozenset({"describe", "fdescribe", "xdescribe"})
+_SUITE_MODIFIERS = frozenset({"each", "only", "skip"})
+_FUNCTION_SCOPE_NODES = frozenset(
+    {
+        "arrow_function",
+        "function_declaration",
+        "function_expression",
+        "generator_function",
+        "generator_function_declaration",
+        "method_definition",
+    }
+)
+
+
+def _call_function_node(call_node):
+    for child in call_node.children:
+        if child.type in (
+            "identifier",
+            "member_expression",
+            "subscript_expression",
+            "call_expression",
+        ):
+            return child
+    return None
+
+
+def _resolve_test_call_target(
+    node, source: bytes
+) -> Optional[tuple[str, tuple[str, ...]]]:
+    """Resolve a call target to its base identifier and chained properties.
+
+    This flattens curried call chains such as ``it.each(...)("case", ...)`` into
+    ``("it", ("each",))`` and member chains such as ``test.skip(...)`` into
+    ``("test", ("skip",))``.
+    """
+    if node is None:
+        return None
+
+    if node.type == "identifier":
+        return (_text(node, source), ())
+
+    if node.type == "call_expression":
+        return _resolve_test_call_target(_call_function_node(node), source)
+
+    if node.type == "subscript_expression":
+        for child in node.children:
+            if child.type in (
+                "identifier",
+                "member_expression",
+                "call_expression",
+                "subscript_expression",
+            ):
+                return _resolve_test_call_target(child, source)
+        return None
+
+    if node.type != "member_expression":
+        return None
+
+    object_node = None
+    property_name = None
+    for child in node.children:
+        if child.type in (
+            "identifier",
+            "member_expression",
+            "call_expression",
+            "subscript_expression",
+        ):
+            if object_node is None:
+                object_node = child
+            elif property_name is None:
+                property_name = _text(child, source)
+        elif child.type == "property_identifier":
+            property_name = _text(child, source)
+
+    target = _resolve_test_call_target(object_node, source)
+    if target is None or property_name is None:
+        return None
+    base, properties = target
+    return base, (*properties, property_name)
+
+
+def _is_executable_test_target(base: str, properties: tuple[str, ...]) -> bool:
+    """Return True only for label-bearing test declarations, not suite helpers."""
+    if base in _SUITE_HELPERS or any(prop in _SUITE_HELPERS for prop in properties):
+        return False
+    if base not in _TEST_CALLEE_NAMES:
+        return False
+    if base in {"fit", "xit"}:
+        return not properties
+
+    each_count = properties.count("each")
+    if each_count > 1:
+        return False
+
+    for prop in properties:
+        if prop == "each":
+            continue
+        if prop not in _DIRECT_TEST_MODIFIERS:
+            return False
+
+    return True
+
+
+def _is_suite_target(base: str, properties: tuple[str, ...]) -> bool:
+    """Return True for suite wrappers whose callbacks may register tests."""
+    if base in _SUITE_HELPERS:
+        if properties.count("each") > 1:
+            return False
+        return all(prop in _SUITE_MODIFIERS for prop in properties)
+
+    if base != "test" or not properties or properties[0] != "describe":
+        return False
+    if properties.count("each") > 1:
+        return False
+
+    return all(prop == "describe" or prop in _SUITE_MODIFIERS for prop in properties)
+
+
+def _is_suite_callback_scope(node, source: bytes) -> bool:
+    parent = node.parent
+    if parent is None or parent.type != "arguments":
+        return False
+
+    call_node = parent.parent
+    if call_node is None or call_node.type != "call_expression":
+        return False
+
+    target = _resolve_test_call_target(_call_function_node(call_node), source)
+    if target is None:
+        return False
+
+    base, properties = target
+    return _is_suite_target(base, properties)
+
+
+def _is_executable_test_scope(node, source: bytes) -> bool:
+    """Allow test registration only at module scope or suite callbacks."""
+    current = node.parent
+    while current is not None:
+        if current.type in _FUNCTION_SCOPE_NODES and not _is_suite_callback_scope(
+            current, source
+        ):
+            return False
+        current = current.parent
+    return True
+
+
+def _extract_test_callee_name(call_node, source: bytes) -> Optional[str]:
+    """Return the base callee name for an executable test declaration."""
+    target = _resolve_test_call_target(_call_function_node(call_node), source)
+    if target is None:
+        return None
+    base, properties = target
+    if not _is_executable_test_target(base, properties):
+        return None
+    if not _is_executable_test_scope(call_node, source):
+        return None
+    return base
+
+
+def _first_string_argument(call_node, source: bytes) -> Optional[str]:
+    """Return the literal value of the first string argument of a call."""
+    args = _child_by_type(call_node, "arguments")
+    if args is None:
+        return None
+    for child in args.children:
+        if child.type == "string":
+            text = _text(child, source)
+            if len(text) >= 2 and text[0] in ("'", '"') and text[-1] == text[0]:
+                return text[1:-1]
+            return text
+        if child.type == "template_string":
+            has_substitution = any(
+                c.type == "template_substitution" for c in child.children
+            )
+            if has_substitution:
+                return None
+            text = _text(child, source)
+            if len(text) >= 2 and text.startswith("`") and text.endswith("`"):
+                return text[1:-1]
+            return text
+        if child.type in ("(", ","):
+            continue
+        # Any other kind of first argument (function, identifier, object) means
+        # this isn't a recognizable test label.
+        return None
+    return None
+
+
 def _collect_refs(
     node, source: bytes, artifacts: list[FoundArtifact], seen: set[str]
 ) -> None:
-    """Collect all identifier references for behavioral validation."""
+    """Collect identifier references and executable test labels.
+
+    Only real test-runner declarations such as ``it("name", ...)`` and
+    ``test("name", ...)`` are emitted as ``ArtifactKind.TEST_FUNCTION``.
+    Plain ``test_*`` helpers are treated as ordinary code references.
+    """
     if node.type == "identifier":
         name = _text(node, source)
         if name and name not in seen:
             seen.add(name)
             artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
 
-    if node.type == "type_identifier":
+    elif node.type == "type_identifier":
         name = _text(node, source)
         if name and name not in seen:
             seen.add(name)
             artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
 
+    elif node.type == "call_expression":
+        callee = _extract_test_callee_name(node, source)
+        if callee is not None:
+            label = _first_string_argument(node, source)
+            if label:
+                artifacts.append(
+                    FoundArtifact(
+                        kind=ArtifactKind.TEST_FUNCTION,
+                        name=label,
+                        line=node.start_point[0] + 1,
+                    )
+                )
+                seen.add(label)
+
     for child in node.children:
         _collect_refs(child, source, artifacts, seen)
+
+
+def _collect_test_bodies(node, source: bytes, bodies: dict[str, str]) -> None:
+    """Extract per-test body source text keyed by test function name.
+
+    Recognizes executable test-runner calls such as ``it("name", ...)`` and
+    ``test("name", ...)``. Plain ``test_*`` helpers are intentionally ignored.
+
+    Nested declarations inside other test callbacks are intentionally
+    ignored — those are helpers, not independent tests. Names claimed by
+    an outer declaration are not overwritten by inner ones.
+    """
+    if node.type == "call_expression":
+        callee = _extract_test_callee_name(node, source)
+        if callee is not None:
+            label = _first_string_argument(node, source)
+            if label:
+                body_text = _extract_test_callback_body(node, source)
+                if body_text is None:
+                    body_text = _text(node, source)
+                bodies.setdefault(label, body_text)
+                return
+
+    for child in node.children:
+        _collect_test_bodies(child, source, bodies)
+
+
+def _extract_test_callback_body(call_node, source: bytes) -> Optional[str]:
+    """Return the text of the callback passed to a test call, if any."""
+    args = _child_by_type(call_node, "arguments")
+    if args is None:
+        return None
+    # Skip the string label and any separators; return first callback-like arg.
+    for child in args.children:
+        if child.type in (
+            "arrow_function",
+            "function_expression",
+            "generator_function",
+        ):
+            # Prefer the statement_block body if present, otherwise the expr.
+            block = _child_by_type(child, "statement_block")
+            if block is not None:
+                return _text(block, source)
+            return _text(child, source)
+    return None
