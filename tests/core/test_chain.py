@@ -231,7 +231,9 @@ validate:
         )
         chain = ManifestChain(chain_dir)
         assert chain.active_manifests() == []
-        assert any(e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in chain.load_errors)
+        assert any(
+            e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in chain.load_errors
+        )
 
 
 class TestArtifactMerge:

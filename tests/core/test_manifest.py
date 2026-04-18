@@ -213,9 +213,7 @@ validate:
 """
         )
         manifest = load_manifest(path)
-        assert manifest.validate_commands == (
-            ("python", "-c", "print('hello world')"),
-        )
+        assert manifest.validate_commands == (("python", "-c", "print('hello world')"),)
 
     def test_async_artifact(self, tmp_path):
         content = """schema: "2"

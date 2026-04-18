@@ -179,9 +179,9 @@ class TestPublicAPIImports:
         ]
         for name in spec_exports:
             assert hasattr(maid_runner, name), f"Spec-required export missing: {name}"
-            assert (
-                name in maid_runner.__all__
-            ), f"Spec-required export not in __all__: {name}"
+            assert name in maid_runner.__all__, (
+                f"Spec-required export not in __all__: {name}"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -612,7 +612,9 @@ class TestValidatorRegistryExtension:
             },
         )
         (project / "src" / "helper.rb").write_text("def helper\n  :ok\nend\n")
-        (project / "tests" / "test_helper.py").write_text("from src.helper import helper\n")
+        (project / "tests" / "test_helper.py").write_text(
+            "from src.helper import helper\n"
+        )
 
         registry = ValidatorRegistry.with_builtin_validators()
         registry.register(RubyValidator)

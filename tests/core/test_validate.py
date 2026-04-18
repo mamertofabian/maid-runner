@@ -1552,7 +1552,9 @@ validate:
 
         assert result.success is False
         assert len(result.results) == 1
-        assert any(e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors)
+        assert any(
+            e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors
+        )
 
     def test_validate_all_performance_with_many_manifests(self, project):
         """validate_all with 20 manifests should complete quickly (under 5s)."""
@@ -1985,7 +1987,9 @@ validate:
 """,
         )
         _write_source(project, "src/example.py", "def example():\n    return 1\n")
-        _write_source(project, "tests/test_example.py", "def test_example(:\n    pass\n")
+        _write_source(
+            project, "tests/test_example.py", "def test_example(:\n    pass\n"
+        )
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
