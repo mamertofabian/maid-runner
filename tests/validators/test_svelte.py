@@ -104,3 +104,19 @@ class TestSvelteBehavioralCollection:
         source = "<script></script>\n<div>Hi</div>"
         result = validator.collect_behavioral_artifacts(source, "test.svelte")
         assert hasattr(result, "artifacts")
+
+    def test_get_test_function_bodies_delegates_to_typescript(self, validator):
+        """Svelte test body extraction should use the TypeScript validator hook."""
+        source = """<script lang="ts">
+it("test_svelte_fetch", () => {
+    fetchData("/api/svelte");
+});
+</script>
+
+<h1>Test</h1>
+"""
+        bodies = validator.get_test_function_bodies(source, "component.test.svelte")
+
+        assert "test_svelte_fetch" in bodies
+        assert "fetchData" in bodies["test_svelte_fetch"]
+        assert "/api/svelte" in bodies["test_svelte_fetch"]

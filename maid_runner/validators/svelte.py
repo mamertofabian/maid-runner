@@ -81,6 +81,18 @@ class SvelteValidator(BaseValidator):
             errors=result.errors,
         )
 
+    def get_test_function_bodies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> dict[str, str]:
+        script_content = _extract_script(source)
+        if not script_content:
+            return {}
+        return self._ts_validator.get_test_function_bodies(
+            script_content, str(file_path).replace(".svelte", ".ts")
+        )
+
 
 def _extract_script(source: str) -> str:
     """Extract content from <script> tags."""

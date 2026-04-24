@@ -1,0 +1,27 @@
+schema: '2'
+goal: >
+  Delegate Svelte test body extraction to the TypeScript validator so
+  test_function_details behavioral checks work for .svelte test files.
+type: fix
+
+files:
+  edit:
+    - path: maid_runner/validators/svelte.py
+      artifacts:
+        - kind: method
+          name: get_test_function_bodies
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: dict[str, str]
+
+  read:
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_svelte.py
+
+validate:
+  - pytest tests/validators/test_svelte.py -v -k "test_get_test_function_bodies_delegates_to_typescript"
+created: '2026-04-24T00:00:00+08:00'
