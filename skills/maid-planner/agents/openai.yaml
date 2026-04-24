@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Planner"
+  short_description: "Turn a coding task into a validated MAID manifest plan"
+  default_prompt: "Use $maid-planner to analyze the codebase, ask only blocking clarification questions, draft a MAID manifest plus behavioral tests, validate them, and present the contract for approval."
