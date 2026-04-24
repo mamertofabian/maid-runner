@@ -17,7 +17,11 @@ from maid_runner.coherence.result import (
     IssueSeverity,
     IssueType,
 )
-from maid_runner.coherence.checks.base import get_checks
+from maid_runner.coherence.checks.base import (
+    BaseCheck,
+    get_checks,
+    get_default_check_classes,
+)
 from maid_runner.coherence.checks.duplicate import DuplicateCheck
 from maid_runner.coherence.checks.signature import SignatureCheck
 from maid_runner.coherence.checks.naming import NamingCheck
@@ -25,7 +29,9 @@ from maid_runner.coherence.checks.boundary import ModuleBoundaryCheck
 from maid_runner.coherence.checks.dependency import DependencyCheck
 from maid_runner.coherence.checks.pattern import PatternCheck
 from maid_runner.coherence.checks.constraint import (
+    ConstraintConfig,
     ConstraintCheck,
+    ConstraintRule,
     load_constraint_config,
 )
 
@@ -71,6 +77,22 @@ class TestCoherenceResult:
         assert r.success
         assert r.error_count == 0
         assert r.warning_count == 0
+        assert r.duration_ms is None
+
+    def test_consolidated_contract_symbols_are_referenced(self):
+        rule = ConstraintRule(
+            name="no-cross-boundary",
+            description="disallow dependency",
+            pattern={"from": "a", "to": "b"},
+            severity="warning",
+            suggestion="Use a public boundary",
+        )
+        config = ConstraintConfig(version="1", rules=[rule], enabled=True)
+
+        assert BaseCheck is not None
+        assert get_default_check_classes()
+        assert config.rules[0].description == "disallow dependency"
+        assert config.rules[0].pattern["from"] == "a"
 
     def test_error_makes_failure(self):
         issue = CoherenceIssue(

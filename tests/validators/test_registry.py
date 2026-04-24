@@ -45,8 +45,18 @@ class TestValidatorRegistry:
 
     def test_get_unsupported_raises(self):
         registry = ValidatorRegistry()
-        with pytest.raises(UnsupportedLanguageError):
+        with pytest.raises(UnsupportedLanguageError) as exc_info:
             registry.get("file.xyz")
+        assert exc_info.value.extension == ".xyz"
+
+    def test_clone_copies_registered_validators(self):
+        registry = ValidatorRegistry()
+        registry.register(_TestValidator)
+
+        clone = registry.clone()
+
+        assert clone is not registry
+        assert clone.has_validator_for_extension(".test") is True
 
     def test_has_validator(self):
         registry = ValidatorRegistry()

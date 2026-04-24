@@ -1,0 +1,1688 @@
+schema: '2'
+goal: Consolidate validation, chain, result, type, and Python validator contracts
+  after validation fixes
+type: refactor
+created: '2026-04-24T15:15:00+08:00'
+supersedes:
+- snapshot-core-chain
+- fix-chain-validation-performance
+- snapshot-core-validate
+- enforce-test-coverage-in-implementation-mode
+- strict-mode-chain-enforcement
+- snapshot-core-result
+- snapshot-core-types
+- snapshot-validators-base
+- snapshot-validators-python
+- fix-private-type-members-and-strict-structural
+- fix-behavioral-keyword-arg-collection
+- fix-behavioral-attribute-visitor
+- fix-implementation-reexport-detection
+- fix-e320-import-path-normalization
+- snapshot-validators-typescript
+- snapshot-validators-svelte
+- snapshot-validators-registry
+- fix-svelte-test-body-extraction
+files:
+  snapshot:
+  - path: maid_runner/core/chain.py
+    artifacts:
+    - kind: class
+      name: ManifestChain
+    - kind: method
+      name: __init__
+      of: ManifestChain
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+    - kind: attribute
+      name: _manifest_dir
+      of: ManifestChain
+    - kind: attribute
+      name: _project_root
+      of: ManifestChain
+    - kind: attribute
+      name: _manifests
+      of: ManifestChain
+      type: Union[list[Manifest], None]
+    - kind: attribute
+      name: _superseded_set
+      of: ManifestChain
+      type: Union[set[str], None]
+    - kind: attribute
+      name: _superseded_by_map
+      of: ManifestChain
+      type: Union[dict[str, str], None]
+    - kind: attribute
+      name: _active_cache
+      of: ManifestChain
+      type: Union[list[Manifest], None]
+    - kind: attribute
+      name: _load_errors
+      of: ManifestChain
+      type: Union[list[ValidationError], None]
+    - kind: method
+      name: _load
+      of: ManifestChain
+      returns: None
+    - kind: method
+      name: _resolve_supersession
+      of: ManifestChain
+      returns: None
+    - kind: method
+      name: _ensure_loaded
+      of: ManifestChain
+      returns: None
+    - kind: attribute
+      name: all_manifests
+      of: ManifestChain
+      type: list[Manifest]
+    - kind: attribute
+      name: load_errors
+      of: ManifestChain
+      type: list[ValidationError]
+    - kind: method
+      name: active_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: superseded_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: is_superseded
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: bool
+    - kind: method
+      name: superseded_by
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: Optional[str]
+    - kind: method
+      name: manifests_for_file
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[Manifest]
+    - kind: method
+      name: merged_artifacts_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[ArtifactSpec]
+    - kind: method
+      name: file_mode_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileMode]
+    - kind: method
+      name: all_tracked_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: all_read_only_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: validate_supersession_integrity
+      of: ManifestChain
+      returns: list[ValidationError]
+    - kind: method
+      name: diagnostics
+      of: ManifestChain
+      returns: list[ValidationError]
+    - kind: method
+      name: reload
+      of: ManifestChain
+      returns: None
+    - kind: function
+      name: _discover_manifest_files
+      args:
+      - name: manifest_dir
+        type: Path
+      returns: list[Path]
+    - kind: function
+      name: _sort_manifests
+      args:
+      - name: manifests
+        type: list[Manifest]
+      returns: list[Manifest]
+    - kind: function
+      name: _has_cycle
+      args:
+      - name: graph
+        type: dict[str, list[str]]
+      - name: all_slugs
+        type: set[str]
+      returns: bool
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: class
+      name: ErrorCode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_READ_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: MANIFEST_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: SCHEMA_VALIDATION_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: DUPLICATE_FILE
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_IN_MULTIPLE_SECTIONS
+      of: ErrorCode
+    - kind: attribute
+      name: SUPERSEDED_MANIFEST_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: CIRCULAR_SUPERSESSION
+      of: ErrorCode
+    - kind: attribute
+      name: EMPTY_ARTIFACTS
+      of: ErrorCode
+    - kind: attribute
+      name: INVALID_TASK_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_NOT_USED_IN_TESTS
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_IN_READONLY
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_ASSERTIONS
+      of: ErrorCode
+    - kind: attribute
+      name: NO_TEST_FILES
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_NOT_DEFINED
+      of: ErrorCode
+    - kind: attribute
+      name: UNEXPECTED_ARTIFACT
+      of: ErrorCode
+    - kind: attribute
+      name: TYPE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: SIGNATURE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_RETURN_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_ABSENT
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_PRESENT
+      of: ErrorCode
+    - kind: attribute
+      name: VALIDATOR_NOT_AVAILABLE
+      of: ErrorCode
+    - kind: attribute
+      name: SOURCE_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: STUB_FUNCTION_DETECTED
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_REQUIRED_IMPORT
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FUNCTION_MISSING_IN_CODE
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FUNCTION_BEHAVIOR_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: ACCEPTANCE_TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DUPLICATE
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_SIGNATURE_CONFLICT
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_BOUNDARY_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_NAMING_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DEPENDENCY_MISSING
+      of: ErrorCode
+    - kind: attribute
+      name: INTERNAL_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: UNSUPPORTED_LANGUAGE
+      of: ErrorCode
+    - kind: class
+      name: Severity
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ERROR
+      of: Severity
+    - kind: attribute
+      name: WARNING
+      of: Severity
+    - kind: attribute
+      name: INFO
+      of: Severity
+    - kind: class
+      name: Location
+    - kind: attribute
+      name: file
+      of: Location
+      type: str
+    - kind: attribute
+      name: line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: column
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_column
+      of: Location
+      type: Optional[int]
+    - kind: class
+      name: ValidationError
+    - kind: attribute
+      name: code
+      of: ValidationError
+      type: ErrorCode
+    - kind: attribute
+      name: message
+      of: ValidationError
+      type: str
+    - kind: attribute
+      name: severity
+      of: ValidationError
+      type: Severity
+    - kind: attribute
+      name: location
+      of: ValidationError
+      type: Optional[Location]
+    - kind: attribute
+      name: suggestion
+      of: ValidationError
+      type: Optional[str]
+    - kind: method
+      name: to_dict
+      of: ValidationError
+      returns: dict
+    - kind: class
+      name: FileTrackingStatus
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: UNDECLARED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: REGISTERED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: TRACKED
+      of: FileTrackingStatus
+    - kind: class
+      name: FileTrackingEntry
+    - kind: attribute
+      name: path
+      of: FileTrackingEntry
+      type: str
+    - kind: attribute
+      name: status
+      of: FileTrackingEntry
+      type: FileTrackingStatus
+    - kind: attribute
+      name: manifests
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: issues
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: class
+      name: FileTrackingReport
+    - kind: attribute
+      name: entries
+      of: FileTrackingReport
+      type: tuple[FileTrackingEntry, Ellipsis]
+    - kind: attribute
+      name: undeclared
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: registered
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: tracked
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: class
+      name: ValidationResult
+    - kind: attribute
+      name: success
+      of: ValidationResult
+      type: bool
+    - kind: attribute
+      name: manifest_slug
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: manifest_path
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: mode
+      of: ValidationResult
+      type: ValidationMode
+    - kind: attribute
+      name: errors
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: warnings
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: file_tracking
+      of: ValidationResult
+      type: Optional[FileTrackingReport]
+    - kind: attribute
+      name: duration_ms
+      of: ValidationResult
+      type: Optional[float]
+    - kind: method
+      name: to_dict
+      of: ValidationResult
+      returns: dict
+    - kind: method
+      name: to_json
+      of: ValidationResult
+      returns: str
+    - kind: class
+      name: BatchValidationResult
+    - kind: attribute
+      name: results
+      of: BatchValidationResult
+      type: list[ValidationResult]
+    - kind: attribute
+      name: total_manifests
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: passed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: failed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: skipped
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: chain_errors
+      of: BatchValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: duration_ms
+      of: BatchValidationResult
+      type: Optional[float]
+    - kind: attribute
+      name: success
+      of: BatchValidationResult
+      type: bool
+    - kind: method
+      name: to_dict
+      of: BatchValidationResult
+      returns: dict
+    - kind: class
+      name: TestRunResult
+    - kind: attribute
+      name: manifest_slug
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: command
+      of: TestRunResult
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: exit_code
+      of: TestRunResult
+      type: int
+    - kind: attribute
+      name: stdout
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: stderr
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: duration_ms
+      of: TestRunResult
+      type: float
+    - kind: attribute
+      name: stream
+      of: TestRunResult
+      type: TestStream
+    - kind: attribute
+      name: success
+      of: TestRunResult
+      type: bool
+    - kind: class
+      name: BatchTestResult
+    - kind: attribute
+      name: results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: total
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: passed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: failed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: chain_errors
+      of: BatchTestResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: duration_ms
+      of: BatchTestResult
+      type: Optional[float]
+    - kind: attribute
+      name: success
+      of: BatchTestResult
+      type: bool
+    - kind: attribute
+      name: acceptance_results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: implementation_results
+      of: BatchTestResult
+      type: list[TestRunResult]
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: class
+      name: ArtifactKind
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: CLASS
+      of: ArtifactKind
+    - kind: attribute
+      name: FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: METHOD
+      of: ArtifactKind
+    - kind: attribute
+      name: ATTRIBUTE
+      of: ArtifactKind
+    - kind: attribute
+      name: INTERFACE
+      of: ArtifactKind
+    - kind: attribute
+      name: TYPE
+      of: ArtifactKind
+    - kind: attribute
+      name: ENUM
+      of: ArtifactKind
+    - kind: attribute
+      name: NAMESPACE
+      of: ArtifactKind
+    - kind: attribute
+      name: TEST_FUNCTION
+      of: ArtifactKind
+    - kind: class
+      name: TaskType
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: FEATURE
+      of: TaskType
+    - kind: attribute
+      name: FIX
+      of: TaskType
+    - kind: attribute
+      name: REFACTOR
+      of: TaskType
+    - kind: attribute
+      name: SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: SYSTEM_SNAPSHOT
+      of: TaskType
+    - kind: class
+      name: ValidationMode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: BEHAVIORAL
+      of: ValidationMode
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: ValidationMode
+    - kind: class
+      name: FileMode
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: CREATE
+      of: FileMode
+    - kind: attribute
+      name: EDIT
+      of: FileMode
+    - kind: attribute
+      name: READ
+      of: FileMode
+    - kind: attribute
+      name: DELETE
+      of: FileMode
+    - kind: attribute
+      name: SNAPSHOT
+      of: FileMode
+    - kind: class
+      name: TestStream
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ACCEPTANCE
+      of: TestStream
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: TestStream
+    - kind: class
+      name: AcceptanceConfig
+    - kind: attribute
+      name: tests
+      of: AcceptanceConfig
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: immutable
+      of: AcceptanceConfig
+      type: bool
+    - kind: class
+      name: TestFunctionSetup
+    - kind: attribute
+      name: auth_required
+      of: TestFunctionSetup
+      type: bool
+    - kind: attribute
+      name: test_data
+      of: TestFunctionSetup
+      type: dict
+    - kind: attribute
+      name: setup_actions
+      of: TestFunctionSetup
+      type: tuple[dict, Ellipsis]
+    - kind: class
+      name: TestFunctionDetails
+    - kind: attribute
+      name: source_scenario
+      of: TestFunctionDetails
+      type: str
+    - kind: attribute
+      name: tags
+      of: TestFunctionDetails
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: setup
+      of: TestFunctionDetails
+      type: TestFunctionSetup
+    - kind: attribute
+      name: actions
+      of: TestFunctionDetails
+      type: tuple[dict, Ellipsis]
+    - kind: attribute
+      name: expected
+      of: TestFunctionDetails
+      type: dict
+    - kind: attribute
+      name: dependencies
+      of: TestFunctionDetails
+      type: dict
+    - kind: class
+      name: ArgSpec
+    - kind: attribute
+      name: name
+      of: ArgSpec
+      type: str
+    - kind: attribute
+      name: type
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: default
+      of: ArgSpec
+      type: Optional[str]
+    - kind: class
+      name: ArtifactSpec
+    - kind: attribute
+      name: kind
+      of: ArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: description
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: args
+      of: ArtifactSpec
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: raises
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: is_async
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: bases
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: of
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: type_annotation
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: test_details
+      of: ArtifactSpec
+      type: Optional[TestFunctionDetails]
+    - kind: attribute
+      name: qualified_name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: is_private
+      of: ArtifactSpec
+      type: bool
+    - kind: method
+      name: merge_key
+      of: ArtifactSpec
+      returns: str
+    - kind: class
+      name: FileSpec
+    - kind: attribute
+      name: path
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: artifacts
+      of: FileSpec
+      type: tuple[ArtifactSpec, Ellipsis]
+    - kind: attribute
+      name: status
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: mode
+      of: FileSpec
+      type: FileMode
+    - kind: attribute
+      name: imports
+      of: FileSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: is_strict
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: is_absent
+      of: FileSpec
+      type: bool
+    - kind: class
+      name: DeleteSpec
+    - kind: attribute
+      name: path
+      of: DeleteSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: DeleteSpec
+      type: Optional[str]
+    - kind: class
+      name: Manifest
+    - kind: attribute
+      name: slug
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: source_path
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: goal
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: validate_commands
+      of: Manifest
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: files_create
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_edit
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_read
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: files_delete
+      of: Manifest
+      type: tuple[DeleteSpec, Ellipsis]
+    - kind: attribute
+      name: files_snapshot
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: schema_version
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: task_type
+      of: Manifest
+      type: Optional[TaskType]
+    - kind: attribute
+      name: description
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: supersedes
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: created
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: metadata
+      of: Manifest
+      type: Optional[dict]
+    - kind: attribute
+      name: acceptance
+      of: Manifest
+      type: Optional[AcceptanceConfig]
+    - kind: attribute
+      name: all_file_specs
+      of: Manifest
+      type: list[FileSpec]
+    - kind: attribute
+      name: all_writable_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: all_referenced_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: is_superseded_by
+      of: Manifest
+      type: bool
+    - kind: method
+      name: file_spec_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileSpec]
+    - kind: method
+      name: artifacts_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: tuple[ArtifactSpec, Ellipsis]
+  - path: maid_runner/validators/base.py
+    artifacts:
+    - kind: class
+      name: FoundArtifact
+    - kind: attribute
+      name: kind
+      of: FoundArtifact
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: FoundArtifact
+      type: str
+    - kind: attribute
+      name: of
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: args
+      of: FoundArtifact
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: is_async
+      of: FoundArtifact
+      type: bool
+    - kind: attribute
+      name: bases
+      of: FoundArtifact
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: type_annotation
+      of: FoundArtifact
+      type: Optional[str]
+    - kind: attribute
+      name: is_stub
+      of: FoundArtifact
+      type: bool
+    - kind: attribute
+      name: line
+      of: FoundArtifact
+      type: Optional[int]
+    - kind: attribute
+      name: column
+      of: FoundArtifact
+      type: Optional[int]
+    - kind: attribute
+      name: is_private
+      of: FoundArtifact
+      type: bool
+    - kind: attribute
+      name: qualified_name
+      of: FoundArtifact
+      type: str
+    - kind: method
+      name: merge_key
+      of: FoundArtifact
+      returns: str
+    - kind: class
+      name: CollectionResult
+    - kind: attribute
+      name: artifacts
+      of: CollectionResult
+      type: list[FoundArtifact]
+    - kind: attribute
+      name: language
+      of: CollectionResult
+      type: str
+    - kind: attribute
+      name: file_path
+      of: CollectionResult
+      type: str
+    - kind: attribute
+      name: errors
+      of: CollectionResult
+      type: list[str]
+    - kind: class
+      name: BaseValidator
+      bases:
+      - ABC
+    - kind: method
+      name: supported_extensions
+      of: BaseValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: can_validate
+      of: BaseValidator
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: bool
+    - kind: method
+      name: collect_implementation_artifacts
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: get_test_function_bodies
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: dict[str, str]
+    - kind: method
+      name: generate_test_stub
+      of: BaseValidator
+      args:
+      - name: artifacts
+        type: list[FoundArtifact]
+      - name: file_path
+        type: Union[str, Path]
+      returns: str
+    - kind: method
+      name: generate_snapshot
+      of: BaseValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: list[dict]
+    - kind: method
+      name: _artifact_to_dict
+      of: BaseValidator
+      args:
+      - name: artifact
+        type: FoundArtifact
+      returns: dict
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: class
+      name: PythonValidator
+      bases:
+      - BaseValidator
+    - kind: method
+      name: supported_extensions
+      of: PythonValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: collect_implementation_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: get_test_function_bodies
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: dict[str, str]
+    - kind: class
+      name: _ImplementationCollector
+      bases:
+      - ast.NodeVisitor
+    - kind: method
+      name: __init__
+      of: _ImplementationCollector
+      args:
+      - name: file_path
+        type: str
+        default: ''''''
+      returns: None
+    - kind: attribute
+      name: artifacts
+      of: _ImplementationCollector
+      type: list[FoundArtifact]
+    - kind: attribute
+      name: _current_class
+      of: _ImplementationCollector
+      type: Optional[str]
+    - kind: attribute
+      name: _in_function
+      of: _ImplementationCollector
+      type: bool
+    - kind: attribute
+      name: _is_init
+      of: _ImplementationCollector
+    - kind: method
+      name: visit_ClassDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.ClassDef
+      returns: None
+    - kind: method
+      name: visit_FunctionDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.FunctionDef
+      returns: None
+    - kind: method
+      name: visit_AsyncFunctionDef
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.AsyncFunctionDef
+      returns: None
+    - kind: method
+      name: _handle_function
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+      - name: is_async
+        type: bool
+      returns: None
+    - kind: method
+      name: visit_Assign
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.Assign
+      returns: None
+    - kind: method
+      name: visit_AnnAssign
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.AnnAssign
+      returns: None
+    - kind: method
+      name: visit_ImportFrom
+      of: _ImplementationCollector
+      args:
+      - name: node
+        type: ast.ImportFrom
+      returns: None
+    - kind: method
+      name: _has_artifact
+      of: _ImplementationCollector
+      args:
+      - name: name
+        type: str
+      - name: of
+        type: Optional[str]
+      returns: bool
+    - kind: class
+      name: _BehavioralCollector
+      bases:
+      - ast.NodeVisitor
+    - kind: method
+      name: __init__
+      of: _BehavioralCollector
+      returns: None
+    - kind: attribute
+      name: artifacts
+      of: _BehavioralCollector
+      type: list[FoundArtifact]
+    - kind: attribute
+      name: _seen
+      of: _BehavioralCollector
+      type: set[str]
+    - kind: attribute
+      name: _seen_test_funcs
+      of: _BehavioralCollector
+      type: set[str]
+    - kind: attribute
+      name: _function_depth
+      of: _BehavioralCollector
+    - kind: attribute
+      name: _class_stack
+      of: _BehavioralCollector
+      type: list[bool]
+    - kind: method
+      name: visit_ImportFrom
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.ImportFrom
+      returns: None
+    - kind: method
+      name: visit_Import
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Import
+      returns: None
+    - kind: method
+      name: visit_Call
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Call
+      returns: None
+    - kind: method
+      name: visit_Name
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Name
+      returns: None
+    - kind: method
+      name: visit_Attribute
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.Attribute
+      returns: None
+    - kind: method
+      name: visit_ClassDef
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.ClassDef
+      returns: None
+    - kind: method
+      name: visit_FunctionDef
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.FunctionDef
+      returns: None
+    - kind: method
+      name: visit_AsyncFunctionDef
+      of: _BehavioralCollector
+      args:
+      - name: node
+        type: ast.AsyncFunctionDef
+      returns: None
+    - kind: method
+      name: _is_pytest_discoverable_test_function
+      of: _BehavioralCollector
+      args:
+      - name: name
+        type: str
+      returns: bool
+    - kind: method
+      name: _add_test_function
+      of: _BehavioralCollector
+      args:
+      - name: name
+        type: str
+      - name: line
+        type: int
+      returns: None
+    - kind: method
+      name: _add_reference
+      of: _BehavioralCollector
+      args:
+      - name: name
+        type: str
+      returns: None
+    - kind: function
+      name: _is_stub_body
+      args:
+      - name: node
+        type: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+      returns: bool
+    - kind: function
+      name: _is_pytest_discoverable_test_class
+      args:
+      - name: node
+        type: ast.ClassDef
+      returns: bool
+    - kind: function
+      name: _extract_args
+      args:
+      - name: node
+        type: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+      - name: is_method
+        type: bool
+      returns: tuple[ArgSpec, Ellipsis]
+    - kind: function
+      name: _get_return_type
+      args:
+      - name: node
+        type: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+      returns: Optional[str]
+    - kind: function
+      name: _has_property_decorator
+      args:
+      - name: node
+        type: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+      returns: bool
+    - kind: function
+      name: _extract_base_name
+      args:
+      - name: base
+        type: ast.expr
+      returns: Optional[str]
+    - kind: function
+      name: _ast_to_type_string
+      args:
+      - name: node
+        type: Optional[ast.AST]
+      returns: Optional[str]
+    - kind: function
+      name: _ast_to_default_string
+      args:
+      - name: node
+        type: Optional[ast.expr]
+      returns: Optional[str]
+    - kind: function
+      name: _slice_node_text
+      args:
+      - name: node
+        type: ast.AST
+      - name: lines
+        type: list[str]
+      returns: Optional[str]
+    - kind: function
+      name: _walk_for_test_bodies
+      args:
+      - name: node
+        type: ast.AST
+      - name: lines
+        type: list[str]
+      - name: bodies
+        type: dict[str, str]
+      - name: in_test_class
+        type: bool
+      returns: None
+  - path: maid_runner/validators/typescript.py
+    artifacts:
+    - kind: class
+      name: TypeScriptValidator
+      bases:
+      - BaseValidator
+    - kind: method
+      name: supported_extensions
+      of: TypeScriptValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: collect_implementation_artifacts
+      of: TypeScriptValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: TypeScriptValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: get_test_function_bodies
+      of: TypeScriptValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: dict[str, str]
+  - path: maid_runner/validators/svelte.py
+    artifacts:
+    - kind: class
+      name: SvelteValidator
+      bases:
+      - BaseValidator
+    - kind: method
+      name: supported_extensions
+      of: SvelteValidator
+      returns: tuple[str, Ellipsis]
+    - kind: method
+      name: collect_implementation_artifacts
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+    - kind: method
+      name: get_test_function_bodies
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: dict[str, str]
+  - path: maid_runner/validators/registry.py
+    artifacts:
+    - kind: class
+      name: UnsupportedLanguageError
+      bases:
+      - Exception
+    - kind: attribute
+      name: extension
+      of: UnsupportedLanguageError
+    - kind: class
+      name: ValidatorRegistry
+    - kind: method
+      name: with_builtin_validators
+      of: ValidatorRegistry
+      returns: ValidatorRegistry
+    - kind: method
+      name: clone
+      of: ValidatorRegistry
+      returns: ValidatorRegistry
+    - kind: method
+      name: register
+      of: ValidatorRegistry
+      args:
+      - name: validator_class
+        type: type[BaseValidator]
+      returns: None
+    - kind: method
+      name: get
+      of: ValidatorRegistry
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: BaseValidator
+    - kind: method
+      name: has_validator
+      of: ValidatorRegistry
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: bool
+    - kind: method
+      name: has_validator_for_extension
+      of: ValidatorRegistry
+      args:
+      - name: ext
+        type: str
+      returns: bool
+    - kind: method
+      name: supported_extensions
+      of: ValidatorRegistry
+      returns: set[str]
+    - kind: method
+      name: clear
+      of: ValidatorRegistry
+      returns: None
+    - kind: function
+      name: auto_register
+      args:
+      - name: registry
+        type: ValidatorRegistry
+      returns: ValidatorRegistry
+  edit:
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: attribute
+      name: _STRUCTURAL_KINDS
+    - kind: class
+      name: ValidationEngine
+    - kind: method
+      name: __init__
+      of: ValidationEngine
+      args:
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+    - kind: attribute
+      name: _project_root
+      of: ValidationEngine
+    - kind: attribute
+      name: _registry
+      of: ValidationEngine
+    - kind: method
+      name: validate
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Union[Manifest, str, Path]
+      returns: ValidationResult
+    - kind: method
+      name: validate_all
+      of: ValidationEngine
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: BatchValidationResult
+    - kind: method
+      name: validate_behavioral
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+        default: None
+      returns: list[ValidationError]
+    - kind: method
+      name: validate_acceptance
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      returns: list[ValidationError]
+    - kind: method
+      name: _validate_test_function_names
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      returns: list[ValidationError]
+    - kind: method
+      name: _validate_test_function_behavior
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      returns: list[ValidationError]
+    - kind: method
+      name: _check_test_coverage
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      returns: list[ValidationError]
+    - kind: method
+      name: validate_implementation
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+        default: None
+      returns: list[ValidationError]
+    - kind: function
+      name: _merged_test_function_behavior_requirements
+      args:
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+      returns: dict[str, dict[str, Optional[TestFunctionDetails]]]
+    - kind: function
+      name: _merge_test_function_details
+      args:
+      - name: existing
+        type: Optional[TestFunctionDetails]
+      - name: incoming
+        type: Optional[TestFunctionDetails]
+      returns: Optional[TestFunctionDetails]
+    - kind: function
+      name: _dedupe_preserve_order
+      args:
+      - name: values
+    - kind: function
+      name: validate
+      args:
+      - name: manifest_path
+        type: Union[str, Path]
+      returns: ValidationResult
+    - kind: function
+      name: validate_all
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: BatchValidationResult
+    - kind: function
+      name: _compare_artifacts
+      args:
+      - name: expected
+        type: list[ArtifactSpec]
+      - name: found
+        type: list[FoundArtifact]
+      - name: file_path
+        type: str
+      - name: is_strict
+        type: bool
+      returns: list[ValidationError]
+    - kind: function
+      name: _compare_single
+      args:
+      - name: spec
+        type: ArtifactSpec
+      - name: found
+        type: FoundArtifact
+      - name: file_path
+        type: str
+      returns: list[ValidationError]
+    - kind: function
+      name: _find_test_files
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: list[str]
+    - kind: function
+      name: _get_validator_for_test
+      args:
+      - name: test_path
+        type: str
+      - name: registry
+        type: ValidatorRegistry
+    - kind: function
+      name: _collect_test_artifacts
+      args:
+      - name: test_files
+        type: list[str]
+      - name: project_root
+        type: Path
+      returns: dict[str, set[str]]
+    - kind: function
+      name: _collection_errors_to_validation_errors
+      args:
+      - name: collection_errors
+        type: list[str]
+      - name: file_path
+        type: str
+      returns: list[ValidationError]
+    - kind: function
+      name: _check_test_assertions
+      args:
+      - name: source
+        type: str
+      - name: test_path
+        type: str
+      returns: list[ValidationError]
+    - kind: function
+      name: _python_func_has_assertion
+      args:
+      - name: node
+      returns: bool
+    - kind: function
+      name: _check_required_imports
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: str
+      - name: required_imports
+        type: tuple[str, Ellipsis]
+      returns: list[ValidationError]
+  read:
+  - tests/core/test_chain.py
+  - tests/core/test_validate.py
+  - tests/core/test_result.py
+  - tests/core/test_types.py
+  - tests/validators/test_base.py
+  - tests/validators/test_python.py
+  - tests/validators/test_typescript.py
+  - tests/validators/test_svelte.py
+  - tests/validators/test_registry.py
+validate:
+- pytest tests/core/test_chain.py tests/core/test_validate.py tests/core/test_result.py
+  tests/core/test_types.py -v
+- pytest tests/validators/test_base.py tests/validators/test_python.py tests/validators/test_typescript.py
+  tests/validators/test_svelte.py tests/validators/test_registry.py -v

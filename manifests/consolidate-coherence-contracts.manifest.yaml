@@ -1,0 +1,433 @@
+schema: '2'
+goal: Consolidate coherence engine, checks, result, and CLI contracts after dependency
+  and naming fixes
+type: refactor
+created: '2026-04-24T15:15:00+08:00'
+supersedes:
+- snapshot-coherence-api
+- snapshot-coherence-result
+- snapshot-coherence-engine
+- snapshot-coherence-checks-api
+- snapshot-coherence-checks-base
+- snapshot-coherence-checks-boundary
+- snapshot-coherence-checks-constraint
+- snapshot-coherence-checks-dependency
+- snapshot-coherence-checks-duplicate
+- snapshot-coherence-checks-naming
+- snapshot-coherence-checks-pattern
+- snapshot-coherence-checks-signature
+- snapshot-cli-commands-coherence
+- fix-coherence-naming-tsx-and-dep-severity
+- fix-dependency-check-false-positives
+files:
+  snapshot:
+  - path: maid_runner/coherence/__init__.py
+    artifacts:
+    - kind: class
+      name: CoherenceIssue
+    - kind: class
+      name: CoherenceResult
+    - kind: class
+      name: IssueSeverity
+    - kind: class
+      name: IssueType
+    - kind: class
+      name: CoherenceEngine
+    - kind: class
+      name: BaseCheck
+    - kind: function
+      name: get_checks
+    - kind: class
+      name: DuplicateCheck
+    - kind: class
+      name: SignatureCheck
+    - kind: class
+      name: NamingCheck
+    - kind: class
+      name: ModuleBoundaryCheck
+    - kind: class
+      name: DependencyCheck
+    - kind: class
+      name: PatternCheck
+    - kind: class
+      name: ConstraintCheck
+    - kind: class
+      name: ConstraintConfig
+    - kind: class
+      name: ConstraintRule
+  - path: maid_runner/coherence/result.py
+    artifacts:
+    - kind: class
+      name: IssueSeverity
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: ERROR
+      of: IssueSeverity
+    - kind: attribute
+      name: WARNING
+      of: IssueSeverity
+    - kind: attribute
+      name: INFO
+      of: IssueSeverity
+    - kind: class
+      name: IssueType
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: DUPLICATE
+      of: IssueType
+    - kind: attribute
+      name: SIGNATURE_CONFLICT
+      of: IssueType
+    - kind: attribute
+      name: BOUNDARY_VIOLATION
+      of: IssueType
+    - kind: attribute
+      name: NAMING
+      of: IssueType
+    - kind: attribute
+      name: DEPENDENCY
+      of: IssueType
+    - kind: attribute
+      name: PATTERN
+      of: IssueType
+    - kind: attribute
+      name: CONSTRAINT
+      of: IssueType
+    - kind: class
+      name: CoherenceIssue
+    - kind: attribute
+      name: issue_type
+      of: CoherenceIssue
+      type: IssueType
+    - kind: attribute
+      name: severity
+      of: CoherenceIssue
+      type: IssueSeverity
+    - kind: attribute
+      name: message
+      of: CoherenceIssue
+      type: str
+    - kind: attribute
+      name: file
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: attribute
+      name: artifact
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: attribute
+      name: manifests
+      of: CoherenceIssue
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: suggestion
+      of: CoherenceIssue
+      type: Optional[str]
+    - kind: method
+      name: to_dict
+      of: CoherenceIssue
+      returns: dict
+    - kind: class
+      name: CoherenceResult
+    - kind: attribute
+      name: issues
+      of: CoherenceResult
+      type: list[CoherenceIssue]
+    - kind: attribute
+      name: checks_run
+      of: CoherenceResult
+      type: list[str]
+    - kind: attribute
+      name: duration_ms
+      of: CoherenceResult
+      type: Optional[float]
+    - kind: attribute
+      name: error_count
+      of: CoherenceResult
+      type: int
+    - kind: attribute
+      name: warning_count
+      of: CoherenceResult
+      type: int
+    - kind: attribute
+      name: success
+      of: CoherenceResult
+      type: bool
+    - kind: method
+      name: to_dict
+      of: CoherenceResult
+      returns: dict
+    - kind: method
+      name: to_json
+      of: CoherenceResult
+      returns: str
+  - path: maid_runner/coherence/engine.py
+    artifacts:
+    - kind: class
+      name: CoherenceEngine
+    - kind: method
+      name: validate
+      of: CoherenceEngine
+      args:
+      - name: manifests
+        type: Union[Sequence[Manifest], object]
+      returns: CoherenceResult
+    - kind: method
+      name: validate_single
+      of: CoherenceEngine
+      args:
+      - name: manifest
+        type: Manifest
+      - name: all_manifests
+        type: Union[Sequence[Manifest], object]
+      returns: CoherenceResult
+  - path: maid_runner/coherence/checks/__init__.py
+    artifacts:
+    - kind: class
+      name: BaseCheck
+    - kind: function
+      name: get_checks
+    - kind: class
+      name: DuplicateCheck
+    - kind: class
+      name: SignatureCheck
+    - kind: class
+      name: NamingCheck
+    - kind: class
+      name: ModuleBoundaryCheck
+    - kind: class
+      name: DependencyCheck
+    - kind: class
+      name: PatternCheck
+    - kind: class
+      name: ConstraintCheck
+    - kind: class
+      name: ConstraintConfig
+    - kind: class
+      name: ConstraintRule
+  - path: maid_runner/coherence/checks/base.py
+    artifacts:
+    - kind: class
+      name: BaseCheck
+      bases:
+      - ABC
+    - kind: attribute
+      name: name
+      of: BaseCheck
+      type: str
+    - kind: method
+      name: run
+      of: BaseCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+    - kind: function
+      name: get_default_check_classes
+      returns: list[type[BaseCheck]]
+    - kind: function
+      name: get_checks
+      args:
+      - name: enabled
+        type: Optional[list[str]]
+        default: None
+      - name: disabled
+        type: Optional[list[str]]
+        default: None
+      returns: list[BaseCheck]
+  - path: maid_runner/coherence/checks/boundary.py
+    artifacts:
+    - kind: class
+      name: ModuleBoundaryCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: ModuleBoundaryCheck
+      type: str
+    - kind: method
+      name: run
+      of: ModuleBoundaryCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/constraint.py
+    artifacts:
+    - kind: class
+      name: ConstraintRule
+    - kind: attribute
+      name: name
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: description
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: pattern
+      of: ConstraintRule
+      type: dict[str, Any]
+    - kind: attribute
+      name: severity
+      of: ConstraintRule
+      type: str
+    - kind: attribute
+      name: suggestion
+      of: ConstraintRule
+      type: str
+    - kind: class
+      name: ConstraintConfig
+    - kind: attribute
+      name: version
+      of: ConstraintConfig
+      type: str
+    - kind: attribute
+      name: rules
+      of: ConstraintConfig
+      type: list[ConstraintRule]
+    - kind: attribute
+      name: enabled
+      of: ConstraintConfig
+      type: bool
+    - kind: function
+      name: load_constraint_config
+      args:
+      - name: config_path
+        type: Optional[Path]
+        default: None
+      returns: ConstraintConfig
+    - kind: class
+      name: ConstraintCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: ConstraintCheck
+      type: str
+    - kind: method
+      name: run
+      of: ConstraintCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/dependency.py
+    artifacts:
+    - kind: class
+      name: DependencyCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: DependencyCheck
+      type: str
+    - kind: method
+      name: run
+      of: DependencyCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/duplicate.py
+    artifacts:
+    - kind: class
+      name: DuplicateCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: DuplicateCheck
+      type: str
+    - kind: method
+      name: run
+      of: DuplicateCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/naming.py
+    artifacts:
+    - kind: class
+      name: NamingCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: NamingCheck
+      type: str
+    - kind: method
+      name: run
+      of: NamingCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/pattern.py
+    artifacts:
+    - kind: class
+      name: PatternCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: PatternCheck
+      type: str
+    - kind: method
+      name: run
+      of: PatternCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/coherence/checks/signature.py
+    artifacts:
+    - kind: class
+      name: SignatureCheck
+      bases:
+      - BaseCheck
+    - kind: attribute
+      name: name
+      of: SignatureCheck
+      type: str
+    - kind: method
+      name: run
+      of: SignatureCheck
+      args:
+      - name: graph
+        type: KnowledgeGraph
+      - name: manifests
+        type: list[Manifest]
+      returns: list[CoherenceIssue]
+  - path: maid_runner/cli/commands/coherence.py
+    artifacts:
+    - kind: function
+      name: cmd_coherence
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+  read:
+  - tests/coherence/test_coherence_v2.py
+  - tests/cli/test_coherence_cmd.py
+validate:
+- pytest tests/coherence/test_coherence_v2.py -v
+- pytest tests/cli/test_coherence_cmd.py -v

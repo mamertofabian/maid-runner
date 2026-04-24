@@ -1,0 +1,26 @@
+schema: '2'
+goal: Snapshot current core type comparison helpers
+type: snapshot
+created: '2026-04-24T15:15:00+08:00'
+files:
+  snapshot:
+  - path: maid_runner/core/_type_compare.py
+    artifacts:
+    - kind: function
+      name: normalize_type
+      args:
+      - name: type_str
+        type: Optional[str]
+      returns: Optional[str]
+    - kind: function
+      name: types_match
+      args:
+      - name: manifest_type
+        type: Optional[str]
+      - name: impl_type
+        type: Optional[str]
+      returns: bool
+  read:
+  - tests/core/test_type_compare.py
+validate:
+- pytest tests/core/test_type_compare.py -v

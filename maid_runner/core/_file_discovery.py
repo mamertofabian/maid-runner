@@ -21,6 +21,9 @@ _EXCLUDE_DIRS = {
     "*.egg-info",
     ".tox",
     ".nox",
+    "htmlcov",
+    "examples",
+    "scripts",
 }
 
 _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
@@ -69,6 +72,9 @@ def discover_source_files(
         parts = path.relative_to(root).parts
         if any(part in _EXCLUDE_DIRS for part in parts):
             continue
+        # Skip package marker files that do not define runtime API.
+        if path.name == "__init__.py" and _is_marker_init_file(path):
+            continue
         # Skip gitignored files
         if git_ignored is not None and rel in git_ignored:
             continue
@@ -99,9 +105,31 @@ def _get_git_ignored_files(root: Path) -> set[str] | None:
         return None
 
 
+def _is_marker_init_file(path: Path) -> bool:
+    """Return True for empty/docstring-only __init__.py marker files."""
+    import ast
+
+    try:
+        source = path.read_text()
+        module = ast.parse(source)
+    except (OSError, SyntaxError):
+        return False
+
+    body = module.body
+    if not body:
+        return True
+    if len(body) == 1 and isinstance(body[0], ast.Expr):
+        return isinstance(body[0].value, ast.Constant) and isinstance(
+            body[0].value.value, str
+        )
+    return False
+
+
 def is_test_file(path: str) -> bool:
     """Check if a file path looks like a test file."""
     name = Path(path).name
+    if name == "conftest.py":
+        return True
     return any(p.match(name) for p in _TEST_PATTERNS)
 
 

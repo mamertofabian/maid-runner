@@ -20,6 +20,12 @@ def _write_manifest(path, content):
 
 
 class TestManifestChainBasic:
+    def test_consolidated_chain_methods_are_referenced(self, chain_dir):
+        """Smoke references for chain diagnostics and read-only tracking APIs."""
+        chain = ManifestChain(chain_dir)
+        assert chain.all_read_only_paths() == set()
+        assert chain.diagnostics() == []
+
     def test_empty_directory(self, chain_dir):
         chain = ManifestChain(chain_dir)
         assert chain.active_manifests() == []

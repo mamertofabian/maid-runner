@@ -29,20 +29,36 @@ class TestErrorCode:
 
     def test_semantic_errors(self):
         assert ErrorCode.DUPLICATE_FILE == "E100"
+        assert ErrorCode.FILE_IN_MULTIPLE_SECTIONS == "E101"
         assert ErrorCode.CIRCULAR_SUPERSESSION == "E103"
+        assert ErrorCode.EMPTY_ARTIFACTS == "E104"
+        assert ErrorCode.INVALID_TASK_TYPE == "E105"
 
     def test_behavioral_errors(self):
         assert ErrorCode.ARTIFACT_NOT_USED_IN_TESTS == "E200"
+        assert ErrorCode.TEST_FILE_NOT_FOUND == "E201"
+        assert ErrorCode.TEST_FILE_NOT_IN_READONLY == "E202"
 
     def test_implementation_errors(self):
         assert ErrorCode.ARTIFACT_NOT_DEFINED == "E300"
         assert ErrorCode.UNEXPECTED_ARTIFACT == "E301"
         assert ErrorCode.TYPE_MISMATCH == "E302"
+        assert ErrorCode.SIGNATURE_MISMATCH == "E303"
         assert ErrorCode.FILE_SHOULD_BE_ABSENT == "E305"
         assert ErrorCode.SOURCE_PARSE_ERROR == "E308"
+        assert ErrorCode.TEST_FUNCTION_MISSING_IN_CODE == "E600"
+        assert ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH == "E610"
 
     def test_acceptance_errors(self):
         assert ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND == "E500"
+
+    def test_coherence_and_language_errors(self):
+        assert ErrorCode.COHERENCE_DUPLICATE == "E400"
+        assert ErrorCode.COHERENCE_SIGNATURE_CONFLICT == "E401"
+        assert ErrorCode.COHERENCE_BOUNDARY_VIOLATION == "E402"
+        assert ErrorCode.COHERENCE_NAMING_VIOLATION == "E403"
+        assert ErrorCode.COHERENCE_DEPENDENCY_MISSING == "E404"
+        assert ErrorCode.UNSUPPORTED_LANGUAGE == "E901"
 
     def test_is_string_enum(self):
         assert isinstance(ErrorCode.FILE_NOT_FOUND, str)

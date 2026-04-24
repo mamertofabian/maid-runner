@@ -54,6 +54,12 @@ def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
 
 
 class TestImplementationValidation:
+    def test_consolidated_validation_methods_are_referenced(self):
+        """Smoke references for ValidationEngine public validation methods."""
+        assert callable(ValidationEngine.validate_behavioral)
+        assert callable(ValidationEngine.validate_acceptance)
+        assert callable(ValidationEngine.validate_implementation)
+
     def test_strict_mode_all_present_pass(self, project):
         """Golden test 6.1: All artifacts present -> PASS."""
         manifest_path = _write_manifest(
@@ -425,6 +431,22 @@ validate:
 
 
 class TestFileTracking:
+    def test_gitignored_file_not_reported_as_undeclared(self, project):
+        """File tracking ignores source files excluded by gitignore."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+        (project / ".gitignore").write_text("generated.py\n")
+        _write_source(project, "generated.py", "def generated(): pass\n")
+
+        from maid_runner.core.chain import ManifestChain
+
+        engine = ValidationEngine(project_root=project)
+        chain = ManifestChain(project / "manifests", project_root=project)
+        report = engine.run_file_tracking(chain)
+
+        assert all(e.path != "generated.py" for e in report.entries)
+
     def test_read_only_file_classified_as_registered(self, project):
         """Golden test 9.1: File only in files.read should be REGISTERED, not UNDECLARED."""
         _write_manifest(

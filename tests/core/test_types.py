@@ -12,6 +12,8 @@ from maid_runner.core.types import (
     FileSpec,
     Manifest,
     TaskType,
+    TestFunctionDetails,
+    TestFunctionSetup,
     TestStream,
     ValidationMode,
 )
@@ -27,6 +29,7 @@ class TestArtifactKind:
         assert ArtifactKind.TYPE == "type"
         assert ArtifactKind.ENUM == "enum"
         assert ArtifactKind.NAMESPACE == "namespace"
+        assert ArtifactKind.TEST_FUNCTION == "test_function"
 
     def test_is_string_enum(self):
         assert isinstance(ArtifactKind.CLASS, str)
@@ -81,6 +84,28 @@ class TestArgSpec:
         arg = ArgSpec(name="x")
         with pytest.raises(AttributeError):
             arg.name = "y"  # type: ignore[misc]
+
+
+class TestTestFunctionDetails:
+    def test_defaults(self):
+        setup = TestFunctionSetup()
+        details = TestFunctionDetails()
+        spec = ArtifactSpec(
+            kind=ArtifactKind.TEST_FUNCTION,
+            name="test_contract",
+            test_details=details,
+        )
+
+        assert setup.auth_required is False
+        assert setup.test_data == {}
+        assert setup.setup_actions == ()
+        assert details.source_scenario == ""
+        assert details.tags == ()
+        assert details.setup == setup
+        assert details.actions == ()
+        assert details.expected == {}
+        assert details.dependencies == {}
+        assert spec.test_details == details
 
     def test_equality(self):
         assert ArgSpec(name="x", type="int") == ArgSpec(name="x", type="int")

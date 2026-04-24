@@ -1,0 +1,114 @@
+schema: '2'
+goal: Consolidate bootstrap command contracts and current CLI main entrypoint declarations
+type: refactor
+created: '2026-04-24T15:15:00+08:00'
+supersedes:
+- snapshot-cli-commands--main
+- add-bootstrap-command
+files:
+  snapshot:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: Union[list[str], None]
+        default: None
+      returns: int
+  - path: maid_runner/cli/commands/bootstrap.py
+    artifacts:
+    - kind: function
+      name: cmd_bootstrap
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+  - path: maid_runner/core/bootstrap.py
+    artifacts:
+    - kind: class
+      name: BootstrapFileResult
+    - kind: attribute
+      name: path
+      of: BootstrapFileResult
+      type: str
+    - kind: attribute
+      name: status
+      of: BootstrapFileResult
+      type: str
+    - kind: attribute
+      name: artifact_count
+      of: BootstrapFileResult
+      type: int
+    - kind: attribute
+      name: error
+      of: BootstrapFileResult
+      type: Union[str, None]
+    - kind: attribute
+      name: manifest_slug
+      of: BootstrapFileResult
+      type: Union[str, None]
+    - kind: class
+      name: BootstrapReport
+    - kind: attribute
+      name: results
+      of: BootstrapReport
+      type: tuple[BootstrapFileResult, Ellipsis]
+    - kind: attribute
+      name: total_discovered
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: captured
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: skipped
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: failed
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: excluded
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: total_artifacts
+      of: BootstrapReport
+      type: int
+    - kind: attribute
+      name: manifests_dir
+      of: BootstrapReport
+      type: Union[str, None]
+    - kind: attribute
+      name: duration_ms
+      of: BootstrapReport
+      type: Union[float, None]
+    - kind: function
+      name: bootstrap_project
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      returns: BootstrapReport
+  edit:
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_bootstrap_report
+      args:
+      - name: report
+        type: BootstrapReport
+      returns: str
+  read:
+  - tests/core/test_bootstrap.py
+  - tests/cli/test_bootstrap_cmd.py
+  - tests/cli/test_main.py
+validate:
+- pytest tests/core/test_bootstrap.py -v
+- pytest tests/cli/test_bootstrap_cmd.py -v
+- pytest tests/cli/test_main.py -v

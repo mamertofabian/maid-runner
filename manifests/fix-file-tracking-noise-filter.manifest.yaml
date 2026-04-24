@@ -1,0 +1,44 @@
+schema: '2'
+goal: Filter generated and test-support noise from MAID file tracking
+type: fix
+created: '2026-04-24T15:15:00+08:00'
+files:
+  edit:
+  - path: maid_runner/core/_file_discovery.py
+    artifacts:
+    - kind: function
+      name: discover_source_files
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: extensions
+        type: Union[set[str], None]
+        default: None
+      returns: list[str]
+    - kind: function
+      name: is_test_file
+      args:
+      - name: path
+        type: str
+      returns: bool
+    - kind: function
+      name: find_test_files_from_manifest
+      args:
+      - name: manifest_data
+        type: dict
+      returns: list[str]
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: method
+      name: run_file_tracking
+      of: ValidationEngine
+      args:
+      - name: chain
+        type: ManifestChain
+      returns: FileTrackingReport
+  read:
+  - tests/core/test_file_discovery.py
+  - tests/core/test_validate.py
+validate:
+- pytest tests/core/test_file_discovery.py tests/core/test_validate.py -v -k "TestDiscoverSourceFiles
+  or TestIsTestFile or TestFindTestFilesFromManifest or TestFileTracking"

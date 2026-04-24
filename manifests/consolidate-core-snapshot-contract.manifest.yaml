@@ -1,0 +1,47 @@
+schema: '2'
+goal: Consolidate core snapshot generation contracts after parse-error surfacing fix
+type: refactor
+created: '2026-04-24T15:15:00+08:00'
+supersedes:
+- snapshot-core-snapshot
+- fix-snapshot-parse-error-surfacing
+files:
+  snapshot:
+  - path: maid_runner/core/snapshot.py
+    artifacts:
+    - kind: class
+      name: SnapshotError
+      bases:
+      - Exception
+    - kind: attribute
+      name: path
+      of: SnapshotError
+    - kind: function
+      name: generate_snapshot
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      returns: Manifest
+    - kind: function
+      name: generate_system_snapshot
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      returns: Manifest
+    - kind: function
+      name: save_snapshot
+      args:
+      - name: manifest
+        type: Manifest
+      returns: Path
+    - kind: function
+      name: generate_test_stub
+      args:
+      - name: manifest
+        type: Manifest
+      returns: dict[str, str]
+  read:
+  - tests/core/test_snapshot.py
+validate:
+- pytest tests/core/test_snapshot.py -v

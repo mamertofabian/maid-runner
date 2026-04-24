@@ -1,0 +1,14 @@
+schema: '2'
+goal: Snapshot version module tracking with import smoke coverage
+type: snapshot
+created: '2026-04-24T15:15:00+08:00'
+files:
+  edit:
+  - path: maid_runner/__version__.py
+    artifacts:
+    - kind: attribute
+      name: __version__
+  read:
+  - tests/integration/test_library_api.py
+validate:
+- pytest tests/integration/test_library_api.py -v -k test_version

@@ -94,6 +94,65 @@ class TestDiscoverSourceFiles:
         assert "module.py" in files
         assert not any("__pycache__" in f for f in files)
 
+    def test_excludes_htmlcov_directory(self, tmp_path):
+        """Generated coverage HTML assets are excluded."""
+        (tmp_path / "htmlcov").mkdir()
+        (tmp_path / "htmlcov" / "coverage_html_cb_dd2e7eb5.js").write_text("")
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "app.py").write_text("pass")
+
+        files = discover_source_files(tmp_path)
+        assert "src/app.py" in files
+        assert not any("htmlcov" in f for f in files)
+
+    def test_excludes_tooling_directories(self, tmp_path):
+        """Example and maintenance script directories are excluded."""
+        (tmp_path / "examples").mkdir()
+        (tmp_path / "examples" / "demo.py").write_text("def demo(): pass")
+        (tmp_path / "scripts").mkdir()
+        (tmp_path / "scripts" / "maintenance.py").write_text("def run(): pass")
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "app.py").write_text("pass")
+
+        files = discover_source_files(tmp_path)
+        assert "src/app.py" in files
+        assert "examples/demo.py" not in files
+        assert "scripts/maintenance.py" not in files
+
+    def test_excludes_marker_init_files(self, tmp_path):
+        """Empty and docstring-only package markers are excluded."""
+        (tmp_path / "pkg").mkdir()
+        (tmp_path / "pkg" / "__init__.py").write_text('"""Package marker."""\n')
+        (tmp_path / "pkg" / "api.py").write_text("def run(): pass")
+
+        files = discover_source_files(tmp_path)
+        assert "pkg/api.py" in files
+        assert "pkg/__init__.py" not in files
+
+    def test_keeps_runtime_init_files(self, tmp_path):
+        """Package init files with runtime API remain discoverable."""
+        (tmp_path / "pkg").mkdir()
+        (tmp_path / "pkg" / "__init__.py").write_text(
+            "from .api import run\n__all__ = ['run']\n"
+        )
+        (tmp_path / "pkg" / "api.py").write_text("def run(): pass")
+
+        files = discover_source_files(tmp_path)
+        assert "pkg/__init__.py" in files
+
+    def test_respects_gitignore_when_requested(self, tmp_path):
+        """Gitignored source files are excluded when respect_gitignore=True."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+        (tmp_path / ".gitignore").write_text("generated.py\n")
+        (tmp_path / "generated.py").write_text("pass")
+        (tmp_path / "tracked.py").write_text("pass")
+
+        files = discover_source_files(tmp_path, respect_gitignore=True)
+        assert "tracked.py" in files
+        assert "generated.py" not in files
+
 
 class TestIsTestFile:
     """Tests for is_test_file function."""
@@ -134,13 +193,13 @@ class TestIsTestFile:
         """utils.ts is NOT a test file."""
         assert is_test_file("utils.ts") is False
 
-    def test_conftest_not_test(self):
-        """conftest.py is NOT a test file (no test_ prefix/suffix)."""
-        assert is_test_file("conftest.py") is False
+    def test_conftest_is_test_support(self):
+        """conftest.py is recognized as test support."""
+        assert is_test_file("conftest.py") is True
 
     def test_path_with_test_directory(self):
-        """File in tests/ directory but without test naming is NOT a test file."""
-        assert is_test_file("tests/conftest.py") is False
+        """conftest.py under tests/ is recognized as test support."""
+        assert is_test_file("tests/conftest.py") is True
 
 
 class TestFindTestFilesFromManifest:
@@ -170,7 +229,7 @@ class TestFindTestFilesFromManifest:
         result = find_test_files_from_manifest(manifest_data)
         assert "tests/test_auth.py" in result
         assert "src/auth.py" not in result
-        assert "conftest.py" not in result
+        assert "conftest.py" in result
 
     def test_empty_manifest(self):
         """Manifest with no files_read returns empty list."""
