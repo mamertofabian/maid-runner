@@ -18,10 +18,23 @@ Run:
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 import pytest
+
+
+def _archspec_strict_mode_enabled() -> bool:
+    """Return True when MAID_ARCHSPEC_E2E_STRICT=1 (opt-in loud failure).
+
+    When enabled, a discoverable arch-spec backend with missing Python
+    dependencies raises RuntimeError at module collection instead of being
+    silently skipped. Default (unset or any other value) preserves the
+    pytest-skip behaviour so routine `make test` runs are unaffected.
+    """
+    return os.environ.get("MAID_ARCHSPEC_E2E_STRICT") == "1"
+
 
 # ---------------------------------------------------------------------------
 # Skip if arch-spec backend is not available
@@ -62,18 +75,34 @@ except ImportError as exc:
     HAS_ARCHSPEC = False
     from maid_runner.core.validate import ValidationEngine  # noqa: E402
 
-if archspec_available and ARCHSPEC_IMPORT_ERROR is not None:
+if (
+    archspec_available
+    and ARCHSPEC_IMPORT_ERROR is not None
+    and _archspec_strict_mode_enabled()
+):
     raise RuntimeError(
         "ArchSpec backend was found at "
         f"{ARCHSPEC_BACKEND}, but maid-runner's test environment could not import it: "
         f"{ARCHSPEC_IMPORT_ERROR.__class__.__name__}: {ARCHSPEC_IMPORT_ERROR}. "
         "Install the ArchSpec backend test dependencies or run this e2e test in an "
-        "environment where the sibling backend is importable."
+        "environment where the sibling backend is importable. "
+        "Unset MAID_ARCHSPEC_E2E_STRICT to skip this test instead."
     ) from ARCHSPEC_IMPORT_ERROR
 
-pytestmark = pytest.mark.skipif(
+
+def _archspec_skip_reason() -> str:
+    if ARCHSPEC_IMPORT_ERROR is not None:
+        return (
+            f"arch-spec backend at {ARCHSPEC_BACKEND} could not be imported: "
+            f"{ARCHSPEC_IMPORT_ERROR.__class__.__name__}: {ARCHSPEC_IMPORT_ERROR} "
+            "(set MAID_ARCHSPEC_E2E_STRICT=1 to fail loudly instead of skipping)"
+        )
+    return f"arch-spec backend not available at {ARCHSPEC_BACKEND}"
+
+
+archspec_skipif = pytest.mark.skipif(
     not HAS_ARCHSPEC,
-    reason=f"arch-spec backend not available at {ARCHSPEC_BACKEND}",
+    reason=_archspec_skip_reason(),
 )
 
 
@@ -444,6 +473,7 @@ def patch_route_manifests_add_helpers(manifests_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
+@archspec_skipif
 class TestArchSpecPipeline:
     """End-to-end pipeline: arch-spec specs → MAID manifests → code → validation."""
 
@@ -592,6 +622,29 @@ class TestArchSpecPipeline:
                 "E300",
                 "E306",
             }, f"Expected E300 or E306, got {error_codes}"
+
+
+class TestArchSpecStrictMode:
+    """Exercises the MAID_ARCHSPEC_E2E_STRICT env gate."""
+
+    def test_disabled_by_default(self, monkeypatch):
+        monkeypatch.delenv("MAID_ARCHSPEC_E2E_STRICT", raising=False)
+        assert _archspec_strict_mode_enabled() is False
+
+    def test_enabled_when_set_to_one(self, monkeypatch):
+        monkeypatch.setenv("MAID_ARCHSPEC_E2E_STRICT", "1")
+        assert _archspec_strict_mode_enabled() is True
+
+    def test_other_values_do_not_enable(self, monkeypatch):
+        for value in ("0", "true", "yes", "on", ""):
+            monkeypatch.setenv("MAID_ARCHSPEC_E2E_STRICT", value)
+            assert _archspec_strict_mode_enabled() is False, (
+                f"value {value!r} should not enable strict mode"
+            )
+
+    def test_returns_bool(self, monkeypatch):
+        monkeypatch.setenv("MAID_ARCHSPEC_E2E_STRICT", "1")
+        assert isinstance(_archspec_strict_mode_enabled(), bool)
 
 
 # ---------------------------------------------------------------------------

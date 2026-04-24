@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-04-24
+
+### Added
+- **Chain-aware 4-guard `test_function` validation** — Hardens behavioral test validation so that `test_function` artifacts are enforced across the active manifest chain with four guards: declaration presence, file existence, AST-level function definition, and non-stub body. Closes bypasses where prior manifests could silently satisfy a later manifest's test coverage claim.
+- **Isolated validator registries** — The validator registry is now isolated per validation run, preventing cross-run leakage of registered language validators and making validator state deterministic.
+- **Opt-in loud ArchSpec e2e import failures** — The ArchSpec pipeline e2e test raises `RuntimeError` at module collection when the sibling `arch-spec` backend is discoverable on disk but its Python dependencies are missing, gated behind `MAID_ARCHSPEC_E2E_STRICT=1`. The default (unset) behavior is a clean pytest skip so routine `make test` runs work without arch-spec's dependencies installed.
+- **MAID agent skills** — New `skills/` directory with Claude Code and Codex agent skills: `maid-planner`, `maid-implementer`, `maid-evolver`, and `maid-auditor`. Adds `docs/agent-skills.md` describing the agent workflow.
+
+### Fixed
+- **Manifests synced with validation hardening** — Project manifests updated to satisfy the stricter `test_function` and structural validation rules introduced in this release.
+
+### Changed
+- **`.codex` excluded from version control** — Codex runtime files are now gitignored.
+
 ## [2.2.4] - 2026-04-04
 
 ### Added
@@ -733,6 +747,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.3.0]: https://github.com/mamertofabian/maid-runner/compare/v2.2.4...v2.3.0
 [2.2.4]: https://github.com/mamertofabian/maid-runner/compare/v2.2.3...v2.2.4
 [2.2.3]: https://github.com/mamertofabian/maid-runner/compare/v2.2.0...v2.2.3
 [2.2.0]: https://github.com/mamertofabian/maid-runner/compare/v2.1.0...v2.2.0

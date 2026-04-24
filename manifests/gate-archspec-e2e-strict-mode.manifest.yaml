@@ -1,0 +1,27 @@
+schema: "2"
+goal: "Gate ArchSpec e2e import-failure loudness behind MAID_ARCHSPEC_E2E_STRICT env var (disabled by default)"
+type: fix
+created: "2026-04-24"
+description: |
+  Commit 9ce917d made ArchSpec pipeline import failures raise RuntimeError at
+  module collection whenever the sibling arch-spec backend was importable by
+  path but its Python dependencies (e.g. pydantic) were not installed. That
+  blocks `make test` and `uv run maid test` for any maid-runner venv that
+  does not also contain arch-spec's dependencies.
+
+  Preserve the "fail loud when asked" intent but gate it behind the
+  MAID_ARCHSPEC_E2E_STRICT=1 environment variable. The default behavior is
+  a clean pytest skip (reason surfaces both the path and the import error),
+  matching the pre-9ce917d experience for users who are not actively
+  debugging the ArchSpec pipeline.
+
+files:
+  edit:
+    - path: tests/e2e/test_archspec_pipeline.py
+      artifacts:
+        - kind: function
+          name: _archspec_strict_mode_enabled
+          returns: bool
+
+validate:
+  - pytest tests/e2e/test_archspec_pipeline.py::TestArchSpecStrictMode -v
