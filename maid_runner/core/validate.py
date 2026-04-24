@@ -708,9 +708,7 @@ class ValidationEngine:
     ) -> FileTrackingReport:
         from maid_runner.core._file_discovery import discover_source_files
 
-        source_files = discover_source_files(
-            self._project_root, respect_gitignore=True
-        )
+        source_files = discover_source_files(self._project_root, respect_gitignore=True)
         tracked_paths = chain.all_tracked_paths()
         read_only_paths = chain.all_read_only_paths()
 
