@@ -17,6 +17,19 @@ from maid_runner.coherence.result import (
 from maid_runner.coherence.checks.base import BaseCheck
 from maid_runner.graph.model import KnowledgeGraph
 
+_EXTERNAL_BASES = {
+    "ABC",
+    "Enum",
+    "Exception",
+    "BaseException",
+    "object",
+    "str",
+    "int",
+    "float",
+    "bool",
+    "bytes",
+}
+
 
 class DependencyCheck(BaseCheck):
     """Verifies that declared dependencies are available.
@@ -71,7 +84,10 @@ class DependencyCheck(BaseCheck):
             for fs in m.all_file_specs:
                 for art in fs.artifacts:
                     for base in art.bases:
-                        base_id = f"artifact:{fs.path}:{base}"
+                        if _is_external_base(base):
+                            continue
+
+                        base_id = f"artifact:{fs.path}:class:{base}"
                         if graph.get_node(base_id) is None:
                             # Check if base exists anywhere in graph
                             found = False
@@ -101,3 +117,7 @@ class DependencyCheck(BaseCheck):
                                 )
 
         return issues
+
+
+def _is_external_base(base: str) -> bool:
+    return base in _EXTERNAL_BASES or "." in base

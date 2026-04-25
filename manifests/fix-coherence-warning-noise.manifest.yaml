@@ -1,0 +1,43 @@
+schema: "2"
+goal: "Reduce coherence warning noise from compatible redeclarations and external base classes."
+type: fix
+created: "2026-04-25T10:49:00+08:00"
+description: |
+  Coherence should focus on actionable architectural issues. Compatible artifact
+  redeclarations in active incremental manifests should not warn, partial
+  redeclarations should not create signature noise, and built-in or external
+  base classes should not be reported as missing MAID artifacts.
+
+files:
+  edit:
+    - path: maid_runner/coherence/checks/duplicate.py
+      artifacts:
+        - kind: class
+          name: DuplicateCheck
+        - kind: method
+          name: run
+          of: DuplicateCheck
+          returns: list[CoherenceIssue]
+    - path: maid_runner/coherence/checks/signature.py
+      artifacts:
+        - kind: class
+          name: SignatureCheck
+        - kind: method
+          name: run
+          of: SignatureCheck
+          returns: list[CoherenceIssue]
+    - path: maid_runner/coherence/checks/dependency.py
+      artifacts:
+        - kind: class
+          name: DependencyCheck
+        - kind: method
+          name: run
+          of: DependencyCheck
+          returns: list[CoherenceIssue]
+  read:
+    - tests/coherence/test_coherence_v2.py
+    - maid_runner/coherence/result.py
+    - maid_runner/core/types.py
+
+validate:
+  - uv run python -m pytest tests/coherence/test_coherence_v2.py -v

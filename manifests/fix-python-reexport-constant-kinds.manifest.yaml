@@ -1,0 +1,25 @@
+schema: "2"
+goal: "Classify all-caps Python __init__ re-export names as attributes instead of classes."
+type: fix
+created: "2026-04-25T10:49:00+08:00"
+description: |
+  Python package facades often re-export module constants from __init__.py.
+  The implementation collector should report all-caps re-export names as
+  attributes so manifests can distinguish constants from class exports.
+
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: PythonValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: PythonValidator
+          returns: CollectionResult
+  read:
+    - tests/validators/test_python.py
+    - maid_runner/validators/base.py
+
+validate:
+  - uv run python -m pytest tests/validators/test_python.py -v

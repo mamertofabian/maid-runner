@@ -206,8 +206,27 @@ class TestDuplicateCheck:
 
         check = DuplicateCheck()
         issues = check.run(graph, [m1, m2])
-        assert len(issues) >= 1
-        assert issues[0].severity == IssueSeverity.WARNING
+        assert len(issues) == 0
+
+    def test_partial_duplicate_redeclaration_is_compatible(self):
+        m1 = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "a.py",
+                    (_make_art("fn", args=(ArgSpec("x", "int"),), returns="str"),),
+                ),
+            ),
+        )
+        m2 = _make_manifest(
+            "m2",
+            files_edit=(_make_fs("a.py", (_make_art("fn"),), mode=FileMode.EDIT),),
+        )
+        graph = GraphBuilder().build_from_manifests([m1, m2])
+
+        check = DuplicateCheck()
+        issues = check.run(graph, [m1, m2])
+        assert len(issues) == 0
 
     def test_superseded_duplicates_ignored(self):
         m1 = _make_manifest(
@@ -290,6 +309,32 @@ class TestSignatureCheck:
         issues = check.run(graph, [m1, m2])
         assert len(issues) >= 1
         assert issues[0].issue_type == IssueType.SIGNATURE_CONFLICT
+
+    def test_partial_redeclaration_does_not_conflict(self):
+        m1 = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "a.py",
+                    (
+                        _make_art(
+                            "fn",
+                            args=(ArgSpec("x", "int"),),
+                            returns="str",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        m2 = _make_manifest(
+            "m2",
+            files_edit=(_make_fs("a.py", (_make_art("fn"),), mode=FileMode.EDIT),),
+        )
+        graph = GraphBuilder().build_from_manifests([m1, m2])
+
+        check = SignatureCheck()
+        issues = check.run(graph, [m1, m2])
+        assert len(issues) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -517,6 +562,33 @@ class TestModuleBoundaryCheck:
 
 
 class TestDependencyCheck:
+    def test_external_base_classes_are_ignored(self):
+        m = _make_manifest(
+            "m1",
+            files_create=(
+                _make_fs(
+                    "src/types.py",
+                    (
+                        _make_art(
+                            "Severity", ArtifactKind.CLASS, bases=("str", "Enum")
+                        ),
+                        _make_art("BaseCheck", ArtifactKind.CLASS, bases=("ABC",)),
+                        _make_art(
+                            "Visitor",
+                            ArtifactKind.CLASS,
+                            bases=("ast.NodeVisitor",),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+
+        check = DependencyCheck()
+        issues = check.run(graph, [m])
+        dep_issues = [i for i in issues if i.issue_type == IssueType.DEPENDENCY]
+        assert len(dep_issues) == 0
+
     def test_all_deps_satisfied(self):
         m1 = _make_manifest(
             "m1",

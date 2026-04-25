@@ -287,9 +287,12 @@ class _ImplementationCollector(ast.NodeVisitor):
                 if alias.name == "*":
                     continue
                 name = alias.asname or alias.name
-                kind = (
-                    ArtifactKind.CLASS if name[0].isupper() else ArtifactKind.FUNCTION
-                )
+                if name.isupper():
+                    kind = ArtifactKind.ATTRIBUTE
+                elif name[0].isupper():
+                    kind = ArtifactKind.CLASS
+                else:
+                    kind = ArtifactKind.FUNCTION
                 self.artifacts.append(
                     FoundArtifact(
                         kind=kind,

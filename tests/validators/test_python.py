@@ -132,6 +132,20 @@ class TestModuleLevelAttribute:
         assert a.type_annotation == "int"
 
 
+class TestPackageReexports:
+    def test_init_reexport_all_caps_constant_as_attribute(self, validator):
+        source = "from maid_runner.graph.model import MANIFEST_PREFIX, NodeType\n"
+        result = validator.collect_implementation_artifacts(source, "__init__.py")
+
+        prefix = _find(result.artifacts, "MANIFEST_PREFIX")
+        node_type = _find(result.artifacts, "NodeType")
+
+        assert prefix is not None
+        assert prefix.kind == ArtifactKind.ATTRIBUTE
+        assert node_type is not None
+        assert node_type.kind == ArtifactKind.CLASS
+
+
 class TestClassAttributeInInit:
     """Golden test 4.8."""
 

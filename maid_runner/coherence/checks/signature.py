@@ -70,8 +70,8 @@ class SignatureCheck(BaseCheck):
 
 def _signatures_match(a: ArtifactSpec, b: ArtifactSpec) -> bool:
     """Compare two artifact signatures for compatibility."""
-    if a.args != b.args:
+    if a.args and b.args and a.args != b.args:
         return False
-    if a.returns != b.returns:
+    if a.returns and b.returns and a.returns != b.returns:
         return False
     return True

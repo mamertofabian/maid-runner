@@ -69,6 +69,115 @@ def _write_chain(tmp_path, manifests_data):
 
 
 class TestGraphBuilder:
+    def test_graph_package_exports_public_facade(self, tmp_path):
+        from maid_runner.graph import (
+            ARTIFACT_PREFIX,
+            EDGE_PREFIX,
+            FILE_PREFIX,
+            MANIFEST_PREFIX,
+            MODULE_PREFIX,
+            ArtifactNode,
+            Edge,
+            EdgeType,
+            FileNode,
+            GraphBuilder,
+            GraphQuery,
+            KnowledgeGraph,
+            ManifestNode,
+            ModuleNode,
+            Node,
+            NodeType,
+            QueryExecutor,
+            QueryIntent,
+            QueryParser,
+            QueryResult,
+            QueryType,
+            analyze_impact,
+            export_dot,
+            export_graphml,
+            export_json,
+            find_cycles,
+            find_dependencies,
+            find_dependents,
+            find_node_by_name,
+            find_nodes_by_type,
+            get_affected_files,
+            get_affected_manifests,
+            get_dependency_tree,
+            get_neighbors,
+            graph_to_dict,
+            graph_to_dot,
+            graph_to_graphml,
+            is_acyclic,
+        )
+
+        manifest = _make_manifest(
+            "facade",
+            files_create=(
+                _make_file_spec(
+                    "src/service.py",
+                    (
+                        _make_artifact("Service", ArtifactKind.CLASS),
+                        _make_artifact("run", ArtifactKind.METHOD, of="Service"),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([manifest])
+        service = find_node_by_name(graph, "Service")
+
+        assert (MANIFEST_PREFIX, FILE_PREFIX, ARTIFACT_PREFIX) == (
+            "manifest:",
+            "file:",
+            "artifact:",
+        )
+        assert (MODULE_PREFIX, EDGE_PREFIX) == ("module:", "edge:")
+        assert isinstance(service, ArtifactNode)
+        assert isinstance(Node("node:test", NodeType.MODULE), Node)
+        assert isinstance(
+            ManifestNode("manifest:test", "m.yaml", "goal", "feature", "2"),
+            ManifestNode,
+        )
+        assert isinstance(FileNode("file:test.py", "test.py", "tracked"), FileNode)
+        assert isinstance(ModuleNode("module:src", "src", "src"), ModuleNode)
+        assert isinstance(
+            Edge("edge:test", EdgeType.DEFINES, "file:test.py", "artifact:test"),
+            Edge,
+        )
+        assert isinstance(graph, KnowledgeGraph)
+        assert isinstance(GraphQuery(graph), GraphQuery)
+        assert find_nodes_by_type(graph, NodeType.ARTIFACT)
+        assert get_neighbors(graph, service)
+        assert find_dependents(graph, "Service")
+        assert find_dependencies(graph, "run")
+        assert get_dependency_tree(graph, service)
+        assert isinstance(find_cycles(graph), list)
+        assert isinstance(is_acyclic(graph), bool)
+        assert get_affected_files(graph, "Service") == ["src/service.py"]
+        assert get_affected_manifests(graph, "Service")
+        assert analyze_impact(graph, "Service")["total_impact_count"] >= 1
+
+        data = graph_to_dict(graph)
+        assert data["nodes"]
+        assert "digraph" in graph_to_dot(graph)
+        assert "graphml" in graph_to_graphml(graph)
+
+        json_path = tmp_path / "graph.json"
+        dot_path = tmp_path / "graph.dot"
+        graphml_path = tmp_path / "graph.graphml"
+        export_json(graph, json_path)
+        export_dot(graph, dot_path)
+        export_graphml(graph, graphml_path)
+        assert json_path.exists()
+        assert dot_path.exists()
+        assert graphml_path.exists()
+
+        intent = QueryParser().parse("what defines Service")
+        assert isinstance(intent, QueryIntent)
+        result = QueryExecutor(graph).execute(intent)
+        assert isinstance(result, QueryResult)
+        assert result.query_type == QueryType.FIND_DEFINITION
+
     def test_build_from_manifests(self):
         """Build a graph from explicit manifest list."""
         m = _make_manifest(
