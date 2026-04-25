@@ -105,12 +105,12 @@ class ArtifactSpec:
 
     def merge_key(self) -> str:
         if self.kind == ArtifactKind.METHOD and self.of:
-            return f"{self.of}.{self.name}"
+            return f"{self.kind.value}:{self.of}.{self.name}"
         if self.kind == ArtifactKind.ATTRIBUTE and self.of:
-            return f"{self.of}.{self.name}"
+            return f"{self.kind.value}:{self.of}.{self.name}"
         if self.kind == ArtifactKind.TEST_FUNCTION:
             return self.name
-        return self.name
+        return f"{self.kind.value}:{self.name}"
 
 
 @dataclass(frozen=True)

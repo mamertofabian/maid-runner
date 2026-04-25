@@ -22,7 +22,7 @@ class DuplicateCheck(BaseCheck):
     - Same artifact name declared in different manifests for the same file
     - Excludes superseded manifest pairs
 
-    Severity: ERROR for same-file duplicates.
+    Severity: WARNING for same-file duplicates.
     """
 
     @property
@@ -64,7 +64,7 @@ class DuplicateCheck(BaseCheck):
                 issues.append(
                     CoherenceIssue(
                         issue_type=IssueType.DUPLICATE,
-                        severity=IssueSeverity.ERROR,
+                        severity=IssueSeverity.WARNING,
                         message=(
                             f"Artifact '{art_name}' in '{file_path}' "
                             f"declared in multiple manifests: {', '.join(active_slugs)}"

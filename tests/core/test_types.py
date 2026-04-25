@@ -207,19 +207,27 @@ class TestArtifactSpec:
 
     def test_merge_key_method(self):
         spec = ArtifactSpec(kind=ArtifactKind.METHOD, name="login", of="AuthService")
-        assert spec.merge_key() == "AuthService.login"
+        assert spec.merge_key() == "method:AuthService.login"
 
     def test_merge_key_attribute_with_class(self):
         spec = ArtifactSpec(kind=ArtifactKind.ATTRIBUTE, name="debug", of="Config")
-        assert spec.merge_key() == "Config.debug"
+        assert spec.merge_key() == "attribute:Config.debug"
 
     def test_merge_key_function(self):
         spec = ArtifactSpec(kind=ArtifactKind.FUNCTION, name="greet")
-        assert spec.merge_key() == "greet"
+        assert spec.merge_key() == "function:greet"
 
     def test_merge_key_class(self):
         spec = ArtifactSpec(kind=ArtifactKind.CLASS, name="Foo")
-        assert spec.merge_key() == "Foo"
+        assert spec.merge_key() == "class:Foo"
+
+    def test_merge_key_distinguishes_top_level_kind(self):
+        function_spec = ArtifactSpec(kind=ArtifactKind.FUNCTION, name="Config")
+        class_spec = ArtifactSpec(kind=ArtifactKind.CLASS, name="Config")
+        attribute_spec = ArtifactSpec(kind=ArtifactKind.ATTRIBUTE, name="Config")
+
+        assert function_spec.merge_key() != class_spec.merge_key()
+        assert attribute_spec.merge_key() != class_spec.merge_key()
 
     def test_frozen(self):
         spec = ArtifactSpec(kind=ArtifactKind.CLASS, name="Foo")

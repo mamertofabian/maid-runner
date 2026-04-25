@@ -112,6 +112,13 @@ class TestBuildParser:
         args = parser.parse_args(["howto", "workflow"])
         assert args.topic == "workflow"
 
+    def test_howto_section_alias(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["howto", "--section", "quickstart"])
+        assert args.topic == "quickstart"
+
     def test_howto_no_topic(self):
         from maid_runner.cli.commands._main import build_parser
 

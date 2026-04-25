@@ -42,8 +42,8 @@ class FoundArtifact:
 
     def merge_key(self) -> str:
         if self.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and self.of:
-            return f"{self.of}.{self.name}"
-        return self.name
+            return f"{self.kind.value}:{self.of}.{self.name}"
+        return f"{self.kind.value}:{self.name}"
 
 
 @dataclass

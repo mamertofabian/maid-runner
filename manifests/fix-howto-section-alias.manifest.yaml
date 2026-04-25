@@ -1,0 +1,30 @@
+schema: "2"
+goal: "Support the documented maid howto --section form as an alias for topic-based howto guidance."
+type: fix
+created: "2026-04-25T10:34:00+08:00"
+description: |
+  README examples use maid howto --section quickstart and --section commands.
+  The CLI should accept that documented option and map it to the same guidance
+  system as positional howto topics.
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          returns: argparse.ArgumentParser
+        - kind: function
+          name: main
+          returns: int
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          returns: int
+  read:
+    - tests/cli/test_main.py
+    - tests/cli/test_howto_cmd.py
+
+validate:
+  - uv run python -m pytest tests/cli/test_main.py tests/cli/test_howto_cmd.py -v

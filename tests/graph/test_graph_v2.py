@@ -100,7 +100,7 @@ class TestGraphBuilder:
         assert fn.node_type == NodeType.FILE
 
         # Artifact nodes
-        an = graph.get_node("artifact:src/auth.py:AuthService")
+        an = graph.get_node("artifact:src/auth.py:class:AuthService")
         assert an is not None
         assert an.node_type == NodeType.ARTIFACT
 
@@ -127,7 +127,7 @@ class TestGraphBuilder:
         graph = builder.build(chain)
 
         assert graph.get_node("file:src/feature.py") is not None
-        assert graph.get_node("artifact:src/feature.py:do_it") is not None
+        assert graph.get_node("artifact:src/feature.py:function:do_it") is not None
 
     def test_supersession_edges(self):
         """Supersession relationships create SUPERSEDES edges."""
@@ -172,15 +172,35 @@ class TestGraphBuilder:
 
         # DECLARES: manifest -> artifact
         declares = [e for e in graph.edges if e.edge_type == EdgeType.DECLARES]
-        assert any(e.target_id == "artifact:src/svc.py:my_func" for e in declares)
+        assert any(
+            e.target_id == "artifact:src/svc.py:function:my_func" for e in declares
+        )
 
         # DEFINES: file -> artifact
         defines = [e for e in graph.edges if e.edge_type == EdgeType.DEFINES]
         assert any(
             e.source_id == "file:src/svc.py"
-            and e.target_id == "artifact:src/svc.py:my_func"
+            and e.target_id == "artifact:src/svc.py:function:my_func"
             for e in defines
         )
+
+    def test_top_level_artifact_ids_include_kind(self):
+        m = _make_manifest(
+            "same-name-kinds",
+            files_create=(
+                _make_file_spec(
+                    "src/config.ts",
+                    (
+                        _make_artifact("Config", ArtifactKind.INTERFACE),
+                        _make_artifact("Config", ArtifactKind.TYPE),
+                    ),
+                ),
+            ),
+        )
+        graph = GraphBuilder().build_from_manifests([m])
+
+        assert graph.get_node("artifact:src/config.ts:interface:Config") is not None
+        assert graph.get_node("artifact:src/config.ts:type:Config") is not None
 
     def test_member_artifact_ids_use_qualified_names(self):
         m = _make_manifest(
@@ -199,8 +219,12 @@ class TestGraphBuilder:
         builder = GraphBuilder()
         graph = builder.build_from_manifests([m])
 
-        assert graph.get_node("artifact:src/auth.py:AuthService.login") is not None
-        assert graph.get_node("artifact:src/auth.py:AdminService.login") is not None
+        assert (
+            graph.get_node("artifact:src/auth.py:method:AuthService.login") is not None
+        )
+        assert (
+            graph.get_node("artifact:src/auth.py:method:AdminService.login") is not None
+        )
 
     def test_module_nodes_derived(self):
         """Module nodes are derived from file paths."""
@@ -286,13 +310,13 @@ class TestGraphQuery:
 
     def test_get_dependents(self, sample_graph):
         q = GraphQuery(sample_graph)
-        deps = q.get_dependents("artifact:src/service.py:ServiceClass")
+        deps = q.get_dependents("artifact:src/service.py:class:ServiceClass")
         # Should include manifest and file that reference it
         assert len(deps) >= 1
 
     def test_get_dependencies(self, sample_graph):
         q = GraphQuery(sample_graph)
-        deps = q.get_dependencies("artifact:src/service.py:ServiceClass.process")
+        deps = q.get_dependencies("artifact:src/service.py:method:ServiceClass.process")
         # Should include file and class
         assert len(deps) >= 1
 

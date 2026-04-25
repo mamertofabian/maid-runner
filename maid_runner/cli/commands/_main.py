@@ -149,7 +149,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # maid howto
     p = sub.add_parser("howto", help="Show MAID workflow guidance")
-    p.add_argument("topic", nargs="?", default=None)
+    p.add_argument("--section", dest="topic")
+    p.add_argument("topic", nargs="?", default=argparse.SUPPRESS)
 
     return parser
 

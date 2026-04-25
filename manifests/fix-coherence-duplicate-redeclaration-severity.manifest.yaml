@@ -1,0 +1,25 @@
+schema: "2"
+goal: "Report active duplicate artifact redeclarations as coherence warnings instead of failing otherwise valid manifest chains."
+type: fix
+created: "2026-04-25T10:34:00+08:00"
+description: |
+  Coherence should continue surfacing duplicate active declarations, but duplicate declarations
+  are not always fatal in incremental MAID chains. Signature and structural validation remain
+  responsible for detecting incompatible contracts.
+
+files:
+  edit:
+    - path: maid_runner/coherence/checks/duplicate.py
+      artifacts:
+        - kind: class
+          name: DuplicateCheck
+        - kind: method
+          name: run
+          of: DuplicateCheck
+          returns: list[CoherenceIssue]
+  read:
+    - tests/coherence/test_coherence_v2.py
+    - maid_runner/coherence/result.py
+
+validate:
+  - uv run python -m pytest tests/coherence/test_coherence_v2.py -v

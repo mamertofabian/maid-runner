@@ -7,6 +7,8 @@ import json
 
 import yaml
 
+from maid_runner.core.manifest import load_manifest, validate_manifest_schema
+
 
 class TestCmdManifestNoCommand:
     def test_no_manifest_command_attribute_returns_2(self, capsys):
@@ -63,6 +65,7 @@ class TestCmdManifestCreateDryRun:
         assert data["type"] == "feature"
         assert data["files"]["create"][0]["path"] == "src/example.py"
         assert data["files"]["create"][0]["artifacts"][0]["name"] == "example_func"
+        assert validate_manifest_schema(data) == []
 
     def test_create_dry_run_json_output(self, capsys):
         """Dry-run create with --json prints JSON manifest to stdout."""
@@ -90,6 +93,7 @@ class TestCmdManifestCreateDryRun:
         assert len(artifacts) == 1
         assert artifacts[0]["kind"] == "function"
         assert artifacts[0]["name"] == "example_func"
+        assert validate_manifest_schema(data) == []
 
 
 class TestCmdManifestCreateWithArtifacts:
@@ -123,7 +127,7 @@ class TestCmdManifestCreateWithArtifacts:
         assert artifacts[1]["name"] == "helper"
 
     def test_create_with_no_artifacts(self, capsys):
-        """Create with no artifacts produces manifest with empty artifacts list."""
+        """Create with no artifacts returns a schema-focused usage error."""
         from maid_runner.cli.commands.manifest import cmd_manifest
 
         args = argparse.Namespace(
@@ -137,10 +141,9 @@ class TestCmdManifestCreateWithArtifacts:
         )
         exit_code = cmd_manifest(args)
 
-        assert exit_code == 0
+        assert exit_code == 2
         captured = capsys.readouterr()
-        data = json.loads(captured.out)
-        assert data["files"]["create"][0]["artifacts"] == []
+        assert "at least one artifact" in captured.err.lower()
 
 
 class TestCmdManifestCreateErrors:
@@ -182,8 +185,8 @@ class TestCmdManifestCreateErrors:
         captured = capsys.readouterr()
         assert "invalid artifacts json" in captured.err.lower()
 
-    def test_create_non_dry_run_returns_2(self, capsys):
-        """Non-dry-run create is not yet implemented, returns exit code 2."""
+    def test_create_non_dry_run_writes_manifest(self, tmp_path, capsys):
+        """Non-dry-run create writes a schema-valid manifest file."""
         from maid_runner.cli.commands.manifest import cmd_manifest
 
         args = argparse.Namespace(
@@ -191,15 +194,21 @@ class TestCmdManifestCreateErrors:
             file_path="src/example.py",
             goal="Add example",
             task_type="feature",
-            artifacts=None,
+            artifacts='[{"kind": "function", "name": "example_func"}]',
+            output_dir=str(tmp_path / "manifests"),
             dry_run=False,
             json=False,
         )
         exit_code = cmd_manifest(args)
 
-        assert exit_code == 2
+        assert exit_code == 0
         captured = capsys.readouterr()
-        assert "not yet implemented" in captured.err.lower()
+        assert "created" in captured.out.lower()
+        manifest_path = tmp_path / "manifests" / "add-example.manifest.yaml"
+        manifest = load_manifest(manifest_path)
+        assert manifest.goal == "Add example"
+        assert manifest.files_create[0].path == "src/example.py"
+        assert manifest.files_create[0].artifacts[0].name == "example_func"
 
 
 class TestCmdManifestViaCLI:
@@ -214,6 +223,8 @@ class TestCmdManifestViaCLI:
                 "src/app.py",
                 "--goal",
                 "Add app module",
+                "--artifacts",
+                '[{"kind": "function", "name": "run_app"}]',
                 "--dry-run",
                 "--json",
             ]

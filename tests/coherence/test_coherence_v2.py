@@ -207,7 +207,7 @@ class TestDuplicateCheck:
         check = DuplicateCheck()
         issues = check.run(graph, [m1, m2])
         assert len(issues) >= 1
-        assert issues[0].severity == IssueSeverity.ERROR
+        assert issues[0].severity == IssueSeverity.WARNING
 
     def test_superseded_duplicates_ignored(self):
         m1 = _make_manifest(

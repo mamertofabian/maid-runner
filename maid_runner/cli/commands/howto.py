@@ -5,6 +5,21 @@ from __future__ import annotations
 import argparse
 
 _TOPICS = {
+    "quickstart": (
+        "Quick Start\n"
+        "===========\n\n"
+        "1. Initialize MAID in your project:\n"
+        "   maid init\n\n"
+        "2. Create or preview a manifest:\n"
+        "   maid manifest create src/your_file.py --goal 'Describe the change' "
+        '--artifacts \'[{"kind":"function","name":"your_function"}]\'\n\n'
+        "3. Write behavioral tests first.\n"
+        "4. Validate the plan:\n"
+        "   maid validate manifests/your-task.manifest.yaml --mode behavioral\n\n"
+        "5. Implement and verify:\n"
+        "   maid validate manifests/your-task.manifest.yaml\n"
+        "   maid test --manifest manifests/your-task.manifest.yaml\n"
+    ),
     "create": (
         "How to Create a Manifest\n"
         "========================\n\n"
@@ -69,6 +84,20 @@ _TOPICS = {
         "Phase 5: Integration verification\n"
         "  - maid validate (all manifests)\n"
         "  - maid test (all test commands)\n"
+    ),
+    "commands": (
+        "CLI Commands\n"
+        "============\n\n"
+        "Validate manifests:\n"
+        "  maid validate [manifest] --mode behavioral|implementation\n\n"
+        "Run manifest validation commands:\n"
+        "  maid test --manifest manifests/your-task.manifest.yaml\n\n"
+        "Create manifest drafts:\n"
+        "  maid manifest create src/your_file.py --goal 'Describe the change' "
+        '--artifacts \'[{"kind":"function","name":"your_function"}]\'\n\n'
+        "Inspect schemas and guidance:\n"
+        "  maid schema\n"
+        "  maid howto workflow\n"
     ),
 }
 

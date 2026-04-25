@@ -950,6 +950,19 @@ def _compare_single(
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
+    if spec.kind != found.kind:
+        errors.append(
+            ValidationError(
+                code=ErrorCode.ARTIFACT_NOT_DEFINED,
+                message=(
+                    f"Artifact '{spec.qualified_name}' expected kind "
+                    f"'{spec.kind.value}' but found '{found.kind.value}' in {file_path}"
+                ),
+                location=Location(file=file_path, line=found.line),
+            )
+        )
+        return errors
+
     # Compare args types by NAME (not position), matching v1 behavior.
     # Code may have extra params (e.g. ctx: Context) not in manifest.
     if spec.args:

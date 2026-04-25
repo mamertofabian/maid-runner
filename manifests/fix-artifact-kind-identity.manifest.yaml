@@ -1,0 +1,56 @@
+schema: "2"
+goal: "Enforce artifact kind as part of MAID artifact identity across validation and graph construction."
+type: fix
+created: "2026-04-25T10:16:00+08:00"
+description: |
+  Artifact identity must distinguish top-level declarations with the same name but different kinds.
+  Validation should reject kind mismatches instead of allowing an incorrectly declared manifest kind
+  to pass, and graph artifact nodes should remain distinct by kind.
+
+files:
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: method
+          name: merge_key
+          of: ArtifactSpec
+          returns: str
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: method
+          name: merge_key
+          of: FoundArtifact
+          returns: str
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+          returns: list[ValidationError]
+        - kind: function
+          name: validate
+          returns: ValidationResult
+    - path: maid_runner/graph/builder.py
+      artifacts:
+        - kind: class
+          name: GraphBuilder
+        - kind: method
+          name: build
+          of: GraphBuilder
+          returns: KnowledgeGraph
+        - kind: method
+          name: build_from_manifests
+          of: GraphBuilder
+          returns: KnowledgeGraph
+  read:
+    - tests/core/test_types.py
+    - tests/validators/test_base.py
+    - tests/core/test_validate.py
+    - tests/graph/test_graph_v2.py
+    - maid_runner/core/result.py
+    - maid_runner/validators/python.py
+
+validate:
+  - uv run python -m pytest tests/core/test_types.py tests/validators/test_base.py tests/core/test_validate.py tests/graph/test_graph_v2.py -v

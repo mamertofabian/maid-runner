@@ -57,11 +57,19 @@ class TestFoundArtifact:
 
     def test_merge_key_method(self):
         fa = FoundArtifact(kind=ArtifactKind.METHOD, name="login", of="AuthService")
-        assert fa.merge_key() == "AuthService.login"
+        assert fa.merge_key() == "method:AuthService.login"
 
     def test_merge_key_function(self):
         fa = FoundArtifact(kind=ArtifactKind.FUNCTION, name="greet")
-        assert fa.merge_key() == "greet"
+        assert fa.merge_key() == "function:greet"
+
+    def test_merge_key_distinguishes_top_level_kind(self):
+        function_artifact = FoundArtifact(kind=ArtifactKind.FUNCTION, name="Config")
+        class_artifact = FoundArtifact(kind=ArtifactKind.CLASS, name="Config")
+        attribute_artifact = FoundArtifact(kind=ArtifactKind.ATTRIBUTE, name="Config")
+
+        assert function_artifact.merge_key() != class_artifact.merge_key()
+        assert attribute_artifact.merge_key() != class_artifact.merge_key()
 
     def test_with_line_info(self):
         fa = FoundArtifact(kind=ArtifactKind.CLASS, name="Foo", line=10, column=0)

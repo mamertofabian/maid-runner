@@ -1,0 +1,23 @@
+schema: "2"
+goal: "Make maid manifest create write schema-valid v2 manifests instead of failing outside dry-run."
+type: fix
+created: "2026-04-25T10:34:00+08:00"
+description: |
+  The manifest create command is part of the documented planning workflow.
+  It should create a valid YAML manifest file in non-dry-run mode and keep
+  dry-run output schema-valid so users can copy or redirect it safely.
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          returns: int
+  read:
+    - tests/cli/test_manifest_cmd.py
+    - maid_runner/core/manifest.py
+    - maid_runner/schemas/manifest.v2.schema.json
+
+validate:
+  - uv run python -m pytest tests/cli/test_manifest_cmd.py -v

@@ -123,6 +123,36 @@ validate:
         assert result.success is False
         assert any(e.code == ErrorCode.ARTIFACT_NOT_DEFINED for e in result.errors)
 
+    def test_wrong_artifact_kind_with_same_name_fails(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-config.manifest.yaml",
+            """schema: "2"
+goal: "Add Config class"
+files:
+  create:
+    - path: src/config.py
+      artifacts:
+        - kind: class
+          name: Config
+  read:
+    - tests/test_config.py
+validate:
+  - pytest tests/test_config.py -v
+""",
+        )
+        _write_source(project, "src/config.py", "Config = object()\n")
+        _add_test_file(project, "tests/test_config.py", "src.config", ["Config"])
+
+        result = validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            project_root=project,
+        )
+
+        assert result.success is False
+        assert any(e.code == ErrorCode.ARTIFACT_NOT_DEFINED for e in result.errors)
+
     def test_strict_mode_unexpected_public_fail(self, project):
         """Golden test 6.3: Unexpected public artifact -> E301."""
         manifest_path = _write_manifest(

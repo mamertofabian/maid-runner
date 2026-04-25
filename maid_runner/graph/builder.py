@@ -146,7 +146,7 @@ class GraphBuilder:
 
         # CONTAINS: parent class -> artifact (for methods/attributes)
         if artifact.of:
-            parent_id = f"{ARTIFACT_PREFIX}{file_path}:{artifact.of}"
+            parent_id = f"{ARTIFACT_PREFIX}{file_path}:class:{artifact.of}"
             graph.add_edge(_edge(EdgeType.CONTAINS, parent_id, art_id))
 
 
@@ -166,8 +166,11 @@ def _edge(edge_type: EdgeType, source: str, target: str) -> Edge:
 
 def _artifact_id(file_path: str, artifact: ArtifactSpec) -> str:
     if artifact.of:
-        return f"{ARTIFACT_PREFIX}{file_path}:{artifact.of}.{artifact.name}"
-    return f"{ARTIFACT_PREFIX}{file_path}:{artifact.name}"
+        return (
+            f"{ARTIFACT_PREFIX}{file_path}:"
+            f"{artifact.kind.value}:{artifact.of}.{artifact.name}"
+        )
+    return f"{ARTIFACT_PREFIX}{file_path}:{artifact.kind.value}:{artifact.name}"
 
 
 def _ensure_file_node(
