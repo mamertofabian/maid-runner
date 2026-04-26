@@ -87,6 +87,8 @@ maid init --tool generic         # Generic MAID.md
 | `maid init` | Initialize MAID in project | `--tool claude\|cursor\|windsurf\|generic\|auto` |
 | `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
+| `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
+| `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
 
 **Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
 
@@ -170,6 +172,34 @@ V1 JSON manifests are auto-converted when loaded.
 **Common:** `class`, `function`, `method`, `attribute`
 
 **TypeScript-specific:** `interface`, `type`, `enum`, `namespace`
+
+### Manifest Event Log
+
+MAID Runner v2.4.0 introduces an event-log system for tracking manifest history:
+
+```yaml
+schema: "2"
+goal: "Add user authentication"
+type: feature
+sequence_number: 42         # optional — deterministic ordering
+version_tag: "v2.4.0"       # optional — release label
+```
+
+**Inspect the event log:**
+```bash
+maid chain log                    # Full history (includes superseded)
+maid chain log --until-seq 10     # Up to sequence 10
+maid chain log --version-tag v2.4.0 --json
+maid chain log --active           # Active manifests only
+```
+
+**Preview artifact state at a point in time:**
+```bash
+maid chain replay --until-seq 10 --json
+maid chain replay --version-tag v2.4.0
+```
+
+The event log provides deterministic ordering via `sequence_number` (falls back to `created`), includes superseded manifests in the historical record, and supports point-in-time queries through `event_log_until()` and `replay_until()` APIs.
 
 ## Development Workflow
 

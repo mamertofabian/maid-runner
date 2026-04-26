@@ -236,6 +236,8 @@ V2 manifests use YAML with multi-file support:
 schema: "2"
 goal: "Clear task description"
 type: feature|fix|refactor|snapshot
+sequence_number: 42            # Optional — deterministic event-log ordering
+version_tag: "v1.0"            # Optional — release label
 supersedes:                    # Optional: slugs of obsolete manifests
   - old-manifest-slug
 
@@ -326,6 +328,12 @@ uv run maid coherence [--checks <checks>] [--exclude <exclude>] [--json]
 
 # Display JSON Schema
 uv run maid schema
+
+# Event-log inspection
+uv run maid chain log [--until-seq N] [--version-tag TAG] [--active] [--json]
+
+# Replay preview (effective artifacts at a point in time)
+uv run maid chain replay [--until-seq N] [--version-tag TAG] [--json]
 
 # Get help
 uv run maid --help
