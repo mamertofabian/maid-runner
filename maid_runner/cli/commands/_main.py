@@ -162,6 +162,14 @@ def build_parser() -> argparse.ArgumentParser:
     clp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
     clp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
 
+    rp = csub.add_parser(
+        "replay", help="Preview effective artifacts at a point in time"
+    )
+    rp.add_argument("--manifest-dir", default="manifests/")
+    rp.add_argument("--json", action="store_true")
+    rp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
+    rp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
+
     return parser
 
 

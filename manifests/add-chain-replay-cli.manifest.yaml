@@ -1,0 +1,56 @@
+schema: "2"
+goal: >
+  Add `maid chain replay` CLI subcommand — read-only replay preview using
+  ManifestChain.replay_until() with text and JSON output.
+type: feature
+created: "2026-04-26"
+description: |
+  Exposes replay_until() at the CLI so users can preview effective
+  artifacts per file at a point in the event log.
+
+  Subcommand: `maid chain replay`
+    - --until-seq N: cutoff at sequence_number
+    - --version-tag TAG: cutoff at version tag
+    - --json: machine-readable {file_path: [artifact_dicts]}
+    - Text default: file paths with artifact names listed
+
+  Routes through chain.replay_until(). Both args None → full replay.
+  Invalid seq# prints error and returns exit code 2.
+
+  Out of scope: file content reconstruction, mutating manifests.
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          returns: argparse.ArgumentParser
+
+    - path: maid_runner/cli/commands/chain.py
+      artifacts:
+        - kind: function
+          name: cmd_chain
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_replay_result
+          args:
+            - name: result
+              type: dict
+            - name: json_mode
+              type: bool
+          returns: str
+
+  read:
+    - tests/cli/test_chain_cmd.py
+    - maid_runner/core/chain.py
+    - manifests/add-chain-replay-preview.manifest.yaml
+
+validate:
+  - pytest tests/cli/test_chain_cmd.py -v

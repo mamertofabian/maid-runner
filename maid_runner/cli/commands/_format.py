@@ -432,6 +432,41 @@ def format_chain_log(
     return "\n".join(lines)
 
 
+def format_replay_result(
+    result: dict,
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format replay_until() output for `maid chain replay`.
+
+    Args:
+        result: Dict mapping file_path -> list[ArtifactSpec].
+        json_mode: If True, output JSON with full artifact identity.
+    """
+    if json_mode:
+        data: dict = {}
+        for path, artifacts in result.items():
+            data[path] = [
+                {
+                    "kind": a.kind.value,
+                    "name": a.name,
+                    **({"of": a.of} if a.of else {}),
+                    **({"returns": a.returns} if a.returns else {}),
+                }
+                for a in artifacts
+            ]
+        return json.dumps(data, indent=2)
+
+    if not result:
+        return "(no artifacts)"
+
+    lines: list[str] = []
+    for path, artifacts in sorted(result.items()):
+        names = [a.name for a in artifacts]
+        lines.append(f"{path}: {', '.join(names)}")
+    return "\n".join(lines)
+
+
 def format_coherence_result(
     result: CoherenceResult,
     *,

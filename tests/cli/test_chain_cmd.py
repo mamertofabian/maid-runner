@@ -559,6 +559,220 @@ class TestChainLogVersionTag:
 
 
 # ---------------------------------------------------------------------------
+# maid chain replay
+# ---------------------------------------------------------------------------
+
+
+class TestChainReplay:
+    def test_replay_text_output_shows_files_and_artifacts(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        from maid_runner.cli.commands.chain import cmd_chain
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="add greet",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+
+        args = argparse.Namespace(
+            chain_command="replay",
+            manifest_dir=str(manifest_dir),
+            json=False,
+            until_seq=None,
+            version_tag=None,
+        )
+        exit_code = cmd_chain(args)
+        assert exit_code == 0
+
+        captured = capsys.readouterr()
+        assert "mod.py" in captured.out
+        assert "greet" in captured.out
+
+    def test_replay_json_output_returns_artifact_dicts(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        from maid_runner.cli.commands.chain import cmd_chain
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="add greet",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+
+        args = argparse.Namespace(
+            chain_command="replay",
+            manifest_dir=str(manifest_dir),
+            json=True,
+            until_seq=None,
+            version_tag=None,
+        )
+        cmd_chain(args)
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+
+        assert "mod.py" in data
+        greet = [a for a in data["mod.py"] if a["name"] == "greet"]
+        assert len(greet) == 1
+        assert greet[0]["kind"] == "function"
+        assert greet[0]["name"] == "greet"
+
+    def test_replay_until_seq_cuts_off(self, tmp_path: Path, capsys) -> None:
+        from maid_runner.cli.commands.chain import cmd_chain
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+        )
+
+        args = argparse.Namespace(
+            chain_command="replay",
+            manifest_dir=str(manifest_dir),
+            json=True,
+            until_seq=1,
+            version_tag=None,
+        )
+        cmd_chain(args)
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+
+        names = {a["name"] for a in data.get("mod.py", [])}
+        assert names == {"greet"}
+
+    def test_replay_version_tag_cuts_off(self, tmp_path: Path, capsys) -> None:
+        from maid_runner.cli.commands.chain import cmd_chain
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+            version_tag="release-1",
+        )
+
+        args = argparse.Namespace(
+            chain_command="replay",
+            manifest_dir=str(manifest_dir),
+            json=True,
+            until_seq=None,
+            version_tag="release-1",
+        )
+        cmd_chain(args)
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+
+        names = {a["name"] for a in data.get("mod.py", [])}
+        assert names == {"greet", "farewell"}
+
+    def test_replay_invalid_seq_returns_error(self, tmp_path: Path) -> None:
+        from maid_runner.cli.commands.chain import cmd_chain
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+
+        args = argparse.Namespace(
+            chain_command="replay",
+            manifest_dir=str(manifest_dir),
+            json=False,
+            until_seq=0,
+            version_tag=None,
+        )
+        exit_code = cmd_chain(args)
+        assert exit_code == 2
+
+
+# ---------------------------------------------------------------------------
+# format_replay_result
+# ---------------------------------------------------------------------------
+
+
+class TestFormatReplayResult:
+    def test_text_output_lists_files_and_artifacts(self) -> None:
+        from maid_runner.cli.commands._format import format_replay_result
+        from maid_runner.core.types import ArtifactKind, ArtifactSpec
+
+        result = {
+            "mod.py": [
+                ArtifactSpec(kind=ArtifactKind.FUNCTION, name="greet"),
+            ],
+        }
+        output = format_replay_result(result, json_mode=False)
+        assert "mod.py" in output
+        assert "greet" in output
+
+    def test_json_output_returns_dict_of_artifact_lists(self) -> None:
+        from maid_runner.cli.commands._format import format_replay_result
+        from maid_runner.core.types import ArtifactKind, ArtifactSpec
+
+        result = {
+            "mod.py": [
+                ArtifactSpec(kind=ArtifactKind.FUNCTION, name="greet"),
+            ],
+        }
+        output = format_replay_result(result, json_mode=True)
+        import json as _json
+
+        data = _json.loads(output)
+        assert "mod.py" in data
+        assert any(a["name"] == "greet" for a in data["mod.py"])
+
+    def test_empty_result_text(self) -> None:
+        from maid_runner.cli.commands._format import format_replay_result
+
+        output = format_replay_result({}, json_mode=False)
+        assert output  # should produce non-empty string for empty result
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -593,6 +807,39 @@ def _write_manifest(
         data["version_tag"] = version_tag
     if supersedes:
         data["supersedes"] = supersedes
+
+    path = manifest_dir / filename
+    path.write_text(yaml.dump(data))
+
+
+def _write_manifest_with_artifacts(
+    manifest_dir: Path,
+    filename: str,
+    goal: str,
+    created: str,
+    sequence_number: int | None = None,
+    version_tag: str | None = None,
+    artifacts: list[dict] | None = None,
+) -> None:
+    data: dict = {
+        "schema": "2",
+        "goal": goal,
+        "type": "feature",
+        "created": created,
+        "files": {
+            "create": [
+                {
+                    "path": "mod.py",
+                    "artifacts": artifacts or [],
+                }
+            ]
+        },
+        "validate": ["pytest tests/ -v"],
+    }
+    if sequence_number is not None:
+        data["sequence_number"] = sequence_number
+    if version_tag is not None:
+        data["version_tag"] = version_tag
 
     path = manifest_dir / filename
     path.write_text(yaml.dump(data))
