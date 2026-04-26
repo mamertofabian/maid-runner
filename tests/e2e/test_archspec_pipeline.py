@@ -638,9 +638,9 @@ class TestArchSpecStrictMode:
     def test_other_values_do_not_enable(self, monkeypatch):
         for value in ("0", "true", "yes", "on", ""):
             monkeypatch.setenv("MAID_ARCHSPEC_E2E_STRICT", value)
-            assert _archspec_strict_mode_enabled() is False, (
-                f"value {value!r} should not enable strict mode"
-            )
+            assert (
+                _archspec_strict_mode_enabled() is False
+            ), f"value {value!r} should not enable strict mode"
 
     def test_returns_bool(self, monkeypatch):
         monkeypatch.setenv("MAID_ARCHSPEC_E2E_STRICT", "1")

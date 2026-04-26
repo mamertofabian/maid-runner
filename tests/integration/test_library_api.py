@@ -179,9 +179,9 @@ class TestPublicAPIImports:
         ]
         for name in spec_exports:
             assert hasattr(maid_runner, name), f"Spec-required export missing: {name}"
-            assert name in maid_runner.__all__, (
-                f"Spec-required export not in __all__: {name}"
-            )
+            assert (
+                name in maid_runner.__all__
+            ), f"Spec-required export not in __all__: {name}"
 
 
 # ---------------------------------------------------------------------------
