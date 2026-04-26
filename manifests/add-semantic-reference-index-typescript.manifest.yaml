@@ -1,0 +1,210 @@
+schema: "2"
+goal: >
+  Extend identity-aware behavioral matching to TypeScript: populate
+  module_path/import_source/alias_of on TS artifacts, and route language
+  identity rules through validator-owned resolver methods.
+type: feature
+created: "2026-04-26"
+description: |
+  Mirrors the Python Semantic Reference Index (commit e60c3d0) for
+  TypeScript. Module identity for TS is path-based (project-relative,
+  POSIX, extensionless). Validator-owned resolver methods keep
+  language-specific rules out of validate.py.
+
+  Scope:
+    - New helper module maid_runner/core/ts_module_paths.py exposes
+      ts_file_to_module_path, resolve_relative_ts_import, and
+      resolve_ts_reexport (one-level barrel resolution through
+      index.ts(x), named re-exports only).
+    - BaseValidator gains two resolver methods: module_path and
+      resolve_reexport. Defaults return None so unknown languages are
+      safe; PythonValidator and TypeScriptValidator override them.
+    - identity.match_artifact_to_references accepts an optional
+      reexport_resolver callable so the matcher does not hardcode the
+      Python __init__.py rule.
+    - validate.py builds artifact identity through the artifact's
+      validator and threads its resolver into the matcher.
+    - typescript._collect_refs (and the impl walker) populate
+      import_source/alias_of for TS imports and resolve member_expression
+      chains rooted at imported bindings (the same fix the Python pass
+      applied for `import pkg.mod; pkg.mod.Foo()`).
+
+  Out of scope (deferred to follow-up manifests):
+    - tsconfig path aliases / baseUrl resolution
+    - `export * from './y'` (star re-exports)
+    - Recursive re-export chains beyond one level
+    - node_modules resolution / package.json main fields
+    - Type-only imports treated specially
+    - Svelte (separate follow-up manifest)
+
+files:
+  create:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: ts_file_to_module_path
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: str
+        - kind: function
+          name: resolve_relative_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+          returns: str
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+
+  edit:
+    - path: maid_runner/core/module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: method
+          name: module_path
+          of: BaseValidator
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: method
+          name: resolve_reexport
+          of: BaseValidator
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: module_path
+          of: PythonValidator
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: method
+          name: resolve_reexport
+          of: PythonValidator
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: module_path
+          of: TypeScriptValidator
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: method
+          name: resolve_reexport
+          of: TypeScriptValidator
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+          returns: bool
+
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_behavioral
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+
+  read:
+    - tests/core/test_ts_module_paths.py
+    - tests/validators/test_typescript_identity.py
+    - tests/validators/test_typescript.py
+    - tests/core/test_identity_matching.py
+    - tests/core/test_validate.py
+    - tests/validators/test_python_identity.py
+    - manifests/add-semantic-reference-index.manifest.yaml
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/identity.py
+
+validate:
+  - pytest tests/core/test_ts_module_paths.py -v
+  - pytest tests/validators/test_typescript_identity.py -v

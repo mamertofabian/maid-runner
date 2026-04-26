@@ -13,6 +13,7 @@ from typing import Optional, Union
 from maid_runner.core.module_paths import (
     file_to_module_path,
     resolve_relative_import,
+    resolve_reexport,
 )
 from maid_runner.core.types import ArtifactKind, ArgSpec
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
@@ -85,6 +86,21 @@ class PythonValidator(BaseValidator):
         lines = source.splitlines(keepends=True)
         _walk_for_test_bodies(tree, lines, bodies, in_test_class=False)
         return bodies
+
+    def module_path(
+        self,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> Optional[str]:
+        return file_to_module_path(file_path, project_root) or None
+
+    def resolve_reexport(
+        self,
+        module: str,
+        name: str,
+        project_root: Path,
+    ) -> Optional[tuple[str, str]]:
+        return resolve_reexport(module, name, project_root)
 
 
 class _ImplementationCollector(ast.NodeVisitor):

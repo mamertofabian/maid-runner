@@ -72,14 +72,17 @@ def resolve_reexport(
     module: str,
     name: str,
     project_root: Path,
-) -> Optional[str]:
+) -> Optional[tuple[str, str]]:
     """Resolve a one-level barrel re-export of ``name`` from ``module``.
 
     Looks for an ``__init__.py`` corresponding to ``module`` inside
     ``project_root`` and inspects its top-level ``from ... import ...``
-    statements. Returns the dotted module path that ``__init__`` imports
-    ``name`` from, or ``None`` if ``module`` is not a package or does
-    not re-export ``name``.
+    statements. Returns ``(resolved_module, original_name)`` where
+    ``original_name`` is the source-side identifier — for plain
+    re-exports it equals ``name``; for aliased re-exports
+    (``from .submod import Foo as Bar`` looked up by ``Bar``) it is
+    the pre-alias name (``Foo``). Returns ``None`` when ``module`` is
+    not a package or does not re-export ``name``.
 
     Resolution is intentionally one level deep: if the target package
     itself re-exports through another ``__init__.py``, this function
@@ -101,7 +104,8 @@ def resolve_reexport(
             bound = alias.asname or alias.name
             if bound != name:
                 continue
-            return _resolve_init_relative(node.module, node.level, module)
+            resolved = _resolve_init_relative(node.module, node.level, module)
+            return (resolved, alias.name)
 
     return None
 

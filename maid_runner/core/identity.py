@@ -10,16 +10,21 @@ reference carries no resolvable import information.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable, Optional
 
-from maid_runner.core.module_paths import resolve_reexport
+from maid_runner.core.module_paths import resolve_reexport as _python_resolve_reexport
 from maid_runner.validators.base import FoundArtifact
+
+
+_ReexportResolver = Callable[[str, str, Path], Optional[tuple[str, str]]]
 
 
 def match_artifact_to_references(
     artifact: FoundArtifact,
     references: Iterable[FoundArtifact],
     project_root: Path,
+    *,
+    reexport_resolver: Optional[_ReexportResolver] = None,
 ) -> bool:
     """Return True if any reference matches ``artifact`` by identity.
 
@@ -33,9 +38,20 @@ def match_artifact_to_references(
        accepted (no identity to compare against).
     4. Otherwise the reference's ``import_source`` must equal the
        artifact's ``module_path``, OR resolve to it through a one-level
-       barrel re-export from a package's ``__init__.py``.
+       barrel re-export.
+
+    Aliased-barrel bridge: when no reference's effective name matches
+    the artifact's name directly, the matcher additionally asks each
+    barrel-rooted reference whether the barrel re-exports a name equal
+    to the artifact's name under that reference's bound name (the case
+    of ``export { Foo as Bar } from './y'`` paired with
+    ``import { Bar } from './pkg-barrel'``).
     """
-    for ref in references:
+    refs = list(references)
+    resolver = reexport_resolver or _python_resolve_reexport
+    root = Path(project_root)
+
+    for ref in refs:
         ref_name = ref.alias_of or ref.name
         if ref_name != artifact.name:
             continue
@@ -49,8 +65,29 @@ def match_artifact_to_references(
         if ref.import_source == artifact.module_path:
             return True
 
-        reexported = resolve_reexport(ref.import_source, ref_name, Path(project_root))
-        if reexported is not None and reexported == artifact.module_path:
+        reexported = resolver(ref.import_source, ref_name, root)
+        if reexported is not None:
+            resolved_module, original_name = reexported
+            if (
+                resolved_module == artifact.module_path
+                and original_name == artifact.name
+            ):
+                return True
+
+    if artifact.module_path is None:
+        return False
+
+    for ref in refs:
+        if ref.import_source is None:
+            continue
+        ref_name = ref.alias_of or ref.name
+        if ref_name == artifact.name:
+            continue
+        reexported = resolver(ref.import_source, ref_name, root)
+        if reexported is None:
+            continue
+        resolved_module, original_name = reexported
+        if resolved_module == artifact.module_path and original_name == artifact.name:
             return True
 
     return False

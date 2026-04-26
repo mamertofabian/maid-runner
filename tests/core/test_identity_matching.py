@@ -85,7 +85,7 @@ class TestResolveReexport:
         (pkg / "__init__.py").write_text("from .submod import Foo\n")
         (pkg / "submod.py").write_text("class Foo: ...\n")
 
-        assert resolve_reexport("pkg", "Foo", tmp_path) == "pkg.submod"
+        assert resolve_reexport("pkg", "Foo", tmp_path) == ("pkg.submod", "Foo")
 
     def test_returns_none_when_name_not_reexported(self, tmp_path: Path) -> None:
         pkg = tmp_path / "pkg"
@@ -100,6 +100,20 @@ class TestResolveReexport:
         (tmp_path / "lonely.py").write_text("class Foo: ...\n")
         assert resolve_reexport("lonely", "Foo", tmp_path) is None
 
+    def test_aliased_reexport_returns_original_source_name(
+        self, tmp_path: Path
+    ) -> None:
+        # __init__.py: from .submod import Foo as Bar
+        # Looking up "Bar" resolves to (pkg.submod, "Foo") — the source
+        # module's identifier, before aliasing. The matcher needs this
+        # to bridge a test importing `Bar` to an artifact named `Foo`.
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("from .submod import Foo as Bar\n")
+        (pkg / "submod.py").write_text("class Foo: ...\n")
+
+        assert resolve_reexport("pkg", "Bar", tmp_path) == ("pkg.submod", "Foo")
+
     def test_does_not_recurse_through_second_level(self, tmp_path: Path) -> None:
         # pkg.__init__ re-exports from pkg.mid; pkg.mid.__init__ re-exports
         # from pkg.mid.deep. One-level resolution should stop at pkg.mid,
@@ -112,7 +126,7 @@ class TestResolveReexport:
         (mid / "deep.py").write_text("class Foo: ...\n")
 
         # One level only: pkg -> pkg.mid (not pkg.mid.deep).
-        assert resolve_reexport("pkg", "Foo", tmp_path) == "pkg.mid"
+        assert resolve_reexport("pkg", "Foo", tmp_path) == ("pkg.mid", "Foo")
 
 
 # ----------------------------------------------------------------------------
@@ -190,3 +204,25 @@ class TestMatchArtifactToReferences:
     def test_empty_reference_list_does_not_match(self, tmp_path: Path) -> None:
         artifact = _artifact("Foo", module_path="pkg.mod")
         assert not match_artifact_to_references(artifact, [], tmp_path)
+
+    def test_aliased_barrel_bridges_alias_back_to_artifact_name(
+        self, tmp_path: Path
+    ) -> None:
+        # __init__.py: from .submod import Foo as Bar
+        # Test imports `Bar` from the barrel `pkg`. The artifact in the
+        # manifest is named `Foo` and lives in pkg.submod. The matcher
+        # must consult the barrel's alias mapping to bridge Bar -> Foo.
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("from .submod import Foo as Bar\n")
+        (pkg / "submod.py").write_text("class Foo: ...\n")
+
+        artifact = _artifact("Foo", module_path="pkg.submod")
+        # Reference is what a test would produce after `from pkg import Bar`:
+        # name=Bar, import_source=pkg, alias_of=None.
+        ref = FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="Bar",
+            import_source="pkg",
+        )
+        assert match_artifact_to_references(artifact, [ref], tmp_path)

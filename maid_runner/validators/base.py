@@ -86,6 +86,37 @@ class BaseValidator(ABC):
     ) -> CollectionResult:
         """Collect artifact REFERENCES from source code (test files)."""
 
+    def module_path(
+        self,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> Optional[str]:
+        """Return the language-specific module identity for a source file.
+
+        Default returns None; languages that have a stable file→module
+        identity (Python dotted, TS path-based) override.
+        """
+        return None
+
+    def resolve_reexport(
+        self,
+        module: str,
+        name: str,
+        project_root: Path,
+    ) -> Optional[tuple[str, str]]:
+        """Resolve a one-level barrel re-export of ``name`` from ``module``.
+
+        Default returns None; PythonValidator delegates to
+        ``__init__.py``-aware resolution and TypeScriptValidator to
+        ``index.ts(x)``-aware resolution. The tuple is
+        ``(resolved_module, original_source_name)``: for plain
+        re-exports the second element equals ``name``; for aliased
+        re-exports it is the pre-alias identifier so the matcher can
+        bridge a test that imports the alias back to the artifact's
+        true name.
+        """
+        return None
+
     def get_test_function_bodies(
         self,
         source: str,

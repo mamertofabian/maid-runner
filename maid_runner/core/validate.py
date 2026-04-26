@@ -208,9 +208,21 @@ class ValidationEngine:
         # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
         # validated separately by _validate_test_function_names
         for fs in manifest.all_file_specs:
-            artifact_module = (
-                file_to_module_path(fs.path, self._project_root) if fs.path else None
+            artifact_validator = (
+                _get_validator_for_test(fs.path, self._registry) if fs.path else None
             )
+            if artifact_validator is not None:
+                artifact_module = artifact_validator.module_path(
+                    fs.path, self._project_root
+                )
+                resolver = artifact_validator.resolve_reexport
+            else:
+                artifact_module = (
+                    file_to_module_path(fs.path, self._project_root)
+                    if fs.path
+                    else None
+                )
+                resolver = None
             for artifact in fs.artifacts:
                 if artifact.is_private:
                     continue
@@ -224,7 +236,12 @@ class ValidationEngine:
                 )
                 used = False
                 for refs in test_artifacts.values():
-                    if match_artifact_to_references(identity, refs, self._project_root):
+                    if match_artifact_to_references(
+                        identity,
+                        refs,
+                        self._project_root,
+                        reexport_resolver=resolver,
+                    ):
                         used = True
                         break
                 if not used:
@@ -534,9 +551,21 @@ class ValidationEngine:
 
         # Check each public artifact is referenced in at least one test (WARNING)
         for fs in source_file_specs:
-            artifact_module = (
-                file_to_module_path(fs.path, self._project_root) if fs.path else None
+            artifact_validator = (
+                _get_validator_for_test(fs.path, self._registry) if fs.path else None
             )
+            if artifact_validator is not None:
+                artifact_module = artifact_validator.module_path(
+                    fs.path, self._project_root
+                )
+                resolver = artifact_validator.resolve_reexport
+            else:
+                artifact_module = (
+                    file_to_module_path(fs.path, self._project_root)
+                    if fs.path
+                    else None
+                )
+                resolver = None
             for artifact in fs.artifacts:
                 if artifact.is_private:
                     continue
@@ -548,7 +577,12 @@ class ValidationEngine:
                 )
                 used = False
                 for refs in test_artifacts.values():
-                    if match_artifact_to_references(identity, refs, self._project_root):
+                    if match_artifact_to_references(
+                        identity,
+                        refs,
+                        self._project_root,
+                        reexport_resolver=resolver,
+                    ):
                         used = True
                         break
                 if not used:

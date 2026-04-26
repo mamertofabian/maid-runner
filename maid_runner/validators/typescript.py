@@ -5,9 +5,15 @@ Uses tree-sitter for accurate AST parsing. Requires tree-sitter-typescript.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Union
 
+from maid_runner.core.ts_module_paths import (
+    resolve_relative_ts_import,
+    resolve_ts_reexport,
+    ts_file_to_module_path,
+)
 from maid_runner.core.types import ArtifactKind, ArgSpec
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 
@@ -34,7 +40,7 @@ class TypeScriptValidator(BaseValidator):
 
     @classmethod
     def supported_extensions(cls) -> tuple[str, ...]:
-        return (".ts", ".tsx", ".js", ".jsx")
+        return (".ts", ".tsx", ".js", ".jsx", ".mts", ".cts")
 
     def collect_implementation_artifacts(
         self,
@@ -59,6 +65,13 @@ class TypeScriptValidator(BaseValidator):
 
         artifacts: list[FoundArtifact] = []
         _collect_impl(tree.root_node, source_bytes, artifacts, current_class=None)
+
+        module_id = ts_file_to_module_path(file_path, Path(".")) or None
+        if module_id:
+            artifacts = [
+                replace(a, module_path=module_id) if a.module_path is None else a
+                for a in artifacts
+            ]
 
         return CollectionResult(
             artifacts=artifacts,
@@ -89,13 +102,39 @@ class TypeScriptValidator(BaseValidator):
 
         artifacts: list[FoundArtifact] = []
         seen: set[str] = set()
-        _collect_refs(tree.root_node, source_bytes, artifacts, seen)
+        importer_module = ts_file_to_module_path(file_path, Path(".")) or ""
+        import_map, namespace_imports = _scan_imports(
+            tree.root_node, source_bytes, importer_module, artifacts, seen
+        )
+        _collect_refs(
+            tree.root_node,
+            source_bytes,
+            artifacts,
+            seen,
+            import_map=import_map,
+            namespace_imports=namespace_imports,
+        )
 
         return CollectionResult(
             artifacts=artifacts,
             language="typescript",
             file_path=str(file_path),
         )
+
+    def module_path(
+        self,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> Optional[str]:
+        return ts_file_to_module_path(file_path, project_root) or None
+
+    def resolve_reexport(
+        self,
+        module: str,
+        name: str,
+        project_root: Path,
+    ) -> Optional[tuple[str, str]]:
+        return resolve_ts_reexport(module, name, project_root)
 
     def get_test_function_bodies(
         self,
@@ -808,8 +847,148 @@ def _first_string_argument(call_node, source: bytes) -> Optional[str]:
     return None
 
 
+def _scan_imports(
+    root,
+    source: bytes,
+    importer_module: str,
+    artifacts: list[FoundArtifact],
+    seen: set[str],
+) -> tuple[dict[str, dict], dict[str, str]]:
+    """Pre-scan top-level import_statement nodes.
+
+    Returns ``(import_map, namespace_imports)`` and side-effects each
+    bound import name into ``artifacts`` with import_source/alias_of so
+    later identifier walks dedup into the identity-bearing record.
+
+    - ``import_map``: bound name -> {"source": resolved_module, "alias_of": Optional[str]}
+    - ``namespace_imports``: bound name -> resolved_module (only for `* as ns` imports)
+    """
+    import_map: dict[str, dict] = {}
+    namespace_imports: dict[str, str] = {}
+
+    for child in root.children:
+        if child.type != "import_statement":
+            continue
+        spec_node = _child_by_type(child, "string")
+        if spec_node is None:
+            continue
+        frag = _child_by_type(spec_node, "string_fragment")
+        if frag is None:
+            continue
+        raw_specifier = _text(frag, source)
+        resolved = resolve_relative_ts_import(raw_specifier, importer_module)
+
+        clause = _child_by_type(child, "import_clause")
+        if clause is None:
+            # side-effect import — binds nothing
+            continue
+
+        for cc in clause.children:
+            if cc.type == "named_imports":
+                for spec in cc.children:
+                    if spec.type != "import_specifier":
+                        continue
+                    idents = [c for c in spec.children if c.type == "identifier"]
+                    if not idents:
+                        continue
+                    if len(idents) >= 2:
+                        original = _text(idents[0], source)
+                        bound = _text(idents[1], source)
+                        alias_of: Optional[str] = original
+                    else:
+                        bound = _text(idents[0], source)
+                        alias_of = None
+                    _record_import(
+                        bound, resolved, alias_of, import_map, artifacts, seen
+                    )
+            elif cc.type == "namespace_import":
+                for nc in cc.children:
+                    if nc.type == "identifier":
+                        bound = _text(nc, source)
+                        namespace_imports[bound] = resolved
+                        _record_import(
+                            bound, resolved, None, import_map, artifacts, seen
+                        )
+                        break
+            elif cc.type == "identifier":
+                bound = _text(cc, source)
+                _record_import(bound, resolved, None, import_map, artifacts, seen)
+
+    return import_map, namespace_imports
+
+
+def _record_import(
+    bound: str,
+    resolved: str,
+    alias_of: Optional[str],
+    import_map: dict[str, dict],
+    artifacts: list[FoundArtifact],
+    seen: set[str],
+) -> None:
+    if not bound or bound in seen:
+        return
+    import_map[bound] = {"source": resolved, "alias_of": alias_of}
+    seen.add(bound)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name=bound,
+            import_source=resolved or None,
+            alias_of=alias_of,
+        )
+    )
+
+
+def _resolve_member_chain(
+    node, source: bytes, namespace_imports: dict[str, str]
+) -> Optional[tuple[str, str]]:
+    """Walk a member_expression chain.
+
+    If rooted at a namespace-imported name, return ``(leaf, source_path)``.
+    Otherwise return ``None``. ``source_path`` extends the namespace by
+    intermediate property_identifiers using "/" (TS path style).
+    """
+    attrs: list[str] = []
+    current = node
+    while current is not None and current.type == "member_expression":
+        prop = None
+        obj = None
+        for c in current.children:
+            if c.type == "property_identifier":
+                prop = c
+            elif c.type not in (".", "?.", "?"):
+                if c.type in ("identifier", "member_expression"):
+                    obj = c
+        if prop is None or obj is None:
+            return None
+        attrs.append(_text(prop, source))
+        current = obj
+
+    if current is None or current.type != "identifier":
+        return None
+    root_name = _text(current, source)
+    namespace = namespace_imports.get(root_name)
+    if namespace is None:
+        return None
+
+    attrs.reverse()
+    leaf = attrs[-1]
+    middle = attrs[:-1]
+    if middle:
+        source_path = "/".join([namespace, *middle])
+    else:
+        source_path = namespace
+    return leaf, source_path
+
+
 def _collect_refs(
-    node, source: bytes, artifacts: list[FoundArtifact], seen: set[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    seen: set[str],
+    *,
+    import_map: Optional[dict[str, dict]] = None,
+    namespace_imports: Optional[dict[str, str]] = None,
 ) -> None:
     """Collect identifier references and executable test labels.
 
@@ -817,6 +996,29 @@ def _collect_refs(
     ``test("name", ...)`` are emitted as ``ArtifactKind.TEST_FUNCTION``.
     Plain ``test_*`` helpers are treated as ordinary code references.
     """
+    if import_map is None:
+        import_map = {}
+    if namespace_imports is None:
+        namespace_imports = {}
+
+    # Imports were collected separately by _scan_imports; skip walking them.
+    if node.type == "import_statement":
+        return
+
+    if node.type == "member_expression":
+        resolved = _resolve_member_chain(node, source, namespace_imports)
+        if resolved is not None:
+            leaf, source_path = resolved
+            if leaf and leaf not in seen:
+                seen.add(leaf)
+                artifacts.append(
+                    FoundArtifact(
+                        kind=ArtifactKind.FUNCTION,
+                        name=leaf,
+                        import_source=source_path or None,
+                    )
+                )
+
     if node.type == "identifier":
         name = _text(node, source)
         if name and name not in seen:
@@ -844,7 +1046,14 @@ def _collect_refs(
                 seen.add(label)
 
     for child in node.children:
-        _collect_refs(child, source, artifacts, seen)
+        _collect_refs(
+            child,
+            source,
+            artifacts,
+            seen,
+            import_map=import_map,
+            namespace_imports=namespace_imports,
+        )
 
 
 def _collect_test_bodies(node, source: bytes, bodies: dict[str, str]) -> None:
