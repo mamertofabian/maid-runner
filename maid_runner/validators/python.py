@@ -6,9 +6,14 @@ Collects artifact definitions and references from Python source code using AST.
 from __future__ import annotations
 
 import ast
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Union
 
+from maid_runner.core.module_paths import (
+    file_to_module_path,
+    resolve_relative_import,
+)
 from maid_runner.core.types import ArtifactKind, ArgSpec
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 
@@ -57,7 +62,7 @@ class PythonValidator(BaseValidator):
                 errors=[f"Syntax error: {e}"],
             )
 
-        collector = _BehavioralCollector()
+        collector = _BehavioralCollector(file_path=str(file_path))
         collector.visit(tree)
 
         return CollectionResult(
@@ -88,12 +93,20 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._current_class: Optional[str] = None
         self._in_function: bool = False
         self._is_init = Path(file_path).name == "__init__.py"
+        self._module_path: Optional[str] = (
+            file_to_module_path(file_path, Path(".")) if file_path else None
+        ) or None
+
+    def _add(self, artifact: FoundArtifact) -> None:
+        if self._module_path and artifact.module_path is None:
+            artifact = _with_module_path(artifact, self._module_path)
+        self.artifacts.append(artifact)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         base_names = [_extract_base_name(b) for b in node.bases]
         bases = tuple(name for name in base_names if name is not None)
 
-        self.artifacts.append(
+        self._add(
             FoundArtifact(
                 kind=ArtifactKind.CLASS,
                 name=node.name,
@@ -125,7 +138,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             # Inside a class
             if _has_property_decorator(node):
                 # Property -> treat as attribute
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
                         name=node.name,
@@ -138,7 +151,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             else:
                 # Method
                 args = _extract_args(node, is_method=True)
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=ArtifactKind.METHOD,
                         name=node.name,
@@ -160,7 +173,7 @@ class _ImplementationCollector(ast.NodeVisitor):
         else:
             # Module-level function
             args = _extract_args(node, is_method=False)
-            self.artifacts.append(
+            self._add(
                 FoundArtifact(
                     kind=ArtifactKind.FUNCTION,
                     name=node.name,
@@ -184,7 +197,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                 ):
                     attr_name = target.attr
                     if not self._has_artifact(attr_name, self._current_class):
-                        self.artifacts.append(
+                        self._add(
                             FoundArtifact(
                                 kind=ArtifactKind.ATTRIBUTE,
                                 name=attr_name,
@@ -197,7 +210,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     if not self._has_artifact(target.id, self._current_class):
-                        self.artifacts.append(
+                        self._add(
                             FoundArtifact(
                                 kind=ArtifactKind.ATTRIBUTE,
                                 name=target.id,
@@ -209,7 +222,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             # Module-level assignment
             for target in node.targets:
                 if isinstance(target, ast.Name):
-                    self.artifacts.append(
+                    self._add(
                         FoundArtifact(
                             kind=ArtifactKind.ATTRIBUTE,
                             name=target.id,
@@ -219,7 +232,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                 elif isinstance(target, ast.Tuple):
                     for elt in target.elts:
                         if isinstance(elt, ast.Name):
-                            self.artifacts.append(
+                            self._add(
                                 FoundArtifact(
                                     kind=ArtifactKind.ATTRIBUTE,
                                     name=elt.id,
@@ -236,7 +249,7 @@ class _ImplementationCollector(ast.NodeVisitor):
         if isinstance(node.target, ast.Name):
             if self._current_class is not None and not self._in_function:
                 # Class-level annotated attribute: field: type
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
                         name=node.target.id,
@@ -247,7 +260,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                 )
             elif self._current_class is None and not self._in_function:
                 # Module-level annotated attribute
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
                         name=node.target.id,
@@ -265,7 +278,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             # Annotated self attribute inside method: self.name: str = value
             attr_name = node.target.attr
             if not self._has_artifact(attr_name, self._current_class):
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=ArtifactKind.ATTRIBUTE,
                         name=attr_name,
@@ -293,7 +306,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                     kind = ArtifactKind.CLASS
                 else:
                     kind = ArtifactKind.FUNCTION
-                self.artifacts.append(
+                self._add(
                     FoundArtifact(
                         kind=kind,
                         name=name,
@@ -309,31 +322,68 @@ class _ImplementationCollector(ast.NodeVisitor):
 class _BehavioralCollector(ast.NodeVisitor):
     """Collect artifact references (imports, calls, attribute access)."""
 
-    def __init__(self) -> None:
+    def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
         self._seen: set[str] = set()
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
+        self._importer_module: Optional[str] = (
+            file_to_module_path(file_path, Path(".")) if file_path else None
+        ) or None
+        # Maps a bound name to the namespace that name refers to. Populated
+        # only by plain `import pkg.mod` / `import pkg.mod as pm` so that
+        # attribute chains rooted at the bound name (e.g. ``pkg.mod.Foo``)
+        # can resolve the leaf reference's import_source.
+        self._module_imports: dict[str, str] = {}
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if node.names:
+            level = node.level or 0
+            if level > 0 and self._importer_module:
+                source_module = resolve_relative_import(
+                    node.module, level, self._importer_module
+                )
+            else:
+                source_module = node.module or ""
             for alias in node.names:
-                name = alias.asname or alias.name
-                self._add_reference(name)
+                if alias.name == "*":
+                    continue
+                bound = alias.asname or alias.name
+                alias_of = alias.name if alias.asname else None
+                self._add_reference(
+                    bound,
+                    import_source=source_module or None,
+                    alias_of=alias_of,
+                )
         self.generic_visit(node)
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
-            name = alias.asname or alias.name
-            self._add_reference(name)
+            # `import pkg.mod`       -> Python binds the top-level `pkg`.
+            # `import pkg.mod as pm` -> Python binds `pm`.
+            if alias.asname:
+                bound = alias.asname
+                alias_of = alias.name
+                namespace_root = alias.name
+            else:
+                bound = alias.name.split(".", 1)[0]
+                alias_of = None
+                namespace_root = bound
+            self._module_imports[bound] = namespace_root
+            self._add_reference(bound, import_source=alias.name, alias_of=alias_of)
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
         if isinstance(node.func, ast.Name):
             self._add_reference(node.func.id)
         elif isinstance(node.func, ast.Attribute):
-            self._add_reference(node.func.attr)
+            resolved = self._resolve_attribute_chain(node.func)
+            if resolved is not None:
+                leaf, source = resolved
+                self._add_reference(leaf, import_source=source)
+            else:
+                self._add_reference(node.func.attr)
         for kw in node.keywords:
             if kw.arg is not None:  # **kwargs has arg=None
                 self._add_reference(kw.arg)
@@ -344,8 +394,38 @@ class _BehavioralCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
-        self._add_reference(node.attr)
+        resolved = self._resolve_attribute_chain(node)
+        if resolved is not None:
+            leaf, source = resolved
+            self._add_reference(leaf, import_source=source)
+        else:
+            self._add_reference(node.attr)
         self.generic_visit(node)
+
+    def _resolve_attribute_chain(
+        self, node: ast.Attribute
+    ) -> Optional[tuple[str, str]]:
+        """If the chain is rooted at an imported name, return (leaf, source).
+
+        For ``pkg.mod.Foo`` after ``import pkg.mod``: ("Foo", "pkg.mod").
+        For ``pm.Foo`` after ``import pkg.mod as pm``: ("Foo", "pkg.mod").
+        Returns None when the root Name is not in the import map.
+        """
+        attrs: list[str] = []
+        current: ast.expr = node
+        while isinstance(current, ast.Attribute):
+            attrs.append(current.attr)
+            current = current.value
+        if not isinstance(current, ast.Name):
+            return None
+        namespace = self._module_imports.get(current.id)
+        if namespace is None:
+            return None
+        attrs.reverse()  # outermost (leaf) is now last
+        leaf = attrs[-1]
+        middle = attrs[:-1]
+        source = ".".join([namespace, *middle]) if middle else namespace
+        return leaf, source
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         is_top_level = self._function_depth == 0 and not self._class_stack
@@ -392,15 +472,28 @@ class _BehavioralCollector(ast.NodeVisitor):
             )
         )
 
-    def _add_reference(self, name: str) -> None:
-        if name not in self._seen:
-            self._seen.add(name)
-            self.artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.FUNCTION,  # Kind doesn't matter for behavioral
-                    name=name,
-                )
+    def _add_reference(
+        self,
+        name: str,
+        *,
+        import_source: Optional[str] = None,
+        alias_of: Optional[str] = None,
+    ) -> None:
+        if name in self._seen:
+            return
+        self._seen.add(name)
+        self.artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,  # Kind doesn't matter for behavioral
+                name=name,
+                import_source=import_source,
+                alias_of=alias_of,
             )
+        )
+
+
+def _with_module_path(artifact: FoundArtifact, module_path: str) -> FoundArtifact:
+    return replace(artifact, module_path=module_path)
 
 
 def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:

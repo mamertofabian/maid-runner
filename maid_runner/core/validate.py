@@ -10,6 +10,8 @@ from typing import Optional, Union
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._type_compare import types_match
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.identity import match_artifact_to_references
+from maid_runner.core.module_paths import file_to_module_path
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
@@ -206,14 +208,23 @@ class ValidationEngine:
         # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
         # validated separately by _validate_test_function_names
         for fs in manifest.all_file_specs:
+            artifact_module = (
+                file_to_module_path(fs.path, self._project_root) if fs.path else None
+            )
             for artifact in fs.artifacts:
                 if artifact.is_private:
                     continue
                 if artifact.kind == ArtifactKind.TEST_FUNCTION:
                     continue
+                identity = FoundArtifact(
+                    kind=artifact.kind,
+                    name=artifact.name,
+                    of=artifact.of,
+                    module_path=artifact_module,
+                )
                 used = False
-                for ref_names in test_artifacts.values():
-                    if artifact.name in ref_names:
+                for refs in test_artifacts.values():
+                    if match_artifact_to_references(identity, refs, self._project_root):
                         used = True
                         break
                 if not used:
@@ -523,12 +534,21 @@ class ValidationEngine:
 
         # Check each public artifact is referenced in at least one test (WARNING)
         for fs in source_file_specs:
+            artifact_module = (
+                file_to_module_path(fs.path, self._project_root) if fs.path else None
+            )
             for artifact in fs.artifacts:
                 if artifact.is_private:
                     continue
+                identity = FoundArtifact(
+                    kind=artifact.kind,
+                    name=artifact.name,
+                    of=artifact.of,
+                    module_path=artifact_module,
+                )
                 used = False
-                for ref_names in test_artifacts.values():
-                    if artifact.name in ref_names:
+                for refs in test_artifacts.values():
+                    if match_artifact_to_references(identity, refs, self._project_root):
                         used = True
                         break
                 if not used:
@@ -1061,8 +1081,8 @@ def _collect_test_artifacts(
     *,
     registry: ValidatorRegistry,
     errors: list[ValidationError],
-) -> dict[str, set[str]]:
-    collected: dict[str, set[str]] = {}
+) -> dict[str, list[FoundArtifact]]:
+    collected: dict[str, list[FoundArtifact]] = {}
 
     for tf_path in test_files:
         full_path = project_root / tf_path
@@ -1095,11 +1115,11 @@ def _collect_test_artifacts(
         # Exclude TEST_FUNCTION declarations so a test labeled `it("createLogin", ...)`
         # does not masquerade as a reference to a source artifact named `createLogin`.
         # Only real identifier/call references count as artifact usage.
-        collected[tf_path] = {
-            artifact.name
+        collected[tf_path] = [
+            artifact
             for artifact in result.artifacts
             if artifact.kind != ArtifactKind.TEST_FUNCTION
-        }
+        ]
 
     return collected
 

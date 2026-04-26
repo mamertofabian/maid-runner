@@ -25,6 +25,9 @@ class FoundArtifact:
     is_stub: bool = False
     line: Optional[int] = None
     column: Optional[int] = None
+    module_path: Optional[str] = None
+    import_source: Optional[str] = None
+    alias_of: Optional[str] = None
 
     @property
     def is_private(self) -> bool:

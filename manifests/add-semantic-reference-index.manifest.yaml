@@ -1,0 +1,144 @@
+schema: "2"
+goal: >
+  Replace name-based artifact matching with identity-aware matching for Python:
+  enrich FoundArtifact with module_path/import_source/alias_of, add core
+  helpers (module_paths, identity), and use them in behavioral validation.
+type: feature
+created: "2026-04-26"
+description: |
+  Behavioral validation today does `artifact.name in ref_names`
+  (validate.py:215-216, :530-531), which conflates same-named symbols across
+  modules. This manifest introduces a Semantic Reference Index for Python:
+
+    1. FoundArtifact gains three optional identity fields: module_path
+       (defining module, dotted), import_source (module a reference was
+       imported from), and alias_of (original name when bound via `as`).
+    2. A new helper module maid_runner/core/module_paths.py exposes
+       file_to_module_path, resolve_relative_import, and resolve_reexport
+       (one-level barrel resolution through __init__.py).
+    3. A new core module maid_runner/core/identity.py exposes
+       match_artifact_to_references — strict identity match when both sides
+       are resolved, fallback to name match only when the reference has no
+       resolvable import_source. Disagreement between resolved identities
+       does NOT silently pass.
+    4. The Python validator populates these fields during collection.
+
+  Out of scope (deferred to follow-up manifests):
+    - TypeScript and Svelte validators
+    - Local symbol tables, closures, intra-function name resolution
+    - Manifest schema changes (sequence_number, version_tag)
+    - Recursive re-export resolution (one level only here)
+
+files:
+  create:
+    - path: maid_runner/core/module_paths.py
+      artifacts:
+        - kind: function
+          name: file_to_module_path
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: str
+        - kind: function
+          name: resolve_relative_import
+          args:
+            - name: module
+              type: Optional[str]
+            - name: level
+              type: int
+            - name: importer_module
+              type: str
+          returns: str
+        - kind: function
+          name: resolve_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+          returns: bool
+
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: attribute
+          name: module_path
+          of: FoundArtifact
+          type: Optional[str]
+        - kind: attribute
+          name: import_source
+          of: FoundArtifact
+          type: Optional[str]
+        - kind: attribute
+          name: alias_of
+          of: FoundArtifact
+          type: Optional[str]
+
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_behavioral
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: function
+          name: _collect_test_artifacts
+          args:
+            - name: test_files
+              type: list[str]
+            - name: project_root
+              type: Path
+          returns: dict[str, list[FoundArtifact]]
+
+  read:
+    - tests/core/test_identity_matching.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python.py
+    - tests/core/test_validate.py
+    - manifests/snapshot-validators-base.manifest.yaml
+
+validate:
+  - pytest tests/core/test_identity_matching.py -v
+  - pytest tests/validators/test_python_identity.py -v
