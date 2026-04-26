@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-04-26
+
+### Added
+- **Semantic Reference Index** — Identity-aware artifact matching for Python, TypeScript, and Svelte. Artifacts now carry `module_path`, `import_source`, and `alias_of` metadata so validators can distinguish same-named symbols across modules instead of falling back to name-only matching. Includes one-level barrel re-export resolution through `__init__.py` (Python) and `index.ts(x)` (TypeScript/Svelte).
+- **Manifest event-log system** — Manifests can now declare optional `sequence_number` and `version_tag` fields. `ManifestChain.event_log()` returns all manifests (including superseded) sorted by `sequence_number` → `created` → `slug`, providing a deterministic historical record.
+- **Event-log conflict diagnostics** — `ManifestChain.diagnostics()` now detects duplicate sequence numbers (ERROR E107) and non-monotonic sequence ordering vs created timestamps (WARNING E108), plus mixed numbering detection (WARNING E106).
+- **`event_log_until()` query API** — Point-in-time event-log queries: filter by `sequence_number` (prefix up to N) or `version_tag` (through first matching tag). Sequence queries include only sequenced manifests.
+- **`replay_until()` replay preview API** — Returns effective artifacts per file at a point in the event log, applying prefix-scoped supersession and delete handling.
+- **`maid chain log` CLI** — Read-only event-log viewer with text table and JSON output. Supports `--until-seq`, `--version-tag`, and `--active` flags.
+- **`maid chain replay` CLI** — Read-only replay preview with text and JSON output. Supports `--until-seq` and `--version-tag` flags.
+
+### Fixed
+- **Svelte component import identity** — `resolve_relative_ts_import` now strips known source extensions (`.svelte`, `.ts`, `.tsx`, etc.) from resolved specifiers, ensuring `import Foo from "./Foo.svelte"` matches the extensionless module identity.
+
 ## [2.3.1] - 2026-04-25
 
 ### Fixed
@@ -753,6 +767,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.4.0]: https://github.com/mamertofabian/maid-runner/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/mamertofabian/maid-runner/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/mamertofabian/maid-runner/compare/v2.2.4...v2.3.0
 [2.2.4]: https://github.com/mamertofabian/maid-runner/compare/v2.2.3...v2.2.4
