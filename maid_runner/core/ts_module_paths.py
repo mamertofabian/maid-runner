@@ -23,6 +23,7 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".js",
     ".mts",
     ".cts",
+    ".svelte",
 )
 
 _INDEX_CANDIDATES: tuple[str, ...] = ("index.ts", "index.tsx")
@@ -93,7 +94,12 @@ def resolve_relative_ts_import(
             continue
         base_parts.append(part)
 
-    return "/".join(base_parts)
+    result = "/".join(base_parts)
+    for ext in _TS_EXTENSIONS:
+        if result.endswith(ext):
+            result = result[: -len(ext)]
+            break
+    return result
 
 
 def resolve_ts_reexport(

@@ -8,8 +8,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
+from maid_runner.core.ts_module_paths import (
+    resolve_ts_reexport,
+    ts_file_to_module_path,
+)
 from maid_runner.validators.base import BaseValidator, CollectionResult
 
 try:
@@ -92,6 +96,16 @@ class SvelteValidator(BaseValidator):
         return self._ts_validator.get_test_function_bodies(
             script_content, str(file_path).replace(".svelte", ".ts")
         )
+
+    def module_path(
+        self, file_path: Union[str, Path], project_root: Path
+    ) -> Optional[str]:
+        return ts_file_to_module_path(file_path, project_root) or None
+
+    def resolve_reexport(
+        self, module: str, name: str, project_root: Path
+    ) -> Optional[tuple[str, str]]:
+        return resolve_ts_reexport(module, name, project_root)
 
 
 def _extract_script(source: str) -> str:

@@ -112,6 +112,18 @@ class TestResolveRelativeTsImport:
             == "src/models/user"
         )
 
+    def test_strips_ts_extension_from_resolved_specifier(self) -> None:
+        assert (
+            resolve_relative_ts_import("./user.ts", "src/models/index")
+            == "src/models/user"
+        )
+
+    def test_strips_svelte_extension_from_resolved_specifier(self) -> None:
+        assert (
+            resolve_relative_ts_import("./Foo.svelte", "src/components/test")
+            == "src/components/Foo"
+        )
+
 
 # ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)

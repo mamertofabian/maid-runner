@@ -1,0 +1,83 @@
+schema: "2"
+goal: >
+  Extend identity-aware behavioral matching to Svelte: add module_path and
+  resolve_reexport overrides to SvelteValidator, delegating to the TypeScript
+  module-path helpers.
+type: feature
+created: "2026-04-26"
+description: |
+  Completes the Semantic Reference Index trilogy (Python, TypeScript, Svelte).
+  The Svelte validator already delegates collection to TypeScriptValidator,
+  which stamps module_path/import_source/alias_of on every artifact. However,
+  the validation engine calls validator.module_path() and
+  validator.resolve_reexport() directly on the SvelteValidator instance, and
+  both inherited the base-class defaults (return None).
+
+  Since Svelte <script lang="ts"> blocks are TypeScript, module identity is
+  the same path-based identity. The two overrides:
+
+    - module_path: delegates to ts_file_to_module_path (returns e.g.
+      "src/components/App")
+    - resolve_reexport: delegates directly to resolve_ts_reexport for
+      one-level barrel resolution through index.ts(x)
+
+  This manifest also normalizes resolve_relative_ts_import to strip known
+  source extensions (.ts, .tsx, .js, .jsx, .mts, .cts, .svelte) from
+  resolved import specifiers, so explicit Svelte component imports like
+  `import Foo from "./Foo.svelte"` resolve to extensionless module
+  identity (src/components/Foo) matching what module_path returns.
+
+files:
+  edit:
+    - path: maid_runner/validators/svelte.py
+      artifacts:
+        - kind: method
+          name: module_path
+          of: SvelteValidator
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: method
+          name: resolve_reexport
+          of: SvelteValidator
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_relative_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+          returns: str
+        - kind: function
+          name: ts_file_to_module_path
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: str
+
+  read:
+    - tests/validators/test_svelte.py
+    - tests/core/test_ts_module_paths.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/validators/typescript.py
+    - manifests/add-semantic-reference-index-typescript.manifest.yaml
+
+validate:
+  - pytest tests/validators/test_svelte.py -v
+  - pytest tests/core/test_ts_module_paths.py -v
