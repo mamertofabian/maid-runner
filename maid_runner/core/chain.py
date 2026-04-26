@@ -106,6 +106,54 @@ class ManifestChain:
         assert self._manifests is not None
         return _sort_manifests(list(self._manifests))
 
+    def event_log_until(
+        self,
+        sequence_number: int | None = None,
+        version_tag: str | None = None,
+    ) -> list[Manifest]:
+        """Return the event-log prefix up to a point in time.
+
+        Args:
+            sequence_number: Return manifests with seq# <= this value.
+                Only sequenced manifests are included (unsequenced entries
+                have no reliable position). Takes precedence over
+                version_tag when both are provided.
+            version_tag: Return manifests through the first whose
+                version_tag matches (inclusive). Returns empty when the
+                tag is not found.
+            Neither: Returns the full event_log().
+
+        Returns:
+            Sorted list of Manifest objects matching the query.
+
+        Raises:
+            ValueError: If sequence_number <= 0 or version_tag is "".
+        """
+        if sequence_number is not None and sequence_number <= 0:
+            raise ValueError("sequence_number must be >= 1")
+        if version_tag is not None and version_tag == "":
+            raise ValueError("version_tag must not be empty")
+
+        log = self.event_log()
+
+        if sequence_number is not None:
+            return [
+                m
+                for m in log
+                if m.sequence_number is not None
+                and m.sequence_number <= sequence_number
+            ]
+
+        if version_tag is not None:
+            result: list[Manifest] = []
+            for m in log:
+                result.append(m)
+                if m.version_tag == version_tag:
+                    return result
+            return []
+
+        return log
+
     @property
     def load_errors(self) -> list[ValidationError]:
         self._ensure_loaded()

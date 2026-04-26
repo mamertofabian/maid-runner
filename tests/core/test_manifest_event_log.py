@@ -467,6 +467,291 @@ class TestNonMonotonicSequenceOrder:
 
 
 # ---------------------------------------------------------------------------
+# event_log_until: point-in-time query API
+# ---------------------------------------------------------------------------
+
+
+class TestEventLogUntil:
+    def test_sequence_cutoff_returns_up_to_and_including(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+        _write_manifest(
+            manifest_dir,
+            "c.manifest.yaml",
+            goal="third",
+            created="2026-03-01",
+            sequence_number=3,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(sequence_number=2)
+
+        assert len(result) == 2
+        assert [m.slug for m in result] == ["a", "b"]
+
+    def test_sequence_before_first_returns_empty(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=10,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(sequence_number=5)
+
+        assert result == []
+
+    def test_sequence_between_existing_returns_earlier(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "c.manifest.yaml",
+            goal="third",
+            created="2026-03-01",
+            sequence_number=5,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(sequence_number=2)
+
+        assert len(result) == 1
+        assert result[0].slug == "a"
+
+    def test_sequence_after_last_returns_all_sequenced(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(sequence_number=99)
+
+        assert len(result) == 2
+
+    def test_version_tag_cutoff_returns_through_first_match(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            version_tag="release-1",
+        )
+        _write_manifest(
+            manifest_dir,
+            "c.manifest.yaml",
+            goal="third",
+            created="2026-03-01",
+            sequence_number=3,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(version_tag="release-1")
+
+        assert len(result) == 2
+        assert [m.slug for m in result] == ["a", "b"]
+
+    def test_version_tag_not_found_returns_empty(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(version_tag="nonexistent")
+
+        assert result == []
+
+    def test_sequence_number_takes_precedence_over_version_tag(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            version_tag="v1",
+        )
+        _write_manifest(
+            manifest_dir,
+            "c.manifest.yaml",
+            goal="third",
+            created="2026-03-01",
+            sequence_number=3,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        # seq=1 would only return [a], but version_tag="v1" would return [a,b].
+        # sequence_number takes precedence.
+        result = chain.event_log_until(sequence_number=1, version_tag="v1")
+        assert [m.slug for m in result] == ["a"]
+
+    def test_neither_arg_returns_all(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until()
+
+        assert len(result) == 2
+
+    def test_includes_superseded_manifests(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "original.manifest.yaml",
+            goal="original",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "replacement.manifest.yaml",
+            goal="replacement",
+            created="2026-02-01",
+            sequence_number=2,
+            supersedes=["original"],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.event_log_until(sequence_number=2)
+
+        assert len(result) == 2
+        assert {m.slug for m in result} == {"original", "replacement"}
+
+    def test_invalid_sequence_number_raises_value_error(self, tmp_path: Path) -> None:
+        import pytest as pt
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        with pt.raises(ValueError, match="sequence_number must be >= 1"):
+            chain.event_log_until(sequence_number=0)
+
+    def test_empty_version_tag_raises_value_error(self, tmp_path: Path) -> None:
+        import pytest as pt
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        with pt.raises(ValueError, match="version_tag must not be empty"):
+            chain.event_log_until(version_tag="")
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -477,6 +762,7 @@ def _write_manifest(
     goal: str,
     created: str,
     sequence_number: int | None = None,
+    version_tag: str | None = None,
     supersedes: list[str] | None = None,
 ) -> None:
     data: dict = {
@@ -496,6 +782,8 @@ def _write_manifest(
     }
     if sequence_number is not None:
         data["sequence_number"] = sequence_number
+    if version_tag is not None:
+        data["version_tag"] = version_tag
     if supersedes:
         data["supersedes"] = supersedes
 

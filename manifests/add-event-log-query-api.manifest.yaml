@@ -1,0 +1,48 @@
+schema: "2"
+goal: >
+  Add ManifestChain.event_log_until() query API for point-in-time event-log
+  inspection by sequence_number or version_tag.
+type: feature
+created: "2026-04-26"
+description: |
+  Adds a query method to ManifestChain that returns the event-log prefix up
+  to a given point in time, without building a full replay engine.
+
+  API: event_log_until(sequence_number=None, version_tag=None) -> list[Manifest]
+    - sequence_number: return all manifests with sequence_number <= N (not
+      just exact match). If N is before the first sequenced manifest the
+      result is empty; if N is after the last, all sequenced manifests are
+      returned. Takes precedence over version_tag when both are provided.
+    - version_tag: return all manifests through the first manifest whose
+      version_tag matches (inclusive). Returns empty when the tag is not
+      found so a bad query is visible rather than silently returning
+      everything.
+    - Neither provided: returns all manifests (equivalent to event_log()).
+    - Includes superseded manifests (historical query behavior).
+    - Raises ValueError for sequence_number <= 0 or empty version_tag.
+
+  Out of scope (deferred to follow-up manifests):
+    - CLI flags (--until-seq, --version-tag on maid chain log)
+    - Query by slug, created date, or other fields
+    - Full replay engine (applying manifests to reconstruct code state)
+
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: event_log_until
+          of: ManifestChain
+          args:
+            - name: sequence_number
+              type: Optional[int]
+            - name: version_tag
+              type: Optional[str]
+          returns: list[Manifest]
+
+  read:
+    - tests/core/test_manifest_event_log.py
+    - manifests/add-manifest-event-log.manifest.yaml
+
+validate:
+  - pytest tests/core/test_manifest_event_log.py -v
