@@ -267,12 +267,71 @@ class ManifestChain:
             ]
         return []
 
+    def _detect_duplicate_sequence(self) -> list[ValidationError]:
+        self._ensure_loaded()
+        assert self._manifests is not None
+        seq_to_slugs: dict[int, list[str]] = {}
+        for m in self._manifests:
+            if m.sequence_number is not None:
+                seq_to_slugs.setdefault(m.sequence_number, []).append(m.slug)
+        errors: list[ValidationError] = []
+        for seq, slugs in seq_to_slugs.items():
+            if len(slugs) > 1:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.DUPLICATE_SEQUENCE_NUMBER,
+                        message=(
+                            f"Duplicate sequence_number {seq}: "
+                            f"{', '.join(sorted(slugs))}"
+                        ),
+                        severity=Severity.ERROR,
+                    )
+                )
+        return errors
+
+    def _detect_non_monotonic_sequence(self) -> list[ValidationError]:
+        self._ensure_loaded()
+        assert self._manifests is not None
+        sequenced = [
+            m
+            for m in self._manifests
+            if m.sequence_number is not None and m.created is not None
+        ]
+        sequenced.sort(key=lambda m: m.sequence_number)  # type: ignore[arg-type]
+        errors: list[ValidationError] = []
+        for i in range(1, len(sequenced)):
+            prev = sequenced[i - 1]
+            curr = sequenced[i]
+            # type narrowing: both have sequence_number and created
+            assert prev.sequence_number is not None and curr.sequence_number is not None
+            assert prev.created is not None and curr.created is not None
+            if prev.sequence_number == curr.sequence_number:
+                continue  # duplicate — handled by _detect_duplicate_sequence
+            if curr.created < prev.created:
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.NON_MONOTONIC_SEQUENCE_ORDER,
+                        message=(
+                            f"Non-monotonic sequence order: "
+                            f"'{curr.slug}' (seq {curr.sequence_number}, "
+                            f"created {curr.created}) comes after "
+                            f"'{prev.slug}' (seq {prev.sequence_number}, "
+                            f"created {prev.created}) but has an earlier "
+                            f"created timestamp"
+                        ),
+                        severity=Severity.WARNING,
+                    )
+                )
+        return errors
+
     def diagnostics(self) -> list[ValidationError]:
         """Return all chain-level diagnostics discovered during loading."""
         return (
             self.load_errors
             + self.validate_supersession_integrity()
             + self._detect_mixed_ordering()
+            + self._detect_duplicate_sequence()
+            + self._detect_non_monotonic_sequence()
         )
 
     def reload(self) -> None:

@@ -1,0 +1,45 @@
+schema: "2"
+goal: >
+  Add duplicate and non-monotonic sequence_number diagnostics to
+  ManifestChain.diagnostics() for event-log conflict detection.
+type: feature
+created: "2026-04-26"
+description: |
+  Extends ManifestChain.diagnostics() with two new event-log conflict checks
+  that surface when the manifest chain has ordering ambiguities:
+
+    - DUPLICATE_SEQUENCE_NUMBER (E107, ERROR): two manifests share the
+      same sequence_number. Replay order is ambiguous — at least one must be
+      reassigned.
+    - NON_MONOTONIC_SEQUENCE_ORDER (E108, WARNING): a manifest has a higher
+      sequence_number but an earlier created timestamp than a manifest with
+      a lower sequence_number. This may be intentional (rebase, out-of-order
+      insertion) but should be visible.
+
+  Private implementation: _detect_duplicate_sequence and
+  _detect_non_monotonic_sequence methods on ManifestChain, wired into
+  diagnostics() alongside the existing _detect_mixed_ordering.
+
+  Out of scope (deferred to follow-up manifests):
+    - Sequence gap detection (non-consecutive sequence numbers)
+    - Auto-correction or reassignment
+    - CLI changes (diagnostics already surface via `maid validate`)
+
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: DUPLICATE_SEQUENCE_NUMBER
+          of: ErrorCode
+        - kind: attribute
+          name: NON_MONOTONIC_SEQUENCE_ORDER
+          of: ErrorCode
+
+  read:
+    - tests/core/test_manifest_event_log.py
+    - maid_runner/core/chain.py
+    - manifests/add-manifest-event-log.manifest.yaml
+
+validate:
+  - pytest tests/core/test_manifest_event_log.py -v

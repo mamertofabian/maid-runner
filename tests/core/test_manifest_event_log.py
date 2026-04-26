@@ -350,6 +350,123 @@ class TestChainEventLog:
 
 
 # ---------------------------------------------------------------------------
+# Duplicate sequence_number diagnostic
+# ---------------------------------------------------------------------------
+
+
+class TestDuplicateSequenceNumber:
+    def test_duplicate_sequence_emits_error(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=5,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=5,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+        dupes = [d for d in diags if d.code == ErrorCode.DUPLICATE_SEQUENCE_NUMBER]
+        assert len(dupes) >= 1, (
+            f"Expected DUPLICATE_SEQUENCE_NUMBER diagnostic, got: {diags}"
+        )
+
+    def test_unique_sequence_numbers_emit_no_duplicate_error(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+        dupes = [d for d in diags if d.code == ErrorCode.DUPLICATE_SEQUENCE_NUMBER]
+        assert len(dupes) == 0, f"Unexpected DUPLICATE_SEQUENCE_NUMBER: {diags}"
+
+
+# ---------------------------------------------------------------------------
+# Non-monotonic sequence_number diagnostic
+# ---------------------------------------------------------------------------
+
+
+class TestNonMonotonicSequenceOrder:
+    def test_non_monotonic_emits_warning(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        # seq 3 has earlier created than seq 2 — non-monotonic
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="later seq, earlier created",
+            created="2026-01-01",
+            sequence_number=3,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="earlier seq, later created",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+        nonmono = [d for d in diags if d.code == ErrorCode.NON_MONOTONIC_SEQUENCE_ORDER]
+        assert len(nonmono) >= 1, (
+            f"Expected NON_MONOTONIC_SEQUENCE_ORDER diagnostic, got: {diags}"
+        )
+
+    def test_monotonic_sequence_emits_no_warning(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+        nonmono = [d for d in diags if d.code == ErrorCode.NON_MONOTONIC_SEQUENCE_ORDER]
+        assert len(nonmono) == 0, f"Unexpected NON_MONOTONIC_SEQUENCE_ORDER: {diags}"
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
