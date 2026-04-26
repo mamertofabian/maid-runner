@@ -144,6 +144,8 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         task_type=task_type,
         description=data.get("description"),
         supersedes=tuple(data.get("supersedes", [])),
+        sequence_number=data.get("sequence_number"),
+        version_tag=data.get("version_tag"),
         created=data.get("created"),
         metadata=data.get("metadata"),
         acceptance=acceptance,
@@ -271,6 +273,10 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
 
     if manifest.supersedes:
         data["supersedes"] = list(manifest.supersedes)
+    if manifest.sequence_number is not None:
+        data["sequence_number"] = manifest.sequence_number
+    if manifest.version_tag is not None:
+        data["version_tag"] = manifest.version_tag
     if manifest.created:
         data["created"] = manifest.created
     if manifest.metadata:

@@ -151,6 +151,8 @@ class Manifest:
     task_type: Optional[TaskType] = None
     description: Optional[str] = None
     supersedes: tuple[str, ...] = ()
+    sequence_number: Optional[int] = None
+    version_tag: Optional[str] = None
     created: Optional[str] = None
     metadata: Optional[dict] = None
     acceptance: Optional[AcceptanceConfig] = None

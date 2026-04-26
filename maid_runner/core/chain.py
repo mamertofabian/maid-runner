@@ -95,6 +95,17 @@ class ManifestChain:
         assert self._manifests is not None
         return list(self._manifests)
 
+    def event_log(self) -> list[Manifest]:
+        """All manifests (including superseded) sorted in event order.
+
+        Ordering: sequence_number first, then created timestamp, then slug.
+        This is the full historical record — superseded manifests are
+        included so the replay/history surface is complete.
+        """
+        self._ensure_loaded()
+        assert self._manifests is not None
+        return _sort_manifests(list(self._manifests))
+
     @property
     def load_errors(self) -> list[ValidationError]:
         self._ensure_loaded()
@@ -230,9 +241,39 @@ class ManifestChain:
 
         return errors
 
+    def _detect_mixed_ordering(self) -> list[ValidationError]:
+        self._ensure_loaded()
+        assert self._manifests is not None
+        has_seq = any(m.sequence_number is not None for m in self._manifests)
+        lacks_seq = any(m.sequence_number is None for m in self._manifests)
+        if has_seq and lacks_seq:
+            sequenced = [
+                m.slug for m in self._manifests if m.sequence_number is not None
+            ]
+            unsequenced = [m.slug for m in self._manifests if m.sequence_number is None]
+            return [
+                ValidationError(
+                    code=ErrorCode.MIXED_SEQUENCE_NUMBERING,
+                    message=(
+                        f"Mixed sequence numbering detected: "
+                        f"{len(sequenced)} manifest(s) have sequence_number "
+                        f"({', '.join(sequenced[:3])}{'...' if len(sequenced) > 3 else ''}), "
+                        f"{len(unsequenced)} do not "
+                        f"({', '.join(unsequenced[:3])}{'...' if len(unsequenced) > 3 else ''}). "
+                        f"Chain ordering uses sequence_number first, falling back to created."
+                    ),
+                    severity=Severity.WARNING,
+                )
+            ]
+        return []
+
     def diagnostics(self) -> list[ValidationError]:
         """Return all chain-level diagnostics discovered during loading."""
-        return self.load_errors + self.validate_supersession_integrity()
+        return (
+            self.load_errors
+            + self.validate_supersession_integrity()
+            + self._detect_mixed_ordering()
+        )
 
     def reload(self) -> None:
         self._manifests = None
@@ -251,10 +292,12 @@ def _discover_manifest_files(manifest_dir: Path) -> list[Path]:
 
 
 def _sort_manifests(manifests: list[Manifest]) -> list[Manifest]:
-    def sort_key(m: Manifest) -> tuple[int, str, str]:
+    def sort_key(m: Manifest) -> tuple[int, int, str, str]:
+        if m.sequence_number is not None:
+            return (0, m.sequence_number, "", m.slug)
         if m.created:
-            return (0, m.created, m.slug)
-        return (1, "", m.slug)
+            return (1, 0, m.created, m.slug)
+        return (2, 0, "", m.slug)
 
     return sorted(manifests, key=sort_key)
 

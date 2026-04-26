@@ -1,0 +1,68 @@
+schema: "2"
+goal: >
+  Add optional sequence_number and version_tag fields to the manifest schema,
+  Manifest dataclass, parser/serializer, and chain ordering for event-log
+  reconstruction.
+type: feature
+created: "2026-04-26"
+description: |
+  With artifact identity stable across Python, TypeScript, and Svelte (the
+  Semantic Reference Index trilogy), the preconditions for schema-level event
+  tracking are met. This manifest adds:
+
+    - sequence_number (optional int): explicitly declared, monotonically
+      increasing identifier. When present across all manifests in a chain,
+      it provides deterministic ordering that supersedes creation-timestamp
+      heuristics. Backward-compatible: manifests without it still load.
+    - version_tag (optional string): free-form per-manifest label for
+      release stamping. Multiple manifests can share the same tag.
+
+  Chain integration:
+    - _sort_manifests orders by sequence_number first, falling back to
+      created → slug when missing.
+    - ManifestChain.event_log returns ALL manifests (including superseded)
+      sorted in event order — the full historical record.
+    - Mixed-ordering detection: when some manifests have sequence_number
+      and others don't, a diagnostic is emitted (not a hard error) so
+      teams can migrate incrementally.
+
+  Out of scope (deferred to follow-up manifests):
+    - `maid chain log` CLI command
+    - Auto-assignment of sequence numbers
+    - Release-stamping machinery (multiple manifests sharing a version)
+    - Required sequence_number (remains optional for backward compat)
+
+files:
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: attribute
+          name: sequence_number
+          of: Manifest
+          type: Optional[int]
+        - kind: attribute
+          name: version_tag
+          of: Manifest
+          type: Optional[str]
+
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: event_log
+          of: ManifestChain
+          returns: list[Manifest]
+
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: MIXED_SEQUENCE_NUMBERING
+          of: ErrorCode
+
+  read:
+    - tests/core/test_manifest_event_log.py
+    - maid_runner/core/manifest.py
+    - maid_runner/schemas/manifest.v2.schema.json
+    - tests/core/test_chain.py
+
+validate:
+  - pytest tests/core/test_manifest_event_log.py -v
