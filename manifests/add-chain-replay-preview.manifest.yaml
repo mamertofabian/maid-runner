@@ -1,0 +1,51 @@
+schema: "2"
+goal: >
+  Add ManifestChain.replay_until() — a read-only replay preview that returns
+  effective artifacts per file at a point in the event log.
+type: feature
+created: "2026-04-26"
+description: |
+  Adds a replay API that applies the manifest chain up to a point in time
+  and returns a dict of {file_path: [ArtifactSpec]} representing the
+  effective artifact state at that point. No file reconstruction — artifact
+  metadata only.
+
+  API: replay_until(sequence_number=None, version_tag=None) -> dict[str, list[ArtifactSpec]]
+    - Internally uses event_log_until() to get the historical prefix.
+    - Walks manifests in event order, skipping those superseded by another
+      manifest within the prefix (same rule as active chain).
+    - Merges artifacts per file by merge_key (later manifest wins).
+    - Applies deletes: files listed in files_delete of non-superseded
+      manifests are removed from the result.
+    - Returns empty dict for empty prefix.
+
+  Differs from merged_artifacts_for(path):
+    1. Operates over a historical prefix, not just active manifests.
+    2. Returns ALL files at once (dict), not a single file.
+    3. Handles deletes and supersession within the prefix.
+
+  Out of scope (deferred to follow-up manifests):
+    - CLI (maid chain replay --until-seq N)
+    - Duplicate sequence diagnostics (already in diagnostics())
+    - File content reconstruction
+
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: replay_until
+          of: ManifestChain
+          args:
+            - name: sequence_number
+              type: Optional[int]
+            - name: version_tag
+              type: Optional[str]
+          returns: dict[str, list[ArtifactSpec]]
+
+  read:
+    - tests/core/test_manifest_event_log.py
+    - manifests/add-event-log-query-api.manifest.yaml
+
+validate:
+  - pytest tests/core/test_manifest_event_log.py -v

@@ -154,6 +154,52 @@ class ManifestChain:
 
         return log
 
+    def replay_until(
+        self,
+        sequence_number: int | None = None,
+        version_tag: str | None = None,
+    ) -> dict[str, list[ArtifactSpec]]:
+        """Return effective artifacts per file at a point in the event log.
+
+        Replays the manifest chain up to ``sequence_number`` or
+        ``version_tag`` (delegating to :meth:`event_log_until` for the
+        prefix). Within the prefix, manifests that are superseded by
+        another manifest *also in the prefix* are excluded — matching
+        the active-chain semantics at that point in time.
+
+        File deletes from non-superseded manifests remove files from
+        the result.  Later artifacts override earlier ones by merge_key.
+        """
+        prefix = self.event_log_until(
+            sequence_number=sequence_number, version_tag=version_tag
+        )
+        if not prefix:
+            return {}
+
+        prefix_slugs = {m.slug for m in prefix}
+        # A manifest is superseded-within-prefix only when the
+        # superseding manifest is also inside the prefix.
+        superseded_in_prefix: set[str] = set()
+        for m in prefix:
+            for s in m.supersedes:
+                if s in prefix_slugs:
+                    superseded_in_prefix.add(s)
+
+        result: dict[str, dict[str, ArtifactSpec]] = {}
+        for m in prefix:
+            if m.slug in superseded_in_prefix:
+                continue
+
+            for fs in m.all_file_specs:
+                file_artifacts = result.setdefault(fs.path, {})
+                for a in fs.artifacts:
+                    file_artifacts[a.merge_key()] = a
+
+            for ds in m.files_delete:
+                result.pop(ds.path, None)
+
+        return {path: list(artifacts.values()) for path, artifacts in result.items()}
+
     @property
     def load_errors(self) -> list[ValidationError]:
         self._ensure_loaded()

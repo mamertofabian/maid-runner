@@ -752,6 +752,240 @@ class TestEventLogUntil:
 
 
 # ---------------------------------------------------------------------------
+# replay_until: effective artifacts at a point in time
+# ---------------------------------------------------------------------------
+
+
+class TestReplayUntil:
+    def test_full_replay_returns_effective_artifacts(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until()
+
+        specs = result.get("mod.py", [])
+        names = {s.name for s in specs}
+        assert names == {"greet", "farewell"}
+
+    def test_sequence_cutoff_excludes_later_artifacts(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until(sequence_number=1)
+
+        specs = result.get("mod.py", [])
+        names = {s.name for s in specs}
+        assert names == {"greet"}
+
+    def test_superseded_artifacts_are_replaced(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "original.manifest.yaml",
+            goal="original",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "old_handler"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "replacement.manifest.yaml",
+            goal="replacement",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "new_handler"}],
+            supersedes=["original"],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until()
+
+        specs = result.get("mod.py", [])
+        names = {s.name for s in specs}
+        assert "new_handler" in names
+        assert "old_handler" not in names  # superseded → excluded
+
+    def test_deleted_file_excluded_from_result(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "create.manifest.yaml",
+            goal="create",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        # Second manifest deletes the file
+        _write_manifest_with_delete(
+            manifest_dir,
+            "delete.manifest.yaml",
+            goal="delete",
+            created="2026-02-01",
+            sequence_number=2,
+            delete_path="mod.py",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until()
+
+        assert "mod.py" not in result
+
+    def test_version_tag_cutoff(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+            version_tag="release-1",
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "third.manifest.yaml",
+            goal="third",
+            created="2026-03-01",
+            sequence_number=3,
+            artifacts=[{"kind": "function", "name": "bonus"}],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until(version_tag="release-1")
+
+        specs = result.get("mod.py", [])
+        names = {s.name for s in specs}
+        assert names == {"greet", "farewell"}
+        assert "bonus" not in names
+
+    def test_both_args_sequence_wins(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "first.manifest.yaml",
+            goal="first",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "second.manifest.yaml",
+            goal="second",
+            created="2026-02-01",
+            sequence_number=2,
+            artifacts=[{"kind": "function", "name": "farewell"}],
+            version_tag="v1",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        # seq=1 would give just {greet}, tag="v1" would give {greet, farewell}
+        result = chain.replay_until(sequence_number=1, version_tag="v1")
+        names = {s.name for s in result.get("mod.py", [])}
+        assert names == {"greet"}
+
+    def test_superseder_after_cutoff_preserves_original(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "original.manifest.yaml",
+            goal="original",
+            created="2026-01-01",
+            sequence_number=1,
+            artifacts=[{"kind": "function", "name": "handler"}],
+        )
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "replacement.manifest.yaml",
+            goal="replacement",
+            created="2026-02-01",
+            sequence_number=3,
+            artifacts=[{"kind": "function", "name": "handler_v2"}],
+            supersedes=["original"],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        # Cutoff at seq=2: replacement (seq=3) is after, so original
+        # should still appear.
+        result = chain.replay_until(sequence_number=2)
+
+        specs = result.get("mod.py", [])
+        names = {s.name for s in specs}
+        assert names == {"handler"}
+
+    def test_empty_prefix_returns_empty_dict(self, tmp_path: Path) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest_with_artifacts(
+            manifest_dir,
+            "only.manifest.yaml",
+            goal="only",
+            created="2026-01-01",
+            sequence_number=5,
+            artifacts=[{"kind": "function", "name": "greet"}],
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        result = chain.replay_until(sequence_number=2)
+        assert result == {}
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -786,6 +1020,65 @@ def _write_manifest(
         data["version_tag"] = version_tag
     if supersedes:
         data["supersedes"] = supersedes
+
+    path = manifest_dir / filename
+    path.write_text(yaml.dump(data))
+
+
+def _write_manifest_with_artifacts(
+    manifest_dir: Path,
+    filename: str,
+    goal: str,
+    created: str,
+    sequence_number: int | None = None,
+    version_tag: str | None = None,
+    supersedes: list[str] | None = None,
+    artifacts: list[dict] | None = None,
+) -> None:
+    data: dict = {
+        "schema": "2",
+        "goal": goal,
+        "type": "feature",
+        "created": created,
+        "files": {
+            "create": [
+                {
+                    "path": "mod.py",
+                    "artifacts": artifacts or [],
+                }
+            ]
+        },
+        "validate": ["pytest tests/ -v"],
+    }
+    if sequence_number is not None:
+        data["sequence_number"] = sequence_number
+    if version_tag is not None:
+        data["version_tag"] = version_tag
+    if supersedes:
+        data["supersedes"] = supersedes
+
+    path = manifest_dir / filename
+    path.write_text(yaml.dump(data))
+
+
+def _write_manifest_with_delete(
+    manifest_dir: Path,
+    filename: str,
+    goal: str,
+    created: str,
+    sequence_number: int | None = None,
+    delete_path: str = "mod.py",
+) -> None:
+    data: dict = {
+        "schema": "2",
+        "goal": goal,
+        "type": "refactor",
+        "created": created,
+        "files": {"delete": [{"path": delete_path, "reason": "no longer needed"}]},
+        "validate": ["pytest tests/ -v"],
+    }
+    if sequence_number is not None:
+        data["sequence_number"] = sequence_number
 
     path = manifest_dir / filename
     path.write_text(yaml.dump(data))
