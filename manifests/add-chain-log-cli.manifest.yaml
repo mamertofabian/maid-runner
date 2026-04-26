@@ -1,0 +1,63 @@
+schema: "2"
+goal: >
+  Add `maid chain log` CLI subcommand: a read-only view of the manifest
+  event-log with text and JSON output.
+type: feature
+created: "2026-04-26"
+description: |
+  Exposes ManifestChain.event_log() at the CLI so users can inspect the
+  manifest event log without writing code. The event log is the full
+  historical record — all manifests (including superseded) sorted by
+  sequence_number → created → slug.
+
+  Subcommand: `maid chain log`
+    - Text mode (default): table with slug, sequence_number, created,
+      version_tag, superseded status, and source path
+    - `--json`: machine-readable list of event-log entries
+    - `--active`: exclude superseded manifests (shows only active chain)
+
+  Out of scope (deferred to follow-up manifests):
+    - `maid chain` sub-subcommands beyond `log` (replay, query, diff)
+    - Duplicate sequence_number or non-monotonic diagnostics
+    - Mutating manifests
+
+files:
+  create:
+    - path: maid_runner/cli/commands/chain.py
+      artifacts:
+        - kind: function
+          name: cmd_chain
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          returns: argparse.ArgumentParser
+
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_chain_log
+          args:
+            - name: manifests
+              type: list
+            - name: manifest_dir
+              type: str
+            - name: json_mode
+              type: bool
+            - name: active_only
+              type: bool
+          returns: str
+
+  read:
+    - tests/cli/test_chain_cmd.py
+    - maid_runner/core/chain.py
+    - maid_runner/cli/commands/_format.py
+
+validate:
+  - pytest tests/cli/test_chain_cmd.py -v

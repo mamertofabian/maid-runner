@@ -353,6 +353,85 @@ def format_bootstrap_report(
     return "\n".join(lines)
 
 
+def format_chain_log(
+    manifests: list,
+    manifest_dir: str,
+    *,
+    json_mode: bool = False,
+    active_only: bool = False,
+) -> str:
+    """Format manifest event-log entries for `maid chain log`.
+
+    Args:
+        manifests: List of Manifest objects sorted in event order.
+        manifest_dir: Path to the manifest directory (for computing
+            superseded status).
+        json_mode: If True, output a JSON array of entry objects.
+        active_only: If True, exclude superseded manifests.
+    """
+    # Compute superseded slugs so the formatter can mark them.
+    superseded_slugs: set[str] = set()
+    for m in manifests:
+        for slug in m.supersedes:
+            superseded_slugs.add(slug)
+
+    if active_only:
+        manifests = [m for m in manifests if m.slug not in superseded_slugs]
+
+    if json_mode:
+        entries = []
+        for m in manifests:
+            entries.append(
+                {
+                    "slug": m.slug,
+                    "sequence_number": m.sequence_number,
+                    "version_tag": m.version_tag,
+                    "goal": m.goal,
+                    "created": m.created,
+                    "type": m.task_type.value if m.task_type else None,
+                    "source_path": m.source_path,
+                    "superseded": m.slug in superseded_slugs,
+                    "supersedes": list(m.supersedes) if m.supersedes else [],
+                }
+            )
+        return json.dumps(entries, indent=2)
+
+    if not manifests:
+        return "(no manifests)"
+
+    # Column widths
+    slug_w = max(max(len(m.slug) for m in manifests), 4)
+    seq_w = max(
+        max(
+            len(str(m.sequence_number)) if m.sequence_number is not None else 1
+            for m in manifests
+        ),
+        4,
+    )
+    created_w = max(max(len(m.created) if m.created else 0 for m in manifests), 7)
+    tag_w = max(max(len(m.version_tag) if m.version_tag else 0 for m in manifests), 4)
+
+    lines = []
+    header = (
+        f"{'SLUG':<{slug_w}}  {'SEQ#':>{seq_w}}  {'CREATED':<{created_w}}  "
+        f"{'TAG':<{tag_w}}  {'STATUS':<8}  PATH"
+    )
+    lines.append(header)
+    lines.append("-" * len(header))
+
+    for m in manifests:
+        seq_str = str(m.sequence_number) if m.sequence_number is not None else "-"
+        created_str = m.created or "-"
+        tag_str = m.version_tag or "-"
+        status = "SUPERSEDED" if m.slug in superseded_slugs else "active"
+        lines.append(
+            f"{m.slug:<{slug_w}}  {seq_str:>{seq_w}}  {created_str:<{created_w}}  "
+            f"{tag_str:<{tag_w}}  {status:<8}  {m.source_path}"
+        )
+
+    return "\n".join(lines)
+
+
 def format_coherence_result(
     result: CoherenceResult,
     *,

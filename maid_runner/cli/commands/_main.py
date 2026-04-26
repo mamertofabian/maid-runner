@@ -152,6 +152,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--section", dest="topic")
     p.add_argument("topic", nargs="?", default=argparse.SUPPRESS)
 
+    # maid chain
+    p = sub.add_parser("chain", help="Manifest chain operations")
+    csub = p.add_subparsers(dest="chain_command")
+    clp = csub.add_parser("log", help="Show manifest event log")
+    clp.add_argument("--manifest-dir", default="manifests/")
+    clp.add_argument("--json", action="store_true")
+    clp.add_argument("--active", action="store_true")
+
     return parser
 
 
@@ -177,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         "coherence": "_cmd_coherence",
         "schema": "_cmd_schema",
         "howto": "_cmd_howto",
+        "chain": "_cmd_chain",
     }
 
     handler_name = dispatch.get(args.command)
@@ -197,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         coherence as coherence_mod,
         schema as schema_mod,
         howto as howto_mod,
+        chain as chain_mod,
     )
 
     handlers = {
@@ -213,6 +223,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_coherence": coherence_mod.cmd_coherence,
         "_cmd_schema": schema_mod.cmd_schema,
         "_cmd_howto": howto_mod.cmd_howto,
+        "_cmd_chain": chain_mod.cmd_chain,
     }
 
     handler = handlers[handler_name]
