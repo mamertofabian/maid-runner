@@ -27,7 +27,17 @@ def cmd_chain(args: argparse.Namespace) -> int:
         )
         return 2
 
-    log = chain.event_log()
+    until_seq = getattr(args, "until_seq", None)
+    version_tag = getattr(args, "version_tag", None)
+
+    try:
+        log = chain.event_log_until(sequence_number=until_seq, version_tag=version_tag)
+    except ValueError as e:
+        print_error(str(e), json_mode=args.json)
+        return 2
+
+    # --active applies after the query filter: remove superseded from the
+    # event-log prefix so the result is the active chain at that point.
     output = format_chain_log(
         log,
         str(manifest_dir),

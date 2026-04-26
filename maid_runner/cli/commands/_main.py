@@ -159,6 +159,8 @@ def build_parser() -> argparse.ArgumentParser:
     clp.add_argument("--manifest-dir", default="manifests/")
     clp.add_argument("--json", action="store_true")
     clp.add_argument("--active", action="store_true")
+    clp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
+    clp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
 
     return parser
 

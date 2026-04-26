@@ -1,0 +1,43 @@
+schema: "2"
+goal: >
+  Add --until-seq and --version-tag flags to `maid chain log`, routing
+  into ManifestChain.event_log_until() for CLI-level point-in-time queries.
+type: feature
+created: "2026-04-26"
+description: |
+  Exposes the event_log_until() query API at the CLI so users can inspect
+  the event log at a point in time without writing code.
+
+  Flags on `maid chain log`:
+    - --until-seq N: show only sequenced manifests with seq# <= N.
+    - --version-tag TAG: show manifests through the first matching tag.
+    - Both provided: --until-seq wins (matches the API contract).
+    - Neither provided: full event log (existing behavior preserved).
+
+  JSON and text output both reflect the filtered list. Invalid seq#
+  (<= 0) prints an error and returns exit code 2.
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          returns: argparse.ArgumentParser
+
+    - path: maid_runner/cli/commands/chain.py
+      artifacts:
+        - kind: function
+          name: cmd_chain
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+  read:
+    - tests/cli/test_chain_cmd.py
+    - maid_runner/core/chain.py
+    - manifests/add-event-log-query-api.manifest.yaml
+
+validate:
+  - pytest tests/cli/test_chain_cmd.py -v
