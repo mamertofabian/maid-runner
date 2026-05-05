@@ -46,7 +46,10 @@ From the manifest, identify:
 | `files.create` | Create these files with EXACTLY the declared artifacts (Strict Mode) |
 | `files.edit` | Add/modify these files to INCLUDE the declared artifacts (Permissive Mode) |
 | `files.read` | Load these for context — do NOT modify |
+| `temptations` | Restate the relevant risk/procedure pairs before editing |
 | `validate` | These commands must pass when done |
+
+If the manifest includes `temptations`, identify which entries apply to the current edit and restate them as working constraints before implementation. Treat each `instead` value as the procedure to follow when test pressure points toward the paired shortcut.
 
 ### Load Dependencies
 

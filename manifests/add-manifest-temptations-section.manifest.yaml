@@ -1,0 +1,94 @@
+schema: "2"
+goal: "Add a first-class manifest temptations section for task-specific anti-gaming guidance."
+type: feature
+created: "2026-05-05"
+description: |
+  Manifest authors need a concise, structured way to name task-specific
+  implementation temptations and the concrete procedure to use instead. The
+  section should live near the top of serialized manifests after description,
+  remain optional for backward compatibility, and be validated tightly enough
+  that it stays lean and actionable.
+files:
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: class
+          name: TemptationSpec
+        - kind: attribute
+          name: risk
+          of: TemptationSpec
+          type: str
+        - kind: attribute
+          name: instead
+          of: TemptationSpec
+          type: str
+        - kind: attribute
+          name: temptations
+          of: Manifest
+          type: tuple[TemptationSpec, ...]
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: load_manifest
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: Manifest
+        - kind: function
+          name: save_manifest
+          args:
+            - name: manifest
+              type: Manifest
+            - name: path
+              type: Union[str, Path]
+          returns: None
+        - kind: function
+          name: validate_manifest_schema
+          args:
+            - name: data
+              type: dict
+            - name: schema_version
+              type: str
+              default: '"2"'
+          returns: list[str]
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      artifacts:
+        - kind: attribute
+          name: temptations
+          of: MAID Manifest v2
+          type: array
+    - path: skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: temptations
+          of: Manifest Structure
+          type: section
+    - path: skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: temptations
+          of: Implementation Workflow
+          type: section
+  read:
+    - tests/core/test_manifest.py
+    - tests/core/test_types.py
+    - tests/cli/test_manifest_cmd.py
+validate:
+  - uv run python -m pytest tests/core/test_types.py tests/core/test_manifest.py tests/cli/test_manifest_cmd.py -q

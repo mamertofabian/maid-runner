@@ -97,6 +97,13 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("--json", action="store_true")
     cp.add_argument("--delete", action="store_true")
     cp.add_argument("--rename-to", default=None)
+    cp.add_argument(
+        "--temptation",
+        dest="temptations",
+        action="append",
+        default=None,
+        help="Add task-specific anti-gaming guidance as 'risk::instead'.",
+    )
 
     # maid manifests (list manifests for a file)
     p = sub.add_parser("manifests", help="List manifests referencing a file")

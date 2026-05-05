@@ -12,6 +12,7 @@ from maid_runner.core.types import (
     FileSpec,
     Manifest,
     TaskType,
+    TemptationSpec,
     TestFunctionDetails,
     TestFunctionSetup,
     TestStream,
@@ -462,6 +463,24 @@ class TestManifest:
         assert m.supersedes == ()
         assert m.created is None
         assert m.metadata is None
+        assert m.temptations == ()
+
+    def test_temptations_with_config(self):
+        temptation = TemptationSpec(
+            risk="Do not import private parser helpers from tests.",
+            instead="Test through load_manifest and validate_manifest_schema.",
+        )
+        m = Manifest(
+            slug="test",
+            source_path="/test.yaml",
+            goal="Test",
+            validate_commands=(("pytest",),),
+            temptations=(temptation,),
+        )
+
+        assert m.temptations == (temptation,)
+        assert m.temptations[0].risk.startswith("Do not")
+        assert m.temptations[0].instead.startswith("Test through")
 
     def test_all_writable_paths_with_delete(self):
         m = Manifest(

@@ -46,6 +46,18 @@ def _cmd_create(args: argparse.Namespace) -> int:
         print_error("Manifest create requires at least one artifact.")
         return 2
 
+    temptations = []
+    try:
+        raw_temptations = getattr(args, "temptations", None) or []
+        if len(raw_temptations) > 5:
+            raise ValueError("Manifest create accepts at most five temptations.")
+        for item in raw_temptations:
+            risk, instead = _parse_temptation_arg(item)
+            temptations.append({"risk": risk, "instead": instead})
+    except ValueError as e:
+        print_error(str(e))
+        return 2
+
     file_spec = FileSpec(
         path=args.file_path, mode=FileMode.CREATE, artifacts=tuple(artifacts)
     )
@@ -66,6 +78,8 @@ def _cmd_create(args: argparse.Namespace) -> int:
         },
         "validate": [_default_validation_command(file_spec.path)],
     }
+    if temptations:
+        data["temptations"] = temptations
 
     if not args.dry_run:
         output_dir = Path(getattr(args, "output_dir", "manifests/"))
@@ -100,6 +114,15 @@ def _artifact_to_manifest_dict(artifact) -> dict:
     if artifact.of:
         data["of"] = artifact.of
     return data
+
+
+def _parse_temptation_arg(value: str) -> tuple[str, str]:
+    if "::" not in value:
+        raise ValueError("Temptations must use risk::instead format.")
+    risk, instead = (part.strip() for part in value.split("::", 1))
+    if not risk or not instead:
+        raise ValueError("Temptations must include both risk and instead text.")
+    return risk, instead
 
 
 def _default_validation_command(file_path: str) -> str:

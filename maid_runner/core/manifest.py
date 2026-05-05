@@ -20,6 +20,7 @@ from maid_runner.core.types import (
     FileSpec,
     Manifest,
     TaskType,
+    TemptationSpec,
     TestFunctionDetails,
     TestFunctionSetup,
 )
@@ -149,6 +150,7 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         created=data.get("created"),
         metadata=data.get("metadata"),
         acceptance=acceptance,
+        temptations=_parse_temptations(data.get("temptations", [])),
     )
 
 
@@ -233,6 +235,12 @@ def _parse_validate(data: list) -> tuple[tuple[str, ...], ...]:
     return tuple(commands)
 
 
+def _parse_temptations(data: list) -> tuple[TemptationSpec, ...]:
+    return tuple(
+        TemptationSpec(risk=item["risk"], instead=item["instead"]) for item in data
+    )
+
+
 def _manifest_to_dict(manifest: Manifest) -> dict:
     data: dict = {
         "schema": manifest.schema_version,
@@ -242,6 +250,10 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
         data["type"] = manifest.task_type.value
     if manifest.description:
         data["description"] = manifest.description
+    if manifest.temptations:
+        data["temptations"] = [
+            {"risk": t.risk, "instead": t.instead} for t in manifest.temptations
+        ]
 
     files: dict = {}
     if manifest.files_create:

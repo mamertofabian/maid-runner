@@ -52,6 +52,7 @@ class TestCmdManifestCreateDryRun:
             goal="Add example",
             task_type="feature",
             artifacts='[{"kind": "function", "name": "example_func"}]',
+            temptations=None,
             dry_run=True,
             json=False,
         )
@@ -77,6 +78,7 @@ class TestCmdManifestCreateDryRun:
             goal="Add example",
             task_type="feature",
             artifacts='[{"kind": "function", "name": "example_func"}]',
+            temptations=None,
             dry_run=True,
             json=True,
         )
@@ -113,6 +115,7 @@ class TestCmdManifestCreateWithArtifacts:
             goal="Add service module",
             task_type="feature",
             artifacts=artifacts_json,
+            temptations=None,
             dry_run=True,
             json=True,
         )
@@ -136,6 +139,7 @@ class TestCmdManifestCreateWithArtifacts:
             goal="Create empty module",
             task_type="feature",
             artifacts=None,
+            temptations=None,
             dry_run=True,
             json=True,
         )
@@ -157,6 +161,7 @@ class TestCmdManifestCreateErrors:
             goal="Add example",
             task_type="feature",
             artifacts="not valid json",
+            temptations=None,
             dry_run=True,
             json=False,
         )
@@ -176,6 +181,7 @@ class TestCmdManifestCreateErrors:
             goal="Add example",
             task_type="feature",
             artifacts='[{"kind": "function"}]',
+            temptations=None,
             dry_run=True,
             json=False,
         )
@@ -196,6 +202,7 @@ class TestCmdManifestCreateErrors:
             task_type="feature",
             artifacts='[{"kind": "function", "name": "example_func"}]',
             output_dir=str(tmp_path / "manifests"),
+            temptations=None,
             dry_run=False,
             json=False,
         )
@@ -209,6 +216,86 @@ class TestCmdManifestCreateErrors:
         assert manifest.goal == "Add example"
         assert manifest.files_create[0].path == "src/example.py"
         assert manifest.files_create[0].artifacts[0].name == "example_func"
+
+    def test_create_with_temptations(self, capsys):
+        """Create includes structured temptations when provided."""
+        from maid_runner.cli.commands.manifest import cmd_manifest
+
+        args = argparse.Namespace(
+            manifest_command="create",
+            file_path="src/example.py",
+            goal="Add example",
+            task_type="feature",
+            artifacts='[{"kind": "function", "name": "example_func"}]',
+            temptations=[
+                "Do not import private helpers from tests.::Test through the public API.",
+                "Do not loosen schema validation.::Add the exact schema property.",
+            ],
+            dry_run=True,
+            json=True,
+        )
+
+        exit_code = cmd_manifest(args)
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["temptations"] == [
+            {
+                "risk": "Do not import private helpers from tests.",
+                "instead": "Test through the public API.",
+            },
+            {
+                "risk": "Do not loosen schema validation.",
+                "instead": "Add the exact schema property.",
+            },
+        ]
+        assert validate_manifest_schema(data) == []
+
+    def test_create_with_invalid_temptation_format_returns_2(self, capsys):
+        """Temptations must pair a risk with the procedure to use instead."""
+        from maid_runner.cli.commands.manifest import cmd_manifest
+
+        args = argparse.Namespace(
+            manifest_command="create",
+            file_path="src/example.py",
+            goal="Add example",
+            task_type="feature",
+            artifacts='[{"kind": "function", "name": "example_func"}]',
+            temptations=["Do not import private helpers"],
+            dry_run=True,
+            json=True,
+        )
+
+        exit_code = cmd_manifest(args)
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        assert "risk::instead" in captured.err.lower()
+
+    def test_create_with_too_many_temptations_returns_2(self, capsys):
+        """CLI rejects manifests that would violate the temptations schema cap."""
+        from maid_runner.cli.commands.manifest import cmd_manifest
+
+        args = argparse.Namespace(
+            manifest_command="create",
+            file_path="src/example.py",
+            goal="Add example",
+            task_type="feature",
+            artifacts='[{"kind": "function", "name": "example_func"}]',
+            temptations=[
+                f"Do not take shortcut {i}.::Use procedure {i}."
+                for i in range(6)
+            ],
+            dry_run=True,
+            json=True,
+        )
+
+        exit_code = cmd_manifest(args)
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        assert "at most five" in captured.err.lower()
 
 
 class TestCmdManifestViaCLI:
@@ -225,6 +312,8 @@ class TestCmdManifestViaCLI:
                 "Add app module",
                 "--artifacts",
                 '[{"kind": "function", "name": "run_app"}]',
+                "--temptation",
+                "Do not import private helpers.::Test through public API.",
                 "--dry-run",
                 "--json",
             ]
@@ -234,6 +323,7 @@ class TestCmdManifestViaCLI:
         captured = capsys.readouterr()
         data = json.loads(captured.out)
         assert data["goal"] == "Add app module"
+        assert data["temptations"][0]["instead"] == "Test through public API."
         assert data["files"]["create"][0]["path"] == "src/app.py"
 
     def test_manifest_no_subcommand_via_main(self, capsys):

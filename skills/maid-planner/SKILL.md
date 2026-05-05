@@ -96,6 +96,9 @@ type: feature|fix|refactor
 created: "<today's date>"
 description: |
   Detailed explanation of the change, why it matters, and any context.
+temptations:
+  - risk: "Concrete shortcut or gaming pattern this task invites."
+    instead: "Concrete procedure the implementer should follow instead."
 
 files:
   create:                           # New files (Strict Mode)
@@ -149,6 +152,14 @@ validate:
 
 ### Key Decisions During Drafting
 
+### Temptations Section Rules
+
+- Place `temptations` immediately after `description` when the task has known implementation risks.
+- Include 3-5 task-specific entries for substantial work; omit it only when there are no meaningful task-specific risks.
+- Every `risk` must pair with an `instead` procedure. Do not write bare prohibitions.
+- Keep entries concrete enough to behave like lint rules, for example: "Do not import from `app._internal` in tests" paired with "Exercise behavior through `app.api.*`."
+- Generic MAID rules belong in `CLAUDE.md` or the skill, not in each manifest.
+
 1. **New file vs. edit existing?** If the artifact belongs in a new module, use `files.create`. If it extends existing code, use `files.edit`.
 
 2. **What are the dependencies?** List all files the implementation needs to read under `files.read`. Include test files that will be referenced in `validate`.
@@ -156,6 +167,8 @@ validate:
 3. **What is the minimal public API?** Declare only what external code needs. Internal helpers are not declared — the AI agent has freedom there.
 
 4. **What tests prove it works?** The `validate` commands must reference behavioral tests that USE the declared artifacts.
+
+5. **How could this plan be gamed?** Before finalizing, adversarially review the manifest and behavioral tests for likely shortcuts, private-state access, over-broad assertions, schema loosening, or implementation-coupled tests. Add or revise `temptations` entries until the clean path is explicit.
 
 ---
 

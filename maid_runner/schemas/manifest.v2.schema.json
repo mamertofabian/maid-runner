@@ -15,6 +15,13 @@
     "description": {
       "type": "string"
     },
+    "temptations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "description": "Task-specific implementation risks paired with the concrete procedure to use instead.",
+      "items": { "$ref": "#/definitions/TemptationSpec" }
+    },
     "type": {
       "type": "string",
       "enum": ["feature", "fix", "refactor", "snapshot", "system-snapshot"]
@@ -130,6 +137,23 @@
     }
   ],
   "definitions": {
+    "TemptationSpec": {
+      "type": "object",
+      "required": ["risk", "instead"],
+      "properties": {
+        "risk": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The concrete shortcut or gaming pattern to avoid."
+        },
+        "instead": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The concrete procedure to follow instead."
+        }
+      },
+      "additionalProperties": false
+    },
     "FileSpec": {
       "type": "object",
       "required": ["path", "artifacts"],

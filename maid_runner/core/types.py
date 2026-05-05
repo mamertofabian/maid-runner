@@ -52,6 +52,12 @@ class AcceptanceConfig:
 
 
 @dataclass(frozen=True)
+class TemptationSpec:
+    risk: str
+    instead: str
+
+
+@dataclass(frozen=True)
 class TestFunctionSetup:
     auth_required: bool = False
     test_data: dict = field(default_factory=dict)
@@ -156,6 +162,7 @@ class Manifest:
     created: Optional[str] = None
     metadata: Optional[dict] = None
     acceptance: Optional[AcceptanceConfig] = None
+    temptations: tuple[TemptationSpec, ...] = ()
 
     @property
     def all_file_specs(self) -> list[FileSpec]:

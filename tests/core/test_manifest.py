@@ -302,6 +302,41 @@ validate:
         manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
         assert manifest.acceptance is None
 
+    def test_load_with_temptations(self, tmp_path):
+        content = """schema: "2"
+goal: "Add guarded feature"
+description: |
+  Add feature with known implementation risks.
+temptations:
+  - risk: "Do not import private parser helpers from tests."
+    instead: "Test through load_manifest and validate_manifest_schema."
+  - risk: "Do not satisfy schema tests by loosening additionalProperties."
+    instead: "Add the explicit top-level schema property and focused tests."
+files:
+  create:
+    - path: src/guarded.py
+      artifacts:
+        - kind: function
+          name: guarded
+validate:
+  - pytest tests/test_guarded.py -v
+"""
+        p = tmp_path / "with-temptations.manifest.yaml"
+        p.write_text(content)
+
+        manifest = load_manifest(p)
+
+        assert len(manifest.temptations) == 2
+        assert manifest.temptations[0].risk.startswith("Do not import")
+        assert manifest.temptations[0].instead == (
+            "Test through load_manifest and validate_manifest_schema."
+        )
+        assert manifest.description.startswith("Add feature")
+
+    def test_load_without_temptations_backward_compat(self):
+        manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
+        assert manifest.temptations == ()
+
 
 class TestValidateManifestSchemaAcceptance:
     def test_valid_acceptance(self):
@@ -323,6 +358,61 @@ class TestValidateManifestSchemaAcceptance:
         }
         errors = validate_manifest_schema(data)
         assert errors == []
+
+
+class TestValidateManifestSchemaTemptations:
+    def _base_manifest(self) -> dict:
+        return {
+            "schema": "2",
+            "goal": "Test",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/app.py",
+                        "artifacts": [{"kind": "function", "name": "main"}],
+                    }
+                ]
+            },
+            "validate": ["pytest tests/ -v"],
+        }
+
+    def test_valid_temptations(self):
+        data = self._base_manifest()
+        data["temptations"] = [
+            {
+                "risk": "Do not import private implementation helpers.",
+                "instead": "Exercise behavior through the public module API.",
+            },
+            {
+                "risk": "Do not broaden the schema to accept arbitrary keys.",
+                "instead": "Declare the exact property and add schema tests.",
+            },
+        ]
+
+        errors = validate_manifest_schema(data)
+
+        assert errors == []
+
+    def test_temptations_require_risk_and_instead(self):
+        data = self._base_manifest()
+        data["temptations"] = [
+            {"risk": "Do not stop at naming the risk without a procedure."}
+        ]
+
+        errors = validate_manifest_schema(data)
+
+        assert any("instead" in e for e in errors)
+
+    def test_temptations_are_capped_at_five(self):
+        data = self._base_manifest()
+        data["temptations"] = [
+            {"risk": f"Do not take shortcut {i}.", "instead": f"Use procedure {i}."}
+            for i in range(6)
+        ]
+
+        errors = validate_manifest_schema(data)
+
+        assert any("too long" in e.lower() for e in errors)
 
     def test_acceptance_missing_tests(self):
         data = {
@@ -404,6 +494,37 @@ validate:
         assert reloaded.acceptance is not None
         assert reloaded.acceptance.tests == original.acceptance.tests
         assert reloaded.acceptance.immutable is True
+
+    def test_round_trip_with_temptations_preserves_order_near_top(self, tmp_path):
+        content = """schema: "2"
+goal: "Add guarded feature"
+type: feature
+description: |
+  Add feature with known implementation risks.
+temptations:
+  - risk: "Do not import private parser helpers from tests."
+    instead: "Test through load_manifest and validate_manifest_schema."
+files:
+  create:
+    - path: src/guarded.py
+      artifacts:
+        - kind: function
+          name: guarded
+validate:
+  - pytest tests/test_guarded.py -v
+"""
+        source = tmp_path / "source.manifest.yaml"
+        source.write_text(content)
+        original = load_manifest(source)
+
+        output = tmp_path / "output.manifest.yaml"
+        save_manifest(original, output)
+        reloaded = load_manifest(output)
+        saved = output.read_text()
+
+        assert reloaded.temptations == original.temptations
+        assert saved.index("description:") < saved.index("temptations:")
+        assert saved.index("temptations:") < saved.index("files:")
 
 
 class TestImportsField:
