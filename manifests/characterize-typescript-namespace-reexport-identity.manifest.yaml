@@ -1,0 +1,49 @@
+schema: "2"
+goal: >
+  Characterize TypeScript namespace re-export identity as distinct from
+  direct star barrel re-exports.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the required-import
+  scanner slice by locking the next TypeScript import/re-export boundary:
+  `export * as Icons from "./icons"` must not be treated as equivalent to
+  `export * from "./icons"`. A namespace re-export exposes the namespace
+  binding name, not each source artifact as a direct named export from the
+  barrel.
+
+  This manifest keeps the existing one-level path-based resolver and public
+  TypeScriptValidator.resolve_reexport interface unchanged. The resolver should
+  continue to support direct `export * from "./module"` re-exports, while
+  returning no artifact mapping for `export * as Namespace from "./module"`.
+  Deeper namespace-object member matching such as `Icons.Camera` is explicitly
+  left for a future manifest.
+temptations:
+  - risk: "Do not turn namespace re-exports into recursive or compiler-backed module resolution."
+    instead: "Only distinguish `export * as ns from` from direct `export * from` while preserving existing supported barrels."
+  - risk: "Do not treat `export * as Icons` as proving every member of ./icons is a direct barrel export."
+    instead: "Return no resolve_ts_reexport mapping for member names or the namespace binding in this slice."
+  - risk: "Do not change behavioral import scanning or artifact extraction while fixing the resolver boundary."
+    instead: "Keep the work inside resolve_ts_reexport and the identity matcher tests that exercise it."
+files:
+  edit:
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_namespace_star_reexport_does_not_resolve_member_name
+        - kind: test_function
+          name: test_namespace_star_reexport_does_not_resolve_namespace_binding
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_namespace_star_reexport_does_not_match_direct_named_import
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

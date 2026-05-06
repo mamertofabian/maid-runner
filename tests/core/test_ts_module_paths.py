@@ -284,6 +284,26 @@ class TestResolveTsReexport:
             "Foo",
         )
 
+    def test_namespace_star_reexport_does_not_resolve_member_name(
+        self, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text("export * as Icons from './icons';\n")
+        (components / "icons.ts").write_text("export function Camera() {}\n")
+
+        assert resolve_ts_reexport("src/components", "Camera", tmp_path) is None
+
+    def test_namespace_star_reexport_does_not_resolve_namespace_binding(
+        self, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text("export * as Icons from './icons';\n")
+        (components / "icons.ts").write_text("export function Camera() {}\n")
+
+        assert resolve_ts_reexport("src/components", "Icons", tmp_path) is None
+
     def test_default_as_reexport_resolves_to_visible_name(self, tmp_path: Path) -> None:
         components = tmp_path / "src" / "components"
         components.mkdir(parents=True)

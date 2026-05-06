@@ -405,6 +405,35 @@ class TestIdentityRejectsCrossModuleCollision:
             reexport_resolver=validator.resolve_reexport,
         )
 
+    def test_namespace_star_reexport_does_not_match_direct_named_import(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text("export * as Icons from './icons';\n")
+        (components / "icons.ts").write_text("export function Camera() {}\n")
+
+        source = (
+            "import { Camera } from './components';\n"
+            "it('uses Camera', () => { Camera(); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(source, "src/test_x.ts")
+        camera = _ref(result.artifacts, "Camera")
+        assert camera is not None
+        assert camera.import_source == "src/components"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="Camera",
+            module_path="src/components/icons",
+        )
+        assert not match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+
     def test_match_through_default_as_reexport(
         self, validator: TypeScriptValidator, tmp_path: Path
     ) -> None:
