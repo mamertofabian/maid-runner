@@ -103,6 +103,23 @@ class TestNamedImportRecordsSource:
         assert button is not None
         assert button.import_source == "src/components/Button"
 
+    def test_package_import_records_package_source(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+        source = (
+            "import { render } from '@testing-library/react';\n"
+            "it('uses render', () => { render(null); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "render.test.tsx"
+        )
+        render = _ref(result.artifacts, "render")
+        assert render is not None
+        assert render.import_source == "@testing-library/react"
+
 
 class TestDefaultImportRecordsSource:
     def test_default_import_records_source_module(

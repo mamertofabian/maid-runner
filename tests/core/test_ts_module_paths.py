@@ -178,6 +178,43 @@ class TestResolveTsImport:
 
         assert resolve_ts_import("#/unknown", "src/App.test", tmp_path) == "#/unknown"
 
+    def test_bare_package_import_passes_through_unchanged(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+
+        assert resolve_ts_import("react", "src/App.test", tmp_path) == "react"
+
+    def test_scoped_package_import_passes_through_unchanged(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+
+        assert (
+            resolve_ts_import("@testing-library/react", "src/App.test", tmp_path)
+            == "@testing-library/react"
+        )
+
+    def test_package_json_exports_are_not_resolved(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        package_dir = tmp_path / "node_modules" / "@scope" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"exports": {"./Button": "./dist/Button.js"}}'
+        )
+
+        assert (
+            resolve_ts_import("@scope/ui/Button", "src/App.test", tmp_path)
+            == "@scope/ui/Button"
+        )
+
 
 # ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)
