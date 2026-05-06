@@ -374,6 +374,137 @@ Results:
 - MAID implementation validation passed.
 - 52 focused TypeScript module-path and identity tests passed.
 
+## Implemented Slice: TS/JS Required Import Scanner
+
+Implementation date: 2026-05-06
+
+Manifest:
+`manifests/replace-ts-required-import-regex-scanner.manifest.yaml`
+
+The implementation-mode required import check now discovers TypeScript and
+JavaScript imports with parser-backed tree-sitter traversal when optional
+TypeScript parser dependencies are available. The Python import branch remains
+stdlib-`ast` backed, and the TS/JS branch keeps a conservative text fallback
+for environments without tree-sitter.
+
+Added coverage locks down behavior for:
+
+- `import type` required imports;
+- dynamic `import("./module")`;
+- `require.resolve("./module")`;
+- multiline named imports;
+- named import aliases;
+- commented-out import text not satisfying E320.
+
+Intentionally still out of scope:
+
+- TypeScript compiler module resolution;
+- package exports, workspace packages, and `node_modules` lookup;
+- tsconfig alias handling inside required-import checks;
+- changing validator artifact extraction or identity matching.
+
+Verification run after implementation:
+
+```bash
+maid validate manifests/replace-ts-required-import-regex-scanner.manifest.yaml --mode behavioral
+maid validate manifests/replace-ts-required-import-regex-scanner.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/core/test_validate.py::TestImportVerification
+uv run black --check maid_runner/core/validate.py tests/core/test_validate.py
+uv run ruff check maid_runner/core/validate.py tests/core/test_validate.py
+maid validate
+maid test --manifest manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+maid test
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- 23 focused import-verification tests passed.
+- Black and Ruff checks passed on touched Python files.
+- Full MAID validation passed.
+- Manifest-specific and full MAID test gates passed.
+
+## Characterized Slice: TypeScript Namespace Re-export Boundary
+
+Characterization date: 2026-05-06
+
+Manifest:
+`manifests/characterize-typescript-namespace-reexport-identity.manifest.yaml`
+
+Namespace star re-exports are now characterized as distinct from direct star
+barrel re-exports:
+
+- `export * as Icons from "./icons"` does not resolve member name `Camera`;
+- `export * as Icons from "./icons"` does not resolve namespace binding
+  `Icons` through `resolve_ts_reexport`;
+- a direct named import from the barrel does not match the final source
+  artifact through a namespace re-export.
+
+This locks the current boundary before any future resolver work that might
+handle namespace-object member matching such as `Icons.Camera`.
+
+Verification run after characterization:
+
+```bash
+maid validate manifests/characterize-typescript-namespace-reexport-identity.manifest.yaml --mode behavioral
+maid validate manifests/characterize-typescript-namespace-reexport-identity.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
+maid test --manifest manifests/characterize-typescript-namespace-reexport-identity.manifest.yaml
+maid validate
+maid test
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- Focused TypeScript module-path and identity tests passed.
+- Manifest-specific and full MAID test gates passed.
+
+## Characterized Slice: TypeScript Recursive Barrel Boundary
+
+Characterization date: 2026-05-06
+
+Manifest:
+`manifests/characterize-typescript-recursive-barrel-identity.manifest.yaml`
+
+Recursive barrel resolution is now characterized as unsupported by the current
+one-level resolver. For a chain such as:
+
+```text
+src/components/index.ts -> export { Button } from "./nested"
+src/components/nested/index.ts -> export { Button } from "./Button"
+```
+
+The resolver may expose the immediate target `src/components/nested`, but it
+does not walk the second barrel to claim coverage for
+`src/components/nested/Button`.
+
+Added coverage locks down behavior for:
+
+- recursive barrel re-exports resolving only to the immediate module;
+- identity matching rejecting the final artifact when the test imports through
+  the top-level barrel.
+
+Verification run after characterization:
+
+```bash
+maid validate manifests/characterize-typescript-recursive-barrel-identity.manifest.yaml --mode behavioral
+maid validate manifests/characterize-typescript-recursive-barrel-identity.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
+maid test --manifest manifests/characterize-typescript-recursive-barrel-identity.manifest.yaml
+maid validate
+maid test
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- 57 focused TypeScript module-path and identity tests passed.
+- Manifest-specific and full MAID test gates passed.
+
 ## Characterization Test Assessment
 
 Assessment date: 2026-05-06
@@ -394,7 +525,8 @@ Focused parser/replacement characterization coverage is substantial:
   interface members, member-expression behavioral references, namespace import
   identity, JSX/TSX references, object/JSX props, test-function label detection,
   stub detection, module path identity, named/star/default-as barrel re-export
-  matching, tsconfig alias identity, package import pass-through behavior, and
+  matching, namespace re-export non-equivalence, recursive barrel boundary
+  behavior, tsconfig alias identity, package import pass-through behavior, and
   cross-module collision rejection.
 - Svelte validator tests cover parser-backed script extraction, TypeScript
   script extraction, ignored scripts inside comments, quoted `>` attributes,
@@ -406,12 +538,13 @@ Focused parser/replacement characterization coverage is substantial:
   POSIX module paths, TypeScript relative imports, TypeScript `.svelte`
   specifier normalization, one-level `index.ts(x)` re-exports, type-only
   TypeScript named re-exports, `index.js` TypeScript-family barrel re-exports,
-  one-level star/default-as barrel re-exports, tsconfig `baseUrl`/`paths`
-  aliases, and package import pass-through behavior.
+  one-level star/default-as barrel re-exports, namespace star re-export
+  non-equivalence, recursive barrel one-level boundaries, tsconfig
+  `baseUrl`/`paths` aliases, and package import pass-through behavior.
 - Validation/integration tests cover parser error surfacing, required import
   checks, JS/TS relative import normalization, CommonJS `require`, `export from`,
-  namespace imports, Svelte validation, test coverage behavior, and public
-  library API expectations.
+  namespace imports, parser-backed TS/JS required import edge cases, Svelte
+  validation, test coverage behavior, and public library API expectations.
 
 Commands run:
 
@@ -432,19 +565,21 @@ Readiness by replacement slice:
 | Slice | Readiness | Notes |
 | --- | --- | --- |
 | Svelte script extraction | Completed for current behavior | Parser-backed extraction now covers real script nodes, comments, quoted attributes, and module/instance scripts while preserving TypeScript delegation. Future work should only evolve line/column parity or deeper Svelte semantics under a new manifest. |
-| TypeScript import/re-export identity | Good for current path-based scope | Named/default/namespace imports, aliasing, JSX references, one-level named/type/star/default-as barrels, JavaScript-family barrels, tsconfig `baseUrl`/`paths` aliases, and package import pass-through behavior are covered. Add characterization before broader replacement for `export * as ns`, recursive barrels, package.json exports, workspace packages, node_modules, `extends` chains, and index.mjs/cjs if those become in scope. |
+| TypeScript import/re-export identity | Good for current path-based scope | Named/default/namespace imports, aliasing, JSX references, one-level named/type/star/default-as barrels, namespace re-export non-equivalence, recursive barrel one-level boundaries, JavaScript-family barrels, tsconfig `baseUrl`/`paths` aliases, and package import pass-through behavior are covered. Add characterization before broader replacement for package.json exports, workspace packages, node_modules, `extends` chains, and index.mjs/cjs if those become in scope. |
 | TypeScript artifact extraction | Good for current tree-sitter scope | Edge-case coverage now includes abstract method signatures, constructor parameter properties, and defaulted/optional/rest/destructured parameters. Add tests before any broader replacement for overload signature ordering, decorators with emitted metadata, default anonymous exports, type-only declarations, generic parameter/default formatting, computed property names, and source line/column parity if the replacement reports richer positions. |
 | Python validator internals | Good for current scope | Stdlib `ast` behavior is well characterized. If replacing with `astroid` or `libcst`, add tests for decorators beyond `@property`, dataclass/attrs-style fields if desired, overloaded functions, `typing.Protocol`, `__all__` re-exports, star import behavior, namespace packages, and line/column parity. |
-| Required import checking in `core/validate.py` | Moderate | Existing tests cover Python imports, TS/JS relative imports, package imports, CommonJS `require`, `export from`, and namespace imports. Add tests for `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases before replacing regex extraction. |
+| Required import checking in `core/validate.py` | Completed for current parser-backed scanner | Python remains stdlib-`ast` backed. TS/JS required import discovery now uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases. Future work should only add tsconfig/package resolution under an explicit manifest. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
 Conclusion: the incremental replacement slices now cover Svelte script
 extraction, TypeScript barrel identity, TypeScript artifact extraction edge
-cases, tsconfig alias identity, and package import boundary behavior behind the
-existing validator interface. There is still not enough dependency design for a
-broad TypeScript compiler-backed replacement in one step. The next safe path is
-to add targeted characterization for whichever broader behavior is selected
-next: namespace re-exports, recursive barrels, package exports/workspace
-packages, tsconfig `extends`, or deeper artifact extraction gaps such as
-overloads, decorators, default anonymous exports, generic formatting, computed
-property names, and line/column parity.
+cases, tsconfig alias identity, package import boundary behavior,
+parser-backed TS/JS required import checking, namespace re-export boundaries,
+and recursive barrel boundaries behind the existing validator interface. There
+is still not enough dependency design for a broad TypeScript compiler-backed
+replacement in one step. The next safe path is to add targeted
+characterization for whichever broader behavior is selected next: package
+exports/workspace packages, tsconfig `extends`, index.mjs/cjs barrels, or
+deeper artifact extraction gaps such as overloads, decorators, default
+anonymous exports, generic formatting, computed property names, and line/column
+parity.
