@@ -228,13 +228,89 @@ def resolve_ts_reexport(
 
 def _load_tsconfig(project_root: Path) -> Optional[dict[str, Any]]:
     config_path = Path(project_root) / "tsconfig.json"
+    return _load_tsconfig_file(config_path, visited=set())
+
+
+def _load_tsconfig_file(
+    config_path: Path,
+    visited: set[Path],
+) -> Optional[dict[str, Any]]:
+    resolved_config_path = config_path.resolve()
+    if resolved_config_path in visited:
+        return None
+    visited.add(resolved_config_path)
+
     try:
         data = json.loads(config_path.read_text())
     except (OSError, json.JSONDecodeError):
         return None
     if not isinstance(data, dict):
         return None
-    return data
+
+    data = dict(data)
+    _normalize_base_url(data, config_path.parent)
+
+    parent_config = _extended_tsconfig_path(data.get("extends"), config_path.parent)
+    if parent_config is None:
+        return data
+
+    inherited = _load_tsconfig_file(parent_config, visited)
+    if inherited is None:
+        return data
+
+    return _merge_tsconfig(inherited, data)
+
+
+def _extended_tsconfig_path(raw_extends: Any, config_dir: Path) -> Optional[Path]:
+    if not isinstance(raw_extends, str) or not raw_extends:
+        return None
+
+    extends_path = Path(raw_extends)
+    if not extends_path.is_absolute() and not raw_extends.startswith(("./", "../")):
+        return None
+
+    candidate = (
+        extends_path if extends_path.is_absolute() else config_dir / extends_path
+    )
+    if candidate.suffix:
+        return candidate
+    return candidate.with_suffix(".json")
+
+
+def _merge_tsconfig(
+    inherited: dict[str, Any],
+    child: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(inherited)
+    merged.update(child)
+
+    inherited_options = inherited.get("compilerOptions")
+    child_options = child.get("compilerOptions")
+    if isinstance(inherited_options, dict) and isinstance(child_options, dict):
+        options = dict(inherited_options)
+        options.update(child_options)
+        merged["compilerOptions"] = options
+    elif isinstance(inherited_options, dict) and "compilerOptions" not in child:
+        merged["compilerOptions"] = dict(inherited_options)
+
+    return merged
+
+
+def _normalize_base_url(config: dict[str, Any], config_dir: Path) -> None:
+    compiler_options = config.get("compilerOptions")
+    if not isinstance(compiler_options, dict):
+        return
+
+    raw = compiler_options.get("baseUrl")
+    if not isinstance(raw, str) or not raw:
+        return
+
+    base = Path(raw)
+    if base.is_absolute():
+        return
+
+    normalized = config_dir / base
+    compiler_options["baseUrl"] = str(normalized)
 
 
 def _compiler_base_url(project_root: Path, compiler_options: dict[str, Any]) -> Path:

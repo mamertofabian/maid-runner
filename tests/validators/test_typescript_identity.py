@@ -103,6 +103,24 @@ class TestNamedImportRecordsSource:
         assert button is not None
         assert button.import_source == "src/components/Button"
 
+    def test_tsconfig_extends_paths_alias_records_source_module(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.base.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+        (tmp_path / "tsconfig.json").write_text('{"extends": "./tsconfig.base.json"}')
+        source = (
+            "import { Button } from '@/components/Button';\n"
+            "it('uses Button', () => { return <Button />; });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.tsx"
+        )
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components/Button"
+
     def test_package_import_records_package_source(
         self, validator: TypeScriptValidator, tmp_path: Path
     ) -> None:

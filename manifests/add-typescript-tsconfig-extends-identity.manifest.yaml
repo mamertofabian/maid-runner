@@ -1,0 +1,67 @@
+schema: "2"
+goal: >
+  Resolve TypeScript tsconfig extends chains for identity-aware import aliases.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after adding .mjs/.cjs barrel
+  identity by addressing the next explicitly listed TypeScript import identity
+  gap: local tsconfig `extends` chains.
+
+  The current TypeScript import helper reads only the project `tsconfig.json`
+  file. This misses common projects where `compilerOptions.baseUrl` and
+  `compilerOptions.paths` live in a sibling base config such as
+  `tsconfig.base.json`. This manifest keeps the existing public
+  `resolve_ts_import` API and TypeScriptValidator import-source behavior while
+  allowing local relative `extends` files to contribute inherited compiler
+  options.
+
+  The resolver should remain deterministic and local. It should read only JSON
+  tsconfig files reachable through relative or absolute filesystem `extends`
+  paths, merge inherited `compilerOptions` before child options, and leave
+  package-style extends unresolved until a future manifest explicitly introduces
+  package resolution.
+temptations:
+  - risk: "Do not implement TypeScript compiler module resolution while adding extends support."
+    instead: "Only merge local tsconfig compilerOptions before applying the existing baseUrl/paths identity rules."
+  - risk: "Do not resolve package-style extends through node_modules or package.json exports."
+    instead: "Follow only relative or absolute filesystem extends paths; ignore other extends specifiers."
+  - risk: "Do not recurse indefinitely through cyclic config inheritance."
+    instead: "Track visited tsconfig paths and stop loading a config already seen in the chain."
+  - risk: "Do not change barrel scanning, artifact extraction, or package import pass-through behavior."
+    instead: "Keep the work behind resolve_ts_import and existing behavioral import-source collection."
+files:
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_extends_paths_alias_resolves_from_base_config
+        - kind: test_function
+          name: test_extends_base_url_resolves_from_base_config
+        - kind: test_function
+          name: test_package_style_extends_does_not_resolve_node_modules
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_tsconfig_extends_paths_alias_records_source_module
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

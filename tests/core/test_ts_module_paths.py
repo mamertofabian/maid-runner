@@ -193,6 +193,52 @@ class TestResolveTsImport:
 
         assert resolve_ts_import("#/unknown", "src/App.test", tmp_path) == "#/unknown"
 
+    def test_extends_paths_alias_resolves_from_base_config(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.base.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+        (tmp_path / "tsconfig.json").write_text('{"extends": "./tsconfig.base.json"}')
+
+        assert (
+            resolve_ts_import("@/components/Button", "src/App.test", tmp_path)
+            == "src/components/Button"
+        )
+
+    def test_extends_base_url_resolves_from_base_config(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.base.json").write_text(
+            '{"compilerOptions": {"baseUrl": "src"}}'
+        )
+        (tmp_path / "tsconfig.json").write_text('{"extends": "./tsconfig.base.json"}')
+
+        assert (
+            resolve_ts_import("components/Button", "src/App.test", tmp_path)
+            == "src/components/Button"
+        )
+
+    def test_package_style_extends_does_not_resolve_node_modules(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        base = tmp_path / "node_modules" / "@scope" / "tsconfig" / "base.json"
+        base.parent.mkdir(parents=True)
+        base.write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+        (tmp_path / "tsconfig.json").write_text(
+            '{"extends": "@scope/tsconfig/base.json"}'
+        )
+
+        assert resolve_ts_import("@/components/Button", "src/App.test", tmp_path) == (
+            "@/components/Button"
+        )
+
     def test_bare_package_import_passes_through_unchanged(self, tmp_path: Path) -> None:
         from maid_runner.core.ts_module_paths import resolve_ts_import
 
