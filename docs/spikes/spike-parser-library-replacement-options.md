@@ -12,9 +12,8 @@ The project already uses mature parsing primitives in places:
 
 - Python uses the standard library `ast` module.
 - TypeScript/JavaScript uses `tree-sitter` with `tree-sitter-typescript`.
-- Svelte declares `tree-sitter-svelte` as an optional dependency, but the current
-  validator extracts `<script>` blocks with a regex and delegates to the
-  TypeScript validator.
+- Svelte uses `tree-sitter-svelte` to identify real `<script>` blocks and
+  delegates the extracted script bodies to the TypeScript validator.
 
 The custom logic is not just syntax parsing. It maps language constructs into
 MAID-specific `FoundArtifact` records, preserving module identity, import source,
@@ -28,7 +27,7 @@ aliases, signatures, stub status, and test references.
 | Python semantic AST | Custom `ast.NodeVisitor` collectors in `maid_runner/validators/python.py` | `astroid`, `libcst`, `jedi`, `rope` | `astroid` can add inference. `libcst` is useful if exact source preservation matters. Stdlib `ast` remains reasonable for current artifact extraction. |
 | TypeScript symbols/imports | Custom tree-sitter walking in `maid_runner/validators/typescript.py`; regex re-export parsing in `maid_runner/core/ts_module_paths.py` | `typescript` compiler API, `ts-morph`, `@typescript-eslint/typescript-estree` | Highest-value replacement area. Compiler-backed tooling can resolve exports, aliases, symbols, signatures, and `tsconfig` paths more reliably than tree-sitter-only traversal. |
 | JavaScript/TypeScript dependency graph | Custom module path and import resolution | `dependency-cruiser`, `madge`, `eslint-plugin-import` | Good candidates for file/module dependency graph extraction. Less aligned with MAID artifact signatures. |
-| Svelte parsing | Regex `<script>` extraction in `maid_runner/validators/svelte.py` | `svelte/compiler`, `tree-sitter-svelte` | Clearest wheel-reinvention area. Existing dependency declaration suggests the validator should use a real Svelte parser instead of regex. |
+| Svelte parsing | `tree-sitter-svelte` script block extraction in `maid_runner/validators/svelte.py` | `svelte/compiler`, `tree-sitter-svelte` | First replacement slice completed with existing Python dependency stack. Keep using parser-backed script discovery unless a later manifest needs deeper Svelte semantics. |
 | Graph algorithms | Custom traversal and cycle detection in `maid_runner/graph/query.py` | `networkx`, `rustworkx` | Could reduce hand-rolled graph logic if the graph module grows. Not urgent for parser replacement. |
 | Natural query parsing | Regex query parser in `maid_runner/graph/query.py` | `lark`, `pyparsing` | Current logic is small. Replace only if the query language becomes a real grammar. |
 
@@ -60,8 +59,8 @@ interface, one language slice at a time.
 
 Recommended order:
 
-1. Svelte script extraction: replace regex extraction with a parser-backed
-   implementation.
+1. Svelte script extraction: completed on 2026-05-06 with
+   `tree-sitter-svelte` behind the existing `SvelteValidator` interface.
 2. TypeScript re-export/import identity: replace regex and tree-sitter import
    scanning with compiler-backed symbol/module resolution.
 3. TypeScript artifact extraction: consider `ts-morph` or a TypeScript compiler
@@ -76,6 +75,53 @@ Any replacement must be behavior-preserving against the existing validator
 contract. The target is not "more complete parsing" in the abstract; it is the
 same MAID-visible artifacts and references unless a manifest explicitly evolves
 the contract.
+
+## Implemented Slice: Svelte Script Extraction
+
+Implementation date: 2026-05-06
+
+Manifest:
+`manifests/replace-svelte-regex-script-extraction.manifest.yaml`
+
+The Svelte validator now parses `.svelte` source with `tree-sitter-svelte`,
+walks `script_element` nodes, extracts their `raw_text` children in document
+order, and continues to delegate the combined script text to
+`TypeScriptValidator`. The public validator interface remains unchanged:
+
+- `collect_implementation_artifacts`
+- `collect_behavioral_artifacts`
+- `get_test_function_bodies`
+- `module_path`
+- `resolve_reexport`
+
+Added coverage locks down the parser-backed behavior for:
+
+- commented-out `<script>` tags being ignored;
+- quoted `>` characters inside script tag attributes;
+- module-context plus instance scripts being combined in document order;
+- delegated test body extraction ignoring commented-out scripts.
+
+Verification run after implementation:
+
+```bash
+maid validate manifests/replace-svelte-regex-script-extraction.manifest.yaml --mode behavioral
+maid validate manifests/replace-svelte-regex-script-extraction.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/validators/test_svelte.py tests/validators/test_typescript.py tests/core/test_ts_module_paths.py
+uv run python -m pytest -q
+uv run black --check maid_runner/validators/svelte.py tests/validators/test_svelte.py
+uv run ruff check maid_runner/validators/svelte.py tests/validators/test_svelte.py
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- 96 focused Svelte/TypeScript/module-path tests passed.
+- 1224 full-suite tests passed, 6 skipped.
+- Black and Ruff checks passed on touched Python files.
+- Inline Svelte smoke validation passed with commented script content,
+  module-context script content, instance TypeScript script content, quoted
+  `>` attributes, and Svelte markup in the same source string.
 
 ## Characterization Test Assessment
 
@@ -96,10 +142,11 @@ Focused parser/replacement characterization coverage is substantial:
   behavioral references, namespace import identity, JSX/TSX references,
   object/JSX props, test-function label detection, stub detection, module path
   identity, barrel re-export matching, and cross-module collision rejection.
-- Svelte validator tests cover basic script extraction, TypeScript script
-  extraction, no-script behavior, behavioral collection, delegated test body
-  extraction, module path identity, import source identity, barrel matching, and
-  explicit `.svelte` import identity.
+- Svelte validator tests cover parser-backed script extraction, TypeScript
+  script extraction, ignored scripts inside comments, quoted `>` attributes,
+  module-context plus instance script ordering, no-script behavior, behavioral
+  collection, delegated test body extraction, module path identity, import
+  source identity, barrel matching, and explicit `.svelte` import identity.
 - Module identity tests cover Python dotted module paths, Python relative
   imports, Python one-level `__init__.py` re-exports, TypeScript extensionless
   POSIX module paths, TypeScript relative imports, TypeScript `.svelte`
@@ -127,17 +174,17 @@ Readiness by replacement slice:
 
 | Slice | Readiness | Notes |
 | --- | --- | --- |
-| Svelte script extraction | Good for current behavior, but add edge cases first | Existing tests prove current single/basic script behavior. Before replacing regex, add characterization for module-context scripts, multiple `<script>` blocks, attributes with unusual spacing/order, `</script>`-like text inside strings/comments if supported by the chosen parser, and line-offset preservation for diagnostics/test bodies. |
+| Svelte script extraction | Completed for current behavior | Parser-backed extraction now covers real script nodes, comments, quoted attributes, and module/instance scripts while preserving TypeScript delegation. Future work should only evolve line/column parity or deeper Svelte semantics under a new manifest. |
 | TypeScript import/re-export identity | Moderate | Named/default/namespace imports, aliasing, JSX references, and one-level named barrels are covered. Add characterization before compiler-backed replacement for `import type`, `export type`, `export *`, `export * as ns`, default re-exports, `index.js/mjs/cjs`, `package.json` exports if in scope, and `tsconfig` path aliases if the new library resolves them. |
 | TypeScript artifact extraction | Moderate to good | Many syntax forms are covered. Add tests for overload signatures, decorators, abstract/interface method signatures, constructor parameter properties, default exported functions, type-only declarations, generic parameter/default formatting, optional/rest/destructured parameters, and source line/column behavior if the replacement reports richer positions. |
 | Python validator internals | Good for current scope | Stdlib `ast` behavior is well characterized. If replacing with `astroid` or `libcst`, add tests for decorators beyond `@property`, dataclass/attrs-style fields if desired, overloaded functions, `typing.Protocol`, `__all__` re-exports, star import behavior, namespace packages, and line/column parity. |
 | Required import checking in `core/validate.py` | Moderate | Existing tests cover Python imports, TS/JS relative imports, package imports, CommonJS `require`, `export from`, and namespace imports. Add tests for `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases before replacing regex extraction. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
-Conclusion: there is enough characterization to do an incremental in-place
-replacement behind the existing validator interfaces, especially for Svelte
-script extraction. There is not enough coverage for a broad TypeScript
-compiler-backed replacement in one step. The safer path is to add a small set of
-gap tests for the chosen slice, run them against the current implementation to
-lock down intended behavior or expose intentional scope gaps, then replace only
-that slice behind the same public methods.
+Conclusion: the first incremental replacement slice, Svelte script extraction,
+is complete behind the existing validator interface. There is still not enough
+coverage for a broad TypeScript compiler-backed replacement in one step. The
+next safe path is to add targeted gap tests for TypeScript import/re-export
+identity, run them against the current implementation to lock down intended
+behavior or expose intentional scope gaps, then replace only that slice behind
+the same public methods.

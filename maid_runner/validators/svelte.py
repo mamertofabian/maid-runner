@@ -6,7 +6,6 @@ Requires tree-sitter-svelte.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Optional, Union
 
@@ -23,12 +22,13 @@ try:
 except ImportError:
     _HAS_TS = False
 
+try:
+    from tree_sitter import Language, Parser
+    import tree_sitter_svelte
 
-# Regex to extract <script> content from Svelte files
-_SCRIPT_RE = re.compile(
-    r"<script[^>]*>(.*?)</script>",
-    re.DOTALL,
-)
+    _HAS_SVELTE = True
+except ImportError:
+    _HAS_SVELTE = False
 
 
 class SvelteValidator(BaseValidator):
@@ -38,7 +38,14 @@ class SvelteValidator(BaseValidator):
                 "TypeScriptValidator is required for Svelte validation. "
                 "Install tree-sitter-typescript."
             )
+        if not _HAS_SVELTE:
+            raise ImportError(
+                "tree-sitter-svelte is required for Svelte validation. "
+                "Install tree-sitter-svelte."
+            )
         self._ts_validator = TypeScriptValidator()
+        self._svelte_lang = Language(tree_sitter_svelte.language())
+        self._svelte_parser = Parser(self._svelte_lang)
 
     @classmethod
     def supported_extensions(cls) -> tuple[str, ...]:
@@ -49,7 +56,7 @@ class SvelteValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        script_content = _extract_script(source)
+        script_content = _extract_script(source, self._svelte_parser)
         if not script_content:
             return CollectionResult(
                 artifacts=[], language="svelte", file_path=str(file_path)
@@ -70,7 +77,7 @@ class SvelteValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        script_content = _extract_script(source)
+        script_content = _extract_script(source, self._svelte_parser)
         if not script_content:
             return CollectionResult(
                 artifacts=[], language="svelte", file_path=str(file_path)
@@ -90,7 +97,7 @@ class SvelteValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> dict[str, str]:
-        script_content = _extract_script(source)
+        script_content = _extract_script(source, self._svelte_parser)
         if not script_content:
             return {}
         return self._ts_validator.get_test_function_bodies(
@@ -108,7 +115,23 @@ class SvelteValidator(BaseValidator):
         return resolve_ts_reexport(module, name, project_root)
 
 
-def _extract_script(source: str) -> str:
-    """Extract content from <script> tags."""
-    matches = _SCRIPT_RE.findall(source)
-    return "\n".join(matches)
+def _extract_script(source: str, parser: Parser) -> str:
+    """Extract real Svelte script block contents in document order."""
+    source_bytes = source.encode("utf-8")
+    tree = parser.parse(source_bytes)
+    scripts: list[str] = []
+    stack = [tree.root_node]
+
+    while stack:
+        node = stack.pop()
+        if node.type == "script_element":
+            for child in node.children:
+                if child.type == "raw_text":
+                    scripts.append(
+                        source_bytes[child.start_byte : child.end_byte].decode("utf-8")
+                    )
+                    break
+            continue
+        stack.extend(reversed(node.children))
+
+    return "\n".join(scripts)

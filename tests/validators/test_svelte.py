@@ -71,6 +71,56 @@ const greeting: string = "hello";
         result = validator.collect_implementation_artifacts(source, "App.svelte")
         assert result.artifacts == []
 
+    def test_ignores_script_tags_inside_comments(self, validator):
+        source = """<!-- <script>
+function fake() {
+    return "not real";
+}
+</script> -->
+
+<script>
+function real() {
+    return "real";
+}
+</script>
+"""
+        result = validator.collect_implementation_artifacts(source, "App.svelte")
+
+        assert _find(result.artifacts, "fake") is None
+        assert _find(result.artifacts, "real", ArtifactKind.FUNCTION) is not None
+
+    def test_handles_quoted_greater_than_in_script_attributes(self, validator):
+        source = """<script lang="ts" data-rule="count > 0">
+function real(): number {
+    return 1;
+}
+</script>
+"""
+        result = validator.collect_implementation_artifacts(source, "App.svelte")
+
+        assert result.errors == []
+        assert _find(result.artifacts, "real", ArtifactKind.FUNCTION) is not None
+
+    def test_combines_module_and_instance_scripts_in_document_order(self, validator):
+        source = """<script context="module" lang="ts">
+export function loadConfig() {
+    return {};
+}
+</script>
+
+<script lang="ts">
+export function renderWidget() {
+    return loadConfig();
+}
+</script>
+"""
+        result = validator.collect_implementation_artifacts(source, "App.svelte")
+
+        assert _find(result.artifacts, "loadConfig", ArtifactKind.FUNCTION) is not None
+        assert (
+            _find(result.artifacts, "renderWidget", ArtifactKind.FUNCTION) is not None
+        )
+
 
 class TestSupportedExtensions:
     def test_svelte_extension(self):
@@ -126,6 +176,25 @@ it("test_svelte_fetch", () => {
         assert "test_svelte_fetch" in bodies
         assert "fetchData" in bodies["test_svelte_fetch"]
         assert "/api/svelte" in bodies["test_svelte_fetch"]
+
+    def test_get_test_function_bodies_ignores_commented_script(self, validator):
+        source = """<!-- <script>
+it("test_commented_out", () => {
+    callCommentedCode();
+});
+</script> -->
+
+<script lang="ts">
+it("test_real_svelte_body", () => {
+    callRealCode();
+});
+</script>
+"""
+        bodies = validator.get_test_function_bodies(source, "component.test.svelte")
+
+        assert "test_commented_out" not in bodies
+        assert "test_real_svelte_body" in bodies
+        assert "callRealCode" in bodies["test_real_svelte_body"]
 
 
 # ---------------------------------------------------------------------------

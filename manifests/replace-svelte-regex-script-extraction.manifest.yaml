@@ -1,0 +1,74 @@
+schema: "2"
+goal: >
+  Replace regex-based Svelte script extraction with tree-sitter-svelte while
+  preserving the existing SvelteValidator public behavior.
+type: refactor
+created: "2026-05-06"
+description: |
+  The parser replacement spike recommends starting with Svelte script
+  extraction because tree-sitter-svelte is already declared as a dependency and
+  the current regex parser can treat commented-out script tags and quoted
+  attribute content as executable TypeScript. This keeps the MAID validator
+  policy layer and TypeScript delegation intact; only the internal source slice
+  extraction changes.
+temptations:
+  - risk: "Do not broaden this into TypeScript import or artifact extraction replacement."
+    instead: "Only replace Svelte script block discovery and keep delegating extracted script text to TypeScriptValidator."
+  - risk: "Do not keep a fallback regex path for malformed Svelte documents."
+    instead: "Use tree-sitter-svelte script_element nodes as the single source of script blocks."
+  - risk: "Do not expose new public validator APIs for parser internals."
+    instead: "Keep behavior behind collect_implementation_artifacts, collect_behavioral_artifacts, and get_test_function_bodies."
+files:
+  edit:
+    - path: maid_runner/validators/svelte.py
+      artifacts:
+        - kind: class
+          name: SvelteValidator
+        - kind: method
+          name: __init__
+          of: SvelteValidator
+          args: []
+          returns: None
+        - kind: method
+          name: collect_implementation_artifacts
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: get_test_function_bodies
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: dict[str, str]
+    - path: tests/validators/test_svelte.py
+      artifacts:
+        - kind: test_function
+          name: test_ignores_script_tags_inside_comments
+        - kind: test_function
+          name: test_handles_quoted_greater_than_in_script_attributes
+        - kind: test_function
+          name: test_combines_module_and_instance_scripts_in_document_order
+        - kind: test_function
+          name: test_get_test_function_bodies_ignores_commented_script
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/validators/typescript.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_svelte.py
