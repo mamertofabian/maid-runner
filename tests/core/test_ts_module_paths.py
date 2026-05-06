@@ -189,3 +189,40 @@ class TestResolveTsReexport:
         (models / "user.ts").write_text("export class Foo {}\n")
 
         assert resolve_ts_reexport("src/models", "Foo", tmp_path) is None
+
+    def test_type_only_reexport_resolves_to_defining_module(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.ts").write_text("export type { Foo } from './types';\n")
+        (models / "types.ts").write_text("export interface Foo {}\n")
+
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/types",
+            "Foo",
+        )
+
+    def test_export_specifier_type_modifier_resolves_to_defining_module(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.ts").write_text("export { type Foo } from './types';\n")
+        (models / "types.ts").write_text("export interface Foo {}\n")
+
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/types",
+            "Foo",
+        )
+
+    def test_supported_index_js_barrel_resolves_reexport(self, tmp_path: Path) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.js").write_text("export { Foo } from './user.js';\n")
+        (models / "user.js").write_text("export class Foo {}\n")
+
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/user",
+            "Foo",
+        )

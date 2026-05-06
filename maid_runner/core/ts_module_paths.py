@@ -11,7 +11,6 @@ Only named ``export { Foo } from './y'`` (and the aliased
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Optional, Union
 
@@ -26,13 +25,13 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".svelte",
 )
 
-_INDEX_CANDIDATES: tuple[str, ...] = ("index.ts", "index.tsx")
-
-_BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
-_LINE_COMMENT_RE = re.compile(r"//[^\n]*")
-_NAMED_REEXPORT_RE = re.compile(
-    r"export\s*\{([^}]*)\}\s*from\s*['\"]([^'\"]+)['\"]",
-    re.DOTALL,
+_INDEX_CANDIDATES: tuple[str, ...] = (
+    "index.ts",
+    "index.tsx",
+    "index.js",
+    "index.jsx",
+    "index.mts",
+    "index.cts",
 )
 
 
@@ -109,15 +108,15 @@ def resolve_ts_reexport(
 ) -> Optional[tuple[str, str]]:
     """Resolve a one-level named re-export of ``name`` from ``module``.
 
-    Looks for ``<module>/index.ts`` or ``<module>/index.tsx`` and scans
-    its top-level ``export { Foo } from './y'`` /
-    ``export { Foo as Bar } from './y'`` statements. Returns
-    ``(resolved_module, original_name)`` where ``original_name`` is
-    the source-side identifier — for plain re-exports it equals
-    ``name``; for aliased re-exports (``export { Foo as Bar }`` looked
-    up by ``Bar``) it is the pre-alias name (``Foo``). Returns ``None``
-    when the module is not a barrel package, the file cannot be read,
-    or ``name`` is not re-exported.
+    Looks for a supported ``<module>/index`` file and scans its top-level
+    named re-export statements such as ``export { Foo } from './y'``,
+    ``export { Foo as Bar } from './y'``, ``export type { Foo } from './y'``,
+    and ``export { type Foo } from './y'``. Returns ``(resolved_module,
+    original_name)`` where ``original_name`` is the source-side identifier —
+    for plain re-exports it equals ``name``; for aliased re-exports looked up
+    by alias it is the pre-alias name. Returns ``None`` when the module is not
+    a barrel package, the file cannot be read or parsed, optional parser
+    dependencies are unavailable, or ``name`` is not re-exported.
 
     ``export * from './y'`` is intentionally not resolved.
     """
@@ -135,22 +134,35 @@ def resolve_ts_reexport(
     except OSError:
         return None
 
-    source = _strip_ts_comments(source)
+    source_bytes = source.encode("utf-8")
+    parser = _make_ts_barrel_parser(init_path)
+    if parser is None:
+        return None
 
-    for match in _NAMED_REEXPORT_RE.finditer(source):
-        body = match.group(1)
-        src = match.group(2)
-        for piece in body.split(","):
-            piece = piece.strip()
-            if not piece:
+    tree = parser.parse(source_bytes)
+    root = tree.root_node
+    if getattr(root, "has_error", False):
+        return None
+
+    for child in root.children:
+        if child.type != "export_statement":
+            continue
+
+        src = _export_source(child, source_bytes)
+        if src is None:
+            continue
+
+        export_clause = _child_by_type(child, "export_clause")
+        if export_clause is None:
+            continue
+
+        for specifier in export_clause.children:
+            if specifier.type != "export_specifier":
                 continue
-            if " as " in piece:
-                original, _, alias = piece.partition(" as ")
-                bound = alias.strip()
-                source_name = original.strip()
-            else:
-                bound = piece
-                source_name = piece
+            resolved_name = _export_specifier_names(specifier, source_bytes)
+            if resolved_name is None:
+                continue
+            source_name, bound = resolved_name
             if bound == name:
                 resolved = resolve_relative_ts_import(src, f"{module}/index")
                 return (resolved, source_name)
@@ -158,7 +170,52 @@ def resolve_ts_reexport(
     return None
 
 
-def _strip_ts_comments(source: str) -> str:
-    source = _BLOCK_COMMENT_RE.sub("", source)
-    source = _LINE_COMMENT_RE.sub("", source)
-    return source
+def _make_ts_barrel_parser(index_path: Path):
+    try:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript as ts_ts
+    except ImportError:
+        return None
+
+    if index_path.suffix in (".tsx", ".jsx"):
+        language = Language(ts_ts.language_tsx())
+    else:
+        language = Language(ts_ts.language_typescript())
+    return Parser(language)
+
+
+def _text(node, source: bytes) -> str:
+    return source[node.start_byte : node.end_byte].decode("utf-8")
+
+
+def _child_by_type(node, child_type: str):
+    for child in node.children:
+        if child.type == child_type:
+            return child
+    return None
+
+
+def _export_source(export_statement, source: bytes) -> Optional[str]:
+    string_node = _child_by_type(export_statement, "string")
+    if string_node is None:
+        return None
+    fragment = _child_by_type(string_node, "string_fragment")
+    if fragment is None:
+        return None
+    return _text(fragment, source)
+
+
+def _export_specifier_names(
+    export_specifier,
+    source: bytes,
+) -> Optional[tuple[str, str]]:
+    identifiers = [
+        _text(child, source)
+        for child in export_specifier.children
+        if child.type == "identifier"
+    ]
+    if not identifiers:
+        return None
+    if len(identifiers) >= 2:
+        return identifiers[0], identifiers[1]
+    return identifiers[0], identifiers[0]

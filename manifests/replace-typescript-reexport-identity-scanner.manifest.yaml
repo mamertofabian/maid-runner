@@ -1,0 +1,56 @@
+schema: "2"
+goal: >
+  Replace regex-only TypeScript barrel re-export identity scanning with a
+  parser-backed scanner for supported named re-export forms.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the completed Svelte
+  slice by addressing the next safest TypeScript identity gap. The current
+  resolve_ts_reexport helper strips comments and applies a regex to
+  index.ts/index.tsx files, which misses type-only named re-exports and ignores
+  supported JavaScript-family barrel index files. This manifest keeps the
+  public validator interface unchanged and does not attempt full TypeScript
+  compiler resolution, tsconfig path aliases, star exports, package exports, or
+  artifact extraction. Because tree-sitter-typescript is an optional
+  TypeScript/Svelte dependency rather than a base package dependency, parser
+  imports must stay lazy and scoped to TypeScript re-export resolution.
+temptations:
+  - risk: "Do not broaden this into TypeScript artifact extraction or tsconfig path resolution."
+    instead: "Only replace the one-level named barrel re-export scanner behind resolve_ts_reexport."
+  - risk: "Do not use a looser regex that accepts malformed export syntax."
+    instead: "Parse the barrel file with the existing tree-sitter TypeScript parser and inspect export_statement nodes."
+  - risk: "Do not make export star matching fall back to name-only coverage."
+    instead: "Keep export * and export * as namespace unresolved until a manifest declares that behavior."
+  - risk: "Do not add an import-time tree-sitter dependency to maid_runner.core.ts_module_paths."
+    instead: "Load parser dependencies inside resolve_ts_reexport and keep missing-parser failures limited to TypeScript re-export resolution."
+files:
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_type_only_reexport_resolves_to_defining_module
+        - kind: test_function
+          name: test_export_specifier_type_modifier_resolves_to_defining_module
+        - kind: test_function
+          name: test_supported_index_js_barrel_resolves_reexport
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript_identity.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

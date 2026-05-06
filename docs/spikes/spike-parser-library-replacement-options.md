@@ -61,8 +61,9 @@ Recommended order:
 
 1. Svelte script extraction: completed on 2026-05-06 with
    `tree-sitter-svelte` behind the existing `SvelteValidator` interface.
-2. TypeScript re-export/import identity: replace regex and tree-sitter import
-   scanning with compiler-backed symbol/module resolution.
+2. TypeScript re-export identity: completed on 2026-05-06 for one-level
+   named barrel re-exports with parser-backed `tree-sitter-typescript`
+   scanning behind `resolve_reexport`.
 3. TypeScript artifact extraction: consider `ts-morph` or a TypeScript compiler
    API subprocess/adapter if signatures and declarations keep accumulating edge
    cases.
@@ -123,6 +124,66 @@ Results:
   module-context script content, instance TypeScript script content, quoted
   `>` attributes, and Svelte markup in the same source string.
 
+## Implemented Slice: TypeScript Re-export Identity Scanner
+
+Implementation date: 2026-05-06
+
+Manifest:
+`manifests/replace-typescript-reexport-identity-scanner.manifest.yaml`
+
+The TypeScript module path helper now resolves one-level named barrel
+re-exports by parsing supported `index` files with `tree-sitter-typescript`
+instead of stripping comments and applying a regex. Parser imports are lazy
+inside `resolve_ts_reexport`, so the base `maid_runner.core.ts_module_paths`
+module remains importable without optional TypeScript dependencies.
+
+The public validator interface remains unchanged:
+
+- `module_path`
+- `resolve_reexport`
+
+Added coverage locks down parser-backed behavior for:
+
+- `export type { Foo } from "./types"` resolving to the defining module;
+- `export { type Foo } from "./types"` resolving to the defining module;
+- supported JavaScript-family `index.js` barrel files resolving named
+  re-exports with extensionless module identity;
+- `export * from "./module"` remaining unresolved until a future manifest
+  explicitly evolves that behavior.
+
+Intentionally still out of scope:
+
+- `export *` and `export * as ns`;
+- `tsconfig` path aliases;
+- `package.json` exports;
+- full TypeScript compiler or `ts-morph` subprocess integration;
+- TypeScript artifact extraction.
+
+Verification run after implementation:
+
+```bash
+maid validate manifests/replace-typescript-reexport-identity-scanner.manifest.yaml --mode behavioral
+maid validate manifests/replace-typescript-reexport-identity-scanner.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
+uv run black --check maid_runner/core/ts_module_paths.py tests/core/test_ts_module_paths.py
+uv run ruff check maid_runner/core/ts_module_paths.py tests/core/test_ts_module_paths.py
+maid validate
+maid test
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- 39 focused TypeScript module-path and identity tests passed.
+- Black and Ruff checks passed on touched Python files.
+- Full MAID validation passed with 92 manifests: 54 passed, 0 failed,
+  38 skipped as superseded.
+- Full MAID test gate passed with 5 commands passed and 0 failed.
+- Inline smoke validation passed against a temporary TypeScript project using
+  type-only named re-exports, an aliased type re-export, an unresolved star
+  export, an `index.js` barrel, and `TypeScriptValidator` identity matching.
+
 ## Characterization Test Assessment
 
 Assessment date: 2026-05-06
@@ -150,7 +211,9 @@ Focused parser/replacement characterization coverage is substantial:
 - Module identity tests cover Python dotted module paths, Python relative
   imports, Python one-level `__init__.py` re-exports, TypeScript extensionless
   POSIX module paths, TypeScript relative imports, TypeScript `.svelte`
-  specifier normalization, and one-level `index.ts(x)` re-exports.
+  specifier normalization, one-level `index.ts(x)` re-exports, type-only
+  TypeScript named re-exports, and `index.js` TypeScript-family barrel
+  re-exports.
 - Validation/integration tests cover parser error surfacing, required import
   checks, JS/TS relative import normalization, CommonJS `require`, `export from`,
   namespace imports, Svelte validation, test coverage behavior, and public
@@ -175,16 +238,17 @@ Readiness by replacement slice:
 | Slice | Readiness | Notes |
 | --- | --- | --- |
 | Svelte script extraction | Completed for current behavior | Parser-backed extraction now covers real script nodes, comments, quoted attributes, and module/instance scripts while preserving TypeScript delegation. Future work should only evolve line/column parity or deeper Svelte semantics under a new manifest. |
-| TypeScript import/re-export identity | Moderate | Named/default/namespace imports, aliasing, JSX references, and one-level named barrels are covered. Add characterization before compiler-backed replacement for `import type`, `export type`, `export *`, `export * as ns`, default re-exports, `index.js/mjs/cjs`, `package.json` exports if in scope, and `tsconfig` path aliases if the new library resolves them. |
+| TypeScript import/re-export identity | Partially completed | Named/default/namespace imports, aliasing, JSX references, one-level named barrels, type-only named barrel re-exports, and `index.js` barrels are covered. Parser-backed `resolve_ts_reexport` is complete for the current one-level named barrel contract. Add characterization before broader replacement for `export *`, `export * as ns`, default re-exports, `index.mjs/cjs`, `package.json` exports if in scope, and `tsconfig` path aliases if the new library resolves them. |
 | TypeScript artifact extraction | Moderate to good | Many syntax forms are covered. Add tests for overload signatures, decorators, abstract/interface method signatures, constructor parameter properties, default exported functions, type-only declarations, generic parameter/default formatting, optional/rest/destructured parameters, and source line/column behavior if the replacement reports richer positions. |
 | Python validator internals | Good for current scope | Stdlib `ast` behavior is well characterized. If replacing with `astroid` or `libcst`, add tests for decorators beyond `@property`, dataclass/attrs-style fields if desired, overloaded functions, `typing.Protocol`, `__all__` re-exports, star import behavior, namespace packages, and line/column parity. |
 | Required import checking in `core/validate.py` | Moderate | Existing tests cover Python imports, TS/JS relative imports, package imports, CommonJS `require`, `export from`, and namespace imports. Add tests for `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases before replacing regex extraction. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
-Conclusion: the first incremental replacement slice, Svelte script extraction,
-is complete behind the existing validator interface. There is still not enough
-coverage for a broad TypeScript compiler-backed replacement in one step. The
-next safe path is to add targeted gap tests for TypeScript import/re-export
-identity, run them against the current implementation to lock down intended
-behavior or expose intentional scope gaps, then replace only that slice behind
-the same public methods.
+Conclusion: the first two incremental replacement slices are complete behind
+the existing validator interface: Svelte script extraction and TypeScript
+one-level named barrel re-export identity. There is still not enough coverage
+or dependency design for a broad TypeScript compiler-backed replacement in one
+step. The next safe path is to add targeted characterization for the remaining
+TypeScript import/export identity gaps, especially star exports, default
+re-exports, package exports, and tsconfig path aliases, before replacing any
+broader slice behind the same public methods.
