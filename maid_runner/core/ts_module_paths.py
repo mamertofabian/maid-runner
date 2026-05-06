@@ -12,8 +12,9 @@ star ``export * from './y'``, and default-as named
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 
 _TS_EXTENSIONS: tuple[str, ...] = (
@@ -102,6 +103,42 @@ def resolve_relative_ts_import(
     return result
 
 
+def resolve_ts_import(
+    specifier: str,
+    importer_module: str,
+    project_root: Path,
+) -> str:
+    """Resolve a TypeScript import specifier to MAID module identity.
+
+    Relative imports use the existing path resolver. Non-relative imports may
+    resolve through local ``tsconfig.json`` ``compilerOptions.paths`` or
+    ``baseUrl``. Unmatched specifiers pass through unchanged.
+    """
+    if specifier.startswith("./") or specifier.startswith("../"):
+        return resolve_relative_ts_import(specifier, importer_module)
+
+    config = _load_tsconfig(project_root)
+    if config is None:
+        return specifier
+
+    compiler_options = config.get("compilerOptions")
+    if not isinstance(compiler_options, dict):
+        return specifier
+
+    root = Path(project_root)
+    base_url = _compiler_base_url(root, compiler_options)
+    paths = compiler_options.get("paths")
+    if isinstance(paths, dict):
+        resolved = _resolve_paths_alias(specifier, paths, base_url, root)
+        if resolved is not None:
+            return resolved
+
+    if "/" in specifier and isinstance(compiler_options.get("baseUrl"), str):
+        return _project_module_from_path(base_url / specifier, root)
+
+    return specifier
+
+
 def resolve_ts_reexport(
     module: str,
     name: str,
@@ -172,6 +209,64 @@ def resolve_ts_reexport(
                 return (resolved, source_name)
 
     return None
+
+
+def _load_tsconfig(project_root: Path) -> Optional[dict[str, Any]]:
+    config_path = Path(project_root) / "tsconfig.json"
+    try:
+        data = json.loads(config_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return data
+
+
+def _compiler_base_url(project_root: Path, compiler_options: dict[str, Any]) -> Path:
+    raw = compiler_options.get("baseUrl")
+    if not isinstance(raw, str) or not raw:
+        return project_root
+    base = Path(raw)
+    if base.is_absolute():
+        return base
+    return project_root / base
+
+
+def _resolve_paths_alias(
+    specifier: str,
+    paths: dict[Any, Any],
+    base_url: Path,
+    project_root: Path,
+) -> Optional[str]:
+    for pattern, targets in paths.items():
+        if not isinstance(pattern, str) or not isinstance(targets, list):
+            continue
+        capture = _match_ts_path_pattern(pattern, specifier)
+        if capture is None:
+            continue
+        for target in targets:
+            if not isinstance(target, str):
+                continue
+            resolved_target = target.replace("*", capture)
+            return _project_module_from_path(base_url / resolved_target, project_root)
+    return None
+
+
+def _match_ts_path_pattern(pattern: str, specifier: str) -> Optional[str]:
+    if "*" not in pattern:
+        return "" if pattern == specifier else None
+
+    prefix, suffix = pattern.split("*", 1)
+    if not specifier.startswith(prefix):
+        return None
+    if suffix and not specifier.endswith(suffix):
+        return None
+    end = len(specifier) - len(suffix) if suffix else len(specifier)
+    return specifier[len(prefix) : end]
+
+
+def _project_module_from_path(path: Path, project_root: Path) -> str:
+    return ts_file_to_module_path(path, project_root)
 
 
 def _make_ts_barrel_parser(index_path: Path):

@@ -1,0 +1,78 @@
+schema: "2"
+goal: >
+  Resolve TypeScript tsconfig baseUrl and paths aliases for identity-aware
+  behavioral imports.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the TypeScript barrel
+  identity slice by addressing the next common false-negative source:
+  non-relative imports resolved by tsconfig `compilerOptions.baseUrl` and
+  `compilerOptions.paths`. This manifest keeps the public validator interface
+  unchanged while adding a small public helper for TypeScript import identity
+  resolution.
+
+  The resolver should remain local and deterministic: read only the nearest
+  or supplied project `tsconfig.json`, support JSON `compilerOptions.baseUrl`
+  and simple `paths` entries, normalize the result to extensionless POSIX
+  module identity, and preserve existing relative import behavior. If no
+  matching alias or baseUrl resolution applies, return the original specifier
+  unchanged so package imports remain visible rather than guessed.
+temptations:
+  - risk: "Do not implement full TypeScript compiler module resolution."
+    instead: "Read only project tsconfig baseUrl/paths and return extensionless MAID module identities."
+  - risk: "Do not silently map every bare package import through baseUrl."
+    instead: "Apply baseUrl only when the resolved path exists in the project; otherwise return the original specifier."
+  - risk: "Do not recurse through package.json exports, node_modules, or extends chains."
+    instead: "Leave those specifiers unchanged until a manifest explicitly declares that behavior."
+  - risk: "Do not change re-export scanning or artifact extraction while adding alias resolution."
+    instead: "Use the new helper from behavioral import scanning and keep resolve_ts_reexport behavior unchanged."
+files:
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_paths_alias_resolves_wildcard_to_project_module
+        - kind: test_function
+          name: test_base_url_resolves_non_relative_specifier
+        - kind: test_function
+          name: test_paths_alias_can_resolve_directory_barrel
+        - kind: test_function
+          name: test_unmatched_alias_passes_through_unchanged
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_tsconfig_paths_alias_records_source_module
+        - kind: test_function
+          name: test_match_through_tsconfig_alias_to_barrel_reexport
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

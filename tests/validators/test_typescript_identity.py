@@ -86,6 +86,23 @@ class TestNamedImportRecordsSource:
         assert bar.import_source == "src/models/user"
         assert bar.alias_of == "Foo"
 
+    def test_tsconfig_paths_alias_records_source_module(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+        source = (
+            "import { Button } from '@/components/Button';\n"
+            "it('uses Button', () => { return <Button />; });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.tsx"
+        )
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components/Button"
+
 
 class TestDefaultImportRecordsSource:
     def test_default_import_records_source_module(
@@ -386,6 +403,53 @@ class TestIdentityRejectsCrossModuleCollision:
             "it('uses Button', () => { return <Button />; });\n"
         )
         result = validator.collect_behavioral_artifacts(source, "src/Button.test.tsx")
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Button",
+            module_path="src/components/Button",
+        )
+        wrong = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Button",
+            module_path="src/other/Button",
+        )
+        assert not match_artifact_to_references(
+            wrong,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+        assert match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+
+    def test_match_through_tsconfig_alias_to_barrel_reexport(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@components": ["src/components"]}}}'
+        )
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text(
+            "export { default as Button } from './Button';\n"
+        )
+        (components / "Button.tsx").write_text("export default class Button {}\n")
+
+        source = (
+            "import { Button } from '@components';\n"
+            "it('uses Button', () => { return <Button />; });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.tsx"
+        )
         button = _ref(result.artifacts, "Button")
         assert button is not None
         assert button.import_source == "src/components"

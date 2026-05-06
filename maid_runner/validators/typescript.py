@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from maid_runner.core.ts_module_paths import (
-    resolve_relative_ts_import,
+    resolve_ts_import,
     resolve_ts_reexport,
     ts_file_to_module_path,
 )
@@ -102,9 +102,15 @@ class TypeScriptValidator(BaseValidator):
 
         artifacts: list[FoundArtifact] = []
         seen: set[str] = set()
-        importer_module = ts_file_to_module_path(file_path, Path(".")) or ""
+        project_root = _ts_project_root_for(file_path)
+        importer_module = ts_file_to_module_path(file_path, project_root) or ""
         import_map, namespace_imports = _scan_imports(
-            tree.root_node, source_bytes, importer_module, artifacts, seen
+            tree.root_node,
+            source_bytes,
+            importer_module,
+            project_root,
+            artifacts,
+            seen,
         )
         _collect_refs(
             tree.root_node,
@@ -949,6 +955,7 @@ def _scan_imports(
     root,
     source: bytes,
     importer_module: str,
+    project_root: Path,
     artifacts: list[FoundArtifact],
     seen: set[str],
 ) -> tuple[dict[str, dict], dict[str, str]]:
@@ -974,7 +981,7 @@ def _scan_imports(
         if frag is None:
             continue
         raw_specifier = _text(frag, source)
-        resolved = resolve_relative_ts_import(raw_specifier, importer_module)
+        resolved = resolve_ts_import(raw_specifier, importer_module, project_root)
 
         clause = _child_by_type(child, "import_clause")
         if clause is None:
@@ -1013,6 +1020,18 @@ def _scan_imports(
                 _record_import(bound, resolved, None, import_map, artifacts, seen)
 
     return import_map, namespace_imports
+
+
+def _ts_project_root_for(file_path: Union[str, Path]) -> Path:
+    path = Path(file_path)
+    if not path.is_absolute():
+        return Path(".")
+
+    start = path.parent if path.suffix else path
+    for candidate in (start, *start.parents):
+        if (candidate / "tsconfig.json").exists():
+            return candidate
+    return Path(".")
 
 
 def _record_import(

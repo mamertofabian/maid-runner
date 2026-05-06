@@ -126,6 +126,60 @@ class TestResolveRelativeTsImport:
 
 
 # ----------------------------------------------------------------------------
+# resolve_ts_import
+# ----------------------------------------------------------------------------
+
+
+class TestResolveTsImport:
+    def test_paths_alias_resolves_wildcard_to_project_module(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+
+        assert (
+            resolve_ts_import("@/components/Button", "src/App.test", tmp_path)
+            == "src/components/Button"
+        )
+
+    def test_base_url_resolves_non_relative_specifier(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": "src"}}'
+        )
+
+        assert (
+            resolve_ts_import("components/Button", "src/App.test", tmp_path)
+            == "src/components/Button"
+        )
+
+    def test_paths_alias_can_resolve_directory_barrel(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@components": ["src/components"]}}}'
+        )
+
+        assert (
+            resolve_ts_import("@components", "src/App.test", tmp_path)
+            == "src/components"
+        )
+
+    def test_unmatched_alias_passes_through_unchanged(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+
+        assert resolve_ts_import("#/unknown", "src/App.test", tmp_path) == "#/unknown"
+
+
+# ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)
 # ----------------------------------------------------------------------------
 
