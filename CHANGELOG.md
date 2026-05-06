@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2026-05-06
+
+### Fixed
+- **`maid test` auto-batch behavior** — Restored automatic command batching defaults so compatible multi-manifest pytest commands run in grouped batches when no explicit batch flag is provided.
+- **Mixed command batch compatibility** — `maid test` now preserves optimized batching for compatible command groups while safely running incompatible validation commands separately.
+- **TypeScript prop attribute behavioral coverage** — Member-expression property reads in tests now count as usage for declared TypeScript `kind: attribute` artifacts, aligning behavioral validation with real object/interface property access patterns.
+
 ## [2.5.1] - 2026-05-06
 
 ### Fixed
