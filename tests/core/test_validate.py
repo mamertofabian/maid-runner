@@ -1336,6 +1336,199 @@ validate:
         ]
         assert len(import_errors) == 0
 
+    def test_ts_import_type_detected(self, project):
+        """Type-only imports count as required imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-types.manifest.yaml",
+            """schema: "2"
+goal: "Add type consumer"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import type { Budget } from "../models/Budget";\n\nexport function BudgetPage(model: Budget) { return model; }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_dynamic_import_detected(self, project):
+        """Dynamic import() calls count as required imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-loader.manifest.yaml",
+            """schema: "2"
+goal: "Add dynamic loader"
+files:
+  create:
+    - path: src/loaders/loadBudget.ts
+      artifacts:
+        - kind: function
+          name: loadBudget
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/loaders/loadBudget.ts",
+            'export async function loadBudget() { return import("../models/Budget"); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_require_resolve_detected(self, project):
+        """require.resolve() calls count as required imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-resolver.manifest.yaml",
+            """schema: "2"
+goal: "Add resolver"
+files:
+  create:
+    - path: src/loaders/resolveBudget.js
+      artifacts:
+        - kind: function
+          name: resolveBudget
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/loaders/resolveBudget.js",
+            'function resolveBudget() { return require.resolve("../models/Budget"); }\nmodule.exports = { resolveBudget };\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_multiline_named_import_detected(self, project):
+        """Multiline named imports count as required imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - Budget
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import {\n  Budget,\n} from "../models/Budget";\n\nexport function BudgetPage() { return new Budget(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_commented_out_import_does_not_satisfy_required_import(self, project):
+        """Commented-out import text does not satisfy required imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            '// import { Budget } from "../models/Budget";\n\nexport function BudgetPage() { return null; }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 1
+
+    def test_ts_import_alias_binding_detected(self, project):
+        """Named import aliases count by their local binding name."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-page.manifest.yaml",
+            """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - BudgetModel
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import { Budget as BudgetModel } from "../models/Budget";\n\nexport function BudgetPage() { return new BudgetModel(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
     def test_ts_root_file_escape_not_resolved(self, project):
         """Import from root-level file that escapes project with .. is not falsely matched."""
         manifest_path = _write_manifest(
@@ -2705,9 +2898,7 @@ it("uses make", () => {
         ]
         assert not any("make" in w.message for w in untested)
 
-    def test_typescript_object_literal_props_count_as_attribute_coverage(
-        self, project
-    ):
+    def test_typescript_object_literal_props_count_as_attribute_coverage(self, project):
         """TSX prop objects should cover declared attribute artifacts."""
         manifest_path = _write_manifest(
             project / "manifests",

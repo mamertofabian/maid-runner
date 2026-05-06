@@ -1,0 +1,63 @@
+schema: "2"
+goal: >
+  Replace TS/JS required-import regex scanning with parser-backed import
+  discovery for common syntax edge cases.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the TypeScript identity
+  characterization work by addressing the remaining moderate-readiness import
+  scanner in core validation. The required import check currently uses regular
+  expressions for TypeScript and JavaScript files; this manifest keeps the
+  public validation behavior and E320 contract unchanged while making import
+  discovery syntax-aware for type-only imports, dynamic import(), require.resolve,
+  multiline named imports, alias bindings, and commented-out imports.
+
+  This is not TypeScript compiler module resolution. The implementation should
+  lazily use the existing tree-sitter TypeScript dependency when available,
+  preserve existing path normalization, and keep a conservative text fallback
+  for environments without optional TypeScript parser dependencies.
+temptations:
+  - risk: "Do not implement TypeScript compiler module resolution, package exports, node_modules, or workspace package lookup."
+    instead: "Only collect syntactic import specifiers and names, then reuse the existing required-import normalization."
+  - risk: "Do not remove existing Python AST import checking while replacing the TS/JS regex path."
+    instead: "Leave the Python branch of _check_required_imports behavior-preserving."
+  - risk: "Do not make commented-out imports satisfy E320."
+    instead: "Use parser import/call nodes as the source of truth when tree-sitter is available."
+  - risk: "Do not add an import-time tree-sitter dependency to maid_runner.core.validate."
+    instead: "Import parser modules lazily inside the TS/JS import collection helper and fall back only when unavailable."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _check_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+            - name: required_imports
+              type: tuple[str, Ellipsis]
+          returns: list[ValidationError]
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_import_type_detected
+        - kind: test_function
+          name: test_ts_dynamic_import_detected
+        - kind: test_function
+          name: test_ts_require_resolve_detected
+        - kind: test_function
+          name: test_ts_multiline_named_import_detected
+        - kind: test_function
+          name: test_ts_commented_out_import_does_not_satisfy_required_import
+        - kind: test_function
+          name: test_ts_import_alias_binding_detected
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - tests/core/test_validate.py
+    - manifests/fix-e320-import-path-normalization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py::TestImportVerification

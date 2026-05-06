@@ -1300,40 +1300,11 @@ def _check_required_imports(
                 for alias in node.names:
                     found_imports.add(alias.name)
     else:
-        # TypeScript/JavaScript: simple text search for import patterns
         import posixpath
-        import re
 
-        _JS_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs")
+        _JS_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts")
 
-        # import/export ... from 'module' (covers default, namespace, re-exports)
-        for match in re.finditer(
-            r"""(?:import|export)\s+.*?from\s+['"](.+?)['"]""", source
-        ):
-            found_imports.add(match.group(1))
-        # import 'module' (side-effect imports)
-        for match in re.finditer(r"""import\s+['"](.+?)['"]""", source):
-            found_imports.add(match.group(1))
-        # import { X, Y } from 'module' / export { X, Y } from 'module'
-        for match in re.finditer(
-            r"""(?:import|export)\s+\{([^}]+)\}\s+from\s+['"](.+?)['"]""", source
-        ):
-            names = match.group(1)
-            module = match.group(2)
-            found_imports.add(module)
-            for name in names.split(","):
-                name = name.strip().split(" as ")[0].strip()
-                if name:
-                    found_imports.add(name)
-        # import * as X from 'module'
-        for match in re.finditer(
-            r"""import\s+\*\s+as\s+(\w+)\s+from\s+['"](.+?)['"]""", source
-        ):
-            found_imports.add(match.group(1))  # namespace name
-            found_imports.add(match.group(2))  # module path
-        # CommonJS require('module') — also captures destructured: const { X } = require('...')
-        for match in re.finditer(r"""require\s*\(\s*['"](.+?)['"]\s*\)""", source):
-            found_imports.add(match.group(1))
+        found_imports = _collect_js_ts_required_imports(source, file_path)
 
         # Resolve relative imports against the importing file's directory
         # so that ../../src/models/Budget matches manifest's src/models/Budget.
@@ -1382,3 +1353,220 @@ def _check_required_imports(
             )
 
     return errors
+
+
+def _collect_js_ts_required_imports(source: str, file_path: str) -> set[str]:
+    """Collect TS/JS import modules and bindings for required-import checks."""
+    parsed = _collect_js_ts_required_imports_with_tree_sitter(source, file_path)
+    if parsed is not None:
+        return parsed
+    return _collect_js_ts_required_imports_with_text(source)
+
+
+def _collect_js_ts_required_imports_with_tree_sitter(
+    source: str, file_path: str
+) -> Optional[set[str]]:
+    try:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript as ts_ts
+    except ImportError:
+        return None
+
+    if file_path.endswith((".tsx", ".jsx")):
+        language = Language(ts_ts.language_tsx())
+    elif file_path.endswith((".ts", ".js", ".mjs", ".cjs", ".mts", ".cts")):
+        language = Language(ts_ts.language_typescript())
+    else:
+        return None
+
+    source_bytes = source.encode("utf-8")
+    tree = Parser(language).parse(source_bytes)
+    if getattr(tree.root_node, "has_error", False):
+        return None
+
+    found: set[str] = set()
+    _collect_js_ts_import_nodes(tree.root_node, source_bytes, found)
+    return found
+
+
+def _collect_js_ts_required_imports_with_text(source: str) -> set[str]:
+    found: set[str] = set()
+
+    # import/export ... from 'module' (covers default, namespace, re-exports)
+    for match in re.finditer(
+        r"""(?:import|export)\s+.*?from\s+['"](.+?)['"]""", source
+    ):
+        found.add(match.group(1))
+    # import 'module' (side-effect imports)
+    for match in re.finditer(r"""import\s+['"](.+?)['"]""", source):
+        found.add(match.group(1))
+    # import { X, Y } from 'module' / export { X, Y } from 'module'
+    for match in re.finditer(
+        r"""(?:import|export)\s+\{([^}]+)\}\s+from\s+['"](.+?)['"]""", source
+    ):
+        names = match.group(1)
+        module = match.group(2)
+        found.add(module)
+        for name in names.split(","):
+            parts = [part.strip() for part in name.split(" as ", 1)]
+            for part in parts:
+                if part:
+                    found.add(part)
+    # import * as X from 'module'
+    for match in re.finditer(
+        r"""import\s+\*\s+as\s+(\w+)\s+from\s+['"](.+?)['"]""", source
+    ):
+        found.add(match.group(1))  # namespace name
+        found.add(match.group(2))  # module path
+    # CommonJS require('module') — also captures destructured: const { X } = require('...')
+    for match in re.finditer(r"""require\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+    for match in re.finditer(r"""require\.resolve\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+    for match in re.finditer(r"""import\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+
+    return found
+
+
+def _collect_js_ts_import_nodes(node, source: bytes, found: set[str]) -> None:
+    if node.type == "import_statement":
+        module = _js_ts_statement_source(node, source)
+        if module:
+            found.add(module)
+        _collect_js_ts_import_bindings(node, source, found)
+        return
+
+    if node.type == "export_statement":
+        module = _js_ts_statement_source(node, source)
+        if module:
+            found.add(module)
+            _collect_js_ts_import_bindings(node, source, found)
+            return
+
+    if node.type == "call_expression":
+        module = _js_ts_call_import_source(node, source)
+        if module:
+            found.add(module)
+
+    for child in node.children:
+        _collect_js_ts_import_nodes(child, source, found)
+
+
+def _collect_js_ts_import_bindings(node, source: bytes, found: set[str]) -> None:
+    stack = list(node.children)
+    while stack:
+        current = stack.pop()
+        if current.type in ("import_specifier", "export_specifier"):
+            identifiers = _js_ts_named_child_texts(current, source)
+            for identifier in identifiers:
+                found.add(identifier)
+            continue
+        if current.type == "namespace_import":
+            identifier = _js_ts_first_named_child_text(current, source)
+            if identifier:
+                found.add(identifier)
+            continue
+        if current.type == "import_clause":
+            for child in current.children:
+                if child.type == "identifier":
+                    found.add(_js_ts_text(child, source))
+        stack.extend(reversed(current.children))
+
+
+def _js_ts_statement_source(node, source: bytes) -> Optional[str]:
+    string_node = _js_ts_child_by_field_name(node, "source")
+    if string_node is None:
+        string_node = _js_ts_child_by_type(node, "string")
+    if string_node is None:
+        return None
+    return _js_ts_string_fragment(string_node, source)
+
+
+def _js_ts_call_import_source(node, source: bytes) -> Optional[str]:
+    function_node = _js_ts_child_by_field_name(node, "function")
+    if function_node is None:
+        return None
+
+    is_import_call = function_node.type == "import"
+    is_require_call = (
+        function_node.type == "identifier"
+        and _js_ts_text(function_node, source) == "require"
+    )
+    is_require_resolve_call = _js_ts_is_require_resolve(function_node, source)
+    if not (is_import_call or is_require_call or is_require_resolve_call):
+        return None
+
+    arguments = _js_ts_child_by_field_name(node, "arguments")
+    if arguments is None:
+        arguments = _js_ts_child_by_type(node, "arguments")
+    if arguments is None:
+        return None
+
+    for child in arguments.children:
+        if child.type == "string":
+            return _js_ts_string_fragment(child, source)
+        if child.type in ("(", ","):
+            continue
+        return None
+    return None
+
+
+def _js_ts_is_require_resolve(node, source: bytes) -> bool:
+    if node.type != "member_expression":
+        return False
+    object_node = _js_ts_child_by_field_name(node, "object")
+    property_node = _js_ts_child_by_field_name(node, "property")
+    if object_node is None or property_node is None:
+        for child in node.children:
+            if child.type == "identifier":
+                object_node = child
+            elif child.type == "property_identifier":
+                property_node = child
+    return (
+        object_node is not None
+        and property_node is not None
+        and _js_ts_text(object_node, source) == "require"
+        and _js_ts_text(property_node, source) == "resolve"
+    )
+
+
+def _js_ts_child_by_field_name(node, field_name: str):
+    try:
+        return node.child_by_field_name(field_name)
+    except (AttributeError, TypeError):
+        return None
+
+
+def _js_ts_child_by_type(node, child_type: str):
+    for child in node.children:
+        if child.type == child_type:
+            return child
+    return None
+
+
+def _js_ts_named_child_texts(node, source: bytes) -> list[str]:
+    names: list[str] = []
+    for child in node.children:
+        if child.type in ("identifier", "type_identifier"):
+            names.append(_js_ts_text(child, source))
+    return names
+
+
+def _js_ts_first_named_child_text(node, source: bytes) -> Optional[str]:
+    names = _js_ts_named_child_texts(node, source)
+    return names[0] if names else None
+
+
+def _js_ts_string_fragment(node, source: bytes) -> Optional[str]:
+    fragment = _js_ts_child_by_type(node, "string_fragment")
+    if fragment is not None:
+        return _js_ts_text(fragment, source)
+    text = _js_ts_text(node, source)
+    if len(text) >= 2 and text[0] in ("'", '"') and text[-1] == text[0]:
+        return text[1:-1]
+    return None
+
+
+def _js_ts_text(node, source: bytes) -> str:
+    return source[node.start_byte : node.end_byte].decode("utf-8")
