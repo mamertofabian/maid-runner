@@ -317,6 +317,21 @@ class TestResolveTsReexport:
             "Button",
         )
 
+    def test_recursive_barrel_reexport_resolves_only_immediate_module(
+        self, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        nested = components / "nested"
+        nested.mkdir(parents=True)
+        (components / "index.ts").write_text("export { Button } from './nested';\n")
+        (nested / "index.ts").write_text("export { Button } from './Button';\n")
+        (nested / "Button.tsx").write_text("export function Button() {}\n")
+
+        assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+            "src/components/nested",
+            "Button",
+        )
+
     def test_type_only_reexport_resolves_to_defining_module(
         self, tmp_path: Path
     ) -> None:

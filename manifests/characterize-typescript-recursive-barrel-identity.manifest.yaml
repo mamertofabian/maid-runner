@@ -1,0 +1,44 @@
+schema: "2"
+goal: >
+  Characterize TypeScript recursive barrel identity as unsupported by the
+  current one-level resolver.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after namespace re-export
+  characterization by locking the next TypeScript import/re-export boundary:
+  recursive barrels are not resolved by the current path-based helper.
+
+  When `src/components/index.ts` re-exports `Button` from `./nested`, and
+  `src/components/nested/index.ts` re-exports `Button` from `./Button`, the
+  public resolve_reexport contract should not claim that an import from
+  `src/components` covers the final `src/components/nested/Button` artifact.
+  The resolver may expose the immediate one-level target, but it must not walk
+  another barrel until a future manifest intentionally evolves that behavior.
+temptations:
+  - risk: "Do not add recursive barrel traversal or TypeScript compiler resolution in this characterization slice."
+    instead: "Assert the current one-level boundary so future resolver work must evolve it intentionally."
+  - risk: "Do not make a recursive barrel import pass by weakening identity matching to name-only matching."
+    instead: "Keep module_path/import_source disagreement as a mismatch when both identities are available."
+  - risk: "Do not change TypeScript artifact extraction, tsconfig alias handling, or package import behavior."
+    instead: "Exercise only resolve_ts_reexport and identity matching through existing public interfaces."
+files:
+  edit:
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_recursive_barrel_reexport_resolves_only_immediate_module
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_recursive_barrel_reexport_does_not_match_final_artifact
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
