@@ -827,6 +827,42 @@ Readiness by replacement slice:
 | Required import checking in `core/validate.py` | Completed for current parser-backed scanner | Python remains stdlib-`ast` backed. TS/JS required import discovery now uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases. Future work should only add tsconfig/package resolution under an explicit manifest. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
+## Forward Implementation Queue
+
+Status: planning notes only. These items do not change MAID validation behavior
+or public validator functionality until a future manifest explicitly evolves
+the contract, adds behavioral tests, and passes validation.
+
+1. Broaden compiler-backed TypeScript identity resolution for package-style
+   `tsconfig` `extends`, especially configurations resolved through
+   `node_modules`.
+2. Characterize and then support additional package export shapes when the
+   compiler can resolve them to project-local source: conditional exports,
+   `types`/`import`/`require` branches, wildcard exports, and package subpath
+   variants.
+3. Preserve the third-party package boundary. Direct dependencies in
+   `node_modules` should continue to remain package specifiers unless compiler
+   resolution realpaths them to source inside the target project or workspace.
+4. Start a separate compiler-backed TypeScript artifact extraction spike rather
+   than folding artifact extraction into the identity resolver.
+5. In that artifact extraction spike, characterize type-only declarations,
+   decorator metadata semantics, generic type parameter storage, computed
+   property cases beyond methods, and source column/range parity.
+6. Consider compiler-backed required-import resolution only under a dedicated
+   manifest. The current scanner remains parser-backed and should keep its
+   existing behavior until that contract is intentionally evolved.
+7. Keep Python parser replacement low priority unless package-level dependency
+   graph queries become more important than current file-local artifact
+   extraction.
+8. Keep graph/query parser replacement low priority unless the query language
+   grows into a real grammar.
+
+These items remain aligned with MAID's goal and philosophy because they improve
+observable artifact/reference identity and reduce hand-rolled language
+semantics while preserving manifest-driven, behavior-first change control. Each
+slice should keep the public validator interface stable unless its manifest
+explicitly declares an interface evolution.
+
 Conclusion: the incremental replacement slices now cover Svelte script
 extraction, TypeScript barrel identity, two TypeScript artifact extraction
 edge-case batches, tsconfig alias identity, local tsconfig `extends` identity,
