@@ -279,10 +279,12 @@ def _collect_impl(
 ) -> None:
     ntype = node.type
 
-    if ntype in ("class_declaration", "abstract_class_declaration"):
+    if ntype in ("class_declaration", "abstract_class_declaration", "class"):
         name = _child_text(node, "type_identifier", source) or _child_text(
             node, "identifier", source
         )
+        if not name and ntype == "class" and _is_default_export_child(node):
+            name = "default"
         if name:
             bases = _extract_bases(node, source)
             artifacts.append(
@@ -391,8 +393,19 @@ def _collect_impl(
             )
         return
 
-    if ntype in ("function_declaration", "generator_function_declaration"):
+    if ntype in (
+        "function_declaration",
+        "generator_function_declaration",
+        "function_signature",
+        "function_expression",
+    ):
         name = _child_text(node, "identifier", source)
+        if (
+            not name
+            and ntype == "function_expression"
+            and _is_default_export_child(node)
+        ):
+            name = "default"
         if name:
             args, returns = _extract_func_signature(node, source)
             is_async = any(c.type == "async" for c in node.children)
@@ -427,8 +440,10 @@ def _collect_impl(
 
     # Method definitions inside class
     if ntype == "method_definition" and current_class:
-        name_node = _child_by_type(node, "property_identifier") or _child_by_type(
-            node, "private_property_identifier"
+        name_node = (
+            _child_by_type(node, "property_identifier")
+            or _child_by_type(node, "private_property_identifier")
+            or _child_by_type(node, "computed_property_name")
         )
         if name_node:
             name = _text(name_node, source)
@@ -740,10 +755,41 @@ def _extract_bases(node, source: bytes) -> tuple[str, ...]:
         if child.type == "class_heritage":
             for hc in child.children:
                 if hc.type in ("extends_clause", "implements_clause"):
-                    for ec in hc.children:
-                        if ec.type in ("identifier", "type_identifier"):
-                            bases.append(_text(ec, source))
+                    bases.extend(_extract_base_clause_types(hc, source))
     return tuple(bases)
+
+
+def _extract_base_clause_types(clause, source: bytes) -> list[str]:
+    bases: list[str] = []
+    children = clause.children
+    index = 0
+    while index < len(children):
+        child = children[index]
+        if child.type in (
+            "identifier",
+            "type_identifier",
+            "member_expression",
+            "nested_type_identifier",
+        ):
+            if (
+                index + 1 < len(children)
+                and children[index + 1].type == "type_arguments"
+            ):
+                bases.append(_text(child, source) + _text(children[index + 1], source))
+                index += 2
+                continue
+            bases.append(_text(child, source))
+        elif child.type == "generic_type":
+            bases.append(_text(child, source))
+        index += 1
+    return bases
+
+
+def _is_default_export_child(node) -> bool:
+    parent = node.parent
+    if parent is None or parent.type != "export_statement":
+        return False
+    return any(child.type == "default" for child in parent.children)
 
 
 def _child_by_type(node, type_name: str):

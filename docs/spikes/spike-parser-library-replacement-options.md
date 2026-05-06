@@ -249,6 +249,58 @@ Results:
   constructor parameters, destructuring, a default parameter, an optional
   parameter, and a rest parameter.
 
+## Implemented Slice: TypeScript Artifact Extraction Edge Cases 2
+
+Implementation date: 2026-05-06
+
+Manifest:
+`manifests/close-typescript-artifact-extraction-gaps-2.manifest.yaml`
+
+The TypeScript implementation collector now closes a second batch of
+MAID-visible artifact extraction gaps behind the existing
+`TypeScriptValidator` interface. This remains a targeted tree-sitter-backed
+collector improvement, not a `ts-morph` or TypeScript compiler API migration.
+
+Added coverage locks down behavior for:
+
+- overload signatures being collected in source order alongside the
+  implementation declaration;
+- decorated classes and methods remaining visible as public artifacts;
+- anonymous default function exports being collected as a `default` function
+  artifact;
+- anonymous default class exports being collected as a `default` class artifact
+  with methods attached to `default`;
+- generic `extends` and `implements` base types preserving type arguments;
+- computed class method names being collected from stable source text such as
+  `[Symbol.iterator]`.
+
+Intentionally still out of scope:
+
+- replacing the full TypeScript validator with `ts-morph` or a TypeScript
+  compiler API subprocess;
+- changing import/re-export identity behavior;
+- recursive barrel traversal, package exports, and workspace package
+  resolution;
+- source column parity and richer source ranges beyond the existing line
+  metadata.
+
+Verification run after implementation:
+
+```bash
+maid validate manifests/close-typescript-artifact-extraction-gaps-2.manifest.yaml --mode behavioral
+maid validate manifests/close-typescript-artifact-extraction-gaps-2.manifest.yaml --mode implementation
+uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript.py tests/validators/test_typescript_identity.py
+uv run black --check maid_runner/validators/typescript.py tests/validators/test_typescript_artifact_edge_cases.py
+uv run ruff check maid_runner/validators/typescript.py tests/validators/test_typescript_artifact_edge_cases.py
+```
+
+Results:
+
+- MAID behavioral validation passed.
+- MAID implementation validation passed.
+- 91 focused TypeScript artifact and identity tests passed.
+- Black and Ruff checks passed on touched Python files.
+
 ## Implemented Slice: TypeScript Star and Default-as Barrel Identity
 
 Implementation date: 2026-05-06
@@ -647,17 +699,19 @@ Focused parser/replacement characterization coverage is substantial:
   stub detection, identity fields, relative imports, alias handling, and
   attribute-chain module identity.
 - TypeScript validator tests cover interfaces, classes, methods, abstract
-  method signatures, arrow functions, class fields, private `#` members,
-  constructor parameter properties, defaulted/optional/rest/destructured
-  parameters, object property arrow exclusion, enums, namespaces, constructors,
-  getters/setters, generator functions, export statements, inheritance,
-  interface members, member-expression behavioral references, namespace import
-  identity, JSX/TSX references, object/JSX props, test-function label detection,
-  stub detection, module path identity, named/star/default-as barrel re-export
-  matching, namespace re-export non-equivalence, recursive barrel boundary
-  behavior, `index.mjs` barrel identity, tsconfig alias identity, tsconfig
-  `extends` identity, package import pass-through behavior, and cross-module
-  collision rejection.
+  method signatures, overload signatures, arrow functions, class fields,
+  private `#` members, constructor parameter properties,
+  defaulted/optional/rest/destructured parameters, decorated declarations,
+  anonymous default exports, generic base type formatting, computed class
+  method names, object property arrow exclusion, enums, namespaces,
+  constructors, getters/setters, generator functions, export statements,
+  inheritance, interface members, member-expression behavioral references,
+  namespace import identity, JSX/TSX references, object/JSX props,
+  test-function label detection, stub detection, module path identity,
+  named/star/default-as barrel re-export matching, namespace re-export
+  non-equivalence, recursive barrel boundary behavior, `index.mjs` barrel
+  identity, tsconfig alias identity, tsconfig `extends` identity, package
+  import pass-through behavior, and cross-module collision rejection.
 - Svelte validator tests cover parser-backed script extraction, TypeScript
   script extraction, ignored scripts inside comments, quoted `>` attributes,
   module-context plus instance script ordering, no-script behavior, behavioral
@@ -698,21 +752,22 @@ Readiness by replacement slice:
 | --- | --- | --- |
 | Svelte script extraction | Completed for current behavior | Parser-backed extraction now covers real script nodes, comments, quoted attributes, and module/instance scripts while preserving TypeScript delegation. Future work should only evolve line/column parity or deeper Svelte semantics under a new manifest. |
 | TypeScript import/re-export identity | Good for current path-based scope | Named/default/namespace imports, aliasing, JSX references, one-level named/type/star/default-as barrels, namespace re-export non-equivalence, recursive barrel one-level boundaries, JavaScript-family barrels including `index.mjs` and narrow `index.cjs`, tsconfig `baseUrl`/`paths` aliases, local tsconfig `extends` chains, package import pass-through behavior, and workspace package pass-through behavior are covered. Add characterization before broader replacement for package.json exports resolution, node_modules lookup, package-style tsconfig `extends`, or recursive barrel traversal if those become in scope. |
-| TypeScript artifact extraction | Good for current tree-sitter scope | Edge-case coverage now includes abstract method signatures, constructor parameter properties, and defaulted/optional/rest/destructured parameters. Add tests before any broader replacement for overload signature ordering, decorators with emitted metadata, default anonymous exports, type-only declarations, generic parameter/default formatting, computed property names, and source line/column parity if the replacement reports richer positions. |
+| TypeScript artifact extraction | Good for current tree-sitter scope | Edge-case coverage now includes abstract method signatures, constructor parameter properties, defaulted/optional/rest/destructured parameters, overload signatures, decorated declarations, anonymous default exports, generic base type formatting, and computed class method names. Add tests before any broader replacement for type-only declarations, decorator metadata semantics, generic type parameter storage, computed property boundary cases beyond methods, and source column/range parity if the replacement reports richer positions. |
 | Python validator internals | Good for current scope | Stdlib `ast` behavior is well characterized. If replacing with `astroid` or `libcst`, add tests for decorators beyond `@property`, dataclass/attrs-style fields if desired, overloaded functions, `typing.Protocol`, `__all__` re-exports, star import behavior, namespace packages, and line/column parity. |
 | Required import checking in `core/validate.py` | Completed for current parser-backed scanner | Python remains stdlib-`ast` backed. TS/JS required import discovery now uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases. Future work should only add tsconfig/package resolution under an explicit manifest. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
 Conclusion: the incremental replacement slices now cover Svelte script
-extraction, TypeScript barrel identity, TypeScript artifact extraction edge
-cases, tsconfig alias identity, local tsconfig `extends` identity, package and
-workspace package boundary behavior, parser-backed TS/JS required import
-checking, namespace re-export boundaries, recursive barrel boundaries, and
-`index.mjs`/narrow `index.cjs` barrel identity behind the existing validator
-interface. There is still not enough dependency design for a broad TypeScript
-compiler-backed replacement in one step. The next safe path is to add targeted
-characterization for whichever broader behavior is selected next:
+extraction, TypeScript barrel identity, two TypeScript artifact extraction
+edge-case batches, tsconfig alias identity, local tsconfig `extends` identity,
+package and workspace package boundary behavior, parser-backed TS/JS required
+import checking, namespace re-export boundaries, recursive barrel boundaries,
+and `index.mjs`/narrow `index.cjs` barrel identity behind the existing
+validator interface. There is still not enough dependency design for a broad
+TypeScript compiler-backed replacement in one step. The next safe path is to
+add targeted characterization for whichever broader behavior is selected next:
 package exports resolution, node_modules lookup, package-style tsconfig
-`extends`, recursive barrel traversal, or deeper artifact extraction gaps such
-as overloads, decorators, default anonymous exports, generic formatting,
-computed property names, and line/column parity.
+`extends`, recursive barrel traversal, or remaining artifact extraction
+semantics such as type-only declarations, decorator metadata semantics, generic
+type parameter storage, computed property boundary cases beyond methods, and
+source column/range parity.

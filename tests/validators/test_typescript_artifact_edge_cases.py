@@ -104,3 +104,134 @@ def test_destructured_parameter_is_not_dropped_from_signature() -> None:
         ("context", "RequestContext", None),
     ]
     assert route.returns == "Response"
+
+
+def test_overload_signatures_are_collected_in_source_order() -> None:
+    source = """export function parse(input: string): Parsed;
+export function parse(input: Buffer): Parsed;
+export function parse(input: string | Buffer): Parsed {
+  return normalize(input);
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/parse.ts"
+    )
+
+    overloads = [a for a in result.artifacts if a.name == "parse"]
+
+    assert [a.kind for a in overloads] == [
+        ArtifactKind.FUNCTION,
+        ArtifactKind.FUNCTION,
+        ArtifactKind.FUNCTION,
+    ]
+    assert [
+        [(arg.name, arg.type, arg.default) for arg in a.args] for a in overloads
+    ] == [
+        [("input", "string", None)],
+        [("input", "Buffer", None)],
+        [("input", "string | Buffer", None)],
+    ]
+    assert [a.returns for a in overloads] == ["Parsed", "Parsed", "Parsed"]
+    assert [a.line for a in overloads] == [1, 2, 3]
+
+
+def test_decorated_class_and_method_are_collected() -> None:
+    source = """@sealed
+export class Service {
+  @trace
+  run(input: string): void {}
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/service.ts"
+    )
+
+    service = next(a for a in result.artifacts if a.name == "Service")
+    run = next(a for a in result.artifacts if a.name == "run")
+
+    assert service.kind == ArtifactKind.CLASS
+    assert service.line == 2
+    assert run.kind == ArtifactKind.METHOD
+    assert run.of == "Service"
+    assert [(arg.name, arg.type, arg.default) for arg in run.args] == [
+        ("input", "string", None)
+    ]
+    assert run.returns == "void"
+    assert run.line == 4
+
+
+def test_anonymous_default_function_is_collected_as_default() -> None:
+    source = """export default function(input: string): Result {
+  return make(input);
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/default-factory.ts"
+    )
+
+    default_export = next(a for a in result.artifacts if a.name == "default")
+
+    assert default_export.kind == ArtifactKind.FUNCTION
+    assert [(arg.name, arg.type, arg.default) for arg in default_export.args] == [
+        ("input", "string", None)
+    ]
+    assert default_export.returns == "Result"
+    assert default_export.line == 1
+
+
+def test_anonymous_default_class_is_collected_as_default() -> None:
+    source = """export default class {
+  render(): void {}
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/default-view.ts"
+    )
+
+    default_export = next(a for a in result.artifacts if a.name == "default")
+    render = next(a for a in result.artifacts if a.name == "render")
+
+    assert default_export.kind == ArtifactKind.CLASS
+    assert default_export.line == 1
+    assert render.kind == ArtifactKind.METHOD
+    assert render.of == "default"
+    assert render.returns == "void"
+
+
+def test_generic_extends_and_implements_bases_preserve_type_arguments() -> None:
+    source = """export class Store<T extends Item = Item>
+  extends Repository<T>
+  implements Cache<T>, Serializable<Record<string, T>> {}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/store.ts"
+    )
+
+    store = next(a for a in result.artifacts if a.name == "Store")
+
+    assert store.kind == ArtifactKind.CLASS
+    assert store.bases == (
+        "Repository<T>",
+        "Cache<T>",
+        "Serializable<Record<string, T>>",
+    )
+
+
+def test_computed_class_method_name_is_collected_from_source_text() -> None:
+    source = """export class Registry {
+  [Symbol.iterator](): Iterator<Item> {
+    return items();
+  }
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/registry.ts"
+    )
+
+    iterator = next(a for a in result.artifacts if a.name == "[Symbol.iterator]")
+
+    assert iterator.kind == ArtifactKind.METHOD
+    assert iterator.of == "Registry"
+    assert iterator.args == ()
+    assert iterator.returns == "Iterator<Item>"
+    assert iterator.line == 2

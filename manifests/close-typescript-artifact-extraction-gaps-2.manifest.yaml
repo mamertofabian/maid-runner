@@ -1,0 +1,63 @@
+schema: "2"
+goal: >
+  Close the next batch of TypeScript artifact extraction gaps before broader
+  parser replacement.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike with one cohesive
+  TypeScript artifact-extraction slice. This manifest keeps the public
+  TypeScriptValidator interface unchanged and improves MAID-visible
+  implementation artifact extraction for declarations that are common in
+  TypeScript projects but still under-characterized after the first edge-case
+  pass: overload signatures, decorated declarations, anonymous default exports,
+  generic base type formatting, and computed method names.
+
+  This is intentionally not import resolution, package resolution, recursive
+  barrel traversal, or a TypeScript compiler API migration. It strengthens the
+  existing tree-sitter-backed collector behind
+  collect_implementation_artifacts.
+temptations:
+  - risk: "Do not replace the full TypeScript validator or add ts-morph/compiler subprocesses in this slice."
+    instead: "Extend only the existing implementation artifact collector behavior exercised by the declared tests."
+  - risk: "Do not change import/re-export identity behavior while fixing artifact extraction."
+    instead: "Leave ts_module_paths, behavioral import collection, and identity matching out of scope."
+  - risk: "Do not hide unsupported constructs by dropping them from the artifact set."
+    instead: "Use stable source-text names for computed methods and anonymous default export identity."
+  - risk: "Do not collapse overload signatures into one broad implementation signature."
+    instead: "Collect overload signatures in source order alongside the implementation declaration."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_overload_signatures_are_collected_in_source_order
+        - kind: test_function
+          name: test_decorated_class_and_method_are_collected
+        - kind: test_function
+          name: test_anonymous_default_function_is_collected_as_default
+        - kind: test_function
+          name: test_anonymous_default_class_is_collected_as_default
+        - kind: test_function
+          name: test_generic_extends_and_implements_bases_preserve_type_arguments
+        - kind: test_function
+          name: test_computed_class_method_name_is_collected_from_source_text
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_identity.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript.py tests/validators/test_typescript_identity.py
