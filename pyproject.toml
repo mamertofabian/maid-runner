@@ -81,7 +81,7 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md"]
+maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md", "core/*.cjs"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

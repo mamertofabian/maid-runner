@@ -138,10 +138,15 @@ class TestNamedImportRecordsSource:
         assert render is not None
         assert render.import_source == "@testing-library/react"
 
-    def test_workspace_package_import_records_package_source(
+    def test_workspace_package_import_records_workspace_source(
         self, validator: TypeScriptValidator, tmp_path: Path
     ) -> None:
         (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*", "packages/**/*"]}'
+        )
+        src = tmp_path / "src"
+        src.mkdir()
         package_dir = tmp_path / "packages" / "ui"
         package_dir.mkdir(parents=True)
         (package_dir / "package.json").write_text(
@@ -150,6 +155,9 @@ class TestNamedImportRecordsSource:
         button_file = package_dir / "src" / "Button.ts"
         button_file.parent.mkdir()
         button_file.write_text("export function Button() {}\n")
+        scope_dir = tmp_path / "node_modules" / "@scope"
+        scope_dir.mkdir(parents=True)
+        (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
         source = (
             "import { Button } from '@scope/ui/Button';\n"
             "it('uses Button', () => { Button(); });\n"
@@ -159,7 +167,7 @@ class TestNamedImportRecordsSource:
         )
         button = _ref(result.artifacts, "Button")
         assert button is not None
-        assert button.import_source == "@scope/ui/Button"
+        assert button.import_source == "packages/ui/src/Button"
 
 
 class TestDefaultImportRecordsSource:
@@ -517,9 +525,12 @@ class TestIdentityRejectsCrossModuleCollision:
             reexport_resolver=validator.resolve_reexport,
         )
 
-    def test_recursive_barrel_reexport_does_not_match_final_artifact(
+    def test_recursive_barrel_reexport_matches_final_artifact(
         self, validator: TypeScriptValidator, tmp_path: Path
     ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*"]}'
+        )
         components = tmp_path / "src" / "components"
         nested = components / "nested"
         nested.mkdir(parents=True)
@@ -541,7 +552,7 @@ class TestIdentityRejectsCrossModuleCollision:
             name="Button",
             module_path="src/components/nested/Button",
         )
-        assert not match_artifact_to_references(
+        assert match_artifact_to_references(
             artifact,
             result.artifacts,
             tmp_path,

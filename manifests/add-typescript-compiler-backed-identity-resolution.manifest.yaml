@@ -1,0 +1,142 @@
+schema: "2"
+goal: >
+  Add compiler-backed TypeScript import and re-export identity resolution.
+type: feature
+created: "2026-05-06"
+supersedes:
+  - characterize-typescript-workspace-package-boundary
+  - characterize-typescript-recursive-barrel-identity
+description: |
+  Introduce an opportunistic TypeScript compiler-backed identity resolver for
+  import sources and barrel re-exports. The resolver uses the target project's
+  installed TypeScript compiler when Node and TypeScript are available, then
+  falls back to the current path/tree-sitter resolver when the compiler cannot
+  be loaded or cannot resolve the request.
+
+  This evolves the prior characterization boundaries for workspace package
+  exports and recursive barrels, but keeps artifact extraction tree-sitter
+  backed. The public validator-facing API remains resolve_ts_import and
+  resolve_ts_reexport; the new compiler module is an internal integration seam
+  with public functions only so tests can exercise the fallback contract.
+temptations:
+  - risk: "Do not replace TypeScript artifact extraction in this identity-resolution slice."
+    instead: "Only route resolve_ts_import and resolve_ts_reexport through the compiler bridge before existing fallbacks."
+  - risk: "Do not make third-party package imports look like local source by returning node_modules paths."
+    instead: "Return project-relative identities only for source files inside the project or workspace-realpathed packages; otherwise fall back to the original package specifier."
+  - risk: "Do not make compiler availability a hard runtime dependency for MAID validation."
+    instead: "Return None from compiler helpers on missing Node, missing TypeScript, bridge errors, invalid JSON, or timeouts so existing path-based behavior remains available."
+  - risk: "Do not change barrel import identity from directory modules to index modules."
+    instead: "Collapse compiler-resolved index files back to the directory identity unless the original specifier explicitly targeted index."
+files:
+  create:
+    - path: maid_runner/core/ts_compiler_resolver.py
+      artifacts:
+        - kind: function
+          name: resolve_import_with_compiler
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: function
+          name: resolve_reexport_with_compiler
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: maid_runner/core/ts_compiler_resolver.cjs
+      artifacts:
+        - kind: attribute
+          name: ts_compiler_resolver_bridge
+          of: TypeScript compiler resolver
+          type: script
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_resolve_import_with_compiler_resolves_workspace_package_exports
+        - kind: test_function
+          name: test_resolve_reexport_with_compiler_resolves_recursive_barrels
+        - kind: test_function
+          name: test_compiler_helpers_return_none_when_node_is_unavailable
+        - kind: test_function
+          name: test_compiler_resolution_packaging_contract_declares_runtime_assets
+    - path: package.json
+      artifacts:
+        - kind: attribute
+          name: typescript
+          of: devDependencies
+          type: string
+    - path: package-lock.json
+      artifacts:
+        - kind: attribute
+          name: lockfileVersion
+          of: npm package lock
+          type: number
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: package_data_core_cjs
+          of: tool.setuptools.package-data.maid_runner
+          type: string
+    - path: .gitignore
+      artifacts:
+        - kind: attribute
+          name: node_modules
+          of: ignored paths
+          type: string
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_workspace_package_exports_resolve_to_workspace_source
+        - kind: test_function
+          name: test_recursive_barrel_reexport_resolves_to_final_module
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_workspace_package_import_records_workspace_source
+        - kind: test_function
+          name: test_recursive_barrel_reexport_matches_final_artifact
+    - path: docs/spikes/spike-parser-library-replacement-options.md
+      artifacts:
+        - kind: attribute
+          name: compiler_backed_TypeScript_identity_resolution
+          of: parser library replacement spike
+          type: section
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/identity.py
+    - tests/validators/test_typescript.py
+    - manifests/characterize-typescript-package-import-identity.manifest.yaml
+    - manifests/add-typescript-tsconfig-extends-identity.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

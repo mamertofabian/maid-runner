@@ -1,0 +1,7 @@
+{
+  "name": "maid-runner-typescript-identity-tests",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

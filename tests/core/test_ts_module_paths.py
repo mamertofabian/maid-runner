@@ -276,10 +276,20 @@ class TestResolveTsImport:
             == "@scope/ui/Button"
         )
 
-    def test_workspace_package_exports_are_not_resolved(self, tmp_path: Path) -> None:
+    def test_workspace_package_exports_resolve_to_workspace_source(
+        self, tmp_path: Path
+    ) -> None:
         from maid_runner.core.ts_module_paths import resolve_ts_import
 
         (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*", "packages/**/*"]}'
+        )
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "App.test.ts").write_text(
+            "import { Button } from '@scope/ui/Button';\nButton();\n"
+        )
         package_dir = tmp_path / "packages" / "ui"
         package_dir.mkdir(parents=True)
         (package_dir / "package.json").write_text(
@@ -288,10 +298,13 @@ class TestResolveTsImport:
         button = package_dir / "src" / "Button.ts"
         button.parent.mkdir()
         button.write_text("export function Button() {}\n")
+        scope_dir = tmp_path / "node_modules" / "@scope"
+        scope_dir.mkdir(parents=True)
+        (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
 
         assert (
             resolve_ts_import("@scope/ui/Button", "src/App.test", tmp_path)
-            == "@scope/ui/Button"
+            == "packages/ui/src/Button"
         )
 
 
@@ -396,9 +409,12 @@ class TestResolveTsReexport:
             "Button",
         )
 
-    def test_recursive_barrel_reexport_resolves_only_immediate_module(
+    def test_recursive_barrel_reexport_resolves_to_final_module(
         self, tmp_path: Path
     ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*"]}'
+        )
         components = tmp_path / "src" / "components"
         nested = components / "nested"
         nested.mkdir(parents=True)
@@ -407,7 +423,7 @@ class TestResolveTsReexport:
         (nested / "Button.tsx").write_text("export function Button() {}\n")
 
         assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
-            "src/components/nested",
+            "src/components/nested/Button",
             "Button",
         )
 

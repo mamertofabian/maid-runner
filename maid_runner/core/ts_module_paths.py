@@ -17,6 +17,11 @@ import json
 from pathlib import Path
 from typing import Any, Optional, Union
 
+from maid_runner.core.ts_compiler_resolver import (
+    resolve_import_with_compiler,
+    resolve_reexport_with_compiler,
+)
+
 
 _TS_EXTENSIONS: tuple[str, ...] = (
     ".tsx",
@@ -120,6 +125,12 @@ def resolve_ts_import(
     resolve through local ``tsconfig.json`` ``compilerOptions.paths`` or
     ``baseUrl``. Unmatched specifiers pass through unchanged.
     """
+    compiler_resolved = resolve_import_with_compiler(
+        specifier, importer_module, Path(project_root)
+    )
+    if compiler_resolved is not None:
+        return compiler_resolved
+
     if specifier.startswith("./") or specifier.startswith("../"):
         return resolve_relative_ts_import(specifier, importer_module)
 
@@ -165,6 +176,10 @@ def resolve_ts_reexport(
     barrel package, the file cannot be read or parsed, optional parser
     dependencies are unavailable, or ``name`` is not re-exported.
     """
+    compiler_resolved = resolve_reexport_with_compiler(module, name, Path(project_root))
+    if compiler_resolved is not None:
+        return compiler_resolved
+
     init_path: Optional[Path] = None
     for candidate in _INDEX_CANDIDATES:
         p = Path(project_root) / module / candidate
