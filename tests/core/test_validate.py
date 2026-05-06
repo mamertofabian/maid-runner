@@ -2647,6 +2647,64 @@ validate:
         ]
         assert untested == []
 
+    def test_typescript_attribute_member_access_counts_as_coverage(self, project):
+        """TS property access in tests should cover declared attribute artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-vehicle-input.manifest.yaml",
+            """schema: "2"
+goal: "Add vehicle input"
+files:
+  edit:
+    - path: src/vehicle.ts
+      artifacts:
+        - kind: interface
+          name: VehicleInput
+        - kind: attribute
+          name: make
+          of: VehicleInput
+          type: string
+        - kind: function
+          name: buildVehicleInput
+          args: []
+          returns: VehicleInput
+  read:
+    - tests/vehicle.test.ts
+validate:
+  - vitest tests/vehicle.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/vehicle.ts",
+            """export interface VehicleInput {
+  make: string;
+}
+
+export function buildVehicleInput(): VehicleInput {
+  return { make: "Toyota" };
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/vehicle.test.ts",
+            """import { buildVehicleInput } from "../src/vehicle";
+
+it("uses make", () => {
+  const input = buildVehicleInput();
+  expect(input.make).toBe("Toyota");
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert not any("make" in w.message for w in untested)
+
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""
         manifest_path = _write_manifest(

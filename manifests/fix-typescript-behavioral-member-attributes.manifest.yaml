@@ -1,0 +1,36 @@
+schema: "2"
+goal: "Count TypeScript member-expression property reads as behavioral references for attribute artifacts."
+type: fix
+created: "2026-05-06T08:55:00+08:00"
+description: |
+  TypeScript tests that assert interface or object properties through normal
+  member access, such as input.make, should satisfy MAID coverage for declared
+  attribute artifacts. The current collector misses those property names, which
+  forces tests to bind artificial same-named locals just to avoid E200.
+temptations:
+  - risk: "Do not weaken E200 matching or drop attribute artifacts from manifests."
+    instead: "Collect the property names that tests already exercise through TypeScript member_expression nodes."
+  - risk: "Do not replace namespace import identity handling with name-only collection."
+    instead: "Keep namespace member resolution first, then add ordinary property-name references without overwriting identity-bearing references."
+
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+  read:
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript.py
+    - tests/core/test_validate.py
+
+validate:
+  - uv run python -m pytest tests/validators/test_typescript.py tests/core/test_validate.py -v

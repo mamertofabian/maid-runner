@@ -981,6 +981,15 @@ def _resolve_member_chain(
     return leaf, source_path
 
 
+def _member_property_name(node, source: bytes) -> Optional[str]:
+    if node.type != "member_expression":
+        return None
+    for child in node.children:
+        if child.type == "property_identifier":
+            return _text(child, source)
+    return None
+
+
 def _collect_refs(
     node,
     source: bytes,
@@ -1018,6 +1027,11 @@ def _collect_refs(
                         import_source=source_path or None,
                     )
                 )
+        property_name = _member_property_name(node, source)
+        if property_name and not any(a.name == property_name for a in artifacts):
+            artifacts.append(
+                FoundArtifact(kind=ArtifactKind.FUNCTION, name=property_name)
+            )
 
     if node.type == "identifier":
         name = _text(node, source)

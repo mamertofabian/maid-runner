@@ -428,7 +428,6 @@ class TestInterfaceMembers:
 
         iface = _find(result.artifacts, "Empty", kind=ArtifactKind.INTERFACE)
         assert iface is not None
-
         members = [a for a in result.artifacts if a.of == "Empty"]
         assert members == []
 
@@ -452,6 +451,74 @@ class TestInterfaceMembers:
 
         sound = _find(result.artifacts, "sound", kind=ArtifactKind.METHOD, of="Animal")
         assert sound is not None
+
+
+class TestBehavioralMemberExpressionProperties:
+    """Behavioral collection should see property reads used in assertions."""
+
+    def test_member_property_access_records_property_name(self, validator):
+        source = """import { buildVehicleInput } from "./vehicle";
+
+it("uses vehicle make", () => {
+  const input = buildVehicleInput();
+  expect(input.make).toBe("Toyota");
+});
+"""
+        result = validator.collect_behavioral_artifacts(source, "src/test_vehicle.ts")
+        names = _names(result.artifacts)
+        assert "make" in names
+
+    def test_projection_property_access_records_route_template(self, validator):
+        source = """import { projectRoute } from "./routes";
+
+it("uses route template projection", () => {
+  const projection = projectRoute();
+  expect(projection.routeTemplate).toEqual("airport");
+});
+"""
+        result = validator.collect_behavioral_artifacts(source, "src/test_routes.ts")
+        names = _names(result.artifacts)
+        assert "routeTemplate" in names
+
+    def test_nested_member_access_records_each_property(self, validator):
+        source = """it("uses nested properties", () => {
+  const result = obj.some_attr.nested;
+  expect(result).toBe(true);
+});
+"""
+        result = validator.collect_behavioral_artifacts(source, "src/test_nested.ts")
+        names = _names(result.artifacts)
+        assert "some_attr" in names
+        assert "nested" in names
+
+    def test_namespace_member_call_still_records_import_source(self, validator):
+        source = """import * as utils from "./utils";
+
+it("uses namespace member", () => {
+  utils.go();
+});
+"""
+        result = validator.collect_behavioral_artifacts(source, "src/test_utils.ts")
+        go = _find(result.artifacts, "go")
+        assert go is not None
+        assert go.import_source == "src/utils"
+
+    def test_property_reference_does_not_block_later_namespace_identity(
+        self, validator
+    ):
+        source = """import * as utils from "./utils";
+
+it("uses plain and namespace properties", () => {
+  expect(obj.go).toBe(true);
+  utils.go();
+});
+"""
+        result = validator.collect_behavioral_artifacts(source, "src/test_utils.ts")
+        identity_refs = [
+            a for a in result.artifacts if a.name == "go" and a.import_source
+        ]
+        assert identity_refs
+        assert identity_refs[0].import_source == "src/utils"
 
 
 class TestStubDetection:
