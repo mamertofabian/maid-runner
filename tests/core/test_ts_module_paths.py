@@ -276,6 +276,24 @@ class TestResolveTsImport:
             == "@scope/ui/Button"
         )
 
+    def test_workspace_package_exports_are_not_resolved(self, tmp_path: Path) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        package_dir = tmp_path / "packages" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./Button": "./src/Button.ts"}}'
+        )
+        button = package_dir / "src" / "Button.ts"
+        button.parent.mkdir()
+        button.write_text("export function Button() {}\n")
+
+        assert (
+            resolve_ts_import("@scope/ui/Button", "src/App.test", tmp_path)
+            == "@scope/ui/Button"
+        )
+
 
 # ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)

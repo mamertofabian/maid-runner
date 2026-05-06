@@ -138,6 +138,29 @@ class TestNamedImportRecordsSource:
         assert render is not None
         assert render.import_source == "@testing-library/react"
 
+    def test_workspace_package_import_records_package_source(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        package_dir = tmp_path / "packages" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./Button": "./src/Button.ts"}}'
+        )
+        button_file = package_dir / "src" / "Button.ts"
+        button_file.parent.mkdir()
+        button_file.write_text("export function Button() {}\n")
+        source = (
+            "import { Button } from '@scope/ui/Button';\n"
+            "it('uses Button', () => { Button(); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.ts"
+        )
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "@scope/ui/Button"
+
 
 class TestDefaultImportRecordsSource:
     def test_default_import_records_source_module(

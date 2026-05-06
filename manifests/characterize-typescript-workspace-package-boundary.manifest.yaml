@@ -1,0 +1,40 @@
+schema: "2"
+goal: >
+  Characterize TypeScript workspace package import identity as unresolved.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike by locking the next package
+  resolution boundary before any compiler-backed or package-aware resolver is
+  introduced. Local workspace package metadata should not make MAID rewrite a
+  package subpath such as `@scope/ui/Button` to `packages/ui/src/Button` until
+  a future manifest explicitly designs package export and workspace lookup.
+
+  This is characterization coverage. It preserves the current path-based
+  identity contract: workspace package imports remain package specifiers, and
+  behavioral imports record that package specifier as `import_source`.
+temptations:
+  - risk: "Do not add workspace package, package.json exports, or node_modules resolution in this characterization slice."
+    instead: "Assert workspace package imports pass through unchanged so future resolver work must evolve them intentionally."
+  - risk: "Do not let package workspaces override explicit tsconfig paths behavior."
+    instead: "Exercise only package specifiers with workspace metadata and no matching paths alias."
+  - risk: "Do not change TypeScript artifact extraction, barrel scanning, or behavioral reference collection."
+    instead: "Exercise resolve_ts_import and TypeScriptValidator import_source through existing public interfaces."
+files:
+  edit:
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_workspace_package_exports_are_not_resolved
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_workspace_package_import_records_package_source
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/identity.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
