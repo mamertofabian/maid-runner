@@ -1,0 +1,80 @@
+schema: "2"
+goal: >
+  Add TypeScript-family index.mjs and index.cjs barrel identity support.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike by taking the next narrow
+  TypeScript import/re-export identity slice named in the assessment:
+  index.mjs and index.cjs barrels. The current helper already treats .mts and
+  .cts as TypeScript-family module files, and implementation validation already
+  recognizes .mjs/.cjs source files, but MAID module identity does not strip
+  .mjs/.cjs extensions, resolve_ts_reexport does not inspect index.mjs
+  barrels, and it does not recognize the common index.cjs
+  `exports.Foo = require("./Foo.cjs").Foo` barrel form.
+
+  This manifest keeps the existing one-level, parser-backed, path-based
+  resolver shape. It only extends supported JavaScript module file extensions,
+  index.mjs ESM barrel lookup, and a narrow index.cjs CommonJS named export
+  assignment form; it does not introduce TypeScript compiler module resolution
+  or package export resolution.
+temptations:
+  - risk: "Do not add TypeScript compiler module resolution while adding .mjs/.cjs barrel support."
+    instead: "Extend only extension normalization and the existing one-level index barrel candidates."
+  - risk: "Do not add recursive barrel traversal, module.exports object analysis, or package.json exports as part of this slice."
+    instead: "Resolve only index.mjs ESM re-export statements and index.cjs named exports.Foo require assignments behind resolve_ts_reexport."
+  - risk: "Do not special-case tests by weakening identity matching to name-only matching."
+    instead: "Preserve module_path/import_source matching through the existing TypeScriptValidator.resolve_reexport interface."
+files:
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: ts_file_to_module_path
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Path
+          returns: str
+        - kind: function
+          name: resolve_relative_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+          returns: str
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_strips_mjs_and_cjs
+        - kind: test_function
+          name: test_strips_mjs_extension_from_resolved_specifier
+        - kind: test_function
+          name: test_supported_index_mjs_barrel_resolves_reexport
+        - kind: test_function
+          name: test_supported_index_cjs_exports_assignment_resolves_reexport
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_match_through_index_mjs_reexport
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

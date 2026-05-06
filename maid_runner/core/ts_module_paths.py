@@ -7,7 +7,8 @@ paths with the file extension stripped. This is the TS analogue of
 Only one-level barrel re-exports are resolved, including named
 ``export { Foo } from './y'``, aliased ``export { Foo as Bar } from './y'``,
 star ``export * from './y'``, and default-as named
-``export { default as Foo } from './y'`` forms.
+``export { default as Foo } from './y'`` forms. CommonJS ``index.cjs``
+barrels support the narrow ``exports.Foo = require('./y').Foo`` form.
 """
 
 from __future__ import annotations
@@ -22,6 +23,8 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".ts",
     ".jsx",
     ".js",
+    ".mjs",
+    ".cjs",
     ".mts",
     ".cts",
     ".svelte",
@@ -32,6 +35,8 @@ _INDEX_CANDIDATES: tuple[str, ...] = (
     "index.tsx",
     "index.js",
     "index.jsx",
+    "index.mjs",
+    "index.cjs",
     "index.mts",
     "index.cts",
 )
@@ -44,7 +49,8 @@ def ts_file_to_module_path(
     """Convert a TypeScript source path to its project-relative module id.
 
     Strips the file extension (``.ts``, ``.tsx``, ``.cts``, ``.mts``,
-    ``.js``, ``.jsx``) and normalizes backslashes to forward slashes.
+    ``.js``, ``.jsx``, ``.mjs``, ``.cjs``) and normalizes backslashes to
+    forward slashes.
     Unlike Python's ``__init__.py`` collapse, ``index.ts`` keeps its
     ``index`` segment so the file itself can be addressed; barrel
     semantics live in :func:`resolve_ts_reexport`.
@@ -150,13 +156,14 @@ def resolve_ts_reexport(
     re-export statements such as ``export { Foo } from './y'``,
     ``export { Foo as Bar } from './y'``, ``export type { Foo } from './y'``,
     ``export { type Foo } from './y'``, ``export * from './y'``, and
-    ``export { default as Foo } from './y'``. Returns ``(resolved_module,
-    original_name)`` where ``original_name`` is the MAID-visible source
-    identifier — for plain, star, and default-as re-exports it equals ``name``;
-    for aliased named re-exports looked up by alias it is the pre-alias name.
-    Returns ``None`` when the module is not a barrel package, the file cannot
-    be read or parsed, optional parser dependencies are unavailable, or ``name``
-    is not re-exported.
+    ``export { default as Foo } from './y'``. For ``index.cjs``, also scans
+    ``exports.Foo = require('./y').Foo`` assignments. Returns
+    ``(resolved_module, original_name)`` where ``original_name`` is the
+    MAID-visible source identifier — for plain, star, default-as, and CJS
+    assignments it equals ``name``; for aliased named re-exports looked up by
+    alias it is the pre-alias name. Returns ``None`` when the module is not a
+    barrel package, the file cannot be read or parsed, optional parser
+    dependencies are unavailable, or ``name`` is not re-exported.
     """
     init_path: Optional[Path] = None
     for candidate in _INDEX_CANDIDATES:
@@ -183,6 +190,14 @@ def resolve_ts_reexport(
         return None
 
     for child in root.children:
+        if init_path.suffix == ".cjs":
+            cjs_reexport = _cjs_exports_assignment(child, source_bytes)
+            if cjs_reexport is not None:
+                bound, src, source_name = cjs_reexport
+                if bound == name:
+                    resolved = resolve_relative_ts_import(src, f"{module}/index")
+                    return (resolved, source_name)
+
         if child.type != "export_statement":
             continue
 
@@ -324,3 +339,67 @@ def _export_specifier_names(
 
 def _is_star_export(export_statement) -> bool:
     return any(child.type == "*" for child in export_statement.children)
+
+
+def _cjs_exports_assignment(statement, source: bytes) -> Optional[tuple[str, str, str]]:
+    if statement.type != "expression_statement":
+        return None
+
+    assignment = _child_by_type(statement, "assignment_expression")
+    if assignment is None:
+        return None
+
+    members = [
+        child for child in assignment.children if child.type == "member_expression"
+    ]
+    if len(members) < 2:
+        return None
+
+    bound = _exports_member_name(members[0], source)
+    required = _require_member_source(members[1], source)
+    if bound is None or required is None:
+        return None
+
+    src, source_name = required
+    return bound, src, source_name
+
+
+def _exports_member_name(member_expression, source: bytes) -> Optional[str]:
+    children = member_expression.children
+    if not children or children[0].type != "identifier":
+        return None
+    if _text(children[0], source) != "exports":
+        return None
+
+    property_node = _child_by_type(member_expression, "property_identifier")
+    if property_node is None:
+        return None
+    return _text(property_node, source)
+
+
+def _require_member_source(
+    member_expression,
+    source: bytes,
+) -> Optional[tuple[str, str]]:
+    call = _child_by_type(member_expression, "call_expression")
+    property_node = _child_by_type(member_expression, "property_identifier")
+    if call is None or property_node is None:
+        return None
+
+    callee = next(
+        (child for child in call.children if child.type == "identifier"), None
+    )
+    if callee is None or _text(callee, source) != "require":
+        return None
+
+    arguments = _child_by_type(call, "arguments")
+    if arguments is None:
+        return None
+    string_node = _child_by_type(arguments, "string")
+    if string_node is None:
+        return None
+    fragment = _child_by_type(string_node, "string_fragment")
+    if fragment is None:
+        return None
+
+    return _text(fragment, source), _text(property_node, source)

@@ -54,6 +54,15 @@ class TestTsFileToModulePath:
         assert ts_file_to_module_path(m, tmp_path) == "lib/esm"
         assert ts_file_to_module_path(c, tmp_path) == "lib/cjs"
 
+    def test_strips_mjs_and_cjs(self, tmp_path: Path) -> None:
+        m = tmp_path / "lib" / "esm.mjs"
+        c = tmp_path / "lib" / "cjs.cjs"
+        m.parent.mkdir(parents=True)
+        m.write_text("")
+        c.write_text("")
+        assert ts_file_to_module_path(m, tmp_path) == "lib/esm"
+        assert ts_file_to_module_path(c, tmp_path) == "lib/cjs"
+
     def test_index_file_keeps_directory_path(self, tmp_path: Path) -> None:
         # Unlike Python __init__.py (which collapses), TS index.ts is just
         # a file. Its module identity is the full path including "index"
@@ -115,6 +124,12 @@ class TestResolveRelativeTsImport:
     def test_strips_ts_extension_from_resolved_specifier(self) -> None:
         assert (
             resolve_relative_ts_import("./user.ts", "src/models/index")
+            == "src/models/user"
+        )
+
+    def test_strips_mjs_extension_from_resolved_specifier(self) -> None:
+        assert (
+            resolve_relative_ts_import("./user.mjs", "src/models/index")
             == "src/models/user"
         )
 
@@ -363,6 +378,30 @@ class TestResolveTsReexport:
         models.mkdir(parents=True)
         (models / "index.js").write_text("export { Foo } from './user.js';\n")
         (models / "user.js").write_text("export class Foo {}\n")
+
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/user",
+            "Foo",
+        )
+
+    def test_supported_index_mjs_barrel_resolves_reexport(self, tmp_path: Path) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.mjs").write_text("export { Foo } from './user.mjs';\n")
+        (models / "user.mjs").write_text("export class Foo {}\n")
+
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/user",
+            "Foo",
+        )
+
+    def test_supported_index_cjs_exports_assignment_resolves_reexport(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.cjs").write_text("exports.Foo = require('./user.cjs').Foo;\n")
+        (models / "user.cjs").write_text("exports.Foo = class Foo {};\n")
 
         assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
             "src/models/user",

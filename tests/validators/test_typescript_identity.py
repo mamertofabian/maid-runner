@@ -553,3 +553,34 @@ class TestIdentityRejectsCrossModuleCollision:
             tmp_path,
             reexport_resolver=validator.resolve_reexport,
         )
+
+    def test_match_through_index_mjs_reexport(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.mjs").write_text(
+            "export { Button } from './Button.mjs';\n"
+        )
+        (components / "Button.mjs").write_text("export function Button() {}\n")
+
+        source = (
+            "import { Button } from './components';\n"
+            "it('uses Button', () => { Button(); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(source, "src/Button.test.ts")
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="Button",
+            module_path="src/components/Button",
+        )
+        assert match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
