@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-05-06
+
+### Fixed
+- **TypeScript behavioral attribute coverage** — TypeScript tests that access object or interface properties through member expressions such as `input.make` now count as references for declared `kind: attribute` artifacts, eliminating artificial same-named local bindings just to satisfy E200.
+- **Namespace member identity preservation** — TypeScript behavioral collection continues to preserve import-source identity for namespace calls such as `utils.go()`, even when plain property references with the same name appear earlier in a test file.
+
 ## [2.5.0] - 2026-05-05
 
 ### Added
@@ -774,6 +780,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.5.1]: https://github.com/mamertofabian/maid-runner/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/mamertofabian/maid-runner/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/mamertofabian/maid-runner/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/mamertofabian/maid-runner/compare/v2.3.0...v2.3.1
