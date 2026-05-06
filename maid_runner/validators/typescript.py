@@ -990,6 +990,13 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
     return None
 
 
+def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
+    if name and not any(
+        a.name == name and a.import_source is None for a in artifacts
+    ):
+        artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
+
+
 def _collect_refs(
     node,
     source: bytes,
@@ -1032,6 +1039,19 @@ def _collect_refs(
             artifacts.append(
                 FoundArtifact(kind=ArtifactKind.FUNCTION, name=property_name)
             )
+
+    elif node.type == "pair":
+        property_name = _child_text(node, "property_identifier", source)
+        if property_name:
+            _record_bare_reference(property_name, artifacts)
+
+    elif node.type == "shorthand_property_identifier":
+        _record_bare_reference(_text(node, source), artifacts)
+
+    elif node.type == "jsx_attribute":
+        property_name = _child_text(node, "property_identifier", source)
+        if property_name:
+            _record_bare_reference(property_name, artifacts)
 
     if node.type == "identifier":
         name = _text(node, source)

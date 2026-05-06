@@ -161,6 +161,69 @@ class TestJsxComponentReference:
         assert button.import_source == "src/components/Button"
 
 
+class TestPropAttributeReferences:
+    def test_object_literal_prop_keys_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "import { render } from '@testing-library/react';\n"
+            "import { RiderDashboard } from './RiderDashboard';\n"
+            "it('renders rider details', () => {\n"
+            "  const props = {\n"
+            "    currentUserName: 'Ari',\n"
+            "    communityStatus: 'active',\n"
+            "  };\n"
+            "  render(<RiderDashboard {...props} />);\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/components/RiderDashboard.test.tsx"
+        )
+
+        assert _ref(result.artifacts, "currentUserName") is not None
+        assert _ref(result.artifacts, "communityStatus") is not None
+
+    def test_shorthand_object_props_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "import { render } from '@testing-library/react';\n"
+            "import { RiderDashboard } from './RiderDashboard';\n"
+            "it('renders rider details', () => {\n"
+            "  const currentUserName = 'Ari';\n"
+            "  const props = { currentUserName };\n"
+            "  render(<RiderDashboard {...props} />);\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/components/RiderDashboard.test.tsx"
+        )
+
+        assert _ref(result.artifacts, "currentUserName") is not None
+
+    def test_jsx_attribute_names_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "import { render } from '@testing-library/react';\n"
+            "import { RiderDashboard } from './RiderDashboard';\n"
+            "it('renders rider details', () => {\n"
+            "  render(\n"
+            "    <RiderDashboard\n"
+            "      currentUserName='Ari'\n"
+            "      communityStatus='active'\n"
+            "    />\n"
+            "  );\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/components/RiderDashboard.test.tsx"
+        )
+
+        assert _ref(result.artifacts, "currentUserName") is not None
+        assert _ref(result.artifacts, "communityStatus") is not None
+
+
 # ----------------------------------------------------------------------------
 # Implementation collection: module_path on defined artifacts
 # ----------------------------------------------------------------------------

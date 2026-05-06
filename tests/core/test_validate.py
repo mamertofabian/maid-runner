@@ -2705,6 +2705,143 @@ it("uses make", () => {
         ]
         assert not any("make" in w.message for w in untested)
 
+    def test_typescript_object_literal_props_count_as_attribute_coverage(
+        self, project
+    ):
+        """TSX prop objects should cover declared attribute artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-rider-dashboard.manifest.yaml",
+            """schema: "2"
+goal: "Add rider dashboard"
+files:
+  edit:
+    - path: src/RiderDashboard.tsx
+      artifacts:
+        - kind: interface
+          name: RiderDashboardProps
+        - kind: attribute
+          name: currentUserName
+          of: RiderDashboardProps
+          type: string
+        - kind: attribute
+          name: communityStatus
+          of: RiderDashboardProps
+          type: string
+        - kind: function
+          name: RiderDashboard
+          args:
+            - name: props
+              type: RiderDashboardProps
+          returns: JSX.Element
+  read:
+    - tests/RiderDashboard.test.tsx
+validate:
+  - vitest tests/RiderDashboard.test.tsx
+""",
+        )
+        _write_source(
+            project,
+            "src/RiderDashboard.tsx",
+            """export interface RiderDashboardProps {
+  currentUserName: string;
+  communityStatus: string;
+}
+
+export function RiderDashboard(props: RiderDashboardProps): JSX.Element {
+  return <section>{props.currentUserName} {props.communityStatus}</section>;
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/RiderDashboard.test.tsx",
+            """import { RiderDashboard } from "../src/RiderDashboard";
+
+it("renders rider details from props", () => {
+  const props = {
+    currentUserName: "Ari",
+    communityStatus: "active",
+  };
+
+  RiderDashboard(props);
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert not any("currentUserName" in w.message for w in untested)
+        assert not any("communityStatus" in w.message for w in untested)
+
+    def test_typescript_jsx_props_count_as_attribute_coverage(self, project):
+        """Direct JSX props should cover declared attribute artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-rider-dashboard-jsx.manifest.yaml",
+            """schema: "2"
+goal: "Add rider dashboard"
+files:
+  edit:
+    - path: src/RiderDashboard.tsx
+      artifacts:
+        - kind: interface
+          name: RiderDashboardProps
+        - kind: attribute
+          name: currentUserName
+          of: RiderDashboardProps
+          type: string
+        - kind: attribute
+          name: communityStatus
+          of: RiderDashboardProps
+          type: string
+        - kind: function
+          name: RiderDashboard
+          args:
+            - name: props
+              type: RiderDashboardProps
+          returns: JSX.Element
+  read:
+    - tests/RiderDashboard.test.tsx
+validate:
+  - vitest tests/RiderDashboard.test.tsx
+""",
+        )
+        _write_source(
+            project,
+            "src/RiderDashboard.tsx",
+            """export interface RiderDashboardProps {
+  currentUserName: string;
+  communityStatus: string;
+}
+
+export function RiderDashboard(props: RiderDashboardProps): JSX.Element {
+  return <section>{props.currentUserName} {props.communityStatus}</section>;
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/RiderDashboard.test.tsx",
+            """import { RiderDashboard } from "../src/RiderDashboard";
+
+it("renders rider details from direct JSX props", () => {
+  <RiderDashboard currentUserName="Ari" communityStatus="active" />;
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert not any("currentUserName" in w.message for w in untested)
+        assert not any("communityStatus" in w.message for w in untested)
+
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""
         manifest_path = _write_manifest(

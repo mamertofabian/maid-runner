@@ -1,0 +1,42 @@
+schema: "2"
+goal: "Cover TypeScript object literal and JSX prop attributes in behavioral validation."
+type: fix
+created: "2026-05-06T13:20:00+08:00"
+description: |
+  Extend TypeScript behavioral artifact collection so UI tests can satisfy
+  declared attribute artifacts through natural prop usage. Object literal
+  property keys, shorthand object properties, and JSX attribute names should be
+  recorded as attribute-like references without weakening E200 matching or the
+  existing namespace import identity path. This keeps manifest-backed TSX tests
+  readable while preserving the current identity-aware coverage behavior for
+  imported symbols such as namespace member calls.
+temptations:
+  - risk: "Do not silence E200 for TypeScript attribute artifacts or remove attributes from manifests."
+    instead: "Collect the exact prop-like names already present in object literals and JSX opening elements."
+  - risk: "Do not replace namespace member identity resolution with bare name collection."
+    instead: "Keep namespace member-expression resolution intact and add prop-key collection as an additional reference source."
+  - risk: "Do not collect arbitrary strings or JSX component names as attribute coverage."
+    instead: "Limit the new coverage to object property identifiers/shorthand identifiers and JSX attribute identifiers."
+
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+  read:
+    - maid_runner/core/identity.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript_identity.py
+    - tests/core/test_validate.py
+
+validate:
+  - uv run python -m pytest tests/validators/test_typescript_identity.py tests/core/test_validate.py -v
