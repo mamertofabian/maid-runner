@@ -322,7 +322,7 @@ def _collect_impl(
             if body:
                 for child in body.children:
                     if child.type == "property_signature":
-                        prop_name = _child_text(child, "property_identifier", source)
+                        prop_name = _member_name_text(child, source)
                         if prop_name:
                             type_ann = None
                             for tc in child.children:
@@ -338,7 +338,7 @@ def _collect_impl(
                                 )
                             )
                     elif child.type == "method_signature":
-                        method_name = _child_text(child, "property_identifier", source)
+                        method_name = _member_name_text(child, source)
                         if method_name:
                             args, returns = _extract_func_signature(child, source)
                             artifacts.append(
@@ -569,7 +569,7 @@ def _handle_class_field(
             return  # Skip private/protected fields
 
     for child in node.children:
-        if child.type == "property_identifier":
+        if child.type in ("property_identifier", "computed_property_name"):
             name = _text(child, source)
         elif child.type == "arrow_function":
             arrow_fn = child
@@ -822,6 +822,12 @@ def _child_by_type(node, type_name: str):
 def _child_text(node, type_name: str, source: bytes) -> Optional[str]:
     child = _child_by_type(node, type_name)
     return _text(child, source) if child else None
+
+
+def _member_name_text(node, source: bytes) -> Optional[str]:
+    return _child_text(node, "property_identifier", source) or _child_text(
+        node, "computed_property_name", source
+    )
 
 
 _TEST_CALLEE_NAMES = frozenset({"it", "test", "fit", "xit"})

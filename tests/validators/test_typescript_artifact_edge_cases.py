@@ -262,3 +262,62 @@ def test_type_alias_artifact_preserves_complex_target_text() -> None:
     assert lookup.kind == ArtifactKind.TYPE
     assert lookup.type_annotation == "Readonly<Record<string, User | null>>"
     assert lookup.line == 1
+
+
+def test_computed_class_field_name_and_type_are_collected() -> None:
+    source = """class Registry {
+  [TOKEN]: string;
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/registry.ts"
+    )
+
+    token = next(a for a in result.artifacts if a.name == "[TOKEN]")
+
+    assert token.kind == ArtifactKind.ATTRIBUTE
+    assert token.of == "Registry"
+    assert token.type_annotation == "string"
+    assert token.line == 2
+
+
+def test_computed_class_arrow_field_is_collected_as_method() -> None:
+    source = """class Registry {
+  [Symbol.iterator] = (): Iterator<Item> => items();
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/registry.ts"
+    )
+
+    iterator = next(a for a in result.artifacts if a.name == "[Symbol.iterator]")
+
+    assert iterator.kind == ArtifactKind.METHOD
+    assert iterator.of == "Registry"
+    assert iterator.args == ()
+    assert iterator.returns == "Iterator<Item>"
+    assert iterator.line == 2
+
+
+def test_computed_interface_members_are_collected_from_source_text() -> None:
+    source = """interface Bag {
+  [KEY]: number;
+  [Symbol.toStringTag](): string;
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/bag.ts"
+    )
+
+    key = next(a for a in result.artifacts if a.name == "[KEY]")
+    tag = next(a for a in result.artifacts if a.name == "[Symbol.toStringTag]")
+
+    assert key.kind == ArtifactKind.ATTRIBUTE
+    assert key.of == "Bag"
+    assert key.type_annotation == "number"
+    assert key.line == 2
+    assert tag.kind == ArtifactKind.METHOD
+    assert tag.of == "Bag"
+    assert tag.args == ()
+    assert tag.returns == "string"
+    assert tag.line == 3

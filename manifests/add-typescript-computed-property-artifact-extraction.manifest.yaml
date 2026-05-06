@@ -1,0 +1,54 @@
+schema: "2"
+goal: >
+  Collect TypeScript computed property artifacts beyond class method definitions.
+type: feature
+created: "2026-05-07"
+description: |
+  Continue the TypeScript artifact-extraction slices by preserving computed
+  property names for public class fields, class arrow-function fields, and
+  interface members. Computed class method definitions are already collected
+  from source text, but related property forms currently disappear because the
+  collector only accepts plain `property_identifier` nodes in those branches.
+
+  This slice stays tree-sitter-backed and keeps the public
+  `TypeScriptValidator.collect_implementation_artifacts` interface unchanged.
+  It should reuse existing artifact kinds: computed class/interface properties
+  become `ArtifactKind.ATTRIBUTE`, and computed arrow-function fields or
+  interface method signatures become `ArtifactKind.METHOD`.
+temptations:
+  - risk: "Do not replace TypeScript artifact extraction wholesale for computed names."
+    instead: "Only accept existing `computed_property_name` nodes in the class field and interface member branches."
+  - risk: "Do not strip brackets or normalize computed names."
+    instead: "Preserve the exact source text, such as `[TOKEN]` and `[Symbol.iterator]`, matching the existing computed class method behavior."
+  - risk: "Do not collect private or protected computed class fields."
+    instead: "Keep the existing accessibility filter for class fields before emitting artifacts."
+  - risk: "Do not change import identity, re-export identity, behavioral collection, or method-definition extraction."
+    instead: "Keep the change local to implementation artifact collection for computed property forms not already covered."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_computed_class_field_name_and_type_are_collected
+        - kind: test_function
+          name: test_computed_class_arrow_field_is_collected_as_method
+        - kind: test_function
+          name: test_computed_interface_members_are_collected_from_source_text
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py
