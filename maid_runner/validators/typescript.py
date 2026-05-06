@@ -403,6 +403,22 @@ def _collect_impl(
             )
         return
 
+    if ntype == "abstract_method_signature" and current_class:
+        name_node = _child_by_type(node, "property_identifier")
+        if name_node:
+            args, returns = _extract_func_signature(node, source)
+            artifacts.append(
+                FoundArtifact(
+                    kind=ArtifactKind.METHOD,
+                    name=_text(name_node, source),
+                    of=current_class,
+                    args=args,
+                    returns=returns,
+                    line=node.start_point[0] + 1,
+                )
+            )
+        return
+
     # Method definitions inside class
     if ntype == "method_definition" and current_class:
         name_node = _child_by_type(node, "property_identifier") or _child_by_type(
@@ -412,6 +428,9 @@ def _collect_impl(
             name = _text(name_node, source)
             # Skip constructors
             if name == "constructor":
+                _collect_constructor_parameter_properties(
+                    node, source, artifacts, current_class
+                )
                 return
             args, returns = _extract_func_signature(node, source)
             is_async = any(c.type == "async" for c in node.children)
@@ -585,15 +604,9 @@ def _extract_func_signature(
     if params:
         for child in params.children:
             if child.type in ("required_parameter", "optional_parameter"):
-                pname = None
-                ptype = None
-                for pc in child.children:
-                    if pc.type == "identifier":
-                        pname = _text(pc, source)
-                    elif pc.type == "type_annotation":
-                        ptype = _extract_type_text(pc, source)
-                if pname:
-                    args.append(ArgSpec(name=pname, type=ptype))
+                arg = _extract_arg_spec(child, source)
+                if arg:
+                    args.append(arg)
 
     # Return type annotation
     ret_node = _child_by_type(node, "type_annotation")
@@ -601,6 +614,91 @@ def _extract_func_signature(
         returns = _extract_type_text(ret_node, source)
 
     return tuple(args), returns
+
+
+def _extract_arg_spec(parameter, source: bytes) -> Optional[ArgSpec]:
+    name: Optional[str] = None
+    type_annotation: Optional[str] = None
+    default: Optional[str] = None
+    seen_default_marker = False
+
+    for child in parameter.children:
+        if child.type == "identifier":
+            name = _text(child, source)
+        elif child.type == "rest_pattern":
+            name = _pattern_text(child, source)
+        elif child.type in ("object_pattern", "array_pattern"):
+            name = _text(child, source).strip()
+        elif child.type == "type_annotation":
+            type_annotation = _extract_type_text(child, source)
+        elif child.type == "=":
+            seen_default_marker = True
+        elif seen_default_marker and child.type not in (",", "comment"):
+            default = _text(child, source).strip()
+            seen_default_marker = False
+
+    if not name:
+        return None
+
+    return ArgSpec(name=name, type=type_annotation, default=default)
+
+
+def _pattern_text(pattern, source: bytes) -> str:
+    identifier = _child_by_type(pattern, "identifier")
+    if identifier:
+        return _text(identifier, source)
+    return _text(pattern, source).removeprefix("...").strip()
+
+
+def _collect_constructor_parameter_properties(
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: str,
+) -> None:
+    params = _child_by_type(node, "formal_parameters")
+    if not params:
+        return
+
+    for child in params.children:
+        if child.type not in ("required_parameter", "optional_parameter"):
+            continue
+        if _constructor_parameter_is_private(child, source):
+            continue
+        if not _constructor_parameter_is_public_property(child, source):
+            continue
+
+        arg = _extract_arg_spec(child, source)
+        if not arg:
+            continue
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.ATTRIBUTE,
+                name=arg.name,
+                of=current_class,
+                type_annotation=arg.type,
+                line=child.start_point[0] + 1,
+            )
+        )
+
+
+def _constructor_parameter_is_private(parameter, source: bytes) -> bool:
+    for child in parameter.children:
+        if child.type == "accessibility_modifier" and _text(child, source) in (
+            "private",
+            "protected",
+        ):
+            return True
+    return False
+
+
+def _constructor_parameter_is_public_property(parameter, source: bytes) -> bool:
+    for child in parameter.children:
+        if child.type == "accessibility_modifier" and _text(child, source) == "public":
+            return True
+        if child.type == "readonly":
+            return True
+    return False
 
 
 def _extract_type_text(type_node, source: bytes) -> Optional[str]:
@@ -991,9 +1089,7 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
 
 
 def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
-    if name and not any(
-        a.name == name and a.import_source is None for a in artifacts
-    ):
+    if name and not any(a.name == name and a.import_source is None for a in artifacts):
         artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
 
 

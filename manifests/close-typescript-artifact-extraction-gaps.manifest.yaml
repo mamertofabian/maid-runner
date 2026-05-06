@@ -1,0 +1,61 @@
+schema: "2"
+goal: >
+  Close the next TypeScript artifact extraction gaps before considering a
+  compiler-backed parser replacement.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the completed Svelte and
+  TypeScript import/re-export identity slices. This manifest keeps the public
+  TypeScriptValidator interface unchanged and strengthens MAID-visible
+  artifact extraction for TypeScript declarations that are common in real
+  projects but currently under-characterized: abstract class method
+  signatures, constructor parameter properties, defaulted parameters, rest
+  parameters, optional parameters, and destructured parameters.
+
+  The implementation may extend the existing tree-sitter collector or introduce
+  a narrow adapter, but it must preserve the existing collect_implementation_artifacts
+  contract and should not attempt a broad ts-morph or TypeScript compiler API
+  migration in this slice. This slice exists to reduce risk before any wider
+  replacement by making the edge-case behavior executable.
+temptations:
+  - risk: "Do not replace the entire TypeScript validator behind this manifest."
+    instead: "Handle only the declared artifact-extraction gaps behind collect_implementation_artifacts."
+  - risk: "Do not represent unsupported parameter forms by dropping them from the signature."
+    instead: "Preserve MAID-visible parameter names, types, and defaults using source text when tree-sitter exposes no simpler identifier."
+  - risk: "Do not collect private or protected constructor parameter properties as public attributes."
+    instead: "Collect public and readonly parameter properties, and skip private/protected parameter properties."
+  - risk: "Do not change import/re-export identity behavior while fixing signatures."
+    instead: "Leave ts_module_paths and behavioral import collection out of scope for this manifest."
+files:
+  create:
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_abstract_class_method_signature_is_collected
+        - kind: test_function
+          name: test_constructor_parameter_properties_become_public_attributes
+        - kind: test_function
+          name: test_default_optional_and_rest_parameters_preserve_signature
+        - kind: test_function
+          name: test_destructured_parameter_is_not_dropped_from_signature
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_identity.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript.py tests/validators/test_typescript_identity.py
