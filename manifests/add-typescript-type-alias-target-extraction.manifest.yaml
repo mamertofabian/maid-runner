@@ -1,0 +1,53 @@
+schema: "2"
+goal: >
+  Preserve TypeScript type alias target text in collected implementation artifacts.
+type: feature
+created: "2026-05-07"
+description: |
+  Start the next TypeScript artifact-extraction slice from the parser
+  replacement queue by making type alias artifacts carry their declared target
+  type. The TypeScript validator already emits `ArtifactKind.TYPE` records for
+  `type_alias_declaration` nodes, but the MAID-visible artifact currently loses
+  the alias target.
+
+  This is a narrow artifact metadata improvement behind the existing
+  `TypeScriptValidator.collect_implementation_artifacts` interface. It should
+  populate `FoundArtifact.type_annotation` for type aliases using source-faithful
+  target text such as `string` or `Readonly<Record<string, User>>`, without
+  changing import identity, re-export identity, behavioral collection, or the
+  public validator API.
+temptations:
+  - risk: "Do not replace TypeScript artifact extraction wholesale in this slice."
+    instead: "Only enrich existing type alias artifacts with the alias target text."
+  - risk: "Do not invent a new field for type alias targets."
+    instead: "Use the existing FoundArtifact.type_annotation field so downstream serialization keeps using the established `type` key."
+  - risk: "Do not normalize or infer TypeScript types."
+    instead: "Preserve the source text of the declared alias target after the equals sign."
+  - risk: "Do not change identity resolution, import collection, or barrel behavior while extracting alias targets."
+    instead: "Keep the change local to implementation artifact collection for `type_alias_declaration` nodes."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_type_alias_artifact_preserves_primitive_target
+        - kind: test_function
+          name: test_type_alias_artifact_preserves_complex_target_text
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py

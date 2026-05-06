@@ -358,10 +358,12 @@ def _collect_impl(
             node, "identifier", source
         )
         if name:
+            type_ann = _extract_type_alias_target(node, source)
             artifacts.append(
                 FoundArtifact(
                     kind=ArtifactKind.TYPE,
                     name=name,
+                    type_annotation=type_ann,
                     line=node.start_point[0] + 1,
                 )
             )
@@ -727,6 +729,24 @@ def _extract_type_text(type_node, source: bytes) -> Optional[str]:
     text = _text(type_node, source)
     if text.startswith(":"):
         text = text[1:].strip()
+    return text if text else None
+
+
+def _extract_type_alias_target(node, source: bytes) -> Optional[str]:
+    equals = None
+    end_byte = node.end_byte
+    for child in node.children:
+        if child.type == "=":
+            equals = child
+            continue
+        if equals is not None and child.type == ";":
+            end_byte = child.start_byte
+            break
+
+    if equals is None:
+        return None
+
+    text = source[equals.end_byte : end_byte].decode("utf-8").strip()
     return text if text else None
 
 

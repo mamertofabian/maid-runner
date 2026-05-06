@@ -235,3 +235,30 @@ def test_computed_class_method_name_is_collected_from_source_text() -> None:
     assert iterator.args == ()
     assert iterator.returns == "Iterator<Item>"
     assert iterator.line == 2
+
+
+def test_type_alias_artifact_preserves_primitive_target() -> None:
+    source = "export type UserId = string;\n"
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/types.ts"
+    )
+
+    user_id = next(a for a in result.artifacts if a.name == "UserId")
+
+    assert user_id.kind == ArtifactKind.TYPE
+    assert user_id.type_annotation == "string"
+    assert user_id.line == 1
+
+
+def test_type_alias_artifact_preserves_complex_target_text() -> None:
+    source = """type Lookup = Readonly<Record<string, User | null>>;
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/types.ts"
+    )
+
+    lookup = next(a for a in result.artifacts if a.name == "Lookup")
+
+    assert lookup.kind == ArtifactKind.TYPE
+    assert lookup.type_annotation == "Readonly<Record<string, User | null>>"
+    assert lookup.line == 1
