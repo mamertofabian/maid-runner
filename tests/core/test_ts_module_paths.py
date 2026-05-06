@@ -180,15 +180,31 @@ class TestResolveTsReexport:
             "Button",
         )
 
-    def test_does_not_resolve_star_reexport(self, tmp_path: Path) -> None:
-        # `export * from './y'` is intentionally out of scope for the
-        # first TS manifest. resolve_ts_reexport should return None.
+    def test_star_reexport_resolves_requested_name_to_defining_module(
+        self, tmp_path: Path
+    ) -> None:
         models = tmp_path / "src" / "models"
         models.mkdir(parents=True)
         (models / "index.ts").write_text("export * from './user';\n")
         (models / "user.ts").write_text("export class Foo {}\n")
 
-        assert resolve_ts_reexport("src/models", "Foo", tmp_path) is None
+        assert resolve_ts_reexport("src/models", "Foo", tmp_path) == (
+            "src/models/user",
+            "Foo",
+        )
+
+    def test_default_as_reexport_resolves_to_visible_name(self, tmp_path: Path) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text(
+            "export { default as Button } from './Button';\n"
+        )
+        (components / "Button.tsx").write_text("export default class Button {}\n")
+
+        assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+            "src/components/Button",
+            "Button",
+        )
 
     def test_type_only_reexport_resolves_to_defining_module(
         self, tmp_path: Path

@@ -1,0 +1,64 @@
+schema: "2"
+goal: >
+  Extend TypeScript barrel re-export identity to one-level star exports and
+  default-as named re-exports.
+type: refactor
+created: "2026-05-06"
+description: |
+  Continue the parser library replacement spike after the completed Svelte,
+  TypeScript named re-export, and TypeScript artifact extraction slices. This
+  manifest evolves the existing TypeScript re-export identity contract behind
+  resolve_ts_reexport without changing the public validator interface.
+
+  The resolver should still parse only the supported one-level index barrel
+  file. It should add two MAID-visible mappings: `export * from "./module"`
+  resolves the requested artifact name to that source module with the same
+  original name, and `export { default as Button } from "./Button"` resolves
+  the visible name `Button` to the source module using `Button` as the
+  MAID-visible artifact name. This keeps the helper path-based and
+  behavior-preserving for MAID matching; it does not attempt compiler-backed
+  validation that the target module really exports the requested name.
+temptations:
+  - risk: "Do not turn resolve_ts_reexport into full TypeScript module resolution."
+    instead: "Parse only the first supported one-level index barrel file for the declared export forms."
+  - risk: "Do not inspect or parse target modules to prove star-export membership."
+    instead: "Map a single star re-export to the requested name and let artifact module_path matching decide whether coverage applies."
+  - risk: "Do not add tsconfig path alias, package.json exports, or recursive barrel support in this slice."
+    instead: "Leave non-relative specifiers and deeper resolution behavior unchanged."
+  - risk: "Do not change behavioral import collection or TypeScript artifact extraction."
+    instead: "Keep the work behind resolve_ts_reexport and the existing TypeScriptValidator.resolve_reexport delegation."
+files:
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_star_reexport_resolves_requested_name_to_defining_module
+        - kind: test_function
+          name: test_default_as_reexport_resolves_to_visible_name
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_match_through_one_level_star_reexport
+        - kind: test_function
+          name: test_match_through_default_as_reexport
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_typescript.py
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

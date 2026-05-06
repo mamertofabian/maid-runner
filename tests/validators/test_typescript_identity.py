@@ -333,3 +333,82 @@ class TestIdentityRejectsCrossModuleCollision:
             tmp_path,
             reexport_resolver=validator.resolve_reexport,
         )
+
+    def test_match_through_one_level_star_reexport(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        (models / "index.ts").write_text("export * from './user';\n")
+        (models / "user.ts").write_text("export class Foo {}\n")
+
+        source = "import { Foo } from './models';\nit('uses Foo', () => { Foo(); });\n"
+        result = validator.collect_behavioral_artifacts(source, "src/test_x.ts")
+        foo = _ref(result.artifacts, "Foo")
+        assert foo is not None
+        assert foo.import_source == "src/models"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Foo",
+            module_path="src/models/user",
+        )
+        wrong = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Foo",
+            module_path="src/other/user",
+        )
+        assert not match_artifact_to_references(
+            wrong,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+        assert match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+
+    def test_match_through_default_as_reexport(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        components = tmp_path / "src" / "components"
+        components.mkdir(parents=True)
+        (components / "index.ts").write_text(
+            "export { default as Button } from './Button';\n"
+        )
+        (components / "Button.tsx").write_text("export default class Button {}\n")
+
+        source = (
+            "import { Button } from './components';\n"
+            "it('uses Button', () => { return <Button />; });\n"
+        )
+        result = validator.collect_behavioral_artifacts(source, "src/Button.test.tsx")
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Button",
+            module_path="src/components/Button",
+        )
+        wrong = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Button",
+            module_path="src/other/Button",
+        )
+        assert not match_artifact_to_references(
+            wrong,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+        assert match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )

@@ -4,9 +4,10 @@ Module identity for TypeScript is path-based: project-relative POSIX
 paths with the file extension stripped. This is the TS analogue of
 ``maid_runner.core.module_paths``, which uses dotted Python identity.
 
-Only named ``export { Foo } from './y'`` (and the aliased
-``export { Foo as Bar } from './y'``) re-exports are resolved.
-``export * from './y'`` is intentionally out of scope.
+Only one-level barrel re-exports are resolved, including named
+``export { Foo } from './y'``, aliased ``export { Foo as Bar } from './y'``,
+star ``export * from './y'``, and default-as named
+``export { default as Foo } from './y'`` forms.
 """
 
 from __future__ import annotations
@@ -109,16 +110,16 @@ def resolve_ts_reexport(
     """Resolve a one-level named re-export of ``name`` from ``module``.
 
     Looks for a supported ``<module>/index`` file and scans its top-level
-    named re-export statements such as ``export { Foo } from './y'``,
+    re-export statements such as ``export { Foo } from './y'``,
     ``export { Foo as Bar } from './y'``, ``export type { Foo } from './y'``,
-    and ``export { type Foo } from './y'``. Returns ``(resolved_module,
-    original_name)`` where ``original_name`` is the source-side identifier —
-    for plain re-exports it equals ``name``; for aliased re-exports looked up
-    by alias it is the pre-alias name. Returns ``None`` when the module is not
-    a barrel package, the file cannot be read or parsed, optional parser
-    dependencies are unavailable, or ``name`` is not re-exported.
-
-    ``export * from './y'`` is intentionally not resolved.
+    ``export { type Foo } from './y'``, ``export * from './y'``, and
+    ``export { default as Foo } from './y'``. Returns ``(resolved_module,
+    original_name)`` where ``original_name`` is the MAID-visible source
+    identifier — for plain, star, and default-as re-exports it equals ``name``;
+    for aliased named re-exports looked up by alias it is the pre-alias name.
+    Returns ``None`` when the module is not a barrel package, the file cannot
+    be read or parsed, optional parser dependencies are unavailable, or ``name``
+    is not re-exported.
     """
     init_path: Optional[Path] = None
     for candidate in _INDEX_CANDIDATES:
@@ -152,6 +153,10 @@ def resolve_ts_reexport(
         if src is None:
             continue
 
+        resolved = resolve_relative_ts_import(src, f"{module}/index")
+        if _is_star_export(child):
+            return (resolved, name)
+
         export_clause = _child_by_type(child, "export_clause")
         if export_clause is None:
             continue
@@ -164,7 +169,6 @@ def resolve_ts_reexport(
                 continue
             source_name, bound = resolved_name
             if bound == name:
-                resolved = resolve_relative_ts_import(src, f"{module}/index")
                 return (resolved, source_name)
 
     return None
@@ -217,5 +221,11 @@ def _export_specifier_names(
     if not identifiers:
         return None
     if len(identifiers) >= 2:
+        if identifiers[0] == "default":
+            return identifiers[1], identifiers[1]
         return identifiers[0], identifiers[1]
     return identifiers[0], identifiers[0]
+
+
+def _is_star_export(export_statement) -> bool:
+    return any(child.type == "*" for child in export_statement.children)
