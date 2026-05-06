@@ -18,7 +18,7 @@ def cmd_test(args: argparse.Namespace) -> int:
             result = run_tests(
                 manifest_dir=args.manifest_dir,
                 fail_fast=args.fail_fast,
-                batch=False if batch is None else batch,
+                batch=batch,
             )
         print(format_test_result(result, verbose=args.verbose, json_mode=args.json))
         return 0 if result.success else 1

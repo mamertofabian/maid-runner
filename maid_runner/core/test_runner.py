@@ -219,19 +219,25 @@ def _normalize_pytest_command(
     if not command:
         return None
 
+    wrapper: tuple[str, ...] = ()
+    inner = command
+    if len(command) >= 3 and command[0] == "uv" and command[1] == "run":
+        wrapper = command[:2]
+        inner = command[2:]
+
     prefix: tuple[str, ...]
     args: tuple[str, ...]
-    if command[0] == "pytest":
-        prefix = ("pytest",)
-        args = command[1:]
+    if inner[0] == "pytest":
+        prefix = wrapper + ("pytest",)
+        args = inner[1:]
     elif (
-        len(command) >= 3
-        and _is_python_command(command[0])
-        and command[1] == "-m"
-        and command[2] == "pytest"
+        len(inner) >= 3
+        and _is_python_command(inner[0])
+        and inner[1] == "-m"
+        and inner[2] == "pytest"
     ):
-        prefix = command[:3]
-        args = command[3:]
+        prefix = wrapper + inner[:3]
+        args = inner[3:]
     else:
         return None
 
@@ -312,10 +318,6 @@ def run_tests(
         for cmd, slug, stream in all_commands
         if stream == TestStream.IMPLEMENTATION
     ]
-    impl_commands = [cmd for cmd, _ in impl_commands_with_slug]
-
-    # Determine batching (only for implementation commands)
-    should_batch = bool(batch)
 
     results: list[TestRunResult] = []
     passed = 0
@@ -341,17 +343,27 @@ def run_tests(
                 )
 
     # Stream 3: Run implementation tests (batched or sequential)
-    if should_batch and _can_batch(impl_commands) and len(impl_commands) > 1:
-        batched_cmd = _batch_pytest(impl_commands)
-        result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
-        results.append(result)
-        if result.success:
-            passed += 1
-        else:
-            failed += 1
-    else:
+    sequential_impl_commands = impl_commands_with_slug
+    if batch is not False:
+        batch_groups: dict[
+            tuple[tuple[str, ...], tuple[str, ...]],
+            list[tuple[tuple[str, ...], str]],
+        ] = {}
+        sequential_impl_commands = []
         for cmd, slug in impl_commands_with_slug:
-            result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+            normalized = _normalize_pytest_command(cmd)
+            if normalized is None:
+                sequential_impl_commands.append((cmd, slug))
+                continue
+            prefix, _, options = normalized
+            batch_groups.setdefault((prefix, options), []).append((cmd, slug))
+
+        for group in batch_groups.values():
+            if len(group) <= 1:
+                sequential_impl_commands.extend(group)
+                continue
+            batched_cmd = _batch_pytest([cmd for cmd, _ in group])
+            result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
             results.append(result)
             if result.success:
                 passed += 1
@@ -365,6 +377,22 @@ def run_tests(
                         failed=failed,
                         chain_errors=chain_errors,
                     )
+
+    for cmd, slug in sequential_impl_commands:
+        result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+        results.append(result)
+        if result.success:
+            passed += 1
+        else:
+            failed += 1
+            if fail_fast:
+                return BatchTestResult(
+                    results=results,
+                    total=len(results),
+                    passed=passed,
+                    failed=failed,
+                    chain_errors=chain_errors,
+                )
 
     return BatchTestResult(
         results=results,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import textwrap
+from argparse import Namespace
 
 import pytest
 import yaml
@@ -118,6 +119,32 @@ class TestCmdTestAll:
         os.chdir(tmp_path)
         exit_code = main(["test"])
         assert exit_code == 0
+
+    def test_default_batch_flag_uses_auto_mode(self, monkeypatch, capsys):
+        from maid_runner.cli.commands.test import cmd_test
+        from maid_runner.core.result import BatchTestResult
+
+        captured = {}
+
+        def fake_run_tests(**kwargs):
+            captured["batch"] = kwargs["batch"]
+            return BatchTestResult(results=[], total=0, passed=0, failed=0)
+
+        monkeypatch.setattr("maid_runner.core.test_runner.run_tests", fake_run_tests)
+
+        exit_code = cmd_test(
+            Namespace(
+                manifest=None,
+                manifest_dir="manifests/",
+                fail_fast=False,
+                batch=None,
+                verbose=False,
+                json=False,
+            )
+        )
+
+        assert exit_code == 0
+        assert captured["batch"] is None
 
 
 class TestCmdTestSingleManifest:

@@ -1,0 +1,43 @@
+schema: "2"
+goal: "Batch compatible maid test command groups"
+type: fix
+created: "2026-05-06"
+description: |
+  Restore the optimized multi-manifest test behavior for projects whose
+  manifests mix uv-wrapped pytest commands with other validation commands.
+  `maid test` should batch compatible pytest commands by equivalent runner
+  prefix and options, while safely running incompatible commands separately.
+temptations:
+  - risk: "Do not make batch mode all-or-nothing when only some commands are compatible."
+    instead: "Group compatible pytest commands and run non-batchable commands sequentially."
+  - risk: "Do not strip an explicit `uv run` prefix when combining commands."
+    instead: "Preserve the normalized command prefix used by the original compatible commands."
+  - risk: "Do not batch commands with different option sets just to reduce process count."
+    instead: "Only batch commands that normalize to the same pytest prefix and options."
+files:
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchTestResult
+        - kind: function
+          name: _can_batch
+          args:
+            - name: commands
+              type: list[tuple[str, Ellipsis]]
+          returns: bool
+        - kind: function
+          name: _batch_pytest
+          args:
+            - name: commands
+              type: list[tuple[str, Ellipsis]]
+          returns: tuple[str, Ellipsis]
+  read:
+    - tests/core/test_test_runner.py
+validate:
+  - pytest tests/core/test_test_runner.py -v

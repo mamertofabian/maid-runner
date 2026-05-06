@@ -1,0 +1,37 @@
+schema: "2"
+goal: "Restore automatic batch execution for maid test"
+type: fix
+created: "2026-05-06"
+description: |
+  `maid test` should use the v2 test runner's auto-batch mode when neither
+  `--batch` nor `--no-batch` is provided. This restores the optimized default
+  described in the v2 runner spec while preserving explicit user overrides.
+temptations:
+  - risk: "Do not force batching for every command when the flag is omitted."
+    instead: "Keep batch=None as auto mode and let run_tests batch only compatible pytest commands."
+  - risk: "Do not change single-manifest test execution or acceptance-test ordering."
+    instead: "Scope changes to multi-manifest implementation command batching and CLI flag forwarding."
+files:
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchTestResult
+    - path: maid_runner/cli/commands/test.py
+      artifacts:
+        - kind: function
+          name: cmd_test
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+  read:
+    - tests/core/test_test_runner.py
+    - tests/cli/test_test_cmd.py
+validate:
+  - pytest tests/core/test_test_runner.py tests/cli/test_test_cmd.py -v

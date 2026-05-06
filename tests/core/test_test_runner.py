@@ -122,7 +122,7 @@ validate:
 
 
 class TestBatchMode:
-    def test_default_does_not_auto_batch(self, tmp_path):
+    def test_default_auto_batches_compatible_pytest_commands(self, tmp_path):
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
         (manifests_dir / "a.manifest.yaml").write_text(
@@ -152,7 +152,14 @@ validate:
 """
         )
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
-        assert result.total == 2
+        assert result.total == 1
+        assert result.results[0].manifest_slug == "batch"
+        assert result.results[0].command == (
+            "pytest",
+            "tests/test_a.py",
+            "tests/test_b.py",
+            "-v",
+        )
 
     def test_batch_combines_pytest_commands(self, tmp_path):
         """Multiple pytest commands batched into single invocation."""
@@ -296,6 +303,104 @@ validate:
         # With batch=True but mixed runners, should fall back to sequential
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
         assert result.total == 2
+
+    def test_default_batches_compatible_subset_with_mixed_commands(self, tmp_path):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -v
+"""
+        )
+        (manifests_dir / "c.manifest.yaml").write_text(
+            """schema: "2"
+goal: "C"
+files:
+  create:
+    - path: src/c.py
+      artifacts:
+        - kind: function
+          name: c
+validate:
+  - echo c-passed
+"""
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.total == 2
+        assert result.results[0].manifest_slug == "batch"
+        assert result.results[0].command == (
+            "pytest",
+            "tests/test_a.py",
+            "tests/test_b.py",
+            "-v",
+        )
+        assert result.results[1].command == ("echo", "c-passed")
+
+    def test_default_batches_uv_wrapped_pytest_commands(self, tmp_path):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - uv run pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - uv run pytest tests/test_b.py -v
+"""
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.total == 1
+        assert result.results[0].manifest_slug == "batch"
+        assert result.results[0].command == (
+            "uv",
+            "run",
+            "pytest",
+            "tests/test_a.py",
+            "tests/test_b.py",
+            "-v",
+        )
 
     def test_complex_pytest_commands_are_not_batched(self, tmp_path):
         manifests_dir = tmp_path / "manifests"
@@ -610,6 +715,17 @@ class TestCanBatch:
     def test_python3_m_pytest(self):
         assert _can_batch([("python3", "-m", "pytest", "tests/")]) is True
 
+    def test_uv_run_pytest(self):
+        assert _can_batch([("uv", "run", "pytest", "tests/test_a.py", "-v")]) is True
+
+    def test_uv_run_python_m_pytest(self):
+        assert (
+            _can_batch(
+                [("uv", "run", "python", "-m", "pytest", "tests/test_a.py", "-v")]
+            )
+            is True
+        )
+
     def test_mixed_runners_not_batchable(self):
         cmds = [("pytest", "tests/test_a.py"), ("echo", "hello")]
         assert _can_batch(cmds) is False
@@ -641,6 +757,21 @@ class TestBatchPytest:
         cmds = [("pytest", "tests/test_a.py", "-v", "--tb=short")]
         result = _batch_pytest(cmds)
         assert result == ("pytest", "tests/test_a.py", "-v", "--tb=short")
+
+    def test_preserves_uv_run_prefix(self):
+        cmds = [
+            ("uv", "run", "pytest", "tests/test_a.py", "-v"),
+            ("uv", "run", "pytest", "tests/test_b.py", "-v"),
+        ]
+        result = _batch_pytest(cmds)
+        assert result == (
+            "uv",
+            "run",
+            "pytest",
+            "tests/test_a.py",
+            "tests/test_b.py",
+            "-v",
+        )
 
 
 class TestRunCommandExceptionPath:
