@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 from typing import Any, Optional
@@ -20,7 +19,7 @@ def resolve_import_with_compiler(
     project_root: Path,
 ) -> Optional[str]:
     """Resolve a TypeScript import through the project compiler, if available."""
-    return _resolve_import_cached(specifier, importer_module, str(Path(project_root)))
+    return _resolve_import(specifier, importer_module, str(Path(project_root)))
 
 
 def resolve_reexport_with_compiler(
@@ -29,15 +28,14 @@ def resolve_reexport_with_compiler(
     project_root: Path,
 ) -> Optional[tuple[str, str]]:
     """Resolve an exported symbol through the project compiler, if available."""
-    result = _resolve_reexport_cached(module, name, str(Path(project_root)))
+    result = _resolve_reexport(module, name, str(Path(project_root)))
     if result is None:
         return None
     resolved_module, resolved_name = result
     return resolved_module, resolved_name
 
 
-@lru_cache(maxsize=1024)
-def _resolve_import_cached(
+def _resolve_import(
     specifier: str,
     importer_module: str,
     project_root: str,
@@ -54,8 +52,7 @@ def _resolve_import_cached(
     return result if isinstance(result, str) and result else None
 
 
-@lru_cache(maxsize=1024)
-def _resolve_reexport_cached(
+def _resolve_reexport(
     module: str,
     name: str,
     project_root: str,

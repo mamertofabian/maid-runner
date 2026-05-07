@@ -1,0 +1,53 @@
+schema: "2"
+goal: >
+  Keep compiler-backed TypeScript identity resolution fresh across project file
+  changes and optional in Python-only CI.
+type: fix
+created: "2026-05-07"
+description: |
+  Fix the compiler resolver follow-up review findings. Compiler-backed tests
+  should only assert compiler behavior when the optional npm TypeScript
+  dependency is installed, matching the runtime fallback contract. Resolver
+  calls must also reflect changed project configuration in the same Python
+  process because watch mode can re-run validation without restarting.
+temptations:
+  - risk: "Do not make TypeScript an unconditional dependency of the Python test suite."
+    instead: "Skip compiler-only assertions when Node or the TypeScript npm package is unavailable, while keeping fallback behavior tested."
+  - risk: "Do not preserve stale compiler identities with a process-global cache keyed only by request fields."
+    instead: "Make each compiler-backed resolution observe the current project files for the validation pass."
+files:
+  edit:
+    - path: maid_runner/core/ts_compiler_resolver.py
+      artifacts:
+        - kind: function
+          name: resolve_import_with_compiler
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[str]
+        - kind: function
+          name: resolve_reexport_with_compiler
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_resolve_import_with_compiler_reflects_changed_tsconfig_paths
+        - kind: test_function
+          name: test_compiler_helpers_return_none_when_node_is_unavailable
+  read:
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - maid_runner/core/ts_module_paths.py
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py

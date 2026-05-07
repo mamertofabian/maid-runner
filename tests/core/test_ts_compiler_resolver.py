@@ -7,6 +7,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from maid_runner.core.ts_compiler_resolver import (
     resolve_import_with_compiler,
     resolve_reexport_with_compiler,
@@ -14,12 +16,17 @@ from maid_runner.core.ts_compiler_resolver import (
 
 
 def _require_typescript() -> None:
-    subprocess.run(
-        ["node", "-e", "require.resolve('typescript')"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        completed = subprocess.run(
+            ["node", "-e", "require.resolve('typescript')"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        pytest.skip("Node.js is unavailable")
+    if completed.returncode != 0:
+        pytest.skip("TypeScript npm dependency is unavailable")
 
 
 def _write_json(path: Path, data: object) -> None:
@@ -101,6 +108,59 @@ def test_resolve_reexport_with_compiler_resolves_recursive_barrels(
     assert resolve_reexport_with_compiler("src/components", "Button", project_root) == (
         "src/components/nested/Button",
         "Button",
+    )
+
+
+def test_resolve_import_with_compiler_reflects_changed_tsconfig_paths(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    src = tmp_path / "src"
+    old_dir = src / "old"
+    new_dir = src / "new"
+    old_dir.mkdir(parents=True)
+    new_dir.mkdir(parents=True)
+    (src / "App.test.ts").write_text(
+        "import { Button } from '@ui/Button';\nButton();\n"
+    )
+    (old_dir / "Button.ts").write_text("export function Button() {}\n")
+    (new_dir / "Button.ts").write_text("export function Button() {}\n")
+
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "ESNext",
+                "moduleResolution": "Bundler",
+                "baseUrl": ".",
+                "paths": {"@ui/*": ["src/old/*"]},
+            },
+            "include": ["src/**/*"],
+        },
+    )
+    assert (
+        resolve_import_with_compiler("@ui/Button", "src/App.test", tmp_path)
+        == "src/old/Button"
+    )
+
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "ESNext",
+                "moduleResolution": "Bundler",
+                "baseUrl": ".",
+                "paths": {"@ui/*": ["src/new/*"]},
+            },
+            "include": ["src/**/*"],
+        },
+    )
+
+    assert (
+        resolve_import_with_compiler("@ui/Button", "src/App.test", tmp_path)
+        == "src/new/Button"
     )
 
 
