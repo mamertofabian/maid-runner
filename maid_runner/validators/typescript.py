@@ -287,11 +287,13 @@ def _collect_impl(
             name = "default"
         if name:
             bases = _extract_bases(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             artifacts.append(
                 FoundArtifact(
                     kind=ArtifactKind.CLASS,
                     name=name,
                     bases=bases,
+                    type_parameters=type_parameters,
                     line=node.start_point[0] + 1,
                 )
             )
@@ -308,11 +310,13 @@ def _collect_impl(
         )
         if name:
             bases = _extract_interface_bases(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             artifacts.append(
                 FoundArtifact(
                     kind=ArtifactKind.INTERFACE,
                     name=name,
                     bases=bases,
+                    type_parameters=type_parameters,
                     line=node.start_point[0] + 1,
                 )
             )
@@ -341,6 +345,7 @@ def _collect_impl(
                         method_name = _member_name_text(child, source)
                         if method_name:
                             args, returns = _extract_func_signature(child, source)
+                            type_parameters = _extract_type_parameters(child, source)
                             artifacts.append(
                                 FoundArtifact(
                                     kind=ArtifactKind.METHOD,
@@ -348,6 +353,7 @@ def _collect_impl(
                                     of=name,
                                     args=args,
                                     returns=returns,
+                                    type_parameters=type_parameters,
                                     line=child.start_point[0] + 1,
                                 )
                             )
@@ -359,10 +365,12 @@ def _collect_impl(
         )
         if name:
             type_ann = _extract_type_alias_target(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             artifacts.append(
                 FoundArtifact(
                     kind=ArtifactKind.TYPE,
                     name=name,
+                    type_parameters=type_parameters,
                     type_annotation=type_ann,
                     line=node.start_point[0] + 1,
                 )
@@ -410,6 +418,7 @@ def _collect_impl(
             name = "default"
         if name:
             args, returns = _extract_func_signature(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             is_async = any(c.type == "async" for c in node.children)
             artifacts.append(
                 FoundArtifact(
@@ -417,6 +426,7 @@ def _collect_impl(
                     name=name,
                     args=args,
                     returns=returns,
+                    type_parameters=type_parameters,
                     is_async=is_async,
                     is_stub=_is_stub_body_ts(node, source),
                     line=node.start_point[0] + 1,
@@ -428,6 +438,7 @@ def _collect_impl(
         name_node = _child_by_type(node, "property_identifier")
         if name_node:
             args, returns = _extract_func_signature(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             artifacts.append(
                 FoundArtifact(
                     kind=ArtifactKind.METHOD,
@@ -435,6 +446,7 @@ def _collect_impl(
                     of=current_class,
                     args=args,
                     returns=returns,
+                    type_parameters=type_parameters,
                     line=node.start_point[0] + 1,
                 )
             )
@@ -456,6 +468,7 @@ def _collect_impl(
                 )
                 return
             args, returns = _extract_func_signature(node, source)
+            type_parameters = _extract_type_parameters(node, source)
             is_async = any(c.type == "async" for c in node.children)
             artifacts.append(
                 FoundArtifact(
@@ -464,6 +477,7 @@ def _collect_impl(
                     of=current_class,
                     args=args,
                     returns=returns,
+                    type_parameters=type_parameters,
                     is_async=is_async,
                     is_stub=_is_stub_body_ts(node, source),
                     line=node.start_point[0] + 1,
@@ -518,6 +532,9 @@ def _handle_variable_declarator(
 
     if value:
         args, returns = _extract_func_signature(value, source)
+        type_parameters = _extract_type_parameters(value, source)
+        if not type_parameters:
+            type_parameters = _extract_type_parameters_from_annotation(node, source)
         # Also check type annotation on the variable for return type
         if not returns:
             returns = _extract_type_annotation_return(node, source)
@@ -528,6 +545,7 @@ def _handle_variable_declarator(
                 name=name,
                 args=args,
                 returns=returns,
+                type_parameters=type_parameters,
                 is_async=is_async,
                 is_stub=_is_stub_body_ts(value, source),
                 line=node.start_point[0] + 1,
@@ -586,6 +604,9 @@ def _handle_class_field(
     if arrow_fn:
         # Arrow function class property -> METHOD
         args, returns = _extract_func_signature(arrow_fn, source)
+        type_parameters = _extract_type_parameters(arrow_fn, source)
+        if not type_parameters:
+            type_parameters = _extract_type_parameters_from_annotation(node, source)
         is_async = any(c.type == "async" for c in arrow_fn.children)
         artifacts.append(
             FoundArtifact(
@@ -594,6 +615,7 @@ def _handle_class_field(
                 of=current_class,
                 args=args,
                 returns=returns,
+                type_parameters=type_parameters,
                 is_async=is_async,
                 is_stub=_is_stub_body_ts(arrow_fn, source),
                 line=node.start_point[0] + 1,
@@ -748,6 +770,38 @@ def _extract_type_alias_target(node, source: bytes) -> Optional[str]:
 
     text = source[equals.end_byte : end_byte].decode("utf-8").strip()
     return text if text else None
+
+
+def _extract_type_parameters(node, source: bytes) -> tuple[str, ...]:
+    type_parameters = _child_by_type(node, "type_parameters")
+    if type_parameters is None:
+        return ()
+
+    return tuple(
+        _text(child, source)
+        for child in type_parameters.children
+        if child.type == "type_parameter"
+    )
+
+
+def _extract_type_parameters_from_annotation(node, source: bytes) -> tuple[str, ...]:
+    annotation = _child_by_type(node, "type_annotation")
+    if annotation is None:
+        return ()
+    function_type = _find_descendant_by_type(annotation, "function_type")
+    if function_type is not None:
+        return _extract_type_parameters(function_type, source)
+    return ()
+
+
+def _find_descendant_by_type(node, type_name: str):
+    stack = list(reversed(node.children))
+    while stack:
+        current = stack.pop()
+        if current.type == type_name:
+            return current
+        stack.extend(reversed(current.children))
+    return None
 
 
 def _extract_type_annotation_return(node, source: bytes) -> Optional[str]:

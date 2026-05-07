@@ -14,8 +14,11 @@ from maid_runner.core.manifest import (
     validate_manifest_schema,
 )
 from maid_runner.core.types import (
+    ArtifactSpec,
     ArtifactKind,
+    FileSpec,
     FileMode,
+    Manifest,
     TaskType,
 )
 
@@ -336,6 +339,81 @@ validate:
     def test_load_without_temptations_backward_compat(self):
         manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
         assert manifest.temptations == ()
+
+    def test_load_save_artifact_type_parameters_round_trip(self, tmp_path):
+        content = """schema: "2"
+goal: "Add generic store"
+files:
+  create:
+    - path: src/store.ts
+      artifacts:
+        - kind: class
+          name: Store
+          type_parameters:
+            - T extends Item = Item
+validate:
+  - pytest tests/test_store.py -v
+"""
+        path = tmp_path / "generic-store.manifest.yaml"
+        path.write_text(content)
+
+        manifest = load_manifest(path)
+        store = manifest.files_create[0].artifacts[0]
+        assert store.type_parameters == ("T extends Item = Item",)
+
+        saved = tmp_path / "saved.manifest.yaml"
+        save_manifest(manifest, saved)
+        saved_data = load_manifest_raw(saved)
+        assert saved_data["files"]["create"][0]["artifacts"][0]["type_parameters"] == [
+            "T extends Item = Item"
+        ]
+
+    def test_schema_accepts_artifact_type_parameters(self):
+        type_parameters = ["T", "U extends Item = Item"]
+        data = {
+            "schema": "2",
+            "goal": "Add generic function",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/map.ts",
+                        "artifacts": [
+                            {
+                                "kind": "function",
+                                "name": "map",
+                                "type_parameters": type_parameters,
+                            }
+                        ],
+                    }
+                ]
+            },
+            "validate": ["pytest tests/test_map.py -v"],
+        }
+
+        manifest = Manifest(
+            slug="generic-map",
+            source_path="",
+            goal="Add generic function",
+            files_create=(
+                FileSpec(
+                    path="src/map.ts",
+                    artifacts=(
+                        ArtifactSpec(
+                            kind=ArtifactKind.FUNCTION,
+                            name="map",
+                            type_parameters=tuple(type_parameters),
+                        ),
+                    ),
+                    mode=FileMode.CREATE,
+                ),
+            ),
+            validate_commands=(("pytest", "tests/test_map.py", "-v"),),
+        )
+
+        assert validate_manifest_schema(data) == []
+        assert manifest.files_create[0].artifacts[0].type_parameters == tuple(
+            type_parameters
+        )
 
 
 class TestValidateManifestSchemaAcceptance:

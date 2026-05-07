@@ -263,6 +263,7 @@ def _found_to_spec(artifact: FoundArtifact) -> ArtifactSpec:
         returns=artifact.returns,
         is_async=artifact.is_async,
         bases=artifact.bases,
+        type_parameters=artifact.type_parameters,
         type_annotation=artifact.type_annotation,
     )
 
@@ -277,6 +278,7 @@ def _spec_to_found(spec: ArtifactSpec) -> FoundArtifact:
         returns=spec.returns,
         is_async=spec.is_async,
         bases=spec.bases,
+        type_parameters=spec.type_parameters,
         type_annotation=spec.type_annotation,
     )
 

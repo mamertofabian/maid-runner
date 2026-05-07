@@ -321,3 +321,70 @@ def test_computed_interface_members_are_collected_from_source_text() -> None:
     assert tag.args == ()
     assert tag.returns == "string"
     assert tag.line == 3
+
+
+def test_generic_class_interface_function_and_type_parameters_are_collected() -> None:
+    source = """export class Store<T extends Item = Item> {}
+export interface Box<T, U extends Item = Item> {}
+export function map<T, U extends Result>(input: T): U {
+  throw new Error();
+}
+export type Pair<T, U = T> = [T, U];
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    store = next(a for a in result.artifacts if a.name == "Store")
+    box = next(a for a in result.artifacts if a.name == "Box")
+    map_fn = next(a for a in result.artifacts if a.name == "map")
+    pair = next(a for a in result.artifacts if a.name == "Pair")
+
+    assert store.type_parameters == ("T extends Item = Item",)
+    assert box.type_parameters == ("T", "U extends Item = Item")
+    assert map_fn.type_parameters == ("T", "U extends Result")
+    assert pair.type_parameters == ("T", "U = T")
+
+
+def test_typed_const_generic_function_parameters_are_collected_from_annotation() -> (
+    None
+):
+    source = "export const id: <T>(x: T) => T = (x) => x;\n"
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_fn = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_fn.kind == ArtifactKind.FUNCTION
+    assert id_fn.type_parameters == ("T",)
+
+
+def test_typed_class_field_generic_method_parameters_are_collected_from_annotation() -> (
+    None
+):
+    source = """export class Store {
+  id: <T>(x: T) => T = (x) => x;
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_method = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_method.kind == ArtifactKind.METHOD
+    assert id_method.of == "Store"
+    assert id_method.type_parameters == ("T",)
+
+
+def test_parenthesized_typed_const_generic_function_parameters_are_collected() -> None:
+    source = "export const id: (<T>(x: T) => T) = (x) => x;\n"
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_fn = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_fn.kind == ArtifactKind.FUNCTION
+    assert id_fn.type_parameters == ("T",)

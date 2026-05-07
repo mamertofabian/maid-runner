@@ -130,6 +130,17 @@ class TestGenerateSnapshot:
         m = generate_snapshot(str(src), project_root=str(tmp_path))
         assert m.slug == "snapshot-components-auth-provider"
 
+    def test_typescript_snapshot_preserves_generic_type_parameters(self, tmp_path):
+        """TypeScript snapshots keep declaration-site generic parameters."""
+        src = tmp_path / "src" / "store.ts"
+        src.parent.mkdir(parents=True)
+        src.write_text("export class Store<T extends Item = Item> {}\n")
+
+        m = generate_snapshot(str(src), project_root=str(tmp_path))
+        store = next(a for a in m.files_snapshot[0].artifacts if a.name == "Store")
+
+        assert store.type_parameters == ("T extends Item = Item",)
+
 
 # ---------------------------------------------------------------------------
 # parse error surfacing

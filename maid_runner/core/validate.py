@@ -1017,6 +1017,19 @@ def _compare_single(
         )
         return errors
 
+    if spec.type_parameters and spec.type_parameters != found.type_parameters:
+        errors.append(
+            ValidationError(
+                code=ErrorCode.TYPE_MISMATCH,
+                message=(
+                    f"type parameters mismatch for {spec.kind.value} "
+                    f"'{spec.qualified_name}': expected "
+                    f"{list(spec.type_parameters)}, got {list(found.type_parameters)}"
+                ),
+                location=Location(file=file_path, line=found.line),
+            )
+        )
+
     # Compare args types by NAME (not position), matching v1 behavior.
     # Code may have extra params (e.g. ctx: Context) not in manifest.
     if spec.args:

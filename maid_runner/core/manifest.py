@@ -217,6 +217,7 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
         raises=tuple(data.get("raises", [])),
         is_async=data.get("async", False),
         bases=tuple(data.get("bases", [])),
+        type_parameters=tuple(data.get("type_parameters", [])),
         of=data.get("of"),
         type_annotation=data.get("type"),
         test_details=test_details,
@@ -330,6 +331,8 @@ def _artifact_to_dict(spec: ArtifactSpec) -> dict:
         d["async"] = True
     if spec.bases:
         d["bases"] = list(spec.bases)
+    if spec.type_parameters:
+        d["type_parameters"] = list(spec.type_parameters)
     if spec.type_annotation:
         d["type"] = spec.type_annotation
     if spec.test_details is not None:

@@ -254,3 +254,15 @@ class TestArtifactToDict:
         attr = [d for d in result if d["name"] == "MAX_RETRIES"]
         assert attr
         assert attr[0]["type"] == "int"
+
+    def test_artifact_to_dict_includes_type_parameters(self):
+        """Generic artifacts include type_parameters in snapshots."""
+        artifact = FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name="Store",
+            type_parameters=("T extends Item = Item",),
+        )
+
+        result = BaseValidator._artifact_to_dict(artifact)
+
+        assert result["type_parameters"] == ["T extends Item = Item"]

@@ -21,6 +21,7 @@ class FoundArtifact:
     returns: Optional[str] = None
     is_async: bool = False
     bases: tuple[str, ...] = ()
+    type_parameters: tuple[str, ...] = ()
     type_annotation: Optional[str] = None
     is_stub: bool = False
     line: Optional[int] = None
@@ -176,6 +177,8 @@ class BaseValidator(ABC):
             d["async"] = True
         if artifact.bases:
             d["bases"] = list(artifact.bases)
+        if artifact.type_parameters:
+            d["type_parameters"] = list(artifact.type_parameters)
         if artifact.type_annotation:
             d["type"] = artifact.type_annotation
         return d

@@ -91,6 +91,7 @@ class ArtifactSpec:
     raises: tuple[str, ...] = ()
     is_async: bool = False
     bases: tuple[str, ...] = ()
+    type_parameters: tuple[str, ...] = ()
     of: Optional[str] = None
     type_annotation: Optional[str] = None
     test_details: Optional[TestFunctionDetails] = None

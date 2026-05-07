@@ -227,6 +227,10 @@
           "type": "array",
           "items": { "type": "string" }
         },
+        "type_parameters": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "of": {
           "type": "string"
         },
