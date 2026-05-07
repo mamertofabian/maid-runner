@@ -71,6 +71,15 @@ maid init --tool windsurf        # Windsurf IDE
 maid init --tool generic         # Generic MAID.md
 ```
 
+### Repo-Level Claude Install
+
+Use `maid init --tool claude` inside shared repositories as a repo-level Claude install
+for the MAID-only Claude skills, agents, commands, and marked
+`CLAUDE.md` guidance. The generated `.claude/skills` payload includes the
+current MAID workflow skills for planning, plan review, implementation,
+implementation review, evolution, auditing, and incident logging. Codex-specific
+metadata such as `openai.yaml` is not installed.
+
 ## CLI Reference
 
 | Command | Purpose | Key Options |

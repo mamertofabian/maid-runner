@@ -53,6 +53,16 @@ This keeps the methodology and workflow documentation reusable across tools whil
 3. Add tool-specific metadata files only for the tools that need them
 4. Copy or adapt the skill folder into the target tool's install location as needed
 
+### Current MAID Skill Distribution
+
+The current MAID skill distribution installed by `maid init --tool claude`
+places the MAID-only skill set into a target
+repository under `.claude/skills/`: `maid-planner`, `maid-plan-review`,
+`maid-implementer`, `maid-implementation-review`, `maid-evolver`,
+`maid-auditor`, and `maid-incident-logger`. The Claude repo-level payload is
+generated from `skills/` by `scripts/sync_claude_files.py` and excludes
+Codex-specific metadata such as `openai.yaml`.
+
 ---
 
 ## Skills

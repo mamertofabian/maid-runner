@@ -5,6 +5,7 @@
       "maid-plan-reviewer.md",
       "maid-test-designer.md",
       "maid-developer.md",
+      "maid-implementation-reviewer.md",
       "maid-fixer.md",
       "maid-refactorer.md",
       "maid-auditor.md"
@@ -14,6 +15,7 @@
       "maid-plan-reviewer.md": "Phase 2 Quality Gate: Reviews manifest and tests before implementation",
       "maid-test-designer.md": "Phase 2: Creates behavioral tests from manifests",
       "maid-developer.md": "Phase 3: Implements code to pass tests (TDD)",
+      "maid-implementation-reviewer.md": "Phase 3 Quality Gate: Reviews implementation against the approved manifest",
       "maid-fixer.md": "Phase 3 Support: Fixes validation errors and test failures",
       "maid-refactorer.md": "Phase 3.5: Improves code quality while maintaining compliance",
       "maid-auditor.md": "Cross-cutting: Enforces MAID compliance across all phases"
@@ -49,6 +51,26 @@
       "audit.md": "Audit MAID compliance (cross-cutting)",
       "run-validation.md": "Run validation tests for a manifest or task number",
       "improve-tests.md": "Enhance test coverage and quality"
+    }
+  },
+  "skills": {
+    "distributable": [
+      "maid-planner",
+      "maid-plan-review",
+      "maid-implementer",
+      "maid-implementation-review",
+      "maid-evolver",
+      "maid-auditor",
+      "maid-incident-logger"
+    ],
+    "descriptions": {
+      "maid-planner": "Create a machine-checkable MAID manifest and behavioral tests",
+      "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
+      "maid-implementer": "Implement code against an approved MAID manifest",
+      "maid-implementation-review": "Review implementation scope, artifacts, tests, and validation",
+      "maid-evolver": "Intentionally evolve existing MAID manifest contracts",
+      "maid-auditor": "Audit active manifests for regressions, drift, and broken contracts",
+      "maid-incident-logger": "Record curated MAID workflow drift or gaming incidents"
     }
   }
 }

@@ -62,6 +62,7 @@ dev = [
     "pre-commit>=4.0.0",
     "vulture>=2.0",
     "pytest-cov>=7.0.0",
+    "tomli>=2.0.0; python_version < '3.11'",
     "mypy>=1.19.1",
     "types-pyyaml>=6.0.12.20250915",
     "tree-sitter>=0.23.2",
@@ -81,7 +82,7 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md", "core/*.cjs"]
+maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/agents/*.md", "claude/commands/*.md", "claude/skills/*/SKILL.md", "core/*.cjs"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

@@ -37,6 +37,22 @@ Confirm the high-level goal with user before proceeding.
 2. Run all MAID tests: `uv run maid test`
 3. Run full test suite: `uv run python -m pytest tests/ -v`
 
+## MAID Skills Workflow
+
+When MAID skills are available, use them as the primary workflow:
+
+| Skill | Phase | When to Use |
+|-------|-------|-------------|
+| `maid-planner` | Plan | Create or revise a manifest and behavioral tests |
+| `maid-plan-review` | Plan Gate | Review the manifest and tests before implementation |
+| `maid-implementer` | Implement | Implement only within approved manifest scope |
+| `maid-implementation-review` | Implementation Gate | Review changed files, artifacts, tests, and validation before handoff |
+| `maid-evolver` | Evolve | Change an existing manifest contract intentionally |
+| `maid-auditor` | Audit | Check active manifests for regressions, drift, and broken contracts |
+| `maid-incident-logger` | Incident Logging | Capture useful MAID workflow drift or gaming examples |
+
+These skills are installed into team repositories by `maid init --tool claude`.
+
 ## MAID Subagents (Use When Available)
 
 **When these subagents are available, INVOKE them via the Task tool for each phase:**

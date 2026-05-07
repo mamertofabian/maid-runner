@@ -1,0 +1,163 @@
+schema: "2"
+goal: "Install the current MAID Claude skills and agents into team repositories through maid init."
+type: feature
+created: "2026-05-07"
+description: |
+  Team repositories need a repo-level Claude configuration that matches the
+  current MAID skill workflow. `maid init --tool claude` should install the
+  MAID-only skills, agents, commands, and marked CLAUDE.md guidance from the
+  packaged Claude payload, while the sync script should keep that payload in
+  step with the repo source assets.
+temptations:
+  - risk: "Do not copy every personal user-level skill into team repositories."
+    instead: "Distribute only the MAID workflow skills declared in the Claude manifest."
+  - risk: "Do not overwrite a project's existing CLAUDE.md content."
+    instead: "Replace only the marked MAID Runner section and preserve all text outside the markers."
+  - risk: "Do not leave generated package assets dependent on stale manual copies."
+    instead: "Make the sync script copy skills, agents, commands, and manifest from the repo source payload."
+files:
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_agents
+          args: []
+          returns: None
+        - kind: function
+          name: sync_commands
+          args: []
+          returns: None
+        - kind: function
+          name: sync_skills
+          args: []
+          returns: None
+        - kind: function
+          name: main
+          args: []
+          returns: None
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: claude_skills
+          of: package-data
+          type: glob
+        - kind: attribute
+          name: tomli_dev_dependency
+          of: dependency-groups.dev
+          type: dependency
+    - path: uv.lock
+      artifacts:
+        - kind: attribute
+          name: tomli_lock_entry
+          of: package.dev
+          type: dependency
+    - path: .claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: skills_distributable
+          of: claude manifest
+          type: array
+    - path: .claude/agents/maid-implementation-reviewer.md
+      artifacts:
+        - kind: attribute
+          name: maid_implementation_reviewer_agent
+          of: Claude agents
+          type: agent
+    - path: skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_planner_skill
+          of: MAID skill distribution
+          type: skill
+    - path: skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_implementer_skill
+          of: MAID skill distribution
+          type: skill
+    - path: skills/maid-evolver/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_evolver_skill
+          of: MAID skill distribution
+          type: skill
+    - path: skills/maid-auditor/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_auditor_skill
+          of: MAID skill distribution
+          type: skill
+    - path: tests/cli/test_init_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_init_claude_creates_repo_level_maid_assets
+        - kind: test_function
+          name: test_init_claude_dry_run_reports_assets_without_creating_them
+        - kind: test_function
+          name: test_init_claude_force_replaces_only_marked_claude_md_section
+        - kind: test_function
+          name: test_init_non_claude_tool_does_not_create_claude_assets
+    - path: tests/ci/test_publish_workflow.py
+      artifacts:
+        - kind: test_function
+          name: test_package_data_includes_claude_skills
+        - kind: test_function
+          name: test_python_310_tomli_fallback_dependency_is_locked
+    - path: tests/ci/test_claude_sync.py
+      artifacts:
+        - kind: test_function
+          name: test_sync_claude_files_copies_manifest_declared_skills
+        - kind: test_function
+          name: test_sync_claude_files_prunes_stale_generated_payloads
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: maid_skills_workflow
+          of: MAID Workflow
+          type: section
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: repo_level_claude_install
+          of: Installation
+          type: section
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: current_maid_skill_distribution
+          of: Tool Packaging
+          type: section
+  create:
+    - path: skills/maid-plan-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_plan_review_skill
+          of: MAID skill distribution
+          type: skill
+    - path: skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_implementation_review_skill
+          of: MAID skill distribution
+          type: skill
+    - path: skills/maid-incident-logger/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_incident_logger_skill
+          of: MAID skill distribution
+          type: skill
+  read:
+    - tests/conftest.py
+    - maid_runner/cli/commands/_main.py
+    - skills/maid-planner/SKILL.md
+    - skills/maid-implementer/SKILL.md
+validate:
+  - uv run python -m pytest tests/cli/test_init_cmd.py tests/ci/test_publish_workflow.py tests/ci/test_claude_sync.py -q
