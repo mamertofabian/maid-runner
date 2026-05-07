@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.1] - 2026-05-07
+
+### Fixed
+- **Claude MAID skill repo install** — `maid init --tool claude` installs the current MAID-only Claude skills, agents, commands, and marked `CLAUDE.md` guidance for shared team repositories.
+- **Python 3.10 CI compatibility** — Test coverage for package data uses a `tomli` fallback when `tomllib` is unavailable.
+
 ## [2.7.0] - 2026-05-07
 
 ### Added
@@ -850,6 +856,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 [0.1.2]: https://github.com/mamertofabian/maid-runner/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mamertofabian/maid-runner/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mamertofabian/maid-runner/releases/tag/v0.1.0
+[2.7.1]: https://github.com/mamertofabian/maid-runner/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/mamertofabian/maid-runner/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/mamertofabian/maid-runner/compare/v2.5.2...v2.6.0
 [2.5.2]: https://github.com/mamertofabian/maid-runner/compare/v2.5.1...v2.5.2
