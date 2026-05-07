@@ -1,0 +1,39 @@
+schema: "2"
+goal: >
+  Install committed npm development dependencies in the publish workflow before
+  MAID and pytest commands that exercise compiler-backed TypeScript identity.
+type: fix
+created: "2026-05-07"
+description: |
+  The 2.7.0 release workflow fails in GitHub Actions because the Python
+  dependency sync does not install the npm TypeScript package required by the
+  compiler-backed TypeScript identity tests. Local release validation passed
+  because node_modules already existed in the checkout. The workflow should run
+  npm ci in the test job after uv sync and before MAID tests/full pytest so CI
+  matches the committed package-lock.json test prerequisite.
+temptations:
+  - risk: "Do not weaken or skip the compiler-backed TypeScript identity tests to make CI green."
+    instead: "Install the committed npm dev dependencies in the workflow before running MAID tests and pytest."
+  - risk: "Do not add ad hoc npm install commands that ignore the lockfile."
+    instead: "Use npm ci so CI installs exactly the package-lock.json dependency set."
+files:
+  create:
+    - path: tests/ci/test_publish_workflow.py
+      artifacts:
+        - kind: test_function
+          name: test_publish_workflow_installs_npm_dependencies_before_maid_tests
+  edit:
+    - path: .github/workflows/publish.yml
+      artifacts:
+        - kind: test_function
+          name: publish_workflow_test_job_installs_npm_dependencies
+          description: >
+            Workflow behavior: the test job runs npm ci before uv run maid test
+            and uv run python -m pytest tests/ -v.
+  read:
+    - package.json
+    - package-lock.json
+    - tests/core/test_ts_compiler_resolver.py
+    - tests/validators/test_typescript_identity.py
+validate:
+  - uv run python -m pytest -q tests/ci/test_publish_workflow.py

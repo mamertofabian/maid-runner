@@ -28,6 +28,8 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     - name: Install dependencies
       run: uv sync
+    - name: Install npm dependencies
+      run: npm ci
     - name: Sync Claude Code files for validation
       run: uv run python scripts/sync_claude_files.py
     - name: Run MAID validation
@@ -126,4 +128,3 @@ jobs:
         gh release upload
         '${{ github.ref_name }}' dist/**
         --repo '${{ github.repository }}'
-
