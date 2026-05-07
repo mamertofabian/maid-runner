@@ -5,9 +5,9 @@ created: "2026-05-07"
 description: |
   Team repositories need a repo-level Claude configuration that matches the
   current MAID skill workflow. `maid init --tool claude` should install the
-  MAID-only skills, agents, commands, and marked CLAUDE.md guidance from the
-  packaged Claude payload, while the sync script should keep that payload in
-  step with the repo source assets.
+  MAID-only skills, implementation-review agent, and marked CLAUDE.md guidance
+  from the packaged Claude payload, while the sync script should keep that
+  payload in step with the repo source assets.
 temptations:
   - risk: "Do not copy every personal user-level skill into team repositories."
     instead: "Distribute only the MAID workflow skills declared in the Claude manifest."
@@ -71,25 +71,25 @@ files:
           name: maid_implementation_reviewer_agent
           of: Claude agents
           type: agent
-    - path: skills/maid-planner/SKILL.md
+    - path: .claude/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_planner_skill
           of: MAID skill distribution
           type: skill
-    - path: skills/maid-implementer/SKILL.md
+    - path: .claude/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_implementer_skill
           of: MAID skill distribution
           type: skill
-    - path: skills/maid-evolver/SKILL.md
+    - path: .claude/skills/maid-evolver/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_evolver_skill
           of: MAID skill distribution
           type: skill
-    - path: skills/maid-auditor/SKILL.md
+    - path: .claude/skills/maid-auditor/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_auditor_skill
@@ -136,19 +136,19 @@ files:
           of: Tool Packaging
           type: section
   create:
-    - path: skills/maid-plan-review/SKILL.md
+    - path: .claude/skills/maid-plan-review/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_plan_review_skill
           of: MAID skill distribution
           type: skill
-    - path: skills/maid-implementation-review/SKILL.md
+    - path: .claude/skills/maid-implementation-review/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_implementation_review_skill
           of: MAID skill distribution
           type: skill
-    - path: skills/maid-incident-logger/SKILL.md
+    - path: .claude/skills/maid-incident-logger/SKILL.md
       artifacts:
         - kind: attribute
           name: maid_incident_logger_skill
@@ -157,7 +157,7 @@ files:
   read:
     - tests/conftest.py
     - maid_runner/cli/commands/_main.py
-    - skills/maid-planner/SKILL.md
-    - skills/maid-implementer/SKILL.md
+    - .claude/skills/maid-planner/SKILL.md
+    - .claude/skills/maid-implementer/SKILL.md
 validate:
   - uv run python -m pytest tests/cli/test_init_cmd.py tests/ci/test_publish_workflow.py tests/ci/test_claude_sync.py -q

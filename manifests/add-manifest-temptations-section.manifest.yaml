@@ -74,13 +74,13 @@ files:
           name: temptations
           of: MAID Manifest v2
           type: array
-    - path: skills/maid-planner/SKILL.md
+    - path: .claude/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
           name: temptations
           of: Manifest Structure
           type: section
-    - path: skills/maid-implementer/SKILL.md
+    - path: .claude/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: temptations

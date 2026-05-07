@@ -1,0 +1,196 @@
+schema: "2"
+goal: "Restrict the Claude payload installed by maid init to MAID skills and the implementation-reviewer agent."
+type: fix
+created: "2026-05-07"
+description: |
+  `maid init --tool claude` should not install the legacy Claude slash commands
+  or the old multi-agent MAID workflow. The package payload should contain the
+  current MAID skills plus the single `maid-implementation-reviewer.md` agent
+  needed for review handoff. Empty manifest sections, especially commands, must
+  be treated as intentional empty distributions rather than as a fallback to
+  copying every source file.
+temptations:
+  - risk: "Do not hide legacy commands only from dry-run output while still packaging or copying them."
+    instead: "Remove command files from the source payload, generated payload, package data, and sync fallback behavior."
+  - risk: "Do not keep all old MAID agents because they already exist in the repo."
+    instead: "Declare and distribute only `maid-implementation-reviewer.md` as the Claude agent payload."
+  - risk: "Do not treat an empty manifest distributable list as missing configuration."
+    instead: "Make sync use the explicit empty list so stale generated command directories are pruned."
+files:
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_agents
+          args: []
+          returns: None
+        - kind: function
+          name: sync_commands
+          args: []
+          returns: None
+        - kind: function
+          name: sync_skills
+          args: []
+          returns: None
+        - kind: function
+          name: main
+          args: []
+          returns: None
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: claude_skills
+          of: package-data
+          type: glob
+        - kind: attribute
+          name: claude_agent_payload
+          of: package-data
+          type: glob
+    - path: .claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: agents_distributable
+          of: claude manifest
+          type: array
+        - kind: attribute
+          name: commands_distributable
+          of: claude manifest
+          type: array
+        - kind: attribute
+          name: skills_distributable
+          of: claude manifest
+          type: array
+    - path: maid_runner/claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: generated_agents_distributable
+          of: generated claude manifest
+          type: array
+        - kind: attribute
+          name: generated_commands_distributable
+          of: generated claude manifest
+          type: array
+    - path: tests/cli/test_init_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_init_claude_creates_repo_level_maid_assets
+        - kind: test_function
+          name: test_init_claude_dry_run_reports_assets_without_creating_them
+        - kind: test_function
+          name: test_init_claude_force_replaces_only_marked_claude_md_section
+    - path: tests/ci/test_claude_sync.py
+      artifacts:
+        - kind: test_function
+          name: test_sync_claude_files_copies_manifest_declared_skills
+        - kind: test_function
+          name: test_sync_claude_files_prunes_stale_generated_payloads
+    - path: tests/ci/test_publish_workflow.py
+      artifacts:
+        - kind: test_function
+          name: test_package_data_includes_claude_skills
+        - kind: test_function
+          name: test_claude_manifest_and_docs_describe_maid_skill_distribution
+  delete:
+    - path: .claude/agents/maid-auditor.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-developer.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-fixer.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-manifest-architect.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-plan-reviewer.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-refactorer.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/agents/maid-test-designer.md
+      reason: "Legacy multi-agent MAID workflow is no longer part of the repo-level Claude init payload."
+    - path: .claude/commands/audit.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/enhance-manifest.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/fix.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/generate-manifest.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/generate-tests.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/implement.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/improve-tests.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/maid-run.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/pypi-release.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/plan.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/quality-check-and-commit.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/refactor.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/run-validation.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/spike.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: .claude/commands/validate-manifest.md
+      reason: "Claude slash commands are no longer distributed by maid init."
+    - path: maid_runner/claude/agents/maid-auditor.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-developer.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-fixer.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-manifest-architect.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-plan-reviewer.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-refactorer.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/agents/maid-test-designer.md
+      reason: "Generated package payload must mirror the reduced Claude agent distribution."
+    - path: maid_runner/claude/commands/audit.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/enhance-manifest.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/fix.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/generate-manifest.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/generate-tests.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/implement.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/improve-tests.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/maid-run.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/plan.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/refactor.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/run-validation.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/spike.md
+      reason: "Generated package payload must not include Claude slash commands."
+    - path: maid_runner/claude/commands/validate-manifest.md
+      reason: "Generated package payload must not include Claude slash commands."
+  read:
+    - .claude/agents/maid-implementation-reviewer.md
+    - .claude/skills/maid-planner/SKILL.md
+    - .claude/skills/maid-plan-review/SKILL.md
+    - .claude/skills/maid-implementer/SKILL.md
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - .claude/skills/maid-evolver/SKILL.md
+    - .claude/skills/maid-auditor/SKILL.md
+    - .claude/skills/maid-incident-logger/SKILL.md
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_cmd.py tests/ci/test_claude_sync.py tests/ci/test_publish_workflow.py

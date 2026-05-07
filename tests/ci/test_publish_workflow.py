@@ -34,9 +34,13 @@ def test_package_data_includes_claude_skills() -> None:
 
     package_data = pyproject["tool"]["setuptools"]["package-data"]["maid_runner"]
     claude_skills = [item for item in package_data if item.startswith("claude/skills/")]
+    claude_agent_payload = [
+        item for item in package_data if item.startswith("claude/agents/")
+    ]
 
     assert "claude/skills/*/SKILL.md" in claude_skills
-    assert "claude/skills/*/agents/*.yaml" not in claude_skills
+    assert claude_agent_payload == ["claude/agents/*.md"]
+    assert "claude/commands/*.md" not in package_data
 
 
 def test_python_310_tomli_fallback_dependency_is_locked() -> None:
@@ -53,7 +57,14 @@ def test_python_310_tomli_fallback_dependency_is_locked() -> None:
 
 def test_claude_manifest_and_docs_describe_maid_skill_distribution() -> None:
     manifest = yaml.safe_load(Path(".claude/manifest.json").read_text())
+    generated_manifest = yaml.safe_load(
+        Path("maid_runner/claude/manifest.json").read_text()
+    )
     skills_distributable = manifest["skills"]["distributable"]
+    agents_distributable = manifest["agents"]["distributable"]
+    commands_distributable = manifest["commands"]["distributable"]
+    generated_agents_distributable = generated_manifest["agents"]["distributable"]
+    generated_commands_distributable = generated_manifest["commands"]["distributable"]
     maid_planner_skill = "maid-planner" in skills_distributable
     maid_plan_review_skill = "maid-plan-review" in skills_distributable
     maid_implementer_skill = "maid-implementer" in skills_distributable
@@ -70,6 +81,11 @@ def test_claude_manifest_and_docs_describe_maid_skill_distribution() -> None:
     repo_level_claude_install = Path("README.md").read_text()
     current_maid_skill_distribution = Path("docs/agent-skills.md").read_text()
 
+    assert not Path("skills").exists()
+    assert agents_distributable == ["maid-implementation-reviewer.md"]
+    assert commands_distributable == []
+    assert generated_agents_distributable == ["maid-implementation-reviewer.md"]
+    assert generated_commands_distributable == []
     assert maid_planner_skill
     assert maid_plan_review_skill
     assert maid_implementer_skill
@@ -81,3 +97,4 @@ def test_claude_manifest_and_docs_describe_maid_skill_distribution() -> None:
     assert "maid skills workflow" in maid_skills_workflow.lower()
     assert "repo-level Claude install" in repo_level_claude_install
     assert "current MAID skill distribution" in current_maid_skill_distribution
+    assert ".claude/skills/" in current_maid_skill_distribution

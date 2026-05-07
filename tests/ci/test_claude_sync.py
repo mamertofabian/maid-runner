@@ -10,13 +10,13 @@ def _write_minimal_claude_source(project: Path) -> None:
     claude = project / ".claude"
     (claude / "agents").mkdir(parents=True)
     (claude / "commands").mkdir(parents=True)
-    (project / "skills" / "maid-planner").mkdir(parents=True)
+    (claude / "skills" / "maid-planner").mkdir(parents=True)
 
     (claude / "manifest.json").write_text(
         json.dumps(
             {
                 "agents": {"distributable": ["maid-agent.md"]},
-                "commands": {"distributable": ["plan.md"]},
+                "commands": {"distributable": []},
                 "skills": {"distributable": ["maid-planner"]},
             }
         )
@@ -27,12 +27,8 @@ def _write_minimal_claude_source(project: Path) -> None:
     )
     (claude / "commands" / "plan.md").write_text("plan command\n")
     (claude / "commands" / "ignored.md").write_text("ignored command\n")
-    (project / "skills" / "maid-planner" / "SKILL.md").write_text(
+    (claude / "skills" / "maid-planner" / "SKILL.md").write_text(
         "---\nname: maid-planner\n---\n"
-    )
-    (project / "skills" / "maid-planner" / "agents").mkdir()
-    (project / "skills" / "maid-planner" / "agents" / "openai.yaml").write_text(
-        "display_name: Codex metadata\n"
     )
 
 
@@ -52,9 +48,9 @@ def test_sync_claude_files_copies_manifest_declared_skills(
     dest = tmp_path / "maid_runner" / "claude"
     assert (dest / "manifest.json").is_file()
     assert (dest / "agents" / "maid-agent.md").is_file()
-    assert (dest / "commands" / "plan.md").is_file()
+    assert not (dest / "commands").exists()
     assert (dest / "skills" / "maid-planner" / "SKILL.md").is_file()
-    assert not (dest / "skills" / "maid-planner" / "agents" / "openai.yaml").exists()
+    assert not (tmp_path / "skills").exists()
     assert not (dest / "agents" / "ignored-agent.md").exists()
     assert not (dest / "commands" / "ignored.md").exists()
 
@@ -80,5 +76,6 @@ def test_sync_claude_files_prunes_stale_generated_payloads(
     main()
 
     assert not (stale_root / "skills" / "old-skill").exists()
+    assert not (stale_root / "commands").exists()
     assert not (stale_root / "commands" / "old.md").exists()
     assert not (stale_root / "agents" / "old.md").exists()

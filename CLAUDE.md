@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 **CRITICAL: This project dogfoods MAID v2 (YAML manifests). Every code change MUST follow the MAID workflow.**
-**USE SUBAGENTS: When MAID subagents are available (maid-manifest-architect, maid-test-designer, maid-developer, etc.), INVOKE them via the Task tool for each phase.**
+**USE MAID SKILLS: When MAID skills are available, use them for planning, review, implementation, evolution, and audit.**
 
 **Note on Documentation Changes:** Pure documentation changes (modifying only `.md` files with no code artifacts) may be exempt from the full MAID workflow, but should still be reviewed for accuracy and consistency. When in doubt, create a manifest.
 
@@ -53,20 +53,10 @@ When MAID skills are available, use them as the primary workflow:
 
 These skills are installed into team repositories by `maid init --tool claude`.
 
-## MAID Subagents (Use When Available)
+## MAID Agent
 
-**When these subagents are available, INVOKE them via the Task tool for each phase:**
-
-| Subagent | Phase | When to INVOKE |
-|----------|-------|----------------|
-| `maid-manifest-architect` | Phase 1 | Creating any manifest |
-| `maid-test-designer` | Phase 2 | Creating behavioral tests |
-| `maid-developer` | Phase 3 | Implementing code to pass tests |
-| `maid-refactorer` | Phase 3.5 | Improving code quality |
-| `maid-fixer` | Phase 3 Support | Fixing validation errors |
-| `maid-auditor` | Cross-cutting | Checking MAID compliance |
-
-**Note:** MAID Runner is a validation-only tool. The subagents above are provided by the MAID Runner plugin or configured in `.claude/agents/`. They use MAID Runner CLI commands internally.
+The repo-level Claude payload includes `maid-implementation-reviewer` for
+reviewing implementation work against an approved manifest before handoff.
 
 **Note:** The MAID workflow embodies TDD at two levels:
 - **Planning Loop**: Iterative test-manifest refinement (micro TDD)

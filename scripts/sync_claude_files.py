@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Sync Claude Code integration files for package distribution.
 
-This script copies .claude/agents/, .claude/commands/, and manifest-declared
-skills/ directories to maid_runner/claude/ for inclusion in the PyPI package.
-The source .claude/ and skills/ directories are used for active development,
+This script copies manifest-declared Claude agents, commands, and skills to
+maid_runner/claude/ for inclusion in the PyPI package.
+The source .claude/ directory is used for active development,
 while maid_runner/claude/ is generated for distribution.
 
 Usage:
@@ -34,10 +34,10 @@ def _load_manifest() -> dict:
 
 def _declared_items(section: str, fallback: list[str]) -> list[str]:
     manifest = _load_manifest()
-    values = manifest.get(section, {}).get("distributable")
-    if not values:
+    section_data = manifest.get(section, {})
+    if "distributable" not in section_data:
         return fallback
-    return [str(value) for value in values]
+    return [str(value) for value in section_data["distributable"]]
 
 
 def _replace_directory(path: Path) -> None:
@@ -46,11 +46,29 @@ def _replace_directory(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _remove_directory(path: Path) -> None:
+    if path.exists():
+        shutil.rmtree(path)
+
+
 def sync_agents() -> None:
     """Copy .claude/agents/*.md to maid_runner/claude/agents/."""
     project_root = _project_root()
     source_agents = project_root / ".claude" / "agents"
     dest_agents = _dest_root() / "agents"
+
+    agent_names = _declared_items(
+        "agents",
+        (
+            sorted(agent_file.name for agent_file in source_agents.glob("*.md"))
+            if source_agents.exists()
+            else []
+        ),
+    )
+    if not agent_names:
+        _remove_directory(dest_agents)
+        print(f"✓ Synced 0 agent files to {dest_agents}")
+        return
 
     if not source_agents.exists():
         print(
@@ -59,9 +77,6 @@ def sync_agents() -> None:
         return
 
     _replace_directory(dest_agents)
-    agent_names = _declared_items(
-        "agents", sorted(agent_file.name for agent_file in source_agents.glob("*.md"))
-    )
     copied = 0
     for agent_name in agent_names:
         source_file = source_agents / agent_name
@@ -78,6 +93,19 @@ def sync_commands() -> None:
     source_commands = project_root / ".claude" / "commands"
     dest_commands = _dest_root() / "commands"
 
+    command_names = _declared_items(
+        "commands",
+        (
+            sorted(command_file.name for command_file in source_commands.glob("*.md"))
+            if source_commands.exists()
+            else []
+        ),
+    )
+    if not command_names:
+        _remove_directory(dest_commands)
+        print(f"✓ Synced 0 command files to {dest_commands}")
+        return
+
     if not source_commands.exists():
         print(
             f"⚠️  Warning: Source directory not found: {source_commands}. Skipping command sync."
@@ -85,10 +113,6 @@ def sync_commands() -> None:
         return
 
     _replace_directory(dest_commands)
-    command_names = _declared_items(
-        "commands",
-        sorted(command_file.name for command_file in source_commands.glob("*.md")),
-    )
     copied = 0
     for command_name in command_names:
         source_file = source_commands / command_name
@@ -100,10 +124,27 @@ def sync_commands() -> None:
 
 
 def sync_skills() -> None:
-    """Copy manifest-declared skills/* directories to maid_runner/claude/skills/."""
+    """Copy manifest-declared .claude/skills/* directories to maid_runner/claude/skills/."""
     project_root = _project_root()
-    source_skills = project_root / "skills"
+    source_skills = project_root / ".claude" / "skills"
     dest_skills = _dest_root() / "skills"
+
+    skill_names = _declared_items(
+        "skills",
+        (
+            sorted(
+                skill_dir.name
+                for skill_dir in source_skills.iterdir()
+                if skill_dir.is_dir()
+            )
+            if source_skills.exists()
+            else []
+        ),
+    )
+    if not skill_names:
+        _remove_directory(dest_skills)
+        print(f"✓ Synced 0 skill directories to {dest_skills}")
+        return
 
     if not source_skills.exists():
         print(
@@ -112,23 +153,11 @@ def sync_skills() -> None:
         return
 
     _replace_directory(dest_skills)
-    skill_names = _declared_items(
-        "skills",
-        sorted(
-            skill_dir.name
-            for skill_dir in source_skills.iterdir()
-            if skill_dir.is_dir()
-        ),
-    )
     copied = 0
     for skill_name in skill_names:
         source_dir = source_skills / skill_name
         if source_dir.exists():
-            shutil.copytree(
-                source_dir,
-                dest_skills / skill_name,
-                ignore=shutil.ignore_patterns("openai.yaml"),
-            )
+            shutil.copytree(source_dir, dest_skills / skill_name)
             copied += 1
 
     print(f"✓ Synced {copied} skill directories to {dest_skills}")

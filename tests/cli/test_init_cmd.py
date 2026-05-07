@@ -79,13 +79,11 @@ class TestCmdInit:
         assert (
             tmp_path / ".claude" / "skills" / "maid-incident-logger" / "SKILL.md"
         ).is_file()
-        assert not (
-            tmp_path / ".claude" / "skills" / "maid-planner" / "agents" / "openai.yaml"
-        ).exists()
-        assert (
-            tmp_path / ".claude" / "agents" / "maid-implementation-reviewer.md"
-        ).is_file()
-        assert (tmp_path / ".claude" / "commands" / "plan.md").is_file()
+        installed_agents = sorted(
+            path.name for path in (tmp_path / ".claude" / "agents").glob("*.md")
+        )
+        assert installed_agents == ["maid-implementation-reviewer.md"]
+        assert not (tmp_path / ".claude" / "commands").exists()
         assert not (tmp_path / ".claude" / "commands" / "pypi-release.md").exists()
 
         claude_md = (tmp_path / "CLAUDE.md").read_text()
@@ -93,6 +91,7 @@ class TestCmdInit:
         assert MAID_SECTION_END in claude_md
         assert "maid-planner" in claude_md
         assert "maid-implementation-review" in claude_md
+        assert "Available MAID slash commands" not in claude_md
 
     def test_init_claude_dry_run_reports_assets_without_creating_them(
         self, tmp_path, capsys, monkeypatch
@@ -109,6 +108,11 @@ class TestCmdInit:
         assert not (tmp_path / "CLAUDE.md").exists()
         captured = capsys.readouterr()
         assert "Would create: .claude/skills/maid-planner/SKILL.md" in captured.out
+        assert (
+            "Would create: .claude/agents/maid-implementation-reviewer.md"
+            in captured.out
+        )
+        assert "Would create: .claude/commands/" not in captured.out
         assert "Would update: CLAUDE.md" in captured.out
 
     def test_init_claude_force_replaces_only_marked_claude_md_section(
@@ -125,6 +129,24 @@ class TestCmdInit:
             "Project footer\n"
         )
         main(["init", "--tool", "claude"])
+        Path(".claude/manifest.json").write_text(
+            """
+{
+  "agents": {"distributable": ["maid-developer.md"]},
+  "commands": {"distributable": ["plan.md"]},
+  "skills": {"distributable": ["old-skill"]}
+}
+""".strip()
+        )
+        Path(".claude/commands").mkdir(parents=True)
+        Path(".claude/commands/plan.md").write_text("stale command\n")
+        Path(".claude/commands/custom.md").write_text("custom command\n")
+        Path(".claude/agents/maid-developer.md").write_text("stale agent\n")
+        Path(".claude/agents/custom-agent.md").write_text("custom agent\n")
+        Path(".claude/skills/old-skill").mkdir(parents=True)
+        Path(".claude/skills/old-skill/SKILL.md").write_text("stale skill\n")
+        Path(".claude/skills/custom-skill").mkdir(parents=True)
+        Path(".claude/skills/custom-skill/SKILL.md").write_text("custom skill\n")
 
         exit_code = main(["init", "--tool", "claude", "--force"])
 
@@ -136,6 +158,19 @@ class TestCmdInit:
         assert claude_md.count(MAID_SECTION_START) == 1
         assert claude_md.count(MAID_SECTION_END) == 1
         assert "maid-plan-review" in claude_md
+        installed_agents = sorted(
+            path.name for path in Path(".claude/agents").glob("*.md")
+        )
+        installed_skills = sorted(
+            path.name for path in Path(".claude/skills").iterdir()
+        )
+        assert not Path(".claude/commands/plan.md").exists()
+        assert Path(".claude/commands/custom.md").is_file()
+        assert "custom-agent.md" in installed_agents
+        assert "maid-developer.md" not in installed_agents
+        assert "maid-implementation-reviewer.md" in installed_agents
+        assert "custom-skill" in installed_skills
+        assert "old-skill" not in installed_skills
 
     def test_init_non_claude_tool_does_not_create_claude_assets(
         self, tmp_path, monkeypatch

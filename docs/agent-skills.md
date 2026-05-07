@@ -32,26 +32,19 @@ maid-planner    →  maid-implementer    →  maid-auditor
 
 ## Tool Packaging
 
-The canonical, versioned copies of these skills live in this repo under `skills/`.
+The canonical, versioned copies of these Claude Code skills live in this repo
+under `.claude/skills/`.
 
-The core skill payload is tool-agnostic:
+The skill payload is:
 
 - `SKILL.md` — the trigger metadata plus the operating procedure
 - Optional `scripts/`, `references/`, or `assets/` only when the workflow genuinely needs them
 
-Tool-specific packaging can then be layered on top of that core:
-
-- **Codex:** may add `agents/openai.yaml` for UI-facing metadata such as `display_name`, `short_description`, and `default_prompt`
-- **Claude Code:** can use the `SKILL.md` directly and does not require `agents/openai.yaml`
-
-This keeps the methodology and workflow documentation reusable across tools while still allowing Codex-specific metadata where it improves discoverability.
-
 ### Recommended Distribution Pattern
 
-1. Edit the source-of-truth skill under `skills/<name>/`
+1. Edit the source-of-truth skill under `.claude/skills/<name>/`
 2. Keep `SKILL.md` focused on the reusable procedure, not tool-specific UI metadata
-3. Add tool-specific metadata files only for the tools that need them
-4. Copy or adapt the skill folder into the target tool's install location as needed
+3. Copy the skill folder into the generated package payload with `scripts/sync_claude_files.py`
 
 ### Current MAID Skill Distribution
 
@@ -60,8 +53,7 @@ places the MAID-only skill set into a target
 repository under `.claude/skills/`: `maid-planner`, `maid-plan-review`,
 `maid-implementer`, `maid-implementation-review`, `maid-evolver`,
 `maid-auditor`, and `maid-incident-logger`. The Claude repo-level payload is
-generated from `skills/` by `scripts/sync_claude_files.py` and excludes
-Codex-specific metadata such as `openai.yaml`.
+generated from `.claude/skills/` by `scripts/sync_claude_files.py`.
 
 ---
 
@@ -69,7 +61,7 @@ Codex-specific metadata such as `openai.yaml`.
 
 ### maid-planner
 
-**Location:** `skills/maid-planner/SKILL.md`
+**Location:** `.claude/skills/maid-planner/SKILL.md`
 
 **Purpose:** Replace free-form markdown planning with machine-checkable manifest contracts.
 
@@ -89,7 +81,7 @@ Codex-specific metadata such as `openai.yaml`.
 
 ### maid-implementer
 
-**Location:** `skills/maid-implementer/SKILL.md`
+**Location:** `.claude/skills/maid-implementer/SKILL.md`
 
 **Purpose:** Implement code against an approved manifest, following the behavioral tests as the primary guide.
 
@@ -117,7 +109,7 @@ Codex-specific metadata such as `openai.yaml`.
 
 ### maid-evolver
 
-**Location:** `skills/maid-evolver/SKILL.md`
+**Location:** `.claude/skills/maid-evolver/SKILL.md`
 
 **Purpose:** Intentionally change an existing manifest contract — rename, modify, remove, or split artifacts.
 
@@ -153,7 +145,7 @@ Codex-specific metadata such as `openai.yaml`.
 
 ### maid-auditor
 
-**Location:** `skills/maid-auditor/SKILL.md`
+**Location:** `.claude/skills/maid-auditor/SKILL.md`
 
 **Purpose:** Audit the entire codebase against all active manifests to detect regressions, broken contracts, and architectural drift.
 
@@ -331,19 +323,15 @@ Codex-specific metadata such as `openai.yaml`.
 ## Skill Locations
 
 ```
-skills/
+.claude/skills/
 ├── maid-planner/
-│   ├── SKILL.md
-│   └── agents/openai.yaml      # Codex-specific metadata when needed
+│   └── SKILL.md
 ├── maid-implementer/
-│   ├── SKILL.md
-│   └── agents/openai.yaml      # Codex-specific metadata when needed
+│   └── SKILL.md
 ├── maid-evolver/
-│   ├── SKILL.md
-│   └── agents/openai.yaml      # Codex-specific metadata when needed
+│   └── SKILL.md
 └── maid-auditor/
-    ├── SKILL.md
-    └── agents/openai.yaml      # Codex-specific metadata when needed
+    └── SKILL.md
 ```
 
 ## Related Documentation

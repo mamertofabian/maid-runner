@@ -1,4 +1,0 @@
-interface:
-  display_name: "MAID Auditor"
-  short_description: "Audit active MAID manifests for regressions, drift, and coverage gaps"
-  default_prompt: "Use $maid-auditor to run the full MAID validation suite, classify findings by severity, distinguish regressions from backlog or acceptable gaps, and report the concrete remediation work."

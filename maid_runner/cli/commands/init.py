@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from importlib import resources
 from pathlib import Path
@@ -11,6 +12,7 @@ from pathlib import Path
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
 _MAID_SECTION_END = "<!-- END MAID RUNNER -->"
+_CLAUDE_MANIFEST_SECTIONS = ("agents", "commands", "skills")
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -92,12 +94,62 @@ def _print_claude_dry_run() -> None:
 
 def _install_claude_payload(project_root: Path) -> None:
     claude_dir = project_root / ".claude"
-    for source_file, relative_path in _payload_files():
+    payload_files = list(_payload_files())
+    manifest = _claude_manifest()
+    _prune_claude_payload(
+        claude_dir, _read_existing_claude_manifest(claude_dir), manifest
+    )
+    for source_file, relative_path in payload_files:
         destination = claude_dir / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(source_file.read_bytes())
 
-    _update_claude_md(project_root / "CLAUDE.md", _claude_manifest())
+    _update_claude_md(project_root / "CLAUDE.md", manifest)
+
+
+def _read_existing_claude_manifest(claude_dir: Path) -> dict:
+    manifest_path = claude_dir / "manifest.json"
+    if not manifest_path.exists():
+        return {}
+    try:
+        return json.loads(manifest_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _prune_claude_payload(
+    claude_dir: Path, previous_manifest: dict, current_manifest: dict
+) -> None:
+    if not claude_dir.exists():
+        return
+
+    stale_paths = _manifest_payload_paths(previous_manifest) - _manifest_payload_paths(
+        current_manifest
+    )
+    for relative_path in sorted(stale_paths, reverse=True):
+        path = claude_dir / relative_path
+        if path.is_dir():
+            shutil.rmtree(path)
+            _prune_empty_claude_parents(path.parent, claude_dir)
+        elif path.exists():
+            path.unlink()
+            _prune_empty_claude_parents(path.parent, claude_dir)
+
+
+def _manifest_payload_paths(manifest: dict) -> set[str]:
+    paths: set[str] = set()
+    for section in _CLAUDE_MANIFEST_SECTIONS:
+        for name in manifest.get(section, {}).get("distributable", []):
+            paths.add(f"{section}/{name}")
+    return paths
+
+
+def _prune_empty_claude_parents(path: Path, claude_dir: Path) -> None:
+    while path != claude_dir and path.parent != path:
+        if not path.exists() or any(path.iterdir()):
+            return
+        path.rmdir()
+        path = path.parent
 
 
 def _update_claude_md(path: Path, manifest: dict) -> None:
@@ -122,10 +174,7 @@ def _render_claude_md_section(manifest: dict) -> str:
     agents = ", ".join(
         f"`{name.removesuffix('.md')}`" for name in manifest["agents"]["distributable"]
     )
-    commands = ", ".join(
-        f"`/{name.removesuffix('.md')}`"
-        for name in manifest["commands"]["distributable"]
-    )
+    agent_text = f"\n\nAvailable MAID agents: {agents}." if agents else ""
     return (
         f"{_MAID_SECTION_START}\n"
         "## MAID Runner\n\n"
@@ -135,10 +184,7 @@ def _render_claude_md_section(manifest: dict) -> str:
         "For new features, bug fixes, and refactors, plan with "
         "`maid-planner`, review with `maid-plan-review`, implement with "
         "`maid-implementer`, and review the result with "
-        "`maid-implementation-review` before handoff.\n\n"
-        "Available MAID agents: "
-        f"{agents}.\n\n"
-        "Available MAID slash commands: "
-        f"{commands}.\n"
+        "`maid-implementation-review` before handoff."
+        f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
     )
