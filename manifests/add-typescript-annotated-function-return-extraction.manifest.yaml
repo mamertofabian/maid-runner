@@ -1,0 +1,71 @@
+schema: "2"
+goal: >
+  Extract TypeScript annotated function-type return text for typed consts and
+  class fields.
+type: feature
+created: "2026-05-07"
+description: |
+  Continue the TypeScript artifact-extraction slices from the parser
+  replacement queue by closing the known residual gap for function-valued
+  declarations with annotated function types. The validator already stores
+  declaration-site generic parameters from annotations such as
+  `const id: <T>(x: T) => T = (x) => x`, but the return type is still recorded
+  as the whole annotated function type instead of the trailing return type.
+
+  This slice keeps `TypeScriptValidator.collect_implementation_artifacts`
+  unchanged and stays tree-sitter-backed. It should extract source-faithful
+  return text from annotated function types for module-level typed const arrow
+  functions and class field arrow methods, including parenthesized function
+  type annotations, while preserving existing generic parameter extraction.
+  Union and intersection annotations that merely contain function types should
+  keep the full annotation text instead of being reduced to one nested function
+  return type.
+temptations:
+  - risk: "Do not parse annotated function types with ad hoc string splitting."
+    instead: "Use the existing tree-sitter function_type node and the child following its `=>` token when a type annotation provides the function signature."
+  - risk: "Do not overwrite explicit return annotations on the arrow function expression."
+    instead: "Only fall back to the variable or class-field type annotation when the function expression itself has no return type."
+  - risk: "Do not change argument extraction, generic parameter storage, identity resolution, or behavioral reference collection."
+    instead: "Keep the change local to implementation artifact return metadata for function-valued declarations."
+  - risk: "Do not normalize or infer TypeScript return types."
+    instead: "Preserve the source text of the annotated return type exactly as the parser reports it."
+  - risk: "Do not peel nested function types inside union, intersection, object, or other wrapper annotations."
+    instead: "Only peel when the effective top-level annotation node is a function_type, allowing transparent parenthesized_type wrappers."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_typed_const_function_return_is_extracted_from_annotation
+        - kind: test_function
+          name: test_parenthesized_typed_const_function_return_is_extracted_from_annotation
+        - kind: test_function
+          name: test_typed_class_field_function_return_is_extracted_from_annotation
+        - kind: test_function
+          name: test_union_typed_const_function_return_preserves_full_annotation
+        - kind: test_function
+          name: test_intersection_typed_const_function_return_preserves_full_annotation
+    - path: docs/spikes/spike-parser-library-replacement-options.md
+      artifacts:
+        - kind: attribute
+          name: typed_const_function_return_extraction
+          of: parser library replacement spike
+          type: section
+  read:
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript.py
+    - manifests/add-typescript-generic-type-parameter-storage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py

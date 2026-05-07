@@ -607,6 +607,8 @@ def _handle_class_field(
         type_parameters = _extract_type_parameters(arrow_fn, source)
         if not type_parameters:
             type_parameters = _extract_type_parameters_from_annotation(node, source)
+        if not returns:
+            returns = _extract_type_annotation_return(node, source)
         is_async = any(c.type == "async" for c in arrow_fn.children)
         artifacts.append(
             FoundArtifact(
@@ -808,7 +810,43 @@ def _extract_type_annotation_return(node, source: bytes) -> Optional[str]:
     """Extract return type from variable declarator type annotation."""
     for child in node.children:
         if child.type == "type_annotation":
+            function_type = _top_level_type_annotation_node(child)
+            if function_type is not None:
+                return _extract_function_type_return(function_type, source)
             return _extract_type_text(child, source)
+    return None
+
+
+def _top_level_type_annotation_node(annotation):
+    type_node = None
+    for child in annotation.children:
+        if child.type not in (":", "comment"):
+            type_node = child
+            break
+
+    while type_node is not None and type_node.type == "parenthesized_type":
+        inner = [
+            child
+            for child in type_node.children
+            if child.type not in ("(", ")", "comment")
+        ]
+        if len(inner) != 1:
+            return None
+        type_node = inner[0]
+
+    if type_node is not None and type_node.type == "function_type":
+        return type_node
+    return None
+
+
+def _extract_function_type_return(node, source: bytes) -> Optional[str]:
+    seen_arrow = False
+    for child in node.children:
+        if child.type == "=>":
+            seen_arrow = True
+            continue
+        if seen_arrow and child.type not in ("comment",):
+            return _text(child, source)
     return None
 
 

@@ -360,6 +360,21 @@ def test_typed_const_generic_function_parameters_are_collected_from_annotation()
     assert id_fn.type_parameters == ("T",)
 
 
+def test_typed_const_function_return_is_extracted_from_annotation() -> None:
+    typed_const_function_return_extraction = "typed const function return extraction"
+    source = "export const id: <T>(x: T) => T = (x) => x;\n"
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_fn = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_fn.kind == ArtifactKind.FUNCTION
+    assert id_fn.type_parameters == ("T",)
+    assert id_fn.returns == "T"
+    assert "return extraction" in typed_const_function_return_extraction
+
+
 def test_typed_class_field_generic_method_parameters_are_collected_from_annotation() -> (
     None
 ):
@@ -378,6 +393,23 @@ def test_typed_class_field_generic_method_parameters_are_collected_from_annotati
     assert id_method.type_parameters == ("T",)
 
 
+def test_typed_class_field_function_return_is_extracted_from_annotation() -> None:
+    source = """export class Store {
+  id: <T>(x: T) => Promise<T> = (x) => Promise.resolve(x);
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_method = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_method.kind == ArtifactKind.METHOD
+    assert id_method.of == "Store"
+    assert id_method.type_parameters == ("T",)
+    assert id_method.returns == "Promise<T>"
+
+
 def test_parenthesized_typed_const_generic_function_parameters_are_collected() -> None:
     source = "export const id: (<T>(x: T) => T) = (x) => x;\n"
     result = TypeScriptValidator().collect_implementation_artifacts(
@@ -388,3 +420,42 @@ def test_parenthesized_typed_const_generic_function_parameters_are_collected() -
 
     assert id_fn.kind == ArtifactKind.FUNCTION
     assert id_fn.type_parameters == ("T",)
+
+
+def test_parenthesized_typed_const_function_return_is_extracted_from_annotation() -> (
+    None
+):
+    source = "export const id: (<T>(x: T) => T) = (x) => x;\n"
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    id_fn = next(a for a in result.artifacts if a.name == "id")
+
+    assert id_fn.kind == ArtifactKind.FUNCTION
+    assert id_fn.type_parameters == ("T",)
+    assert id_fn.returns == "T"
+
+
+def test_union_typed_const_function_return_preserves_full_annotation() -> None:
+    source = 'export const fn: (() => string) | (() => number) = () => "x";\n'
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    fn = next(a for a in result.artifacts if a.name == "fn")
+
+    assert fn.kind == ArtifactKind.FUNCTION
+    assert fn.returns == "(() => string) | (() => number)"
+
+
+def test_intersection_typed_const_function_return_preserves_full_annotation() -> None:
+    source = 'export const fn: (() => string) & { meta: string } = () => "x";\n'
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/generics.ts"
+    )
+
+    fn = next(a for a in result.artifacts if a.name == "fn")
+
+    assert fn.kind == ArtifactKind.FUNCTION
+    assert fn.returns == "(() => string) & { meta: string }"
