@@ -9,6 +9,7 @@ from maid_runner.core.test_runner import (
     _can_batch,
     _batch_pytest,
 )
+from maid_runner.core.result import TestRunResult
 from maid_runner.core.types import TestStream
 
 
@@ -401,6 +402,157 @@ validate:
             "tests/test_b.py",
             "-v",
         )
+
+    def test_default_batches_compatible_vitest_commands(self, tmp_path, monkeypatch):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.ts
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - npx vitest run tests/test_a.test.ts --reporter=verbose
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.ts
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - npx vitest run tests/test_b.test.ts --reporter=verbose
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.total == 1
+        assert result.results[0].manifest_slug == "batch"
+        assert observed == [
+            (
+                "npx",
+                "vitest",
+                "run",
+                "tests/test_a.test.ts",
+                "tests/test_b.test.ts",
+                "--reporter=verbose",
+            )
+        ]
+
+    def test_default_does_not_batch_unknown_vitest_value_flags(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.ts
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - npx vitest run tests/test_a.test.ts --shard=1/2
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.ts
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - npx vitest run tests/test_b.test.ts --shard=1/2
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.total == 2
+        assert observed == [
+            ("npx", "vitest", "run", "tests/test_a.test.ts", "--shard=1/2"),
+            ("npx", "vitest", "run", "tests/test_b.test.ts", "--shard=1/2"),
+        ]
+
+        observed.clear()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.ts
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - npx vitest run tests/test_a.test.ts --allowOnly
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.ts
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - npx vitest run tests/test_b.test.ts --allowOnly
+"""
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.total == 2
+        assert observed == [
+            ("npx", "vitest", "run", "tests/test_a.test.ts", "--allowOnly"),
+            ("npx", "vitest", "run", "tests/test_b.test.ts", "--allowOnly"),
+        ]
 
     def test_complex_pytest_commands_are_not_batched(self, tmp_path):
         manifests_dir = tmp_path / "manifests"
