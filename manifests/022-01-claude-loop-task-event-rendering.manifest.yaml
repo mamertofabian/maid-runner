@@ -1,0 +1,42 @@
+schema: "2"
+goal: "Render Claude Code task progress payloads in MAID loop output"
+type: feature
+created: "2026-05-10"
+description: |
+  Improve the Claude MAID loop terminal renderer so Claude Code system task
+  events show their useful payload fields. The current output prints only
+  `[system] task_progress` or `[system] task_notification`, which hides the
+  task description, tool name, status, and elapsed/usage data that Claude Code
+  emits in stream-json events.
+
+  The renderer should remain concise: show the description or summary, status
+  where present, task type or last tool where present, and compact usage data.
+  It should not dump large fields such as prompts.
+temptations:
+  - risk: "Do not dump entire task event JSON objects to the terminal."
+    instead: "Render only concise human-useful fields: subtype, status, description/summary, task type or last tool, and compact usage."
+  - risk: "Do not lose the existing init/session rendering contract."
+    instead: "Keep `system/init` output unchanged and handle task events as an additional branch."
+files:
+  edit:
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: render_claude_stream_event
+          args:
+            - name: event
+              type: dict[str, Any]
+            - name: state
+              type: dict[str, Any]
+            - name: color_enabled
+              type: bool
+          returns: str
+          description: "Render Claude Code task_started, task_progress, and task_notification payload fields concisely"
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_render_claude_stream_event_includes_task_payload_summaries
+  read:
+    - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_claude_maid_loop.py

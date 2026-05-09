@@ -101,6 +101,64 @@ class TestClaudeMaidLoopRenderer(unittest.TestCase):
         self.assertEqual("session-1", state["session_id"])
         self.assertEqual("Done.\nAUTOMATION_STATUS: READY", state["final_message"])
 
+    def test_render_claude_stream_event_includes_task_payload_summaries(
+        self,
+    ) -> None:
+        state: dict[str, object] = {}
+
+        started = claude_maid_loop.render_claude_stream_event(
+            {
+                "type": "system",
+                "subtype": "task_started",
+                "description": "Run focused validation",
+                "task_type": "local_bash",
+            },
+            state,
+        )
+        progress = claude_maid_loop.render_claude_stream_event(
+            {
+                "type": "system",
+                "subtype": "task_progress",
+                "description": "Reading tests/core/test_example.py",
+                "last_tool_name": "Read",
+                "usage": {
+                    "total_tokens": 1234,
+                    "tool_uses": 5,
+                    "duration_ms": 6789,
+                },
+            },
+            state,
+        )
+        notification = claude_maid_loop.render_claude_stream_event(
+            {
+                "type": "system",
+                "subtype": "task_notification",
+                "status": "completed",
+                "summary": "Implementation review",
+                "usage": {
+                    "total_tokens": 4321,
+                    "tool_uses": 7,
+                    "duration_ms": 9876,
+                },
+            },
+            state,
+        )
+
+        self.assertEqual(
+            "[system] task_started local_bash Run focused validation\n",
+            started,
+        )
+        self.assertEqual(
+            "[system] task_progress Reading tests/core/test_example.py "
+            "tool=Read tools=5 tokens=1234 elapsed=6.8s\n",
+            progress,
+        )
+        self.assertEqual(
+            "[system] task_notification completed Implementation review "
+            "tools=7 tokens=4321 elapsed=9.9s\n",
+            notification,
+        )
+
     def test_parse_automation_status_uses_last_valid_status(self) -> None:
         self.assertEqual(
             "BLOCKED",
@@ -353,6 +411,81 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
         self.assertEqual(0, code)
         self.assertEqual(2, drafts.call_count)
         run_claude.assert_called_once()
+
+    def test_ready_pass_adds_matching_promoted_draft_deletion_to_commit_packet(
+        self,
+    ) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            claude="claude",
+            color="never",
+            model="sonnet",
+            effort="medium",
+            permission_mode="auto",
+            auto_commit=True,
+        )
+        result = claude_maid_loop.ClaudeRunResult(
+            args=["claude"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: test: implement promoted draft\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- manifests/017-03-example.manifest.yaml\n"
+                "- tests/core/test_example.py\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".claude-automation/run.jsonl"),
+            stderr_path=Path(".claude-automation/run.stderr.log"),
+            final_message_path=Path(".claude-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(
+                claude_maid_loop,
+                "git_status_short",
+                side_effect=[
+                    "",
+                    "A  manifests/017-03-example.manifest.yaml\n"
+                    " D manifests/drafts/017-03-example.manifest.yaml\n"
+                    " D manifests/drafts/017-04-unrelated.manifest.yaml\n",
+                    "",
+                ],
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "find_implementable_drafts",
+                return_value=[Path("manifests/drafts/017-03-example.manifest.yaml")],
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "run_claude_stream_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "commit_ready_changes",
+                return_value=0,
+            ) as commit,
+        ):
+            args.log_dir = temp_dir
+            code = claude_maid_loop.run_loop(args)
+
+        self.assertEqual(0, code)
+        committed_packet = commit.call_args.args[0]
+        self.assertEqual(
+            [
+                "manifests/017-03-example.manifest.yaml",
+                "tests/core/test_example.py",
+                "manifests/drafts/017-03-example.manifest.yaml",
+            ],
+            committed_packet.files,
+        )
 
     def test_parser_documents_auto_commit_and_permission_mode(self) -> None:
         help_text = claude_maid_loop.build_parser().format_help()

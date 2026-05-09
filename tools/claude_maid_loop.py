@@ -135,6 +135,8 @@ def render_claude_stream_event(
                 state["session_id"] = session_id
                 label = _label("[system]", "system", color_enabled=color_enabled)
                 return f"{label} init session={session_id}\n"
+        if isinstance(subtype, str) and subtype.startswith("task_"):
+            return _render_task_system_event(event, color_enabled=color_enabled)
         label = _label("[system]", "system", color_enabled=color_enabled)
         return f"{label} {subtype}\n"
 
@@ -432,6 +434,10 @@ def run_loop(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return 1
+        commit_packet = _include_matching_promoted_draft_deletions(
+            commit_packet,
+            git_status_short(),
+        )
 
         if getattr(args, "auto_commit", False):
             print("Auto-commit enabled; committing READY packet without prompting.")
@@ -576,6 +582,69 @@ def _final_message_from_state(state: dict[str, Any]) -> str:
     return ""
 
 
+def _render_task_system_event(
+    event: dict[str, Any],
+    *,
+    color_enabled: bool,
+) -> str:
+    subtype = event.get("subtype", "event")
+    label = _label("[system]", "system", color_enabled=color_enabled)
+    parts = [label, str(subtype)]
+
+    status = _string_field(event, "status")
+    if status:
+        parts.append(status)
+
+    task_type = _string_field(event, "task_type")
+    if task_type:
+        parts.append(task_type)
+
+    description = _string_field(event, "description") or _string_field(
+        event,
+        "summary",
+    )
+    if description:
+        parts.append(description)
+
+    last_tool = _string_field(event, "last_tool_name")
+    if last_tool:
+        parts.append(f"tool={last_tool}")
+
+    output_file = _string_field(event, "output_file")
+    if output_file:
+        parts.append(f"output={output_file}")
+
+    parts.extend(_format_task_usage(event.get("usage")))
+    return " ".join(parts) + "\n"
+
+
+def _string_field(event: dict[str, Any], field: str) -> str | None:
+    value = event.get(field)
+    if isinstance(value, str) and value:
+        return value
+    return None
+
+
+def _format_task_usage(usage: object) -> list[str]:
+    if not isinstance(usage, dict):
+        return []
+
+    parts: list[str] = []
+    tool_uses = usage.get("tool_uses")
+    if isinstance(tool_uses, int | float):
+        parts.append(f"tools={tool_uses:g}")
+
+    total_tokens = usage.get("total_tokens")
+    if isinstance(total_tokens, int | float):
+        parts.append(f"tokens={total_tokens:g}")
+
+    duration_ms = usage.get("duration_ms")
+    if isinstance(duration_ms, int | float):
+        parts.append(f"elapsed={duration_ms / 1000:.1f}s")
+
+    return parts
+
+
 def _colorize(text: str, color: str, *, enabled: bool) -> str:
     if not enabled:
         return text
@@ -629,6 +698,42 @@ def _is_repo_relative_file_path(path: str) -> bool:
     if candidate.is_absolute():
         return False
     return path not in {"", "."} and ".." not in candidate.parts
+
+
+def _include_matching_promoted_draft_deletions(
+    packet: CommitPacket,
+    status_output: str,
+) -> CommitPacket:
+    files = list(packet.files)
+    file_set = set(files)
+    deleted_paths = _deleted_status_paths(status_output)
+
+    for path in packet.files:
+        promoted = Path(path)
+        if (
+            len(promoted.parts) != 2
+            or promoted.parts[0] != "manifests"
+            or not promoted.name.endswith(".manifest.yaml")
+        ):
+            continue
+        draft_path = f"manifests/drafts/{promoted.name}"
+        if draft_path in deleted_paths and draft_path not in file_set:
+            files.append(draft_path)
+            file_set.add(draft_path)
+
+    return CommitPacket(message=packet.message, files=files)
+
+
+def _deleted_status_paths(status_output: str) -> set[str]:
+    deleted_paths: set[str] = set()
+    for line in status_output.splitlines():
+        if len(line) < 4:
+            continue
+        status = line[:2]
+        path = line[3:].strip()
+        if status in {" D", "D "} and path:
+            deleted_paths.add(path)
+    return deleted_paths
 
 
 def _resolve_log_dir(value: str | None) -> Path:

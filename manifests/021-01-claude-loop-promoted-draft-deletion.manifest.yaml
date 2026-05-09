@@ -1,0 +1,35 @@
+schema: "2"
+goal: "Auto-stage promoted draft manifest deletions in Claude MAID loop commits"
+type: fix
+created: "2026-05-10"
+description: |
+  Fix the Claude MAID draft loop auto-commit path so a promoted draft manifest
+  is committed atomically even when the model's READY packet includes the new
+  `manifests/<slug>.manifest.yaml` path but forgets the matching deleted
+  `manifests/drafts/<slug>.manifest.yaml` path. The loop should add only that
+  exact tracked deletion to the commit packet before staging. It must not stage
+  unrelated dirty files or unrelated draft deletions.
+temptations:
+  - risk: "Do not solve this by staging all dirty files after a READY pass."
+    instead: "Infer only the deleted draft path that corresponds to a promoted manifest already named in the commit packet."
+  - risk: "Do not rely on the model always listing deleted draft paths correctly."
+    instead: "Make the outer script defensive for the manifest promotion pattern."
+files:
+  edit:
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Augment READY commit packets with matching promoted draft deletions before auto-commit or approved commit"
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_ready_pass_adds_matching_promoted_draft_deletion_to_commit_packet
+  read:
+    - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_claude_maid_loop.py
