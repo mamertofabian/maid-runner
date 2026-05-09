@@ -2,7 +2,8 @@
   "name": "maid-runner-typescript-identity-tests",
   "private": true,
   "scripts": {
-    "maid:codex-loop": "UV_CACHE_DIR=.codex-automation/uv-cache uv run python tools/codex_maid_loop.py"
+    "maid:codex-loop": "UV_CACHE_DIR=.codex-automation/uv-cache uv run python tools/codex_maid_loop.py",
+    "maid:claude-loop": "UV_CACHE_DIR=.claude-automation/uv-cache uv run python tools/claude_maid_loop.py"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
