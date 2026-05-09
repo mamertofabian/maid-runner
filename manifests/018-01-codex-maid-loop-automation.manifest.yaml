@@ -1,0 +1,253 @@
+schema: "2"
+goal: "Automate fresh-session Codex MAID draft implementation passes for maid-runner"
+type: feature
+created: "2026-05-09"
+description: |
+  Add repo-local automation for the repetitive MAID draft implementation loop
+  now that maid-runner has adopted the draft-to-promote planning style. The
+  loop should start each pass in a fresh non-interactive Codex session, point
+  that session at a repo-specific draft implementation skill, stream JSONL
+  progress in a readable form, record logs under `.codex-automation/`, parse a
+  READY/BLOCKED/NO_DRAFTS status line, and require explicit typed approval
+  before every outer-script commit.
+
+  Rationale: this copies Atomic Carpool's useful batch wrapper pattern while
+  preserving maid-runner's stricter commit rule. The script may loop through
+  current and future draft manifests, but it must not auto-commit multiple
+  READY packets from one prior approval.
+temptations:
+  - risk: "Do not bypass the repo rule that every git commit needs explicit approval."
+    instead: "Prompt for a fresh typed approval before each commit packet is staged and committed."
+  - risk: "Do not run a new Codex implementation pass on top of uncommitted work."
+    instead: "Check `git status --short` before each pass and stop with code 2 if the worktree is dirty."
+  - risk: "Do not duplicate MAID implementation policy in the wrapper script."
+    instead: "Delegate manifest refinement, promotion, implementation, validation, and review behavior to the repo skill prompt."
+  - risk: "Do not assume the current draft list is static."
+    instead: "Re-scan `manifests/drafts/*.manifest.yaml` after each approved READY commit so future drafts are picked up."
+files:
+  create:
+    - path: tools/codex_maid_loop.py
+      artifacts:
+        - kind: class
+          name: CodexRunResult
+          description: "Captured result paths and metadata for one Codex exec pass"
+        - kind: attribute
+          name: args
+          of: CodexRunResult
+          type: list[str]
+          description: "Codex command arguments used for the run"
+        - kind: attribute
+          name: returncode
+          of: CodexRunResult
+          type: int
+          description: "Codex process exit code"
+        - kind: attribute
+          name: session_id
+          of: CodexRunResult
+          type: str | None
+          description: "Codex thread/session identifier when emitted by JSONL events"
+        - kind: attribute
+          name: final_message
+          of: CodexRunResult
+          type: str
+          description: "Final assistant message captured by --output-last-message"
+        - kind: attribute
+          name: stdout_jsonl_path
+          of: CodexRunResult
+          type: Path
+          description: "Path to the saved stdout JSONL event log"
+        - kind: attribute
+          name: stderr_path
+          of: CodexRunResult
+          type: Path
+          description: "Path to the saved stderr log"
+        - kind: attribute
+          name: final_message_path
+          of: CodexRunResult
+          type: Path
+          description: "Path to the saved final assistant message"
+        - kind: class
+          name: CommitPacket
+          description: "Parsed READY commit message and exact file list"
+        - kind: attribute
+          name: message
+          of: CommitPacket
+          type: str
+          description: "Commit message requested by the READY implementation pass"
+        - kind: attribute
+          name: files
+          of: CommitPacket
+          type: list[str]
+          description: "Exact files to stage for the READY implementation commit"
+        - kind: function
+          name: find_implementable_drafts
+          args:
+            - name: draft_dir
+              type: Path
+          returns: list[Path]
+          description: "Return non-epic draft MAID manifests that remain to be implemented"
+        - kind: function
+          name: build_implementation_command
+          args:
+            - name: codex
+              type: str
+            - name: final_message_path
+              type: Path
+            - name: model
+              type: str
+            - name: reasoning_effort
+              type: str
+          returns: list[str]
+          description: "Build a fresh `codex exec --json` command for one implementation pass"
+        - kind: function
+          name: render_codex_json_event
+          args:
+            - name: event
+              type: dict[str, Any]
+            - name: state
+              type: dict[str, Any]
+            - name: color_enabled
+              type: bool
+          returns: str
+          description: "Render a documented Codex JSONL event as concise terminal progress"
+        - kind: function
+          name: parse_automation_status
+          args:
+            - name: final_message
+              type: str
+          returns: str | None
+          description: "Extract the final AUTOMATION_STATUS marker from the last Codex message"
+        - kind: function
+          name: parse_commit_packet
+          args:
+            - name: final_message
+              type: str
+          returns: CommitPacket | None
+          description: "Extract a commit message and explicit file list from a READY final message"
+        - kind: function
+          name: git_status_short
+          args: []
+          returns: str
+          description: "Return `git status --short` output for worktree preflight"
+        - kind: function
+          name: stage_commit_packet_files
+          args:
+            - name: files
+              type: list[str]
+          returns: int
+          description: "Stage the exact existing or tracked-deleted files named by a READY commit packet"
+        - kind: function
+          name: ask_commit_approval
+          args:
+            - name: pass_number
+              type: int
+            - name: status
+              type: str
+          returns: bool
+          description: "Require a per-pass typed approval before committing a READY packet"
+        - kind: function
+          name: commit_ready_changes
+          args:
+            - name: packet
+              type: CommitPacket
+          returns: int
+          description: "Stage and commit a READY packet after explicit approval"
+        - kind: function
+          name: run_codex_json_command
+          args:
+            - name: args
+              type: list[str]
+            - name: stdout_jsonl_path
+              type: Path
+            - name: stderr_path
+              type: Path
+            - name: final_message_path
+              type: Path
+            - name: color_enabled
+              type: bool
+          returns: CodexRunResult
+          description: "Run one Codex JSON session while saving and rendering its output"
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Run fresh Codex passes until drafts are done, blocked, or max passes is reached"
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Build the command-line parser for the Codex MAID draft loop"
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+          returns: int
+          description: "CLI entrypoint for the Codex MAID draft loop"
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_runner_draft_implement_skill_guidance
+          of: maid-runner draft implement skill
+          type: markdown
+          description: "Repo-specific skill guidance for draft refinement, promotion, implementation, validation, review, and automation status reporting"
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_find_implementable_drafts_excludes_epics
+        - kind: test_function
+          name: test_build_implementation_command_uses_fresh_exec_session_and_repo_skill
+        - kind: test_function
+          name: test_render_codex_json_event_handles_documented_events
+        - kind: test_function
+          name: test_parse_automation_status_uses_last_valid_status
+        - kind: test_function
+          name: test_parse_commit_packet
+        - kind: test_function
+          name: test_parse_commit_packet_stops_at_first_non_file_line
+        - kind: test_function
+          name: test_dirty_worktree_blocks_new_passes
+        - kind: test_function
+          name: test_ready_pass_prompts_for_commit_by_default
+        - kind: test_function
+          name: test_ready_pass_commits_only_after_explicit_approval
+        - kind: test_function
+          name: test_stage_commit_packet_files_rejects_directories_and_unsafe_paths
+        - kind: test_function
+          name: test_loop_rechecks_future_drafts_after_each_ready_commit
+        - kind: test_function
+          name: test_parser_keeps_commit_approval_explicit
+        - kind: test_function
+          name: test_package_script_exposes_codex_loop
+        - kind: test_function
+          name: test_gitignore_excludes_codex_automation_logs
+        - kind: test_function
+          name: test_draft_implement_skill_requires_review_loop_guidance
+  edit:
+    - path: package.json
+      artifacts:
+        - kind: attribute
+          name: maid_codex_loop_script
+          of: scripts
+          type: string
+          description: "npm convenience script for running the Codex MAID draft loop"
+    - path: .gitignore
+      artifacts:
+        - kind: attribute
+          name: codex_automation_ignore
+          of: gitignore
+          type: string
+          description: "Local-only Codex automation logs and caches"
+  read:
+    - ../atomic-carpool/.codex/skills/atomic-carpool-maid-draft-implement/SKILL.md
+    - ../atomic-carpool/tools/codex_maid_loop.py
+    - ../atomic-carpool/tests/tools/test_codex_maid_loop.py
+    - manifests/drafts/README.md
+    - manifests/drafts/000-parser-replacement-roadmap.md
+    - .claude/skills/maid-implementer/SKILL.md
+    - .claude/skills/maid-plan-review/SKILL.md
+    - .claude/skills/maid-implementation-review/SKILL.md
+validate:
+  - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py

@@ -28,4 +28,9 @@ maid_agents/.claude/tdd-guard/data/test.json
 
 .coverage
 
-.codex
+.codex/*
+!.codex/skills/
+.codex/skills/*
+!.codex/skills/maid-runner-draft-implement/
+!.codex/skills/maid-runner-draft-implement/SKILL.md
+.codex-automation/
