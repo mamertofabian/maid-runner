@@ -164,6 +164,75 @@ def test_resolve_import_with_compiler_reflects_changed_tsconfig_paths(
     )
 
 
+def test_package_style_tsconfig_extends_resolves_when_compiler_loads_package_config(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    src = tmp_path / "src"
+    components = src / "components"
+    components.mkdir(parents=True)
+    (src / "App.test.ts").write_text(
+        "import { Button } from '@/components/Button';\nButton();\n"
+    )
+    (components / "Button.ts").write_text("export function Button() {}\n")
+    package_config = tmp_path / "node_modules" / "@scope" / "tsconfig" / "base.json"
+    package_config.parent.mkdir(parents=True)
+    _write_json(
+        package_config,
+        {
+            "compilerOptions": {
+                "baseUrl": "../../..",
+                "paths": {"@/*": ["src/*"]},
+            }
+        },
+    )
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "extends": "@scope/tsconfig/base.json",
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "ESNext",
+                "moduleResolution": "Bundler",
+            },
+            "include": ["src/**/*"],
+        },
+    )
+
+    assert (
+        resolve_import_with_compiler("@/components/Button", "src/App.test", tmp_path)
+        == "src/components/Button"
+    )
+
+
+def test_package_style_tsconfig_extends_returns_none_when_compiler_cannot_load_package_config(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "App.test.ts").write_text(
+        "import { Button } from '@/components/Button';\nButton();\n"
+    )
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "extends": "@scope/tsconfig/base.json",
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "ESNext",
+                "moduleResolution": "Bundler",
+            },
+            "include": ["src/**/*"],
+        },
+    )
+
+    assert (
+        resolve_import_with_compiler("@/components/Button", "src/App.test", tmp_path)
+        is None
+    )
+
+
 def test_compiler_helpers_return_none_when_node_is_unavailable(
     tmp_path: Path,
     monkeypatch,

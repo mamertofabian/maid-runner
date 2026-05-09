@@ -235,15 +235,11 @@ class TestResolveTsImport:
             '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/generated/*"], "@/models/*": ["src/models/*"]}}}'
         )
         assert (
-            ts_module_paths.resolve_ts_import(
-                "@/models/Foo", "src/App.test", tmp_path
-            )
+            ts_module_paths.resolve_ts_import("@/models/Foo", "src/App.test", tmp_path)
             == "src/models/Foo"
         )
 
-        (tmp_path / "tsconfig.json").write_text(
-            '{"compilerOptions": {"baseUrl": "."}}'
-        )
+        (tmp_path / "tsconfig.json").write_text('{"compilerOptions": {"baseUrl": "."}}')
         foo = tmp_path / "src" / "foo.ts"
         foo.write_text("export function foo() {}\n")
         assert (
@@ -253,9 +249,7 @@ class TestResolveTsImport:
         app_test = tmp_path / "src" / "App.test.ts"
         app_test.write_text("export function appTest() {}\n")
         assert (
-            ts_module_paths.resolve_ts_import(
-                "src/App.test", "src/App.test", tmp_path
-            )
+            ts_module_paths.resolve_ts_import("src/App.test", "src/App.test", tmp_path)
             == "src/App.test"
         )
 
@@ -402,6 +396,53 @@ class TestResolveTsImport:
             "@/components/Button"
         )
 
+    def test_package_style_tsconfig_extends_fallback_keeps_local_alias_resolution(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        from maid_runner.core import ts_module_paths
+
+        def unavailable_compiler(*args):
+            return None
+
+        monkeypatch.setattr(
+            ts_module_paths, "resolve_import_with_compiler", unavailable_compiler
+        )
+        button = tmp_path / "src" / "components" / "Button.ts"
+        button.parent.mkdir(parents=True)
+        button.write_text("export function Button() {}\n")
+        (tmp_path / "tsconfig.json").write_text(
+            '{"extends": "@scope/tsconfig/base.json", "compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
+        )
+
+        assert (
+            ts_module_paths.resolve_ts_import(
+                "@/components/Button", "src/App.test", tmp_path
+            )
+            == "src/components/Button"
+        )
+
+    def test_package_style_tsconfig_extends_does_not_require_compiler_for_relative_imports(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        from maid_runner.core import ts_module_paths
+
+        def fail_compiler(*args):
+            raise AssertionError("compiler should not run for relative imports")
+
+        monkeypatch.setattr(
+            ts_module_paths, "resolve_import_with_compiler", fail_compiler
+        )
+        (tmp_path / "tsconfig.json").write_text(
+            '{"extends": "@scope/tsconfig/base.json"}'
+        )
+
+        assert (
+            ts_module_paths.resolve_ts_import(
+                "../components/Button", "src/pages/App.test", tmp_path
+            )
+            == "src/components/Button"
+        )
+
     def test_bare_package_import_passes_through_unchanged(self, tmp_path: Path) -> None:
         from maid_runner.core.ts_module_paths import resolve_ts_import
 
@@ -512,7 +553,9 @@ class TestResolveTsReexport:
             ts_module_paths, "resolve_reexport_with_compiler", fail_compiler
         )
 
-        assert ts_module_paths.resolve_ts_reexport("vitest", "describe", tmp_path) is None
+        assert (
+            ts_module_paths.resolve_ts_reexport("vitest", "describe", tmp_path) is None
+        )
 
     def test_named_reexport_resolves_to_defining_module(self, tmp_path: Path) -> None:
         models = tmp_path / "src" / "models"
@@ -668,9 +711,7 @@ class TestResolveTsReexport:
         (tmp_path / "tsconfig.json").write_text(
             '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}'
         )
-        assert ts_module_paths.resolve_ts_reexport(
-            "src/models", "Model", tmp_path
-        ) == (
+        assert ts_module_paths.resolve_ts_reexport("src/models", "Model", tmp_path) == (
             "src/models/Model",
             "Model",
         )
@@ -679,9 +720,7 @@ class TestResolveTsReexport:
             "export { z } from 'zod';\n"
             "export { Button } from './components/nested/Button';\n"
         )
-        assert ts_module_paths.resolve_ts_reexport(
-            "src/mixed", "Button", tmp_path
-        ) == (
+        assert ts_module_paths.resolve_ts_reexport("src/mixed", "Button", tmp_path) == (
             "src/components/nested/Button",
             "Button",
         )
@@ -699,8 +738,7 @@ class TestResolveTsReexport:
         )
 
         (src / "star-chain.ts").write_text(
-            "export * from './icons';\n"
-            "export * from './components/nested/Button';\n"
+            "export * from './icons';\n" "export * from './components/nested/Button';\n"
         )
         assert ts_module_paths.resolve_ts_reexport(
             "src/star-chain", "Button", tmp_path
@@ -735,8 +773,7 @@ class TestResolveTsReexport:
 
         (src / "leaf.ts").write_text("export class Foo {}\n")
         (src / "middle.ts").write_text(
-            "import { Foo } from './leaf';\n"
-            "export { Foo };\n"
+            "import { Foo } from './leaf';\n" "export { Foo };\n"
         )
         (src / "imported-binding.ts").write_text("export { Foo } from './middle';\n")
         (src / "star-imported-binding.ts").write_text("export * from './middle';\n")
@@ -795,11 +832,15 @@ class TestResolveTsReexport:
             "Foo",
         )
         assert (
-            ts_module_paths.resolve_ts_reexport("src/star-ambiguous", "Button", tmp_path)
+            ts_module_paths.resolve_ts_reexport(
+                "src/star-ambiguous", "Button", tmp_path
+            )
             is None
         )
         assert (
-            ts_module_paths.resolve_ts_reexport("src/missing-barrel", "Missing", tmp_path)
+            ts_module_paths.resolve_ts_reexport(
+                "src/missing-barrel", "Missing", tmp_path
+            )
             is None
         )
         assert (
@@ -846,7 +887,9 @@ class TestResolveTsReexport:
             return None
 
         monkeypatch.setattr(
-            ts_module_paths, "resolve_reexport_with_compiler", external_fallback_compiler
+            ts_module_paths,
+            "resolve_reexport_with_compiler",
+            external_fallback_compiler,
         )
         assert (
             ts_module_paths.resolve_ts_reexport(
