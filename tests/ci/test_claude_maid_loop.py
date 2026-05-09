@@ -33,8 +33,8 @@ class TestClaudeMaidLoopCommand(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["claude", "-p", "--output-format", "stream-json"],
-            command[:4],
+            ["claude", "-p", "--verbose", "--output-format", "stream-json"],
+            command[:5],
         )
         self.assertIn("--permission-mode", command)
         self.assertEqual("auto", command[command.index("--permission-mode") + 1])
@@ -48,6 +48,19 @@ class TestClaudeMaidLoopCommand(unittest.TestCase):
         )
         self.assertIn("AUTOMATION_STATUS: READY", command[-1])
         self.assertIn("AUTOMATION_COMMIT_MESSAGE", command[-1])
+
+    def test_build_implementation_command_requires_verbose_for_stream_json(
+        self,
+    ) -> None:
+        command = claude_maid_loop.build_implementation_command(
+            claude="claude",
+            model="sonnet",
+            effort="medium",
+            permission_mode="auto",
+        )
+
+        self.assertIn("--verbose", command)
+        self.assertLess(command.index("--verbose"), command.index("--output-format"))
 
 
 class TestClaudeMaidLoopRenderer(unittest.TestCase):

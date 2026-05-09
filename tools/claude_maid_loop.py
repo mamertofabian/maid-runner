@@ -102,10 +102,11 @@ def build_implementation_command(
     effort: str = _DEFAULT_EFFORT,
     permission_mode: str = _DEFAULT_PERMISSION_MODE,
 ) -> list[str]:
-    """Build a fresh `claude -p --output-format stream-json` command."""
+    """Build a fresh `claude -p --verbose --output-format stream-json` command."""
     return [
         claude,
         "-p",
+        "--verbose",
         "--output-format",
         "stream-json",
         "--permission-mode",

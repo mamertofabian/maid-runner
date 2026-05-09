@@ -1,0 +1,40 @@
+schema: "2"
+goal: "Require Claude Code verbose mode for stream-json loop output"
+type: fix
+created: "2026-05-10"
+description: |
+  Fix the Claude MAID draft loop command so non-interactive stream-json output
+  works with the installed Claude Code CLI. Claude Code rejects
+  `claude -p --output-format stream-json` unless `--verbose` is also present.
+  The loop must keep using stream-json so progress rendering and log capture
+  continue to work, but the generated command must include `--verbose`.
+temptations:
+  - risk: "Do not switch the loop to plain text or JSON output to avoid the CLI error."
+    instead: "Keep stream-json output and add the required `--verbose` flag."
+  - risk: "Do not hide the option requirement only in manual documentation."
+    instead: "Add a focused command-construction test that fails when `--verbose` is missing."
+files:
+  edit:
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: build_implementation_command
+          args:
+            - name: claude
+              type: str
+            - name: model
+              type: str
+            - name: effort
+              type: str
+            - name: permission_mode
+              type: str
+          returns: list[str]
+          description: "Build a fresh `claude -p --verbose --output-format stream-json` command for one implementation pass"
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_build_implementation_command_requires_verbose_for_stream_json
+  read:
+    - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_claude_maid_loop.py
