@@ -1,0 +1,41 @@
+schema: "2"
+goal: "Characterize Python parser replacement boundaries before considering astroid, libcst, or import graph tooling"
+type: refactor
+created: "2026-05-09"
+description: |
+  Keep Python parser replacement low priority by adding focused boundary
+  characterization before any dependency change. The current stdlib ast
+  validator is file-local and artifact-oriented; package graph tooling should
+  not replace that behavior unless dependency queries become the primary need.
+
+  Rationale: Python extraction is already well covered for MAID's current
+  contract. Future libraries such as astroid, libcst, grimp, or import-linter
+  should be adopted only after tests prove a MAID-visible behavior gap.
+temptations:
+  - risk: "Do not replace stdlib ast extraction just to gain package graph data."
+    instead: "Characterize current file-local artifact extraction and keep package graph work separate."
+  - risk: "Do not infer dataclass, attrs, Protocol, or __all__ semantics without declaring the contract."
+    instead: "Write explicit boundary tests for each behavior before evolving Python artifacts."
+  - risk: "Do not add grimp or import-linter as runtime dependencies for artifact extraction."
+    instead: "Reserve import graph libraries for package-level dependency query manifests."
+files:
+  create:
+    - path: tests/validators/test_python_parser_replacement_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_dataclass_annotated_fields_remain_uncollected_until_contract_evolves
+        - kind: test_function
+          name: test_protocol_methods_follow_current_class_method_collection
+        - kind: test_function
+          name: test_all_reexports_do_not_expand_star_exports_without_manifest_evolution
+        - kind: test_function
+          name: test_namespace_package_identity_remains_file_local
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/validators/python.py
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/identity.py
+    - tests/validators/test_python.py
+    - tests/core/test_module_paths.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_parser_replacement_boundaries.py

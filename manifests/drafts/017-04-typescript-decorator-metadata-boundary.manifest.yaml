@@ -1,0 +1,45 @@
+schema: "2"
+goal: "Characterize TypeScript decorator metadata boundaries before richer artifact extraction"
+type: refactor
+created: "2026-05-09"
+description: |
+  Continue TypeScript artifact-extraction work separately from identity
+  resolution by characterizing decorator behavior before any richer replacement
+  parser is considered. Decorators should not create public MAID artifacts by
+  themselves, should not change declaration identity, and should not require a
+  compiler-backed extractor unless a later manifest explicitly adds decorator
+  metadata to the public artifact model.
+
+  Rationale: the current tree-sitter extractor already keeps decorated classes
+  and methods visible. The missing decision is metadata semantics, and that
+  should be locked with tests before adding fields or dependencies.
+temptations:
+  - risk: "Do not add a decorator metadata field to FoundArtifact in a characterization-only draft."
+    instead: "Assert current public artifact identity and signature behavior around decorated declarations."
+  - risk: "Do not use the TypeScript compiler for decorator metadata unless the artifact model evolves."
+    instead: "Prefer tree-sitter-backed source text checks while the public interface stays unchanged."
+  - risk: "Do not treat parameter or property decorators as public artifacts."
+    instead: "Only collect the owning declaration artifacts already exposed by TypeScriptValidator."
+files:
+  edit:
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_decorator_factory_preserves_class_and_method_identity
+        - kind: test_function
+          name: test_property_decorator_does_not_create_decorator_artifact
+        - kind: test_function
+          name: test_parameter_decorator_preserves_method_signature
+    - path: tests/core/test_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_snapshot_omits_decorator_metadata_until_contract_evolves
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - maid_runner/core/snapshot.py
+    - tests/validators/test_typescript.py
+    - manifests/close-typescript-artifact-extraction-gaps-2.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_snapshot.py

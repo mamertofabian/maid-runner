@@ -1,0 +1,45 @@
+schema: "2"
+goal: "Characterize TypeScript computed-member and source-location boundaries"
+type: refactor
+created: "2026-05-09"
+description: |
+  Lock the remaining TypeScript artifact-extraction boundaries noted by the
+  parser replacement spike: computed property cases outside the covered
+  class/interface forms and source-location parity. The draft should preserve
+  current public artifact behavior unless a later promoted manifest explicitly
+  adds richer source ranges.
+
+  Rationale: MAID already stores `line` and `column` on FoundArtifact but
+  TypeScript snapshots intentionally serialize public artifact shape, not full
+  source ranges. Any replacement parser that reports richer positions must not
+  silently change snapshot or validation contracts.
+temptations:
+  - risk: "Do not expose source ranges in snapshots as an incidental side effect of a parser replacement."
+    instead: "Characterize line/column behavior separately before adding any serialized location fields."
+  - risk: "Do not collect type-literal computed members as top-level public artifacts."
+    instead: "Keep computed members inside type alias target text unless the artifact model evolves."
+  - risk: "Do not mix computed-member boundary tests with import/re-export identity tests."
+    instead: "Exercise only TypeScriptValidator artifact extraction and snapshot serialization."
+files:
+  edit:
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_computed_type_literal_members_remain_inside_type_alias_target
+        - kind: test_function
+          name: test_computed_enum_members_do_not_create_class_attributes
+        - kind: test_function
+          name: test_multiline_computed_member_locations_remain_line_based
+    - path: tests/core/test_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_snapshot_does_not_emit_columns_or_source_ranges
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - maid_runner/core/snapshot.py
+    - manifests/add-typescript-computed-property-artifact-extraction.manifest.yaml
+    - manifests/add-typescript-type-alias-target-extraction.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_snapshot.py

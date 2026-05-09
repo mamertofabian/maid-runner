@@ -1,0 +1,46 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Complete parser replacement follow-up characterization and bounded resolver evolution"
+type: refactor
+created: "2026-05-09"
+description: |
+  Plan the remaining parser replacement queue from
+  docs/spikes/spike-parser-library-replacement-options.md as smaller drafts
+  that can be refined, validated, promoted, and implemented one at a time.
+
+  Rationale: the completed slices already cover Svelte script extraction,
+  TypeScript barrel/import identity, TypeScript artifact extraction edge cases,
+  tsconfig aliases, local tsconfig extends, required-import parser scanning, and
+  selected compiler-backed identity. Remaining work is mostly boundary
+  characterization. Compiler-backed validation must stay opportunistic because
+  compiler startup and project loading can slow validation noticeably.
+temptations:
+  - risk: "Do not replace the validator policy layer with a compiler-first implementation."
+    instead: "Keep the public validator and validation-engine contracts stable unless a promoted child manifest explicitly evolves them."
+  - risk: "Do not add compiler calls to default validation paths just because the compiler can answer a case."
+    instead: "Use parser/path-backed behavior when it is sufficient, and require bounded compiler calls only in child drafts that prove the need."
+  - risk: "Do not merge TypeScript artifact extraction and identity resolution into one large manifest."
+    instead: "Promote small child drafts that each own one observable behavior boundary."
+  - risk: "Do not turn low-priority Python or graph/query replacement notes into dependency additions without evidence."
+    instead: "Characterize current behavior first and leave library adoption for a later behavior-evolving manifest."
+files:
+  edit:
+    - path: docs/spikes/spike-parser-library-replacement-options.md
+      artifacts:
+        - kind: attribute
+          name: parser_replacement_forward_queue
+          of: parser library replacement spike
+          type: section
+          description: "Forward queue section used as the source for the parser replacement draft set"
+  read:
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/python.py
+    - maid_runner/graph/query.py
+validate:
+  - maid validate

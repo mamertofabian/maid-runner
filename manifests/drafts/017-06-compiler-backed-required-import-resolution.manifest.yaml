@@ -1,0 +1,69 @@
+schema: "2"
+goal: "Plan compiler-backed TypeScript required-import resolution without slowing default validation"
+type: feature
+created: "2026-05-09"
+description: |
+  Consider compiler-backed TypeScript required-import resolution only under a
+  dedicated manifest. The public behavior is exposed through
+  ValidationEngine.validate: required imports should pass when an implementation
+  imports through a compiler-resolved tsconfig alias, workspace package export,
+  or recursive barrel, while missing compiler support must fall back to the
+  parser-backed scanner.
+
+  Rationale: required-import validation runs inside implementation validation,
+  so compiler startup and project loading can materially slow feedback. This
+  draft requires performance-conscious tests before any private helper changes
+  are promoted.
+temptations:
+  - risk: "Do not invoke the compiler for every import statement in every validation run."
+    instead: "Gate compiler resolution to non-relative unresolved TypeScript cases, cache per project root, and keep parser-backed scanning as the default fast path."
+  - risk: "Do not make compiler resolution mandatory for E320 required-import checks."
+    instead: "Return current parser/path-backed results when Node, TypeScript, project config, or the bridge is unavailable."
+  - risk: "Do not broaden required-import resolution into artifact extraction or identity matching changes."
+    instead: "Exercise behavior only through ValidationEngine.validate and E320 outcomes."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+            - name: use_chain
+              type: bool
+            - name: chain
+              type: Optional[ManifestChain]
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: check_stubs
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: include_chain_diagnostics
+              type: bool
+          returns: ValidationResult
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_required_import_accepts_tsconfig_alias_when_compiler_resolution_is_needed
+        - kind: test_function
+          name: test_ts_required_import_accepts_workspace_package_export_when_compiler_resolution_is_needed
+        - kind: test_function
+          name: test_ts_required_import_does_not_invoke_compiler_for_relative_imports
+        - kind: test_function
+          name: test_ts_required_import_keeps_third_party_package_boundary_with_compiler_available
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/types.py
+    - tests/core/test_ts_module_paths.py
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/fix-typescript-validation-and-test-performance.manifest.yaml
+    - manifests/fix-typescript-compiler-resolution-cache.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py::TestImportVerification

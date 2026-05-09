@@ -1,0 +1,52 @@
+schema: "2"
+goal: "Characterize project-local TypeScript package export shapes before expanding resolver behavior"
+type: refactor
+created: "2026-05-09"
+description: |
+  Add characterization coverage for package export shapes called out by the
+  parser replacement spike: conditional exports, `types`/`import`/`require`
+  branches, wildcard exports, and package subpaths. The expected behavior is
+  narrow: when the target project's compiler resolves an export to source
+  inside the project or workspace, MAID identity may become project-local;
+  otherwise the package specifier remains unchanged.
+
+  Rationale: package exports have many shapes, and compiler-backed answers can
+  be useful when they point at local source. This draft keeps the behavior
+  evidence-based before any resolver expansion is promoted.
+temptations:
+  - risk: "Do not infer package export branches with a partial package.json parser."
+    instead: "Use compiler-backed characterization for project-local source and keep unsupported shapes as package specifiers."
+  - risk: "Do not treat declaration-only `types` targets as executable source artifacts."
+    instead: "Only accept compiler results that realpath to project-local source modules MAID can validate."
+  - risk: "Do not collapse all package subpaths into local identities."
+    instead: "Cover conditional, wildcard, and unmatched subpaths separately in tests."
+files:
+  edit:
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_compiler_resolves_project_local_conditional_package_export
+        - kind: test_function
+          name: test_compiler_resolves_project_local_wildcard_package_export
+        - kind: test_function
+          name: test_compiler_leaves_unresolved_package_export_subpath_unmapped
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_package_export_import_resolves_to_project_local_source_when_compiler_succeeds
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_package_export_import_records_project_local_source_when_compiler_succeeds
+        - kind: test_function
+          name: test_package_export_reexport_matches_project_local_source_when_compiler_succeeds
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/typescript.py
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py

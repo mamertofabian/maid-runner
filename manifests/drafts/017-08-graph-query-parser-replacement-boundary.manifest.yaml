@@ -1,0 +1,50 @@
+schema: "2"
+goal: "Characterize graph query parser boundaries before considering a grammar library"
+type: refactor
+created: "2026-05-09"
+description: |
+  Keep graph/query parser replacement low priority by locking the current
+  natural-language query behavior before considering lark, pyparsing, or a
+  richer grammar. The current query parser is small; replacement is justified
+  only if the query language becomes a real grammar with behavior that regex
+  parsing cannot maintain clearly.
+
+  Rationale: parser replacement should reduce hand-rolled language semantics
+  where the semantics are already complex. The graph query parser is not there
+  yet, so the next useful step is characterization rather than dependency
+  adoption.
+temptations:
+  - risk: "Do not add lark or pyparsing for the current small query language."
+    instead: "Characterize current QueryParser.parse intent selection and target extraction first."
+  - risk: "Do not change default query intent fallbacks as an incidental parser replacement."
+    instead: "Assert ambiguous queries still use the current FIND_DEFINITION fallback until a manifest evolves it."
+  - risk: "Do not mix graph traversal changes into query parsing work."
+    instead: "Exercise QueryParser and QueryExecutor boundaries in focused tests."
+files:
+  edit:
+    - path: maid_runner/graph/query.py
+      artifacts:
+        - kind: method
+          name: parse
+          of: QueryParser
+          args:
+            - name: query
+              type: str
+          returns: QueryIntent
+    - path: tests/graph/test_graph_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_query_parser_keeps_quoted_targets_with_punctuation
+        - kind: test_function
+          name: test_query_parser_keeps_ambiguous_query_definition_fallback
+        - kind: test_function
+          name: test_query_parser_does_not_treat_cycle_query_as_dependency_query
+        - kind: test_function
+          name: test_query_executor_keeps_missing_target_error_shape
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/graph/model.py
+    - tests/graph/test_graph_v2.py
+    - manifests/snapshot-graph-query.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/graph/test_graph_v2.py

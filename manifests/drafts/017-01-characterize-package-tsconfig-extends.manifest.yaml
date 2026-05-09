@@ -1,0 +1,45 @@
+schema: "2"
+goal: "Characterize package-style tsconfig extends behavior without requiring compiler validation"
+type: refactor
+created: "2026-05-09"
+description: |
+  Lock the remaining tsconfig inheritance boundary from the parser replacement
+  spike: package-style `extends` should resolve only when the target project's
+  TypeScript compiler can load that package configuration, and MAID must retain
+  its existing local-config fallback when Node, TypeScript, or the package
+  config is unavailable.
+
+  Rationale: local filesystem `extends` chains are already path-backed.
+  Package-style `extends` is compiler territory, but making it part of the
+  default path resolver would add slower validation work to projects that do
+  not need it.
+temptations:
+  - risk: "Do not implement package-style tsconfig extends with ad hoc node_modules JSON walking."
+    instead: "Characterize compiler-backed behavior and keep missing compiler support on the existing fallback path."
+  - risk: "Do not make compiler availability a requirement for resolving local paths aliases."
+    instead: "Keep local baseUrl and paths behavior path-backed and test that it still works when compiler helpers return None."
+  - risk: "Do not broaden this into package exports or workspace package resolution."
+    instead: "Only cover package-style tsconfig extends behavior and fallback boundaries."
+files:
+  edit:
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_package_style_tsconfig_extends_resolves_when_compiler_loads_package_config
+        - kind: test_function
+          name: test_package_style_tsconfig_extends_returns_none_when_compiler_cannot_load_package_config
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_package_style_tsconfig_extends_fallback_keeps_local_alias_resolution
+        - kind: test_function
+          name: test_package_style_tsconfig_extends_does_not_require_compiler_for_relative_imports
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - maid_runner/core/ts_module_paths.py
+    - manifests/add-typescript-tsconfig-extends-identity.manifest.yaml
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py

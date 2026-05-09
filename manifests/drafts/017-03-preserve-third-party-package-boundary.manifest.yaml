@@ -1,0 +1,50 @@
+schema: "2"
+goal: "Preserve third-party package identity boundaries under compiler-backed TypeScript resolution"
+type: refactor
+created: "2026-05-09"
+description: |
+  Lock the parser replacement spike's third-party package boundary after the
+  compiler-backed identity slice. Direct dependencies in `node_modules` should
+  remain package specifiers unless compiler resolution realpaths the target to
+  project-local or workspace source.
+
+  Rationale: resolving third-party package internals into MAID module identities
+  would create noisy, slow, and unstable validation contracts. This draft keeps
+  compiler-backed identity useful for local source without claiming ownership of
+  dependency implementation files.
+temptations:
+  - risk: "Do not return node_modules paths from compiler-backed import or re-export resolution."
+    instead: "Reject compiler results outside the project/workspace source boundary and keep the package specifier."
+  - risk: "Do not add third-party source files to MAID artifact matching."
+    instead: "Match only project-local artifacts and assert direct dependency imports stay as package sources."
+  - risk: "Do not use package boundary tests to expand package export support."
+    instead: "Keep this draft focused on preserving the external dependency boundary."
+files:
+  edit:
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_compiler_import_resolution_rejects_node_modules_dependency_source
+        - kind: test_function
+          name: test_compiler_reexport_resolution_rejects_node_modules_dependency_source
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_direct_dependency_import_remains_package_specifier_with_compiler_available
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_direct_dependency_import_records_package_source_with_compiler_available
+        - kind: test_function
+          name: test_direct_dependency_reexport_does_not_match_project_local_artifact
+  read:
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/typescript.py
+    - manifests/characterize-typescript-package-import-identity.manifest.yaml
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
