@@ -172,6 +172,7 @@ class TestCodexMaidLoopRun(unittest.TestCase):
             color="never",
             model="gpt-5.5",
             reasoning_effort="medium",
+            auto_commit=False,
         )
 
         with (
@@ -202,6 +203,7 @@ class TestCodexMaidLoopRun(unittest.TestCase):
             color="never",
             model="gpt-5.5",
             reasoning_effort="medium",
+            auto_commit=False,
         )
         final_message = (
             "Done.\n"
@@ -261,6 +263,7 @@ class TestCodexMaidLoopRun(unittest.TestCase):
             color="never",
             model="gpt-5.5",
             reasoning_effort="medium",
+            auto_commit=False,
         )
         final_message = (
             "Done.\n"
@@ -310,6 +313,65 @@ class TestCodexMaidLoopRun(unittest.TestCase):
         commit.assert_called_once()
         self.assertIsInstance(commit.call_args.args[0], codex_maid_loop.CommitPacket)
 
+    def test_auto_commit_skips_interactive_prompt(self) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            codex="codex",
+            color="never",
+            model="gpt-5.5",
+            reasoning_effort="medium",
+            auto_commit=True,
+        )
+        final_message = (
+            "Done.\n"
+            "AUTOMATION_COMMIT_MESSAGE: feat: implement draft\n"
+            "AUTOMATION_COMMIT_FILES:\n"
+            "- tools/codex_maid_loop.py\n"
+            "AUTOMATION_STATUS: READY\n"
+        )
+        result = codex_maid_loop.CodexRunResult(
+            args=["codex"],
+            returncode=0,
+            session_id="session-1",
+            final_message=final_message,
+            stdout_jsonl_path=Path(".codex-automation/run.jsonl"),
+            stderr_path=Path(".codex-automation/run.stderr.log"),
+            final_message_path=Path(".codex-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(codex_maid_loop, "git_status_short", return_value=""),
+            mock.patch.object(
+                codex_maid_loop,
+                "find_implementable_drafts",
+                return_value=[Path("manifests/drafts/017-01-example.manifest.yaml")],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "run_codex_json_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "ask_commit_approval",
+                side_effect=AssertionError("auto-commit must not prompt"),
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "commit_ready_changes",
+                return_value=0,
+            ) as commit,
+        ):
+            args.log_dir = temp_dir
+            code = codex_maid_loop.run_loop(args)
+
+        self.assertEqual(0, code)
+        commit.assert_called_once()
+
     def test_stage_commit_packet_files_rejects_directories_and_unsafe_paths(
         self,
     ) -> None:
@@ -339,6 +401,7 @@ class TestCodexMaidLoopRun(unittest.TestCase):
             color="never",
             model="gpt-5.5",
             reasoning_effort="medium",
+            auto_commit=False,
         )
         final_message = (
             "Done.\n"
@@ -385,14 +448,23 @@ class TestCodexMaidLoopRun(unittest.TestCase):
         self.assertEqual(2, drafts.call_count)
         run_codex.assert_called_once()
 
-    def test_parser_keeps_commit_approval_explicit(self) -> None:
+    def test_parser_documents_auto_commit_and_default_prompt(self) -> None:
         help_text = codex_maid_loop.build_parser().format_help()
 
         self.assertIn(
             "Run fresh-session Codex MAID draft implementation passes", help_text
         )
         self.assertIn("typed commit approval", help_text)
-        self.assertNotIn("--auto-commit", help_text)
+        self.assertIn("--auto-commit", help_text)
+        self.assertIn("without prompting", help_text)
+
+    def test_main_accepts_auto_commit_flag(self) -> None:
+        with mock.patch.object(codex_maid_loop, "run_loop", return_value=0) as run_loop:
+            code = codex_maid_loop.main(["--once", "--auto-commit", "--color", "never"])
+
+        self.assertEqual(0, code)
+        run_loop.assert_called_once()
+        self.assertTrue(run_loop.call_args.args[0].auto_commit)
 
 
 class TestCodexMaidLoopRepoWiring(unittest.TestCase):

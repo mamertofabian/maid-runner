@@ -120,4 +120,5 @@ AUTOMATION_STATUS: READY
 ```
 
 Include every changed tracked, deleted, and untracked file that belongs in the
-commit. The outer loop still requires fresh typed approval before each commit.
+commit. The outer loop prompts for fresh typed approval by default, unless the
+user started it with `--auto-commit`.

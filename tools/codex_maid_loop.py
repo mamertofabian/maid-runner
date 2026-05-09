@@ -472,7 +472,9 @@ def run_loop(args: argparse.Namespace) -> int:
             )
             return 1
 
-        if not ask_commit_approval(pass_number, implementation_status):
+        if getattr(args, "auto_commit", False):
+            print("Auto-commit enabled; committing READY packet without prompting.")
+        elif not ask_commit_approval(pass_number, implementation_status):
             print(
                 "Commit was not approved; stopping with changes left for manual review."
             )
@@ -503,12 +505,13 @@ def build_parser() -> argparse.ArgumentParser:
         epilog="""Examples:
   uv run python tools/codex_maid_loop.py --once
   npm run maid:codex-loop -- --once
+  npm run maid:codex-loop -- --auto-commit
   npm run maid:codex-loop -- --dry-run
 
 When running through npm, put script arguments after `--`; otherwise npm
 handles flags such as `--once` as npm CLI options instead of forwarding them.
 
-Each READY pass still requires a fresh typed commit approval.
+Each READY pass uses typed commit approval unless `--auto-commit` is passed.
 """,
     )
     parser.add_argument(
@@ -526,6 +529,11 @@ Each READY pass still requires a fresh typed commit approval.
         "--dry-run",
         action="store_true",
         help="Print current status and planned command without invoking Codex",
+    )
+    parser.add_argument(
+        "--auto-commit",
+        action="store_true",
+        help="Commit each READY packet without prompting for interactive approval",
     )
     parser.add_argument("--log-dir", help="Directory for JSONL and final-message logs")
     parser.add_argument("--codex", default="codex", help="Codex executable path")
@@ -683,7 +691,14 @@ def _dry_run(args: argparse.Namespace) -> int:
     print("Implementation command:")
     print("Model: " + args.model)
     print("Reasoning effort: " + args.reasoning_effort)
-    print("Commit approval: typed approval required for every READY pass")
+    print(
+        "Commit approval: "
+        + (
+            "auto-commit enabled"
+            if getattr(args, "auto_commit", False)
+            else "typed approval required for every READY pass"
+        )
+    )
     print(
         "  "
         + " ".join(
