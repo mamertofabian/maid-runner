@@ -100,6 +100,108 @@ def test_resolve_import_with_compiler_resolves_workspace_package_exports(
     )
 
 
+def test_compiler_resolves_project_local_conditional_package_export(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    _write_json(tmp_path / "package.json", {"workspaces": ["packages/*"]})
+    _write_tsconfig(tmp_path)
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "App.test.ts").write_text("import { Button } from '@scope/ui';\nButton();\n")
+    package_dir = tmp_path / "packages" / "ui"
+    package_dir.mkdir(parents=True)
+    _write_json(
+        package_dir / "package.json",
+        {
+            "name": "@scope/ui",
+            "exports": {
+                ".": {
+                    "types": "./dist/index.d.ts",
+                    "import": "./src/index.ts",
+                    "require": "./dist/index.cjs",
+                }
+            },
+        },
+    )
+    index = package_dir / "src" / "index.ts"
+    index.parent.mkdir()
+    index.write_text("export function Button() {}\n")
+    scope_dir = tmp_path / "node_modules" / "@scope"
+    scope_dir.mkdir(parents=True)
+    (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+
+    assert (
+        resolve_import_with_compiler("@scope/ui", "src/App.test", tmp_path)
+        == "packages/ui/src"
+    )
+
+
+def test_compiler_resolves_project_local_wildcard_package_export(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    _write_json(tmp_path / "package.json", {"workspaces": ["packages/*"]})
+    _write_tsconfig(tmp_path)
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "App.test.ts").write_text(
+        "import { Card } from '@scope/ui/features/card';\nCard();\n"
+    )
+    package_dir = tmp_path / "packages" / "ui"
+    package_dir.mkdir(parents=True)
+    _write_json(
+        package_dir / "package.json",
+        {
+            "name": "@scope/ui",
+            "exports": {"./features/*": "./src/features/*.ts"},
+        },
+    )
+    card = package_dir / "src" / "features" / "card.ts"
+    card.parent.mkdir(parents=True)
+    card.write_text("export function Card() {}\n")
+    scope_dir = tmp_path / "node_modules" / "@scope"
+    scope_dir.mkdir(parents=True)
+    (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+
+    assert (
+        resolve_import_with_compiler(
+            "@scope/ui/features/card", "src/App.test", tmp_path
+        )
+        == "packages/ui/src/features/card"
+    )
+
+
+def test_compiler_leaves_unresolved_package_export_subpath_unmapped(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    _write_json(tmp_path / "package.json", {"workspaces": ["packages/*"]})
+    _write_tsconfig(tmp_path)
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "App.test.ts").write_text(
+        "import { Missing } from '@scope/ui/Missing';\nMissing();\n"
+    )
+    package_dir = tmp_path / "packages" / "ui"
+    package_dir.mkdir(parents=True)
+    _write_json(
+        package_dir / "package.json",
+        {"name": "@scope/ui", "exports": {"./Button": "./src/Button.ts"}},
+    )
+    button = package_dir / "src" / "Button.ts"
+    button.parent.mkdir()
+    button.write_text("export function Button() {}\n")
+    scope_dir = tmp_path / "node_modules" / "@scope"
+    scope_dir.mkdir(parents=True)
+    (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+
+    assert (
+        resolve_import_with_compiler("@scope/ui/Missing", "src/App.test", tmp_path)
+        is None
+    )
+
+
 def test_resolve_reexport_with_compiler_resolves_recursive_barrels(
     tmp_path: Path,
 ) -> None:

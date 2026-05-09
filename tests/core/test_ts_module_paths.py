@@ -534,6 +534,37 @@ class TestResolveTsImport:
             == "packages/ui/src/Button"
         )
 
+    def test_package_export_import_resolves_to_project_local_source_when_compiler_succeeds(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*", "packages/**/*"]}'
+        )
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "App.test.ts").write_text(
+            "import { Card } from '@scope/ui/features/card';\nCard();\n"
+        )
+        package_dir = tmp_path / "packages" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./features/*": "./src/features/*.ts"}}'
+        )
+        card = package_dir / "src" / "features" / "card.ts"
+        card.parent.mkdir(parents=True)
+        card.write_text("export function Card() {}\n")
+        scope_dir = tmp_path / "node_modules" / "@scope"
+        scope_dir.mkdir(parents=True)
+        (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+
+        assert (
+            resolve_ts_import("@scope/ui/features/card", "src/App.test", tmp_path)
+            == "packages/ui/src/features/card"
+        )
+
 
 # ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)

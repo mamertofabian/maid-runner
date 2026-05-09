@@ -169,6 +169,39 @@ class TestNamedImportRecordsSource:
         assert button is not None
         assert button.import_source == "packages/ui/src/Button"
 
+    def test_package_export_import_records_project_local_source_when_compiler_succeeds(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*", "packages/**/*"]}'
+        )
+        src = tmp_path / "src"
+        src.mkdir()
+        package_dir = tmp_path / "packages" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./features/*": "./src/features/*.ts"}}'
+        )
+        card = package_dir / "src" / "features" / "card.ts"
+        card.parent.mkdir(parents=True)
+        card.write_text("export function Card() {}\n")
+        scope_dir = tmp_path / "node_modules" / "@scope"
+        scope_dir.mkdir(parents=True)
+        (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+        source = (
+            "import { Card } from '@scope/ui/features/card';\n"
+            "it('uses Card', () => { Card(); });\n"
+        )
+
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Card.test.ts"
+        )
+
+        card_ref = _ref(result.artifacts, "Card")
+        assert card_ref is not None
+        assert card_ref.import_source == "packages/ui/src/features/card"
+
 
 class TestDefaultImportRecordsSource:
     def test_default_import_records_source_module(
@@ -551,6 +584,51 @@ class TestIdentityRejectsCrossModuleCollision:
             kind=ArtifactKind.FUNCTION,
             name="Button",
             module_path="src/components/nested/Button",
+        )
+        assert match_artifact_to_references(
+            artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+
+    def test_package_export_reexport_matches_project_local_source_when_compiler_succeeds(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "package.json").write_text('{"workspaces": ["packages/*"]}')
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*", "packages/**/*"]}'
+        )
+        src = tmp_path / "src"
+        src.mkdir()
+        package_dir = tmp_path / "packages" / "ui"
+        package_dir.mkdir(parents=True)
+        (package_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {".": "./src/index.ts"}}'
+        )
+        package_src = package_dir / "src"
+        package_src.mkdir()
+        (package_src / "index.ts").write_text("export { Button } from './Button';\n")
+        (package_src / "Button.ts").write_text("export function Button() {}\n")
+        scope_dir = tmp_path / "node_modules" / "@scope"
+        scope_dir.mkdir(parents=True)
+        (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+        source = (
+            "import { Button } from '@scope/ui';\n"
+            "it('uses Button', () => { Button(); });\n"
+        )
+
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.ts"
+        )
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "packages/ui/src"
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="Button",
+            module_path="packages/ui/src/Button",
         )
         assert match_artifact_to_references(
             artifact,
