@@ -578,6 +578,28 @@ class TestQueryParser:
         intent = parser.parse("Show dependencies of UserService")
         assert intent.query_type == QueryType.FIND_DEPENDENCIES
 
+    def test_query_parser_keeps_quoted_targets_with_punctuation(self):
+        from maid_runner.graph.query import QueryParser
+
+        parser = QueryParser()
+        intent = parser.parse('What defines "my.service.py"?')
+        assert intent.target == "my.service.py"
+
+    def test_query_parser_keeps_ambiguous_query_definition_fallback(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("something entirely ambiguous")
+        assert intent.query_type == QueryType.FIND_DEFINITION
+
+    def test_query_parser_does_not_treat_cycle_query_as_dependency_query(self):
+        from maid_runner.graph.query import QueryParser, QueryType
+
+        parser = QueryParser()
+        intent = parser.parse("Are there circular dependencies?")
+        assert intent.query_type == QueryType.FIND_CYCLES
+        assert intent.query_type != QueryType.FIND_DEPENDENCIES
+
 
 # ---------------------------------------------------------------------------
 # QueryExecutor
@@ -741,6 +763,16 @@ class TestQueryExecutor:
         result = executor.execute(intent)
         # Should reach no-target branch
         assert not result.success
+
+    def test_query_executor_keeps_missing_target_error_shape(self):
+        from maid_runner.graph.query import QueryExecutor, QueryIntent, QueryType
+        from maid_runner.graph.model import KnowledgeGraph
+
+        executor = QueryExecutor(KnowledgeGraph())
+        intent = QueryIntent(QueryType.FIND_DEFINITION, None, "vague query")
+        result = executor.execute(intent)
+        assert not result.success
+        assert "No target" in result.message
 
 
 # ---------------------------------------------------------------------------
