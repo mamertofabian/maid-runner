@@ -1,0 +1,55 @@
+schema: "2"
+goal: "Document the draft manifest queue workflow for MAID implementation batches."
+type: feature
+created: "2026-05-10"
+description: |
+  The repository now has loop scripts that implement selected draft manifests
+  from `manifests/drafts/`. Contributors need a durable explanation of the
+  lifecycle: draft manifests are mutable planning inventory, promoted manifests
+  are active contracts, and post-promotion contract changes use normal MAID
+  evolution rules.
+temptations:
+  - risk: "Do not describe draft manifests as active contracts."
+    instead: "State that drafts stay outside the active chain until promotion."
+  - risk: "Do not imply every possible manifest must be created before implementation starts."
+    instead: "Document that teams should pre-create known child drafts and add or refine drafts as discovery exposes gaps."
+  - risk: "Do not let automation guidance bypass commit approval or implementation review."
+    instead: "Describe the loop as one selected draft per pass by default with promoted-path validation and review before commit."
+files:
+  create:
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_workflow_doc
+          of: docs
+          type: markdown
+          description: "Canonical documentation for the draft manifest queue lifecycle, promotion criteria, automation, and evolution rules."
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_workflow_links
+          of: documentation
+          type: markdown
+          description: "Development workflow and project structure references to the draft manifest queue."
+    - path: CONTRIBUTING.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_contributing_guidance
+          of: documentation
+          type: markdown
+          description: "Contributor guidance for draft manifests as planning inventory and promoted manifests as contracts."
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_directory_pointer
+          of: documentation
+          type: markdown
+          description: "Directory-local pointer to the canonical draft manifest workflow guide."
+  read:
+    - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+    - manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
+    - manifests/023-01-maid-loop-selected-draft-scope.manifest.yaml
+    - .codex/skills/maid-runner-draft-implement/SKILL.md
+validate:
+  - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py

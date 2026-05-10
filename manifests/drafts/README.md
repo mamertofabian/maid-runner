@@ -4,6 +4,9 @@ Draft manifests are planning contracts. They stay outside the active
 `manifests/*.manifest.yaml` set so normal MAID validation only covers approved
 implementation contracts.
 
+The canonical workflow guide is
+[`docs/draft-manifest-workflow.md`](../../docs/draft-manifest-workflow.md).
+
 Use `000-parser-replacement-roadmap.md` as the alignment map for parser
 replacement follow-up work, shared boundaries, dependencies, and promotion
 order.

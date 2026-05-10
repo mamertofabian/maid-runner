@@ -194,7 +194,15 @@ This project follows the MAID (Manifest-driven AI Development) methodology it im
 2. **Test-Driven Validation**: Tests define success criteria
 3. **Verifiable Chronology**: Every change is tracked via manifest history
 
+For larger implementation batches, use `manifests/drafts/` as a draft manifest
+queue. Draft manifests are mutable planning inventory; promoted manifests in
+`manifests/` are active contracts. Promote one implementation-sized draft at a
+time, validate the promoted path, and use MAID evolution rules for any contract
+change discovered after promotion.
+
 See [docs/maid_specs.md](docs/maid_specs.md) for full methodology.
+See [docs/draft-manifest-workflow.md](docs/draft-manifest-workflow.md) for the
+draft queue workflow.
 
 ## 🎥 Video Series Contributions
 

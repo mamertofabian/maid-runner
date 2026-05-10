@@ -220,6 +220,11 @@ Define the high-level feature or bug fix.
 3. Validate: `maid validate <manifest> --mode behavioral`
 4. Iterate until validation passes
 
+For larger batches, use draft manifests as the planning queue: keep mutable
+child contracts in `manifests/drafts/`, promote one implementation-sized draft
+into `manifests/`, then implement and validate the promoted path. See
+[Draft Manifest Workflow](docs/draft-manifest-workflow.md).
+
 ### Phase 3: Implementation Loop
 1. Implement code per manifest
 2. Validate: `maid validate <manifest>`
@@ -343,7 +348,8 @@ make type-check  # Type checking
 ```
 maid-runner/
 ├── docs/                    # Documentation
-├── manifests/               # Task manifests (YAML v2)
+├── manifests/               # Active task manifests (YAML v2)
+│   └── drafts/              # Mutable draft manifest queue
 ├── tests/
 │   ├── core/                # Core module tests
 │   ├── validators/          # Validator tests
@@ -388,6 +394,9 @@ This project dogfoods MAID methodology. All changes require:
 2. Behavioral tests in `tests/`
 3. Passing structural validation
 4. Passing behavioral tests
+
+Use `manifests/drafts/` for mutable planned work that has not been promoted
+into the active manifest chain yet.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.
 
