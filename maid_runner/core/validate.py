@@ -1324,6 +1324,7 @@ def _check_required_imports(
         _JS_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts")
 
         found_imports = _collect_js_ts_required_imports(source, file_path)
+        raw_import_modules = _collect_js_ts_import_modules(source, file_path)
 
         # Resolve relative imports against the importing file's directory
         # so that ../../src/models/Budget matches manifest's src/models/Budget.
@@ -1331,44 +1332,51 @@ def _check_required_imports(
         file_dir = posixpath.dirname(file_path)
         normalized: set[str] = set()
         non_relative_raw: list[str] = []
-        for imp in list(found_imports):
+        for imp in raw_import_modules:
             if imp.startswith("."):
                 resolved = posixpath.normpath(posixpath.join(file_dir, imp))
                 # Skip paths that escape the project root (start with ..)
                 if resolved.startswith(".."):
                     continue
                 normalized.add(resolved)
+                if resolved.endswith("/index"):
+                    normalized.add(posixpath.dirname(resolved))
                 # Also add without extension so "src/models/Budget.ts"
                 # matches manifest's "src/models/Budget"
                 for ext in _JS_EXTENSIONS:
                     if resolved.endswith(ext):
-                        normalized.add(resolved[: -len(ext)])
+                        extensionless = resolved[: -len(ext)]
+                        normalized.add(extensionless)
+                        if extensionless.endswith("/index"):
+                            normalized.add(posixpath.dirname(extensionless))
                         break
             else:
                 # Strip extensions from non-relative imports too
                 for ext in _JS_EXTENSIONS:
                     if imp.endswith(ext):
-                        normalized.add(imp[: -len(ext)])
+                        extensionless = imp[: -len(ext)]
+                        normalized.add(extensionless)
+                        if extensionless.endswith("/index"):
+                            normalized.add(posixpath.dirname(extensionless))
                         break
                 non_relative_raw.append(imp)
         found_imports |= normalized
 
         # Resolve non-relative specifiers through tsconfig paths and compiler.
-        # Relative imports are already handled above; skip them to stay on the
-        # fast parser-backed path. Only process module-path-shaped specifiers
-        # (containing "/" or starting with "@") — simple identifiers are import
-        # bindings already present in found_imports and would never resolve to
-        # a different module name. Third-party specifiers pass through
-        # resolve_ts_import unchanged, so only aliases that actually map to a
-        # project-local module add new entries.
+        # Relative imports are already handled above. Non-relative raw module
+        # specifiers include bare tsconfig aliases such as "models", while
+        # imported binding names remain in found_imports only and are not
+        # resolved as paths. Third-party specifiers pass through resolve_ts_import
+        # unchanged, so only aliases that actually map to a project-local module
+        # add new entries.
         if project_root is not None and non_relative_raw:
             importer_module = posixpath.splitext(file_path.replace("\\", "/"))[0]
             for imp in non_relative_raw:
-                if "/" not in imp and not imp.startswith("@"):
-                    continue
                 resolved = resolve_ts_import(imp, importer_module, project_root)
                 if resolved != imp:
                     found_imports.add(resolved)
+                    if resolved.endswith("/index"):
+                        found_imports.add(posixpath.dirname(resolved))
 
     # Check each required import
     for req in required_imports:
@@ -1401,6 +1409,14 @@ def _collect_js_ts_required_imports(source: str, file_path: str) -> set[str]:
     return _collect_js_ts_required_imports_with_text(source)
 
 
+def _collect_js_ts_import_modules(source: str, file_path: str) -> set[str]:
+    """Collect only raw TS/JS module specifiers for path resolution."""
+    parsed = _collect_js_ts_import_modules_with_tree_sitter(source, file_path)
+    if parsed is not None:
+        return parsed
+    return _collect_js_ts_import_modules_with_text(source)
+
+
 def _collect_js_ts_required_imports_with_tree_sitter(
     source: str, file_path: str
 ) -> Optional[set[str]]:
@@ -1424,6 +1440,34 @@ def _collect_js_ts_required_imports_with_tree_sitter(
 
     found: set[str] = set()
     _collect_js_ts_import_nodes(tree.root_node, source_bytes, found)
+    return found
+
+
+def _collect_js_ts_import_modules_with_tree_sitter(
+    source: str, file_path: str
+) -> Optional[set[str]]:
+    try:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript as ts_ts
+    except ImportError:
+        return None
+
+    if file_path.endswith((".tsx", ".jsx")):
+        language = Language(ts_ts.language_tsx())
+    elif file_path.endswith((".ts", ".js", ".mjs", ".cjs", ".mts", ".cts")):
+        language = Language(ts_ts.language_typescript())
+    else:
+        return None
+
+    source_bytes = source.encode("utf-8")
+    tree = Parser(language).parse(source_bytes)
+    if getattr(tree.root_node, "has_error", False):
+        return None
+
+    found: set[str] = set()
+    _collect_js_ts_import_nodes(
+        tree.root_node, source_bytes, found, include_bindings=False
+    )
     return found
 
 
@@ -1467,19 +1511,56 @@ def _collect_js_ts_required_imports_with_text(source: str) -> set[str]:
     return found
 
 
-def _collect_js_ts_import_nodes(node, source: bytes, found: set[str]) -> None:
+def _collect_js_ts_import_modules_with_text(source: str) -> set[str]:
+    found: set[str] = set()
+
+    # import/export ... from 'module' (covers default, namespace, re-exports)
+    for match in re.finditer(
+        r"""(?:import|export)\s+.*?from\s+['"](.+?)['"]""", source
+    ):
+        found.add(match.group(1))
+    # import/export { X, Y } from 'module' can span multiple lines.
+    for match in re.finditer(
+        r"""(?:import|export)(?:\s+type)?\s+\{[^}]+\}\s+from\s+['"](.+?)['"]""",
+        source,
+        re.DOTALL,
+    ):
+        found.add(match.group(1))
+    # import 'module' (side-effect imports)
+    for match in re.finditer(r"""import\s+['"](.+?)['"]""", source):
+        found.add(match.group(1))
+    # CommonJS require('module'), require.resolve('module'), and import('module')
+    for match in re.finditer(r"""require\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+    for match in re.finditer(r"""require\.resolve\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+    for match in re.finditer(r"""import\s*\(\s*['"](.+?)['"]\s*\)""", source):
+        found.add(match.group(1))
+
+    return found
+
+
+def _collect_js_ts_import_nodes(
+    node,
+    source: bytes,
+    found: set[str],
+    *,
+    include_bindings: bool = True,
+) -> None:
     if node.type == "import_statement":
         module = _js_ts_statement_source(node, source)
         if module:
             found.add(module)
-        _collect_js_ts_import_bindings(node, source, found)
+        if include_bindings:
+            _collect_js_ts_import_bindings(node, source, found)
         return
 
     if node.type == "export_statement":
         module = _js_ts_statement_source(node, source)
         if module:
             found.add(module)
-            _collect_js_ts_import_bindings(node, source, found)
+            if include_bindings:
+                _collect_js_ts_import_bindings(node, source, found)
             return
 
     if node.type == "call_expression":
@@ -1488,7 +1569,9 @@ def _collect_js_ts_import_nodes(node, source: bytes, found: set[str]) -> None:
             found.add(module)
 
     for child in node.children:
-        _collect_js_ts_import_nodes(child, source, found)
+        _collect_js_ts_import_nodes(
+            child, source, found, include_bindings=include_bindings
+        )
 
 
 def _collect_js_ts_import_bindings(node, source: bytes, found: set[str]) -> None:
