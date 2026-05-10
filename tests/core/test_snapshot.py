@@ -173,6 +173,22 @@ class TestGenerateSnapshot:
         assert "Injectable" not in artifact_names
         assert "Get" not in artifact_names
 
+    def test_typescript_snapshot_does_not_emit_columns_or_source_ranges(self, tmp_path):
+        """Snapshot artifacts carry no positional fields; line/column are stripped at serialization."""
+        src = tmp_path / "src" / "service.ts"
+        src.parent.mkdir(parents=True)
+        src.write_text("export class Service {\n  run(): void {}\n}\n")
+
+        m = generate_snapshot(str(src), project_root=str(tmp_path))
+        fs = m.files_snapshot[0]
+
+        for artifact in fs.artifacts:
+            # ArtifactSpec does not carry positional data — stripped at snapshot time
+            assert not hasattr(artifact, "line")
+            assert not hasattr(artifact, "column")
+            assert not hasattr(artifact, "start_position")
+            assert not hasattr(artifact, "end_position")
+
 
 # ---------------------------------------------------------------------------
 # parse error surfacing

@@ -528,3 +528,69 @@ def test_parameter_decorator_preserves_method_signature() -> None:
         ("request", "Request", None),
     ]
     assert login.returns == "Promise<Token>"
+
+
+def test_computed_type_literal_members_remain_inside_type_alias_target() -> None:
+    source = """type Config = {
+  [key: string]: number;
+};
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/types.ts"
+    )
+
+    names = {a.name for a in result.artifacts}
+    assert "Config" in names
+    config = next(a for a in result.artifacts if a.name == "Config")
+    assert config.kind == ArtifactKind.TYPE
+    # Index signature key is not extracted as a separate top-level artifact
+    assert "[key: string]" not in names
+    # The full type literal text is preserved inside the type annotation
+    assert config.type_annotation is not None
+    assert "key" in config.type_annotation
+
+
+def test_computed_enum_members_do_not_create_class_attributes() -> None:
+    source = """enum Status {
+  Active = "active",
+  Inactive = "inactive",
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/status.ts"
+    )
+
+    names = {a.name for a in result.artifacts}
+    assert "Status" in names
+    status = next(a for a in result.artifacts if a.name == "Status")
+    assert status.kind == ArtifactKind.ENUM
+    # Enum members are not promoted to attribute or function artifacts
+    assert "Active" not in names
+    assert "Inactive" not in names
+    attribute_artifacts = [
+        a for a in result.artifacts if a.kind == ArtifactKind.ATTRIBUTE
+    ]
+    assert attribute_artifacts == []
+
+
+def test_multiline_computed_member_locations_remain_line_based() -> None:
+    source = """class Scheduler {
+  [
+    Symbol.iterator
+  ](): Iterator<Task> {
+    return tasks();
+  }
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/scheduler.ts"
+    )
+
+    iterator = next(a for a in result.artifacts if "Symbol.iterator" in a.name)
+
+    assert iterator.kind == ArtifactKind.METHOD
+    assert iterator.of == "Scheduler"
+    # Method definition starts at line 2 (where the opening bracket is)
+    assert iterator.line == 2
+    # Column is not tracked — the validator reports only line-based positions
+    assert iterator.column is None
