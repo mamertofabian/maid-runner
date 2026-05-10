@@ -999,11 +999,12 @@ Readiness by replacement slice:
 | Required import checking in `core/validate.py` | Completed for current parser-backed scanner | Python remains stdlib-`ast` backed. TS/JS required import discovery now uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases. Future work should only add tsconfig/package resolution under an explicit manifest. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
-## Forward Implementation Queue
+## Parked Follow-ups
 
-Status: planning notes only. These items do not change MAID validation behavior
-or public validator functionality until a future manifest explicitly evolves
-the contract, adds behavioral tests, and passes validation.
+Status: complete for current behavior. The items below are parked notes, not an
+active implementation queue. Revisit them only when a concrete project exposes
+behavior that the current validators do not represent well. Any revived item
+must start with a new manifest, behavioral tests, and validation.
 
 1. Characterize package-style `tsconfig` `extends` edge cases not already
    handled by the TypeScript compiler bridge. The current bridge delegates
@@ -1038,7 +1039,8 @@ semantics while preserving manifest-driven, behavior-first change control. Each
 slice should keep the public validator interface stable unless its manifest
 explicitly declares an interface evolution.
 
-Conclusion: the incremental replacement slices now cover Svelte script
+Conclusion: the parser replacement track is complete for current behavior. The
+incremental replacement slices now cover Svelte script
 extraction, TypeScript barrel identity, two TypeScript artifact extraction
 edge-case batches, tsconfig alias identity, local tsconfig `extends` identity,
 parser-backed TS/JS required import checking, namespace re-export boundaries,
@@ -1047,9 +1049,5 @@ identity for workspace package exports and recursive barrels, and TypeScript
 type alias target extraction, and TypeScript computed property artifact
 extraction, TypeScript declaration-site generic type parameter storage, and
 TypeScript annotated function-type return extraction behind the existing
-validator interface. The next safe path is
-characterization-first: identify any package-style `tsconfig` `extends` or
-package export shapes that the compiler bridge does not already resolve, or
-continue separate artifact-extraction slices for decorator metadata semantics,
-computed property boundary cases outside the covered class/interface forms,
-and source column/range parity.
+validator interface. Future parser work should be demand-driven rather than
+planned as a standing queue.

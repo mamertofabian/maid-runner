@@ -12,7 +12,7 @@ class TestCodexMaidLoopDiscovery(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             draft_dir = Path(temp_dir)
             child = draft_dir / "017-01-example.manifest.yaml"
-            epic = draft_dir / "017-parser-library-followups.epic.yaml"
+            epic = draft_dir / "000-example.epic.yaml"
             child.write_text("schema: '2'\n", encoding="utf-8")
             epic.write_text("schema: '2'\n", encoding="utf-8")
 

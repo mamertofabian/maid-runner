@@ -1,9 +1,9 @@
-# Parser Replacement Draft Manifest Roadmap
+# Parser Replacement Manifest Roadmap
 
-This file is the alignment map for draft manifests derived from
-`docs/spikes/spike-parser-library-replacement-options.md`. The spike is the
-source of scope; child draft manifests are the executable planning units that
-can later be refined, validated, approved, and promoted.
+This file is the alignment map for parser replacement manifests derived from
+`docs/spikes/spike-parser-library-replacement-options.md`. The parser
+replacement track is complete for current behavior; remaining ideas are parked
+notes to revisit only when a concrete project need appears.
 
 ## Canonical Sources
 
@@ -37,60 +37,39 @@ can later be refined, validated, approved, and promoted.
 - Avoid widening default validation latency. Compiler-backed work should be
   cached, bounded, or opt-in when the behavior can remain parser/path backed.
 
-## Status Owners
+## Promoted Manifests
 
-- `017-01` owns package-style `tsconfig` extends characterization.
-- `017-02` owns package export shape characterization for project-local source.
-- `017-03` owns the third-party package boundary.
-- `017-04` owns TypeScript decorator metadata boundary characterization.
-- `017-05` owns TypeScript computed-member and source-location boundary
-  characterization.
-- `017-06` owns any compiler-backed required-import validation evolution.
-- `017-07` owns Python parser replacement boundary characterization.
-- `017-08` owns graph/query parser replacement boundary characterization.
-
-## Draft Set
-
-Epic planning drafts use these comments:
-
-```yaml
-# draft-kind: epic
-# promotion: split-before-promote
-```
-
-1. `017-parser-library-followups.epic.yaml` - non-executable planning draft for
-   the remaining parser replacement queue.
-2. `017-01-characterize-package-tsconfig-extends.manifest.yaml` - characterize
+1. `017-01-characterize-package-tsconfig-extends.manifest.yaml` - characterize
    package-style `tsconfig` extends behavior without making compiler
    availability required.
-3. `017-02-characterize-package-export-shapes.manifest.yaml` - characterize
+2. `017-02-characterize-package-export-shapes.manifest.yaml` - characterize
    conditional, wildcard, and subpath package exports that resolve to
    project-local source.
-4. `017-03-preserve-third-party-package-boundary.manifest.yaml` - keep direct
+3. `017-03-preserve-third-party-package-boundary.manifest.yaml` - keep direct
    dependencies in `node_modules` as package specifiers.
-5. `017-04-typescript-decorator-metadata-boundary.manifest.yaml` - lock
+4. `017-04-typescript-decorator-metadata-boundary.manifest.yaml` - lock
    decorator behavior before any richer metadata extraction is considered.
-6. `017-05-typescript-computed-and-source-location-boundaries.manifest.yaml` -
+5. `017-05-typescript-computed-and-source-location-boundaries.manifest.yaml` -
    lock computed member and source-location behavior outside the already
    implemented class/interface cases.
-7. `017-06-compiler-backed-required-import-resolution.manifest.yaml` - plan any
+6. `017-06-compiler-backed-required-import-resolution.manifest.yaml` - plan any
    required-import compiler resolver behind the public `ValidationEngine`
    contract while protecting validation performance.
-8. `017-07-python-parser-replacement-boundaries.manifest.yaml` - keep Python
+7. `017-07-python-parser-replacement-boundaries.manifest.yaml` - keep Python
    parser replacement low priority and characterize file-local AST behavior
    before considering `astroid`, `libcst`, or package graph tooling.
-9. `017-08-graph-query-parser-replacement-boundary.manifest.yaml` - keep
+8. `017-08-graph-query-parser-replacement-boundary.manifest.yaml` - keep
    graph/query parser replacement low priority and characterize current query
    intent behavior before considering a grammar library.
 
-## Promotion Notes
+## Parked Follow-ups
 
-- Promote characterization drafts before behavior-evolving drafts that rely on
-  the same boundary.
-- Promote TypeScript identity drafts before required-import compiler work.
-- Promote TypeScript artifact-extraction drafts independently from identity
-  drafts.
-- Do not promote `017-06` until the behavioral tests include a concrete
-  assertion that compiler resolution is not invoked for simple relative imports
-  and that missing compiler support falls back visibly through existing
-  validation behavior.
+- Treat additional parser replacement work as demand-driven. Start a new
+  manifest only when a project exposes behavior that the current validators do
+  not represent well.
+- Keep future TypeScript identity work separate from TypeScript artifact
+  extraction work.
+- Keep compiler-backed required-import resolution behind a dedicated manifest
+  with explicit performance and fallback assertions.
+- Keep Python parser and graph/query parser replacements low priority unless
+  their current behavior becomes a real blocker.
