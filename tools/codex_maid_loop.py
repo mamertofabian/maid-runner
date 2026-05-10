@@ -20,6 +20,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 _DRAFT_DIR = _ROOT / "manifests" / "drafts"
 _DEFAULT_LOG_ROOT = _ROOT / ".codex-automation" / "runs"
 _DEFAULT_MAX_PASSES = 100
+_DEFAULT_BATCH_SIZE = 1
 _DEFAULT_MODEL = "gpt-5.5"
 _DEFAULT_REASONING_EFFORT = "medium"
 _APPROVAL_POLICY = "on-request"
@@ -99,6 +100,7 @@ def find_implementable_drafts(draft_dir: Path = _DRAFT_DIR) -> list[Path]:
 def build_implementation_command(
     codex: str,
     final_message_path: Path,
+    selected_drafts: list[Path],
     model: str = _DEFAULT_MODEL,
     reasoning_effort: str = _DEFAULT_REASONING_EFFORT,
 ) -> list[str]:
@@ -121,7 +123,7 @@ def build_implementation_command(
         "--json",
         "--output-last-message",
         str(final_message_path),
-        _IMPLEMENTATION_PROMPT,
+        _implementation_prompt(selected_drafts),
     ]
 
 
@@ -215,34 +217,51 @@ def parse_automation_status(final_message: str) -> str | None:
 
 def parse_commit_packet(final_message: str) -> CommitPacket | None:
     """Extract a commit message and explicit file list from a READY final message."""
-    message_matches = re.findall(
-        r"(?im)^AUTOMATION_COMMIT_MESSAGE:\s*(.+?)\s*$",
-        final_message,
-    )
-    if not message_matches:
-        return None
+    packets: list[CommitPacket] = []
+    lines = final_message.splitlines()
+    index = 0
 
-    files_match = re.search(
-        r"(?im)^AUTOMATION_COMMIT_FILES:[^\n]*\n"
-        r"(?P<files>(?:^[ \t]*-[ \t]+[^\n]+\n?)*)",
-        final_message,
-    )
-    if not files_match:
-        return None
-
-    files: list[str] = []
-    for line in files_match.group("files").splitlines():
-        stripped = line.strip()
-        if not stripped.startswith("- "):
+    while index < len(lines):
+        line = lines[index]
+        message_match = re.match(
+            r"(?i)^AUTOMATION_COMMIT_MESSAGE:\s*(.+?)\s*$",
+            line,
+        )
+        if message_match is None:
+            index += 1
             continue
-        path = stripped[2:].strip()
-        if path:
-            files.append(path)
 
-    if not files:
+        message = message_match.group(1).strip()
+        index += 1
+        while index < len(lines) and not re.match(
+            r"(?i)^AUTOMATION_COMMIT_(?:MESSAGE|FILES):",
+            lines[index],
+        ):
+            index += 1
+
+        if index >= len(lines) or not re.match(
+            r"(?i)^AUTOMATION_COMMIT_FILES:",
+            lines[index],
+        ):
+            continue
+
+        index += 1
+        files: list[str] = []
+        while index < len(lines):
+            stripped = lines[index].strip()
+            if not stripped.startswith("- "):
+                break
+            path = stripped[2:].strip()
+            if path:
+                files.append(path)
+            index += 1
+
+        if message and files:
+            packets.append(CommitPacket(message=message, files=files))
+
+    if not packets:
         return None
-
-    return CommitPacket(message=message_matches[-1].strip(), files=files)
+    return packets[-1]
 
 
 def git_status_short() -> str:
@@ -413,6 +432,7 @@ def run_loop(args: argparse.Namespace) -> int:
     log_dir = _resolve_log_dir(args.log_dir)
     color_enabled = _should_color(args.color)
     max_passes = 1 if args.once else args.max_passes
+    batch_size = getattr(args, "batch_size", _DEFAULT_BATCH_SIZE)
     log_dir.mkdir(parents=True, exist_ok=True)
 
     for pass_number in range(1, max_passes + 1):
@@ -432,6 +452,10 @@ def run_loop(args: argparse.Namespace) -> int:
 
         print(f"\n=== Codex MAID pass {pass_number}/{max_passes} ===")
         print(f"Remaining draft child manifests: {len(drafts)}")
+        selected_drafts = drafts[:batch_size]
+        print(f"Selected draft manifests this pass: {len(selected_drafts)}")
+        for draft in selected_drafts:
+            print(f"  - {_rel(draft)}")
 
         implement_jsonl, implement_stderr, implement_final = _pass_paths(
             log_dir,
@@ -442,6 +466,7 @@ def run_loop(args: argparse.Namespace) -> int:
             build_implementation_command(
                 codex=args.codex,
                 final_message_path=implement_final,
+                selected_drafts=selected_drafts,
                 model=args.model,
                 reasoning_effort=args.reasoning_effort,
             ),
@@ -470,6 +495,28 @@ def run_loop(args: argparse.Namespace) -> int:
                 "Implementation pass is READY but did not include a valid AUTOMATION_COMMIT_MESSAGE and AUTOMATION_COMMIT_FILES packet.",
                 file=sys.stderr,
             )
+            return 1
+        post_run_status = git_status_short()
+        commit_packet = _include_matching_promoted_draft_deletions(
+            commit_packet,
+            post_run_status,
+        )
+        unselected_paths = _unselected_draft_scope_paths(
+            commit_packet,
+            selected_drafts,
+            post_run_status,
+        )
+        if unselected_paths:
+            print(
+                "READY packet exceeded the selected draft manifest scope; refusing to commit.",
+                file=sys.stderr,
+            )
+            print("Selected draft manifest(s):", file=sys.stderr)
+            for draft in selected_drafts:
+                print(f"  - {_rel(draft)}", file=sys.stderr)
+            print("Unselected promoted/deleted draft path(s):", file=sys.stderr)
+            for path in unselected_paths:
+                print(f"  - {path}", file=sys.stderr)
             return 1
 
         if getattr(args, "auto_commit", False):
@@ -535,6 +582,15 @@ Each READY pass uses typed commit approval unless `--auto-commit` is passed.
         action="store_true",
         help="Commit each READY packet without prompting for interactive approval",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=_DEFAULT_BATCH_SIZE,
+        help=(
+            "Number of sorted draft manifests to allow in one agent pass "
+            f"(default: {_DEFAULT_BATCH_SIZE})"
+        ),
+    )
     parser.add_argument("--log-dir", help="Directory for JSONL and final-message logs")
     parser.add_argument("--codex", default="codex", help="Codex executable path")
     parser.add_argument(
@@ -563,6 +619,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.max_passes <= 0:
         parser.error("--max-passes must be positive")
+    if args.batch_size <= 0:
+        parser.error("--batch-size must be positive")
     return run_loop(args)
 
 
@@ -581,6 +639,29 @@ def _automation_env() -> dict[str, str]:
     env = os.environ.copy()
     env.setdefault("UV_CACHE_DIR", str(_ROOT / ".codex-automation" / "uv-cache"))
     return env
+
+
+def _implementation_prompt(selected_drafts: list[Path]) -> str:
+    if selected_drafts:
+        selected_lines = "\n".join(f"- {_rel(draft)}" for draft in selected_drafts)
+    else:
+        selected_lines = "- <none>"
+
+    return (
+        _IMPLEMENTATION_PROMPT
+        + f"""
+
+Selected draft manifest(s) for this pass:
+{selected_lines}
+
+Selected-scope requirements:
+- Implement only the selected draft manifest(s) listed above in this pass.
+- Do not promote, edit, delete, or implement any other `manifests/drafts/*.manifest.yaml` draft manifest.
+- Do not create `manifests/<unselected>.manifest.yaml` files for unselected drafts.
+- If the selected draft cannot be implemented without a different draft first,
+  report BLOCKED or NEEDS_CHANGES instead of expanding scope.
+"""
+    )
 
 
 def _compact_json(value: Any) -> str:
@@ -642,6 +723,119 @@ def _is_repo_relative_file_path(path: str) -> bool:
     return path not in {"", "."} and ".." not in candidate.parts
 
 
+def _include_matching_promoted_draft_deletions(
+    packet: CommitPacket,
+    status_output: str,
+) -> CommitPacket:
+    files = list(packet.files)
+    file_set = set(files)
+    deleted_paths = _deleted_status_paths(status_output)
+
+    for path in packet.files:
+        promoted = Path(path)
+        if (
+            len(promoted.parts) != 2
+            or promoted.parts[0] != "manifests"
+            or not promoted.name.endswith(".manifest.yaml")
+        ):
+            continue
+        draft_path = f"manifests/drafts/{promoted.name}"
+        if draft_path in deleted_paths and draft_path not in file_set:
+            files.append(draft_path)
+            file_set.add(draft_path)
+
+    return CommitPacket(message=packet.message, files=files)
+
+
+def _unselected_draft_scope_paths(
+    packet: CommitPacket,
+    selected_drafts: list[Path],
+    status_output: str,
+) -> list[str]:
+    selected_names = {Path(draft).name for draft in selected_drafts}
+    status_by_path = _status_paths(status_output)
+    candidates = list(packet.files)
+    candidates.extend(path for path in status_by_path if path not in candidates)
+
+    unselected_paths: list[str] = []
+    for path in candidates:
+        if _is_unselected_draft_manifest_path(path, selected_names):
+            unselected_paths.append(path)
+            continue
+        if _is_unselected_promoted_manifest_path(
+            path,
+            selected_names,
+            status_by_path.get(path, set()),
+        ):
+            unselected_paths.append(path)
+
+    return unselected_paths
+
+
+def _is_unselected_draft_manifest_path(path: str, selected_names: set[str]) -> bool:
+    parts = Path(path).parts
+    return (
+        len(parts) == 3
+        and parts[0] == "manifests"
+        and parts[1] == "drafts"
+        and parts[2].endswith(".manifest.yaml")
+        and parts[2] not in selected_names
+    )
+
+
+def _is_unselected_promoted_manifest_path(
+    path: str,
+    selected_names: set[str],
+    statuses: set[str],
+) -> bool:
+    parts = Path(path).parts
+    return (
+        len(parts) == 2
+        and parts[0] == "manifests"
+        and parts[1].endswith(".manifest.yaml")
+        and parts[1] not in selected_names
+        and _status_is_new_or_renamed(statuses)
+    )
+
+
+def _status_is_new_or_renamed(statuses: set[str]) -> bool:
+    return any(
+        status == "??" or "A" in status or "R" in status or "C" in status
+        for status in statuses
+    )
+
+
+def _deleted_status_paths(status_output: str) -> set[str]:
+    return {
+        path
+        for path, statuses in _status_paths(status_output).items()
+        if any(status in {" D", "D "} for status in statuses)
+    }
+
+
+def _status_paths(status_output: str) -> dict[str, set[str]]:
+    status_by_path: dict[str, set[str]] = {}
+    for line in status_output.splitlines():
+        if len(line) < 4:
+            continue
+        status = line[:2]
+        raw_path = line[3:].strip()
+        if not raw_path:
+            continue
+        for path in _split_status_path(status, raw_path):
+            status_by_path.setdefault(path, set()).add(status)
+    return status_by_path
+
+
+def _split_status_path(status: str, raw_path: str) -> list[str]:
+    if " -> " not in raw_path:
+        return [raw_path]
+    before, after = raw_path.split(" -> ", 1)
+    if "R" in status:
+        return [before.strip(), after.strip()]
+    return [after.strip()]
+
+
 def _read_final_message(path: Path) -> str:
     if not path.exists():
         return ""
@@ -681,12 +875,17 @@ def _dry_run(args: argparse.Namespace) -> int:
     status = git_status_short()
     log_dir = _resolve_log_dir(args.log_dir)
     implementation_final = log_dir / "pass-001-implement.final.md"
+    batch_size = getattr(args, "batch_size", _DEFAULT_BATCH_SIZE)
+    selected_drafts = drafts[:batch_size]
 
     print(f"Draft child manifests: {len(drafts)}")
     for draft in drafts[:10]:
         print(f"  - {_rel(draft)}")
     if len(drafts) > 10:
         print(f"  ... {len(drafts) - 10} more")
+    print(f"Selected draft manifests this pass: {len(selected_drafts)}")
+    for draft in selected_drafts:
+        print(f"  - {_rel(draft)}")
     print(f"Worktree dirty: {'yes' if _is_worktree_dirty(status) else 'no'}")
     print("Implementation command:")
     print("Model: " + args.model)
@@ -705,6 +904,7 @@ def _dry_run(args: argparse.Namespace) -> int:
             build_implementation_command(
                 codex=args.codex,
                 final_message_path=implementation_final,
+                selected_drafts=selected_drafts,
                 model=args.model,
                 reasoning_effort=args.reasoning_effort,
             )

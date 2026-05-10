@@ -1,0 +1,138 @@
+schema: "2"
+goal: "Constrain Codex and Claude MAID loop passes to explicitly selected draft manifests"
+type: fix
+created: "2026-05-10"
+description: |
+  Harden both MAID draft loop scripts so each fresh agent pass receives an
+  explicit selected draft manifest list and cannot silently promote additional
+  draft manifests in the same READY packet. By default the selected list is the
+  single next sorted child draft. Operators may opt into larger explicit
+  batches with `--batch-size`, but `--once` should no longer mean "let the
+  agent finish every remaining draft in one session."
+
+  Rationale: the outer loop owns pass granularity. The model can still do the
+  manifest-scoped implementation and review work, but the script must make the
+  selected draft scope observable in the prompt and enforce that scope before
+  commit approval or auto-commit.
+temptations:
+  - risk: "Do not rely only on prompt wording to keep models from implementing every remaining draft."
+    instead: "Validate the READY commit packet and post-run git status for promoted or deleted draft manifest paths outside the selected batch."
+  - risk: "Do not make batch behavior implicit in `--once`."
+    instead: "Keep `--once` as one agent session and add `--batch-size` as the explicit way to allow more than one draft per session."
+  - risk: "Do not reject legitimate edits to existing active manifests just because they are manifests."
+    instead: "Reject unselected draft deletions and unselected newly promoted active manifest files; allow ordinary modifications to already active manifests."
+  - risk: "Do not leave the repo skills ambiguous after hardening the scripts."
+    instead: "Update both Codex and Claude skill shadows to tell loop-invoked agents to implement only the automation-selected draft manifests."
+files:
+  edit:
+    - path: tools/codex_maid_loop.py
+      artifacts:
+        - kind: function
+          name: build_implementation_command
+          args:
+            - name: codex
+              type: str
+            - name: final_message_path
+              type: Path
+            - name: selected_drafts
+              type: list[Path]
+            - name: model
+              type: str
+            - name: reasoning_effort
+              type: str
+          returns: list[str]
+          description: "Build a fresh Codex command whose prompt names the selected draft manifest batch for this pass"
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Select at most batch_size draft manifests per pass, reject READY output that promotes unselected drafts, and then commit only approved packets"
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Expose --batch-size as the explicit multi-draft-per-pass opt-in"
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: build_implementation_command
+          args:
+            - name: claude
+              type: str
+            - name: selected_drafts
+              type: list[Path]
+            - name: model
+              type: str
+            - name: effort
+              type: str
+            - name: permission_mode
+              type: str
+          returns: list[str]
+          description: "Build a fresh Claude Code command whose prompt names the selected draft manifest batch for this pass"
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Select at most batch_size draft manifests per pass, reject READY output that promotes unselected drafts, and then commit only approved packets"
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Expose --batch-size as the explicit multi-draft-per-pass opt-in"
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_runner_draft_implement_skill_guidance
+          of: maid-runner draft implement skill
+          type: markdown
+          description: "Codex skill guidance explicitly limiting loop-invoked runs to the selected draft manifests listed by automation"
+    - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: maid_runner_draft_implement_skill_guidance
+          of: maid-runner Claude draft implement skill
+          type: markdown
+          description: "Claude Code skill guidance explicitly limiting loop-invoked runs to the selected draft manifests listed by automation"
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_build_implementation_command_scopes_prompt_to_selected_draft
+        - kind: test_function
+          name: test_parse_commit_packet_uses_last_complete_packet
+        - kind: test_function
+          name: test_ready_pass_rejects_unselected_draft_promotions
+        - kind: test_function
+          name: test_ready_pass_rejects_copy_status_unselected_promotions
+        - kind: test_function
+          name: test_ready_pass_rejects_rename_status_unselected_promotion_source
+        - kind: test_function
+          name: test_parser_documents_explicit_batch_size
+        - kind: test_function
+          name: test_draft_implement_skill_requires_selected_scope_guidance
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_build_implementation_command_scopes_prompt_to_selected_draft
+        - kind: test_function
+          name: test_parse_commit_packet_uses_last_complete_packet
+        - kind: test_function
+          name: test_ready_pass_rejects_unselected_draft_promotions
+        - kind: test_function
+          name: test_ready_pass_rejects_copy_status_unselected_promotions
+        - kind: test_function
+          name: test_ready_pass_rejects_rename_status_unselected_promotion_source
+        - kind: test_function
+          name: test_parser_documents_explicit_batch_size
+        - kind: test_function
+          name: test_claude_draft_implement_skill_requires_selected_scope_guidance
+  read:
+    - manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
+    - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+    - manifests/021-01-claude-loop-promoted-draft-deletion.manifest.yaml
+    - manifests/022-01-claude-loop-task-event-rendering.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py

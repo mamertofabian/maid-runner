@@ -28,12 +28,22 @@ general MAID skills:
 
 ## Start
 
-1. Pick the next implementable child draft from
+1. If the automation prompt lists selected draft manifest(s), treat that list
+   as authoritative. Otherwise pick the next implementable child draft from
    `manifests/drafts/*.manifest.yaml`; ignore `*.epic.yaml`.
 2. Read the draft manifest, its declared files, and its behavioral tests.
 3. Run the draft's focused validation command before editing and confirm the
    red phase is meaningful.
 4. Restate the manifest `temptations` before editing.
+
+## Automation-Selected Scope
+
+When invoked by `tools/claude_maid_loop.py`, implement only the
+automation-selected draft manifest(s) listed in the prompt for that pass.
+Do not promote unselected draft manifests, delete unselected draft files, or
+implement future drafts early. If the selected draft cannot be completed
+without first implementing a different draft, stop with BLOCKED or
+NEEDS_CHANGES instead of broadening scope.
 
 ## Promotion Procedure
 

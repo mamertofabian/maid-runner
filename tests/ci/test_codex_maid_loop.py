@@ -30,6 +30,7 @@ class TestCodexMaidLoopCommand(unittest.TestCase):
         command = codex_maid_loop.build_implementation_command(
             codex="codex",
             final_message_path=final_path,
+            selected_drafts=[Path("manifests/drafts/017-01-example.manifest.yaml")],
         )
 
         self.assertEqual(
@@ -60,6 +61,27 @@ class TestCodexMaidLoopCommand(unittest.TestCase):
         self.assertIn("AUTOMATION_COMMIT_MESSAGE", command[-1])
         self.assertIn("fork_context=false", command[-1])
         self.assertIn("close_agent", command[-1])
+
+    def test_build_implementation_command_scopes_prompt_to_selected_draft(
+        self,
+    ) -> None:
+        final_path = Path("/tmp/final.md")
+        selected_draft = Path(
+            "manifests/drafts/017-03-preserve-third-party-package-boundary.manifest.yaml"
+        )
+
+        command = codex_maid_loop.build_implementation_command(
+            codex="codex",
+            final_message_path=final_path,
+            selected_drafts=[selected_draft],
+        )
+
+        self.assertIn("Selected draft manifest(s) for this pass:", command[-1])
+        self.assertIn(selected_draft.as_posix(), command[-1])
+        self.assertIn("Implement only the selected draft manifest(s)", command[-1])
+        self.assertIn(
+            "Do not promote, edit, delete, or implement any other", command[-1]
+        )
 
 
 class TestCodexMaidLoopRenderer(unittest.TestCase):
@@ -157,6 +179,32 @@ class TestCodexMaidLoopRenderer(unittest.TestCase):
         self.assertIsNotNone(packet)
         assert packet is not None
         self.assertEqual(["tools/codex_maid_loop.py"], packet.files)
+
+    def test_parse_commit_packet_uses_last_complete_packet(self) -> None:
+        packet = codex_maid_loop.parse_commit_packet(
+            "AUTOMATION_COMMIT_MESSAGE: test: selected draft\n"
+            "AUTOMATION_COMMIT_FILES:\n"
+            "- manifests/017-01-selected.manifest.yaml\n"
+            "- manifests/drafts/017-01-selected.manifest.yaml\n"
+            "AUTOMATION_STATUS: READY\n"
+            "\n"
+            "AUTOMATION_COMMIT_MESSAGE: feat: expanded scope\n"
+            "AUTOMATION_COMMIT_FILES:\n"
+            "- manifests/017-02-unselected.manifest.yaml\n"
+            "- manifests/drafts/017-02-unselected.manifest.yaml\n"
+            "AUTOMATION_STATUS: READY\n"
+        )
+
+        self.assertIsNotNone(packet)
+        assert packet is not None
+        self.assertEqual("feat: expanded scope", packet.message)
+        self.assertEqual(
+            [
+                "manifests/017-02-unselected.manifest.yaml",
+                "manifests/drafts/017-02-unselected.manifest.yaml",
+            ],
+            packet.files,
+        )
 
 
 class TestCodexMaidLoopRun(unittest.TestCase):
@@ -372,6 +420,212 @@ class TestCodexMaidLoopRun(unittest.TestCase):
         self.assertEqual(0, code)
         commit.assert_called_once()
 
+    def test_ready_pass_rejects_unselected_draft_promotions(self) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            codex="codex",
+            color="never",
+            model="gpt-5.5",
+            reasoning_effort="medium",
+            auto_commit=True,
+            batch_size=1,
+        )
+        result = codex_maid_loop.CodexRunResult(
+            args=["codex"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: feat: implement too much\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- manifests/017-01-selected.manifest.yaml\n"
+                "- manifests/017-02-unselected.manifest.yaml\n"
+                "- manifests/drafts/017-02-unselected.manifest.yaml\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".codex-automation/run.jsonl"),
+            stderr_path=Path(".codex-automation/run.stderr.log"),
+            final_message_path=Path(".codex-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(
+                codex_maid_loop,
+                "git_status_short",
+                side_effect=[
+                    "",
+                    "?? manifests/017-01-selected.manifest.yaml\n"
+                    " D manifests/drafts/017-01-selected.manifest.yaml\n"
+                    "?? manifests/017-02-unselected.manifest.yaml\n"
+                    " D manifests/drafts/017-02-unselected.manifest.yaml\n",
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "find_implementable_drafts",
+                return_value=[
+                    Path("manifests/drafts/017-01-selected.manifest.yaml"),
+                    Path("manifests/drafts/017-02-unselected.manifest.yaml"),
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "run_codex_json_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "commit_ready_changes",
+                side_effect=AssertionError(
+                    "unselected draft promotion must block commit"
+                ),
+            ),
+        ):
+            args.log_dir = temp_dir
+            code = codex_maid_loop.run_loop(args)
+
+        self.assertEqual(1, code)
+
+    def test_ready_pass_rejects_copy_status_unselected_promotions(self) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            codex="codex",
+            color="never",
+            model="gpt-5.5",
+            reasoning_effort="medium",
+            auto_commit=True,
+            batch_size=1,
+        )
+        result = codex_maid_loop.CodexRunResult(
+            args=["codex"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: test: implement selected draft\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- manifests/017-01-selected.manifest.yaml\n"
+                "- manifests/drafts/017-01-selected.manifest.yaml\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".codex-automation/run.jsonl"),
+            stderr_path=Path(".codex-automation/run.stderr.log"),
+            final_message_path=Path(".codex-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(
+                codex_maid_loop,
+                "git_status_short",
+                side_effect=[
+                    "",
+                    "C  manifests/000-source.manifest.yaml -> "
+                    "manifests/017-02-unselected.manifest.yaml\n",
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "find_implementable_drafts",
+                return_value=[
+                    Path("manifests/drafts/017-01-selected.manifest.yaml"),
+                    Path("manifests/drafts/017-02-unselected.manifest.yaml"),
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "run_codex_json_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "commit_ready_changes",
+                side_effect=AssertionError(
+                    "copy-status unselected promotion must block commit"
+                ),
+            ),
+        ):
+            args.log_dir = temp_dir
+            code = codex_maid_loop.run_loop(args)
+
+        self.assertEqual(1, code)
+
+    def test_ready_pass_rejects_rename_status_unselected_promotion_source(
+        self,
+    ) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            codex="codex",
+            color="never",
+            model="gpt-5.5",
+            reasoning_effort="medium",
+            auto_commit=True,
+            batch_size=1,
+        )
+        result = codex_maid_loop.CodexRunResult(
+            args=["codex"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: test: implement selected draft\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- manifests/017-01-selected.manifest.yaml\n"
+                "- manifests/drafts/017-01-selected.manifest.yaml\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".codex-automation/run.jsonl"),
+            stderr_path=Path(".codex-automation/run.stderr.log"),
+            final_message_path=Path(".codex-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(
+                codex_maid_loop,
+                "git_status_short",
+                side_effect=[
+                    "",
+                    "R  manifests/017-02-unselected.manifest.yaml -> "
+                    "manifests/017-01-selected.manifest.yaml\n",
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "find_implementable_drafts",
+                return_value=[
+                    Path("manifests/drafts/017-01-selected.manifest.yaml"),
+                    Path("manifests/drafts/017-02-unselected.manifest.yaml"),
+                ],
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "run_codex_json_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                codex_maid_loop,
+                "commit_ready_changes",
+                side_effect=AssertionError(
+                    "rename-source unselected promotion must block commit"
+                ),
+            ),
+        ):
+            args.log_dir = temp_dir
+            code = codex_maid_loop.run_loop(args)
+
+        self.assertEqual(1, code)
+
     def test_stage_commit_packet_files_rejects_directories_and_unsafe_paths(
         self,
     ) -> None:
@@ -458,6 +712,14 @@ class TestCodexMaidLoopRun(unittest.TestCase):
         self.assertIn("--auto-commit", help_text)
         self.assertIn("without prompting", help_text)
 
+    def test_parser_documents_explicit_batch_size(self) -> None:
+        parser = codex_maid_loop.build_parser()
+        help_text = parser.format_help()
+
+        self.assertIn("--batch-size", help_text)
+        self.assertEqual(1, parser.parse_args([]).batch_size)
+        self.assertEqual(2, parser.parse_args(["--batch-size", "2"]).batch_size)
+
     def test_main_accepts_auto_commit_flag(self) -> None:
         with mock.patch.object(codex_maid_loop, "run_loop", return_value=0) as run_loop:
             code = codex_maid_loop.main(["--once", "--auto-commit", "--color", "never"])
@@ -501,6 +763,19 @@ class TestCodexMaidLoopRepoWiring(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         for expected_text in maid_runner_draft_implement_skill_guidance:
+            self.assertIn(expected_text, skill)
+
+    def test_draft_implement_skill_requires_selected_scope_guidance(self) -> None:
+        selected_scope_guidance = [
+            "automation-selected draft manifest",
+            "Do not promote unselected draft manifests",
+        ]
+        skill = (
+            Path(__file__).resolve().parents[2]
+            / ".codex/skills/maid-runner-draft-implement/SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        for expected_text in selected_scope_guidance:
             self.assertIn(expected_text, skill)
 
 
