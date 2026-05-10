@@ -202,6 +202,29 @@ class TestNamedImportRecordsSource:
         assert card_ref is not None
         assert card_ref.import_source == "packages/ui/src/features/card"
 
+    def test_direct_dependency_import_records_package_source_with_compiler_available(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*"]}'
+        )
+        # Direct dependency: real directory in node_modules, no workspace symlink
+        pkg_dir = tmp_path / "node_modules" / "@scope" / "ui"
+        pkg_dir.mkdir(parents=True)
+        (pkg_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./Button": "./src/Button.js"}}'
+        )
+        source = (
+            "import { Button } from '@scope/ui/Button';\n"
+            "it('uses Button', () => { Button(); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, tmp_path / "src" / "Button.test.ts"
+        )
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "@scope/ui/Button"
+
 
 class TestDefaultImportRecordsSource:
     def test_default_import_records_source_module(
@@ -710,6 +733,45 @@ class TestIdentityRejectsCrossModuleCollision:
         )
         assert match_artifact_to_references(
             artifact,
+            result.artifacts,
+            tmp_path,
+            reexport_resolver=validator.resolve_reexport,
+        )
+
+    def test_direct_dependency_reexport_does_not_match_project_local_artifact(
+        self, validator: TypeScriptValidator, tmp_path: Path
+    ) -> None:
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Node10"}, "include": ["src/**/*"]}'
+        )
+        # Direct dependency (real node_modules dir, no workspace symlink)
+        pkg_dir = tmp_path / "node_modules" / "@scope" / "ui"
+        pkg_dir.mkdir(parents=True)
+        (pkg_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "types": "./index.d.ts"}'
+        )
+        (pkg_dir / "index.d.ts").write_text("export declare function Button(): void;\n")
+        barrel = tmp_path / "src" / "components"
+        barrel.mkdir(parents=True)
+        (barrel / "index.ts").write_text("export { Button } from '@scope/ui';\n")
+
+        source = (
+            "import { Button } from './components';\n"
+            "it('uses Button', () => { Button(); });\n"
+        )
+        result = validator.collect_behavioral_artifacts(source, "src/test_x.ts")
+        button = _ref(result.artifacts, "Button")
+        assert button is not None
+        assert button.import_source == "src/components"
+
+        # A project-local artifact must not match through a barrel that chains to a direct dep
+        local_button = FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="Button",
+            module_path="src/local/Button",
+        )
+        assert not match_artifact_to_references(
+            local_button,
             result.artifacts,
             tmp_path,
             reexport_resolver=validator.resolve_reexport,

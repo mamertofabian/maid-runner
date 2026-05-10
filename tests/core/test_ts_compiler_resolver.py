@@ -345,6 +345,70 @@ def test_compiler_helpers_return_none_when_node_is_unavailable(
     assert resolve_reexport_with_compiler("src/components", "Button", tmp_path) is None
 
 
+def test_compiler_import_resolution_rejects_node_modules_dependency_source(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "CommonJS",
+                "moduleResolution": "Node10",
+            },
+            "include": ["src/**/*"],
+        },
+    )
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "App.ts").write_text(
+        "import { something } from '@scope/pkg';\nsomething();\n"
+    )
+    pkg_dir = tmp_path / "node_modules" / "@scope" / "pkg"
+    pkg_dir.mkdir(parents=True)
+    _write_json(
+        pkg_dir / "package.json",
+        {"name": "@scope/pkg", "main": "./index.js", "types": "./index.d.ts"},
+    )
+    (pkg_dir / "index.d.ts").write_text("export declare function something(): void;\n")
+    (pkg_dir / "index.js").write_text("exports.something = function() {};\n")
+
+    # TypeScript resolves the import to node_modules — bridge rejects non-project-local source
+    assert resolve_import_with_compiler("@scope/pkg", "src/App", tmp_path) is None
+
+
+def test_compiler_reexport_resolution_rejects_node_modules_dependency_source(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    _write_json(
+        tmp_path / "tsconfig.json",
+        {
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "CommonJS",
+                "moduleResolution": "Node10",
+            },
+            "include": ["src/**/*"],
+        },
+    )
+    barrel = tmp_path / "src" / "barrel"
+    barrel.mkdir(parents=True)
+    (barrel / "index.ts").write_text("export { Button } from '@scope/pkg';\n")
+    pkg_dir = tmp_path / "node_modules" / "@scope" / "pkg"
+    pkg_dir.mkdir(parents=True)
+    _write_json(
+        pkg_dir / "package.json",
+        {"name": "@scope/pkg", "main": "./index.js", "types": "./index.d.ts"},
+    )
+    (pkg_dir / "index.d.ts").write_text("export declare function Button(): void;\n")
+    (pkg_dir / "index.js").write_text("exports.Button = function() {};\n")
+
+    # TypeScript traces the re-export to node_modules — bridge rejects non-project-local source
+    assert resolve_reexport_with_compiler("src/barrel", "Button", tmp_path) is None
+
+
 def test_compiler_resolution_packaging_contract_declares_runtime_assets() -> None:
     typescript = "typescript"
     lockfileVersion = 3

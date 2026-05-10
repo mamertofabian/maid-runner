@@ -565,6 +565,29 @@ class TestResolveTsImport:
             == "packages/ui/src/features/card"
         )
 
+    def test_direct_dependency_import_remains_package_specifier_with_compiler_available(
+        self, tmp_path: Path
+    ) -> None:
+        from maid_runner.core.ts_module_paths import resolve_ts_import
+
+        (tmp_path / "tsconfig.json").write_text(
+            '{"compilerOptions": {"moduleResolution": "Bundler", "module": "ESNext", "baseUrl": "."}, "include": ["src/**/*"]}'
+        )
+        # Direct dependency: real directory in node_modules, no workspace symlink
+        pkg_dir = tmp_path / "node_modules" / "@scope" / "ui"
+        pkg_dir.mkdir(parents=True)
+        (pkg_dir / "package.json").write_text(
+            '{"name": "@scope/ui", "exports": {"./Button": "./src/Button.js"}}'
+        )
+        button = pkg_dir / "src" / "Button.js"
+        button.parent.mkdir(parents=True)
+        button.write_text("exports.Button = function() {};\n")
+
+        assert (
+            resolve_ts_import("@scope/ui/Button", "src/App.test", tmp_path)
+            == "@scope/ui/Button"
+        )
+
 
 # ----------------------------------------------------------------------------
 # resolve_ts_reexport (one-level barrel)
@@ -769,7 +792,7 @@ class TestResolveTsReexport:
         )
 
         (src / "star-chain.ts").write_text(
-            "export * from './icons';\n" "export * from './components/nested/Button';\n"
+            "export * from './icons';\nexport * from './components/nested/Button';\n"
         )
         assert ts_module_paths.resolve_ts_reexport(
             "src/star-chain", "Button", tmp_path
@@ -804,7 +827,7 @@ class TestResolveTsReexport:
 
         (src / "leaf.ts").write_text("export class Foo {}\n")
         (src / "middle.ts").write_text(
-            "import { Foo } from './leaf';\n" "export { Foo };\n"
+            "import { Foo } from './leaf';\nexport { Foo };\n"
         )
         (src / "imported-binding.ts").write_text("export { Foo } from './middle';\n")
         (src / "star-imported-binding.ts").write_text("export * from './middle';\n")
