@@ -12,6 +12,7 @@ from maid_runner.core._type_compare import types_match
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.identity import match_artifact_to_references
 from maid_runner.core.module_paths import file_to_module_path
+from maid_runner.core.ts_module_paths import resolve_ts_import
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
@@ -741,7 +742,9 @@ class ValidationEngine:
 
             # Import verification: check required imports exist
             if fs.imports:
-                import_errors = _check_required_imports(source, fs.path, fs.imports)
+                import_errors = _check_required_imports(
+                    source, fs.path, fs.imports, self._project_root
+                )
                 errors.extend(import_errors)
 
         # Guard 3: Validate test_function artifact names exist in test files
@@ -1282,7 +1285,10 @@ def _python_func_has_assertion(node) -> bool:
 
 
 def _check_required_imports(
-    source: str, file_path: str, required_imports: tuple[str, ...]
+    source: str,
+    file_path: str,
+    required_imports: tuple[str, ...],
+    project_root: Optional[Path] = None,
 ) -> list[ValidationError]:
     """Check that required import modules/symbols appear in the source file."""
     import ast as _ast
@@ -1324,6 +1330,7 @@ def _check_required_imports(
         # Also strip known JS/TS extensions for extensionless matching.
         file_dir = posixpath.dirname(file_path)
         normalized: set[str] = set()
+        non_relative_raw: list[str] = []
         for imp in list(found_imports):
             if imp.startswith("."):
                 resolved = posixpath.normpath(posixpath.join(file_dir, imp))
@@ -1343,7 +1350,25 @@ def _check_required_imports(
                     if imp.endswith(ext):
                         normalized.add(imp[: -len(ext)])
                         break
+                non_relative_raw.append(imp)
         found_imports |= normalized
+
+        # Resolve non-relative specifiers through tsconfig paths and compiler.
+        # Relative imports are already handled above; skip them to stay on the
+        # fast parser-backed path. Only process module-path-shaped specifiers
+        # (containing "/" or starting with "@") — simple identifiers are import
+        # bindings already present in found_imports and would never resolve to
+        # a different module name. Third-party specifiers pass through
+        # resolve_ts_import unchanged, so only aliases that actually map to a
+        # project-local module add new entries.
+        if project_root is not None and non_relative_raw:
+            importer_module = posixpath.splitext(file_path.replace("\\", "/"))[0]
+            for imp in non_relative_raw:
+                if "/" not in imp and not imp.startswith("@"):
+                    continue
+                resolved = resolve_ts_import(imp, importer_module, project_root)
+                if resolved != imp:
+                    found_imports.add(resolved)
 
     # Check each required import
     for req in required_imports:
