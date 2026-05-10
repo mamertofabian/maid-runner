@@ -141,6 +141,38 @@ class TestGenerateSnapshot:
 
         assert store.type_parameters == ("T extends Item = Item",)
 
+    def test_typescript_snapshot_omits_decorator_metadata_until_contract_evolves(
+        self, tmp_path
+    ):
+        """Snapshot collects decorated class and method by identity; FoundArtifact carries no decorator metadata."""
+        src = tmp_path / "src" / "service.ts"
+        src.parent.mkdir(parents=True)
+        src.write_text(
+            "@Injectable()\n"
+            "export class UserService {\n"
+            "  @Get('/users')\n"
+            "  getUsers(): Promise<User[]> {}\n"
+            "}\n"
+        )
+
+        m = generate_snapshot(str(src), project_root=str(tmp_path))
+        fs = m.files_snapshot[0]
+        artifact_names = {a.name for a in fs.artifacts}
+
+        service = next(a for a in fs.artifacts if a.name == "UserService")
+        get_users = next(a for a in fs.artifacts if a.name == "getUsers")
+
+        assert service.kind.value == "class"
+        assert get_users.of == "UserService"
+
+        # FoundArtifact has no decorator metadata field
+        assert not hasattr(service, "decorators")
+        assert not hasattr(get_users, "decorators")
+
+        # Decorator names are not promoted to artifacts
+        assert "Injectable" not in artifact_names
+        assert "Get" not in artifact_names
+
 
 # ---------------------------------------------------------------------------
 # parse error surfacing

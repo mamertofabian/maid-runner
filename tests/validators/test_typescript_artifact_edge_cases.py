@@ -459,3 +459,72 @@ def test_intersection_typed_const_function_return_preserves_full_annotation() ->
 
     assert fn.kind == ArtifactKind.FUNCTION
     assert fn.returns == "(() => string) & { meta: string }"
+
+
+def test_decorator_factory_preserves_class_and_method_identity() -> None:
+    source = """@Component({ selector: 'app-root' })
+export class AppComponent {
+  @HostListener('click', ['$event'])
+  onClick(event: MouseEvent): void {}
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/app.component.ts"
+    )
+
+    component = next(a for a in result.artifacts if a.name == "AppComponent")
+    onclick = next(a for a in result.artifacts if a.name == "onClick")
+
+    assert component.kind == ArtifactKind.CLASS
+    assert component.line == 2
+    assert onclick.kind == ArtifactKind.METHOD
+    assert onclick.of == "AppComponent"
+    assert [(arg.name, arg.type, arg.default) for arg in onclick.args] == [
+        ("event", "MouseEvent", None)
+    ]
+    assert onclick.returns == "void"
+    assert onclick.line == 4
+
+
+def test_property_decorator_does_not_create_decorator_artifact() -> None:
+    source = """class User {
+  @Column()
+  name: string;
+  @PrimaryKey()
+  id: number;
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/entities/user.ts"
+    )
+
+    artifact_names = {a.name for a in result.artifacts}
+
+    assert "User" in artifact_names
+    assert "name" in artifact_names
+    assert "id" in artifact_names
+    assert "Column" not in artifact_names
+    assert "PrimaryKey" not in artifact_names
+
+
+def test_parameter_decorator_preserves_method_signature() -> None:
+    source = """class AuthService {
+  login(
+    @Body() credentials: Credentials,
+    @Req() request: Request
+  ): Promise<Token> {}
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/auth.service.ts"
+    )
+
+    login = next(a for a in result.artifacts if a.name == "login")
+
+    assert login.kind == ArtifactKind.METHOD
+    assert login.of == "AuthService"
+    assert [(arg.name, arg.type, arg.default) for arg in login.args] == [
+        ("credentials", "Credentials", None),
+        ("request", "Request", None),
+    ]
+    assert login.returns == "Promise<Token>"
