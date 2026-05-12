@@ -170,6 +170,15 @@ The development process is broken down into distinct phases, characterized by tw
         - File extensions: `.ts`, `.tsx`, `.js`, `.jsx`
         - Artifact types: `class`, `function`, `interface`, `type`, `enum`, `namespace`, `attribute`
         - Features: Generics, decorators, JSX/TSX, async functions, arrow functions
+        - React support is TypeScript-backed: function components, typed const
+          components, custom hooks, provider functions, props interfaces/types,
+          common `memo`/`forwardRef` wrapper exports, Testing Library component
+          references, lazy `import()` calls, path aliases, and local CSS module
+          imports are validated through the TypeScript parser, import scanner,
+          and identity matcher
+        - React snapshot support tracks existing relative style and static asset
+          imports as read boundaries; CSS, SVG, images, fonts, and media are not
+          parsed as MAID artifacts
         - Angular support is TypeScript-backed: decorated classes, fields,
           methods, standalone imports, and lazy route `import()` calls are
           validated through the TypeScript parser and import scanner
@@ -182,6 +191,11 @@ The development process is broken down into distinct phases, characterized by tw
     `Output` are metadata, not public MAID artifacts. External templates and
     styles are tracked as files for review scope, but their contents are not
     parsed as Angular template or stylesheet artifacts.
+
+    React support does not use React runtime, DOM, React Native, Next.js,
+    Remix, Vite, webpack, or other bundler semantic analysis. JSX intrinsic
+    tags, JSX attribute names, React imports, Testing Library helpers, CSS, and
+    static assets are not public MAID implementation artifacts.
 
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 

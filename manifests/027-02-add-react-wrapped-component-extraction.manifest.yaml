@@ -65,7 +65,7 @@ files:
     - maid_runner/core/types.py
     - tests/validators/test_typescript.py
     - tests/validators/test_typescript_artifact_edge_cases.py
-    - manifests/drafts/027-01-characterize-react-typescript-artifacts.manifest.yaml
+    - manifests/027-01-characterize-react-typescript-artifacts.manifest.yaml
     - manifests/add-typescript-annotated-function-return-extraction.manifest.yaml
     - manifests/add-typescript-generic-type-parameter-storage.manifest.yaml
 validate:

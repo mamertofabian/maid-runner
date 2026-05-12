@@ -73,13 +73,14 @@ def generate_snapshot(
     slug = _snapshot_slug(rel_path)
 
     file_spec = FileSpec(path=rel_path, artifacts=specs, mode=FileMode.SNAPSHOT)
+    files_read = _source_companion_files(source, file_path, project_root)
 
     return Manifest(
         slug=slug,
         source_path="",
         goal=f"Snapshot of {rel_path}",
         validate_commands=_infer_validation_command(rel_path),
-        files_read=_angular_component_companion_files(source, file_path, project_root),
+        files_read=files_read,
         files_snapshot=(file_spec,),
         task_type=TaskType.SNAPSHOT,
         created=datetime.now(timezone.utc).isoformat(),
@@ -244,6 +245,17 @@ def _infer_validation_command(rel_path: str) -> tuple[tuple[str, ...], ...]:
     return (("pytest", "tests/", "-v"),)
 
 
+def _source_companion_files(source: str, file_path: Path, project_root: Path) -> tuple[str, ...]:
+    companions: list[str] = []
+    for path in (
+        *_angular_component_companion_files(source, file_path, project_root),
+        *_react_import_companion_files(source, file_path, project_root),
+    ):
+        if path not in companions:
+            companions.append(path)
+    return tuple(companions)
+
+
 def _angular_component_companion_files(
     source: str,
     file_path: Path,
@@ -268,6 +280,46 @@ def _angular_component_companion_files(
                 companions.append(posix_path)
 
     return tuple(companions)
+
+
+def _react_import_companion_files(
+    source: str,
+    file_path: Path,
+    project_root: Path,
+) -> tuple[str, ...]:
+    """Return existing local non-code imports referenced by TSX/JSX components."""
+    if file_path.suffix not in {".tsx", ".jsx"}:
+        return ()
+
+    companions: list[str] = []
+    for specifier in _js_ts_import_literals(source):
+        if not specifier.startswith(("./", "../")):
+            continue
+        companion_path = (file_path.parent / specifier).resolve()
+        if not companion_path.exists() or not companion_path.is_file():
+            continue
+        if companion_path.suffix in {".ts", ".tsx", ".js", ".jsx", ".mts", ".cts"}:
+            continue
+        try:
+            rel_path = companion_path.relative_to(project_root)
+        except ValueError:
+            continue
+        posix_path = rel_path.as_posix()
+        if posix_path not in companions:
+            companions.append(posix_path)
+    return tuple(companions)
+
+
+def _js_ts_import_literals(source: str) -> Iterable[str]:
+    patterns = (
+        re.compile(r"""\bimport\s+['"](?P<path>[^'"]+)['"]"""),
+        re.compile(
+            r"""\bimport\s+(?:type\s+)?[\s\S]+?\s+from\s+['"](?P<path>[^'"]+)['"]"""
+        ),
+    )
+    for pattern in patterns:
+        for match in pattern.finditer(source):
+            yield match.group("path")
 
 
 def _angular_component_metadata_blocks(source: str) -> Iterable[str]:

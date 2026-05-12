@@ -51,10 +51,10 @@ files:
           type: markdown
           description: "FAQ language that explains React support, wrapper extraction, Testing Library coverage, style/asset tracking, and current semantic limitations."
   read:
-    - manifests/drafts/027-01-characterize-react-typescript-artifacts.manifest.yaml
-    - manifests/drafts/027-02-add-react-wrapped-component-extraction.manifest.yaml
-    - manifests/drafts/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
-    - manifests/drafts/027-04-add-react-snapshot-companion-file-tracking.manifest.yaml
+    - manifests/027-01-characterize-react-typescript-artifacts.manifest.yaml
+    - manifests/027-02-add-react-wrapped-component-extraction.manifest.yaml
+    - manifests/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
+    - manifests/027-04-add-react-snapshot-companion-file-tracking.manifest.yaml
     - tests/validators/test_typescript_react.py
     - tests/core/test_validate_react.py
     - tests/core/test_snapshot_react.py

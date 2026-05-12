@@ -62,6 +62,6 @@ files:
     - maid_runner/validators/typescript.py
     - tests/core/test_snapshot.py
     - tests/core/test_validate_react.py
-    - manifests/drafts/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
+    - manifests/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
 validate:
   - uv run python -m pytest -q tests/core/test_snapshot_react.py

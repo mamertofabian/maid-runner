@@ -28,7 +28,7 @@ This transforms AI from a "Junior Developer" requiring reactive code review into
 | Language | Extensions | Parser | Key Features |
 |----------|------------|--------|--------------|
 | **Python** | `.py` | AST (built-in) | Classes, functions, methods, attributes, type hints, async/await, decorators |
-| **TypeScript/JS** | `.ts`, `.tsx`, `.js`, `.jsx` | tree-sitter | Classes, interfaces, type aliases, enums, namespaces, generics, JSX/TSX; Angular `.ts` files through TypeScript parsing |
+| **TypeScript/JS** | `.ts`, `.tsx`, `.js`, `.jsx` | tree-sitter | Classes, interfaces, type aliases, enums, namespaces, generics, JSX/TSX; React and Angular through TypeScript-backed parsing |
 | **Svelte** | `.svelte` | tree-sitter | Components, props, exports, script blocks, reactive statements |
 
 ## Quick Start
@@ -197,6 +197,28 @@ project-local required imports.
 `styleUrls` companion files in `files.read` when those files exist. Template
 HTML and CSS/SCSS contents are tracked as file boundaries, not parsed into
 Angular artifacts.
+
+### React TypeScript Boundary
+
+React `.tsx` and `.jsx` files are supported through `TypeScriptValidator`.
+MAID Runner collects ordinary TypeScript artifacts such as function
+components, typed const components, custom hooks, provider functions, props
+interfaces, and props type aliases. It also recognizes common inline wrapper
+exports using `memo`, `React.memo`, `forwardRef`, `React.forwardRef`, and
+anonymous default-exported arrow components as function artifacts.
+
+Required-import validation uses TypeScript import identity for React tests and
+components, including Testing Library test files, barrel imports,
+`React.lazy(() => import(...))`, path aliases from `tsconfig.json`, and local
+CSS module imports. Package imports such as `react`, `react-dom`, and
+`@testing-library/*` remain external package imports and do not satisfy
+project-local required imports.
+
+`maid snapshot` tracks existing relative style and static asset imports from
+React TSX/JSX files in `files.read`, including CSS modules, side-effect
+stylesheets, SVGs, and other non-code assets. MAID Runner does not parse CSS,
+assets, DOM behavior, React runtime semantics, React Native, Next.js, Remix,
+Vite, or bundler-specific behavior as MAID artifacts.
 
 ### Manifest Event Log
 

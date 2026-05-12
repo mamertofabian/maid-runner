@@ -434,6 +434,24 @@ def _collect_impl(
             )
         return
 
+    if ntype == "arrow_function" and _is_default_export_child(node):
+        args, returns = _extract_func_signature(node, source)
+        type_parameters = _extract_type_parameters(node, source)
+        is_async = any(c.type == "async" for c in node.children)
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="default",
+                args=args,
+                returns=returns,
+                type_parameters=type_parameters,
+                is_async=is_async,
+                is_stub=_is_stub_body_ts(node, source),
+                line=node.start_point[0] + 1,
+            )
+        )
+        return
+
     if ntype == "abstract_method_signature" and current_class:
         name_node = _child_by_type(node, "property_identifier")
         if name_node:
@@ -551,6 +569,26 @@ def _handle_variable_declarator(
                 line=node.start_point[0] + 1,
             )
         )
+    elif wrapped_value := _react_wrapped_component_value(node, source):
+        args, returns = _extract_func_signature(wrapped_value, source)
+        type_parameters = _extract_type_parameters(wrapped_value, source)
+        if not type_parameters:
+            type_parameters = _extract_type_parameters_from_annotation(node, source)
+        if not returns:
+            returns = _extract_type_annotation_return(node, source)
+        is_async = any(c.type == "async" for c in wrapped_value.children)
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name=name,
+                args=args,
+                returns=returns,
+                type_parameters=type_parameters,
+                is_async=is_async,
+                is_stub=_is_stub_body_ts(wrapped_value, source),
+                line=node.start_point[0] + 1,
+            )
+        )
     else:
         # It's a module-level variable/attribute - check it's not inside an object
         parent = node.parent
@@ -563,6 +601,59 @@ def _handle_variable_declarator(
                 line=node.start_point[0] + 1,
             )
         )
+
+
+def _react_wrapped_component_value(node, source: bytes):
+    call = None
+    for child in node.children:
+        if child.type == "call_expression":
+            call = child
+            break
+    if call is None or not _is_react_component_wrapper_call(call, source):
+        return None
+
+    arguments = _child_by_type(call, "arguments")
+    if arguments is None:
+        return None
+
+    for child in arguments.children:
+        if child.type in (
+            "arrow_function",
+            "function_expression",
+            "generator_function",
+        ):
+            return child
+        if child.type in ("(", ","):
+            continue
+        return None
+    return None
+
+
+def _is_react_component_wrapper_call(call, source: bytes) -> bool:
+    function_node = _call_function_node(call)
+    if function_node is None:
+        return False
+    name = _react_wrapper_name(function_node, source)
+    return name in {"memo", "forwardRef", "React.memo", "React.forwardRef"}
+
+
+def _react_wrapper_name(node, source: bytes) -> Optional[str]:
+    if node.type == "identifier":
+        return _text(node, source)
+    if node.type != "member_expression":
+        return None
+
+    object_node = None
+    property_name = None
+    for child in node.children:
+        if child.type == "identifier":
+            object_node = child
+        elif child.type == "property_identifier":
+            property_name = _text(child, source)
+
+    if object_node is None or property_name is None:
+        return None
+    return f"{_text(object_node, source)}.{property_name}"
 
 
 def _handle_class_field(
