@@ -13,6 +13,11 @@ from maid_runner.core._js_ts_imports import (
     collect_required_imports,
     import_may_satisfy_required,
 )
+from maid_runner.core._test_function_contracts import (
+    merged_test_function_behavior_requirements,
+    validate_test_function_behavior,
+    validate_test_function_names,
+)
 from maid_runner.core._validation_test_artifacts import (
     collect_test_artifacts,
     collection_errors_to_validation_errors,
@@ -45,7 +50,6 @@ from maid_runner.core.types import (
     ArtifactSpec,
     Manifest,
     TestFunctionDetails,
-    TestFunctionSetup,
     ValidationMode,
 )
 from maid_runner.validators.base import FoundArtifact
@@ -296,15 +300,17 @@ class ValidationEngine:
                         )
                     )
 
-        # Guard 3: Validate test_function artifact names exist in test files
-        test_func_errors = self._validate_test_function_names(
-            manifest, is_behavioral=True, chain=chain
+        errors.extend(
+            validate_test_function_names(
+                manifest, self._project_root, self._registry, chain
+            )
         )
-        errors.extend(test_func_errors)
 
-        # Validate behavioral alignment of test_function details
-        behavior_errors = self._validate_test_function_behavior(manifest, chain=chain)
-        errors.extend(behavior_errors)
+        errors.extend(
+            validate_test_function_behavior(
+                manifest, self._project_root, self._registry, chain
+            )
+        )
 
         if check_assertions:
             for tf_path in test_files:
@@ -374,80 +380,9 @@ class ValidationEngine:
         each file is merged across all active manifests so later manifests
         cannot silently drop historical test_function requirements.
         """
-        errors: list[ValidationError] = []
-
-        required: dict[str, dict[str, ArtifactSpec]] = {}
-        for fs in manifest.all_file_specs:
-            for artifact in fs.artifacts:
-                if artifact.kind != ArtifactKind.TEST_FUNCTION:
-                    continue
-                required.setdefault(fs.path, {}).setdefault(artifact.name, artifact)
-
-        if chain is not None:
-            paths = {fs.path for fs in manifest.all_file_specs}
-            for path in paths:
-                for artifact in chain.merged_artifacts_for(path):
-                    if artifact.kind != ArtifactKind.TEST_FUNCTION:
-                        continue
-                    required.setdefault(path, {}).setdefault(artifact.name, artifact)
-
-        for path, specs_by_name in required.items():
-            full_path = self._project_root / path
-            if not full_path.exists():
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.TEST_FILE_NOT_FOUND,
-                        message=f"Test file '{path}' not found",
-                        location=Location(file=path),
-                    )
-                )
-                continue
-
-            try:
-                source = full_path.read_text()
-            except OSError as exc:
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.FILE_READ_ERROR,
-                        message=f"Failed to read test file '{path}': {exc}",
-                        location=Location(file=path),
-                    )
-                )
-                continue
-
-            try:
-                validator = self._registry.get(path)
-            except UnsupportedLanguageError:
-                continue
-
-            collection = validator.collect_behavioral_artifacts(source, path)
-            if collection.errors:
-                errors.extend(
-                    collection_errors_to_validation_errors(collection.errors, path)
-                )
-                continue
-
-            found_names = {
-                a.name
-                for a in collection.artifacts
-                if a.kind == ArtifactKind.TEST_FUNCTION
-            }
-
-            for name in specs_by_name:
-                if name not in found_names:
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.TEST_FUNCTION_MISSING_IN_CODE,
-                            message=(
-                                f"Test function '{name}' declared in manifest "
-                                f"not found as a test declaration in {path}"
-                            ),
-                            location=Location(file=path),
-                            suggestion="Add the test function to the test file",
-                        )
-                    )
-
-        return errors
+        return validate_test_function_names(
+            manifest, self._project_root, self._registry, chain
+        )
 
     def _validate_test_function_behavior(
         self,
@@ -464,76 +399,9 @@ class ValidationEngine:
         named test. If the validator cannot locate a body, Guard 3 will
         already report the missing test declaration separately.
         """
-        errors: list[ValidationError] = []
-
-        required = _merged_test_function_behavior_requirements(manifest, chain)
-        for path, details_by_name in required.items():
-            if not details_by_name:
-                continue
-
-            full_path = self._project_root / path
-            if not full_path.exists():
-                continue
-
-            try:
-                source = full_path.read_text()
-            except OSError:
-                continue
-
-            try:
-                validator = self._registry.get(path)
-            except UnsupportedLanguageError:
-                continue
-
-            bodies = validator.get_test_function_bodies(source, path)
-
-            for name, details in details_by_name.items():
-                if details is None:
-                    continue
-
-                body = bodies.get(name)
-                if body is None:
-                    # No body available: either the language doesn't support
-                    # body extraction (falls back silently — never claim
-                    # spurious mismatches) or the test is missing. Guard 3
-                    # reports the missing test; nothing to add here.
-                    continue
-
-                for action in details.actions:
-                    if not isinstance(action, dict):
-                        continue
-                    if action.get("type") != "api_call":
-                        continue
-                    subject = action.get("subject", {})
-                    export = subject.get("export")
-                    if export and export not in body:
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH,
-                                message=(
-                                    f"Test function '{name}' declares api_call "
-                                    f"to '{export}' but it is not referenced in its body in {path}"
-                                ),
-                                severity=Severity.WARNING,
-                                location=Location(file=path),
-                            )
-                        )
-
-                    endpoint = action.get("endpoint")
-                    if endpoint and endpoint not in body:
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH,
-                                message=(
-                                    f"Test function '{name}' declares endpoint "
-                                    f"'{endpoint}' not found in its body in {path}"
-                                ),
-                                severity=Severity.WARNING,
-                                location=Location(file=path),
-                            )
-                        )
-
-        return errors
+        return validate_test_function_behavior(
+            manifest, self._project_root, self._registry, chain
+        )
 
     def _check_test_coverage(
         self,
@@ -789,11 +657,11 @@ class ValidationEngine:
                 )
                 errors.extend(import_errors)
 
-        # Guard 3: Validate test_function artifact names exist in test files
-        tf_errors = self._validate_test_function_names(
-            manifest, is_behavioral=False, chain=chain
+        errors.extend(
+            validate_test_function_names(
+                manifest, self._project_root, self._registry, chain
+            )
         )
-        errors.extend(tf_errors)
 
         # Test coverage: verify artifacts have tests
         test_coverage_errors = self._check_test_coverage(manifest)
@@ -878,33 +746,7 @@ def _merged_test_function_behavior_requirements(
     chain: Optional[ManifestChain],
 ) -> dict[str, dict[str, Optional[TestFunctionDetails]]]:
     """Merge behavioral test requirements across the active manifest chain."""
-    required: dict[str, dict[str, Optional[TestFunctionDetails]]] = {}
-    paths = {fs.path for fs in manifest.all_file_specs}
-
-    if chain is not None:
-        for path in paths:
-            for historical in chain.manifests_for_file(path):
-                fs = historical.file_spec_for(path)
-                if fs is None:
-                    continue
-                for artifact in fs.artifacts:
-                    if artifact.kind != ArtifactKind.TEST_FUNCTION:
-                        continue
-                    names = required.setdefault(path, {})
-                    names[artifact.name] = _merge_test_function_details(
-                        names.get(artifact.name), artifact.test_details
-                    )
-
-    for fs in manifest.all_file_specs:
-        for artifact in fs.artifacts:
-            if artifact.kind != ArtifactKind.TEST_FUNCTION:
-                continue
-            names = required.setdefault(fs.path, {})
-            names[artifact.name] = _merge_test_function_details(
-                names.get(artifact.name), artifact.test_details
-            )
-
-    return required
+    return merged_test_function_behavior_requirements(manifest, chain)
 
 
 def _merge_test_function_details(
@@ -912,25 +754,9 @@ def _merge_test_function_details(
     incoming: Optional[TestFunctionDetails],
 ) -> Optional[TestFunctionDetails]:
     """Preserve historical behavior metadata unless a newer manifest adds detail."""
-    if existing is None:
-        return incoming
-    if incoming is None:
-        return existing
+    from maid_runner.core._test_function_contracts import _merge_test_function_details
 
-    return TestFunctionDetails(
-        source_scenario=incoming.source_scenario or existing.source_scenario,
-        tags=_dedupe_preserve_order(existing.tags + incoming.tags),
-        setup=TestFunctionSetup(
-            auth_required=existing.setup.auth_required or incoming.setup.auth_required,
-            test_data={**existing.setup.test_data, **incoming.setup.test_data},
-            setup_actions=_dedupe_preserve_order(
-                existing.setup.setup_actions + incoming.setup.setup_actions
-            ),
-        ),
-        actions=_dedupe_preserve_order(existing.actions + incoming.actions),
-        expected={**existing.expected, **incoming.expected},
-        dependencies={**existing.dependencies, **incoming.dependencies},
-    )
+    return _merge_test_function_details(existing, incoming)
 
 
 def _dedupe_preserve_order(values):

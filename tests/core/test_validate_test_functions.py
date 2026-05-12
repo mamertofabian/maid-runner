@@ -1116,3 +1116,129 @@ it("test_api_call", () => {
                 print("Errors:", [(e.code.value, e.message) for e in result.errors])
                 print("Warnings:", [(e.code.value, e.message) for e in result.warnings])
             assert ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH in codes
+
+
+def test_test_function_must_exist_as_test_declaration_not_reference():
+    """A same-name reference still fails Guard 3 after contract extraction."""
+    from maid_runner.core.result import ErrorCode
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    manifest_yaml = yaml.dump(
+        {
+            "schema": "2",
+            "goal": "test",
+            "type": "feature",
+            "files": {
+                "edit": [
+                    {
+                        "path": "tests/test_contract.py",
+                        "artifacts": [
+                            {"kind": "test_function", "name": "test_missing"},
+                        ],
+                    }
+                ]
+            },
+            "validate": ["echo test"],
+        }
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        p = pathlib.Path(tmpdir)
+        test_file = p / "tests/test_contract.py"
+        test_file.parent.mkdir()
+        test_file.write_text("test_missing = None\n")
+        manifest_file = p / "contract.manifest.yaml"
+        manifest_file.write_text(manifest_yaml)
+
+        result = ValidationEngine(p).validate(
+            manifest_file,
+            mode=ValidationMode.BEHAVIORAL,
+        )
+
+    assert result.success is False
+    assert ErrorCode.TEST_FUNCTION_MISSING_IN_CODE in [e.code for e in result.errors]
+
+
+def test_test_function_behavior_matches_declared_api_call_body():
+    """Behavior metadata checks remain scoped to the named test body."""
+    from maid_runner.core.result import ErrorCode
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    manifest_yaml = yaml.dump(
+        {
+            "schema": "2",
+            "goal": "test",
+            "type": "feature",
+            "files": {
+                "edit": [
+                    {
+                        "path": "tests/api.test.ts",
+                        "artifacts": [
+                            {
+                                "kind": "test_function",
+                                "name": "test_login",
+                                "test_function_details": {
+                                    "actions": [
+                                        {
+                                            "type": "api_call",
+                                            "subject": {"export": "doLogin"},
+                                            "endpoint": "/api/v1/login",
+                                        }
+                                    ],
+                                },
+                            },
+                            {
+                                "kind": "test_function",
+                                "name": "test_logout",
+                                "test_function_details": {
+                                    "actions": [
+                                        {
+                                            "type": "api_call",
+                                            "subject": {"export": "doLogout"},
+                                            "endpoint": "/api/v1/logout",
+                                        }
+                                    ],
+                                },
+                            },
+                        ],
+                    }
+                ]
+            },
+            "validate": ["echo test"],
+        }
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        p = pathlib.Path(tmpdir)
+        test_file = p / "tests/api.test.ts"
+        test_file.parent.mkdir()
+        test_file.write_text(
+            'it("test_login", () => {\n'
+            '  doLogin("/api/v1/login");\n'
+            '  doLogout("/api/v1/logout");\n'
+            "});\n"
+            'it("test_logout", () => {\n'
+            "  expect(true).toBe(true);\n"
+            "});\n"
+        )
+        manifest_file = p / "contract.manifest.yaml"
+        manifest_file.write_text(manifest_yaml)
+
+        result = ValidationEngine(p).validate(
+            manifest_file,
+            mode=ValidationMode.BEHAVIORAL,
+        )
+
+    mismatches = [
+        warning.message
+        for warning in result.warnings
+        if warning.code == ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH
+    ]
+    assert any("test_logout" in message and "doLogout" in message for message in mismatches)
+    assert any(
+        "test_logout" in message and "/api/v1/logout" in message
+        for message in mismatches
+    )
+    assert not any("test_login" in message for message in mismatches)
