@@ -1,0 +1,132 @@
+schema: "2"
+goal: "Restore schema-only validation mode for maid validate after the v2 migration"
+type: fix
+created: "2026-05-12"
+metadata:
+  tags:
+    - cli
+    - validation
+    - schema
+    - v2-regression
+  priority: high
+description: |
+  Restore the pre-v2 `maid validate --mode schema` behavior that was lost when
+  validation modes were narrowed to behavioral and implementation. Schema mode
+  should validate manifest loading and JSON Schema conformance only. It must
+  not inspect source files, collect artifacts, require behavioral test files,
+  run implementation checks, or execute manifest validation commands.
+
+  Rationale: schema-only validation is useful when drafting or generating
+  manifests before behavioral tests and implementation files exist. The core
+  schema primitives still exist in `maid_runner.core.manifest`; this fix should
+  route the public CLI and validation engine back to those primitives without
+  introducing a second schema validator or a new public validation method.
+temptations:
+  - risk: "Do not simulate schema mode by running behavioral validation and ignoring E200/E201 errors."
+    instead: "Add a real ValidationMode.SCHEMA branch that only loads manifests and reports load/schema errors."
+  - risk: "Do not duplicate the JSON Schema rules in the CLI."
+    instead: "Reuse load_manifest and validate_manifest_schema through the core validation layer."
+  - risk: "Do not make schema mode depend on source files, validators, tests, or optional TypeScript/Svelte parser dependencies."
+    instead: "Assert schema mode succeeds for a valid manifest even when declared code and tests are absent."
+  - risk: "Do not include manifest-chain diagnostics in schema-only validation."
+    instead: "Assert individually schema-valid manifests pass schema mode even when they would have chain-level supersession diagnostics."
+  - risk: "Do not break the existing default implementation mode or behavioral mode parser choices."
+    instead: "Add schema as a third accepted mode while preserving implementation as the default."
+files:
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: class
+          name: ValidationMode
+        - kind: attribute
+          name: SCHEMA
+          of: ValidationMode
+          type: str
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+          returns: BatchValidationResult
+        - kind: function
+          name: validate
+          args:
+            - name: manifest_path
+              type: Union[str, Path]
+          returns: ValidationResult
+        - kind: function
+          name: validate_all
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/test_types.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_mode_values_include_schema
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_mode_schema
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_schema_mode_single_manifest_returns_0_for_valid_schema_without_source_files
+        - kind: test_function
+          name: test_schema_mode_single_manifest_returns_1_for_invalid_schema
+        - kind: test_function
+          name: test_schema_mode_all_manifests_reports_schema_load_errors
+    - path: tests/cli/test_howto_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_howto_commands_topic_mentions_schema_mode
+  create:
+    - path: tests/core/test_validate_schema_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_mode_accepts_schema
+        - kind: test_function
+          name: test_validation_engine_schema_mode_accepts_valid_manifest_without_source_or_tests
+        - kind: test_function
+          name: test_validation_engine_schema_mode_reports_schema_errors
+        - kind: test_function
+          name: test_validation_engine_schema_mode_all_reports_invalid_manifest_load_errors
+        - kind: test_function
+          name: test_validation_engine_schema_mode_all_ignores_chain_diagnostics_for_schema_valid_manifests
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - maid_runner/core/chain.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/_format.py
+    - tests/core/test_manifest.py
+    - tests/core/test_validate.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_main.py
+    - tests/cli/test_howto_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate_schema_mode.py tests/core/test_types.py tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_howto_cmd.py

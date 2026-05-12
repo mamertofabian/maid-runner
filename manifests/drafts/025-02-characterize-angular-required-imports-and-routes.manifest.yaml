@@ -1,0 +1,52 @@
+schema: "2"
+goal: "Characterize Angular standalone imports and lazy route imports in TypeScript required-import validation"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - angular
+    - typescript
+    - required-imports
+    - routes
+    - characterization
+  priority: medium
+description: |
+  Add behavioral validation coverage for Angular import patterns that should be
+  supported through the existing TypeScript import scanner: standalone
+  component static imports, route arrays with lazy dynamic import() calls, and
+  package imports from @angular/* that must not masquerade as project-local
+  required imports.
+
+  This is characterization-first hardening. The intended behavior is still
+  path/import based, not Angular framework semantic analysis. The tests should
+  exercise ValidationEngine through manifests so E320 behavior stays aligned
+  with real MAID usage.
+temptations:
+  - risk: "Do not special-case every Angular decorator or route object shape in required-import validation."
+    instead: "Use the existing TS/JS import collection paths and test Angular code as representative source text."
+  - risk: "Do not let @angular/core or @angular/router package imports satisfy project-local required imports."
+    instead: "Keep third-party package boundaries visible and require explicit project-local static or dynamic imports."
+  - risk: "Do not weaken MISSING_REQUIRED_IMPORT errors to make lazy routes pass."
+    instead: "Ensure dynamic import() module specifiers are collected and normalized like other TS/JS imports."
+files:
+  create:
+    - path: tests/core/test_validate_angular.py
+      artifacts:
+        - kind: test_function
+          name: test_angular_standalone_component_static_import_satisfies_required_import
+        - kind: test_function
+          name: test_angular_lazy_route_dynamic_import_satisfies_required_import
+        - kind: test_function
+          name: test_angular_lazy_route_rejects_missing_required_import
+        - kind: test_function
+          name: test_angular_package_import_does_not_satisfy_project_local_required_import
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/validators/typescript.py
+    - tests/core/test_validate.py
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/017-06-compiler-backed-required-import-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validate_angular.py

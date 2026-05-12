@@ -1,0 +1,48 @@
+schema: "2"
+goal: "Characterize Angular TypeScript artifacts as first-class TypeScript validator coverage"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - angular
+    - typescript
+    - validator
+    - characterization
+  priority: medium
+description: |
+  Add focused characterization coverage for Angular files that are already
+  expected to work through the generic TypeScript validator. This draft does
+  not introduce an Angular validator and does not add Angular decorator
+  metadata to FoundArtifact. It locks the current support boundary: Angular
+  decorated classes, class fields, methods, and signal-style input/output
+  fields are ordinary TypeScript artifacts; decorator names and metadata are
+  not public MAID artifacts.
+
+  Promotion order: run before any Angular-specific extraction work. If these
+  tests fail, fix the generic TypeScript validator behavior rather than adding
+  a separate Angular parser.
+temptations:
+  - risk: "Do not create an AngularValidator just to support decorated .ts files."
+    instead: "Keep Angular .ts files on TypeScriptValidator and characterize Angular syntax through public collect_implementation_artifacts behavior."
+  - risk: "Do not promote @Component, @Injectable, @Directive, @Pipe, @Input, or @Output decorator names to public artifacts."
+    instead: "Assert the owning classes, fields, and methods remain visible while decorator calls remain metadata-only."
+  - risk: "Do not add decorator metadata fields to FoundArtifact in this characterization draft."
+    instead: "Record the support boundary with tests and leave richer metadata to a separate contract if a real use case appears."
+files:
+  create:
+    - path: tests/validators/test_typescript_angular.py
+      artifacts:
+        - kind: test_function
+          name: test_angular_component_metadata_preserves_class_fields_and_methods
+        - kind: test_function
+          name: test_angular_service_directive_and_pipe_decorators_do_not_become_artifacts
+        - kind: test_function
+          name: test_angular_signal_style_input_output_fields_remain_component_attributes
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript_artifact_edge_cases.py
+    - manifests/017-04-typescript-decorator-metadata-boundary.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_angular.py

@@ -1,0 +1,58 @@
+schema: "2"
+goal: "Document Angular support as TypeScript-backed with explicit non-goals"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - angular
+    - documentation
+    - typescript
+  priority: low
+description: |
+  Update public documentation to describe Angular support accurately: MAID
+  supports Angular through TypeScript parsing and TypeScript required-import
+  validation, not through Angular compiler analysis. The docs should state what
+  is supported out of the box, what the Angular hardening tests cover, and what
+  remains outside the current contract.
+
+  This draft should be promoted after the characterization and companion-file
+  tracking drafts so the documentation reflects the validated behavior rather
+  than aspirations.
+temptations:
+  - risk: "Do not claim Angular-native semantic support or Angular compiler integration."
+    instead: "Say Angular .ts files are supported through TypeScriptValidator and list the tested boundaries."
+  - risk: "Do not hide the template/style limitation."
+    instead: "Document that external templates/styles are tracked as files when companion tracking is implemented, but their contents are not parsed as Angular artifacts."
+  - risk: "Do not leave docs saying all frameworks have blanket production support without qualification."
+    instead: "Replace broad framework claims with specific TypeScript-backed capabilities and non-goals."
+files:
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _angular_typescript_support_boundary
+          of: documentation
+          type: markdown
+          description: "README language support text that describes Angular as TypeScript-backed support with explicit non-goals."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _angular_typescript_framework_boundary
+          of: documentation
+          type: markdown
+          description: "Detailed MAID specs language that qualifies Angular framework support as TypeScript-backed rather than Angular compiler-backed."
+    - path: docs/ai-compiler-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _angular_faq_support_boundary
+          of: documentation
+          type: markdown
+          description: "FAQ language that explains Angular support, template/style tracking, and current semantic limitations."
+  read:
+    - manifests/drafts/025-01-characterize-angular-typescript-artifacts.manifest.yaml
+    - manifests/drafts/025-02-characterize-angular-required-imports-and-routes.manifest.yaml
+    - manifests/drafts/025-03-add-angular-component-companion-file-tracking.manifest.yaml
+    - tests/validators/test_typescript_artifact_edge_cases.py
+    - tests/core/test_snapshot.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_angular.py tests/core/test_validate_angular.py tests/core/test_snapshot_angular.py

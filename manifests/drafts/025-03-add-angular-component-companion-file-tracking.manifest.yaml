@@ -1,0 +1,58 @@
+schema: "2"
+goal: "Track Angular component templateUrl and styleUrls companion files in snapshot manifests"
+type: feature
+created: "2026-05-12"
+metadata:
+  tags:
+    - angular
+    - snapshot
+    - file-tracking
+    - typescript
+  priority: medium
+description: |
+  Extend snapshot generation for Angular component source files so external
+  template and style companions referenced by @Component metadata are tracked
+  as read files. For example, a snapshot of
+  src/app/user-card/user-card.component.ts with templateUrl and styleUrls
+  should include the .html and .scss files in files.read, normalized relative
+  to project_root.
+
+  Rationale: Angular support currently works for the TypeScript class surface,
+  but template/style companions are only incidental repository files. Tracking
+  them as read files gives MAID implementers and reviewers an explicit boundary
+  without attempting to parse Angular templates or CSS as MAID artifacts.
+temptations:
+  - risk: "Do not parse Angular HTML templates or SCSS into MAID artifacts in this draft."
+    instead: "Only add project-relative companion paths to files.read when @Component references external files."
+  - risk: "Do not add broad filesystem guessing for every .component.html or .component.scss sibling."
+    instead: "Track only literal templateUrl, styleUrl, or styleUrls values present in @Component metadata."
+  - risk: "Do not fail snapshot generation when a referenced companion file is missing."
+    instead: "Skip missing companion files or surface a clearly scoped warning only if the public snapshot API already supports it."
+  - risk: "Do not make Angular dependencies required for snapshot generation."
+    instead: "Use existing TypeScript parsing/source analysis and keep the behavior dependency-free beyond current TS support."
+files:
+  edit:
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: function
+          name: generate_snapshot
+          args:
+            - name: file_path
+              type: Union[str, Path]
+          returns: Manifest
+  create:
+    - path: tests/core/test_snapshot_angular.py
+      artifacts:
+        - kind: test_function
+          name: test_angular_component_snapshot_tracks_template_url_as_read_file
+        - kind: test_function
+          name: test_angular_component_snapshot_tracks_style_urls_as_read_files
+        - kind: test_function
+          name: test_angular_component_snapshot_ignores_inline_template_and_styles_for_companion_tracking
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/typescript.py
+    - tests/core/test_snapshot.py
+validate:
+  - uv run python -m pytest -q tests/core/test_snapshot_angular.py
