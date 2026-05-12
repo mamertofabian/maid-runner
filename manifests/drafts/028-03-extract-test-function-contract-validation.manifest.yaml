@@ -1,0 +1,115 @@
+schema: "2"
+goal: "Extract test_function contract validation from ValidationEngine"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - validation
+    - test-functions
+  priority: high
+description: |
+  Move test_function name validation, behavioral body alignment, and
+  historical test_function detail merging into a focused internal module.
+
+  Rationale: test_function validation is an important MAID contract guard, but
+  it currently sits inside ValidationEngine alongside unrelated validation
+  responsibilities. Extracting it clarifies the main validation flow and gives
+  test_function contracts a single home for future maintenance.
+
+  This refactor must preserve Guard 3 behavior, chain-merged test_function
+  requirements, warning severity for behavior mismatches, and the fallback
+  behavior when a language cannot extract test bodies.
+temptations:
+  - risk: "Do not weaken Guard 3 by accepting incidental references as test declarations."
+    instead: "Continue using validator behavioral artifacts and require ArtifactKind.TEST_FUNCTION declarations."
+  - risk: "Do not drop historical test_function details when a chain is supplied."
+    instead: "Move the merge logic with tests that prove historical and current details are preserved."
+  - risk: "Do not make missing body extraction fail languages that do not support it."
+    instead: "Preserve the current silent fallback and let Guard 3 report genuinely missing declarations."
+  - risk: "Do not add behavior checks for new action types in this refactor."
+    instead: "Move only the existing api_call export and endpoint checks."
+files:
+  create:
+    - path: maid_runner/core/_test_function_contracts.py
+      artifacts:
+        - kind: function
+          name: validate_test_function_names
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: function
+          name: validate_test_function_behavior
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: function
+          name: merged_test_function_behavior_requirements
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: dict[str, dict[str, Optional[TestFunctionDetails]]]
+    - path: tests/core/test_test_function_contracts.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_test_function_names_requires_real_test_declarations
+        - kind: test_function
+          name: test_validate_test_function_behavior_scopes_api_call_to_named_body
+        - kind: test_function
+          name: test_merged_test_function_behavior_requirements_preserves_historical_details
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_behavioral
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+    - path: tests/core/test_validate_test_functions.py
+      artifacts:
+        - kind: test_function
+          name: test_test_function_must_exist_as_test_declaration_not_reference
+        - kind: test_function
+          name: test_test_function_behavior_matches_declared_api_call_body
+  read:
+    - maid_runner/core/types.py
+    - maid_runner/core/result.py
+    - maid_runner/core/chain.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_validate_test_functions.py
+validate:
+  - uv run python -m pytest -q tests/core/test_test_function_contracts.py tests/core/test_validate_test_functions.py tests/core/test_validate.py
+  - uv run maid validate manifests/snapshot-core-validate.manifest.yaml --mode implementation

@@ -1,0 +1,107 @@
+schema: "2"
+goal: "Extract tsconfig JSONC loading and path alias matching from ts_module_paths"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - tsconfig
+  priority: medium
+description: |
+  Move tsconfig loading, JSONC cleanup, extends merging, baseUrl normalization,
+  and paths alias pattern matching from ts_module_paths into a cohesive
+  internal helper module.
+
+  Rationale: ts_module_paths currently handles public module identity APIs,
+  compiler fallback boundaries, barrel re-export traversal, CommonJS export
+  parsing, and tsconfig parsing in one file. Extracting tsconfig mechanics
+  makes the public import-resolution flow easier to read while keeping the
+  alias behavior local and independently testable.
+
+  This is behavior-preserving. It must keep relative imports on the fast path,
+  preserve local tsconfig/baseUrl/paths behavior, and keep compiler fallback
+  boundaries unchanged.
+temptations:
+  - risk: "Do not implement new package-style tsconfig extends behavior during extraction."
+    instead: "Move only the existing local/relative/absolute extends behavior and preserve current fallback boundaries."
+  - risk: "Do not route relative imports through compiler fallback."
+    instead: "Keep relative import resolution path-backed and covered by existing tests."
+  - risk: "Do not simplify JSONC cleanup by rejecting comments or trailing commas that currently work."
+    instead: "Move the existing comment and trailing-comma handling with characterization tests."
+  - risk: "Do not make alias pattern matching depend on dictionary iteration accidents."
+    instead: "Preserve the existing best-match priority behavior explicitly."
+files:
+  create:
+    - path: maid_runner/core/_tsconfig_paths.py
+      artifacts:
+        - kind: function
+          name: load_tsconfig
+          args:
+            - name: project_root
+              type: Path
+          returns: Optional[dict[str, Any]]
+        - kind: function
+          name: resolve_paths_alias
+          args:
+            - name: specifier
+              type: str
+            - name: project_root
+              type: Path
+            - name: compiler_options
+              type: dict[str, Any]
+          returns: Optional[str]
+        - kind: function
+          name: strip_jsonc_trivia
+          args:
+            - name: source
+              type: str
+          returns: str
+    - path: tests/core/test_tsconfig_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_strip_jsonc_trivia_preserves_valid_json_with_comments_and_trailing_commas
+        - kind: test_function
+          name: test_load_tsconfig_merges_relative_extends_before_child_options
+        - kind: test_function
+          name: test_resolve_paths_alias_preserves_best_pattern_priority
+        - kind: test_function
+          name: test_resolve_paths_alias_returns_existing_index_module
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+        - kind: function
+          name: resolve_relative_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+          returns: str
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_paths_alias_resolves_wildcard_to_project_module
+        - kind: test_function
+          name: test_extends_paths_alias_resolves_from_base_config
+        - kind: test_function
+          name: test_paths_alias_resolves_without_compiler
+  read:
+    - maid_runner/core/ts_compiler_resolver.py
+    - manifests/add-typescript-tsconfig-path-alias-identity.manifest.yaml
+    - manifests/add-typescript-tsconfig-extends-identity.manifest.yaml
+    - manifests/fix-typescript-validation-and-test-performance.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_tsconfig_paths.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
+  - uv run maid validate manifests/add-typescript-tsconfig-path-alias-identity.manifest.yaml --mode implementation

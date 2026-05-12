@@ -1,0 +1,82 @@
+schema: "2"
+goal: "Split TypeScript implementation artifact collection into focused handlers"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - parser
+  priority: medium
+description: |
+  Refactor the TypeScript implementation artifact collector so top-level
+  dispatch, class/interface/type handling, function signature extraction, and
+  class-field handling live in focused helpers rather than one large recursive
+  function.
+
+  Rationale: validators/typescript.py is a high-value legacy area. The current
+  _collect_impl function handles many AST node families at different
+  abstraction levels. Splitting it into cohesive handlers improves local
+  reasoning and makes future TypeScript artifact work safer.
+
+  This is behavior-preserving parser cleanup. Existing TypeScript artifact,
+  React, Angular, and edge-case characterization tests must stay green. Add
+  narrow characterization only if a moved branch lacks coverage.
+temptations:
+  - risk: "Do not change collected artifact names, kinds, line numbers, args, returns, type parameters, or module_path behavior."
+    instead: "Run the existing TypeScript validator characterization suite before and after the split."
+  - risk: "Do not add framework semantics while touching React or Angular-adjacent extraction."
+    instead: "Keep current syntactic extraction behavior and defer semantic improvements to separate manifests."
+  - risk: "Do not replace tree-sitter traversal strategy in this cleanup."
+    instead: "Extract named handlers while preserving traversal order and early returns."
+  - risk: "Do not expose parser internals as public API outside the validator package."
+    instead: "Keep new helpers in a private module or private functions unless a local seam is explicitly needed for tests."
+files:
+  create:
+    - path: tests/validators/test_typescript_implementation_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_collector_preserves_class_method_and_field_artifacts
+        - kind: test_function
+          name: test_implementation_collector_preserves_interface_members_and_type_aliases
+        - kind: test_function
+          name: test_implementation_collector_preserves_react_wrapped_component_signature
+        - kind: test_function
+          name: test_implementation_collector_preserves_constructor_parameter_properties
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript.py
+      artifacts:
+        - kind: test_function
+          name: test_class_and_methods
+        - kind: test_function
+          name: test_interface
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_computed_class_method_name_is_collected_from_source_text
+        - kind: test_function
+          name: test_constructor_parameter_properties_become_public_attributes
+  read:
+    - tests/validators/test_typescript_identity.py
+    - tests/validators/test_typescript_react.py
+    - tests/validators/test_typescript_angular.py
+    - manifests/025-01-characterize-angular-typescript-artifacts.manifest.yaml
+    - manifests/027-01-characterize-react-typescript-artifacts.manifest.yaml
+    - manifests/close-typescript-artifact-extraction-gaps.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript_identity.py tests/validators/test_typescript_react.py tests/validators/test_typescript_angular.py tests/validators/test_typescript_implementation_collector_refactor.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

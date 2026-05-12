@@ -1,0 +1,106 @@
+schema: "2"
+goal: "Simplify graph query facade, parser, and executor boundaries"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - graph
+    - query
+  priority: low
+description: |
+  Clean up maid_runner.graph.query by clarifying the boundary between pure
+  graph query helpers, natural-language query parsing, query execution, and the
+  GraphQuery facade. Preserve all public query behavior while improving names,
+  reducing duplicated traversal logic, and making result shaping easier to
+  maintain.
+
+  Rationale: graph/query.py is one of the larger production files, but it is
+  lower risk than validation and parser internals. This draft is intentionally
+  later in the queue. It should improve readability without changing graph
+  model semantics or public result shapes.
+temptations:
+  - risk: "Do not change public GraphQuery return shapes while simplifying internals."
+    instead: "Use existing graph tests as characterization and update only internal helper organization."
+  - risk: "Do not merge natural-language query parsing with graph traversal."
+    instead: "Keep parser, executor, and facade responsibilities visibly separate."
+  - risk: "Do not introduce a query DSL or new dependency in this cleanup."
+    instead: "Use existing parser heuristics and standard-library data structures."
+  - risk: "Do not optimize traversal before measuring a real performance issue."
+    instead: "Prioritize readable traversal helpers and preserve current behavior."
+files:
+  create:
+    - path: tests/graph/test_query_refactor_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_graph_query_facade_preserves_find_node_result_shape
+        - kind: test_function
+          name: test_query_parser_preserves_dependency_intent_detection
+        - kind: test_function
+          name: test_query_executor_preserves_impact_result_shape
+        - kind: test_function
+          name: test_cycle_detection_preserves_node_id_cycles
+  edit:
+    - path: maid_runner/graph/query.py
+      artifacts:
+        - kind: function
+          name: find_node_by_name
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: name
+              type: str
+          returns: Optional[Node]
+        - kind: function
+          name: find_dependencies
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: artifact_name
+              type: str
+          returns: List[Node]
+        - kind: function
+          name: find_cycles
+          args:
+            - name: graph
+              type: KnowledgeGraph
+          returns: List[List[Node]]
+        - kind: class
+          name: QueryParser
+        - kind: method
+          name: parse
+          of: QueryParser
+          args:
+            - name: query
+              type: str
+          returns: QueryIntent
+        - kind: class
+          name: QueryExecutor
+        - kind: method
+          name: execute
+          of: QueryExecutor
+          args:
+            - name: intent
+              type: QueryIntent
+          returns: QueryResult
+        - kind: class
+          name: GraphQuery
+    - path: tests/graph/test_graph_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_find_node
+        - kind: test_function
+          name: test_dependency_analysis
+        - kind: test_function
+          name: test_parse_dependencies_query
+        - kind: test_function
+          name: test_find_impact_success
+  read:
+    - maid_runner/graph/model.py
+    - maid_runner/graph/builder.py
+    - tests/graph/test_exporters.py
+    - manifests/snapshot-graph-query.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/graph/test_graph_v2.py tests/graph/test_query_refactor_boundaries.py
+  - uv run maid validate manifests/snapshot-graph-query.manifest.yaml --mode implementation

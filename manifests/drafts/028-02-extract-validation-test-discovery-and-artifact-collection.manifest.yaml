@@ -1,0 +1,121 @@
+schema: "2"
+goal: "Extract validation test discovery and behavioral artifact collection helpers"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - validation
+    - behavioral
+  priority: high
+description: |
+  Move the private helpers that locate manifest test files, choose validators,
+  collect behavioral artifacts, and translate collection errors out of
+  core.validate into a focused internal module.
+
+  Rationale: ValidationEngine should read as validation policy and flow. Test
+  discovery and collection are lower-level mechanics used by behavioral
+  validation and coverage checks. A cohesive module makes the dependency seam
+  visible and reduces duplication between validate_behavioral and
+  _check_test_coverage.
+
+  This is a behavior-preserving refactor. The existing validation behavior
+  should remain unchanged for Python, TS/JS, unsupported files, parse errors,
+  and files.read/validate command test discovery.
+temptations:
+  - risk: "Do not change what counts as a test file while extracting helpers."
+    instead: "Move existing discovery behavior and keep tests that cover files.read and validate command paths green."
+  - risk: "Do not let TEST_FUNCTION declarations count as source artifact usage."
+    instead: "Keep the current filter that removes TEST_FUNCTION artifacts from collected usage references."
+  - risk: "Do not hide parse errors or unsupported-language behavior."
+    instead: "Preserve collection error conversion and unsupported validator skip behavior exactly."
+  - risk: "Do not turn this into a broad ValidationEngine redesign."
+    instead: "Extract the discovery/collection mechanics only and leave validation policy in validate.py."
+files:
+  create:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: find_test_files
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[str]
+        - kind: function
+          name: get_validator_for_test
+          args:
+            - name: test_path
+              type: str
+            - name: registry
+              type: ValidatorRegistry
+          returns: Optional[BaseValidator]
+        - kind: function
+          name: collect_test_artifacts
+          args:
+            - name: test_files
+              type: list[str]
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: errors
+              type: list[ValidationError]
+          returns: dict[str, list[FoundArtifact]]
+        - kind: function
+          name: collection_errors_to_validation_errors
+          args:
+            - name: collection_errors
+              type: list[str]
+            - name: file_path
+              type: str
+          returns: list[ValidationError]
+    - path: tests/core/test_validation_test_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_find_test_files_includes_files_read_and_validate_commands
+        - kind: test_function
+          name: test_collect_test_artifacts_excludes_test_function_declarations
+        - kind: test_function
+          name: test_collect_test_artifacts_converts_parse_errors_to_validation_errors
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_behavioral
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: method
+          name: _check_test_coverage
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_test_file_in_read_section_passes
+        - kind: test_function
+          name: test_test_file_in_validate_command_passes
+        - kind: test_function
+          name: test_no_artifacts_no_test_required
+  read:
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_validate.py
+    - tests/core/test_validate_test_functions.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validation_test_artifacts.py tests/core/test_validate.py tests/core/test_validate_test_functions.py
+  - uv run maid validate manifests/snapshot-core-validate.manifest.yaml --mode implementation

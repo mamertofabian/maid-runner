@@ -1,0 +1,88 @@
+schema: "2"
+goal: "Split TypeScript behavioral reference collection from test discovery mechanics"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - behavioral-validation
+  priority: medium
+description: |
+  Refactor TypeScript behavioral artifact collection so import scanning,
+  member-chain resolution, bare reference recording, executable test label
+  discovery, and callback body extraction are organized as cohesive helpers.
+
+  Rationale: TypeScript behavioral collection is central to MAID's contract
+  enforcement and currently mixes import identity, call/reference extraction,
+  test framework recognition, and body slicing. Splitting these responsibilities
+  makes changes to test detection or import identity safer and easier to
+  review.
+
+  This is behavior-preserving. It should rely on existing behavioral validation
+  and TypeScript identity tests, with narrow characterization for any moved
+  branch that is not already covered.
+temptations:
+  - risk: "Do not let test labels satisfy source artifact usage."
+    instead: "Preserve the distinction between TEST_FUNCTION declarations and real identifier/call references."
+  - risk: "Do not change namespace import, aliased import, or member-chain identity behavior."
+    instead: "Run identity and behavioral validation suites that cover alias and namespace references."
+  - risk: "Do not broaden supported test frameworks while refactoring detection."
+    instead: "Move the existing it/test/describe/Vitest/Jest recognition behavior only."
+  - risk: "Do not couple body extraction to formatting quirks."
+    instead: "Preserve existing tree-sitter node slicing behavior and add a narrow test only if formatting coverage is missing."
+files:
+  create:
+    - path: tests/validators/test_typescript_behavioral_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_collector_keeps_test_label_separate_from_source_reference
+        - kind: test_function
+          name: test_behavioral_collector_preserves_namespace_member_reference_identity
+        - kind: test_function
+          name: test_behavioral_collector_preserves_aliased_import_reference_identity
+        - kind: test_function
+          name: test_behavioral_collector_preserves_named_test_body_extraction
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: get_test_function_bodies
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: dict[str, str]
+    - path: tests/validators/test_behavioral_test_functions.py
+      artifacts:
+        - kind: test_function
+          name: test_detect_test_string_label
+        - kind: test_function
+          name: test_template_string_with_substitution_ignored
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_match_through_tsconfig_alias_to_barrel_reexport
+  read:
+    - maid_runner/core/identity.py
+    - maid_runner/core/validate.py
+    - tests/core/test_validate_test_functions.py
+    - tests/validators/test_typescript_react.py
+    - tests/validators/test_typescript_angular.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_behavioral_test_functions.py tests/validators/test_typescript_identity.py tests/validators/test_typescript_behavioral_collector_refactor.py tests/core/test_validate_test_functions.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

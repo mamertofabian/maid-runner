@@ -1,0 +1,105 @@
+schema: "2"
+goal: "Extract implementation file validation from ValidationEngine orchestration"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - validation
+    - implementation-mode
+  priority: medium
+description: |
+  Extract the per-file implementation validation logic from
+  ValidationEngine.validate_implementation into a focused collaborator while
+  preserving ValidationEngine as the public orchestration entry point.
+
+  Rationale: validate_implementation currently handles delete checks, absent
+  file checks, source reads, validator lookup, artifact collection, strict-mode
+  selection, artifact comparison, stub checks, and import verification. Moving
+  the per-file mechanics into an internal class gives the high-level method a
+  readable story and gives future implementation-mode changes a narrower
+  surface.
+
+  This is behavior-preserving. It must not change strict mode, snapshot/edit
+  semantics, stub warning behavior, required import checks, or test coverage
+  warnings.
+temptations:
+  - risk: "Do not change chain strict-mode behavior while extracting the collaborator."
+    instead: "Preserve the existing rule: chain-covered files are strict except test files."
+  - risk: "Do not make edit files strict when no chain is active."
+    instead: "Keep fs.is_strict as the non-chain fallback exactly as today."
+  - risk: "Do not hide file read, parse, or validator errors behind generic failures."
+    instead: "Preserve current ErrorCode values, severities, locations, and suggestions."
+  - risk: "Do not move behavioral test coverage policy into the per-file implementation checker."
+    instead: "Keep test_function and coverage orchestration in ValidationEngine or the extracted test-function modules."
+files:
+  create:
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: class
+          name: ImplementationFileValidator
+        - kind: method
+          name: validate_file_spec
+          of: ImplementationFileValidator
+          args:
+            - name: fs
+              type: FileSpec
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: function
+          name: compare_artifacts
+          args:
+            - name: expected
+              type: list[ArtifactSpec]
+            - name: found
+              type: list[FoundArtifact]
+            - name: file_path
+              type: str
+            - name: is_strict
+              type: bool
+          returns: list[ValidationError]
+    - path: tests/core/test_implementation_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_file_spec_preserves_missing_file_error
+        - kind: test_function
+          name: test_validate_file_spec_preserves_stub_warning
+        - kind: test_function
+          name: test_validate_file_spec_preserves_required_import_error
+        - kind: test_function
+          name: test_compare_artifacts_preserves_strict_mode_extra_public_artifact_error
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_mode_unexpected_public_fail
+        - kind: test_function
+          name: test_permissive_mode_extra_public_allowed
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/_js_ts_imports.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_validate.py
+validate:
+  - uv run python -m pytest -q tests/core/test_implementation_validation.py tests/core/test_validate.py
+  - uv run maid validate manifests/snapshot-core-validate.manifest.yaml --mode implementation

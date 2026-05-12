@@ -1,0 +1,71 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Clean Code maintainability roadmap for Maidrunner validation and parser internals"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - maintainability
+    - legacy-code
+  priority: high
+description: |
+  Epic planning inventory for behavior-preserving maintainability work across
+  the highest-change Maidrunner internals. This epic must not be promoted or
+  implemented directly. Promote one child draft at a time after reviewing its
+  scope and validation commands.
+
+  Rule lens:
+  - Clean Code is the primary design goal: reduce mixed responsibilities,
+    improve names, keep functions focused, and make likely changes local.
+  - Working Effectively with Legacy Code is the safety guard: preserve current
+    behavior, use existing characterization where it is trustworthy, and add
+    narrow characterization only where a risky boundary is not protected.
+  - Safe Refactor controls execution: small steps, one structural move per
+    promoted manifest, validation after each step, no hidden behavior changes.
+
+  Planned child order:
+  1. Extract TS/JS required-import scanning from core validation.
+  2. Extract behavioral test discovery and artifact collection from validation.
+  3. Extract test_function contract validation from ValidationEngine.
+  4. Extract implementation file validation from the main validation engine.
+  5. Extract tsconfig JSONC/path alias loading from ts_module_paths.
+  6. Split TypeScript implementation artifact collection into cohesive handlers.
+  7. Split TypeScript behavioral reference collection from test discovery.
+  8. Simplify graph query parsing/execution boundaries.
+
+  The first four drafts target core validation because it is the highest-change
+  orchestration file. The parser drafts come later because AST behavior is more
+  fragile. The graph draft is last because it is useful cleanup but lower risk
+  and lower current change pressure.
+temptations:
+  - risk: "Do not promote this epic directly into manifests/."
+    instead: "Promote one implementation-sized child draft from manifests/drafts/ at a time."
+  - risk: "Do not mix behavior changes with Clean Code refactors."
+    instead: "Keep each child draft behavior-preserving and create a separate fix manifest for any discovered behavior change."
+  - risk: "Do not add broad characterization tests just to increase coverage numbers."
+    instead: "Add or keep only tests that protect the slice being moved or simplified."
+  - risk: "Do not start with the largest TypeScript parser cleanup."
+    instead: "Reduce safer validation orchestration responsibilities first, then refactor parser internals with stronger context."
+files:
+  edit:
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _clean_code_roadmap_pointer
+          of: documentation
+          type: markdown
+          description: "Planning note reminding maintainers that this epic is split-before-promote inventory, not an active implementation contract."
+  read:
+    - ~/.codex/skills/agent-rules-selector/SKILL.md
+    - ~/.codex/skills/safe-refactor/SKILL.md
+    - /home/atomrem/dev_tools/agent-rules-books/clean-code/claude/.claude/rules/clean-code.md
+    - /home/atomrem/dev_tools/agent-rules-books/working-effectively-with-legacy-code/claude/.claude/rules/working-effectively-with-legacy-code.md
+    - maid_runner/core/validate.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/graph/query.py
+validate:
+  - uv run maid validate manifests/drafts/028-00-clean-code-maintainability-roadmap.epic.yaml --mode schema

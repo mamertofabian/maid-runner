@@ -1,0 +1,117 @@
+schema: "2"
+goal: "Extract JavaScript and TypeScript required-import scanning from core validation"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - required-imports
+    - typescript
+  priority: high
+description: |
+  Move the private TS/JS required-import collection helpers out of
+  maid_runner.core.validate into a cohesive internal module. Preserve the
+  public ValidationEngine behavior and the E320 required-import contract.
+
+  Rationale: core.validate currently mixes validation orchestration with
+  language-specific TS/JS import parsing. Extracting the scanner creates a
+  cleaner seam, reduces the largest validation module, and makes future import
+  maintenance local without changing manifest validation behavior.
+
+  This is a behavior-preserving refactor. Existing import verification tests
+  are the safety net and should pass before and after implementation.
+temptations:
+  - risk: "Do not change E320 matching rules while moving the scanner."
+    instead: "Move code first, keep _check_required_imports as the behavioral entry point, and run TestImportVerification after the move."
+  - risk: "Do not introduce an import-time tree-sitter dependency."
+    instead: "Keep parser imports lazy inside the new scanner module and preserve the text fallback."
+  - risk: "Do not broaden this into compiler resolution or package export behavior."
+    instead: "Only relocate syntactic import collection and identity-part helpers already used by required-import validation."
+  - risk: "Do not leave duplicate regex/parser implementations in validate.py and the new module."
+    instead: "Move the implementation once and leave validate.py with orchestration and required-import policy only."
+files:
+  create:
+    - path: maid_runner/core/_js_ts_imports.py
+      artifacts:
+        - kind: function
+          name: collect_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: set[str]
+        - kind: function
+          name: collect_import_modules
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: set[str]
+        - kind: function
+          name: collect_import_module_bindings
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: dict[str, set[str]]
+        - kind: function
+          name: import_may_satisfy_required
+          args:
+            - name: specifier
+              type: str
+            - name: unresolved_required_imports
+              type: set[str]
+            - name: bindings
+              type: set[str]
+          returns: bool
+    - path: tests/core/test_js_ts_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_collect_required_imports_ignores_commented_out_imports
+        - kind: test_function
+          name: test_collect_import_modules_keeps_dynamic_import_and_require_resolve
+        - kind: test_function
+          name: test_collect_import_module_bindings_records_source_names
+        - kind: test_function
+          name: test_import_may_satisfy_required_uses_specifier_parts_and_bindings
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _check_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+            - name: required_imports
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Optional[Path]
+          returns: list[ValidationError]
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_import_type_detected
+        - kind: test_function
+          name: test_ts_dynamic_import_detected
+        - kind: test_function
+          name: test_ts_require_resolve_detected
+        - kind: test_function
+          name: test_ts_multiline_named_import_detected
+        - kind: test_function
+          name: test_ts_commented_out_import_does_not_satisfy_required_import
+        - kind: test_function
+          name: test_ts_import_alias_binding_detected
+  read:
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/024-02-review-readiness-required-import-and-doc-fixes.manifest.yaml
+    - maid_runner/core/ts_module_paths.py
+    - tests/core/test_ts_module_paths.py
+validate:
+  - uv run python -m pytest -q tests/core/test_js_ts_imports.py tests/core/test_validate.py::TestImportVerification
+  - uv run maid validate manifests/replace-ts-required-import-regex-scanner.manifest.yaml --mode implementation
