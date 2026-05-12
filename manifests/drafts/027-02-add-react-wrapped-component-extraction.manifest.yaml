@@ -1,0 +1,72 @@
+schema: "2"
+goal: "Recognize common React wrapped component exports as TypeScript function artifacts"
+type: feature
+created: "2026-05-12"
+metadata:
+  tags:
+    - react
+    - typescript
+    - tsx
+    - validator
+    - component-extraction
+  priority: medium
+description: |
+  Extend TypeScript implementation artifact collection for common React
+  component declaration forms that currently look like plain attributes:
+  React.memo(...), memo(...), React.forwardRef(...), forwardRef(...), and
+  anonymous default-exported arrow/function-expression components. These
+  should be collected as Function artifacts when the wrapped value is an
+  inline function-like component declaration, preserving source-faithful
+  argument, return, async, and generic metadata where the underlying callback
+  provides it.
+
+  Rationale: React projects often expose public components through wrapper
+  calls instead of direct function declarations. MAID should let manifests
+  declare those components as functions without requiring teams to rewrite
+  idiomatic React exports. This remains TypeScript-backed extraction, not
+  React runtime analysis.
+
+  Promotion order: after 027-01 so baseline React TSX behavior is already
+  characterized. Keep this slice limited to implementation artifact collection.
+temptations:
+  - risk: "Do not classify every call-expression variable initializer as a function artifact."
+    instead: "Only unwrap known React component wrappers when their arguments contain an inline function-like component value that can be represented safely."
+  - risk: "Do not infer JSX.Element returns when the source has no return annotation."
+    instead: "Preserve explicit return text from the wrapped function or leave returns unset, matching existing TypeScript extraction rules."
+  - risk: "Do not change behavioral reference collection, import identity, re-export identity, or required-import validation in this slice."
+    instead: "Keep the implementation local to collect_implementation_artifacts and cover React behavioral matching separately."
+  - risk: "Do not treat React.useMemo, useCallback, lazy, createContext, or arbitrary hooks as component declarations."
+    instead: "Limit wrapper recognition to memo and forwardRef component export shapes."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_react.py
+      artifacts:
+        - kind: test_function
+          name: test_react_forward_ref_const_export_is_collected_as_function_component
+        - kind: test_function
+          name: test_react_memo_const_export_with_inline_component_is_collected_as_function_component
+        - kind: test_function
+          name: test_default_exported_anonymous_arrow_component_is_collected_as_default_function
+        - kind: test_function
+          name: test_non_component_react_calls_remain_attributes
+  read:
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_artifact_edge_cases.py
+    - manifests/drafts/027-01-characterize-react-typescript-artifacts.manifest.yaml
+    - manifests/add-typescript-annotated-function-return-extraction.manifest.yaml
+    - manifests/add-typescript-generic-type-parameter-storage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_react.py

@@ -1,0 +1,62 @@
+schema: "2"
+goal: "Document React support as TypeScript-backed with explicit non-goals"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - react
+    - documentation
+    - typescript
+    - framework-support
+  priority: low
+description: |
+  Update public documentation to describe React support accurately: MAID
+  supports React through TypeScript/TSX parsing, TypeScript identity matching,
+  and TypeScript required-import validation, not through React runtime,
+  framework compiler, bundler, or DOM analysis. The docs should state what is
+  supported out of the box, what the React hardening tests cover, and what
+  remains outside the current contract.
+
+  This draft should be promoted after the React characterization, wrapper
+  extraction, required-import, and snapshot companion-file drafts so the
+  documentation reflects validated behavior rather than aspirations.
+temptations:
+  - risk: "Do not claim React-native runtime, DOM, bundler, Next.js, Remix, or Vite semantic support."
+    instead: "Say React .tsx/.jsx files are supported through TypeScriptValidator and list the tested boundaries."
+  - risk: "Do not hide the CSS-module and asset limitation."
+    instead: "Document that imported local styles/assets are tracked as read files when snapshot companion tracking is implemented, but their contents are not parsed as artifacts."
+  - risk: "Do not leave docs saying all frameworks have blanket production support without qualification."
+    instead: "Replace broad framework claims with specific TypeScript-backed React capabilities and non-goals."
+files:
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _react_typescript_support_boundary
+          of: documentation
+          type: markdown
+          description: "README language support text that describes React as TypeScript-backed support with explicit non-goals."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _react_typescript_framework_boundary
+          of: documentation
+          type: markdown
+          description: "Detailed MAID specs language that qualifies React framework support as TypeScript-backed rather than React runtime-backed."
+    - path: docs/ai-compiler-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _react_faq_support_boundary
+          of: documentation
+          type: markdown
+          description: "FAQ language that explains React support, wrapper extraction, Testing Library coverage, style/asset tracking, and current semantic limitations."
+  read:
+    - manifests/drafts/027-01-characterize-react-typescript-artifacts.manifest.yaml
+    - manifests/drafts/027-02-add-react-wrapped-component-extraction.manifest.yaml
+    - manifests/drafts/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
+    - manifests/drafts/027-04-add-react-snapshot-companion-file-tracking.manifest.yaml
+    - tests/validators/test_typescript_react.py
+    - tests/core/test_validate_react.py
+    - tests/core/test_snapshot_react.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_react.py tests/core/test_validate_react.py tests/core/test_snapshot_react.py

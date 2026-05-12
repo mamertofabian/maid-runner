@@ -1,0 +1,62 @@
+schema: "2"
+goal: "Characterize React component imports, lazy imports, and Testing Library usage in required-import validation"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - react
+    - typescript
+    - required-imports
+    - testing-library
+    - characterization
+  priority: medium
+description: |
+  Add behavioral validation coverage for React import patterns that should be
+  supported through the existing TypeScript import scanner and identity
+  matcher: Testing Library tests that render JSX components, barrel imports
+  from component indexes, React.lazy dynamic imports, path-alias component
+  imports, CSS module imports, and package imports from react or
+  @testing-library/* that must not satisfy project-local required imports.
+
+  This is validation hardening, not React semantic analysis. The tests should
+  exercise ValidationEngine through manifests so E320 required-import behavior
+  and behavioral artifact matching stay aligned with real MAID usage.
+temptations:
+  - risk: "Do not special-case React Testing Library APIs as artifact coverage by themselves."
+    instead: "Use imported JSX component references and JSX props as the observable behavior that satisfies manifest artifacts."
+  - risk: "Do not let react, react-dom, or @testing-library/* package imports satisfy project-local component required imports."
+    instead: "Keep third-party package boundaries visible and require explicit project-local static, alias, barrel, or dynamic imports."
+  - risk: "Do not weaken MISSING_REQUIRED_IMPORT errors to make React.lazy pass."
+    instead: "Ensure dynamic import() module specifiers are collected and normalized like other TS/JS imports."
+  - risk: "Do not require a React runtime dependency for Python tests."
+    instead: "Use representative TSX source text and ValidationEngine fixtures rather than executing React code."
+files:
+  create:
+    - path: tests/core/test_validate_react.py
+      artifacts:
+        - kind: test_function
+          name: test_react_testing_library_rendered_component_satisfies_behavioral_artifact
+        - kind: test_function
+          name: test_react_barrel_component_import_satisfies_required_import
+        - kind: test_function
+          name: test_react_lazy_dynamic_import_satisfies_required_import
+        - kind: test_function
+          name: test_react_path_alias_component_import_satisfies_required_import
+        - kind: test_function
+          name: test_react_css_module_import_satisfies_required_style_import
+        - kind: test_function
+          name: test_react_package_import_does_not_satisfy_project_local_required_import
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/core/identity.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/validators/typescript.py
+    - tests/core/test_validate.py
+    - tests/core/test_ts_module_paths.py
+    - tests/validators/test_typescript_identity.py
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/017-06-compiler-backed-required-import-resolution.manifest.yaml
+    - manifests/add-typescript-compiler-backed-identity-resolution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validate_react.py

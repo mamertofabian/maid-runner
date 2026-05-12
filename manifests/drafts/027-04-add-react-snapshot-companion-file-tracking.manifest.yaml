@@ -1,0 +1,67 @@
+schema: "2"
+goal: "Track React component local style and asset companion imports in snapshot manifests"
+type: feature
+created: "2026-05-12"
+metadata:
+  tags:
+    - react
+    - snapshot
+    - file-tracking
+    - typescript
+    - assets
+  priority: medium
+description: |
+  Extend snapshot generation for React TSX/JSX component source files so local
+  side-effect stylesheets, CSS modules, and static asset imports are tracked as
+  read files. For example, a snapshot of src/components/Button.tsx should add
+  src/components/Button.module.css, src/components/Button.css, or
+  src/assets/logo.svg to files.read when the component imports those files and
+  they exist under project_root.
+
+  Rationale: React component behavior often depends on co-located styles and
+  assets even though those files are not MAID code artifacts. Tracking them as
+  read files gives implementers and reviewers an explicit boundary without
+  parsing CSS, SVG, images, or bundler asset modules as artifacts.
+
+  Promotion order: after 027-03 so import collection boundaries are already
+  characterized. Keep this dependency-free and TypeScript-source-backed.
+temptations:
+  - risk: "Do not parse CSS, SVG, image, font, or media files into MAID artifacts in this draft."
+    instead: "Only add project-relative companion paths to files.read when local imports resolve to existing non-code assets."
+  - risk: "Do not guess sibling files like Button.css when they are not imported."
+    instead: "Track only literal local import specifiers present in the component source."
+  - risk: "Do not track react, @testing-library/*, package CSS, unresolved aliases, or node_modules assets as project read files."
+    instead: "Resolve only relative imports inside project_root and skip missing or external files."
+  - risk: "Do not make React, Vite, Next.js, webpack, or CSS-module dependencies required for snapshot generation."
+    instead: "Use existing TypeScript source parsing/text scanning and filesystem checks only."
+files:
+  edit:
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: function
+          name: generate_snapshot
+          args:
+            - name: file_path
+              type: Union[str, Path]
+          returns: Manifest
+  create:
+    - path: tests/core/test_snapshot_react.py
+      artifacts:
+        - kind: test_function
+          name: test_react_component_snapshot_tracks_css_module_import_as_read_file
+        - kind: test_function
+          name: test_react_component_snapshot_tracks_side_effect_stylesheet_import_as_read_file
+        - kind: test_function
+          name: test_react_component_snapshot_tracks_static_asset_import_as_read_file
+        - kind: test_function
+          name: test_react_component_snapshot_ignores_package_and_missing_asset_imports
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/typescript.py
+    - tests/core/test_snapshot.py
+    - tests/core/test_validate_react.py
+    - manifests/drafts/027-03-characterize-react-required-imports-and-testing-library.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_snapshot_react.py

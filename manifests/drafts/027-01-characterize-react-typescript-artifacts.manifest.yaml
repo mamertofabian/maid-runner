@@ -1,0 +1,55 @@
+schema: "2"
+goal: "Characterize React TSX artifacts as first-class TypeScript validator coverage"
+type: refactor
+created: "2026-05-12"
+metadata:
+  tags:
+    - react
+    - typescript
+    - tsx
+    - validator
+    - characterization
+  priority: medium
+description: |
+  Add focused characterization coverage for React files that are already
+  expected to work through the generic TypeScript validator. This draft does
+  not introduce a React validator and does not add React-specific metadata to
+  FoundArtifact. It locks the current support boundary: React function
+  components, typed const components, custom hooks, provider components, props
+  interfaces, and props type aliases are ordinary TypeScript artifacts; JSX
+  intrinsic tags, JSX attributes, React imports, and Testing Library helpers
+  are not implementation artifacts.
+
+  Promotion order: run before React-specific extraction work. If these tests
+  fail, fix generic TypeScript/TSX artifact collection rather than adding a
+  separate React parser.
+temptations:
+  - risk: "Do not create a ReactValidator just to support .tsx or .jsx files."
+    instead: "Keep React files on TypeScriptValidator and characterize React syntax through public collect_implementation_artifacts behavior."
+  - risk: "Do not promote JSX intrinsic tags, JSX attribute names, React imports, or Testing Library helper calls to implementation artifacts."
+    instead: "Assert user-defined functions, props shapes, hooks, and provider exports remain visible while framework syntax remains syntax."
+  - risk: "Do not infer runtime React semantics from JSX or component naming in this characterization draft."
+    instead: "Record the TypeScript-backed support boundary and leave wrapped component extraction to the follow-up draft."
+files:
+  create:
+    - path: tests/validators/test_typescript_react.py
+      artifacts:
+        - kind: test_function
+          name: test_react_function_component_preserves_props_interface_and_signature
+        - kind: test_function
+          name: test_react_fc_typed_const_component_preserves_props_type_and_function_artifact
+        - kind: test_function
+          name: test_react_hook_and_provider_exports_remain_plain_typescript_functions
+        - kind: test_function
+          name: test_jsx_intrinsic_tags_and_attributes_do_not_become_implementation_artifacts
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - maid_runner/core/types.py
+    - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_artifact_edge_cases.py
+    - tests/validators/test_typescript_identity.py
+    - manifests/add-semantic-reference-index-typescript.manifest.yaml
+    - manifests/fix-coherence-naming-tsx-and-dep-severity.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_react.py
