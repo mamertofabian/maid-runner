@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-import re
 from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
@@ -13,6 +12,12 @@ from maid_runner.core._js_ts_imports import (
     collect_import_modules,
     collect_required_imports,
     import_may_satisfy_required,
+)
+from maid_runner.core._validation_test_artifacts import (
+    collect_test_artifacts,
+    collection_errors_to_validation_errors,
+    find_test_files,
+    get_validator_for_test,
 )
 from maid_runner.core._type_compare import types_match
 from maid_runner.core.chain import ManifestChain
@@ -237,9 +242,9 @@ class ValidationEngine:
         errors: list[ValidationError] = []
 
         # Find test files
-        test_files = _find_test_files(manifest, self._project_root)
-        test_artifacts = _collect_test_artifacts(
-            test_files, self._project_root, registry=self._registry, errors=errors
+        test_files = find_test_files(manifest, self._project_root)
+        test_artifacts = collect_test_artifacts(
+            test_files, self._project_root, self._registry, errors
         )
 
         # Check each artifact is used in at least one test
@@ -247,7 +252,7 @@ class ValidationEngine:
         # validated separately by _validate_test_function_names
         for fs in manifest.all_file_specs:
             artifact_validator = (
-                _get_validator_for_test(fs.path, self._registry) if fs.path else None
+                get_validator_for_test(fs.path, self._registry) if fs.path else None
             )
             if artifact_validator is not None:
                 artifact_module = artifact_validator.module_path(
@@ -418,7 +423,7 @@ class ValidationEngine:
             collection = validator.collect_behavioral_artifacts(source, path)
             if collection.errors:
                 errors.extend(
-                    _collection_errors_to_validation_errors(collection.errors, path)
+                    collection_errors_to_validation_errors(collection.errors, path)
                 )
                 continue
 
@@ -565,9 +570,9 @@ class ValidationEngine:
             return errors
 
         # Find test files
-        test_files = _find_test_files(manifest, self._project_root)
-        test_artifacts = _collect_test_artifacts(
-            test_files, self._project_root, registry=self._registry, errors=errors
+        test_files = find_test_files(manifest, self._project_root)
+        test_artifacts = collect_test_artifacts(
+            test_files, self._project_root, self._registry, errors
         )
 
         if not test_files:
@@ -590,7 +595,7 @@ class ValidationEngine:
         # Check each public artifact is referenced in at least one test (WARNING)
         for fs in source_file_specs:
             artifact_validator = (
-                _get_validator_for_test(fs.path, self._registry) if fs.path else None
+                get_validator_for_test(fs.path, self._registry) if fs.path else None
             )
             if artifact_validator is not None:
                 artifact_module = artifact_validator.module_path(
@@ -716,7 +721,7 @@ class ValidationEngine:
             collection = validator.collect_implementation_artifacts(source, fs.path)
             if collection.errors:
                 errors.extend(
-                    _collection_errors_to_validation_errors(collection.errors, fs.path)
+                    collection_errors_to_validation_errors(collection.errors, fs.path)
                 )
                 continue
 
@@ -1138,43 +1143,11 @@ def _compare_single(
 
 
 def _find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
-    test_files: list[str] = []
-
-    def add_test_file(path: str) -> None:
-        if is_test_file(path) and path not in test_files:
-            test_files.append(path)
-
-    def add_test_path(path: str) -> None:
-        add_test_file(path)
-
-        full_path = project_root / path
-        if not full_path.is_dir():
-            return
-
-        for child in sorted(full_path.rglob("*")):
-            if not child.is_file():
-                continue
-            rel_path = str(child.relative_to(project_root))
-            add_test_file(rel_path)
-
-    # From read files
-    for path in manifest.files_read:
-        add_test_path(path)
-
-    # From validate commands
-    for cmd in manifest.validate_commands:
-        for part in cmd:
-            add_test_path(part)
-
-    return test_files
+    return find_test_files(manifest, project_root)
 
 
 def _get_validator_for_test(test_path: str, registry: ValidatorRegistry):
-    """Get a validator for a test file, or None if unsupported."""
-    try:
-        return registry.get(test_path)
-    except UnsupportedLanguageError:
-        return None
+    return get_validator_for_test(test_path, registry)
 
 
 def _collect_test_artifacts(
@@ -1184,67 +1157,14 @@ def _collect_test_artifacts(
     registry: ValidatorRegistry,
     errors: list[ValidationError],
 ) -> dict[str, list[FoundArtifact]]:
-    collected: dict[str, list[FoundArtifact]] = {}
-
-    for tf_path in test_files:
-        full_path = project_root / tf_path
-        if not full_path.exists():
-            continue
-
-        try:
-            source = full_path.read_text()
-        except OSError as exc:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.FILE_READ_ERROR,
-                    message=f"Failed to read test file '{tf_path}': {exc}",
-                    location=Location(file=tf_path),
-                )
-            )
-            continue
-
-        validator = _get_validator_for_test(tf_path, registry)
-        if validator is None:
-            continue
-
-        result = validator.collect_behavioral_artifacts(source, tf_path)
-        if result.errors:
-            errors.extend(
-                _collection_errors_to_validation_errors(result.errors, tf_path)
-            )
-            continue
-
-        # Exclude TEST_FUNCTION declarations so a test labeled `it("createLogin", ...)`
-        # does not masquerade as a reference to a source artifact named `createLogin`.
-        # Only real identifier/call references count as artifact usage.
-        collected[tf_path] = [
-            artifact
-            for artifact in result.artifacts
-            if artifact.kind != ArtifactKind.TEST_FUNCTION
-        ]
-
-    return collected
+    return collect_test_artifacts(test_files, project_root, registry, errors)
 
 
 def _collection_errors_to_validation_errors(
     collection_errors: list[str],
     file_path: str,
 ) -> list[ValidationError]:
-    errors: list[ValidationError] = []
-    for message in collection_errors:
-        line = None
-        match = re.search(r"line\s+(\d+)", message)
-        if match:
-            line = int(match.group(1))
-        errors.append(
-            ValidationError(
-                code=ErrorCode.SOURCE_PARSE_ERROR,
-                message=f"Failed to parse '{file_path}': {message}",
-                location=Location(file=file_path, line=line),
-                suggestion="Fix syntax errors before re-running validation",
-            )
-        )
-    return errors
+    return collection_errors_to_validation_errors(collection_errors, file_path)
 
 
 def _check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
