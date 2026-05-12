@@ -6,6 +6,11 @@ import json
 
 
 class TestCmdSchema:
+    def test_cmd_schema_handler_is_directly_importable(self):
+        from maid_runner.cli.commands.schema import cmd_schema
+
+        assert callable(cmd_schema)
+
     def test_schema_v2_outputs_valid_json(self, capsys):
         from maid_runner.cli.commands._main import main
 

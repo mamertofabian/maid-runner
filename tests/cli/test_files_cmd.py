@@ -87,6 +87,12 @@ class TestCmdManifests:
 
 
 class TestCmdFiles:
+    def test_files_command_handlers_are_directly_importable(self):
+        from maid_runner.cli.commands.files import cmd_files, cmd_manifests
+
+        assert callable(cmd_files)
+        assert callable(cmd_manifests)
+
     def test_files_shows_tracking(self, project_with_files, capsys):
         from maid_runner.cli.commands._main import main
 

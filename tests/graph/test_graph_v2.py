@@ -69,6 +69,41 @@ def _write_chain(tmp_path, manifests_data):
 
 
 class TestGraphBuilder:
+    def test_graph_model_snapshot_fields_and_edge_constants_are_referenced(self):
+        from maid_runner.graph.model import (
+            ArtifactNode,
+            Edge,
+            EdgeType,
+            Node,
+            NodeType,
+        )
+
+        node = Node("node:one", NodeType.MODULE, attributes={"label": "one"})
+        artifact = ArtifactNode(
+            "artifact:one",
+            "run",
+            "function",
+            signature="run() -> None",
+            parent_class="Service",
+            attributes={"visibility": "public"},
+        )
+        edge = Edge(
+            "edge:one",
+            EdgeType.CONTAINS,
+            "node:one",
+            "artifact:one",
+            attributes={"source": "test"},
+        )
+
+        assert node.attributes["label"] == "one"
+        assert artifact.signature == "run() -> None"
+        assert artifact.parent_class == "Service"
+        assert artifact.attributes["visibility"] == "public"
+        assert edge.attributes["source"] == "test"
+        assert EdgeType.CONTAINS.value == "contains"
+        assert EdgeType.INHERITS.value == "inherits"
+        assert EdgeType.BELONGS_TO.value == "belongs_to"
+
     def test_graph_package_exports_public_facade(self, tmp_path):
         from maid_runner.graph import (
             ARTIFACT_PREFIX,

@@ -1,0 +1,98 @@
+schema: "2"
+goal: "Restore green batch behavioral validation for active maid-runner manifests"
+type: fix
+created: "2026-05-12T19:45:00+08:00"
+description: |
+  Batch behavioral validation currently fails with E200 for active manifests
+  that either use directory validate commands such as `pytest tests/ -v` or
+  rely on same-named imports from both implementation modules and package
+  barrels. The repair keeps E200 strict, but makes test discovery and Python
+  behavioral references precise enough for the repo's own contracts.
+temptations:
+  - risk: "Do not silence E200 globally or downgrade behavioral failures to warnings."
+    instead: "Preserve E200 strictness and make test discovery/reference collection identify the real test references."
+  - risk: "Do not add broad placeholder imports only to satisfy manifests."
+    instead: "Add focused smoke coverage for CLI handlers and graph model fields that are part of active snapshot contracts."
+  - risk: "Do not treat all command arguments as recursive test roots."
+    instead: "Expand only existing filesystem directories and then filter discovered files through is_test_file."
+
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchValidationResult
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: PythonValidator
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_command_directory_discovers_nested_test_files
+          source_scenario: "A manifest uses `pytest tests/ -v` instead of naming every test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation expands the directory to discover nested pytest files and accepts the artifact reference."
+    - path: tests/validators/test_python.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_references_preserve_same_name_from_different_import_sources
+          source_scenario: "A test imports the same symbol name from an implementation module and a package barrel."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Both references are retained with their import_source values so barrel manifests can match exact module identity."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_validate_handler_is_directly_importable
+    - path: tests/cli/test_files_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_files_command_handlers_are_directly_importable
+    - path: tests/cli/test_schema_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_schema_handler_is_directly_importable
+    - path: tests/cli/test_snapshot_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_command_handlers_are_directly_importable
+    - path: tests/graph/test_graph_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_graph_model_snapshot_fields_and_edge_constants_are_referenced
+
+validate:
+  - uv run python -m pytest tests/core/test_validate.py tests/validators/test_python.py tests/cli/test_validate_cmd.py tests/cli/test_files_cmd.py tests/cli/test_schema_cmd.py tests/cli/test_snapshot_cmd.py tests/graph/test_graph_v2.py -q
+  - uv run maid validate --mode behavioral --json

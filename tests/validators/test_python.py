@@ -146,6 +146,29 @@ class TestPackageReexports:
         assert node_type.kind == ArtifactKind.CLASS
 
 
+class TestPythonBehavioralReferences:
+    def test_behavioral_references_preserve_same_name_from_different_import_sources(
+        self, validator
+    ):
+        source = """
+from pkg.internal import Thing
+from pkg import Thing
+
+def test_barrel_and_internal_exports():
+    assert Thing is not None
+"""
+
+        result = validator.collect_behavioral_artifacts(source, "tests/test_api.py")
+
+        assert PythonValidator is not None
+        thing_sources = {
+            artifact.import_source
+            for artifact in result.artifacts
+            if artifact.name == "Thing" and artifact.import_source is not None
+        }
+        assert thing_sources == {"pkg.internal", "pkg"}
+
+
 class TestClassAttributeInInit:
     """Golden test 4.8."""
 

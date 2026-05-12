@@ -1103,16 +1103,31 @@ def _compare_single(
 def _find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
     test_files: list[str] = []
 
+    def add_test_file(path: str) -> None:
+        if is_test_file(path) and path not in test_files:
+            test_files.append(path)
+
+    def add_test_path(path: str) -> None:
+        add_test_file(path)
+
+        full_path = project_root / path
+        if not full_path.is_dir():
+            return
+
+        for child in sorted(full_path.rglob("*")):
+            if not child.is_file():
+                continue
+            rel_path = str(child.relative_to(project_root))
+            add_test_file(rel_path)
+
     # From read files
     for path in manifest.files_read:
-        if is_test_file(path):
-            test_files.append(path)
+        add_test_path(path)
 
     # From validate commands
     for cmd in manifest.validate_commands:
         for part in cmd:
-            if is_test_file(part) and part not in test_files:
-                test_files.append(part)
+            add_test_path(part)
 
     return test_files
 

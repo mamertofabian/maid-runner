@@ -340,7 +340,7 @@ class _BehavioralCollector(ast.NodeVisitor):
 
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
-        self._seen: set[str] = set()
+        self._seen: set[tuple[str, Optional[str], Optional[str]]] = set()
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
@@ -495,9 +495,10 @@ class _BehavioralCollector(ast.NodeVisitor):
         import_source: Optional[str] = None,
         alias_of: Optional[str] = None,
     ) -> None:
-        if name in self._seen:
+        key = (name, import_source, alias_of)
+        if key in self._seen:
             return
-        self._seen.add(name)
+        self._seen.add(key)
         self.artifacts.append(
             FoundArtifact(
                 kind=ArtifactKind.FUNCTION,  # Kind doesn't matter for behavioral

@@ -6,6 +6,12 @@ import json
 
 
 class TestCmdSnapshot:
+    def test_snapshot_command_handlers_are_directly_importable(self):
+        from maid_runner.cli.commands.snapshot import cmd_snapshot, cmd_snapshot_system
+
+        assert callable(cmd_snapshot)
+        assert callable(cmd_snapshot_system)
+
     def test_snapshot_nonexistent_file_returns_2(self, capsys):
         from maid_runner.cli.commands._main import main
 

@@ -92,6 +92,11 @@ def failing_project(tmp_path):
 
 
 class TestCmdValidateSingleManifest:
+    def test_cmd_validate_handler_is_directly_importable(self):
+        from maid_runner.cli.commands.validate import cmd_validate
+
+        assert callable(cmd_validate)
+
     def test_valid_manifest_returns_0(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 
