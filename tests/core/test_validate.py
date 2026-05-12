@@ -1535,15 +1535,15 @@ validate:
         """Text fallback normalizes multiline named import module paths."""
         import sys
 
-        _validate_module = sys.modules["maid_runner.core.validate"]
+        _imports_module = sys.modules["maid_runner.core._js_ts_imports"]
         monkeypatch.setattr(
-            _validate_module,
-            "_collect_js_ts_required_imports_with_tree_sitter",
+            _imports_module,
+            "_collect_required_imports_with_tree_sitter",
             lambda source, file_path: None,
         )
         monkeypatch.setattr(
-            _validate_module,
-            "_collect_js_ts_import_modules_with_tree_sitter",
+            _imports_module,
+            "_collect_import_modules_with_tree_sitter",
             lambda source, file_path: None,
         )
 
@@ -1928,9 +1928,7 @@ validate:
         assert len(import_errors) == 0
         assert compiler_calls == ["@design/system"]
 
-    def test_ts_required_import_accepts_package_barrel_reexport_target(
-        self, project
-    ):
+    def test_ts_required_import_accepts_package_barrel_reexport_target(self, project):
         """Package-style import can satisfy a required import behind a barrel."""
         import json
 
@@ -2002,8 +2000,7 @@ validate:
         ui_src = project / "packages" / "ui" / "src"
         ui_src.mkdir(parents=True)
         (ui_src / "index.ts").write_text(
-            'export { Button } from "./Button";\n'
-            'export { Theme } from "./Theme";\n',
+            'export { Button } from "./Button";\n' 'export { Theme } from "./Theme";\n',
             encoding="utf-8",
         )
         (ui_src / "Button.ts").write_text(
@@ -2045,9 +2042,7 @@ validate:
         ]
         assert len(import_errors) == 1
 
-    def test_ts_required_import_rejects_aliased_different_barrel_binding(
-        self, project
-    ):
+    def test_ts_required_import_rejects_aliased_different_barrel_binding(self, project):
         """A local alias does not count as importing a different barrel export."""
         import json
 
@@ -2064,8 +2059,7 @@ validate:
         ui_src = project / "packages" / "ui" / "src"
         ui_src.mkdir(parents=True)
         (ui_src / "index.ts").write_text(
-            'export { Button } from "./Button";\n'
-            'export { Theme } from "./Theme";\n',
+            'export { Button } from "./Button";\n' 'export { Theme } from "./Theme";\n',
             encoding="utf-8",
         )
         (ui_src / "Button.ts").write_text(
@@ -2201,9 +2195,9 @@ validate:
             e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
         ]
         assert len(import_errors) == 0
-        assert len(compiler_calls) == 0, (
-            "compiler must not be invoked for external packages"
-        )
+        assert (
+            len(compiler_calls) == 0
+        ), "compiler must not be invoked for external packages"
 
     def test_python_path_style_import_matches_dotted(self, project):
         """Path-style required_import 'src/models/user.py' matches dotted 'src.models.user'."""
