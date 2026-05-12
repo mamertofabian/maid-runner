@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-05-12
+
+### Added
+- **Draft implementation automation** — Added Codex and Claude MAID draft loop tooling, draft workflow documentation, and parser-replacement characterization manifests/tests to support manifest-by-manifest implementation batches.
+
+### Fixed
+- **Loop commit integrity and import validation** — Hardened READY commit packet enforcement, restored manifest/test contract coverage, and tightened TypeScript required-import resolution for aliases, package exports, and barrel re-exports without reintroducing validation false positives.
+
 ## [2.7.3] - 2026-05-09
 
 ### Fixed
@@ -867,6 +875,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 [0.1.2]: https://github.com/mamertofabian/maid-runner/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mamertofabian/maid-runner/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mamertofabian/maid-runner/releases/tag/v0.1.0
+[2.8.0]: https://github.com/mamertofabian/maid-runner/compare/v2.7.3...v2.8.0
 [2.7.3]: https://github.com/mamertofabian/maid-runner/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/mamertofabian/maid-runner/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/mamertofabian/maid-runner/compare/v2.7.0...v2.7.1
