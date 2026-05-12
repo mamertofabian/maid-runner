@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Union
+from typing import Iterable, Union
 
 from maid_runner.core.manifest import save_manifest as _save_manifest_core
 from maid_runner.core.types import (
@@ -79,6 +79,7 @@ def generate_snapshot(
         source_path="",
         goal=f"Snapshot of {rel_path}",
         validate_commands=_infer_validation_command(rel_path),
+        files_read=_angular_component_companion_files(source, file_path, project_root),
         files_snapshot=(file_spec,),
         task_type=TaskType.SNAPSHOT,
         created=datetime.now(timezone.utc).isoformat(),
@@ -241,6 +242,73 @@ def _infer_validation_command(rel_path: str) -> tuple[tuple[str, ...], ...]:
     elif p.suffix in (".ts", ".tsx"):
         return (("vitest", "run"),)
     return (("pytest", "tests/", "-v"),)
+
+
+def _angular_component_companion_files(
+    source: str,
+    file_path: Path,
+    project_root: Path,
+) -> tuple[str, ...]:
+    """Return existing Angular template/style companions referenced literally."""
+    if file_path.suffix not in {".ts", ".tsx"} or "@Component" not in source:
+        return ()
+
+    companions: list[str] = []
+    for metadata in _angular_component_metadata_blocks(source):
+        for companion in _angular_companion_literals(metadata):
+            companion_path = (file_path.parent / companion).resolve()
+            if not companion_path.exists() or not companion_path.is_file():
+                continue
+            try:
+                rel_path = companion_path.relative_to(project_root)
+            except ValueError:
+                continue
+            posix_path = rel_path.as_posix()
+            if posix_path not in companions:
+                companions.append(posix_path)
+
+    return tuple(companions)
+
+
+def _angular_component_metadata_blocks(source: str) -> Iterable[str]:
+    for match in re.finditer(r"@Component\s*\(\s*\{", source):
+        start = match.end()
+        depth = 1
+        quote: str | None = None
+        escaped = False
+        for index in range(start, len(source)):
+            char = source[index]
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = None
+                continue
+            if char in {"'", '"', "`"}:
+                quote = char
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    yield source[start:index]
+                    break
+
+
+def _angular_companion_literals(metadata: str) -> Iterable[str]:
+    scalar_pattern = re.compile(
+        r"\b(?:templateUrl|styleUrl)\s*:\s*(['\"])(?P<path>[^'\"]+)\1"
+    )
+    for match in scalar_pattern.finditer(metadata):
+        yield match.group("path")
+
+    array_pattern = re.compile(r"\bstyleUrls\s*:\s*\[(?P<body>.*?)\]", re.DOTALL)
+    literal_pattern = re.compile(r"(['\"])(?P<path>[^'\"]+)\1")
+    for array_match in array_pattern.finditer(metadata):
+        for literal_match in literal_pattern.finditer(array_match.group("body")):
+            yield literal_match.group("path")
 
 
 def _infer_test_path(source_path: str, test_dir: str) -> str:

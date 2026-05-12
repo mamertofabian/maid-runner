@@ -353,7 +353,7 @@ manifest = generate_snapshot("src/auth/service.py")
 No. ArchSpec generates them from your specs. For existing projects, `maid snapshot` generates manifests from your current code.
 
 **Does this work with my language?**
-Python is always supported. TypeScript/JavaScript and Svelte require optional dependencies (`pip install maid-runner[typescript]`). More languages coming.
+Python is always supported. TypeScript/JavaScript and Svelte require optional dependencies (`pip install maid-runner[typescript]`). Angular `.ts` files are supported through the TypeScript parser: decorated classes, fields, methods, standalone imports, and lazy route `import()` calls are covered. Snapshot generation records literal `templateUrl`, `styleUrl`, and `styleUrls` companion files as read files when they exist, but MAID Runner does not parse Angular templates/styles or run Angular compiler semantic analysis. More languages coming.
 
 **Can I use this without ArchSpec?**
 Yes. MAID Runner is standalone. Write manifests by hand, or use `maid snapshot` to generate from existing code. ArchSpec just automates the spec → manifest step.

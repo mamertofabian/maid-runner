@@ -170,8 +170,18 @@ The development process is broken down into distinct phases, characterized by tw
         - File extensions: `.ts`, `.tsx`, `.js`, `.jsx`
         - Artifact types: `class`, `function`, `interface`, `type`, `enum`, `namespace`, `attribute`
         - Features: Generics, decorators, JSX/TSX, async functions, arrow functions
-        - Framework support: Angular, React, NestJS, Vue
-        - Coverage: 99.9% of TypeScript language constructs
+        - Angular support is TypeScript-backed: decorated classes, fields,
+          methods, standalone imports, and lazy route `import()` calls are
+          validated through the TypeScript parser and import scanner
+        - Angular snapshot support tracks literal `templateUrl`, `styleUrl`,
+          and `styleUrls` companion files as read boundaries when the files
+          exist
+
+    Angular support does not use Angular compiler analysis. Decorator names
+    such as `Component`, `Injectable`, `Directive`, `Pipe`, `Input`, and
+    `Output` are metadata, not public MAID artifacts. External templates and
+    styles are tracked as files for review scope, but their contents are not
+    parsed as Angular template or stylesheet artifacts.
 
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
@@ -373,4 +383,3 @@ The development process is broken down into distinct phases, characterized by tw
 
   * **Codebase as a Dependency Graph**
     By analyzing `import` statements, the entire codebase can be mapped as a Directed Acyclic Graph (DAG). This allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.
-    

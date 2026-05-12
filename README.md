@@ -28,7 +28,7 @@ This transforms AI from a "Junior Developer" requiring reactive code review into
 | Language | Extensions | Parser | Key Features |
 |----------|------------|--------|--------------|
 | **Python** | `.py` | AST (built-in) | Classes, functions, methods, attributes, type hints, async/await, decorators |
-| **TypeScript/JS** | `.ts`, `.tsx`, `.js`, `.jsx` | tree-sitter | Classes, interfaces, type aliases, enums, namespaces, generics, JSX/TSX |
+| **TypeScript/JS** | `.ts`, `.tsx`, `.js`, `.jsx` | tree-sitter | Classes, interfaces, type aliases, enums, namespaces, generics, JSX/TSX; Angular `.ts` files through TypeScript parsing |
 | **Svelte** | `.svelte` | tree-sitter | Components, props, exports, script blocks, reactive statements |
 
 ## Quick Start
@@ -180,6 +180,23 @@ V1 JSON manifests are auto-converted when loaded.
 **Common:** `class`, `function`, `method`, `attribute`
 
 **TypeScript-specific:** `interface`, `type`, `enum`, `namespace`
+
+### Angular TypeScript Boundary
+
+Angular source files are supported as TypeScript files. MAID Runner collects
+decorated classes, fields, methods, and signal-style `input()` / `output()`
+fields through `TypeScriptValidator`; Angular decorator names and decorator
+metadata are not public MAID artifacts.
+
+Required-import validation uses the same TypeScript import scanner for Angular
+standalone component imports and lazy `import()` route modules. Third-party
+imports such as `@angular/core` remain package imports and do not satisfy
+project-local required imports.
+
+`maid snapshot` tracks literal Angular `templateUrl`, `styleUrl`, and
+`styleUrls` companion files in `files.read` when those files exist. Template
+HTML and CSS/SCSS contents are tracked as file boundaries, not parsed into
+Angular artifacts.
 
 ### Manifest Event Log
 
@@ -384,7 +401,7 @@ maid test                                            # MAID validation commands
 
 - Python 3.10+
 - Core: `jsonschema`, `pyyaml`
-- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS support), `tree-sitter-svelte` (Svelte support)
+- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS and Angular `.ts` support), `tree-sitter-svelte` (Svelte support)
 - Dev: `black`, `ruff`, `mypy`, `pytest`
 
 ## Contributing

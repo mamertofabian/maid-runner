@@ -49,9 +49,9 @@ files:
           type: markdown
           description: "FAQ language that explains Angular support, template/style tracking, and current semantic limitations."
   read:
-    - manifests/drafts/025-01-characterize-angular-typescript-artifacts.manifest.yaml
-    - manifests/drafts/025-02-characterize-angular-required-imports-and-routes.manifest.yaml
-    - manifests/drafts/025-03-add-angular-component-companion-file-tracking.manifest.yaml
+    - manifests/025-01-characterize-angular-typescript-artifacts.manifest.yaml
+    - manifests/025-02-characterize-angular-required-imports-and-routes.manifest.yaml
+    - manifests/025-03-add-angular-component-companion-file-tracking.manifest.yaml
     - tests/validators/test_typescript_artifact_edge_cases.py
     - tests/core/test_snapshot.py
 validate:
