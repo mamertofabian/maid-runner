@@ -103,6 +103,16 @@ class ValidationEngine:
                     ],
                 )
 
+        if mode == ValidationMode.SCHEMA:
+            duration = (time.monotonic() - start) * 1000
+            return ValidationResult(
+                success=True,
+                manifest_slug=manifest.slug,
+                manifest_path=manifest.source_path,
+                mode=mode,
+                duration_ms=duration,
+            )
+
         if not use_chain:
             chain = None
         elif chain is None:
@@ -155,6 +165,27 @@ class ValidationEngine:
             )
 
         chain = ManifestChain(chain_dir, self._project_root)
+
+        if mode == ValidationMode.SCHEMA:
+            manifests = chain.all_manifests
+            results: list[ValidationResult] = []
+            for manifest in manifests:
+                result = self.validate(manifest, mode=mode)
+                results.append(result)
+
+            duration = (time.monotonic() - start) * 1000
+            passed = sum(1 for result in results if result.success)
+            failed = len(results) - passed
+            return BatchValidationResult(
+                results=results,
+                total_manifests=len(manifests) + len(chain.load_errors),
+                passed=passed,
+                failed=failed,
+                skipped=0,
+                chain_errors=chain.load_errors,
+                duration_ms=duration,
+            )
+
         chain_errors = chain.diagnostics()
         active = chain.active_manifests()
         superseded = chain.superseded_manifests()

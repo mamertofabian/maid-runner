@@ -55,6 +55,10 @@ class TestValidationMode:
         assert ValidationMode.BEHAVIORAL == "behavioral"
         assert ValidationMode.IMPLEMENTATION == "implementation"
 
+    def test_validation_mode_values_include_schema(self):
+        assert ValidationMode.SCHEMA == "schema"
+        assert ValidationMode("schema") == ValidationMode.SCHEMA
+
 
 class TestFileMode:
     def test_values(self):

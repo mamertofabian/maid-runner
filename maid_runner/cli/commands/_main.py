@@ -22,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--mode",
         default="implementation",
-        choices=["behavioral", "implementation"],
+        choices=["schema", "behavioral", "implementation"],
     )
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--no-chain", action="store_true")

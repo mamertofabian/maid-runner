@@ -210,6 +210,104 @@ class TestCmdValidateSingleManifest:
         data = json.loads(captured.out)
         assert any(w["code"] == "E610" for w in data["warnings"])
 
+    def test_schema_mode_single_manifest_returns_0_for_valid_schema_without_source_files(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        manifest = {
+            "schema": "2",
+            "goal": "Validate schema only",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/missing.py",
+                        "artifacts": [{"kind": "function", "name": "missing"}],
+                    }
+                ],
+                "read": ["tests/test_missing.py"],
+            },
+            "validate": ["python missing_test_runner.py"],
+        }
+        (manifest_dir / "schema-only.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/schema-only.manifest.yaml",
+                "--mode",
+                "schema",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "PASS schema-only" in captured.out
+        assert "Mode: schema" in captured.out
+
+    def test_schema_mode_single_manifest_returns_1_for_invalid_schema(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (manifest_dir / "invalid.manifest.yaml").write_text(
+            yaml.dump({"schema": "2", "type": "feature"})
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/invalid.manifest.yaml",
+                "--mode",
+                "schema",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E004" in captured.out
+
+    def test_schema_mode_all_manifests_reports_schema_load_errors(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        valid_manifest = {
+            "schema": "2",
+            "goal": "Validate schema only",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/missing.py",
+                        "artifacts": [{"kind": "function", "name": "missing"}],
+                    }
+                ]
+            },
+            "validate": [],
+        }
+        (manifest_dir / "valid.manifest.yaml").write_text(yaml.dump(valid_manifest))
+        (manifest_dir / "invalid.manifest.yaml").write_text(
+            yaml.dump({"schema": "2", "type": "feature"})
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--mode", "schema"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Validation Results: 2 manifests" in captured.out
+        assert "E004" in captured.out
+
 
 class TestCmdValidateAll:
     def test_validate_all_returns_0_on_success(self, project_dir, capsys):

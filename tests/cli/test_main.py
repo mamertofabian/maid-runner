@@ -56,6 +56,13 @@ class TestBuildParser:
         args = parser.parse_args(["validate", "--mode", "behavioral"])
         assert args.mode == "behavioral"
 
+    def test_validate_mode_schema(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["validate", "--mode", "schema"])
+        assert args.mode == "schema"
+
     def test_validate_no_chain_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

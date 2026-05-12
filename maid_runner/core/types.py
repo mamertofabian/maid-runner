@@ -28,6 +28,7 @@ class TaskType(str, Enum):
 
 
 class ValidationMode(str, Enum):
+    SCHEMA = "schema"
     BEHAVIORAL = "behavioral"
     IMPLEMENTATION = "implementation"
 
