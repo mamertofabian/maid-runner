@@ -388,6 +388,68 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
         self.assertEqual(0, code)
         commit.assert_called_once()
 
+    def test_ready_pass_rejects_unlisted_dirty_paths_before_commit(self) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            claude="claude",
+            color="never",
+            model="sonnet",
+            effort="medium",
+            permission_mode="auto",
+            auto_commit=True,
+            batch_size=1,
+        )
+        result = claude_maid_loop.ClaudeRunResult(
+            args=["claude"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: test: incomplete packet\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- tools/claude_maid_loop.py\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".claude-automation/run.jsonl"),
+            stderr_path=Path(".claude-automation/run.stderr.log"),
+            final_message_path=Path(".claude-automation/run.final.md"),
+        )
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(
+                claude_maid_loop,
+                "git_status_short",
+                side_effect=[
+                    "",
+                    " M tools/claude_maid_loop.py\n"
+                    " M tests/ci/test_claude_maid_loop.py\n",
+                ],
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "find_implementable_drafts",
+                return_value=[Path("manifests/drafts/017-03-selected.manifest.yaml")],
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "run_claude_stream_command",
+                return_value=result,
+            ),
+            mock.patch.object(
+                claude_maid_loop,
+                "commit_ready_changes",
+                side_effect=AssertionError("incomplete packet must block commit"),
+            ),
+        ):
+            args.log_dir = temp_dir
+            code = claude_maid_loop.run_loop(args)
+
+        self.assertEqual(1, code)
+
     def test_stage_commit_packet_files_rejects_directories_and_unsafe_paths(
         self,
     ) -> None:
@@ -405,6 +467,20 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
             code = claude_maid_loop.stage_commit_packet_files(
                 ["logs", "../outside", "/tmp/outside"]
             )
+
+        self.assertEqual(1, code)
+
+    def test_stage_commit_packet_files_rejects_missing_untracked_paths(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            mock.patch.object(claude_maid_loop, "_ROOT", Path(temp_dir)),
+            mock.patch.object(
+                claude_maid_loop,
+                "_run_git",
+                side_effect=AssertionError("missing packet files must not be staged"),
+            ),
+        ):
+            code = claude_maid_loop.stage_commit_packet_files(["missing.txt"])
 
         self.assertEqual(1, code)
 

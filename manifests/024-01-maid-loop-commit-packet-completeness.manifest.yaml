@@ -1,0 +1,83 @@
+schema: "2"
+goal: "Reject incomplete MAID loop READY commit packets before committing"
+type: fix
+created: "2026-05-12"
+description: |
+  Harden the Codex and Claude MAID draft loops so a READY packet cannot create
+  a partial commit. After each implementation pass, the loop must compare the
+  post-run dirty worktree paths with the final commit packet and refuse to
+  commit when any changed path is missing. Packet paths that are neither
+  existing files nor tracked deletions must also be fatal instead of being
+  skipped.
+
+  This fixes review findings where `--auto-commit` could commit only part of
+  the implementation and leave unlisted changes dirty, and where typoed packet
+  paths were silently ignored.
+temptations:
+  - risk: "Do not rely on the post-commit dirty check to catch incomplete packets."
+    instead: "Block before staging or committing whenever the post-run dirty status contains paths outside the READY packet."
+  - risk: "Do not silently skip nonexistent paths listed by the model."
+    instead: "Treat missing untracked packet paths as invalid packet entries; only tracked deletions may be missing on disk."
+  - risk: "Do not relax selected-draft scope checks while adding packet completeness checks."
+    instead: "Keep the unselected draft guard first, then enforce complete dirty-path coverage for the remaining status paths."
+files:
+  edit:
+    - path: tools/codex_maid_loop.py
+      artifacts:
+        - kind: function
+          name: stage_commit_packet_files
+          args:
+            - name: files
+              type: list[str]
+          returns: int
+          description: "Reject invalid, directory, absolute, parent-traversal, and missing-untracked packet paths before staging exact existing or tracked-deleted files."
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Reject READY packets that omit any dirty post-run worktree path before prompting, auto-committing, staging, or committing."
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: stage_commit_packet_files
+          args:
+            - name: files
+              type: list[str]
+          returns: int
+          description: "Reject invalid, directory, absolute, parent-traversal, and missing-untracked packet paths before staging exact existing or tracked-deleted files."
+        - kind: function
+          name: run_loop
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Reject READY packets that omit any dirty post-run worktree path before prompting, auto-committing, staging, or committing."
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_ready_pass_rejects_unlisted_dirty_paths_before_commit
+        - kind: test_function
+          name: test_stage_commit_packet_files_rejects_missing_untracked_paths
+        - kind: test_function
+          name: test_parser_keeps_commit_approval_explicit
+        - kind: test_function
+          name: test_draft_manifest_workflow_docs_preserve_lifecycle_contract
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_ready_pass_rejects_unlisted_dirty_paths_before_commit
+        - kind: test_function
+          name: test_stage_commit_packet_files_rejects_missing_untracked_paths
+  read:
+    - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+    - manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
+    - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+    - manifests/021-01-claude-loop-promoted-draft-deletion.manifest.yaml
+    - manifests/023-01-maid-loop-selected-draft-scope.manifest.yaml
+    - manifests/document-draft-manifest-workflow.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py
+  - uv run maid validate manifests/018-01-codex-maid-loop-automation.manifest.yaml
+  - uv run maid validate manifests/document-draft-manifest-workflow.manifest.yaml

@@ -1790,6 +1790,290 @@ validate:
         ]
         assert len(import_errors) == 0
 
+    def test_ts_required_import_does_not_resolve_unrelated_bare_imports(
+        self, project, monkeypatch
+    ):
+        """Compiler bridge is not invoked when required imports are already present."""
+        import sys
+
+        assert callable(ValidationEngine.validate)
+        assert callable(validate)
+        _validate_module = sys.modules["maid_runner.core.validate"]
+        compiler_calls: list[str] = []
+
+        def track_resolve_ts_import(specifier, importer_module, root):
+            compiler_calls.append(specifier)
+            return specifier
+
+        monkeypatch.setattr(
+            _validate_module, "resolve_ts_import", track_resolve_ts_import
+        )
+
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - pkg0
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/App.ts",
+            "\n".join(
+                [f'import {{ value{i} }} from "pkg{i}";' for i in range(5)]
+                + ["export function App() { return value0; }"]
+            ),
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+        assert compiler_calls == []
+
+    def test_ts_required_import_resolves_only_relevant_unresolved_bare_imports(
+        self, project, monkeypatch
+    ):
+        """Compiler bridge skips unrelated bare imports while resolving a required alias."""
+        import sys
+
+        _validate_module = sys.modules["maid_runner.core.validate"]
+        compiler_calls: list[str] = []
+
+        def fake_resolve_ts_import(specifier, importer_module, root):
+            compiler_calls.append(specifier)
+            if specifier == "@design/system":
+                return "src/models/Budget"
+            return specifier
+
+        monkeypatch.setattr(
+            _validate_module, "resolve_ts_import", fake_resolve_ts_import
+        )
+
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-budget-page.manifest.yaml",
+            """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/pages/BudgetPage.ts",
+            'import { left } from "unrelated-left";\n'
+            'import { Budget } from "@design/system";\n'
+            'import { right } from "unrelated-right";\n\n'
+            "export function BudgetPage() { return new Budget(); }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+        assert compiler_calls == ["@design/system"]
+
+    def test_ts_required_import_accepts_package_barrel_reexport_target(
+        self, project
+    ):
+        """Package-style import can satisfy a required import behind a barrel."""
+        import json
+
+        (project / "tsconfig.json").write_text(
+            json.dumps(
+                {
+                    "compilerOptions": {
+                        "baseUrl": ".",
+                        "paths": {"@design/system": ["packages/ui/src"]},
+                    }
+                }
+            )
+        )
+        ui_src = project / "packages" / "ui" / "src"
+        ui_src.mkdir(parents=True)
+        (ui_src / "index.ts").write_text(
+            'export { Button } from "./Button";\n', encoding="utf-8"
+        )
+        (ui_src / "Button.ts").write_text(
+            "export function Button() { return null; }\n", encoding="utf-8"
+        )
+
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/App.ts",
+            'import { Button } from "@design/system";\n\nexport function App() { return Button(); }\n',
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 0
+
+    def test_ts_required_import_rejects_unimported_package_barrel_reexport_target(
+        self, project
+    ):
+        """A barrel target only counts when its binding is imported from that barrel."""
+        import json
+
+        (project / "tsconfig.json").write_text(
+            json.dumps(
+                {
+                    "compilerOptions": {
+                        "baseUrl": ".",
+                        "paths": {"@design/system": ["packages/ui/src"]},
+                    }
+                }
+            )
+        )
+        ui_src = project / "packages" / "ui" / "src"
+        ui_src.mkdir(parents=True)
+        (ui_src / "index.ts").write_text(
+            'export { Button } from "./Button";\n'
+            'export { Theme } from "./Theme";\n',
+            encoding="utf-8",
+        )
+        (ui_src / "Button.ts").write_text(
+            "export function Button() { return null; }\n", encoding="utf-8"
+        )
+        (ui_src / "Theme.ts").write_text(
+            "export function Theme() { return null; }\n", encoding="utf-8"
+        )
+
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/App.ts",
+            'import { Button } from "unrelated-kit";\n'
+            'import { Theme } from "@design/system";\n\n'
+            "export function App() { return Theme() || Button(); }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 1
+
+    def test_ts_required_import_rejects_aliased_different_barrel_binding(
+        self, project
+    ):
+        """A local alias does not count as importing a different barrel export."""
+        import json
+
+        (project / "tsconfig.json").write_text(
+            json.dumps(
+                {
+                    "compilerOptions": {
+                        "baseUrl": ".",
+                        "paths": {"@design/system": ["packages/ui/src"]},
+                    }
+                }
+            )
+        )
+        ui_src = project / "packages" / "ui" / "src"
+        ui_src.mkdir(parents=True)
+        (ui_src / "index.ts").write_text(
+            'export { Button } from "./Button";\n'
+            'export { Theme } from "./Theme";\n',
+            encoding="utf-8",
+        )
+        (ui_src / "Button.ts").write_text(
+            "export function Button() { return null; }\n", encoding="utf-8"
+        )
+        (ui_src / "Theme.ts").write_text(
+            "export function Theme() { return null; }\n", encoding="utf-8"
+        )
+
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+        )
+        _write_source(
+            project,
+            "src/App.ts",
+            'import { Theme as Button } from "@design/system";\n\n'
+            "export function App() { return Button(); }\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        import_errors = [
+            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
+        ]
+        assert len(import_errors) == 1
+
     def test_ts_required_import_does_not_invoke_compiler_for_relative_imports(
         self, project, monkeypatch
     ):

@@ -221,7 +221,7 @@ Define the high-level feature or bug fix.
 4. Iterate until validation passes
 
 For larger batches, use draft manifests as the planning queue: keep mutable
-child contracts in `manifests/drafts/`, promote one implementation-sized draft
+planning inventory in `manifests/drafts/`, promote one implementation-sized draft
 into `manifests/`, then implement and validate the promoted path. See
 [Draft Manifest Workflow](docs/draft-manifest-workflow.md).
 

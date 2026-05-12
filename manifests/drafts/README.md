@@ -1,6 +1,6 @@
 # Draft Manifests
 
-Draft manifests are planning contracts. They stay outside the active
+Draft manifests are planning inventory. They stay outside the active
 `manifests/*.manifest.yaml` set so normal MAID validation only covers approved
 implementation contracts.
 

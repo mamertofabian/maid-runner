@@ -996,7 +996,7 @@ Readiness by replacement slice:
 | TypeScript import/re-export identity | Compiler-backed for selected project-local cases | Named/default/namespace imports, aliasing, JSX references, one-level named/type/star/default-as barrels, namespace re-export non-equivalence, JavaScript-family barrels including `index.mjs` and narrow `index.cjs`, tsconfig `baseUrl`/`paths` aliases, local tsconfig `extends` chains, package import pass-through behavior, compiler-backed workspace package exports, and compiler-backed recursive barrels are covered. The compiler bridge falls back to current path/tree-sitter behavior when Node or TypeScript is unavailable. |
 | TypeScript artifact extraction | Good for current tree-sitter scope | Edge-case coverage now includes abstract method signatures, constructor parameter properties, defaulted/optional/rest/destructured parameters, overload signatures, decorated declarations, anonymous default exports, generic base type formatting, declaration-site generic type parameter storage, computed class method names, computed class fields, computed class arrow-function fields, computed interface members, annotated function-type return extraction, and type alias target text. Add tests before any broader replacement for decorator metadata semantics, computed property cases outside the covered class/interface forms, and source column/range parity if the replacement reports richer positions. |
 | Python validator internals | Good for current scope | Stdlib `ast` behavior is well characterized. If replacing with `astroid` or `libcst`, add tests for decorators beyond `@property`, dataclass/attrs-style fields if desired, overloaded functions, `typing.Protocol`, `__all__` re-exports, star import behavior, namespace packages, and line/column parity. |
-| Required import checking in `core/validate.py` | Completed for current parser-backed scanner | Python remains stdlib-`ast` backed. TS/JS required import discovery now uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, and aliases. Future work should only add tsconfig/package resolution under an explicit manifest. |
+| Required import checking in `core/validate.py` | Compiler-assisted for selected TS/JS path cases | Python remains stdlib-`ast` backed. TS/JS required import discovery uses tree-sitter when available and covers relative imports, package imports, CommonJS `require`, `export from`, namespace imports, `import type`, dynamic `import()`, `require.resolve`, multiline imports, commented-out imports, aliases, tsconfig path aliases, package-style local exports, and recursive barrel targets. The compiler bridge is invoked only when a required import remains unresolved after parser-backed collection and cheap normalization. |
 | Graph/query parser replacement | Good enough, low priority | Query and graph behavior has dedicated coverage. A library replacement is not currently justified unless graph/query complexity grows. |
 
 ## Parked Follow-ups
@@ -1024,9 +1024,9 @@ must start with a new manifest, behavioral tests, and validation.
 5. For future artifact-extraction work, characterize decorator metadata
    semantics, computed property cases outside the covered class/interface
    forms, and source column/range parity.
-6. Consider compiler-backed required-import resolution only under a dedicated
-   manifest. The current scanner remains parser-backed and should keep its
-   existing behavior until that contract is intentionally evolved.
+6. Continue compiler-backed required-import resolution only for unresolved
+   required imports. The current scanner should preserve parser-backed fast
+   paths and avoid resolving unrelated package imports.
 7. Keep Python parser replacement low priority unless package-level dependency
    graph queries become more important than current file-local artifact
    extraction.

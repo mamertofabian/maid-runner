@@ -242,7 +242,7 @@ def stage_commit_packet_files(files: list[str]) -> int:
     """Stage the exact existing or tracked-deleted files named by a packet."""
     existing_files: list[str] = []
     tracked_missing_files: list[str] = []
-    skipped_missing_files: list[str] = []
+    missing_untracked_files: list[str] = []
     invalid_files: list[str] = []
 
     for path in files:
@@ -258,18 +258,15 @@ def stage_commit_packet_files(files: list[str]) -> int:
         elif _git_path_is_tracked(path):
             tracked_missing_files.append(path)
         else:
-            skipped_missing_files.append(path)
+            missing_untracked_files.append(path)
 
-    if invalid_files:
+    if invalid_files or missing_untracked_files:
         print("Refusing invalid commit packet file paths:", file=sys.stderr)
         for path in invalid_files:
             print(f"  - {path}", file=sys.stderr)
+        for path in missing_untracked_files:
+            print(f"  - {path}", file=sys.stderr)
         return 1
-
-    if skipped_missing_files:
-        print("Skipping missing untracked commit packet files:")
-        for path in skipped_missing_files:
-            print(f"  - {path}")
 
     if existing_files:
         add_existing = _run_git(["add", "--", *existing_files])
@@ -479,6 +476,20 @@ def run_loop(args: argparse.Namespace) -> int:
                 print(f"  - {_rel(draft)}", file=sys.stderr)
             print("Unselected promoted/deleted draft path(s):", file=sys.stderr)
             for path in unselected_paths:
+                print(f"  - {path}", file=sys.stderr)
+            return 1
+
+        missing_packet_paths = _missing_commit_packet_status_paths(
+            commit_packet,
+            post_run_status,
+        )
+        if missing_packet_paths:
+            print(
+                "READY packet did not include every changed worktree path; refusing to commit.",
+                file=sys.stderr,
+            )
+            print("Missing changed path(s):", file=sys.stderr)
+            for path in missing_packet_paths:
                 print(f"  - {path}", file=sys.stderr)
             return 1
 
@@ -824,6 +835,14 @@ def _unselected_draft_scope_paths(
             unselected_paths.append(path)
 
     return unselected_paths
+
+
+def _missing_commit_packet_status_paths(
+    packet: CommitPacket,
+    status_output: str,
+) -> list[str]:
+    packet_paths = set(packet.files)
+    return [path for path in _status_paths(status_output) if path not in packet_paths]
 
 
 def _is_unselected_draft_manifest_path(path: str, selected_names: set[str]) -> bool:
