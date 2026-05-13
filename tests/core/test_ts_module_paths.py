@@ -11,6 +11,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from maid_runner.core._ts_export_scanner import (
+    export_specifier_names,
+    module_directly_exports_name,
+    resolve_reexport_source,
+)
 from maid_runner.core.ts_module_paths import (
     resolve_relative_ts_import,
     resolve_ts_reexport,
@@ -21,6 +26,19 @@ from maid_runner.core.ts_module_paths import (
 # ----------------------------------------------------------------------------
 # ts_file_to_module_path
 # ----------------------------------------------------------------------------
+
+
+def test_ts_file_to_module_path_strips_known_extensions(tmp_path: Path) -> None:
+    for filename, expected in [
+        ("component.tsx", "src/component"),
+        ("module.mts", "src/module"),
+        ("common.cjs", "src/common"),
+        ("Widget.svelte", "src/Widget"),
+    ]:
+        target = tmp_path / "src" / filename
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("")
+        assert ts_file_to_module_path(target, tmp_path) == expected
 
 
 class TestTsFileToModulePath:
@@ -595,6 +613,51 @@ class TestResolveTsImport:
 
 
 class TestResolveTsReexport:
+    def test_export_scanner_artifacts_preserve_barrel_scan_behavior(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        index = models / "index.ts"
+        index.write_text("export { Foo as Bar } from './user';\n")
+        user = models / "user.ts"
+        user.write_text("export class Foo {}\n")
+
+        assert resolve_reexport_source(index, "Bar", tmp_path, seen=set()) == (
+            "src/models/user",
+            "Foo",
+        )
+        assert module_directly_exports_name(user, "Foo")
+
+    def test_export_scanner_public_helpers_do_not_leak_fallback_sentinel(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        index = models / "index.ts"
+        index.write_text("export { Foo } from './missing';\n")
+        missing = models / "missing.ts"
+
+        assert resolve_reexport_source(index, "Foo", tmp_path, seen=set()) is None
+        assert module_directly_exports_name(missing, "Foo") is False
+
+    def test_export_specifier_names_returns_source_and_bound_names(self) -> None:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript as ts_ts
+
+        source = b"export { Foo as Bar } from './user';\n"
+        parser = Parser(Language(ts_ts.language_typescript()))
+        tree = parser.parse(source)
+        export_statement = tree.root_node.children[0]
+        export_clause = next(
+            child for child in export_statement.children if child.type == "export_clause"
+        )
+        export_specifier = next(
+            child for child in export_clause.children if child.type == "export_specifier"
+        )
+
+        assert export_specifier_names(export_specifier, source) == [("Foo", "Bar")]
+
     def test_external_package_reexport_skips_compiler(
         self, tmp_path: Path, monkeypatch
     ) -> None:
