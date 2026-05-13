@@ -1,0 +1,105 @@
+schema: "2"
+goal: "Move Python implementation artifact collection into a focused private module"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - python
+    - artifact-collection
+  priority: medium
+description: |
+  Move Python implementation artifact collection from validators/python.py into
+  a focused private module while keeping PythonValidator.collect_implementation_artifacts
+  as the stable public entry point.
+
+  Rationale: PythonValidator is smaller than the TypeScript validator but still
+  mixes facade methods, implementation AST collection, behavioral reference
+  collection, test body extraction, module path enrichment, and AST-to-string
+  helpers. Moving implementation collection first reduces one reason to change
+  without touching behavioral validation.
+
+  This is behavior-preserving. Class/function/method/property/module-attribute
+  artifacts, __all__ named import behavior, star export boundaries, dataclass
+  field boundaries, Protocol stub handling, module_path enrichment, args,
+  returns, is_async, is_property, and is_stub values must stay unchanged.
+temptations:
+  - risk: "Do not add dataclass-aware or Protocol-aware semantics while moving the collector."
+    instead: "Preserve the current stdlib-ast boundaries characterized in parser replacement tests."
+  - risk: "Do not expand star imports or reinterpret __all__ values."
+    instead: "Keep existing named-import collection and star-export non-expansion behavior."
+  - risk: "Do not move behavioral reference collection in the same patch."
+    instead: "Keep this manifest scoped to implementation artifact collection only."
+  - risk: "Do not assert private collector internals in tests."
+    instead: "Assert observable artifacts through PythonValidator."
+files:
+  create:
+    - path: maid_runner/validators/_python_implementation.py
+      artifacts:
+        - kind: class
+          name: ImplementationCollector
+        - kind: method
+          name: visit_ClassDef
+          of: ImplementationCollector
+          args:
+            - name: node
+              type: ast.ClassDef
+          returns: None
+        - kind: method
+          name: visit_FunctionDef
+          of: ImplementationCollector
+          args:
+            - name: node
+              type: ast.FunctionDef
+          returns: None
+        - kind: method
+          name: visit_AsyncFunctionDef
+          of: ImplementationCollector
+          args:
+            - name: node
+              type: ast.AsyncFunctionDef
+          returns: None
+        - kind: function
+          name: collect_python_implementation_artifacts
+          args:
+            - name: tree
+              type: ast.AST
+            - name: file_path
+              type: str
+          returns: list[FoundArtifact]
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: PythonValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_python.py
+      artifacts:
+        - kind: test_function
+          name: test_barrel_and_internal_exports
+    - path: tests/validators/test_python_parser_replacement_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_dataclass_annotated_fields_remain_uncollected_until_contract_evolves
+        - kind: test_function
+          name: test_protocol_methods_follow_current_class_method_collection
+        - kind: test_function
+          name: test_all_reexports_do_not_expand_star_exports_without_manifest_evolution
+        - kind: test_function
+          name: test_namespace_package_identity_remains_file_local
+  read:
+    - tests/validators/test_python_identity.py
+    - manifests/snapshot-validators-python.manifest.yaml
+    - manifests/017-07-python-parser-replacement-boundaries.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python.py tests/validators/test_python_identity.py tests/validators/test_python_parser_replacement_boundaries.py
+  - uv run maid validate manifests/snapshot-validators-python.manifest.yaml --mode implementation

@@ -1,0 +1,107 @@
+schema: "2"
+goal: "Extract TypeScript barrel and export scanning from module path resolution"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - module-resolution
+  priority: medium
+description: |
+  Refactor TypeScript module path resolution so barrel/export scanning logic
+  lives in a focused private module, while core/ts_module_paths.py remains the
+  public resolver facade for module ids, import resolution, and re-export
+  resolution.
+
+  Rationale: ts_module_paths.py currently mixes public module identity APIs,
+  tsconfig/compiler fallback orchestration, filesystem package detection, and
+  tree-sitter/CJS export statement scanning. Export scanning is cohesive and
+  already protected by TypeScript identity and ts_module_paths tests, making it
+  a good behavior-preserving extraction target.
+
+  This is behavior-preserving. Named, aliased, type-only, default-as, star,
+  recursive barrel, package boundary, and narrow CommonJS export assignment
+  behavior must remain unchanged.
+temptations:
+  - risk: "Do not change compiler fallback policy while extracting local export scanning."
+    instead: "Keep resolve_ts_import and resolve_ts_reexport public behavior unchanged."
+  - risk: "Do not broaden CommonJS export support in this refactor."
+    instead: "Move the existing narrow exports.Foo = require('./y').Foo support only."
+  - risk: "Do not change external package or Node builtin detection."
+    instead: "Keep package-boundary decisions in the resolver facade unless explicitly moved by a later manifest."
+  - risk: "Do not convert local scanner failures into silent success."
+    instead: "Preserve None and compiler-fallback outcomes exactly."
+files:
+  create:
+    - path: maid_runner/core/_ts_export_scanner.py
+      artifacts:
+        - kind: function
+          name: resolve_reexport_source
+          args:
+            - name: module_file
+              type: Path
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+            - name: seen
+              type: set[tuple[str, str]]
+          returns: Optional[tuple[str, str]]
+        - kind: function
+          name: module_directly_exports_name
+          args:
+            - name: module_file
+              type: Path
+            - name: name
+              type: str
+          returns: bool
+        - kind: function
+          name: export_specifier_names
+          args:
+            - name: export_specifier
+              type: Any
+            - name: source
+              type: bytes
+          returns: list[tuple[str, str]]
+  edit:
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: Optional[tuple[str, str]]
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_file_to_module_path_strips_known_extensions
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_match_through_tsconfig_alias_to_barrel_reexport
+  read:
+    - tests/core/test_tsconfig_paths.py
+    - tests/core/test_ts_compiler_resolver.py
+    - manifests/017-03-preserve-third-party-package-boundary.manifest.yaml
+    - manifests/characterize-typescript-recursive-barrel-identity.manifest.yaml
+    - manifests/extend-typescript-barrel-reexport-identity.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_module_paths.py tests/core/test_tsconfig_paths.py tests/core/test_ts_compiler_resolver.py tests/validators/test_typescript_identity.py
+  - uv run maid validate manifests/snapshot-core-validate.manifest.yaml --mode implementation

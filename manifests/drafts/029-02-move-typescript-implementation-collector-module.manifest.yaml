@@ -1,0 +1,106 @@
+schema: "2"
+goal: "Move TypeScript implementation artifact collection into a focused private module"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - artifact-collection
+  priority: high
+description: |
+  Move the TypeScript implementation artifact collector and its implementation
+  helper functions out of validators/typescript.py into a focused private
+  module. Keep TypeScriptValidator.collect_implementation_artifacts as the
+  stable public entry point.
+
+  Rationale: validators/typescript.py remains the largest production file and
+  still mixes validator facade, implementation artifact extraction,
+  behavioral reference extraction, test body extraction, parser setup, and
+  syntax helpers. The 028 implementation collector split made the
+  implementation logic internally cohesive; this draft makes that cohesion
+  visible at module boundaries.
+
+  This is behavior-preserving. Artifact names, kinds, args, returns,
+  type_parameters, is_async, is_stub, line numbers, computed names, React
+  wrapper behavior, and constructor parameter-property handling must stay
+  unchanged.
+temptations:
+  - risk: "Do not change TypeScript artifact semantics while moving code."
+    instead: "Preserve the existing collector traversal order and emitted FoundArtifact fields."
+  - risk: "Do not couple the new module to TypeScriptValidator instance state."
+    instead: "Pass parse root/source bytes into a narrow collection function."
+  - risk: "Do not move behavioral reference helpers in the same patch."
+    instead: "Keep implementation and behavioral collector moves as separate promoted manifests."
+  - risk: "Do not make implementation collector tests assert private helper names."
+    instead: "Assert observable CollectionResult artifacts through TypeScriptValidator."
+files:
+  create:
+    - path: maid_runner/validators/_typescript_implementation.py
+      artifacts:
+        - kind: function
+          name: collect_implementation_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+          returns: list[FoundArtifact]
+        - kind: function
+          name: collect_class_declaration
+          args:
+            - name: node
+              type: Any
+            - name: source
+              type: bytes
+            - name: artifacts
+              type: list[FoundArtifact]
+            - name: current_class
+              type: Optional[str]
+          returns: bool
+        - kind: function
+          name: collect_function_declaration
+          args:
+            - name: node
+              type: Any
+            - name: source
+              type: bytes
+            - name: artifacts
+              type: list[FoundArtifact]
+            - name: current_class
+              type: Optional[str]
+          returns: bool
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_typescript_implementation_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_collector_preserves_class_method_and_field_artifacts
+        - kind: test_function
+          name: test_implementation_collector_preserves_interface_members_and_type_aliases
+        - kind: test_function
+          name: test_implementation_collector_preserves_react_wrapped_component_signature
+        - kind: test_function
+          name: test_implementation_collector_preserves_constructor_parameter_properties
+  read:
+    - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_artifact_edge_cases.py
+    - tests/validators/test_typescript_react.py
+    - tests/validators/test_typescript_angular.py
+    - manifests/029-01-extract-typescript-parse-session.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript_react.py tests/validators/test_typescript_angular.py tests/validators/test_typescript_implementation_collector_refactor.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

@@ -1,0 +1,73 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Next Clean Code maintainability wave for Maidrunner validators and graph queries"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - maintainability
+    - refactoring
+  priority: high
+description: |
+  Epic planning inventory for the next behavior-preserving maintainability
+  wave after the 028 refactor queue. This epic must not be promoted or
+  implemented directly. Promote one child draft at a time after reviewing its
+  scope, behavioral coverage, and validation commands.
+
+  Rule lens:
+  - Refactoring is the primary rule set: make small structure-only changes,
+    keep the system runnable, and avoid mixing cleanup with behavior changes.
+  - Clean Code is the secondary rule set: improve names, reduce mixed
+    responsibilities, keep functions focused, and make likely changes local.
+  - Safe Refactor controls execution: preserve observable behavior, use
+    characterization coverage around moved code, and validate after each
+    promoted slice.
+
+  Planned child order:
+  1. Extract TypeScript parse session setup and parse-error handling.
+  2. Move TypeScript implementation artifact collection into a focused module.
+  3. Move TypeScript behavioral reference and test-body collection into a
+     focused module.
+  4. Move Python implementation artifact collection into a focused module.
+  5. Extract TypeScript barrel/export scanning from module path resolution.
+  6. Extract graph traversal algorithms from query parsing and facade code.
+
+  This wave keeps public APIs stable. It should reduce large mixed-purpose
+  modules without changing artifact identities, validation outcomes, graph
+  result shapes, or CLI behavior.
+temptations:
+  - risk: "Do not promote this epic directly into manifests/."
+    instead: "Promote one implementation-sized child draft from manifests/drafts/ at a time."
+  - risk: "Do not combine multiple validator moves into one large implementation patch."
+    instead: "Move one cohesive responsibility per promoted manifest and rerun focused validation."
+  - risk: "Do not use private-module extraction as permission to redesign artifact semantics."
+    instead: "Keep current artifact names, kinds, module paths, line numbers, and result shapes unchanged."
+  - risk: "Do not remove existing characterization tests just because the code moved."
+    instead: "Keep characterization tests green and add only narrow tests for uncovered moved branches."
+files:
+  edit:
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _clean_code_next_wave_pointer
+          of: documentation
+          type: markdown
+          description: "Planning note reminding maintainers that this next-wave epic is split-before-promote inventory, not an active implementation contract."
+  read:
+    - ~/.codex/skills/agent-rules-selector/SKILL.md
+    - ~/.codex/skills/safe-refactor/SKILL.md
+    - /home/atomrem/dev_tools/agent-rules-books/refactoring/claude/.claude/rules/refactoring.md
+    - /home/atomrem/dev_tools/agent-rules-books/clean-code/claude/.claude/rules/clean-code.md
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/python.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/graph/query.py
+    - tests/validators/test_typescript_implementation_collector_refactor.py
+    - tests/validators/test_typescript_behavioral_collector_refactor.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - tests/graph/test_query_refactor_boundaries.py
+validate:
+  - uv run maid validate manifests/drafts/029-00-clean-code-maintainability-next-wave.epic.yaml --mode schema

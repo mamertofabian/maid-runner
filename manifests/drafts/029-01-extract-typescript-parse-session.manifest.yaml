@@ -1,0 +1,108 @@
+schema: "2"
+goal: "Extract TypeScript parse session setup and parse-error handling"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - parser
+  priority: high
+description: |
+  Refactor TypeScript validator parsing so source encoding, TSX parser
+  selection, tree parsing, parse-error collection, and module-id derivation
+  are handled by a focused private parse-session helper.
+
+  Rationale: TypeScriptValidator currently repeats parser selection and parse
+  setup across implementation collection, behavioral collection, and test body
+  extraction. A small parse-session boundary removes duplication before moving
+  larger collector responsibilities out of validators/typescript.py.
+
+  This is behavior-preserving preparatory cleanup. It must not alter syntax
+  error messages, language labels, artifact module_path assignment, or the
+  ImportError raised when tree-sitter dependencies are missing.
+temptations:
+  - risk: "Do not make tree-sitter an optional runtime fallback in this refactor."
+    instead: "Preserve the existing ImportError behavior in TypeScriptValidator.__init__."
+  - risk: "Do not change parse error text or when CollectionResult.errors is returned."
+    instead: "Move parse-error handling behind a helper while preserving exact output."
+  - risk: "Do not change TS versus TSX parser selection rules."
+    instead: "Keep .tsx and .jsx on the TSX parser and every other supported extension on the TS parser."
+  - risk: "Do not expose the helper as public package API."
+    instead: "Create a private module/function used only by the validator internals."
+files:
+  create:
+    - path: maid_runner/validators/_typescript_parse.py
+      artifacts:
+        - kind: class
+          name: TypeScriptParseSession
+        - kind: function
+          name: parse_typescript_source
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+            - name: ts_parser
+              type: Parser
+            - name: tsx_parser
+              type: Parser
+          returns: TypeScriptParseSession
+        - kind: function
+          name: collect_parse_errors
+          args:
+            - name: node
+              type: Any
+          returns: list[str]
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: get_test_function_bodies
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: dict[str, str]
+    - path: tests/validators/test_typescript.py
+      artifacts:
+        - kind: test_function
+          name: test_syntax_errors_reported
+    - path: tests/validators/test_typescript_implementation_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_collector_preserves_class_method_and_field_artifacts
+    - path: tests/validators/test_typescript_behavioral_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_collector_preserves_named_test_body_extraction
+  read:
+    - manifests/028-06-split-typescript-implementation-artifact-collector.manifest.yaml
+    - manifests/028-07-split-typescript-behavioral-reference-collector.manifest.yaml
+    - manifests/snapshot-validators-typescript.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/validators/test_typescript_implementation_collector_refactor.py tests/validators/test_typescript_behavioral_collector_refactor.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

@@ -1,0 +1,115 @@
+schema: "2"
+goal: "Extract graph traversal algorithms from query parsing and facade code"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - graph
+    - query
+  priority: medium
+description: |
+  Move graph traversal algorithms and impact-analysis helpers from
+  graph/query.py into a focused traversal module while keeping the existing
+  graph.query public functions, QueryParser, QueryExecutor, and GraphQuery
+  facade behavior stable.
+
+  Rationale: graph/query.py still mixes low-level graph traversal,
+  cycle detection, natural-language query parsing, query execution, and facade
+  methods. The 028 graph cleanup simplified boundaries without changing the
+  file-level responsibility. Extracting traversal algorithms makes query
+  parsing and execution easier to reason about without changing result shapes.
+
+  This is behavior-preserving. Node ordering, duplicate suppression, cycle
+  normalization, affected file/manifest lists, QueryResult data shapes, and
+  GraphQuery facade return shapes must remain unchanged.
+temptations:
+  - risk: "Do not redesign graph query semantics while moving traversal functions."
+    instead: "Keep existing public functions as wrappers or re-exports with the same names and signatures."
+  - risk: "Do not change cycle ordering or duplicate suppression."
+    instead: "Run graph v2 and query refactor boundary tests after the move."
+  - risk: "Do not move QueryParser or QueryExecutor in this same patch."
+    instead: "Limit this manifest to graph traversal and impact helper extraction."
+  - risk: "Do not replace simple graph scans with cached indexes in this refactor."
+    instead: "Preserve current algorithmic behavior; performance work needs its own manifest."
+files:
+  create:
+    - path: maid_runner/graph/traversal.py
+      artifacts:
+        - kind: function
+          name: find_nodes_by_type
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: node_type
+              type: NodeType
+          returns: List[Node]
+        - kind: function
+          name: find_node_by_name
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: name
+              type: str
+          returns: Optional[Node]
+        - kind: function
+          name: find_cycles
+          args:
+            - name: graph
+              type: KnowledgeGraph
+          returns: List[List[Node]]
+        - kind: function
+          name: analyze_impact
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: artifact_name
+              type: str
+          returns: Dict[str, Any]
+  edit:
+    - path: maid_runner/graph/query.py
+      artifacts:
+        - kind: function
+          name: find_nodes_by_type
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: node_type
+              type: NodeType
+          returns: List[Node]
+        - kind: function
+          name: find_node_by_name
+          args:
+            - name: graph
+              type: KnowledgeGraph
+            - name: name
+              type: str
+          returns: Optional[Node]
+        - kind: function
+          name: find_cycles
+          args:
+            - name: graph
+              type: KnowledgeGraph
+          returns: List[List[Node]]
+        - kind: class
+          name: GraphQuery
+        - kind: class
+          name: QueryExecutor
+    - path: tests/graph/test_query_refactor_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_graph_query_facade_preserves_find_node_result_shape
+        - kind: test_function
+          name: test_query_parser_preserves_dependency_intent_detection
+        - kind: test_function
+          name: test_query_executor_preserves_impact_result_shape
+        - kind: test_function
+          name: test_cycle_detection_preserves_node_id_cycles
+  read:
+    - tests/graph/test_graph_v2.py
+    - manifests/028-08-simplify-graph-query-facade-and-parser.manifest.yaml
+    - manifests/snapshot-graph-query.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/graph/test_graph_v2.py tests/graph/test_query_refactor_boundaries.py
+  - uv run maid validate manifests/snapshot-graph-query.manifest.yaml --mode implementation

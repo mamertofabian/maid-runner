@@ -1,0 +1,110 @@
+schema: "2"
+goal: "Move TypeScript behavioral reference and test-body collection into a focused private module"
+type: refactor
+created: "2026-05-13"
+metadata:
+  tags:
+    - clean-code
+    - safe-refactor
+    - typescript
+    - behavioral-validation
+  priority: high
+description: |
+  Move TypeScript behavioral reference collection, import identity scanning,
+  executable test label recognition, and test body extraction from
+  validators/typescript.py into a focused private module. Keep
+  TypeScriptValidator.collect_behavioral_artifacts and
+  TypeScriptValidator.get_test_function_bodies as stable entry points.
+
+  Rationale: behavioral collection enforces MAID contracts and is easy to
+  weaken accidentally. The 028 behavioral split created cohesive classes; this
+  draft moves that responsibility behind a module boundary so future changes
+  to test recognition, import identity, and body slicing are localized.
+
+  This is behavior-preserving. Test labels must remain distinct from source
+  references, alias/namespace import identity must remain chain-aware, and
+  callback body extraction must keep current source slicing behavior.
+temptations:
+  - risk: "Do not let test labels satisfy source artifact usage."
+    instead: "Preserve TEST_FUNCTION artifacts separately from function/reference artifacts."
+  - risk: "Do not change namespace import, aliased import, or tsconfig alias behavior while moving the code."
+    instead: "Run TypeScript identity and behavioral contract tests after the move."
+  - risk: "Do not broaden or narrow supported Jest/Vitest call shapes in this refactor."
+    instead: "Move the existing executable-test and suite-recognition predicates unchanged."
+  - risk: "Do not move implementation artifact helpers in the same patch."
+    instead: "Keep behavioral collection as the only responsibility of this promoted manifest."
+files:
+  create:
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: class
+          name: BehavioralReferenceCollector
+        - kind: method
+          name: collect
+          of: BehavioralReferenceCollector
+          returns: list[FoundArtifact]
+        - kind: class
+          name: BehavioralTestBodyCollector
+        - kind: method
+          name: collect
+          of: BehavioralTestBodyCollector
+          returns: dict[str, str]
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+        - kind: function
+          name: collect_test_function_bodies
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+          returns: dict[str, str]
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+        - kind: method
+          name: get_test_function_bodies
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: dict[str, str]
+    - path: tests/validators/test_typescript_behavioral_collector_refactor.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_collector_keeps_test_label_separate_from_source_reference
+        - kind: test_function
+          name: test_behavioral_collector_preserves_namespace_member_reference_identity
+        - kind: test_function
+          name: test_behavioral_collector_preserves_aliased_import_reference_identity
+        - kind: test_function
+          name: test_behavioral_collector_preserves_named_test_body_extraction
+  read:
+    - tests/validators/test_behavioral_test_functions.py
+    - tests/validators/test_typescript_identity.py
+    - tests/core/test_validate_test_functions.py
+    - manifests/029-01-extract-typescript-parse-session.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_behavioral_test_functions.py tests/validators/test_typescript_identity.py tests/validators/test_typescript_behavioral_collector_refactor.py tests/core/test_validate_test_functions.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation
