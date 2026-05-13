@@ -45,12 +45,19 @@ def resolve_reexport_source(
     project_root: Path,
     seen: set[tuple[str, str]],
 ) -> Optional[tuple[str, str]]:
-    resolved = _resolve_reexport_source_or_fallback(
-        module_file, name, project_root, seen
-    )
+    resolved = resolve_reexport_source_or_fallback(module_file, name, project_root, seen)
     if resolved is _COMPILER_FALLBACK_REQUIRED:
         return None
     return resolved
+
+
+def resolve_reexport_source_or_fallback(
+    module_file: Path,
+    name: str,
+    project_root: Path,
+    seen: set[tuple[str, str]],
+) -> Optional[tuple[str, str]] | _CompilerFallbackRequired:
+    return _resolve_reexport_source_or_fallback(module_file, name, project_root, seen)
 
 
 def _resolve_reexport_source_or_fallback(
@@ -58,7 +65,7 @@ def _resolve_reexport_source_or_fallback(
     name: str,
     project_root: Path,
     seen: set[tuple[str, str]],
-):
+) -> Optional[tuple[str, str]] | _CompilerFallbackRequired:
     module = _module_id_for_entry(module_file, project_root)
     marker = (module, name)
     if marker in seen:

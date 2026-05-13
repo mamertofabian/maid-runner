@@ -50,6 +50,18 @@ files:
               type: set[tuple[str, str]]
           returns: Optional[tuple[str, str]]
         - kind: function
+          name: resolve_reexport_source_or_fallback
+          args:
+            - name: module_file
+              type: Path
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+            - name: seen
+              type: set[tuple[str, str]]
+          returns: Optional[tuple[str, str]] | _CompilerFallbackRequired
+        - kind: function
           name: module_directly_exports_name
           args:
             - name: module_file
@@ -92,11 +104,10 @@ files:
       artifacts:
         - kind: test_function
           name: test_ts_file_to_module_path_strips_known_extensions
-    - path: tests/validators/test_typescript_identity.py
-      artifacts:
         - kind: test_function
-          name: test_match_through_tsconfig_alias_to_barrel_reexport
+          name: test_export_scanner_fallback_helper_preserves_compiler_fallback_signal
   read:
+    - tests/validators/test_typescript_identity.py
     - tests/core/test_tsconfig_paths.py
     - tests/core/test_ts_compiler_resolver.py
     - manifests/017-03-preserve-third-party-package-boundary.manifest.yaml

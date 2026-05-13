@@ -19,7 +19,7 @@ from typing import Optional, Union
 
 from maid_runner.core._ts_export_scanner import (
     _COMPILER_FALLBACK_REQUIRED as _EXPORT_SCANNER_FALLBACK_REQUIRED,
-    _resolve_reexport_source_or_fallback,
+    resolve_reexport_source_or_fallback,
 )
 from maid_runner.core._tsconfig_paths import _resolve_ts_import_from_config
 from maid_runner.core.ts_compiler_resolver import (
@@ -214,7 +214,7 @@ def resolve_ts_reexport(
     local_resolved = None
     if entry is not None:
         module_file, _ = entry
-        local_resolved = _resolve_reexport_source_or_fallback(
+        local_resolved = resolve_reexport_source_or_fallback(
             module_file, name, root, seen=set()
         )
         if local_resolved is not _EXPORT_SCANNER_FALLBACK_REQUIRED:

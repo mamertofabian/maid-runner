@@ -63,18 +63,9 @@ files:
       artifacts:
         - kind: test_function
           name: test_barrel_and_internal_exports
-    - path: tests/validators/test_python_parser_replacement_boundaries.py
-      artifacts:
-        - kind: test_function
-          name: test_dataclass_annotated_fields_remain_uncollected_until_contract_evolves
-        - kind: test_function
-          name: test_protocol_methods_follow_current_class_method_collection
-        - kind: test_function
-          name: test_all_reexports_do_not_expand_star_exports_without_manifest_evolution
-        - kind: test_function
-          name: test_namespace_package_identity_remains_file_local
   read:
     - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
     - manifests/snapshot-validators-python.manifest.yaml
     - manifests/017-07-python-parser-replacement-boundaries.manifest.yaml
 validate:

@@ -12,9 +12,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from maid_runner.core._ts_export_scanner import (
+    _COMPILER_FALLBACK_REQUIRED,
     export_specifier_names,
     module_directly_exports_name,
     resolve_reexport_source,
+    resolve_reexport_source_or_fallback,
 )
 from maid_runner.core.ts_module_paths import (
     resolve_relative_ts_import,
@@ -640,6 +642,19 @@ class TestResolveTsReexport:
 
         assert resolve_reexport_source(index, "Foo", tmp_path, seen=set()) is None
         assert module_directly_exports_name(missing, "Foo") is False
+
+    def test_export_scanner_fallback_helper_preserves_compiler_fallback_signal(
+        self, tmp_path: Path
+    ) -> None:
+        models = tmp_path / "src" / "models"
+        models.mkdir(parents=True)
+        index = models / "index.ts"
+        index.write_text("export { Foo } from './missing';\n")
+
+        assert (
+            resolve_reexport_source_or_fallback(index, "Foo", tmp_path, seen=set())
+            is _COMPILER_FALLBACK_REQUIRED
+        )
 
     def test_export_specifier_names_returns_source_and_bound_names(self) -> None:
         from tree_sitter import Language, Parser

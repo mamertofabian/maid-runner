@@ -105,15 +105,12 @@ files:
           name: test_syntax_errors_reported
         - kind: test_function
           name: test_parse_typescript_source_reports_session_details
-    - path: tests/validators/test_typescript_implementation_collector_refactor.py
-      artifacts:
-        - kind: test_function
-          name: test_implementation_collector_preserves_class_method_and_field_artifacts
     - path: tests/validators/test_typescript_behavioral_collector_refactor.py
       artifacts:
         - kind: test_function
           name: test_behavioral_collector_preserves_named_test_body_extraction
   read:
+    - tests/validators/test_typescript_implementation_collector_refactor.py
     - manifests/028-06-split-typescript-implementation-artifact-collector.manifest.yaml
     - manifests/028-07-split-typescript-behavioral-reference-collector.manifest.yaml
     - manifests/snapshot-validators-typescript.manifest.yaml

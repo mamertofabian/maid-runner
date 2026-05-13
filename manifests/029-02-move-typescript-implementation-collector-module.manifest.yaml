@@ -61,18 +61,9 @@ files:
             - name: file_path
               type: Union[str, Path]
           returns: CollectionResult
-    - path: tests/validators/test_typescript_implementation_collector_refactor.py
-      artifacts:
-        - kind: test_function
-          name: test_implementation_collector_preserves_class_method_and_field_artifacts
-        - kind: test_function
-          name: test_implementation_collector_preserves_interface_members_and_type_aliases
-        - kind: test_function
-          name: test_implementation_collector_preserves_react_wrapped_component_signature
-        - kind: test_function
-          name: test_implementation_collector_preserves_constructor_parameter_properties
   read:
     - tests/validators/test_typescript.py
+    - tests/validators/test_typescript_implementation_collector_refactor.py
     - tests/validators/test_typescript_artifact_edge_cases.py
     - tests/validators/test_typescript_react.py
     - tests/validators/test_typescript_angular.py
