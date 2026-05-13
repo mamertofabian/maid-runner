@@ -31,6 +31,66 @@ from maid_runner.graph.model import (
 )
 
 
+def _append_unique(nodes: List[Node], node: Node) -> None:
+    """Append a graph node only once while preserving traversal order."""
+    if node not in nodes:
+        nodes.append(node)
+
+
+def _node_matches_name(node: Node, name: str) -> bool:
+    if node.id == name:
+        return True
+    if isinstance(node, ManifestNode):
+        return node.path == name
+    if isinstance(node, FileNode):
+        return node.path == name
+    if isinstance(node, ArtifactNode):
+        return node.name == name
+    if isinstance(node, ModuleNode):
+        return node.name == name
+    return False
+
+
+def _matching_name_attribute(node: Node, name: str) -> bool:
+    return getattr(node, "name", None) == name
+
+
+def _build_adjacency(graph: KnowledgeGraph) -> Dict[str, List[str]]:
+    adjacency: Dict[str, List[str]] = {node.id: [] for node in graph.nodes}
+    for edge in graph.edges:
+        if edge.source_id in adjacency:
+            adjacency[edge.source_id].append(edge.target_id)
+    return adjacency
+
+
+def _dependent_nodes_for_id(graph: KnowledgeGraph, node_id: str) -> List[Node]:
+    dependents: List[Node] = []
+    for edge in graph.edges:
+        if edge.target_id == node_id:
+            source_node = graph.get_node(edge.source_id)
+            if source_node:
+                _append_unique(dependents, source_node)
+    return dependents
+
+
+def _dependency_nodes_for_id(graph: KnowledgeGraph, node_id: str) -> List[Node]:
+    dependencies: List[Node] = []
+    for edge in graph.edges:
+        if edge.source_id == node_id:
+            target_node = graph.get_node(edge.target_id)
+            if target_node:
+                _append_unique(dependencies, target_node)
+
+        if edge.target_id == node_id and edge.edge_type in (
+            EdgeType.CONTAINS,
+            EdgeType.DEFINES,
+        ):
+            parent_node = graph.get_node(edge.source_id)
+            if parent_node:
+                _append_unique(dependencies, parent_node)
+    return dependencies
+
+
 def find_nodes_by_type(graph: KnowledgeGraph, node_type: NodeType) -> List[Node]:
     """Find all nodes of a specific type in the graph.
 
@@ -62,18 +122,7 @@ def find_node_by_name(graph: KnowledgeGraph, name: str) -> Optional[Node]:
         The first matching node, or None if not found.
     """
     for node in graph.nodes:
-        # Check node id
-        if node.id == name:
-            return node
-
-        # Check type-specific name fields
-        if isinstance(node, ManifestNode) and node.path == name:
-            return node
-        if isinstance(node, FileNode) and node.path == name:
-            return node
-        if isinstance(node, ArtifactNode) and node.name == name:
-            return node
-        if isinstance(node, ModuleNode) and node.name == name:
+        if _node_matches_name(node, name):
             return node
 
     return None
@@ -141,15 +190,7 @@ def find_dependents(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
     if not artifact_node:
         return []
 
-    dependents: List[Node] = []
-    for edge in graph.edges:
-        # Find edges where artifact is the target (something points to it)
-        if edge.target_id == artifact_node.id:
-            source_node = graph.get_node(edge.source_id)
-            if source_node and source_node not in dependents:
-                dependents.append(source_node)
-
-    return dependents
+    return _dependent_nodes_for_id(graph, artifact_node.id)
 
 
 def find_dependencies(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
@@ -172,25 +213,7 @@ def find_dependencies(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
     if not artifact_node:
         return []
 
-    dependencies: List[Node] = []
-    for edge in graph.edges:
-        # Find edges where artifact is the source (it points to something)
-        if edge.source_id == artifact_node.id:
-            target_node = graph.get_node(edge.target_id)
-            if target_node and target_node not in dependencies:
-                dependencies.append(target_node)
-
-        # Also check CONTAINS and DEFINES edges where artifact is the target
-        # (has parent class or is defined in a file)
-        if edge.target_id == artifact_node.id and edge.edge_type in (
-            EdgeType.CONTAINS,
-            EdgeType.DEFINES,
-        ):
-            parent_node = graph.get_node(edge.source_id)
-            if parent_node and parent_node not in dependencies:
-                dependencies.append(parent_node)
-
-    return dependencies
+    return _dependency_nodes_for_id(graph, artifact_node.id)
 
 
 def get_dependency_tree(
@@ -282,13 +305,7 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
     visited: Set[str] = set()
     rec_stack: Set[str] = set()
 
-    # Build adjacency list for efficiency
-    adjacency: Dict[str, List[str]] = {}
-    for node in graph.nodes:
-        adjacency[node.id] = []
-    for edge in graph.edges:
-        if edge.source_id in adjacency:
-            adjacency[edge.source_id].append(edge.target_id)
+    adjacency = _build_adjacency(graph)
 
     def _dfs(node_id: str, path: List[str]) -> None:
         visited.add(node_id)
@@ -335,13 +352,7 @@ def is_acyclic(graph: KnowledgeGraph) -> bool:
     visited: Set[str] = set()
     rec_stack: Set[str] = set()
 
-    # Build adjacency list
-    adjacency: Dict[str, List[str]] = {}
-    for node in graph.nodes:
-        adjacency[node.id] = []
-    for edge in graph.edges:
-        if edge.source_id in adjacency:
-            adjacency[edge.source_id].append(edge.target_id)
+    adjacency = _build_adjacency(graph)
 
     def _has_cycle(node_id: str) -> bool:
         visited.add(node_id)
@@ -517,6 +528,14 @@ class QueryParser:
     Converts query strings into structured QueryIntent objects.
     """
 
+    _TARGET_PATTERNS = (
+        re.compile(r"what\s+defines\s+(\w+)", re.IGNORECASE),
+        re.compile(r"what\s+depends\s+on\s+(\w+)", re.IGNORECASE),
+        re.compile(r"what\s+does\s+(\w+)\s+depend", re.IGNORECASE),
+        re.compile(r"change\s+(\w+)", re.IGNORECASE),
+        re.compile(r"module\s+(\w+)", re.IGNORECASE),
+    )
+
     def parse(self, query: str) -> QueryIntent:
         """Parse a query string into a QueryIntent.
 
@@ -554,32 +573,10 @@ class QueryParser:
         if quoted_match:
             return quoted_match.group(1)
 
-        # Pattern: "What defines X?"
-        defines_match = re.search(r"what\s+defines\s+(\w+)", query, re.IGNORECASE)
-        if defines_match:
-            return defines_match.group(1)
-
-        # Pattern: "What depends on X?"
-        depends_match = re.search(r"what\s+depends\s+on\s+(\w+)", query, re.IGNORECASE)
-        if depends_match:
-            return depends_match.group(1)
-
-        # Pattern: "What does X depend on?"
-        depend_on_match = re.search(
-            r"what\s+does\s+(\w+)\s+depend", query, re.IGNORECASE
-        )
-        if depend_on_match:
-            return depend_on_match.group(1)
-
-        # Pattern: "change X" or "break if I change X"
-        change_match = re.search(r"change\s+(\w+)", query, re.IGNORECASE)
-        if change_match:
-            return change_match.group(1)
-
-        # Pattern: "module X" or "in module X"
-        module_match = re.search(r"module\s+(\w+)", query, re.IGNORECASE)
-        if module_match:
-            return module_match.group(1)
+        for pattern in self._TARGET_PATTERNS:
+            match = pattern.search(query)
+            if match:
+                return match.group(1)
 
         return None
 
@@ -678,28 +675,23 @@ class QueryExecutor:
         Returns:
             QueryResult with success status, data, and message.
         """
-        target = intent.target
         query_type = intent.query_type
+        handlers = {
+            QueryType.FIND_DEFINITION: self._execute_find_definition,
+            QueryType.FIND_DEPENDENTS: self._execute_find_dependents,
+            QueryType.FIND_DEPENDENCIES: self._execute_find_dependencies,
+            QueryType.FIND_IMPACT: self._execute_find_impact,
+            QueryType.FIND_CYCLES: self._execute_find_cycles,
+            QueryType.LIST_ARTIFACTS: self._execute_list_artifacts,
+        }
+        handler = handlers.get(query_type, self._execute_unknown)
+        return handler(intent.target, query_type)
 
-        if query_type == QueryType.FIND_DEFINITION:
-            return self._execute_find_definition(target, query_type)
-        elif query_type == QueryType.FIND_DEPENDENTS:
-            return self._execute_find_dependents(target, query_type)
-        elif query_type == QueryType.FIND_DEPENDENCIES:
-            return self._execute_find_dependencies(target, query_type)
-        elif query_type == QueryType.FIND_IMPACT:
-            return self._execute_find_impact(target, query_type)
-        elif query_type == QueryType.FIND_CYCLES:
-            return self._execute_find_cycles(query_type)
-        elif query_type == QueryType.LIST_ARTIFACTS:
-            return self._execute_list_artifacts(target, query_type)
-
-        return QueryResult(
-            success=False,
-            query_type=query_type,
-            data=None,
-            message="Unknown query type",
-        )
+    def _execute_unknown(
+        self, _target: Optional[str], query_type: QueryType
+    ) -> QueryResult:
+        """Execute an unsupported query type."""
+        return QueryResult(False, query_type, None, "Unknown query type")
 
     def _execute_find_definition(
         self, target: Optional[str], query_type: QueryType
@@ -776,7 +768,9 @@ class QueryExecutor:
             f"Impact analysis for '{target}': {impact['total_impact_count']} items affected",
         )
 
-    def _execute_find_cycles(self, query_type: QueryType) -> QueryResult:
+    def _execute_find_cycles(
+        self, _target: Optional[str], query_type: QueryType
+    ) -> QueryResult:
         """Execute a FIND_CYCLES query."""
         cycles = find_cycles(self.graph)
         if cycles:
@@ -819,20 +813,19 @@ class GraphQuery:
         """Find a node by name, optionally filtered by type."""
         node = find_node_by_name(self._graph, name)
         if node and node_type and node.node_type != node_type:
-            for n in self._graph.nodes:
-                if n.node_type != node_type:
-                    continue
-                if hasattr(n, "name") and n.name == name:
-                    return n
-            return None
+            return self._find_node_by_name_attribute(name, node_type)
         if node:
             return node
+        return self._find_node_by_name_attribute(name, node_type)
 
-        for n in self._graph.nodes:
-            if node_type and n.node_type != node_type:
+    def _find_node_by_name_attribute(
+        self, name: str, node_type: Optional[NodeType] = None
+    ) -> Optional[Node]:
+        for node in self._graph.nodes:
+            if node_type and node.node_type != node_type:
                 continue
-            if hasattr(n, "name") and n.name == name:
-                return n
+            if _matching_name_attribute(node, name):
+                return node
         return None
 
     def find_nodes(
@@ -850,30 +843,11 @@ class GraphQuery:
 
     def get_dependents(self, node_id: str) -> list[Node]:
         """Find all nodes that depend on the given node (reverse dependencies)."""
-        dependents: list[Node] = []
-        for edge in self._graph.edges:
-            if edge.target_id == node_id:
-                source = self._graph.get_node(edge.source_id)
-                if source and source not in dependents:
-                    dependents.append(source)
-        return dependents
+        return _dependent_nodes_for_id(self._graph, node_id)
 
     def get_dependencies(self, node_id: str) -> list[Node]:
         """Find all nodes that the given node depends on."""
-        deps: list[Node] = []
-        for edge in self._graph.edges:
-            if edge.source_id == node_id:
-                target = self._graph.get_node(edge.target_id)
-                if target and target not in deps:
-                    deps.append(target)
-            if edge.target_id == node_id and edge.edge_type in (
-                EdgeType.CONTAINS,
-                EdgeType.DEFINES,
-            ):
-                parent = self._graph.get_node(edge.source_id)
-                if parent and parent not in deps:
-                    deps.append(parent)
-        return deps
+        return _dependency_nodes_for_id(self._graph, node_id)
 
     def get_transitive_dependents(self, node_id: str) -> list[Node]:
         """Find all transitive dependents (full impact set)."""
