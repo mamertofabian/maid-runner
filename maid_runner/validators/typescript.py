@@ -277,256 +277,350 @@ def _is_stub_body_ts(node, source: bytes) -> bool:
 def _collect_impl(
     node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
 ) -> None:
-    ntype = node.type
-
-    if ntype in ("class_declaration", "abstract_class_declaration", "class"):
-        name = _child_text(node, "type_identifier", source) or _child_text(
-            node, "identifier", source
-        )
-        if not name and ntype == "class" and _is_default_export_child(node):
-            name = "default"
-        if name:
-            bases = _extract_bases(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.CLASS,
-                    name=name,
-                    bases=bases,
-                    type_parameters=type_parameters,
-                    line=node.start_point[0] + 1,
-                )
-            )
-            # Visit class body
-            body = _child_by_type(node, "class_body")
-            if body:
-                for child in body.children:
-                    _collect_impl(child, source, artifacts, current_class=name)
+    handlers = (
+        _collect_class_declaration,
+        _collect_interface_declaration,
+        _collect_type_alias_declaration,
+        _collect_enum_declaration,
+        _collect_namespace_declaration,
+        _collect_function_declaration,
+        _collect_default_arrow_function,
+        _collect_class_method_signature,
+        _collect_class_method_definition,
+        _collect_class_field_definition,
+        _collect_module_scope_variable_declaration,
+        _collect_export_statement,
+    )
+    for handler in handlers:
+        if handler(node, source, artifacts, current_class):
             return
 
-    if ntype == "interface_declaration":
-        name = _child_text(node, "type_identifier", source) or _child_text(
-            node, "identifier", source
+    for child in node.children:
+        _collect_impl(child, source, artifacts, current_class)
+
+
+def _collect_class_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type not in ("class_declaration", "abstract_class_declaration", "class"):
+        return False
+
+    name = _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+    if not name and node.type == "class" and _is_default_export_child(node):
+        name = "default"
+    if not name:
+        return False
+
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.CLASS,
+            name=name,
+            bases=_extract_bases(node, source),
+            type_parameters=_extract_type_parameters(node, source),
+            line=node.start_point[0] + 1,
         )
-        if name:
-            bases = _extract_interface_bases(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.INTERFACE,
-                    name=name,
-                    bases=bases,
-                    type_parameters=type_parameters,
-                    line=node.start_point[0] + 1,
-                )
-            )
-            body = _child_by_type(node, "interface_body") or _child_by_type(
-                node, "object_type"
-            )
-            if body:
-                for child in body.children:
-                    if child.type == "property_signature":
-                        prop_name = _member_name_text(child, source)
-                        if prop_name:
-                            type_ann = None
-                            for tc in child.children:
-                                if tc.type == "type_annotation":
-                                    type_ann = _extract_type_text(tc, source)
-                            artifacts.append(
-                                FoundArtifact(
-                                    kind=ArtifactKind.ATTRIBUTE,
-                                    name=prop_name,
-                                    of=name,
-                                    type_annotation=type_ann,
-                                    line=child.start_point[0] + 1,
-                                )
-                            )
-                    elif child.type == "method_signature":
-                        method_name = _member_name_text(child, source)
-                        if method_name:
-                            args, returns = _extract_func_signature(child, source)
-                            type_parameters = _extract_type_parameters(child, source)
-                            artifacts.append(
-                                FoundArtifact(
-                                    kind=ArtifactKind.METHOD,
-                                    name=method_name,
-                                    of=name,
-                                    args=args,
-                                    returns=returns,
-                                    type_parameters=type_parameters,
-                                    line=child.start_point[0] + 1,
-                                )
-                            )
-        return
+    )
+    body = _child_by_type(node, "class_body")
+    if body:
+        for child in body.children:
+            _collect_impl(child, source, artifacts, current_class=name)
+    return True
 
-    if ntype == "type_alias_declaration":
-        name = _child_text(node, "type_identifier", source) or _child_text(
-            node, "identifier", source
+
+def _collect_interface_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "interface_declaration":
+        return False
+
+    name = _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+    if name:
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.INTERFACE,
+                name=name,
+                bases=_extract_interface_bases(node, source),
+                type_parameters=_extract_type_parameters(node, source),
+                line=node.start_point[0] + 1,
+            )
         )
-        if name:
-            type_ann = _extract_type_alias_target(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.TYPE,
-                    name=name,
-                    type_parameters=type_parameters,
-                    type_annotation=type_ann,
-                    line=node.start_point[0] + 1,
-                )
-            )
+        _collect_interface_members(node, source, artifacts, name)
+    return True
+
+
+def _collect_interface_members(
+    node, source: bytes, artifacts: list[FoundArtifact], interface_name: str
+) -> None:
+    body = _child_by_type(node, "interface_body") or _child_by_type(
+        node, "object_type"
+    )
+    if body is None:
         return
 
-    if ntype == "enum_declaration":
-        name = _child_text(node, "identifier", source)
-        if name:
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.ENUM,
-                    name=name,
-                    line=node.start_point[0] + 1,
-                )
-            )
+    for child in body.children:
+        if child.type == "property_signature":
+            _collect_interface_property(child, source, artifacts, interface_name)
+        elif child.type == "method_signature":
+            _collect_interface_method(child, source, artifacts, interface_name)
+
+
+def _collect_interface_property(
+    node, source: bytes, artifacts: list[FoundArtifact], interface_name: str
+) -> None:
+    prop_name = _member_name_text(node, source)
+    if not prop_name:
         return
 
-    if ntype == "internal_module":
-        name = _child_text(node, "identifier", source) or _child_text(
-            node, "type_identifier", source
+    type_ann = None
+    for child in node.children:
+        if child.type == "type_annotation":
+            type_ann = _extract_type_text(child, source)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.ATTRIBUTE,
+            name=prop_name,
+            of=interface_name,
+            type_annotation=type_ann,
+            line=node.start_point[0] + 1,
         )
-        if name:
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.NAMESPACE,
-                    name=name,
-                    line=node.start_point[0] + 1,
-                )
-            )
+    )
+
+
+def _collect_interface_method(
+    node, source: bytes, artifacts: list[FoundArtifact], interface_name: str
+) -> None:
+    method_name = _member_name_text(node, source)
+    if not method_name:
         return
 
-    if ntype in (
+    args, returns = _extract_func_signature(node, source)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.METHOD,
+            name=method_name,
+            of=interface_name,
+            args=args,
+            returns=returns,
+            type_parameters=_extract_type_parameters(node, source),
+            line=node.start_point[0] + 1,
+        )
+    )
+
+
+def _collect_type_alias_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "type_alias_declaration":
+        return False
+
+    name = _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+    if name:
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.TYPE,
+                name=name,
+                type_parameters=_extract_type_parameters(node, source),
+                type_annotation=_extract_type_alias_target(node, source),
+                line=node.start_point[0] + 1,
+            )
+        )
+    return True
+
+
+def _collect_enum_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "enum_declaration":
+        return False
+
+    name = _child_text(node, "identifier", source)
+    if name:
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.ENUM,
+                name=name,
+                line=node.start_point[0] + 1,
+            )
+        )
+    return True
+
+
+def _collect_namespace_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "internal_module":
+        return False
+
+    name = _child_text(node, "identifier", source) or _child_text(
+        node, "type_identifier", source
+    )
+    if name:
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.NAMESPACE,
+                name=name,
+                line=node.start_point[0] + 1,
+            )
+        )
+    return True
+
+
+def _collect_function_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type not in (
         "function_declaration",
         "generator_function_declaration",
         "function_signature",
         "function_expression",
     ):
-        name = _child_text(node, "identifier", source)
-        if (
-            not name
-            and ntype == "function_expression"
-            and _is_default_export_child(node)
-        ):
-            name = "default"
-        if name:
-            args, returns = _extract_func_signature(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            is_async = any(c.type == "async" for c in node.children)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.FUNCTION,
-                    name=name,
-                    args=args,
-                    returns=returns,
-                    type_parameters=type_parameters,
-                    is_async=is_async,
-                    is_stub=_is_stub_body_ts(node, source),
-                    line=node.start_point[0] + 1,
-                )
-            )
-        return
+        return False
 
-    if ntype == "arrow_function" and _is_default_export_child(node):
+    name = _child_text(node, "identifier", source)
+    if not name and node.type == "function_expression" and _is_default_export_child(
+        node
+    ):
+        name = "default"
+    if name:
+        _append_function_artifact(node, source, artifacts, name)
+    return True
+
+
+def _collect_default_arrow_function(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "arrow_function" or not _is_default_export_child(node):
+        return False
+
+    _append_function_artifact(node, source, artifacts, "default")
+    return True
+
+
+def _append_function_artifact(
+    node, source: bytes, artifacts: list[FoundArtifact], name: str
+) -> None:
+    args, returns = _extract_func_signature(node, source)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name=name,
+            args=args,
+            returns=returns,
+            type_parameters=_extract_type_parameters(node, source),
+            is_async=any(c.type == "async" for c in node.children),
+            is_stub=_is_stub_body_ts(node, source),
+            line=node.start_point[0] + 1,
+        )
+    )
+
+
+def _collect_class_method_signature(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "abstract_method_signature" or not current_class:
+        return False
+
+    name_node = _child_by_type(node, "property_identifier")
+    if name_node:
         args, returns = _extract_func_signature(node, source)
-        type_parameters = _extract_type_parameters(node, source)
-        is_async = any(c.type == "async" for c in node.children)
         artifacts.append(
             FoundArtifact(
-                kind=ArtifactKind.FUNCTION,
-                name="default",
+                kind=ArtifactKind.METHOD,
+                name=_text(name_node, source),
+                of=current_class,
                 args=args,
                 returns=returns,
-                type_parameters=type_parameters,
-                is_async=is_async,
-                is_stub=_is_stub_body_ts(node, source),
+                type_parameters=_extract_type_parameters(node, source),
                 line=node.start_point[0] + 1,
             )
         )
-        return
+    return True
 
-    if ntype == "abstract_method_signature" and current_class:
-        name_node = _child_by_type(node, "property_identifier")
-        if name_node:
-            args, returns = _extract_func_signature(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.METHOD,
-                    name=_text(name_node, source),
-                    of=current_class,
-                    args=args,
-                    returns=returns,
-                    type_parameters=type_parameters,
-                    line=node.start_point[0] + 1,
-                )
+
+def _collect_class_method_definition(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "method_definition" or not current_class:
+        return False
+
+    name_node = (
+        _child_by_type(node, "property_identifier")
+        or _child_by_type(node, "private_property_identifier")
+        or _child_by_type(node, "computed_property_name")
+    )
+    if name_node:
+        name = _text(name_node, source)
+        if name == "constructor":
+            _collect_constructor_parameter_properties(
+                node, source, artifacts, current_class
             )
-        return
+        else:
+            _append_method_artifact(node, source, artifacts, current_class, name)
+    return True
 
-    # Method definitions inside class
-    if ntype == "method_definition" and current_class:
-        name_node = (
-            _child_by_type(node, "property_identifier")
-            or _child_by_type(node, "private_property_identifier")
-            or _child_by_type(node, "computed_property_name")
+
+def _append_method_artifact(
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: str,
+    name: str,
+) -> None:
+    args, returns = _extract_func_signature(node, source)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.METHOD,
+            name=name,
+            of=current_class,
+            args=args,
+            returns=returns,
+            type_parameters=_extract_type_parameters(node, source),
+            is_async=any(c.type == "async" for c in node.children),
+            is_stub=_is_stub_body_ts(node, source),
+            line=node.start_point[0] + 1,
         )
-        if name_node:
-            name = _text(name_node, source)
-            # Skip constructors
-            if name == "constructor":
-                _collect_constructor_parameter_properties(
-                    node, source, artifacts, current_class
-                )
-                return
-            args, returns = _extract_func_signature(node, source)
-            type_parameters = _extract_type_parameters(node, source)
-            is_async = any(c.type == "async" for c in node.children)
-            artifacts.append(
-                FoundArtifact(
-                    kind=ArtifactKind.METHOD,
-                    name=name,
-                    of=current_class,
-                    args=args,
-                    returns=returns,
-                    type_parameters=type_parameters,
-                    is_async=is_async,
-                    is_stub=_is_stub_body_ts(node, source),
-                    line=node.start_point[0] + 1,
-                )
-            )
-        return
+    )
 
-    # Public field definitions inside class (properties, arrow function class properties)
-    if ntype == "public_field_definition" and current_class:
-        _handle_class_field(node, source, artifacts, current_class)
-        return
 
-    # Lexical/variable declarations at module scope (arrow functions, const)
-    if (
-        ntype in ("lexical_declaration", "variable_declaration")
-        and current_class is None
-    ):
-        for child in node.children:
-            if child.type == "variable_declarator":
-                _handle_variable_declarator(child, source, artifacts)
-        return
+def _collect_class_field_definition(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "public_field_definition" or not current_class:
+        return False
 
-    # Export statements
-    if ntype == "export_statement":
-        for child in node.children:
-            _collect_impl(child, source, artifacts, current_class)
-        return
+    _handle_class_field(node, source, artifacts, current_class)
+    return True
 
-    # Recurse into other nodes
+
+def _collect_module_scope_variable_declaration(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type not in ("lexical_declaration", "variable_declaration"):
+        return False
+    if current_class is not None:
+        return False
+
+    for child in node.children:
+        if child.type == "variable_declarator":
+            _handle_variable_declarator(child, source, artifacts)
+    return True
+
+
+def _collect_export_statement(
+    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+) -> bool:
+    if node.type != "export_statement":
+        return False
+
     for child in node.children:
         _collect_impl(child, source, artifacts, current_class)
+    return True
 
 
 def _handle_variable_declarator(
