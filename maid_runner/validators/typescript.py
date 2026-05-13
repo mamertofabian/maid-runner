@@ -100,26 +100,12 @@ class TypeScriptValidator(BaseValidator):
                 errors=parse_errors,
             )
 
-        artifacts: list[FoundArtifact] = []
-        seen: set[str] = set()
-        project_root = _ts_project_root_for(file_path)
-        importer_module = ts_file_to_module_path(file_path, project_root) or ""
-        import_map, namespace_imports = _scan_imports(
+        collector = _BehavioralReferenceCollector(
             tree.root_node,
             source_bytes,
-            importer_module,
-            project_root,
-            artifacts,
-            seen,
+            file_path,
         )
-        _collect_refs(
-            tree.root_node,
-            source_bytes,
-            artifacts,
-            seen,
-            import_map=import_map,
-            namespace_imports=namespace_imports,
-        )
+        artifacts = collector.collect()
 
         return CollectionResult(
             artifacts=artifacts,
@@ -157,9 +143,7 @@ class TypeScriptValidator(BaseValidator):
         if _collect_parse_errors(tree.root_node):
             return {}
 
-        bodies: dict[str, str] = {}
-        _collect_test_bodies(tree.root_node, source_bytes, bodies)
-        return bodies
+        return _BehavioralTestBodyCollector(tree.root_node, source_bytes).collect()
 
 
 def _text(node, source: bytes) -> str:
@@ -1461,122 +1445,139 @@ def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
         artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
 
 
-def _collect_refs(
-    node,
-    source: bytes,
-    artifacts: list[FoundArtifact],
-    seen: set[str],
-    *,
-    import_map: Optional[dict[str, dict]] = None,
-    namespace_imports: Optional[dict[str, str]] = None,
-) -> None:
-    """Collect identifier references and executable test labels.
+class _BehavioralReferenceCollector:
+    """Collect import identity, references, and executable test labels."""
 
-    Only real test-runner declarations such as ``it("name", ...)`` and
-    ``test("name", ...)`` are emitted as ``ArtifactKind.TEST_FUNCTION``.
-    Plain ``test_*`` helpers are treated as ordinary code references.
-    """
-    if import_map is None:
-        import_map = {}
-    if namespace_imports is None:
-        namespace_imports = {}
+    def __init__(self, root, source: bytes, file_path: Union[str, Path]) -> None:
+        self.root = root
+        self.source = source
+        self.file_path = file_path
+        self.artifacts: list[FoundArtifact] = []
+        self.seen: set[str] = set()
+        self.import_map: dict[str, dict] = {}
+        self.namespace_imports: dict[str, str] = {}
 
-    # Imports were collected separately by _scan_imports; skip walking them.
-    if node.type == "import_statement":
-        return
+    def collect(self) -> list[FoundArtifact]:
+        project_root = _ts_project_root_for(self.file_path)
+        importer_module = ts_file_to_module_path(self.file_path, project_root) or ""
+        self.import_map, self.namespace_imports = _scan_imports(
+            self.root,
+            self.source,
+            importer_module,
+            project_root,
+            self.artifacts,
+            self.seen,
+        )
+        self._collect_references(self.root)
+        return self.artifacts
 
-    if node.type == "member_expression":
-        resolved = _resolve_member_chain(node, source, namespace_imports)
+    def _collect_references(self, node) -> None:
+        """Collect identifier references and executable test labels.
+
+        Only real test-runner declarations such as ``it("name", ...)`` and
+        ``test("name", ...)`` are emitted as ``ArtifactKind.TEST_FUNCTION``.
+        Plain ``test_*`` helpers are treated as ordinary code references.
+        """
+        # Imports were collected separately by _scan_imports; skip walking them.
+        if node.type == "import_statement":
+            return
+
+        if node.type == "member_expression":
+            self._record_member_expression(node)
+        elif node.type == "pair":
+            self._record_object_pair_reference(node)
+        elif node.type == "shorthand_property_identifier":
+            _record_bare_reference(_text(node, self.source), self.artifacts)
+        elif node.type == "jsx_attribute":
+            self._record_jsx_attribute_reference(node)
+
+        if node.type in {"identifier", "type_identifier"}:
+            self._record_identifier_reference(node)
+        elif node.type == "call_expression":
+            self._record_test_label(node)
+
+        for child in node.children:
+            self._collect_references(child)
+
+    def _record_member_expression(self, node) -> None:
+        resolved = _resolve_member_chain(node, self.source, self.namespace_imports)
         if resolved is not None:
             leaf, source_path = resolved
-            if leaf and leaf not in seen:
-                seen.add(leaf)
-                artifacts.append(
+            if leaf and leaf not in self.seen:
+                self.seen.add(leaf)
+                self.artifacts.append(
                     FoundArtifact(
                         kind=ArtifactKind.FUNCTION,
                         name=leaf,
                         import_source=source_path or None,
                     )
                 )
-        property_name = _member_property_name(node, source)
-        if property_name and not any(a.name == property_name for a in artifacts):
-            artifacts.append(
+        property_name = _member_property_name(node, self.source)
+        if property_name and not any(a.name == property_name for a in self.artifacts):
+            self.artifacts.append(
                 FoundArtifact(kind=ArtifactKind.FUNCTION, name=property_name)
             )
 
-    elif node.type == "pair":
-        property_name = _child_text(node, "property_identifier", source)
+    def _record_object_pair_reference(self, node) -> None:
+        property_name = _child_text(node, "property_identifier", self.source)
         if property_name:
-            _record_bare_reference(property_name, artifacts)
+            _record_bare_reference(property_name, self.artifacts)
 
-    elif node.type == "shorthand_property_identifier":
-        _record_bare_reference(_text(node, source), artifacts)
-
-    elif node.type == "jsx_attribute":
-        property_name = _child_text(node, "property_identifier", source)
+    def _record_jsx_attribute_reference(self, node) -> None:
+        property_name = _child_text(node, "property_identifier", self.source)
         if property_name:
-            _record_bare_reference(property_name, artifacts)
+            _record_bare_reference(property_name, self.artifacts)
 
-    if node.type == "identifier":
-        name = _text(node, source)
-        if name and name not in seen:
-            seen.add(name)
-            artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
+    def _record_identifier_reference(self, node) -> None:
+        name = _text(node, self.source)
+        if name and name not in self.seen:
+            self.seen.add(name)
+            self.artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
 
-    elif node.type == "type_identifier":
-        name = _text(node, source)
-        if name and name not in seen:
-            seen.add(name)
-            artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
-
-    elif node.type == "call_expression":
-        callee = _extract_test_callee_name(node, source)
-        if callee is not None:
-            label = _first_string_argument(node, source)
-            if label:
-                artifacts.append(
-                    FoundArtifact(
-                        kind=ArtifactKind.TEST_FUNCTION,
-                        name=label,
-                        line=node.start_point[0] + 1,
-                    )
-                )
-                seen.add(label)
-
-    for child in node.children:
-        _collect_refs(
-            child,
-            source,
-            artifacts,
-            seen,
-            import_map=import_map,
-            namespace_imports=namespace_imports,
+    def _record_test_label(self, node) -> None:
+        callee = _extract_test_callee_name(node, self.source)
+        if callee is None:
+            return
+        label = _first_string_argument(node, self.source)
+        if not label:
+            return
+        self.artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.TEST_FUNCTION,
+                name=label,
+                line=node.start_point[0] + 1,
+            )
         )
+        self.seen.add(label)
 
 
-def _collect_test_bodies(node, source: bytes, bodies: dict[str, str]) -> None:
-    """Extract per-test body source text keyed by test function name.
+class _BehavioralTestBodyCollector:
+    """Extract per-test body source text keyed by test function name."""
 
-    Recognizes executable test-runner calls such as ``it("name", ...)`` and
-    ``test("name", ...)``. Plain ``test_*`` helpers are intentionally ignored.
+    def __init__(self, root, source: bytes) -> None:
+        self.root = root
+        self.source = source
+        self.bodies: dict[str, str] = {}
 
-    Nested declarations inside other test callbacks are intentionally
-    ignored — those are helpers, not independent tests. Names claimed by
-    an outer declaration are not overwritten by inner ones.
-    """
-    if node.type == "call_expression":
-        callee = _extract_test_callee_name(node, source)
-        if callee is not None:
-            label = _first_string_argument(node, source)
-            if label:
-                body_text = _extract_test_callback_body(node, source)
-                if body_text is None:
-                    body_text = _text(node, source)
-                bodies.setdefault(label, body_text)
-                return
+    def collect(self) -> dict[str, str]:
+        self._collect_test_bodies(self.root)
+        return self.bodies
 
-    for child in node.children:
-        _collect_test_bodies(child, source, bodies)
+    def _collect_test_bodies(self, node) -> None:
+        """Recognize executable test-runner calls and ignore nested helpers."""
+        if node.type == "call_expression":
+            callee = _extract_test_callee_name(node, self.source)
+            if callee is not None:
+                label = _first_string_argument(node, self.source)
+                if label:
+                    body_text = _extract_test_callback_body(node, self.source)
+                    if body_text is None:
+                        body_text = _text(node, self.source)
+                    self.bodies.setdefault(label, body_text)
+                    return
+
+        for child in node.children:
+            self._collect_test_bodies(child)
 
 
 def _extract_test_callback_body(call_node, source: bytes) -> Optional[str]:
