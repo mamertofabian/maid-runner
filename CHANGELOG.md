@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2026-05-13
+
+### Added
+- **Angular and React TypeScript coverage** — Added characterization coverage for Angular decorators, signal-style inputs/outputs, React function components, wrapped components, companion files, and snapshot behavior.
+- **Clean-code refactor roadmap** — Added the v2.8 validation maintainability roadmap and implementation manifests for extracting validation helpers.
+
+### Changed
+- **Validation internals** — Split JavaScript/TypeScript import scanning, validation test discovery, `test_function` contract checks, implementation-file validation, tsconfig path handling, and TypeScript collectors into focused helper modules while preserving public validation behavior.
+- **Graph query boundaries** — Simplified graph query parser, executor, and facade internals with characterization coverage for result shapes and cycle detection.
+
+### Fixed
+- **Schema-only validation mode** — Restored `maid validate --mode schema` for manifest readiness checks without implementation validation.
+- **React composed wrapper extraction** — `memo(forwardRef(...))` exports are now collected as function components instead of attributes.
+- **CLI reference consistency** — README validation options now include `schema` alongside behavioral and implementation modes.
+
 ## [2.8.0] - 2026-05-12
 
 ### Added
