@@ -7,12 +7,8 @@ from pathlib import Path
 from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
-from maid_runner.core._js_ts_imports import (
-    collect_import_module_bindings,
-    collect_import_modules,
-    collect_required_imports,
-    import_may_satisfy_required,
-)
+from maid_runner.core import _implementation_validation
+from maid_runner.core._implementation_validation import ImplementationFileValidator
 from maid_runner.core._test_function_contracts import (
     merged_test_function_behavior_requirements,
     validate_test_function_behavior,
@@ -24,7 +20,6 @@ from maid_runner.core._validation_test_artifacts import (
     find_test_files,
     get_validator_for_test,
 )
-from maid_runner.core._type_compare import types_match
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.identity import match_artifact_to_references
 from maid_runner.core.module_paths import file_to_module_path
@@ -54,13 +49,10 @@ from maid_runner.core.types import (
 )
 from maid_runner.validators.base import FoundArtifact
 from maid_runner.validators.registry import (
-    UnsupportedLanguageError,
     ValidatorRegistry,
 )
 
-# Structural artifact kinds that define shapes rather than behavior.
-# These don't require manifest declaration in strict mode.
-_STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
+_STRUCTURAL_KINDS = _implementation_validation._STRUCTURAL_KINDS
 
 
 class ValidationEngine:
@@ -536,126 +528,15 @@ class ValidationEngine:
                 )
 
         # Check file specs
+        _implementation_validation.resolve_ts_import = resolve_ts_import
+        _implementation_validation.resolve_ts_reexport = resolve_ts_reexport
+        file_validator = ImplementationFileValidator(
+            self._project_root,
+            self._registry,
+            check_stubs=check_stubs,
+        )
         for fs in manifest.all_file_specs:
-            if fs.is_absent:
-                full_path = self._project_root / fs.path
-                if full_path.exists():
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.FILE_SHOULD_BE_ABSENT,
-                            message=f"File '{fs.path}' should be absent but still exists",
-                            location=Location(file=fs.path),
-                        )
-                    )
-                continue
-
-            full_path = self._project_root / fs.path
-            if not full_path.exists():
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.FILE_SHOULD_BE_PRESENT,
-                        message=f"File '{fs.path}' not found",
-                        location=Location(file=fs.path),
-                    )
-                )
-                continue
-
-            # Get validator
-            try:
-                validator = self._registry.get(fs.path)
-            except UnsupportedLanguageError:
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
-                        message=f"No validator available for '{fs.path}'",
-                        severity=Severity.WARNING,
-                        location=Location(file=fs.path),
-                    )
-                )
-                continue
-
-            # Collect artifacts from source
-            try:
-                source = full_path.read_text()
-            except OSError as exc:
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.FILE_READ_ERROR,
-                        message=f"Failed to read file '{fs.path}': {exc}",
-                        location=Location(file=fs.path),
-                    )
-                )
-                continue
-            collection = validator.collect_implementation_artifacts(source, fs.path)
-            if collection.errors:
-                errors.extend(
-                    collection_errors_to_validation_errors(collection.errors, fs.path)
-                )
-                continue
-
-            # Get expected artifacts (chain may not cover this file)
-            if chain:
-                expected = chain.merged_artifacts_for(fs.path)
-                if not expected:
-                    expected = list(fs.artifacts)
-            else:
-                expected = list(fs.artifacts)
-
-            # TEST_FUNCTION artifacts are validated via the behavioral
-            # collector (see _validate_test_function_names) because
-            # implementation collectors cannot see string-label tests
-            # like it("name", fn) / test("name", fn).
-            expected = [a for a in expected if a.kind != ArtifactKind.TEST_FUNCTION]
-
-            # Determine strict mode: when chain is active, the merged
-            # artifacts represent the COMPLETE declared public API for
-            # this file. Enforce strict mode so any undeclared public
-            # artifact is flagged. Without chain, only CREATE/SNAPSHOT
-            # files can be strict (EDIT has an incomplete picture).
-            if chain and chain.manifests_for_file(fs.path):
-                is_strict = True
-            else:
-                is_strict = fs.is_strict
-
-            # Test files always use permissive mode — they naturally contain
-            # helpers, fixtures, and utilities that aren't manifest artifacts.
-            if is_strict and is_test_file(fs.path):
-                is_strict = False
-
-            # Compare
-            file_errors = _compare_artifacts(
-                expected=expected,
-                found=collection.artifacts,
-                file_path=fs.path,
-                is_strict=is_strict,
-            )
-            errors.extend(file_errors)
-
-            # Stub detection: check matched artifacts for stub bodies
-            if check_stubs:
-                found_by_key = {fa.merge_key(): fa for fa in collection.artifacts}
-                for spec in expected:
-                    fa = found_by_key.get(spec.merge_key())
-                    if fa and fa.is_stub and not fa.is_private:
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.STUB_FUNCTION_DETECTED,
-                                message=(
-                                    f"Function '{fa.qualified_name}' appears to be "
-                                    f"a stub in {fs.path}"
-                                ),
-                                severity=Severity.WARNING,
-                                location=Location(file=fs.path, line=fa.line),
-                                suggestion="Implement the function body with real logic",
-                            )
-                        )
-
-            # Import verification: check required imports exist
-            if fs.imports:
-                import_errors = _check_required_imports(
-                    source, fs.path, fs.imports, self._project_root
-                )
-                errors.extend(import_errors)
+            errors.extend(file_validator.validate_file_spec(fs, manifest, chain))
 
         errors.extend(
             validate_test_function_names(
@@ -810,62 +691,12 @@ def _compare_artifacts(
     file_path: str,
     is_strict: bool,
 ) -> list[ValidationError]:
-    errors: list[ValidationError] = []
-
-    # Build lookup of found artifacts by merge_key
-    found_by_key: dict[str, FoundArtifact] = {}
-    for found_art in found:
-        found_by_key[found_art.merge_key()] = found_art
-
-    # Check each expected artifact exists
-    for spec in expected:
-        key = spec.merge_key()
-        fa = found_by_key.get(key)
-        if fa is None:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.ARTIFACT_NOT_DEFINED,
-                    message=f"Artifact '{spec.qualified_name}' not defined in {file_path}",
-                    location=Location(file=file_path),
-                )
-            )
-            continue
-
-        # Type comparison
-        type_errors = _compare_single(spec, fa, file_path)
-        errors.extend(type_errors)
-
-    # Strict mode: check for unexpected public artifacts
-    if is_strict:
-        expected_keys = {spec.merge_key() for spec in expected}
-        # Collect names of undeclared structural artifacts whose members
-        # should also be exempt from strict checking.
-        undeclared_structural = {
-            fa.name
-            for fa in found
-            if fa.kind in _STRUCTURAL_KINDS
-            and not fa.is_private
-            and fa.merge_key() not in expected_keys
-        }
-        for fa in found:
-            if fa.is_private:
-                continue
-            # Skip undeclared structural artifacts (type aliases, interfaces)
-            if fa.kind in _STRUCTURAL_KINDS and fa.merge_key() not in expected_keys:
-                continue
-            # Skip members of undeclared structural artifacts
-            if fa.of and fa.of in undeclared_structural:
-                continue
-            if fa.merge_key() not in expected_keys:
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.UNEXPECTED_ARTIFACT,
-                        message=f"Unexpected public artifact '{fa.qualified_name}' in {file_path}",
-                        location=Location(file=file_path, line=fa.line),
-                    )
-                )
-
-    return errors
+    return _implementation_validation.compare_artifacts(
+        expected=expected,
+        found=found,
+        file_path=file_path,
+        is_strict=is_strict,
+    )
 
 
 def _compare_single(
@@ -873,99 +704,7 @@ def _compare_single(
     found: FoundArtifact,
     file_path: str,
 ) -> list[ValidationError]:
-    errors: list[ValidationError] = []
-
-    if spec.kind != found.kind:
-        errors.append(
-            ValidationError(
-                code=ErrorCode.ARTIFACT_NOT_DEFINED,
-                message=(
-                    f"Artifact '{spec.qualified_name}' expected kind "
-                    f"'{spec.kind.value}' but found '{found.kind.value}' in {file_path}"
-                ),
-                location=Location(file=file_path, line=found.line),
-            )
-        )
-        return errors
-
-    if spec.type_parameters and spec.type_parameters != found.type_parameters:
-        errors.append(
-            ValidationError(
-                code=ErrorCode.TYPE_MISMATCH,
-                message=(
-                    f"type parameters mismatch for {spec.kind.value} "
-                    f"'{spec.qualified_name}': expected "
-                    f"{list(spec.type_parameters)}, got {list(found.type_parameters)}"
-                ),
-                location=Location(file=file_path, line=found.line),
-            )
-        )
-
-    # Compare args types by NAME (not position), matching v1 behavior.
-    # Code may have extra params (e.g. ctx: Context) not in manifest.
-    if spec.args:
-        found_args_by_name = {a.name: a for a in found.args}
-        for expected_arg in spec.args:
-            found_arg = found_args_by_name.get(expected_arg.name)
-            if found_arg is None:
-                continue  # Parameter not found in code (separate validation)
-            if expected_arg.type and found_arg.type is None:
-                # Manifest declares type but code has no annotation -> WARNING
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.MISSING_RETURN_TYPE,
-                        message=(
-                            f"Missing type annotation for parameter '{expected_arg.name}' "
-                            f"in {spec.kind.value} '{spec.qualified_name}': "
-                            f"expected '{expected_arg.type}'"
-                        ),
-                        severity=Severity.WARNING,
-                        location=Location(file=file_path, line=found.line),
-                    )
-                )
-            elif expected_arg.type and not types_match(
-                expected_arg.type, found_arg.type
-            ):
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.TYPE_MISMATCH,
-                        message=(
-                            f"Type mismatch for parameter '{expected_arg.name}' "
-                            f"in {spec.kind.value} '{spec.qualified_name}': "
-                            f"expected '{expected_arg.type}', got '{found_arg.type}'"
-                        ),
-                        location=Location(file=file_path, line=found.line),
-                    )
-                )
-
-    # Compare return type
-    if spec.returns and found.returns is None:
-        # Manifest declares return type but code has no annotation -> WARNING
-        errors.append(
-            ValidationError(
-                code=ErrorCode.MISSING_RETURN_TYPE,
-                message=(
-                    f"Missing return type annotation for {spec.kind.value} "
-                    f"'{spec.qualified_name}': expected '{spec.returns}'"
-                ),
-                severity=Severity.WARNING,
-                location=Location(file=file_path, line=found.line),
-            )
-        )
-    elif spec.returns and found.returns:
-        if not types_match(spec.returns, found.returns):
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.TYPE_MISMATCH,
-                    message=(
-                        f"Return type mismatch for {spec.kind.value} '{spec.qualified_name}': "
-                        f"expected '{spec.returns}', got '{found.returns}'"
-                    ),
-                    location=Location(file=file_path, line=found.line),
-                )
-            )
-
-    return errors
+    return _implementation_validation._compare_single(spec, found, file_path)
 
 
 def _find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
@@ -1088,137 +827,11 @@ def _check_required_imports(
     required_imports: tuple[str, ...],
     project_root: Optional[Path] = None,
 ) -> list[ValidationError]:
-    """Check that required import modules/symbols appear in the source file."""
-    import ast as _ast
-
-    errors: list[ValidationError] = []
-
-    # Collect all import references from the source
-    found_imports: set[str] = set()
-
-    if file_path.endswith(".py"):
-        try:
-            tree = _ast.parse(source, filename=file_path)
-        except SyntaxError:
-            return errors
-
-        for node in _ast.walk(tree):
-            if isinstance(node, _ast.ImportFrom):
-                if node.module:
-                    found_imports.add(node.module)
-                    # Also add each dotted prefix
-                    parts = node.module.split(".")
-                    for i in range(1, len(parts) + 1):
-                        found_imports.add(".".join(parts[:i]))
-                if node.names:
-                    for alias in node.names:
-                        found_imports.add(alias.name)
-            elif isinstance(node, _ast.Import):
-                for alias in node.names:
-                    found_imports.add(alias.name)
-    else:
-        import posixpath
-
-        _JS_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts")
-
-        found_imports = collect_required_imports(source, file_path)
-        raw_import_modules = collect_import_modules(source, file_path)
-        raw_import_bindings = collect_import_module_bindings(source, file_path)
-
-        # Resolve relative imports against the importing file's directory
-        # so that ../../src/models/Budget matches manifest's src/models/Budget.
-        # Also strip known JS/TS extensions for extensionless matching.
-        file_dir = posixpath.dirname(file_path)
-        normalized: set[str] = set()
-        non_relative_raw: list[str] = []
-        for imp in raw_import_modules:
-            if imp.startswith("."):
-                resolved = posixpath.normpath(posixpath.join(file_dir, imp))
-                # Skip paths that escape the project root (start with ..)
-                if resolved.startswith(".."):
-                    continue
-                normalized.add(resolved)
-                if resolved.endswith("/index"):
-                    normalized.add(posixpath.dirname(resolved))
-                # Also add without extension so "src/models/Budget.ts"
-                # matches manifest's "src/models/Budget"
-                for ext in _JS_EXTENSIONS:
-                    if resolved.endswith(ext):
-                        extensionless = resolved[: -len(ext)]
-                        normalized.add(extensionless)
-                        if extensionless.endswith("/index"):
-                            normalized.add(posixpath.dirname(extensionless))
-                        break
-            else:
-                # Strip extensions from non-relative imports too
-                for ext in _JS_EXTENSIONS:
-                    if imp.endswith(ext):
-                        extensionless = imp[: -len(ext)]
-                        normalized.add(extensionless)
-                        if extensionless.endswith("/index"):
-                            normalized.add(posixpath.dirname(extensionless))
-                        break
-                non_relative_raw.append(imp)
-        found_imports |= normalized
-
-        # Resolve non-relative specifiers through tsconfig paths and compiler.
-        # Relative imports are already handled above. Non-relative raw module
-        # specifiers include bare tsconfig aliases such as "models", while
-        # imported binding names remain in found_imports only and are not
-        # resolved as paths. Third-party specifiers pass through resolve_ts_import
-        # unchanged, so only aliases that actually map to a project-local module
-        # add new entries.
-        unresolved_required_imports = {
-            req for req in required_imports if req not in found_imports
-        }
-        if (
-            project_root is not None
-            and non_relative_raw
-            and unresolved_required_imports
-        ):
-            importer_module = posixpath.splitext(file_path.replace("\\", "/"))[0]
-            for imp in non_relative_raw:
-                if not import_may_satisfy_required(
-                    imp,
-                    unresolved_required_imports,
-                    raw_import_bindings.get(imp, set()),
-                ):
-                    continue
-                resolved = resolve_ts_import(imp, importer_module, project_root)
-                if resolved != imp:
-                    found_imports.add(resolved)
-                    if resolved.endswith("/index"):
-                        found_imports.add(posixpath.dirname(resolved))
-                    for binding in raw_import_bindings.get(imp, set()):
-                        reexport = resolve_ts_reexport(resolved, binding, project_root)
-                        if reexport is not None:
-                            found_imports.add(reexport[0])
-                    unresolved_required_imports = {
-                        req
-                        for req in unresolved_required_imports
-                        if req not in found_imports
-                    }
-                    if not unresolved_required_imports:
-                        break
-
-    # Check each required import
-    for req in required_imports:
-        candidates = {req}
-        # Normalize path-style imports to dotted module notation for Python files
-        # (arch-spec generates "src/models/user.py" but Python AST collects "src.models.user")
-        if file_path.endswith(".py") and "/" in req:
-            dotted = req.replace("/", ".")
-            if dotted.endswith(".py"):
-                dotted = dotted[:-3]
-            candidates.add(dotted)
-        if not candidates & found_imports:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.MISSING_REQUIRED_IMPORT,
-                    message=f"Required import '{req}' not found in {file_path}",
-                    location=Location(file=file_path),
-                    suggestion=f"Add an import for '{req}'",
-                )
-            )
-
-    return errors
+    _implementation_validation.resolve_ts_import = resolve_ts_import
+    _implementation_validation.resolve_ts_reexport = resolve_ts_reexport
+    return _implementation_validation._check_required_imports(
+        source,
+        file_path,
+        required_imports,
+        project_root,
+    )
