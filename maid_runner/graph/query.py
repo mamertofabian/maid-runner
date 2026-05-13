@@ -14,81 +14,39 @@ Query parsing capabilities:
 - QueryParser: Parser for natural language-style queries
 """
 
-import fnmatch
-from enum import Enum
 import re
-from typing import Any, Dict, List, Optional, Set
+from enum import Enum
+import fnmatch
+from typing import Any, Dict, List, Optional
 
 from maid_runner.graph.model import (
+    ArtifactNode,
+    EdgeType,
+    FileNode,
     KnowledgeGraph,
+    ManifestNode,
     Node,
     NodeType,
-    EdgeType,
-    ManifestNode,
-    FileNode,
-    ArtifactNode,
-    ModuleNode,
 )
-
-
-def _append_unique(nodes: List[Node], node: Node) -> None:
-    """Append a graph node only once while preserving traversal order."""
-    if node not in nodes:
-        nodes.append(node)
-
-
-def _node_matches_name(node: Node, name: str) -> bool:
-    if node.id == name:
-        return True
-    if isinstance(node, ManifestNode):
-        return node.path == name
-    if isinstance(node, FileNode):
-        return node.path == name
-    if isinstance(node, ArtifactNode):
-        return node.name == name
-    if isinstance(node, ModuleNode):
-        return node.name == name
-    return False
+from maid_runner.graph.traversal import (
+    _dependency_nodes_for_id,
+    _dependent_nodes_for_id,
+    _find_dependencies,
+    _find_dependents,
+    _get_affected_files,
+    _get_affected_manifests,
+    _get_dependency_tree,
+    _get_neighbors,
+    _is_acyclic,
+    analyze_impact as _analyze_impact,
+    find_cycles as _find_cycles,
+    find_node_by_name as _find_node_by_name,
+    find_nodes_by_type as _find_nodes_by_type,
+)
 
 
 def _matching_name_attribute(node: Node, name: str) -> bool:
     return getattr(node, "name", None) == name
-
-
-def _build_adjacency(graph: KnowledgeGraph) -> Dict[str, List[str]]:
-    adjacency: Dict[str, List[str]] = {node.id: [] for node in graph.nodes}
-    for edge in graph.edges:
-        if edge.source_id in adjacency:
-            adjacency[edge.source_id].append(edge.target_id)
-    return adjacency
-
-
-def _dependent_nodes_for_id(graph: KnowledgeGraph, node_id: str) -> List[Node]:
-    dependents: List[Node] = []
-    for edge in graph.edges:
-        if edge.target_id == node_id:
-            source_node = graph.get_node(edge.source_id)
-            if source_node:
-                _append_unique(dependents, source_node)
-    return dependents
-
-
-def _dependency_nodes_for_id(graph: KnowledgeGraph, node_id: str) -> List[Node]:
-    dependencies: List[Node] = []
-    for edge in graph.edges:
-        if edge.source_id == node_id:
-            target_node = graph.get_node(edge.target_id)
-            if target_node:
-                _append_unique(dependencies, target_node)
-
-        if edge.target_id == node_id and edge.edge_type in (
-            EdgeType.CONTAINS,
-            EdgeType.DEFINES,
-        ):
-            parent_node = graph.get_node(edge.source_id)
-            if parent_node:
-                _append_unique(dependencies, parent_node)
-    return dependencies
 
 
 def find_nodes_by_type(graph: KnowledgeGraph, node_type: NodeType) -> List[Node]:
@@ -101,7 +59,7 @@ def find_nodes_by_type(graph: KnowledgeGraph, node_type: NodeType) -> List[Node]
     Returns:
         List of nodes matching the specified type.
     """
-    return [node for node in graph.nodes if node.node_type == node_type]
+    return _find_nodes_by_type(graph, node_type)
 
 
 def find_node_by_name(graph: KnowledgeGraph, name: str) -> Optional[Node]:
@@ -121,11 +79,7 @@ def find_node_by_name(graph: KnowledgeGraph, name: str) -> Optional[Node]:
     Returns:
         The first matching node, or None if not found.
     """
-    for node in graph.nodes:
-        if _node_matches_name(node, name):
-            return node
-
-    return None
+    return _find_node_by_name(graph, name)
 
 
 def get_neighbors(
@@ -145,29 +99,7 @@ def get_neighbors(
     Returns:
         List of connected nodes.
     """
-    neighbor_ids: set[str] = set()
-
-    for edge in graph.edges:
-        # Check if edge matches type filter
-        if edge_type is not None and edge.edge_type != edge_type:
-            continue
-
-        # Check outgoing edges (node is source)
-        if edge.source_id == node.id:
-            neighbor_ids.add(edge.target_id)
-
-        # Check incoming edges (node is target)
-        if edge.target_id == node.id:
-            neighbor_ids.add(edge.source_id)
-
-    # Resolve node IDs to actual nodes
-    neighbors: List[Node] = []
-    for neighbor_id in neighbor_ids:
-        neighbor_node = graph.get_node(neighbor_id)
-        if neighbor_node:
-            neighbors.append(neighbor_node)
-
-    return neighbors
+    return _get_neighbors(graph, node, edge_type)
 
 
 def find_dependents(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
@@ -185,12 +117,7 @@ def find_dependents(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
     Returns:
         List of nodes that depend on the artifact.
     """
-    # First find the artifact node
-    artifact_node = find_node_by_name(graph, artifact_name)
-    if not artifact_node:
-        return []
-
-    return _dependent_nodes_for_id(graph, artifact_node.id)
+    return _find_dependents(graph, artifact_name)
 
 
 def find_dependencies(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
@@ -208,12 +135,7 @@ def find_dependencies(graph: KnowledgeGraph, artifact_name: str) -> List[Node]:
     Returns:
         List of nodes that the artifact depends on.
     """
-    # First find the artifact node
-    artifact_node = find_node_by_name(graph, artifact_name)
-    if not artifact_node:
-        return []
-
-    return _dependency_nodes_for_id(graph, artifact_node.id)
+    return _find_dependencies(graph, artifact_name)
 
 
 def get_dependency_tree(
@@ -238,53 +160,7 @@ def get_dependency_tree(
             "dependencies": [...]  # nested trees
         }
     """
-    if _visited is None:
-        _visited = set()
-
-    # Build basic node info
-    result: Dict[str, Any] = {
-        "id": node.id,
-        "type": node.node_type.value,
-        "dependencies": [],
-    }
-
-    # If at depth limit or already visited, return without dependencies
-    if depth == 0 or node.id in _visited:
-        return result
-
-    _visited.add(node.id)
-
-    # Get direct dependencies (nodes this node points to)
-    next_depth = depth - 1 if depth > 0 else -1
-
-    for edge in graph.edges:
-        if edge.source_id == node.id:
-            dep_node = graph.get_node(edge.target_id)
-            if dep_node and dep_node.id not in _visited:
-                dep_tree = get_dependency_tree(
-                    graph, dep_node, next_depth, _visited.copy()
-                )
-                result["dependencies"].append(dep_tree)
-
-    return result
-
-
-def _normalize_cycle(cycle_ids: List[str]) -> tuple:
-    """Normalize a cycle by rotating to start with the smallest ID.
-
-    This ensures cycles like [A, B, C] and [B, C, A] are treated as equivalent.
-
-    Args:
-        cycle_ids: List of node IDs forming the cycle
-
-    Returns:
-        Tuple of node IDs starting with the smallest ID
-    """
-    if not cycle_ids:
-        return tuple()
-    min_idx = cycle_ids.index(min(cycle_ids))
-    rotated = cycle_ids[min_idx:] + cycle_ids[:min_idx]
-    return tuple(rotated)
+    return _get_dependency_tree(graph, node, depth, _visited)
 
 
 def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
@@ -300,42 +176,7 @@ def find_cycles(graph: KnowledgeGraph) -> List[List[Node]]:
         List of cycles, where each cycle is a list of nodes forming the cycle.
         Returns empty list if no cycles found.
     """
-    cycles: List[List[Node]] = []
-    seen_cycles: Set[tuple] = set()  # Normalized cycle IDs for deduplication
-    visited: Set[str] = set()
-    rec_stack: Set[str] = set()
-
-    adjacency = _build_adjacency(graph)
-
-    def _dfs(node_id: str, path: List[str]) -> None:
-        visited.add(node_id)
-        rec_stack.add(node_id)
-        path.append(node_id)
-
-        for neighbor_id in adjacency.get(node_id, []):
-            if neighbor_id not in visited:
-                _dfs(neighbor_id, path)
-            elif neighbor_id in rec_stack:
-                # Found a cycle - extract it from path
-                cycle_start = path.index(neighbor_id)
-                cycle_ids = path[cycle_start:]
-                # Normalize cycle for deduplication
-                normalized = _normalize_cycle(cycle_ids)
-                if normalized not in seen_cycles:
-                    seen_cycles.add(normalized)
-                    cycle_nodes_raw = [graph.get_node(nid) for nid in cycle_ids]
-                    cycle_nodes = [n for n in cycle_nodes_raw if n is not None]
-                    if cycle_nodes:
-                        cycles.append(cycle_nodes)
-
-        path.pop()
-        rec_stack.remove(node_id)
-
-    for node in graph.nodes:
-        if node.id not in visited:
-            _dfs(node.id, [])
-
-    return cycles
+    return _find_cycles(graph)
 
 
 def is_acyclic(graph: KnowledgeGraph) -> bool:
@@ -349,31 +190,7 @@ def is_acyclic(graph: KnowledgeGraph) -> bool:
     Returns:
         True if the graph has no cycles, False otherwise
     """
-    visited: Set[str] = set()
-    rec_stack: Set[str] = set()
-
-    adjacency = _build_adjacency(graph)
-
-    def _has_cycle(node_id: str) -> bool:
-        visited.add(node_id)
-        rec_stack.add(node_id)
-
-        for neighbor_id in adjacency.get(node_id, []):
-            if neighbor_id not in visited:
-                if _has_cycle(neighbor_id):
-                    return True
-            elif neighbor_id in rec_stack:
-                return True
-
-        rec_stack.remove(node_id)
-        return False
-
-    for node in graph.nodes:
-        if node.id not in visited:
-            if _has_cycle(node.id):
-                return False
-
-    return True
+    return _is_acyclic(graph)
 
 
 def get_affected_files(graph: KnowledgeGraph, artifact_name: str) -> List[str]:
@@ -388,21 +205,7 @@ def get_affected_files(graph: KnowledgeGraph, artifact_name: str) -> List[str]:
     Returns:
         List of file path strings that would be affected
     """
-    artifact_node = find_node_by_name(graph, artifact_name)
-    if not artifact_node:
-        return []
-
-    affected_files: List[str] = []
-
-    for edge in graph.edges:
-        # Files that DEFINE this artifact
-        if edge.edge_type == EdgeType.DEFINES and edge.target_id == artifact_node.id:
-            source_node = graph.get_node(edge.source_id)
-            if source_node and isinstance(source_node, FileNode):
-                if source_node.path not in affected_files:
-                    affected_files.append(source_node.path)
-
-    return affected_files
+    return _get_affected_files(graph, artifact_name)
 
 
 def get_affected_manifests(graph: KnowledgeGraph, artifact_name: str) -> List[str]:
@@ -417,21 +220,7 @@ def get_affected_manifests(graph: KnowledgeGraph, artifact_name: str) -> List[st
     Returns:
         List of manifest path strings that would be affected
     """
-    artifact_node = find_node_by_name(graph, artifact_name)
-    if not artifact_node:
-        return []
-
-    affected_manifests: List[str] = []
-
-    for edge in graph.edges:
-        # Manifests that DECLARE this artifact
-        if edge.edge_type == EdgeType.DECLARES and edge.target_id == artifact_node.id:
-            source_node = graph.get_node(edge.source_id)
-            if source_node and isinstance(source_node, ManifestNode):
-                if source_node.path not in affected_manifests:
-                    affected_manifests.append(source_node.path)
-
-    return affected_manifests
+    return _get_affected_manifests(graph, artifact_name)
 
 
 def analyze_impact(graph: KnowledgeGraph, artifact_name: str) -> Dict[str, Any]:
@@ -450,29 +239,7 @@ def analyze_impact(graph: KnowledgeGraph, artifact_name: str) -> Dict[str, Any]:
         - affected_artifacts: List of artifact names that depend on this one
         - total_impact_count: Total number of affected items
     """
-    affected_files = get_affected_files(graph, artifact_name)
-    affected_manifests = get_affected_manifests(graph, artifact_name)
-
-    # Find artifacts that depend on this one (via CONTAINS or other edges)
-    artifact_node = find_node_by_name(graph, artifact_name)
-    affected_artifacts: List[str] = []
-
-    if artifact_node:
-        dependents = find_dependents(graph, artifact_name)
-        for dep in dependents:
-            if isinstance(dep, ArtifactNode) and dep.name not in affected_artifacts:
-                affected_artifacts.append(dep.name)
-
-    total_count = (
-        len(affected_files) + len(affected_manifests) + len(affected_artifacts)
-    )
-
-    return {
-        "affected_files": affected_files,
-        "affected_manifests": affected_manifests,
-        "affected_artifacts": affected_artifacts,
-        "total_impact_count": total_count,
-    }
+    return _analyze_impact(graph, artifact_name)
 
 
 class QueryType(Enum):
