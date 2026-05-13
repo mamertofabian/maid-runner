@@ -108,4 +108,3 @@ export class CounterComponent {
     assert fields["count"].kind == ArtifactKind.ATTRIBUTE
     assert fields["label"].kind == ArtifactKind.ATTRIBUTE
     assert fields["changed"].kind == ArtifactKind.ATTRIBUTE
-

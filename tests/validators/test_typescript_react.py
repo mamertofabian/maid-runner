@@ -170,6 +170,30 @@ export const Row = memo(function Row(props: RowProps): JSX.Element {
     assert component.returns == "JSX.Element"
 
 
+def test_react_composed_memo_forward_ref_export_is_collected_as_function_component() -> None:
+    source = """import { forwardRef, memo } from 'react';
+
+type InputProps = { value: string };
+
+export const Input = memo(forwardRef<HTMLInputElement, InputProps>(
+  (props: InputProps, ref: React.Ref<HTMLInputElement>): JSX.Element => {
+    return <input ref={ref} value={props.value} />;
+  }
+));
+"""
+
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/components/Input.tsx"
+    )
+    component = _artifact(result, "Input", ArtifactKind.FUNCTION)
+
+    assert result.errors == []
+    assert component.args[0].name == "props"
+    assert component.args[0].type == "InputProps"
+    assert component.args[1].name == "ref"
+    assert component.returns == "JSX.Element"
+
+
 def test_default_exported_anonymous_arrow_component_is_collected_as_default_function() -> None:
     source = """type BannerProps = { title: string };
 

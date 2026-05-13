@@ -83,7 +83,7 @@ implementation review, evolution, auditing, and incident logging.
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
-| `maid validate [manifest]` | Validate manifest against code | `--mode behavioral\|implementation`, `--no-chain`, `--coherence`, `--json`, `--watch`, `--watch-all` |
+| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--json`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--force` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |

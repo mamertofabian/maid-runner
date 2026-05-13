@@ -690,6 +690,10 @@ def _react_wrapped_component_value(node, source: bytes):
     if call is None or not _is_react_component_wrapper_call(call, source):
         return None
 
+    return _react_component_function_argument(call, source)
+
+
+def _react_component_function_argument(call, source: bytes):
     arguments = _child_by_type(call, "arguments")
     if arguments is None:
         return None
@@ -701,6 +705,10 @@ def _react_wrapped_component_value(node, source: bytes):
             "generator_function",
         ):
             return child
+        if child.type == "call_expression" and _is_react_component_wrapper_call(
+            child, source
+        ):
+            return _react_component_function_argument(child, source)
         if child.type in ("(", ","):
             continue
         return None
