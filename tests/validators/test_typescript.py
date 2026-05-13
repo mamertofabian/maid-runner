@@ -26,6 +26,39 @@ def validator():
     return TypeScriptValidator()
 
 
+def test_syntax_errors_reported(validator):
+    result = validator.collect_implementation_artifacts(
+        "function broken(",
+        "test.ts",
+    )
+
+    assert result.artifacts == []
+    assert result.errors == ["Syntax error near line 1"]
+
+
+def test_parse_typescript_source_reports_session_details(validator):
+    from maid_runner.validators._typescript_parse import (
+        TypeScriptParseSession,
+        collect_parse_errors,
+        parse_typescript_source,
+    )
+
+    source = "export const View = () => <section />;\n"
+
+    session = parse_typescript_source(
+        source,
+        "src/components/View.tsx",
+        validator._ts_parser,
+        validator._tsx_parser,
+    )
+
+    assert isinstance(session, TypeScriptParseSession)
+    assert session.source_bytes == source.encode("utf-8")
+    assert session.parse_errors == []
+    assert session.module_id == "src/components/View"
+    assert collect_parse_errors(session.tree.root_node) == []
+
+
 def _find(artifacts, name, kind=None, of=None):
     for a in artifacts:
         if a.name == name:

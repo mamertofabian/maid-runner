@@ -16,6 +16,7 @@ from maid_runner.core.ts_module_paths import (
 )
 from maid_runner.core.types import ArtifactKind, ArgSpec
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
+from maid_runner.validators._typescript_parse import parse_typescript_source
 
 try:
     from tree_sitter import Language, Parser
@@ -47,29 +48,30 @@ class TypeScriptValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        source_bytes = source.encode("utf-8")
-        parser = (
-            self._tsx_parser
-            if str(file_path).endswith((".tsx", ".jsx"))
-            else self._ts_parser
+        session = parse_typescript_source(
+            source, file_path, self._ts_parser, self._tsx_parser
         )
-        tree = parser.parse(source_bytes)
-        parse_errors = _collect_parse_errors(tree.root_node)
-        if parse_errors:
+        if session.parse_errors:
             return CollectionResult(
                 artifacts=[],
                 language="typescript",
                 file_path=str(file_path),
-                errors=parse_errors,
+                errors=session.parse_errors,
             )
 
         artifacts: list[FoundArtifact] = []
-        _collect_impl(tree.root_node, source_bytes, artifacts, current_class=None)
+        _collect_impl(
+            session.tree.root_node,
+            session.source_bytes,
+            artifacts,
+            current_class=None,
+        )
 
-        module_id = ts_file_to_module_path(file_path, Path(".")) or None
-        if module_id:
+        if session.module_id:
             artifacts = [
-                replace(a, module_path=module_id) if a.module_path is None else a
+                replace(a, module_path=session.module_id)
+                if a.module_path is None
+                else a
                 for a in artifacts
             ]
 
@@ -84,25 +86,20 @@ class TypeScriptValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        source_bytes = source.encode("utf-8")
-        parser = (
-            self._tsx_parser
-            if str(file_path).endswith((".tsx", ".jsx"))
-            else self._ts_parser
+        session = parse_typescript_source(
+            source, file_path, self._ts_parser, self._tsx_parser
         )
-        tree = parser.parse(source_bytes)
-        parse_errors = _collect_parse_errors(tree.root_node)
-        if parse_errors:
+        if session.parse_errors:
             return CollectionResult(
                 artifacts=[],
                 language="typescript",
                 file_path=str(file_path),
-                errors=parse_errors,
+                errors=session.parse_errors,
             )
 
         collector = _BehavioralReferenceCollector(
-            tree.root_node,
-            source_bytes,
+            session.tree.root_node,
+            session.source_bytes,
             file_path,
         )
         artifacts = collector.collect()
@@ -133,42 +130,20 @@ class TypeScriptValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> dict[str, str]:
-        source_bytes = source.encode("utf-8")
-        parser = (
-            self._tsx_parser
-            if str(file_path).endswith((".tsx", ".jsx"))
-            else self._ts_parser
+        session = parse_typescript_source(
+            source, file_path, self._ts_parser, self._tsx_parser
         )
-        tree = parser.parse(source_bytes)
-        if _collect_parse_errors(tree.root_node):
+        if session.parse_errors:
             return {}
 
-        return _BehavioralTestBodyCollector(tree.root_node, source_bytes).collect()
+        return _BehavioralTestBodyCollector(
+            session.tree.root_node,
+            session.source_bytes,
+        ).collect()
 
 
 def _text(node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8")
-
-
-def _collect_parse_errors(node) -> list[str]:
-    errors: list[str] = []
-    stack = [node]
-    while stack:
-        current = stack.pop()
-        if current.type == "ERROR":
-            line = current.start_point[0] + 1
-            errors.append(f"Syntax error near line {line}")
-            continue
-        if getattr(current, "is_missing", False):
-            line = current.start_point[0] + 1
-            errors.append(f"Missing syntax node near line {line}")
-            continue
-        stack.extend(reversed(current.children))
-
-    if getattr(node, "has_error", False) and not errors:
-        errors.append("Syntax error")
-
-    return errors
 
 
 def _is_stub_body_ts(node, source: bytes) -> bool:

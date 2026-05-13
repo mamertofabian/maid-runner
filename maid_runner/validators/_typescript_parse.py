@@ -1,0 +1,66 @@
+"""Private TypeScript parse-session helpers."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Union
+
+from maid_runner.core.ts_module_paths import ts_file_to_module_path
+
+if TYPE_CHECKING:
+    from tree_sitter import Parser, Tree
+
+
+class TypeScriptParseSession:
+    __slots__ = ("source_bytes", "tree", "parse_errors", "module_id")
+
+    def __init__(
+        self,
+        source_bytes: bytes,
+        tree: "Tree",
+        parse_errors: list[str],
+        module_id: str | None,
+    ) -> None:
+        self.source_bytes = source_bytes
+        self.tree = tree
+        self.parse_errors = parse_errors
+        self.module_id = module_id
+
+
+def parse_typescript_source(
+    source: str,
+    file_path: Union[str, Path],
+    ts_parser: "Parser",
+    tsx_parser: "Parser",
+) -> TypeScriptParseSession:
+    source_bytes = source.encode("utf-8")
+    parser = tsx_parser if str(file_path).endswith((".tsx", ".jsx")) else ts_parser
+    tree = parser.parse(source_bytes)
+
+    return TypeScriptParseSession(
+        source_bytes=source_bytes,
+        tree=tree,
+        parse_errors=collect_parse_errors(tree.root_node),
+        module_id=ts_file_to_module_path(file_path, Path(".")) or None,
+    )
+
+
+def collect_parse_errors(node: Any) -> list[str]:
+    errors: list[str] = []
+    stack = [node]
+    while stack:
+        current = stack.pop()
+        if current.type == "ERROR":
+            line = current.start_point[0] + 1
+            errors.append(f"Syntax error near line {line}")
+            continue
+        if getattr(current, "is_missing", False):
+            line = current.start_point[0] + 1
+            errors.append(f"Missing syntax node near line {line}")
+            continue
+        stack.extend(reversed(current.children))
+
+    if getattr(node, "has_error", False) and not errors:
+        errors.append("Syntax error")
+
+    return errors

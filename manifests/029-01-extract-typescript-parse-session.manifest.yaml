@@ -37,6 +37,18 @@ files:
       artifacts:
         - kind: class
           name: TypeScriptParseSession
+        - kind: attribute
+          name: source_bytes
+          of: TypeScriptParseSession
+        - kind: attribute
+          name: tree
+          of: TypeScriptParseSession
+        - kind: attribute
+          name: parse_errors
+          of: TypeScriptParseSession
+        - kind: attribute
+          name: module_id
+          of: TypeScriptParseSession
         - kind: function
           name: parse_typescript_source
           args:
@@ -91,6 +103,8 @@ files:
       artifacts:
         - kind: test_function
           name: test_syntax_errors_reported
+        - kind: test_function
+          name: test_parse_typescript_source_reports_session_details
     - path: tests/validators/test_typescript_implementation_collector_refactor.py
       artifacts:
         - kind: test_function
