@@ -6,7 +6,6 @@ Collects artifact definitions and references from Python source code using AST.
 from __future__ import annotations
 
 import ast
-from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Union
 
@@ -16,6 +15,17 @@ from maid_runner.core.module_paths import (
     resolve_reexport,
 )
 from maid_runner.core.types import ArtifactKind, ArgSpec
+from maid_runner.validators._python_implementation import (
+    _ImplementationCollector as _MovedImplementationCollector,
+    _ast_to_default_string as _python_ast_to_default_string,
+    _ast_to_type_string as _python_ast_to_type_string,
+    _extract_args as _python_extract_args,
+    _extract_base_name as _python_extract_base_name,
+    _get_return_type as _python_get_return_type,
+    _has_property_decorator as _python_has_property_decorator,
+    _is_stub_body as _python_is_stub_body,
+    collect_implementation_artifacts,
+)
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 
 
@@ -39,11 +49,8 @@ class PythonValidator(BaseValidator):
                 errors=[f"Syntax error: {e}"],
             )
 
-        collector = _ImplementationCollector(file_path=str(file_path))
-        collector.visit(tree)
-
         return CollectionResult(
-            artifacts=collector.artifacts,
+            artifacts=collect_implementation_artifacts(tree, str(file_path)),
             language="python",
             file_path=str(file_path),
         )
@@ -103,236 +110,46 @@ class PythonValidator(BaseValidator):
         return resolve_reexport(module, name, project_root)
 
 
-class _ImplementationCollector(ast.NodeVisitor):
-    def __init__(self, file_path: str = "") -> None:
-        self.artifacts: list[FoundArtifact] = []
-        self._current_class: Optional[str] = None
-        self._in_function: bool = False
-        self._is_init = Path(file_path).name == "__init__.py"
-        self._module_path: Optional[str] = (
-            file_to_module_path(file_path, Path(".")) if file_path else None
-        ) or None
+class _ImplementationCollector(_MovedImplementationCollector):
+    """Compatibility shim for older active manifests.
 
-    def _add(self, artifact: FoundArtifact) -> None:
-        if self._module_path and artifact.module_path is None:
-            artifact = _with_module_path(artifact, self._module_path)
-        self.artifacts.append(artifact)
+    PythonValidator delegates to _python_implementation.collect_implementation_artifacts;
+    these private wrappers keep the pre-existing manifest contract valid while
+    the collector logic lives in the focused module.
+    """
+
+    def __init__(self, file_path: str = "") -> None:
+        super().__init__(file_path=file_path)
+        self.artifacts = self.artifacts
+        self._current_class = self._current_class
+        self._in_function = self._in_function
+        self._is_init = self._is_init
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        base_names = [_extract_base_name(b) for b in node.bases]
-        bases = tuple(name for name in base_names if name is not None)
-
-        self._add(
-            FoundArtifact(
-                kind=ArtifactKind.CLASS,
-                name=node.name,
-                bases=bases,
-                line=node.lineno,
-                column=node.col_offset,
-            )
-        )
-
-        # Visit class body
-        prev_class = self._current_class
-        self._current_class = node.name
-        for child in node.body:
-            self.visit(child)
-        self._current_class = prev_class
+        return super().visit_ClassDef(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        self._handle_function(node, is_async=False)
+        return super().visit_FunctionDef(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        self._handle_function(node, is_async=True)
+        return super().visit_AsyncFunctionDef(node)
 
     def _handle_function(
         self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_async: bool
     ) -> None:
-        stub = _is_stub_body(node)
-
-        if self._current_class is not None:
-            # Inside a class
-            if _has_property_decorator(node):
-                # Property -> treat as attribute
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.ATTRIBUTE,
-                        name=node.name,
-                        of=self._current_class,
-                        type_annotation=_get_return_type(node),
-                        line=node.lineno,
-                        column=node.col_offset,
-                    )
-                )
-            else:
-                # Method
-                args = _extract_args(node, is_method=True)
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.METHOD,
-                        name=node.name,
-                        of=self._current_class,
-                        args=args,
-                        returns=_get_return_type(node),
-                        is_async=is_async,
-                        is_stub=stub,
-                        line=node.lineno,
-                        column=node.col_offset,
-                    )
-                )
-
-            # Visit method body for self.attr assignments
-            prev_in_function = self._in_function
-            self._in_function = True
-            self.generic_visit(node)
-            self._in_function = prev_in_function
-        else:
-            # Module-level function
-            args = _extract_args(node, is_method=False)
-            self._add(
-                FoundArtifact(
-                    kind=ArtifactKind.FUNCTION,
-                    name=node.name,
-                    args=args,
-                    returns=_get_return_type(node),
-                    is_async=is_async,
-                    is_stub=stub,
-                    line=node.lineno,
-                    column=node.col_offset,
-                )
-            )
+        return super()._handle_function(node, is_async)
 
     def visit_Assign(self, node: ast.Assign) -> None:
-        if self._current_class is not None and self._in_function:
-            # self.attr = ... inside a method
-            for target in node.targets:
-                if (
-                    isinstance(target, ast.Attribute)
-                    and isinstance(target.value, ast.Name)
-                    and target.value.id == "self"
-                ):
-                    attr_name = target.attr
-                    if not self._has_artifact(attr_name, self._current_class):
-                        self._add(
-                            FoundArtifact(
-                                kind=ArtifactKind.ATTRIBUTE,
-                                name=attr_name,
-                                of=self._current_class,
-                                line=node.lineno,
-                            )
-                        )
-        elif self._current_class is not None and not self._in_function:
-            # Class-level assignment (enum members, class constants)
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    if not self._has_artifact(target.id, self._current_class):
-                        self._add(
-                            FoundArtifact(
-                                kind=ArtifactKind.ATTRIBUTE,
-                                name=target.id,
-                                of=self._current_class,
-                                line=node.lineno,
-                            )
-                        )
-        elif self._current_class is None and not self._in_function:
-            # Module-level assignment
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    self._add(
-                        FoundArtifact(
-                            kind=ArtifactKind.ATTRIBUTE,
-                            name=target.id,
-                            line=node.lineno,
-                        )
-                    )
-                elif isinstance(target, ast.Tuple):
-                    for elt in target.elts:
-                        if isinstance(elt, ast.Name):
-                            self._add(
-                                FoundArtifact(
-                                    kind=ArtifactKind.ATTRIBUTE,
-                                    name=elt.id,
-                                    line=node.lineno,
-                                )
-                            )
+        return super().visit_Assign(node)
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
-        if not node.target:
-            return
-
-        type_ann = _ast_to_type_string(node.annotation) if node.annotation else None
-
-        if isinstance(node.target, ast.Name):
-            if self._current_class is not None and not self._in_function:
-                # Class-level annotated attribute: field: type
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.ATTRIBUTE,
-                        name=node.target.id,
-                        of=self._current_class,
-                        type_annotation=type_ann,
-                        line=node.lineno,
-                    )
-                )
-            elif self._current_class is None and not self._in_function:
-                # Module-level annotated attribute
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.ATTRIBUTE,
-                        name=node.target.id,
-                        type_annotation=type_ann,
-                        line=node.lineno,
-                    )
-                )
-        elif (
-            isinstance(node.target, ast.Attribute)
-            and isinstance(node.target.value, ast.Name)
-            and node.target.value.id == "self"
-            and self._current_class is not None
-            and self._in_function
-        ):
-            # Annotated self attribute inside method: self.name: str = value
-            attr_name = node.target.attr
-            if not self._has_artifact(attr_name, self._current_class):
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.ATTRIBUTE,
-                        name=attr_name,
-                        of=self._current_class,
-                        type_annotation=type_ann,
-                        line=node.lineno,
-                    )
-                )
+        return super().visit_AnnAssign(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        # Only collect re-exports in __init__.py files at module level.
-        # Regular files import for USE, not re-export.
-        if not self._is_init:
-            return
-        if self._current_class is not None:
-            return
-        if node.names:
-            for alias in node.names:
-                if alias.name == "*":
-                    continue
-                name = alias.asname or alias.name
-                if name.isupper():
-                    kind = ArtifactKind.ATTRIBUTE
-                elif name[0].isupper():
-                    kind = ArtifactKind.CLASS
-                else:
-                    kind = ArtifactKind.FUNCTION
-                self._add(
-                    FoundArtifact(
-                        kind=kind,
-                        name=name,
-                        line=node.lineno,
-                        column=node.col_offset,
-                    )
-                )
+        return super().visit_ImportFrom(node)
 
     def _has_artifact(self, name: str, of: Optional[str]) -> bool:
-        return any(a.name == name and a.of == of for a in self.artifacts)
+        return super()._has_artifact(name, of)
 
 
 class _BehavioralCollector(ast.NodeVisitor):
@@ -509,71 +326,8 @@ class _BehavioralCollector(ast.NodeVisitor):
         )
 
 
-def _with_module_path(artifact: FoundArtifact, module_path: str) -> FoundArtifact:
-    return replace(artifact, module_path=module_path)
-
-
 def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    """Check if a function body is a stub (no real implementation).
-
-    Detects: pass, ..., raise NotImplementedError, single return with literal,
-    or empty body after docstring.
-    """
-    body = node.body[:]
-
-    # Strip leading docstring
-    if (
-        body
-        and isinstance(body[0], ast.Expr)
-        and isinstance(body[0].value, ast.Constant)
-        and isinstance(body[0].value.value, str)
-    ):
-        body = body[1:]
-
-    if not body:
-        return True  # empty body after docstring
-
-    if len(body) != 1:
-        return False  # multiple statements = likely real code
-
-    stmt = body[0]
-
-    # pass
-    if isinstance(stmt, ast.Pass):
-        return True
-
-    # ... (Ellipsis)
-    if (
-        isinstance(stmt, ast.Expr)
-        and isinstance(stmt.value, ast.Constant)
-        and stmt.value.value is ...
-    ):
-        return True
-
-    # raise NotImplementedError(...)
-    if isinstance(stmt, ast.Raise) and stmt.exc is not None:
-        exc = stmt.exc
-        if isinstance(exc, ast.Call) and isinstance(exc.func, ast.Name):
-            if exc.func.id == "NotImplementedError":
-                return True
-        elif isinstance(exc, ast.Name) and exc.id == "NotImplementedError":
-            return True
-
-    # return <literal> (None, 0, "", False, {}, [], ())
-    if isinstance(stmt, ast.Return):
-        if stmt.value is None:
-            return True
-        if isinstance(stmt.value, ast.Constant):
-            return True
-        # return {} / return [] / return ()
-        if isinstance(stmt.value, ast.Dict) and not stmt.value.keys:
-            return True
-        if isinstance(stmt.value, ast.List) and not stmt.value.elts:
-            return True
-        if isinstance(stmt.value, ast.Tuple) and not stmt.value.elts:
-            return True
-
-    return False
+    return _python_is_stub_body(node)
 
 
 def _is_pytest_discoverable_test_class(node: ast.ClassDef) -> bool:
@@ -591,96 +345,27 @@ def _extract_args(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
     is_method: bool,
 ) -> tuple[ArgSpec, ...]:
-    args = node.args
-    all_args = list(args.args)
-
-    # Filter self/cls for methods
-    if is_method and all_args:
-        first_arg_name = all_args[0].arg
-        if first_arg_name in ("self", "cls"):
-            all_args = all_args[1:]
-
-    # Calculate defaults alignment
-    # Defaults align to the right of the args list
-    num_args = len(all_args)
-    defaults = list(args.defaults)
-    num_defaults = len(defaults)
-    padded_defaults: list[Optional[ast.expr]] = [None] * (
-        num_args - num_defaults
-    ) + defaults
-
-    result: list[ArgSpec] = []
-    for i, arg in enumerate(all_args):
-        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
-        default_val = None
-        if padded_defaults[i] is not None:
-            default_val = _ast_to_default_string(padded_defaults[i])
-        result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
-
-    return tuple(result)
+    return _python_extract_args(node, is_method)
 
 
 def _get_return_type(node: ast.FunctionDef | ast.AsyncFunctionDef) -> Optional[str]:
-    if node.returns:
-        return _ast_to_type_string(node.returns)
-    return None
+    return _python_get_return_type(node)
 
 
 def _has_property_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    for decorator in node.decorator_list:
-        if isinstance(decorator, ast.Name) and decorator.id == "property":
-            return True
-    return False
+    return _python_has_property_decorator(node)
 
 
 def _extract_base_name(base: ast.expr) -> Optional[str]:
-    if isinstance(base, ast.Name):
-        return base.id
-    elif isinstance(base, ast.Attribute):
-        return _ast_to_type_string(base)
-    elif isinstance(base, ast.Subscript):
-        # Generic[T] -> "Generic"
-        if isinstance(base.value, ast.Name):
-            return base.value.id
-        return _ast_to_type_string(base.value)
-    return None
+    return _python_extract_base_name(base)
 
 
 def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
-    if node is None:
-        return None
-    try:
-        if isinstance(node, ast.Name):
-            return node.id
-        if isinstance(node, ast.Constant):
-            return str(node.value)
-        if isinstance(node, ast.Subscript):
-            base = _ast_to_type_string(node.value)
-            if isinstance(node.slice, ast.Tuple):
-                args = [_ast_to_type_string(elt) for elt in node.slice.elts]
-                return f"{base}[{', '.join(str(a) for a in args)}]"
-            else:
-                arg = _ast_to_type_string(node.slice)
-                return f"{base}[{arg}]"
-        if isinstance(node, ast.Attribute):
-            value = _ast_to_type_string(node.value)
-            return f"{value}.{node.attr}"
-        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
-            left = _ast_to_type_string(node.left)
-            right = _ast_to_type_string(node.right)
-            return f"Union[{left}, {right}]"
-        return ast.unparse(node)
-    except Exception:
-        return str(node)
+    return _python_ast_to_type_string(node)
 
 
 def _ast_to_default_string(node: Optional[ast.expr]) -> Optional[str]:
-    if node is None:
-        return None
-    try:
-        return ast.unparse(node)
-    except Exception:
-        return str(node)
+    return _python_ast_to_default_string(node)
 
 
 def _slice_node_text(node: ast.AST, lines: list[str]) -> Optional[str]:

@@ -386,19 +386,15 @@ result = Foo(**data)
 
 
 class TestImplementationReexport:
-    """Tests that _ImplementationCollector detects re-exported names via ImportFrom."""
+    """Tests that PythonValidator detects re-exported names via ImportFrom."""
 
-    def test_visit_ImportFrom_collects_reexports(self):
-        """Direct test: _ImplementationCollector.visit_ImportFrom extracts names in __init__.py."""
-        import ast
-
-        from maid_runner.validators.python import _ImplementationCollector
-
-        collector = _ImplementationCollector(file_path="__init__.py")
-        tree = ast.parse("from .sub import MyClass, my_func")
-        node = tree.body[0]
-        collector.visit_ImportFrom(node)
-        names = {a.name for a in collector.artifacts}
+    def test_barrel_and_internal_exports(self, validator):
+        """Public validator entry point extracts named re-exports in __init__.py."""
+        result = validator.collect_implementation_artifacts(
+            "from .sub import MyClass, my_func\n",
+            "__init__.py",
+        )
+        names = {a.name for a in result.artifacts}
         assert "MyClass" in names
         assert "my_func" in names
 
