@@ -47,30 +47,6 @@ files:
             - name: source
               type: bytes
           returns: list[FoundArtifact]
-        - kind: function
-          name: collect_class_declaration
-          args:
-            - name: node
-              type: Any
-            - name: source
-              type: bytes
-            - name: artifacts
-              type: list[FoundArtifact]
-            - name: current_class
-              type: Optional[str]
-          returns: bool
-        - kind: function
-          name: collect_function_declaration
-          args:
-            - name: node
-              type: Any
-            - name: source
-              type: bytes
-            - name: artifacts
-              type: list[FoundArtifact]
-            - name: current_class
-              type: Optional[str]
-          returns: bool
   edit:
     - path: maid_runner/validators/typescript.py
       artifacts:
