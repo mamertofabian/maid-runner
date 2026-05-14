@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
@@ -9,6 +10,12 @@ from maid_runner.core.ts_module_paths import ts_file_to_module_path
 
 if TYPE_CHECKING:
     from tree_sitter import Parser, Tree
+
+
+_TYPEOF_IMPORT_TYPE_ARGUMENT = re.compile(
+    rb"""<\s*typeof\s+import\s*\(\s*(["'])(?:\\.|(?!\1).)*\1\s*\)\s*>""",
+    re.DOTALL,
+)
 
 
 class TypeScriptParseSession:
@@ -36,13 +43,46 @@ def parse_typescript_source(
     source_bytes = source.encode("utf-8")
     parser = tsx_parser if str(file_path).endswith((".tsx", ".jsx")) else ts_parser
     tree = parser.parse(source_bytes)
+    parse_errors = collect_parse_errors(tree.root_node)
+
+    if parse_errors:
+        parse_bytes = _sanitize_type_query_imports_for_tree_sitter(source_bytes)
+        if parse_bytes != source_bytes:
+            sanitized_tree = parser.parse(parse_bytes)
+            sanitized_errors = collect_parse_errors(sanitized_tree.root_node)
+            if len(sanitized_errors) < len(parse_errors):
+                tree = sanitized_tree
+                parse_errors = sanitized_errors
 
     return TypeScriptParseSession(
         source_bytes=source_bytes,
         tree=tree,
-        parse_errors=collect_parse_errors(tree.root_node),
+        parse_errors=parse_errors,
         module_id=ts_file_to_module_path(file_path, Path(".")) or None,
     )
+
+
+def _sanitize_type_query_imports_for_tree_sitter(source_bytes: bytes) -> bytes:
+    """Normalize valid TS type queries that tree-sitter-typescript rejects.
+
+    Vitest mocks commonly use ``importOriginal<typeof import("module")>()``.
+    The grammar version used by tree-sitter-typescript currently reports that
+    valid type-query import as an ERROR node. Replace only the generic type
+    argument with equal-length whitespace so parser byte offsets still map back
+    to the original source used by collectors.
+    """
+
+    def placeholder(match: re.Match[bytes]) -> bytes:
+        text = match.group(0)
+        output = bytearray()
+        for byte in text:
+            if byte in (ord("\n"), ord("\r")):
+                output.append(byte)
+            else:
+                output.append(ord(" "))
+        return bytes(output)
+
+    return _TYPEOF_IMPORT_TYPE_ARGUMENT.sub(placeholder, source_bytes)
 
 
 def collect_parse_errors(node: Any) -> list[str]:

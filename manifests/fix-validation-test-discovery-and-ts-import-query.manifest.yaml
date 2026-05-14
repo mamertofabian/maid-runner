@@ -1,0 +1,71 @@
+schema: "2"
+goal: >
+  Stop implementation validation from parsing unrelated test trees after
+  command-local cd operations, and tolerate valid Vitest TypeScript
+  importOriginal type-query syntax.
+type: fix
+created: "2026-05-14T00:00:00+08:00"
+description: |
+  Implementation validation discovers behavioral tests from manifest read files
+  and validation commands. A command such as
+  `cd apps/frontend && pnpm vitest run src/current.test.ts` must treat
+  `apps/frontend` as command working-directory context, not as a test tree to
+  recursively parse. This keeps unrelated existing tests from producing
+  manifest-blocking E308 diagnostics.
+
+  The affected Vitest tests also use valid TypeScript syntax in the form
+  `importOriginal<typeof import("module")>()`, which the current
+  tree-sitter-typescript grammar reports as an ERROR node. MAID should parse
+  that syntax for artifact collection instead of surfacing a source parse
+  failure.
+temptations:
+  - risk: "Do not make implementation validation ignore every parse error in unrelated tests."
+    instead: "Prevent unrelated tests from being discovered by respecting command cwd tokens, while preserving E308 for discovered syntax errors."
+  - risk: "Do not recursively scan arbitrary command working directories such as apps/frontend."
+    instead: "Scan explicit test files and test-named directories from validation commands."
+  - risk: "Do not loosen TypeScript parse-error reporting globally."
+    instead: "Normalize only the valid typeof import(...) type-query syntax that tree-sitter rejects before parsing."
+files:
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: find_test_files
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[str]
+    - path: maid_runner/validators/_typescript_parse.py
+      artifacts:
+        - kind: function
+          name: parse_typescript_source
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+            - name: ts_parser
+              type: Parser
+            - name: tsx_parser
+              type: Parser
+          returns: TypeScriptParseSession
+    - path: tests/core/test_validation_test_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_find_test_files_respects_cd_without_scanning_working_directory
+        - kind: test_function
+          name: test_find_test_files_includes_explicit_vitest_directory_target
+    - path: tests/validators/test_typescript.py
+      artifacts:
+        - kind: test_function
+          name: test_vitest_import_original_type_query_does_not_report_syntax_error
+        - kind: test_function
+          name: test_runtime_typeof_import_expression_is_not_sanitized
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_svelte.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validation_test_artifacts.py tests/validators/test_typescript.py

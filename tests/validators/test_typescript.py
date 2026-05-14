@@ -59,6 +59,39 @@ def test_parse_typescript_source_reports_session_details(validator):
     assert collect_parse_errors(session.tree.root_node) == []
 
 
+def test_vitest_import_original_type_query_does_not_report_syntax_error(validator):
+    source = """import { vi } from "vitest";
+
+vi.mock("$lib/shared/stores/time", async (importOriginal) => {
+    const original = await importOriginal<
+        typeof import("$lib/shared/stores/time")
+    >();
+    return original;
+});
+"""
+
+    result = validator.collect_behavioral_artifacts(
+        source,
+        "src/lib/shared/stores/time.test.ts",
+    )
+
+    assert result.errors == []
+    assert any(a.name == "vi" for a in result.artifacts)
+    assert "t" not in {a.name for a in result.artifacts}
+
+
+def test_runtime_typeof_import_expression_is_not_sanitized(validator):
+    source = """const left = 1;
+const right = 2;
+const compares = left < typeof import("$lib/module") > right;
+"""
+
+    result = validator.collect_behavioral_artifacts(source, "src/runtime.test.ts")
+
+    assert result.errors == []
+    assert any(a.name == "compares" for a in result.artifacts)
+
+
 def _find(artifacts, name, kind=None, of=None):
     for a in artifacts:
         if a.name == name:

@@ -40,10 +40,105 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
         add_test_path(path)
 
     for cmd in manifest.validate_commands:
-        for part in cmd:
-            add_test_path(part)
+        for path in _test_paths_from_validate_command(cmd, project_root):
+            add_test_path(path)
 
     return test_files
+
+
+def _test_paths_from_validate_command(
+    command: tuple[str, ...],
+    project_root: Path,
+) -> list[str]:
+    paths: list[str] = []
+    cwd = Path(".")
+
+    for segment in _command_segments(command):
+        if not segment:
+            continue
+
+        if segment[0] == "cd":
+            if len(segment) > 1:
+                cwd = Path(_normalize_relative_path(cwd / segment[1]))
+            continue
+
+        allow_explicit_directories = _runs_known_test_runner(segment)
+        index = 0
+        while index < len(segment):
+            part = segment[index]
+            if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
+                segment
+            ):
+                cwd = Path(_normalize_relative_path(cwd / segment[index + 1]))
+                index += 2
+                continue
+            if part.startswith("-"):
+                index += 1
+                continue
+
+            candidate = _normalize_relative_path(cwd / part)
+            if _looks_like_test_path(
+                candidate,
+                project_root,
+                allow_explicit_directories=allow_explicit_directories,
+            ):
+                paths.append(candidate)
+            index += 1
+
+    return paths
+
+
+def _runs_known_test_runner(segment: list[str]) -> bool:
+    test_runners = {
+        "pytest",
+        "py.test",
+        "vitest",
+        "jest",
+        "playwright",
+    }
+    return any(Path(part).name in test_runners for part in segment)
+
+
+def _command_segments(command: tuple[str, ...]) -> list[list[str]]:
+    segments: list[list[str]] = [[]]
+    for part in command:
+        if part in {"&&", "||", ";"}:
+            segments.append([])
+        else:
+            segments[-1].append(part)
+    return segments
+
+
+def _normalize_relative_path(path: Path) -> str:
+    parts: list[str] = []
+    for part in path.parts:
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if parts:
+                parts.pop()
+            continue
+        parts.append(part)
+    return "/".join(parts)
+
+
+def _looks_like_test_path(
+    path: str,
+    project_root: Path,
+    *,
+    allow_explicit_directories: bool = False,
+) -> bool:
+    if is_test_file(path):
+        return True
+
+    full_path = project_root / path
+    if not full_path.is_dir():
+        return False
+
+    test_dir_names = {"test", "tests", "__tests__", "spec", "specs"}
+    return allow_explicit_directories or any(
+        part.lower() in test_dir_names for part in full_path.parts
+    )
 
 
 def get_validator_for_test(

@@ -51,6 +51,65 @@ validate:
     ]
 
 
+def test_find_test_files_respects_cd_without_scanning_working_directory(tmp_path):
+    manifest_path = _write(
+        tmp_path / "manifests" / "frontend.manifest.yaml",
+        """schema: "2"
+goal: "Discover scoped frontend tests"
+files:
+  edit:
+    - path: apps/frontend/src/example.ts
+      artifacts:
+        - kind: function
+          name: example
+validate:
+  - cd apps/frontend && pnpm vitest run src/current.test.ts
+""",
+    )
+    _write(tmp_path / "apps" / "frontend" / "src" / "current.test.ts")
+    _write(tmp_path / "apps" / "frontend" / "src" / "unrelated.test.ts")
+
+    manifest = load_manifest(manifest_path)
+
+    assert find_test_files(manifest, tmp_path) == [
+        "apps/frontend/src/current.test.ts",
+    ]
+
+
+def test_find_test_files_includes_explicit_vitest_directory_target(tmp_path):
+    manifest_path = _write(
+        tmp_path / "manifests" / "frontend-dir.manifest.yaml",
+        """schema: "2"
+goal: "Discover explicit frontend test directory"
+files:
+  edit:
+    - path: apps/frontend/src/example.ts
+      artifacts:
+        - kind: function
+          name: example
+validate:
+  - cd apps/frontend && pnpm vitest run src/lib/audio/components/voice
+""",
+    )
+    _write(
+        tmp_path
+        / "apps"
+        / "frontend"
+        / "src"
+        / "lib"
+        / "audio"
+        / "components"
+        / "voice"
+        / "voiceUpload.test.ts"
+    )
+
+    manifest = load_manifest(manifest_path)
+
+    assert find_test_files(manifest, tmp_path) == [
+        "apps/frontend/src/lib/audio/components/voice/voiceUpload.test.ts",
+    ]
+
+
 def test_collect_test_artifacts_excludes_test_function_declarations(tmp_path):
     test_path = tmp_path / "tests" / "test_widget.py"
     _write(
