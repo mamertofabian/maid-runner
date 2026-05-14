@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2026-05-14
+
+### Added
+- **Next-wave MAID refactor manifests** — Added the follow-up maintainability draft set for parser, collector, export-scanner, and graph traversal cleanup work.
+
+### Changed
+- **Validation internals** — Extracted TypeScript parse-session handling, TypeScript behavioral and implementation collectors, Python implementation collection, TypeScript export scanning, and graph traversal helpers into smaller focused modules.
+
+### Fixed
+- **Review-readiness gaps** — Tightened manifest and scanner behavior found during readiness review without changing public CLI behavior.
+- **Scoped implementation test discovery** — Validation commands that change directories before running tests, such as `cd apps/frontend && pnpm vitest run src/current.test.ts`, no longer cause MAID to recursively parse the command working directory as an unrelated test tree.
+- **Vitest TypeScript import-original mocks** — TypeScript behavioral parsing now tolerates valid `importOriginal<typeof import("...")>()` mock syntax while preserving normal parse-error reporting and runtime expression parsing.
+
 ## [2.8.1] - 2026-05-13
 
 ### Added
