@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.3] - 2026-05-14
+
+### Fixed
+- **Directory-wide manifest validation scope** — `maid validate --manifest-dir manifests` now recursively includes nested active manifests instead of only top-level files.
+- **Inactive-directory hiding protection** — Unmarked active-looking v2 manifests hidden under `manifests/drafts/` or `manifests/v1-archive/` now fail validation with `E109`, while marked draft inventory and legacy v1 archive manifests remain excluded from the active chain.
+
 ## [2.8.2] - 2026-05-14
 
 ### Added
@@ -863,6 +869,9 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.8.3]: https://github.com/mamertofabian/maid-runner/compare/v2.8.2...v2.8.3
+[2.8.2]: https://github.com/mamertofabian/maid-runner/compare/v2.8.1...v2.8.2
+[2.8.1]: https://github.com/mamertofabian/maid-runner/compare/v2.8.0...v2.8.1
 [2.5.1]: https://github.com/mamertofabian/maid-runner/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/mamertofabian/maid-runner/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/mamertofabian/maid-runner/compare/v2.3.1...v2.4.0
