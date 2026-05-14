@@ -189,7 +189,7 @@ class ValidationEngine:
                 passed=passed,
                 failed=failed,
                 skipped=0,
-                chain_errors=chain.load_errors,
+                chain_errors=chain.load_errors + chain.inactive_manifest_diagnostics(),
                 duration_ms=duration,
             )
 

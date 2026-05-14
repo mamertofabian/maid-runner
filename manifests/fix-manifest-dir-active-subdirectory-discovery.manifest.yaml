@@ -1,0 +1,163 @@
+schema: "2"
+goal: >
+  Make directory-wide MAID validation include nested active manifests and
+  detect unmarked manifests hidden under inactive directories.
+type: fix
+created: "2026-05-14T22:35:00+08:00"
+description: |
+  The latest MAID incident shows that `maid validate --manifest-dir manifests`
+  can report a different contract surface than direct validation of a nested
+  manifest path. That lets agents hide active contracts in subdirectories and
+  still claim a green directory-wide validation result.
+
+  This fix makes ManifestChain discovery recursive for active manifests under
+  the selected manifest directory, while preserving the repo's intentional
+  inactive locations such as `manifests/drafts/` and `manifests/v1-archive/`.
+  The canonical root validation should therefore include active issue or
+  feature subdirectories, and direct-path failures should not disappear from
+  the directory-wide health check.
+
+  Inactive directories are not blind spots. When the selected root is a parent
+  such as `manifests/`, skipped inactive descendants must be inspected for
+  active-looking v2 manifests. Marked draft inventory remains allowed, legacy
+  v1 archive JSON remains allowed, and explicitly selecting an inactive
+  directory as the manifest root still validates its direct manifests.
+temptations:
+  - risk: "Do not document the non-recursive behavior as a caller responsibility."
+    instead: "Make the runner produce one authoritative active-chain surface for directory-wide validation."
+  - risk: "Do not recursively include drafts or archives in the active chain."
+    instead: "Skip explicit inactive directories as active inputs, but report unmarked active-looking manifests found there as chain diagnostics."
+  - risk: "Do not special-case only one repository's issue directory name."
+    instead: "Discover nested active `.manifest.yaml`, `.manifest.yml`, and `.manifest.json` files generically outside inactive directories."
+  - risk: "Do not change direct manifest validation strictness to hide the divergence."
+    instead: "Keep direct validation strict and make root directory validation include the same active manifest."
+  - risk: "Do not let inactive directory names become hiding places for approved contracts."
+    instead: "Require skipped inactive manifests to be explicitly marked as draft inventory or legacy v1 archive content."
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: class
+          name: ManifestChain
+        - kind: attribute
+          name: all_manifests
+          of: ManifestChain
+          type: list[Manifest]
+        - kind: method
+          name: active_manifests
+          of: ManifestChain
+          args: []
+          returns: list[Manifest]
+        - kind: method
+          name: inactive_manifest_diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchValidationResult
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: INACTIVE_MANIFEST_NOT_MARKED
+          of: ErrorCode
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_includes_nested_active_manifest_failure
+          source_scenario: "The CLI validates a root manifest directory containing a nested active YML manifest in a neutral subdirectory that fails implementation validation."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "The CLI exits non-zero and prints the nested active manifest failure in the root directory validation result."
+  create:
+    - path: tests/core/test_manifest_chain_discovery.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_chain_discovers_nested_active_manifests_and_skips_inactive_dirs
+          source_scenario: "A manifest root contains top-level manifests, nested active YAML/YML/JSON manifests in neutral subdirectories, drafts, and archived manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain includes the nested active manifest and excludes inactive draft/archive descendants."
+        - kind: test_function
+          name: test_validate_all_reports_nested_active_manifest_failures_from_root_dir
+          source_scenario: "A nested active manifest fails direct implementation validation but the root manifest directory is validated as the canonical health check."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all over the root manifest directory reports the nested active manifest failure instead of returning a partial success."
+        - kind: test_function
+          name: test_manifest_chain_reports_unmarked_manifest_hidden_under_inactive_dir
+          source_scenario: "A manifest root contains unmarked v2 manifests under drafts and v1-archive."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain reports INACTIVE_MANIFEST_NOT_MARKED diagnostics for the hidden active-looking manifests."
+        - kind: test_function
+          name: test_validate_all_fails_when_inactive_dir_contains_unmarked_v2_manifest
+          source_scenario: "The canonical root validation sees a normal active manifest plus an unmarked v2 manifest under drafts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all fails through chain_errors instead of silently ignoring the hidden manifest."
+        - kind: test_function
+          name: test_inactive_marker_text_inside_yaml_value_does_not_mark_manifest
+          source_scenario: "An active-looking v2 manifest under drafts contains marker-looking text inside a normal YAML string value."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain still reports INACTIVE_MANIFEST_NOT_MARKED because only actual marker comment lines count."
+        - kind: test_function
+          name: test_inactive_marker_text_inside_yaml_block_scalar_does_not_mark_manifest
+          source_scenario: "An active-looking v2 manifest under drafts contains marker-looking text inside an indented YAML block scalar."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain still reports INACTIVE_MANIFEST_NOT_MARKED because only leading file-comment markers count."
+        - kind: test_function
+          name: test_validate_all_schema_mode_fails_when_inactive_dir_contains_unmarked_v2_manifest
+          source_scenario: "Schema-mode root validation sees a normal active manifest plus an unmarked v2 manifest under drafts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all in schema mode reports the same hidden-manifest diagnostic as implementation mode."
+        - kind: test_function
+          name: test_selected_inactive_directory_root_still_loads_direct_manifests
+          source_scenario: "The selected manifest directory itself is an inactive directory such as manifests/drafts."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain treats direct manifests under the selected root as selected inputs, not skipped descendants."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_validate_schema_mode.py
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest_chain_discovery.py tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_all_includes_nested_active_manifest_failure

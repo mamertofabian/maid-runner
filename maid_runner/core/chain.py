@@ -5,13 +5,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Union
 
+from maid_runner.compat.v1_loader import is_v1_manifest
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
     load_manifest,
+    load_manifest_raw,
 )
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.types import ArtifactSpec, FileMode, Manifest
+
+_INACTIVE_MANIFEST_DIR_NAMES = frozenset({"drafts", "v1-archive"})
+_MANIFEST_FILE_PATTERNS = ("*.manifest.yaml", "*.manifest.yml", "*.manifest.json")
+_INACTIVE_METADATA_STATUSES = frozenset(
+    {"archive", "archived", "draft", "epic", "legacy", "planning"}
+)
 
 
 class ManifestChain:
@@ -422,11 +430,41 @@ class ManifestChain:
         """Return all chain-level diagnostics discovered during loading."""
         return (
             self.load_errors
+            + self._detect_unmarked_inactive_manifests()
             + self.validate_supersession_integrity()
             + self._detect_mixed_ordering()
             + self._detect_duplicate_sequence()
             + self._detect_non_monotonic_sequence()
         )
+
+    def inactive_manifest_diagnostics(self) -> list[ValidationError]:
+        """Return diagnostics for skipped inactive manifest directories."""
+        return self._detect_unmarked_inactive_manifests()
+
+    def _detect_unmarked_inactive_manifests(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
+        for path in _discover_inactive_manifest_files(self._manifest_dir):
+            inactive_dir = _inactive_dir_name_for(path, self._manifest_dir)
+            if inactive_dir is None:
+                continue
+            if _inactive_manifest_is_marked(path, inactive_dir):
+                continue
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.INACTIVE_MANIFEST_NOT_MARKED,
+                    message=(
+                        f"Inactive manifest directory '{inactive_dir}' contains "
+                        f"unmarked manifest '{path}'. Mark it as draft/archive "
+                        f"inventory or promote it into the active manifest tree."
+                    ),
+                    location=Location(file=str(path)),
+                    suggestion=(
+                        "Add an explicit draft/archive marker or move the manifest "
+                        "outside the inactive directory."
+                    ),
+                )
+            )
+        return errors
 
     def reload(self) -> None:
         self._manifests = None
@@ -437,11 +475,75 @@ class ManifestChain:
 
 
 def _discover_manifest_files(manifest_dir: Path) -> list[Path]:
-    patterns = ["*.manifest.yaml", "*.manifest.yml", "*.manifest.json"]
     files: list[Path] = []
-    for pattern in patterns:
-        files.extend(manifest_dir.glob(pattern))
+
+    for path in _iter_manifest_files(manifest_dir):
+        if _inactive_dir_name_for(path, manifest_dir) is not None:
+            continue
+        files.append(path)
+
     return sorted(files)
+
+
+def _discover_inactive_manifest_files(manifest_dir: Path) -> list[Path]:
+    return sorted(
+        path
+        for path in _iter_manifest_files(manifest_dir)
+        if _inactive_dir_name_for(path, manifest_dir) is not None
+    )
+
+
+def _iter_manifest_files(manifest_dir: Path) -> list[Path]:
+    files: list[Path] = []
+    for pattern in _MANIFEST_FILE_PATTERNS:
+        files.extend(manifest_dir.rglob(pattern))
+    return files
+
+
+def _inactive_dir_name_for(path: Path, manifest_dir: Path) -> str | None:
+    relative_parts = path.relative_to(manifest_dir).parts[:-1]
+    for part in relative_parts:
+        if part in _INACTIVE_MANIFEST_DIR_NAMES:
+            return part
+    return None
+
+
+def _inactive_manifest_is_marked(path: Path, inactive_dir: str) -> bool:
+    try:
+        source = path.read_text()
+    except OSError:
+        return False
+
+    if _has_leading_inactive_marker_comment(source):
+        return True
+
+    try:
+        data = load_manifest_raw(path)
+    except Exception:
+        return False
+
+    if not isinstance(data, dict):
+        return False
+
+    metadata = data.get("metadata")
+    if isinstance(metadata, dict):
+        status = str(metadata.get("status", "")).strip().lower()
+        if status in _INACTIVE_METADATA_STATUSES:
+            return True
+
+    return inactive_dir == "v1-archive" and is_v1_manifest(data)
+
+
+def _has_leading_inactive_marker_comment(source: str) -> bool:
+    for line in source.splitlines():
+        stripped = line.strip()
+        if stripped == "":
+            continue
+        if not line.startswith("#"):
+            return False
+        if line.startswith(("# draft-kind:", "# archive-kind:")):
+            return True
+    return False
 
 
 def _sort_manifests(manifests: list[Manifest]) -> list[Manifest]:

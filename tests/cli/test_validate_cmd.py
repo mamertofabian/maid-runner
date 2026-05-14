@@ -324,6 +324,76 @@ class TestCmdValidateAll:
         exit_code = main(["validate"])
         assert exit_code == 1
 
+    def test_validate_all_includes_nested_active_manifest_failure(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        (manifest_dir / "components" / "auth").mkdir(parents=True)
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "top_level.py").write_text(
+            "def top_level():\n    return 'ok'\n"
+        )
+
+        top_manifest = {
+            "schema": "2",
+            "goal": "Top-level active manifest",
+            "type": "fix",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/top_level.py",
+                        "artifacts": [{"kind": "function", "name": "top_level"}],
+                    }
+                ],
+                "read": ["tests/test_top_level.py"],
+            },
+            "validate": ["pytest tests/test_top_level.py -q"],
+        }
+        nested_manifest = {
+            "schema": "2",
+            "goal": "Nested active manifest",
+            "type": "fix",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/missing_nested.py",
+                        "artifacts": [
+                            {"kind": "function", "name": "missing_nested"}
+                        ],
+                    }
+                ],
+                "read": ["tests/test_missing_nested.py"],
+            },
+            "validate": ["pytest tests/test_missing_nested.py -q"],
+        }
+        (manifest_dir / "top-level.manifest.yaml").write_text(yaml.dump(top_manifest))
+        nested_manifest_path = (
+            manifest_dir / "components" / "auth" / "nested-active.manifest.yml"
+        )
+        nested_manifest_path.write_text(yaml.dump(nested_manifest))
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "tests" / "test_top_level.py").write_text(
+            "from src.top_level import top_level\n\n"
+            "def test_top_level():\n"
+            "    assert top_level is not None\n"
+        )
+        (tmp_path / "tests" / "test_missing_nested.py").write_text(
+            "from src.missing_nested import missing_nested\n\n"
+            "def test_missing_nested():\n"
+            "    assert missing_nested is not None\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--manifest-dir", "manifests"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Validation Results: 2 manifests" in captured.out
+        assert "FAIL nested-active" in captured.out
+        assert "src/missing_nested.py" in captured.out
+
     def test_validate_all_json_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 
