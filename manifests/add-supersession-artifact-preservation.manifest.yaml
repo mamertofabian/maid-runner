@@ -281,6 +281,14 @@ files:
               type: argparse.Namespace
           returns: int
 
+    - path: .maid/legacy-grandfathered.lock
+      artifacts:
+        - kind: attribute
+          name: _legacy_grandfathered_lock
+          of: maid-audit-state
+          type: json-lock
+          description: "File-backed sealed lock recording legacy supersession violations by content hash."
+
   edit:
     - path: maid_runner/core/result.py
       artifacts:

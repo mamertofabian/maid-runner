@@ -51,6 +51,7 @@ def cmd_audit_supersessions(args: argparse.Namespace) -> int:
     seal = bool(getattr(args, "seal", False))
     unseal = bool(getattr(args, "unseal", False))
     json_mode = bool(getattr(args, "json", False))
+    quiet = bool(getattr(args, "quiet", False))
 
     try:
         chain = ManifestChain(manifest_dir, project_root=project_root)
@@ -147,7 +148,8 @@ def cmd_audit_supersessions(args: argparse.Namespace) -> int:
             sealed_at=sealed_at,
             json_mode=json_mode,
         )
-        print(output)
+        if json_mode or not quiet:
+            print(output)
         return 0
 
     grandfathered_count = 0
@@ -197,15 +199,20 @@ def cmd_audit_supersessions(args: argparse.Namespace) -> int:
         }
         print(_json.dumps(payload, indent=2))
     else:
-        output = format_supersession_audit(
-            violations=non_grandfathered,
-            grandfathered_count=grandfathered_count,
-            sealed_at=sealed_at,
-            json_mode=False,
+        should_print_summary = not quiet or bool(
+            non_grandfathered or removed_artifact_errors
         )
-        print(output)
+        if should_print_summary:
+            output = format_supersession_audit(
+                violations=non_grandfathered,
+                grandfathered_count=grandfathered_count,
+                sealed_at=sealed_at,
+                json_mode=False,
+            )
+            print(output)
         if removed_artifact_errors:
-            print("")
+            if should_print_summary:
+                print("")
             print(f"Unverifiable removed_artifacts ({len(removed_artifact_errors)}):")
             for err in removed_artifact_errors:
                 print(f"  {err.code.value} {err.message}")

@@ -288,6 +288,40 @@ class TestCmdAuditSupersessionsSealThenAudit:
         assert exit_code == 0
         assert "grandfathered" in out.lower()
 
+    def test_quiet_suppresses_success_summary_after_seal(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        _write_pair(manifests_dir)
+        lock_path = tmp_path / ".maid" / "legacy-grandfathered.lock"
+        seal_args = SimpleNamespace(
+            audit_command="supersessions",
+            manifest_dir=str(manifests_dir),
+            lock=str(lock_path),
+            seal=True,
+            unseal=False,
+            json=False,
+            quiet=True,
+            project_root=str(tmp_path),
+        )
+        assert cmd_audit_supersessions(seal_args) == 0
+        assert capsys.readouterr().out == ""
+
+        audit_args = SimpleNamespace(
+            audit_command="supersessions",
+            manifest_dir=str(manifests_dir),
+            lock=str(lock_path),
+            seal=False,
+            unseal=False,
+            json=False,
+            quiet=True,
+            project_root=str(tmp_path),
+        )
+        exit_code = cmd_audit_supersessions(audit_args)
+        assert exit_code == 0
+        assert capsys.readouterr().out == ""
+
 
 class TestCmdAuditSupersessionsChainLoadErrors:
     def test_audit_refuses_on_malformed_manifest(self, tmp_path: Path) -> None:
