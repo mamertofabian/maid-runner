@@ -177,6 +177,21 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
     rp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
 
+    # maid audit
+    p = sub.add_parser("audit", help="Audit MAID manifests for systemic issues")
+    asub = p.add_subparsers(dest="audit_command")
+    aup = asub.add_parser(
+        "supersessions",
+        help="Audit supersession artifact preservation",
+    )
+    aup.add_argument("--manifest-dir", default="manifests/")
+    aup.add_argument("--lock", default=None)
+    aup.add_argument("--seal", action="store_true")
+    aup.add_argument("--unseal", action="store_true")
+    aup.add_argument("--json", action="store_true")
+    aup.add_argument("--quiet", action="store_true")
+    aup.add_argument("--project-root", default=".", dest="project_root")
+
     return parser
 
 
@@ -203,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
         "schema": "_cmd_schema",
         "howto": "_cmd_howto",
         "chain": "_cmd_chain",
+        "audit": "_cmd_audit",
     }
 
     handler_name = dispatch.get(args.command)
@@ -224,6 +240,7 @@ def main(argv: list[str] | None = None) -> int:
         schema as schema_mod,
         howto as howto_mod,
         chain as chain_mod,
+        audit as audit_mod,
     )
 
     handlers = {
@@ -241,6 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_schema": schema_mod.cmd_schema,
         "_cmd_howto": howto_mod.cmd_howto,
         "_cmd_chain": chain_mod.cmd_chain,
+        "_cmd_audit": audit_mod.cmd_audit,
     }
 
     handler = handlers[handler_name]

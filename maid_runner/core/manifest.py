@@ -19,6 +19,7 @@ from maid_runner.core.types import (
     FileMode,
     FileSpec,
     Manifest,
+    RemovedArtifactSpec,
     TaskType,
     TemptationSpec,
     TestFunctionDetails,
@@ -151,6 +152,20 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         metadata=data.get("metadata"),
         acceptance=acceptance,
         temptations=_parse_temptations(data.get("temptations", [])),
+        removed_artifacts=_parse_removed_artifacts(data.get("removed_artifacts", [])),
+    )
+
+
+def _parse_removed_artifacts(data: list) -> tuple[RemovedArtifactSpec, ...]:
+    return tuple(
+        RemovedArtifactSpec(
+            kind=ArtifactKind(item["kind"]),
+            name=item["name"],
+            file=item["file"],
+            of=item.get("of"),
+            reason=item.get("reason", ""),
+        )
+        for item in data
     )
 
 
@@ -284,6 +299,17 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
             acc["immutable"] = False
         data["acceptance"] = acc
 
+    if manifest.removed_artifacts:
+        data["removed_artifacts"] = [
+            {
+                "kind": ra.kind.value,
+                "name": ra.name,
+                "file": ra.file,
+                **({"of": ra.of} if ra.of else {}),
+                **({"reason": ra.reason} if ra.reason else {}),
+            }
+            for ra in manifest.removed_artifacts
+        ]
     if manifest.supersedes:
         data["supersedes"] = list(manifest.supersedes)
     if manifest.sequence_number is not None:

@@ -1,0 +1,399 @@
+schema: "2"
+goal: >
+  Close the MAID supersession gaming hole by enforcing structural artifact
+  preservation across supersession edges, with a file-backed grandfathering
+  lock, an artifact-level `removed_artifacts` intent declaration, and a maid
+  audit supersessions CLI command.
+type: feature
+created: "2026-05-15"
+description: |
+  Adds a structural defense against supersession-as-cleanup gaming. When a
+  manifest A supersedes a manifest B, every public artifact in B must
+  either:
+
+    (a) be re-declared in A's artifact declarations, or
+    (b) live in a file that A lists under files.delete, or
+    (c) be listed in A's removed_artifacts declarations.
+
+  Anything else surfaces as a "dropped by supersession" violation through
+  `maid validate`.
+
+  The defense is structural at every step: it inspects actual artifact sets,
+  deleted-files lists, and removed_artifacts entries. The removed_artifacts
+  block is itself verified by the implementation validator, which scans the
+  named file and emits E311 if the symbol is still present. The model
+  cannot game the intent layer because the code state is the source of
+  truth.
+
+  Backward compatibility for legacy supersessions is handled by a file-backed
+  grandfathering lock at `.maid/legacy-grandfathered.lock`. Operators run
+  `maid audit supersessions --seal` once to record current violations as
+  grandfathered (content-hash keyed). After sealing, the lock file is
+  effectively append-only-by-tool: re-running `--seal` refuses to overwrite
+  unless `--unseal` is explicitly passed. New supersessions added after the
+  seal are NOT recorded; they fail validation unless they preserve, delete,
+  or remove the artifacts they supersede.
+
+  The removed_artifacts field closes the artifact-level gap (method
+  renames, single-method deletions, moves across classes) that pure
+  file-level files.delete cannot express cleanly.
+
+  Severity decision (v1): non-grandfathered supersession violations surface
+  as WARNING. A follow-up manifest will escalate to ERROR after operator
+  teams have had a release cycle to migrate. The E311 "removed artifact
+  still present" check is ERROR severity from day one because it inspects
+  code state directly and has no self-attestation surface.
+
+  Scope boundaries:
+
+  In scope:
+    - Structural pairwise check: artifacts in superseded manifest must be
+      preserved in the immediate replacement, listed in files.delete, or
+      listed in the replacement's removed_artifacts.
+    - RemovedArtifactSpec dataclass and `Manifest.removed_artifacts` field
+      (schema-validated, parsed, structurally verified).
+    - `ValidationEngine.validate_removed_artifacts` method emits E311
+      ERROR when a removed artifact is still present in code.
+    - GrandfatherLock data model: JSON file format, load/save, sealing
+      semantics, content-hash grandfathering keyed on (slug, content_hash,
+      artifact_key).
+    - SupersessionAuditor: pure function over a ManifestChain producing
+      SupersessionViolation list, plus an `audit` method that applies the
+      lock to produce ValidationError list with mixed severities.
+    - `maid audit supersessions` CLI command with `--seal`, `--unseal`,
+      `--lock`, `--json`, `--quiet`, `--manifest-dir` flags.
+    - Wire `chain.audit_supersession_artifacts()` into `chain.diagnostics()`
+      so `maid validate` surfaces violations automatically (auto-loads lock
+      from `.maid/legacy-grandfathered.lock` if present).
+    - `format_supersession_audit` formatter with grandfathered-count
+      prominence and per-violation detail.
+
+  Out of scope (deferred to follow-up manifests):
+    - Escalating supersession-violation severity from WARNING to ERROR.
+    - Chain-aware preservation (artifact may live in any active manifest
+      rather than the direct replacement). Strict pairwise is enforced here.
+    - Pre-commit hook integration.
+    - Skill-level enforcement (maid-planner / maid-evolver guidance).
+    - Bulk-supersession block (`--allow-bulk-supersede` flag).
+    - Reviewer agent rule updates.
+    - Auto-migration of the current 41 superseded manifests in this repo
+      (operators run `maid audit supersessions --seal` themselves).
+    - A separate `renamed_artifacts:` field (a rename is expressed as
+      removed_artifacts entry for old name + new declaration in files.edit).
+
+  Anti-gaming temptations are listed in `temptations` and should be checked
+  during plan review.
+
+temptations:
+  - risk: >
+      Adding a self-attested "supersession_reason" or "evolution_reason"
+      field on the manifest schema as the primary defense.
+    instead: >
+      Defenses based on what the model declares are gameable. The structural
+      check inspects artifact sets directly. Do not add reason fields as
+      load-bearing.
+  - risk: >
+      Making `--seal` blanket-accept all current violations without recording
+      content hashes, so any future edit to a "grandfathered" manifest still
+      passes.
+    instead: >
+      Each lock entry is keyed on (slug, content_hash, artifact_key). Editing
+      a grandfathered manifest changes its content_hash and revokes
+      grandfathering. The model cannot hide later edits under the seal.
+  - risk: >
+      Allowing `maid audit supersessions --seal` to silently re-seal and add
+      new entries after the lock is already sealed.
+    instead: >
+      A sealed lock refuses further seal writes unless `--unseal` is
+      explicitly passed. `--unseal` is a visible, suspicious action that
+      surfaces in PR diffs and CI logs.
+  - risk: >
+      Adding a chain-aware preservation rule "any active manifest may
+      preserve the artifact" so a gaming manifest can offload artifacts onto
+      pre-existing manifests without re-declaring.
+    instead: >
+      Strict pairwise: B's artifacts must appear in the manifest that
+      supersedes B, in that manifest's files.delete, or in that manifest's
+      removed_artifacts. Other active manifests do not count.
+  - risk: >
+      Treating `removed_artifacts` as a self-attested escape hatch and
+      skipping the implementation-side check that the symbol is actually
+      absent from the code.
+    instead: >
+      `validate_removed_artifacts` parses the named file and emits E311
+      ERROR when the symbol is still present. The intent layer is verified
+      against code state, never trusted on faith.
+
+files:
+  create:
+    - path: maid_runner/core/supersession_audit.py
+      artifacts:
+        - kind: function
+          name: compute_manifest_hash
+          args:
+            - name: manifest_path
+              type: Path
+          returns: str
+        - kind: function
+          name: default_lock_path
+          args:
+            - name: project_root
+              type: Path
+          returns: Path
+        - kind: class
+          name: SupersessionViolation
+        - kind: attribute
+          name: superseding_slug
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: superseded_slug
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: superseding_manifest_path
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: file_path
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: artifact_key
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: artifact_name
+          of: SupersessionViolation
+          type: str
+        - kind: attribute
+          name: artifact_kind
+          of: SupersessionViolation
+          type: str
+        - kind: class
+          name: GrandfatherEntry
+        - kind: attribute
+          name: superseding_slug
+          of: GrandfatherEntry
+          type: str
+        - kind: attribute
+          name: content_hash
+          of: GrandfatherEntry
+          type: str
+        - kind: attribute
+          name: dropped_artifact_keys
+          of: GrandfatherEntry
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: reason
+          of: GrandfatherEntry
+          type: str
+        - kind: class
+          name: GrandfatherLock
+        - kind: attribute
+          name: version
+          of: GrandfatherLock
+          type: str
+        - kind: attribute
+          name: sealed_at
+          of: GrandfatherLock
+          type: "Optional[str]"
+        - kind: attribute
+          name: entries
+          of: GrandfatherLock
+          type: "tuple[GrandfatherEntry, ...]"
+        - kind: method
+          name: empty
+          of: GrandfatherLock
+          args: []
+          returns: GrandfatherLock
+        - kind: method
+          name: load
+          of: GrandfatherLock
+          args:
+            - name: path
+              type: Path
+          returns: GrandfatherLock
+        - kind: method
+          name: save
+          of: GrandfatherLock
+          args:
+            - name: path
+              type: Path
+          returns: None
+        - kind: method
+          name: is_sealed
+          of: GrandfatherLock
+          args: []
+          returns: bool
+        - kind: method
+          name: is_grandfathered
+          of: GrandfatherLock
+          args:
+            - name: superseding_slug
+              type: str
+            - name: content_hash
+              type: str
+            - name: artifact_key
+              type: str
+          returns: bool
+        - kind: method
+          name: with_seal
+          of: GrandfatherLock
+          args:
+            - name: sealed_at
+              type: str
+            - name: entries
+              type: "tuple[GrandfatherEntry, ...]"
+          returns: GrandfatherLock
+        - kind: class
+          name: SupersessionAuditor
+        - kind: method
+          name: find_violations
+          of: SupersessionAuditor
+          args:
+            - name: chain
+              type: ManifestChain
+          returns: "tuple[SupersessionViolation, ...]"
+        - kind: method
+          name: audit
+          of: SupersessionAuditor
+          args:
+            - name: chain
+              type: ManifestChain
+            - name: lock
+              type: "Optional[GrandfatherLock]"
+              default: "None"
+          returns: "tuple[ValidationError, ...]"
+
+    - path: maid_runner/cli/commands/audit.py
+      artifacts:
+        - kind: function
+          name: cmd_audit
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+        - kind: function
+          name: cmd_audit_supersessions
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: ARTIFACT_DROPPED_BY_SUPERSESSION
+          of: ErrorCode
+          type: str
+        - kind: attribute
+          name: GRANDFATHERED_SUPERSESSION
+          of: ErrorCode
+          type: str
+        - kind: attribute
+          name: REMOVED_ARTIFACT_STILL_PRESENT
+          of: ErrorCode
+          type: str
+
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: audit_supersession_artifacts
+          of: ManifestChain
+          args:
+            - name: lock
+              type: "Optional[GrandfatherLock]"
+              default: "None"
+          returns: "list[ValidationError]"
+
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: class
+          name: RemovedArtifactSpec
+        - kind: attribute
+          name: kind
+          of: RemovedArtifactSpec
+          type: ArtifactKind
+        - kind: attribute
+          name: name
+          of: RemovedArtifactSpec
+          type: str
+        - kind: attribute
+          name: file
+          of: RemovedArtifactSpec
+          type: str
+        - kind: attribute
+          name: of
+          of: RemovedArtifactSpec
+          type: "Optional[str]"
+        - kind: attribute
+          name: reason
+          of: RemovedArtifactSpec
+          type: str
+        - kind: attribute
+          name: removed_artifacts
+          of: Manifest
+          type: "tuple[RemovedArtifactSpec, ...]"
+
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: load_manifest
+          args:
+            - name: path
+              type: "Union[str, Path]"
+          returns: Manifest
+
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_removed_artifacts
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: "list[ValidationError]"
+
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      artifacts:
+        - kind: attribute
+          name: removed_artifacts
+          of: MAID Manifest v2
+          type: array
+
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_supersession_audit
+          args:
+            - name: violations
+              type: "list[SupersessionViolation]"
+            - name: grandfathered_count
+              type: int
+            - name: sealed_at
+              type: "Optional[str]"
+            - name: json_mode
+              type: bool
+          returns: str
+
+  read:
+    - tests/core/test_supersession_audit.py
+    - tests/core/test_removed_artifacts.py
+    - tests/cli/test_audit_cmd.py
+    - manifests/add-event-log-conflict-diagnostics.manifest.yaml
+    - manifests/add-chain-log-cli.manifest.yaml
+    - manifests/add-manifest-temptations-section.manifest.yaml
+    - tests/core/test_chain.py
+    - tests/core/test_validate.py
+
+validate:
+  - pytest tests/core/test_supersession_audit.py tests/core/test_removed_artifacts.py tests/cli/test_audit_cmd.py -v

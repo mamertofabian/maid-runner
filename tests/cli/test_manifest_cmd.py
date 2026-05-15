@@ -284,8 +284,7 @@ class TestCmdManifestCreateErrors:
             task_type="feature",
             artifacts='[{"kind": "function", "name": "example_func"}]',
             temptations=[
-                f"Do not take shortcut {i}.::Use procedure {i}."
-                for i in range(6)
+                f"Do not take shortcut {i}.::Use procedure {i}." for i in range(6)
             ],
             dry_run=True,
             json=True,

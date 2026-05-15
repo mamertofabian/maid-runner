@@ -48,8 +48,12 @@ def test_angular_component_snapshot_tracks_style_urls_as_read_files(tmp_path) ->
             """
         )
     )
-    (component.parent / "user-card.component.css").write_text(":host { display: block; }\n")
-    (component.parent / "user-card.component.scss").write_text(":host { color: red; }\n")
+    (component.parent / "user-card.component.css").write_text(
+        ":host { display: block; }\n"
+    )
+    (component.parent / "user-card.component.scss").write_text(
+        ":host { color: red; }\n"
+    )
     shared = tmp_path / "src/app/shared"
     shared.mkdir()
     (shared / "card.scss").write_text(".card { padding: 1rem; }\n")

@@ -69,9 +69,11 @@ class TypeScriptValidator(BaseValidator):
         )
         if session.module_id:
             artifacts = [
-                replace(a, module_path=session.module_id)
-                if a.module_path is None
-                else a
+                (
+                    replace(a, module_path=session.module_id)
+                    if a.module_path is None
+                    else a
+                )
                 for a in artifacts
             ]
 

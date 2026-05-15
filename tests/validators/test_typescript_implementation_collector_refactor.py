@@ -49,7 +49,9 @@ def test_implementation_collector_preserves_class_method_and_field_artifacts() -
     assert load.line == 4
 
 
-def test_implementation_collector_preserves_interface_members_and_type_aliases() -> None:
+def test_implementation_collector_preserves_interface_members_and_type_aliases() -> (
+    None
+):
     source = """export interface Repository<T> extends Readable {
   readonly id: string;
   find(id: string): Promise<T>;

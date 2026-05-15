@@ -359,9 +359,7 @@ class TestCmdValidateAll:
                 "create": [
                     {
                         "path": "src/missing_nested.py",
-                        "artifacts": [
-                            {"kind": "function", "name": "missing_nested"}
-                        ],
+                        "artifacts": [{"kind": "function", "name": "missing_nested"}],
                     }
                 ],
                 "read": ["tests/test_missing_nested.py"],

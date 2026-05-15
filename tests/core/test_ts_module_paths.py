@@ -665,10 +665,14 @@ class TestResolveTsReexport:
         tree = parser.parse(source)
         export_statement = tree.root_node.children[0]
         export_clause = next(
-            child for child in export_statement.children if child.type == "export_clause"
+            child
+            for child in export_statement.children
+            if child.type == "export_clause"
         )
         export_specifier = next(
-            child for child in export_clause.children if child.type == "export_specifier"
+            child
+            for child in export_clause.children
+            if child.type == "export_specifier"
         )
 
         assert export_specifier_names(export_specifier, source) == [("Foo", "Bar")]

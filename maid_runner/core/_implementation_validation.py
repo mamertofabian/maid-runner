@@ -100,7 +100,9 @@ class ImplementationFileValidator:
         )
 
         if self._check_stubs:
-            errors.extend(_check_stub_artifacts(expected, collection.artifacts, fs.path))
+            errors.extend(
+                _check_stub_artifacts(expected, collection.artifacts, fs.path)
+            )
 
         if fs.imports:
             errors.extend(

@@ -145,6 +145,15 @@ class DeleteSpec:
 
 
 @dataclass(frozen=True)
+class RemovedArtifactSpec:
+    kind: ArtifactKind
+    name: str
+    file: str
+    of: Optional[str] = None
+    reason: str = ""
+
+
+@dataclass(frozen=True)
 class Manifest:
     slug: str
     source_path: str
@@ -165,6 +174,7 @@ class Manifest:
     metadata: Optional[dict] = None
     acceptance: Optional[AcceptanceConfig] = None
     temptations: tuple[TemptationSpec, ...] = ()
+    removed_artifacts: tuple[RemovedArtifactSpec, ...] = ()
 
     @property
     def all_file_specs(self) -> list[FileSpec]:

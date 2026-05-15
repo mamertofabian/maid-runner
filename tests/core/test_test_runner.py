@@ -446,7 +446,9 @@ validate:
                 stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
             )
 
-        monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
 
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
 
@@ -508,7 +510,9 @@ validate:
                 stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
             )
 
-        monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
 
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
 

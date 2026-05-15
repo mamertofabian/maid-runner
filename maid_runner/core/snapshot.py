@@ -245,7 +245,9 @@ def _infer_validation_command(rel_path: str) -> tuple[tuple[str, ...], ...]:
     return (("pytest", "tests/", "-v"),)
 
 
-def _source_companion_files(source: str, file_path: Path, project_root: Path) -> tuple[str, ...]:
+def _source_companion_files(
+    source: str, file_path: Path, project_root: Path
+) -> tuple[str, ...]:
     companions: list[str] = []
     for path in (
         *_angular_component_companion_files(source, file_path, project_root),

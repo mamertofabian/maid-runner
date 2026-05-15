@@ -450,9 +450,7 @@ class BehavioralReferenceCollector:
                     )
                 )
         property_name = _member_property_name(node, self._source)
-        if property_name and not any(
-            a.name == property_name for a in self._artifacts
-        ):
+        if property_name and not any(a.name == property_name for a in self._artifacts):
             self._artifacts.append(
                 FoundArtifact(kind=ArtifactKind.FUNCTION, name=property_name)
             )

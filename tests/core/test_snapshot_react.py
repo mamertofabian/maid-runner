@@ -7,7 +7,9 @@ import textwrap
 from maid_runner.core.snapshot import generate_snapshot
 
 
-def test_react_component_snapshot_tracks_css_module_import_as_read_file(tmp_path) -> None:
+def test_react_component_snapshot_tracks_css_module_import_as_read_file(
+    tmp_path,
+) -> None:
     component = tmp_path / "src/components/Button.tsx"
     component.parent.mkdir(parents=True)
     component.write_text(
@@ -51,7 +53,9 @@ def test_react_component_snapshot_tracks_side_effect_stylesheet_import_as_read_f
     assert manifest.files_read == ("src/components/App.css",)
 
 
-def test_react_component_snapshot_tracks_static_asset_import_as_read_file(tmp_path) -> None:
+def test_react_component_snapshot_tracks_static_asset_import_as_read_file(
+    tmp_path,
+) -> None:
     component = tmp_path / "src/components/Logo.tsx"
     component.parent.mkdir(parents=True)
     component.write_text(
@@ -93,7 +97,9 @@ def test_react_component_snapshot_ignores_package_and_missing_asset_imports(
             """
         )
     )
-    (component.parent / "helper.ts").write_text("export function helper() { return null; }\n")
+    (component.parent / "helper.ts").write_text(
+        "export function helper() { return null; }\n"
+    )
 
     manifest = generate_snapshot(component, project_root=tmp_path)
 

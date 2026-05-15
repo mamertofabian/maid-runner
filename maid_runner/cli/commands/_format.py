@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from maid_runner.core.result import (
     BatchTestResult,
@@ -16,6 +16,7 @@ from maid_runner.coherence.result import CoherenceResult
 
 if TYPE_CHECKING:
     from maid_runner.core.bootstrap import BootstrapReport
+    from maid_runner.core.supersession_audit import SupersessionViolation
 
 
 def print_error(message: str, *, json_mode: bool = False) -> None:
@@ -464,6 +465,70 @@ def format_replay_result(
     for path, artifacts in sorted(result.items()):
         names = [a.name for a in artifacts]
         lines.append(f"{path}: {', '.join(names)}")
+    return "\n".join(lines)
+
+
+def format_supersession_audit(
+    violations: "list[SupersessionViolation]",
+    grandfathered_count: int,
+    sealed_at: "Optional[str]" = None,
+    json_mode: bool = False,
+) -> str:
+    """Format supersession-audit results for `maid audit supersessions`.
+
+    Args:
+        violations: Non-grandfathered SupersessionViolation entries to surface.
+        grandfathered_count: Count of violations exempted by the lock file.
+        sealed_at: ISO timestamp the lock file was sealed (if applicable).
+        json_mode: When True, emit a machine-readable JSON object.
+    """
+    if json_mode:
+        return json.dumps(
+            {
+                "violations": [
+                    {
+                        "superseding_slug": v.superseding_slug,
+                        "superseded_slug": v.superseded_slug,
+                        "superseding_manifest_path": v.superseding_manifest_path,
+                        "file_path": v.file_path,
+                        "artifact_key": v.artifact_key,
+                        "artifact_name": v.artifact_name,
+                        "artifact_kind": v.artifact_kind,
+                    }
+                    for v in violations
+                ],
+                "grandfathered_count": grandfathered_count,
+                "sealed_at": sealed_at,
+            },
+            indent=2,
+        )
+
+    lines: list[str] = []
+    if not violations and grandfathered_count == 0:
+        lines.append("Supersession audit: no violations.")
+    else:
+        lines.append(
+            f"Supersession audit: {len(violations)} violation(s), "
+            f"{grandfathered_count} grandfathered."
+        )
+
+    if grandfathered_count:
+        lines.append(
+            f"  Grandfathered (sealed lock): {grandfathered_count} artifact(s)"
+        )
+        if sealed_at:
+            lines.append(f"  Sealed at: {sealed_at}")
+
+    if violations:
+        lines.append("")
+        lines.append("Dropped artifacts:")
+        for v in violations:
+            lines.append(
+                f"  - {v.superseding_slug} drops {v.artifact_name} "
+                f"({v.artifact_kind}) at {v.file_path} "
+                f"[from {v.superseded_slug}]"
+            )
+
     return "\n".join(lines)
 
 

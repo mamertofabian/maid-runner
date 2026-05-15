@@ -226,7 +226,9 @@ def _extended_tsconfig_path(raw_extends: Any, config_dir: Path) -> Optional[Path
     if not extends_path.is_absolute() and not raw_extends.startswith(("./", "../")):
         return None
 
-    candidate = extends_path if extends_path.is_absolute() else config_dir / extends_path
+    candidate = (
+        extends_path if extends_path.is_absolute() else config_dir / extends_path
+    )
     if candidate.suffix:
         return candidate
     return candidate.with_suffix(".json")

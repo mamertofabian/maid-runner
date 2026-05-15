@@ -140,7 +140,8 @@ validate:
 
     assert any(
         e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        and e.message == "Required import 'src/models/user.py' not found in src/service.py"
+        and e.message
+        == "Required import 'src/models/user.py' not found in src/service.py"
         and e.suggestion == "Add an import for 'src/models/user.py'"
         for e in errors
     )

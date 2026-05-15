@@ -12,8 +12,10 @@ from maid_runner.core._tsconfig_paths import (
 )
 
 
-def test_strip_jsonc_trivia_preserves_valid_json_with_comments_and_trailing_commas() -> None:
-    source = r'''
+def test_strip_jsonc_trivia_preserves_valid_json_with_comments_and_trailing_commas() -> (
+    None
+):
+    source = r"""
 {
   // TypeScript accepts comments in tsconfig files.
   "compilerOptions": {
@@ -24,7 +26,7 @@ def test_strip_jsonc_trivia_preserves_valid_json_with_comments_and_trailing_comm
     "literal": "https://example.test//not-a-comment",
   },
 }
-'''
+"""
 
     parsed = json.loads(strip_jsonc_trivia(source))
 

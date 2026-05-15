@@ -1,0 +1,38 @@
+{
+  "version": "2",
+  "sealed_at": "2026-05-15T13:30:33.529865+00:00",
+  "entries": [
+    {
+      "superseding_slug": "consolidate-bootstrap-command-contract",
+      "content_hash": "sha256:ff8a356596e3af8006746ac0f2c65d995d90aacebb20228a51b12d4063217a5a",
+      "dropped_artifact_keys": [
+        "add-bootstrap-command|maid_runner/core/_file_discovery.py|function:discover_source_files",
+        "add-bootstrap-command|maid_runner/core/_file_discovery.py|function:is_test_file",
+        "add-bootstrap-command|maid_runner/core/_file_discovery.py|function:find_test_files_from_manifest"
+      ],
+      "reason": "Legacy migration: grandfathered at seal time"
+    },
+    {
+      "superseding_slug": "consolidate-validation-and-validator-contracts",
+      "content_hash": "sha256:eb542d4f9cce032ab70537019d1d4e9c5a435f8be393fee1294171a61216e850",
+      "dropped_artifact_keys": [
+        "snapshot-core-validate|maid_runner/core/validate.py|method:ValidationEngine.run_file_tracking",
+        "enforce-test-coverage-in-implementation-mode|tests/core/test_validate.py|class:TestImplementationTestCoverage",
+        "fix-e320-import-path-normalization|tests/e2e/test_archspec_pipeline.py|method:TestArchSpecPipeline.test_full_pipeline"
+      ],
+      "reason": "Legacy migration: grandfathered at seal time"
+    },
+    {
+      "superseding_slug": "fix-graph-api-constant-artifacts",
+      "content_hash": "sha256:f32afd3d99f7f2cc2d017f49b66b0f90ce4a37f1edce4484d751cb0c63fa044c",
+      "dropped_artifact_keys": [
+        "snapshot-graph-api|maid_runner/graph/__init__.py|class:MANIFEST_PREFIX",
+        "snapshot-graph-api|maid_runner/graph/__init__.py|class:FILE_PREFIX",
+        "snapshot-graph-api|maid_runner/graph/__init__.py|class:ARTIFACT_PREFIX",
+        "snapshot-graph-api|maid_runner/graph/__init__.py|class:MODULE_PREFIX",
+        "snapshot-graph-api|maid_runner/graph/__init__.py|class:EDGE_PREFIX"
+      ],
+      "reason": "Legacy migration: grandfathered at seal time"
+    }
+  ]
+}

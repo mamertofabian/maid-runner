@@ -114,10 +114,11 @@ def test_validate_test_function_behavior_scopes_api_call_to_named_body(tmp_path)
     )
 
     messages = [error.message for error in errors]
-    assert any("test_logout" in message and "doLogout" in message for message in messages)
     assert any(
-        "test_logout" in message and "/api/v1/logout" in message
-        for message in messages
+        "test_logout" in message and "doLogout" in message for message in messages
+    )
+    assert any(
+        "test_logout" in message and "/api/v1/logout" in message for message in messages
     )
     assert not any("test_login" in message for message in messages)
 

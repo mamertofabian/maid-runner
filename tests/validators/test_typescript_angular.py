@@ -42,7 +42,9 @@ export class UserCardComponent {
     assert "Component" not in names
 
 
-def test_angular_service_directive_and_pipe_decorators_do_not_become_artifacts() -> None:
+def test_angular_service_directive_and_pipe_decorators_do_not_become_artifacts() -> (
+    None
+):
     source = """import { Directive, Injectable, Pipe, PipeTransform } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })

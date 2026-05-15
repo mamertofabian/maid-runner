@@ -46,7 +46,9 @@ export function Button(props: ButtonProps): JSX.Element {
     assert "disabled" in names
 
 
-def test_react_fc_typed_const_component_preserves_props_type_and_function_artifact() -> None:
+def test_react_fc_typed_const_component_preserves_props_type_and_function_artifact() -> (
+    None
+):
     source = """import type { FC } from 'react';
 
 export type BadgeProps = {
@@ -105,7 +107,9 @@ export function SessionProvider(props: { children: React.ReactNode }): JSX.Eleme
     assert _artifact(result, "SessionContext", ArtifactKind.ATTRIBUTE)
 
 
-def test_jsx_intrinsic_tags_and_attributes_do_not_become_implementation_artifacts() -> None:
+def test_jsx_intrinsic_tags_and_attributes_do_not_become_implementation_artifacts() -> (
+    None
+):
     source = """export function Toolbar(): JSX.Element {
   return (
     <nav aria-label="Primary">
@@ -149,7 +153,9 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
     assert component.returns == "JSX.Element"
 
 
-def test_react_memo_const_export_with_inline_component_is_collected_as_function_component() -> None:
+def test_react_memo_const_export_with_inline_component_is_collected_as_function_component() -> (
+    None
+):
     source = """import { memo } from 'react';
 
 type RowProps = { label: string };
@@ -170,7 +176,9 @@ export const Row = memo(function Row(props: RowProps): JSX.Element {
     assert component.returns == "JSX.Element"
 
 
-def test_react_composed_memo_forward_ref_export_is_collected_as_function_component() -> None:
+def test_react_composed_memo_forward_ref_export_is_collected_as_function_component() -> (
+    None
+):
     source = """import { forwardRef, memo } from 'react';
 
 type InputProps = { value: string };
@@ -194,7 +202,9 @@ export const Input = memo(forwardRef<HTMLInputElement, InputProps>(
     assert component.returns == "JSX.Element"
 
 
-def test_default_exported_anonymous_arrow_component_is_collected_as_default_function() -> None:
+def test_default_exported_anonymous_arrow_component_is_collected_as_default_function() -> (
+    None
+):
     source = """type BannerProps = { title: string };
 
 export default (props: BannerProps): JSX.Element => {

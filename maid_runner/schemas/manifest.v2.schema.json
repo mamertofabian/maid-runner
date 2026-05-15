@@ -119,6 +119,25 @@
         }
       },
       "additionalProperties": true
+    },
+    "removed_artifacts": {
+      "type": "array",
+      "description": "Artifact-level intent declarations: each entry asserts that the named symbol has been intentionally removed from the named file. Verified structurally by validate_removed_artifacts (E311 ERROR if the symbol still exists).",
+      "items": {
+        "type": "object",
+        "required": ["kind", "name", "file"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["class", "function", "method", "attribute", "interface", "type", "enum", "namespace"]
+          },
+          "name": { "type": "string", "minLength": 1 },
+          "file": { "type": "string", "minLength": 1 },
+          "of": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false,

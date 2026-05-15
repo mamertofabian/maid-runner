@@ -45,7 +45,9 @@ def resolve_reexport_source(
     project_root: Path,
     seen: set[tuple[str, str]],
 ) -> Optional[tuple[str, str]]:
-    resolved = resolve_reexport_source_or_fallback(module_file, name, project_root, seen)
+    resolved = resolve_reexport_source_or_fallback(
+        module_file, name, project_root, seen
+    )
     if resolved is _COMPILER_FALLBACK_REQUIRED:
         return None
     return resolved
@@ -289,7 +291,9 @@ def _resolve_reexport_module(
     project_root: Path,
 ) -> Optional[str]:
     if specifier.startswith("./") or specifier.startswith("../"):
-        return _resolve_relative_ts_import(specifier, _module_path(module_file, project_root))
+        return _resolve_relative_ts_import(
+            specifier, _module_path(module_file, project_root)
+        )
     return _resolve_ts_import_from_config(specifier, project_root)
 
 

@@ -186,9 +186,7 @@ def _collect_interface_declaration(
 def _collect_interface_members(
     node, source: bytes, artifacts: list[FoundArtifact], interface_name: str
 ) -> None:
-    body = _child_by_type(node, "interface_body") or _child_by_type(
-        node, "object_type"
-    )
+    body = _child_by_type(node, "interface_body") or _child_by_type(node, "object_type")
     if body is None:
         return
 
@@ -314,8 +312,10 @@ def _collect_function_declaration(
         return False
 
     name = _child_text(node, "identifier", source)
-    if not name and node.type == "function_expression" and _is_default_export_child(
-        node
+    if (
+        not name
+        and node.type == "function_expression"
+        and _is_default_export_child(node)
     ):
         name = "default"
     if name:

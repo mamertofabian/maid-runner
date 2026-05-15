@@ -60,7 +60,9 @@ def validate_test_function_names(
 
         collection = validator.collect_behavioral_artifacts(source, path)
         if collection.errors:
-            errors.extend(collection_errors_to_validation_errors(collection.errors, path))
+            errors.extend(
+                collection_errors_to_validation_errors(collection.errors, path)
+            )
             continue
 
         found_names = {

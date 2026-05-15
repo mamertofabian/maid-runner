@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from maid_runner.compat.v1_loader import is_v1_manifest
+
+if TYPE_CHECKING:
+    from maid_runner.core.supersession_audit import GrandfatherLock
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
@@ -305,6 +308,46 @@ class ManifestChain:
             all_read |= set(m.files_read)
         return all_read - all_writable
 
+    def audit_supersession_artifacts(
+        self, lock: Optional["GrandfatherLock"] = None
+    ) -> list[ValidationError]:
+        from maid_runner.core.supersession_audit import (
+            GrandfatherLock as _GrandfatherLock,
+            _GrandfatherLockLoadError,
+            SupersessionAuditor,
+            default_lock_path,
+        )
+
+        errors: list[ValidationError] = []
+        if lock is None:
+            lock_path = default_lock_path(self._project_root)
+            if lock_path.exists():
+                try:
+                    lock = _GrandfatherLock.load(lock_path)
+                except _GrandfatherLockLoadError as exc:
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.FILE_READ_ERROR,
+                            message=(
+                                f"Grandfather lock at {lock_path} is invalid: "
+                                f"{exc.detail}"
+                            ),
+                            severity=Severity.ERROR,
+                            location=Location(file=str(lock_path)),
+                            suggestion=(
+                                "Repair the lock file from version control, or "
+                                "run `maid audit supersessions --seal --unseal` "
+                                "to regenerate it."
+                            ),
+                        )
+                    )
+                    lock = _GrandfatherLock.empty()
+            else:
+                lock = _GrandfatherLock.empty()
+        auditor = SupersessionAuditor(project_root=self._project_root)
+        errors.extend(auditor.audit(self, lock))
+        return errors
+
     def validate_supersession_integrity(self) -> list[ValidationError]:
         self._ensure_loaded()
         assert self._manifests is not None
@@ -435,6 +478,7 @@ class ManifestChain:
             + self._detect_mixed_ordering()
             + self._detect_duplicate_sequence()
             + self._detect_non_monotonic_sequence()
+            + self.audit_supersession_artifacts()
         )
 
     def inactive_manifest_diagnostics(self) -> list[ValidationError]:
