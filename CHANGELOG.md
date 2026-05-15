@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-05-15
+
+### Added
+- **Supersession artifact-preservation audit** — `maid validate` now reports dropped public artifacts across supersession edges so replacement manifests cannot silently shrink the validation surface.
+- **`maid audit supersessions` CLI** — Added a dedicated audit command with text/JSON output, quiet mode, legacy sealing, custom lock path support, and explicit unseal handling.
+- **Legacy grandfather lock** — Added `.maid/legacy-grandfathered.lock` support so brownfield repositories can seal existing supersession drops by superseding manifest content hash while still blocking new or changed drops.
+- **Artifact-level removals** — Added the `removed_artifacts` manifest field plus `E311` validation so intentional symbol removals are checked against current source code instead of trusted as self-attestation.
+
+### Fixed
+- **TypeScript computed key behavioral coverage** — Computed object keys, subscript keys, and literal computed subscript keys now count as behavioral references for declared TypeScript attribute artifacts.
+
 ## [2.8.3] - 2026-05-14
 
 ### Fixed
