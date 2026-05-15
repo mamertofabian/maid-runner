@@ -92,6 +92,7 @@ implementation review, evolution, auditing, and incident logging.
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
 | `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
 | `maid schema` | Display manifest JSON Schema | |
+| `maid audit supersessions` | Audit supersession artifact preservation | `--manifest-dir`, `--seal`, `--unseal`, `--lock`, `--json`, `--quiet` |
 | `maid init` | Initialize MAID in project | `--tool claude\|cursor\|windsurf\|generic\|auto` |
 | `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
@@ -131,6 +132,10 @@ maid test
 
 # JSON output for CI/CD
 maid validate --json
+
+# Audit supersession drops and seal current legacy drops
+maid audit supersessions --manifest-dir manifests --json
+maid audit supersessions --manifest-dir manifests --seal
 ```
 
 ### File Tracking
@@ -247,6 +252,81 @@ maid chain replay --version-tag v2.4.0
 ```
 
 The event log provides deterministic ordering via `sequence_number` (falls back to `created`), includes superseded manifests in the historical record, and supports point-in-time queries through `event_log_until()` and `replay_until()` APIs.
+
+### Supersession Artifact Preservation
+
+When manifest A supersedes manifest B, MAID Runner audits every public artifact
+declared by B. Each superseded artifact must be accounted for by A in one of
+three ways:
+
+- Re-declare the artifact in A for the same file path.
+- List the artifact's file under A's `files.delete` and ensure the file is gone.
+- Declare the artifact under A's `removed_artifacts` and ensure the symbol is
+  absent from the current source file.
+
+If a replacement manifest drops artifacts without one of those structural
+signals, `maid validate` reports `E110 ARTIFACT_DROPPED_BY_SUPERSESSION`.
+This prevents a supersession from silently shrinking the validation surface.
+
+Use the dedicated audit command to inspect these drops:
+
+```bash
+maid audit supersessions --manifest-dir manifests
+maid audit supersessions --manifest-dir manifests --json
+```
+
+Brownfield repositories can seal existing legacy drops once:
+
+```bash
+maid audit supersessions --manifest-dir manifests --seal
+```
+
+This writes `.maid/legacy-grandfathered.lock`. The lock records each legacy
+drop by superseding slug, superseding manifest content hash, superseded slug,
+file path, and artifact key. After the lock exists, matching legacy drops are
+reported as `E111 GRANDFATHERED_SUPERSESSION` info entries. New drops, or drops
+from an edited superseding manifest whose content hash changed, are not covered
+by the lock.
+
+Re-sealing a repository with an existing sealed lock is blocked unless
+`--unseal` is passed:
+
+```bash
+maid audit supersessions --manifest-dir manifests --seal --unseal
+```
+
+Treat `--unseal` as a deliberate migration action. It should be visible in
+review because it can add or replace grandfathered drops.
+
+To intentionally remove an artifact while superseding a manifest, declare it in
+`removed_artifacts`:
+
+```yaml
+schema: "2"
+goal: "Replace old auth helper"
+type: refactor
+supersedes:
+  - add-old-auth-helper
+removed_artifacts:
+  - kind: function
+    name: old_auth_helper
+    file: src/auth/helpers.py
+    reason: "Replaced by AuthService.authenticate"
+files:
+  edit:
+    - path: src/auth/service.py
+      artifacts:
+        - kind: class
+          name: AuthService
+validate:
+  - pytest tests/auth/test_service.py -v
+```
+
+`removed_artifacts` is not trusted as self-attestation. Implementation
+validation verifies that the named symbol is absent from the referenced file and
+reports `E311 REMOVED_ARTIFACT_STILL_PRESENT` if it is still defined, the file
+cannot be parsed, the path escapes the project root, or no validator can inspect
+that file type.
 
 ## Development Workflow
 
