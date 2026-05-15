@@ -421,6 +421,8 @@ class BehavioralReferenceCollector:
             self._record_member_expression(node)
         elif node.type == "pair":
             self._record_object_pair_reference(node)
+        elif node.type == "subscript_expression":
+            self._record_subscript_expression_reference(node)
         elif node.type == "shorthand_property_identifier":
             _record_bare_reference(_text(node, self._source), self._artifacts)
         elif node.type == "jsx_attribute":
@@ -457,8 +459,26 @@ class BehavioralReferenceCollector:
 
     def _record_object_pair_reference(self, node) -> None:
         property_name = _child_text(node, "property_identifier", self._source)
+        if property_name is None:
+            property_name = _child_text(node, "computed_property_name", self._source)
         if property_name:
             _record_bare_reference(property_name, self._artifacts)
+
+    def _record_subscript_expression_reference(self, node) -> None:
+        seen_open_bracket = False
+        for child in node.children:
+            if child.type == "[":
+                seen_open_bracket = True
+                continue
+            if not seen_open_bracket:
+                continue
+            if child.type in {"identifier", "member_expression"}:
+                _record_bare_reference(
+                    f"[{_text(child, self._source)}]", self._artifacts
+                )
+                return
+            if child.type != "]":
+                return
 
     def _record_jsx_attribute_reference(self, node) -> None:
         property_name = _child_text(node, "property_identifier", self._source)

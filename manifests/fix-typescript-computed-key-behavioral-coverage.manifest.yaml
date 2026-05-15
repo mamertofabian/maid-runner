@@ -1,0 +1,43 @@
+schema: "2"
+goal: "Cover TypeScript computed property keys in behavioral validation."
+type: fix
+created: "2026-05-15T19:20:00+08:00"
+description: |
+  Extend TypeScript behavioral artifact collection so tests that read or write
+  computed property keys such as `completion[ManualAuditStep.AUDIT_DETAILS]`
+  can satisfy manifest-declared attributes named `[ManualAuditStep.AUDIT_DETAILS]`.
+
+  Rationale: implementation collection already records computed interface
+  members using bracketed source text. Behavioral collection must emit the same
+  bracketed key text from object literal pairs and subscript access instead of
+  forcing snapshots to omit otherwise public computed-key interfaces.
+temptations:
+  - risk: "Do not silence E200 for bracketed TypeScript attribute artifacts."
+    instead: "Collect the exact bracketed computed key reference from test source."
+  - risk: "Do not flatten computed keys to only the enum member name."
+    instead: "Preserve the implementation collector's bracketed text, including the enum qualifier."
+  - risk: "Do not collect arbitrary subscript expressions as coverage."
+    instead: "Only record subscript keys whose index expression is a member expression or identifier."
+
+files:
+  edit:
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript_identity.py
+    - tests/core/test_validate.py
+
+validate:
+  - uv run python -m pytest tests/validators/test_typescript_identity.py::TestPropAttributeReferences::test_computed_object_key_names_are_behavioral_references tests/validators/test_typescript_identity.py::TestPropAttributeReferences::test_computed_subscript_key_names_are_behavioral_references tests/core/test_validate.py::TestImplementationTestCoverage::test_typescript_computed_keys_count_as_attribute_coverage -v

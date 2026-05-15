@@ -3669,6 +3669,83 @@ it("renders rider details from direct JSX props", () => {
         assert not any("currentUserName" in w.message for w in untested)
         assert not any("communityStatus" in w.message for w in untested)
 
+    def test_typescript_computed_keys_count_as_attribute_coverage(self, project):
+        """Computed enum-key access should cover declared TS attribute artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-step-completion.manifest.yaml",
+            """schema: "2"
+goal: "Add step completion"
+files:
+  edit:
+    - path: src/audit.ts
+      artifacts:
+        - kind: enum
+          name: ManualAuditStep
+        - kind: interface
+          name: StepCompletion
+        - kind: attribute
+          name: "[ManualAuditStep.AUDIT_DETAILS]"
+          of: StepCompletion
+          type: boolean
+        - kind: attribute
+          name: "[ManualAuditStep.CONTENT_CREATION]"
+          of: StepCompletion
+          type: boolean
+        - kind: function
+          name: buildStepCompletion
+          args: []
+          returns: StepCompletion
+  read:
+    - tests/audit.test.ts
+validate:
+  - vitest tests/audit.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/audit.ts",
+            """export enum ManualAuditStep {
+  AUDIT_DETAILS = "audit-details",
+  CONTENT_CREATION = "content-creation",
+}
+
+export interface StepCompletion {
+  [ManualAuditStep.AUDIT_DETAILS]: boolean;
+  [ManualAuditStep.CONTENT_CREATION]: boolean;
+}
+
+export function buildStepCompletion(): StepCompletion {
+  return {
+    [ManualAuditStep.AUDIT_DETAILS]: true,
+    [ManualAuditStep.CONTENT_CREATION]: false,
+  };
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/audit.test.ts",
+            """import { buildStepCompletion, ManualAuditStep, type StepCompletion } from "../src/audit";
+
+it("uses computed step completion flags", () => {
+  const completion: StepCompletion = buildStepCompletion();
+  expect(completion[ManualAuditStep.AUDIT_DETAILS]).toBe(true);
+  expect(completion[ManualAuditStep.CONTENT_CREATION]).toBe(false);
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert not any("[ManualAuditStep.AUDIT_DETAILS]" in w.message for w in untested)
+        assert not any(
+            "[ManualAuditStep.CONTENT_CREATION]" in w.message for w in untested
+        )
+
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""
         manifest_path = _write_manifest(

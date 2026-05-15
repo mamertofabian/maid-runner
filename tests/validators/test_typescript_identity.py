@@ -362,6 +362,40 @@ class TestPropAttributeReferences:
         assert _ref(result.artifacts, "currentUserName") is not None
         assert _ref(result.artifacts, "communityStatus") is not None
 
+    def test_computed_object_key_names_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "import { ManualAuditStep } from './steps';\n"
+            "it('uses completion flags', () => {\n"
+            "  const completion = {\n"
+            "    [ManualAuditStep.AUDIT_DETAILS]: true,\n"
+            "  };\n"
+            "  expect(completion[ManualAuditStep.AUDIT_DETAILS]).toBe(true);\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/audit/audit-management.service.spec.ts"
+        )
+
+        assert _ref(result.artifacts, "[ManualAuditStep.AUDIT_DETAILS]") is not None
+
+    def test_computed_subscript_key_names_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "import { ManualAuditStep } from './steps';\n"
+            "it('reads loading flags', () => {\n"
+            "  const loading = getLoadingState();\n"
+            "  expect(loading[ManualAuditStep.CONTENT_CREATION]).toBe(false);\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/audit/audit-management.service.spec.ts"
+        )
+
+        assert _ref(result.artifacts, "[ManualAuditStep.CONTENT_CREATION]") is not None
+
 
 # ----------------------------------------------------------------------------
 # Implementation collection: module_path on defined artifacts
