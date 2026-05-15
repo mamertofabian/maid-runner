@@ -3746,6 +3746,66 @@ it("uses computed step completion flags", () => {
             "[ManualAuditStep.CONTENT_CREATION]" in w.message for w in untested
         )
 
+    def test_typescript_literal_computed_keys_count_as_attribute_coverage(
+        self, project
+    ):
+        """Literal computed-key access should cover declared TS attribute artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-audit-completion.manifest.yaml",
+            """schema: "2"
+goal: "Add audit completion"
+files:
+  edit:
+    - path: src/audit.ts
+      artifacts:
+        - kind: interface
+          name: AuditCompletion
+        - kind: attribute
+          name: "[\\"audit-details\\"]"
+          of: AuditCompletion
+          type: boolean
+        - kind: function
+          name: buildAuditCompletion
+          args: []
+          returns: AuditCompletion
+  read:
+    - tests/audit.test.ts
+validate:
+  - vitest tests/audit.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/audit.ts",
+            """export interface AuditCompletion {
+  ["audit-details"]: boolean;
+}
+
+export function buildAuditCompletion(): AuditCompletion {
+  return { ["audit-details"]: true };
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/audit.test.ts",
+            """import { buildAuditCompletion, type AuditCompletion } from "../src/audit";
+
+it("uses literal computed completion flags", () => {
+  const completion: AuditCompletion = buildAuditCompletion();
+  expect(completion["audit-details"]).toBe(true);
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        untested = [
+            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert not any("[\"audit-details\"]" in w.message for w in untested)
+
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""
         manifest_path = _write_manifest(

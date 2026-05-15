@@ -472,7 +472,7 @@ class BehavioralReferenceCollector:
                 continue
             if not seen_open_bracket:
                 continue
-            if child.type in {"identifier", "member_expression"}:
+            if child.type in {"identifier", "member_expression", "string", "number"}:
                 _record_bare_reference(
                     f"[{_text(child, self._source)}]", self._artifacts
                 )

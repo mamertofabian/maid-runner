@@ -396,6 +396,23 @@ class TestPropAttributeReferences:
 
         assert _ref(result.artifacts, "[ManualAuditStep.CONTENT_CREATION]") is not None
 
+    def test_literal_computed_subscript_key_names_are_behavioral_references(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = (
+            "it('reads literal computed flags', () => {\n"
+            "  const completion = getCompletionState();\n"
+            "  expect(completion[\"audit-details\"]).toBe(true);\n"
+            "  expect(completion[404]).toBe(false);\n"
+            "});\n"
+        )
+        result = validator.collect_behavioral_artifacts(
+            source, "src/audit/audit-management.service.spec.ts"
+        )
+
+        assert _ref(result.artifacts, "[\"audit-details\"]") is not None
+        assert _ref(result.artifacts, "[404]") is not None
+
 
 # ----------------------------------------------------------------------------
 # Implementation collection: module_path on defined artifacts

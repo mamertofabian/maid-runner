@@ -1,0 +1,43 @@
+schema: "2"
+goal: "Cover TypeScript literal computed subscript keys in behavioral validation."
+type: fix
+created: "2026-05-15T22:15:00+08:00"
+description: |
+  Extend TypeScript behavioral reference collection so tests that read literal
+  computed keys such as `completion["audit-details"]` can satisfy
+  manifest-declared attributes named `["audit-details"]`.
+
+  Rationale: TypeScript implementation collection preserves literal computed
+  interface members with bracketed source text. Behavioral collection must emit
+  the same bracketed literal text from subscript access instead of only covering
+  identifier and member-expression index forms.
+temptations:
+  - risk: "Do not silence E200 for bracketed TypeScript attribute artifacts."
+    instead: "Collect the exact bracketed literal computed key reference from test source."
+  - risk: "Do not flatten literal computed keys to bare string contents."
+    instead: "Preserve the implementation collector's bracketed text, including string quotes or numeric literal text."
+  - risk: "Do not collect arbitrary subscript expressions as coverage."
+    instead: "Only add literal string and number index expressions to the existing identifier and member-expression support."
+
+files:
+  edit:
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript_identity.py
+    - tests/core/test_validate.py
+
+validate:
+  - uv run python -m pytest tests/validators/test_typescript_identity.py::TestPropAttributeReferences::test_literal_computed_subscript_key_names_are_behavioral_references tests/core/test_validate.py::TestImplementationTestCoverage::test_typescript_literal_computed_keys_count_as_attribute_coverage -v
