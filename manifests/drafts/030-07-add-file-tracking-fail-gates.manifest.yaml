@@ -1,0 +1,141 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add failing file-tracking gates for undeclared and weakly registered production files"
+type: feature
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - file-tracking
+    - validation
+    - drift
+  priority: high
+description: |
+  Close the loophole where unmanifested production files are reported only by
+  `maid files` and do not affect `maid validate`. Agents can add production
+  code outside every manifest, pass the primary validation command, and ignore
+  file-tracking output.
+
+  Add explicit failing gates:
+  - `maid files --fail-on undeclared`
+  - `maid files --fail-on registered`
+  - repeated `--fail-on` values, or `--fail-on any`
+  - `maid validate --file-tracking` to include file tracking in validation
+    success.
+
+  The default `maid files` report remains advisory for interactive use, but
+  automation gets a clear non-zero status when unmanifested or weakly
+  registered production files exist.
+temptations:
+  - risk: "Do not make file tracking advisory when the user asks for a fail gate."
+    instead: "Return non-zero when requested statuses are present."
+  - risk: "Do not count test files as undeclared production drift."
+    instead: "Preserve the existing is_test_file exclusion for tracking gates."
+  - risk: "Do not hide gitignored generated files behind the new gate."
+    instead: "Keep respect_gitignore behavior and test that ignored files remain excluded."
+  - risk: "Do not add validate --file-tracking without surfacing details."
+    instead: "Include file-tracking paths in text and JSON output when the gate fails."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: run_file_tracking
+          of: ValidationEngine
+          args:
+            - name: chain
+              type: ManifestChain
+          returns: FileTrackingReport
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_file_tracking
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/files.py
+      artifacts:
+        - kind: function
+          name: cmd_files
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_file_tracking
+          args:
+            - name: report
+              type: FileTrackingReport
+          returns: str
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_file_tracking_gate_fails_on_undeclared_source
+          source_scenario: "A project has a valid manifest and an extra production source file outside all manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all(..., check_file_tracking=True) returns success false and includes the undeclared file in the result."
+    - path: tests/cli/test_files_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_files_fail_on_undeclared_returns_1
+          source_scenario: "The files command sees an undeclared production file and --fail-on undeclared is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid files exits 1 and prints the undeclared path."
+        - kind: test_function
+          name: test_files_fail_on_registered_returns_1_for_read_only_production_file
+          source_scenario: "A production file appears only in files.read and --fail-on registered is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid files exits 1 and reports the registered/read-only file."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_file_tracking_gate_returns_1_for_undeclared_source
+          source_scenario: "Structural validation succeeds but file tracking finds an undeclared production file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --file-tracking exits 1 and reports the undeclared path."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/result.py
+    - tests/cli/test_format.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/cli/test_files_cmd.py tests/cli/test_validate_cmd.py tests/cli/test_format.py

@@ -1,0 +1,88 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Make `maid validate --coherence` fail closed when coherence checks fail or cannot run"
+type: fix
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - validate
+    - coherence
+    - exit-codes
+  priority: critical
+description: |
+  Close the loophole where `maid validate --coherence` prints a coherence
+  failure but still exits 0 because the command returns only structural
+  validation status. Coherence is advertised as an additional validation gate;
+  when requested, its result must participate in the exit code.
+
+  Also remove the silent exception swallowing around coherence execution.
+  If coherence cannot run, the user and automation must see that as a command
+  failure instead of a hidden best-effort omission.
+temptations:
+  - risk: "Do not preserve best-effort coherence behavior for the --coherence gate."
+    instead: "When --coherence is requested, return non-zero if coherence fails or raises."
+  - risk: "Do not print Coherence: FAIL while returning structural success."
+    instead: "Combine structural and coherence success into one command status."
+  - risk: "Do not hide coherence exceptions in except: pass."
+    instead: "Surface exceptions through normal error formatting with exit code 2."
+  - risk: "Do not break --coherence-only's existing direct status semantics."
+    instead: "Keep --coherence-only as the standalone coherence gate and align --coherence with it."
+files:
+  edit:
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+        - kind: function
+          name: run_coherence
+          args:
+            - name: manifest_dir
+              type: str
+            - name: json_mode
+              type: bool
+          returns: CoherenceResult
+          description: "Public command helper that runs coherence once and returns the result instead of printing best-effort output."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_coherence_flag_returns_1_when_coherence_errors
+          source_scenario: "Structural validation succeeds, but .maid-constraints.json creates a coherence error."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --coherence exits 1 and prints the coherence failure."
+        - kind: test_function
+          name: test_coherence_flag_json_reports_failure_and_exits_1
+          source_scenario: "The same coherence failure is requested with --json output."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output includes coherence failure details and the command exits 1."
+        - kind: test_function
+          name: test_coherence_flag_returns_2_when_coherence_cannot_run
+          source_scenario: "Coherence execution raises an exception after structural validation succeeds."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_validate
+          expected:
+            behavior: "The command exits 2 and reports the coherence execution error instead of swallowing it."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/coherence/engine.py
+    - maid_runner/coherence/result.py
+    - maid_runner/cli/commands/coherence.py
+    - maid_runner/cli/commands/_format.py
+    - tests/cli/test_coherence_cmd.py
+    - tests/cli/test_format.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/cli/test_coherence_cmd.py tests/cli/test_format.py

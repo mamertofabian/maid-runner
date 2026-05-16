@@ -1,0 +1,126 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add a worktree scope gate that rejects changed production files outside writable manifest scope"
+type: feature
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - worktree
+    - manifest-scope
+    - automation
+  priority: high
+description: |
+  Add a git-aware scope gate for agent workflows: changed production files must
+  be declared in the active manifest chain as writable (`files.create`,
+  `files.edit`, or `files.delete`). This closes the gap where an agent can
+  modify a production file that is unmanifested, or only listed in files.read,
+  while still passing artifact validation for the manifest it chooses to run.
+
+  The gate is intentionally separate from artifact validation. It compares the
+  current worktree diff to the active manifest chain and reports changed files
+  that are outside writable scope. It should ignore test files by default so
+  test-first workflows can create behavioral tests before production code, but
+  it should include an option to check tests when CI wants full scope policing.
+temptations:
+  - risk: "Do not infer changed files from all files on disk."
+    instead: "Use git status/diff so the gate checks the actual worktree delta."
+  - risk: "Do not treat files.read as writable permission."
+    instead: "Only files.create, files.edit, and files.delete satisfy production write scope."
+  - risk: "Do not fail when git is unavailable with a misleading clean result."
+    instead: "Return a clear error that the worktree scope gate requires git metadata."
+  - risk: "Do not block test-first workflows by default."
+    instead: "Ignore recognized test files unless --include-tests or equivalent is requested."
+files:
+  create:
+    - path: maid_runner/core/worktree.py
+      artifacts:
+        - kind: function
+          name: changed_files
+          args:
+            - name: project_root
+              type: Union[str, Path]
+          returns: tuple[str, ...]
+          description: "Return git-reported changed file paths relative to the project root."
+        - kind: function
+          name: validate_worktree_scope
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: chain
+              type: ManifestChain
+            - name: include_tests
+              type: bool
+              default: "False"
+          returns: list[ValidationError]
+          description: "Report changed files that are outside active writable manifest scope."
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+          of: ErrorCode
+          type: str
+          description: "Structured error code for a changed file outside writable manifest scope."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope
+          source_scenario: "A git repo has a changed production file that is not writable in the active manifest chain."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE for the changed file."
+        - kind: test_function
+          name: test_worktree_scope_gate_allows_changed_file_in_files_edit
+          source_scenario: "A git repo has a changed production file listed in files.edit by an active manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate returns no scope error for the writable file."
+        - kind: test_function
+          name: test_worktree_scope_gate_treats_files_read_as_not_writable
+          source_scenario: "A git repo has a changed production file listed only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports the file because read context is not edit permission."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_worktree_scope_returns_1_for_out_of_scope_change
+          source_scenario: "The CLI validates a structurally green manifest chain while git reports an out-of-scope production change."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --worktree-scope exits 1 and names the changed file."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/chain.py
+    - maid_runner/core/_file_discovery.py
+    - tests/ci/test_codex_maid_loop.py
+    - tests/ci/test_claude_maid_loop.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/cli/test_validate_cmd.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py
