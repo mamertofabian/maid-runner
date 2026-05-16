@@ -25,11 +25,11 @@ general MAID skills:
   spawn read-only reviewer subagents for the MAID review gate. Do not require a
   separate per-turn subagent approval.
 - Spawn the read-only review subagent without a full-history fork:
-  `fork_context=false`, `agent_type=explorer`, model `gpt-5.5`, and
-  `reasoning_effort=medium`. Pass an explicit review packet instead of
-  inheriting the implementation transcript. If the local Codex agent registry
-  does not expose an `explorer` role, omit `agent_type` and use the default
-  role with the same read-only packet.
+  `fork_context=false`, `agent_type=explorer`, and leave reviewer model and
+  reasoning effort unset so they inherit from the main agent. Pass an explicit
+  review packet instead of inheriting the implementation transcript. If the
+  local Codex agent registry does not expose an `explorer` role, omit
+  `agent_type` and use the default role with the same read-only packet.
 - Close each review subagent after consuming its verdict by calling
   `close_agent`, whether the verdict is ready, needs changes, or needs
   discussion.

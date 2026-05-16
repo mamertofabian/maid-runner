@@ -46,10 +46,11 @@ Automation reporting requirements:
 - Keep doing the skill's validation and review loop until the pass is genuinely
   ready, blocked, or there are no implementable draft manifests.
 - When spawning a read-only reviewer subagent, use fork_context=false,
-  agent_type=explorer, model gpt-5.5, and reasoning_effort=medium. Pass the
-  review packet explicitly instead of forking the full implementation history.
-  If explorer is unavailable, omit agent_type and use the default agent with
-  the same explicit read-only review packet.
+  agent_type=explorer, and leave reviewer model and reasoning effort unset so
+  they inherit from the main agent. Pass the review packet explicitly instead
+  of forking the full implementation history. If explorer is unavailable, omit
+  agent_type and use the default agent with the same explicit read-only review
+  packet.
 - After each reviewer subagent result is consumed, call close_agent for that
   reviewer thread before spawning or reusing another reviewer.
 - When READY, include a commit packet for the outer automation script:

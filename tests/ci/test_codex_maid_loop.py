@@ -61,6 +61,9 @@ class TestCodexMaidLoopCommand(unittest.TestCase):
         self.assertIn("AUTOMATION_COMMIT_MESSAGE", command[-1])
         self.assertIn("fork_context=false", command[-1])
         self.assertIn("close_agent", command[-1])
+        self.assertIn("inherit from the main agent", command[-1])
+        self.assertNotIn("model gpt-5.5", command[-1])
+        self.assertNotIn("reasoning_effort=medium", command[-1])
 
     def test_build_implementation_command_scopes_prompt_to_selected_draft(
         self,
@@ -838,6 +841,7 @@ class TestCodexMaidLoopRepoWiring(unittest.TestCase):
             "maid-implementation-review",
             "fork_context=false",
             "agent_type=explorer",
+            "inherit from the main agent",
             "close_agent",
             "AUTOMATION_STATUS: READY",
         ]
