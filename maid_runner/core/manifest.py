@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from pathlib import PureWindowsPath
 import shlex
 from typing import Union
 
 import jsonschema
 import yaml
 
+from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import (
     AcceptanceConfig,
     ArgSpec,
@@ -58,6 +60,235 @@ def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]
     schema = json.loads(schema_file.read_text())
     validator = jsonschema.Draft7Validator(schema)
     return [e.message for e in validator.iter_errors(data)]
+
+
+def validate_manifest_paths(
+    manifest: Manifest,
+    project_root: Union[str, Path],
+) -> list[ValidationError]:
+    """Reject manifest-declared paths that resolve outside project_root."""
+    root = Path(project_root)
+    errors: list[ValidationError] = []
+
+    for section, path in _iter_manifest_declared_paths(manifest, root):
+        if _path_is_within_project(root, path):
+            continue
+        errors.append(
+            ValidationError(
+                code=ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+                message=(
+                    f"Manifest path in {section} escapes the project root: " f"'{path}'"
+                ),
+                location=Location(file=path),
+                suggestion=(
+                    "Use a project-relative path inside the repository; "
+                    "absolute and parent-relative paths are not allowed."
+                ),
+            )
+        )
+
+    return errors
+
+
+def _iter_manifest_declared_paths(
+    manifest: Manifest,
+    project_root: Path,
+) -> list[tuple[str, str]]:
+    paths: list[tuple[str, str]] = []
+
+    for fs in manifest.files_create:
+        paths.append(("files.create", fs.path))
+    for fs in manifest.files_edit:
+        paths.append(("files.edit", fs.path))
+    for fs in manifest.files_snapshot:
+        paths.append(("files.snapshot", fs.path))
+    for path in manifest.files_read:
+        paths.append(("files.read", path))
+    for ds in manifest.files_delete:
+        paths.append(("files.delete", ds.path))
+    for spec in manifest.removed_artifacts:
+        paths.append(("removed_artifacts", spec.file))
+
+    for cmd in manifest.validate_commands:
+        for path in _test_paths_from_command(cmd, project_root):
+            paths.append(("validate command", path))
+
+    if manifest.acceptance is not None:
+        for cmd in manifest.acceptance.tests:
+            for path in _test_paths_from_command(cmd, project_root):
+                paths.append(("acceptance.tests", path))
+
+    return paths
+
+
+def _path_is_within_project(project_root: Path, file_path: str) -> bool:
+    candidate = Path(file_path)
+    windows_candidate = PureWindowsPath(file_path)
+    if candidate.is_absolute() or windows_candidate.is_absolute():
+        return False
+    if windows_candidate.drive:
+        return False
+    try:
+        project_abs = project_root.resolve()
+        full = (project_root / candidate).resolve()
+        full.relative_to(project_abs)
+    except (OSError, RuntimeError, ValueError):
+        return False
+    return True
+
+
+def _test_paths_from_command(
+    command: tuple[str, ...],
+    project_root: Path,
+) -> list[str]:
+    paths: list[str] = []
+    cwd = Path(".")
+
+    for segment in _command_segments(command):
+        if not segment:
+            continue
+        if segment[0] == "cd":
+            if len(segment) > 1:
+                cwd = cwd / segment[1]
+            continue
+
+        allow_explicit_directories = _runs_known_test_runner(segment)
+        index = 0
+        while index < len(segment):
+            part = segment[index]
+            if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
+                segment
+            ):
+                cwd = cwd / segment[index + 1]
+                index += 2
+                continue
+            if part.startswith("-"):
+                option_path = _path_value_from_option_assignment(part)
+                if option_path is not None:
+                    candidate = _display_path(cwd / option_path)
+                    if _looks_like_test_path(
+                        candidate,
+                        project_root,
+                        allow_explicit_directories=allow_explicit_directories,
+                    ):
+                        paths.append(candidate)
+                index += 1
+                continue
+
+            candidate = _display_path(cwd / part)
+            if _looks_like_test_path(
+                candidate,
+                project_root,
+                allow_explicit_directories=allow_explicit_directories,
+            ):
+                paths.append(candidate)
+            index += 1
+
+    return paths
+
+
+def _command_segments(command: tuple[str, ...]) -> list[list[str]]:
+    segments: list[list[str]] = [[]]
+    for part in command:
+        if part in {"&&", "||", ";"}:
+            segments.append([])
+        else:
+            segments[-1].append(part)
+    return segments
+
+
+def _runs_known_test_runner(segment: list[str]) -> bool:
+    test_runners = {
+        "pytest",
+        "py.test",
+        "vitest",
+        "jest",
+        "playwright",
+    }
+    return any(Path(part).name in test_runners for part in segment)
+
+
+def _path_value_from_option_assignment(part: str) -> str | None:
+    if "=" not in part:
+        return None
+
+    option, value = part.split("=", 1)
+    if not value:
+        return None
+
+    path_options = {
+        "-C",
+        "-c",
+        "--basetemp",
+        "--config",
+        "--confcutdir",
+        "--cov",
+        "--cov-config",
+        "--cwd",
+        "--dir",
+        "--prefix",
+        "--project",
+        "--rootdir",
+    }
+    if option not in path_options:
+        return None
+
+    return value
+
+
+def _looks_like_test_path(
+    path: str,
+    project_root: Path,
+    *,
+    allow_explicit_directories: bool,
+) -> bool:
+    if _is_test_file(path):
+        return True
+
+    path_obj = Path(path)
+    test_dir_names = {"test", "tests", "__tests__", "spec", "specs"}
+    if path_obj.name.lower() in test_dir_names:
+        return True
+
+    if not allow_explicit_directories:
+        return False
+    if any(part.lower() in test_dir_names for part in path_obj.parts):
+        return True
+    if "/" in path or "\\" in path:
+        return True
+
+    full_path = project_root / path
+    return full_path.is_dir()
+
+
+def _is_test_file(path: str) -> bool:
+    name = Path(path).name
+    lower = name.lower()
+    if lower == "conftest.py":
+        return True
+    if lower.startswith("test_") and lower.endswith(".py"):
+        return True
+    if lower.endswith("_test.py"):
+        return True
+    return lower.endswith(
+        (
+            ".test.ts",
+            ".test.tsx",
+            ".test.js",
+            ".test.jsx",
+            ".spec.ts",
+            ".spec.tsx",
+            ".spec.js",
+            ".spec.jsx",
+        )
+    )
+
+
+def _display_path(path: Path) -> str:
+    text = str(path)
+    if text.startswith("./"):
+        return text[2:]
+    return text
 
 
 def load_manifest_raw(path: Union[str, Path]) -> dict:

@@ -11,8 +11,10 @@ from maid_runner.core.manifest import (
     load_manifest_raw,
     save_manifest,
     slug_from_path,
+    validate_manifest_paths,
     validate_manifest_schema,
 )
+from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import (
     ArtifactSpec,
     ArtifactKind,
@@ -107,6 +109,76 @@ class TestValidateManifestSchema:
         }
         errors = validate_manifest_schema(data)
         assert len(errors) > 0
+
+
+class TestValidateManifestPaths:
+    def test_validate_manifest_paths_rejects_parent_relative_file_spec(self, tmp_path):
+        project = tmp_path / "project"
+        project.mkdir()
+        manifest_path = project / "path-escape.manifest.yaml"
+        manifest_path.write_text(
+            """schema: "2"
+goal: "Reject escaped snapshot"
+type: fix
+files:
+  create:
+    - path: ../created.py
+      artifacts:
+        - kind: function
+          name: created
+  snapshot:
+    - path: ../outside.py
+      artifacts:
+        - kind: function
+          name: escaped
+validate:
+  - pytest tests/test_contract.py -v
+"""
+        )
+
+        manifest = load_manifest(manifest_path)
+        errors = validate_manifest_paths(manifest, project)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+        ]
+        by_location = {error.location.file: error for error in errors if error.location}
+        assert set(by_location) == {"../created.py", "../outside.py"}
+        assert "files.create" in by_location["../created.py"].message
+        assert "files.snapshot" in by_location["../outside.py"].message
+
+    def test_validate_manifest_paths_rejects_absolute_files_read(self, tmp_path):
+        project = tmp_path / "project"
+        project.mkdir()
+        outside = tmp_path / "outside_test.py"
+        manifest_path = project / "path-escape.manifest.yaml"
+        manifest_path.write_text(
+            f"""schema: "2"
+goal: "Reject absolute read path"
+type: fix
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - {outside}
+validate:
+  - pytest tests/test_contract.py -v
+"""
+        )
+
+        manifest = load_manifest(manifest_path)
+        errors = validate_manifest_paths(manifest, project)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location is not None
+        assert errors[0].location.file == str(outside)
+        assert "files.read" in errors[0].message
 
 
 class TestLoadManifestRaw:
