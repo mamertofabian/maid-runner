@@ -191,6 +191,96 @@ class TestLoadManifestRaw:
         with pytest.raises(ManifestLoadError):
             load_manifest_raw("/nonexistent/file.manifest.yaml")
 
+    def test_load_manifest_raw_rejects_duplicate_top_level_yaml_key(self, tmp_path):
+        path = tmp_path / "duplicate-top-level.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject duplicate top-level key"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        with pytest.raises(ManifestLoadError) as exc_info:
+            load_manifest_raw(path)
+
+        assert "duplicate YAML key" in exc_info.value.reason
+        assert "'files'" in exc_info.value.reason
+
+    def test_load_manifest_raw_rejects_duplicate_nested_yaml_key(self, tmp_path):
+        path = tmp_path / "duplicate-nested.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject duplicate nested key"
+type: fix
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: visible
+          name: actual
+validate:
+  - pytest tests/test_app.py -q
+"""
+        )
+
+        with pytest.raises(ManifestLoadError) as exc_info:
+            load_manifest_raw(path)
+
+        assert "duplicate YAML key" in exc_info.value.reason
+        assert "'name'" in exc_info.value.reason
+
+    def test_validate_schema_reports_duplicate_yaml_key_as_parse_error(self, tmp_path):
+        from maid_runner.core.types import ValidationMode
+        from maid_runner.core.validate import ValidationEngine
+
+        manifest_path = tmp_path / "duplicate.manifest.yaml"
+        manifest_path.write_text(
+            """schema: "2"
+goal: "Reject duplicate key in schema mode"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        result = ValidationEngine(project_root=tmp_path).validate(
+            manifest_path,
+            mode=ValidationMode.SCHEMA,
+        )
+
+        assert result.success is False
+        assert [error.code for error in result.errors] == [
+            ErrorCode.MANIFEST_PARSE_ERROR
+        ]
+        assert "duplicate YAML key" in result.errors[0].message
+
 
 class TestLoadManifest:
     def test_load_simple_feature(self):

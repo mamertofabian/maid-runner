@@ -274,6 +274,47 @@ class TestCmdValidateSingleManifest:
         captured = capsys.readouterr()
         assert "E004" in captured.out
 
+    def test_schema_mode_cli_returns_1_for_duplicate_yaml_key(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (manifest_dir / "duplicate.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Reject duplicate key"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/duplicate.manifest.yaml",
+                "--mode",
+                "schema",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E003" in captured.out
+        assert "duplicate YAML key" in captured.out
+
     def test_schema_mode_all_manifests_reports_schema_load_errors(
         self, tmp_path, capsys
     ):
@@ -484,9 +525,7 @@ class TestCmdValidateCoherenceOnly:
 
 
 class TestCmdValidateCoherenceFlag:
-    def test_coherence_flag_returns_1_when_coherence_errors(
-        self, project_dir, capsys
-    ):
+    def test_coherence_flag_returns_1_when_coherence_errors(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 
         (project_dir / ".maid-constraints.json").write_text(
@@ -522,9 +561,7 @@ class TestCmdValidateCoherenceFlag:
         assert "Coherence: FAIL" in captured.out
         assert "greet module is blocked" in captured.out
 
-    def test_coherence_flag_json_reports_failure_and_exits_1(
-        self, project_dir, capsys
-    ):
+    def test_coherence_flag_json_reports_failure_and_exits_1(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 
         (project_dir / ".maid-constraints.json").write_text(

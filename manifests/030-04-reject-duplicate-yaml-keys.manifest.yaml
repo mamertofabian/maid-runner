@@ -1,10 +1,8 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Reject duplicate YAML mapping keys when loading MAID manifests"
 type: fix
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - manifest
     - yaml
@@ -41,6 +39,15 @@ files:
           returns: dict
         - kind: class
           name: ManifestLoadError
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
     - path: tests/core/test_manifest.py
       artifacts:
         - kind: test_function
@@ -84,7 +91,6 @@ files:
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - maid_runner/core/chain.py
-    - maid_runner/core/validate.py
     - maid_runner/core/result.py
 validate:
   - uv run python -m pytest -q tests/core/test_manifest.py tests/cli/test_validate_cmd.py

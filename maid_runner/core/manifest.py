@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable
 import json
 from pathlib import Path
 from pathlib import PureWindowsPath
@@ -43,6 +44,43 @@ class ManifestSchemaError(Exception):
         self.path = path
         self.errors = errors
         super().__init__(f"Schema validation failed for {path}: {'; '.join(errors)}")
+
+
+class _DuplicateKeySafeLoader(yaml.SafeLoader):
+    pass
+
+
+def _construct_mapping_rejecting_duplicate_keys(
+    loader: yaml.SafeLoader,
+    node: yaml.nodes.MappingNode,
+    deep: bool = False,
+) -> dict:
+    loader.flatten_mapping(node)
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if not isinstance(key, Hashable):
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping",
+                node.start_mark,
+                "found unhashable key",
+                key_node.start_mark,
+            )
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping",
+                node.start_mark,
+                f"found duplicate YAML key {key!r}",
+                key_node.start_mark,
+            )
+        mapping[key] = loader.construct_object(value_node, deep=deep)
+    return mapping
+
+
+_DuplicateKeySafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _construct_mapping_rejecting_duplicate_keys,
+)
 
 
 def slug_from_path(path: Union[str, Path]) -> str:
@@ -299,7 +337,10 @@ def load_manifest_raw(path: Union[str, Path]) -> dict:
     if path.suffix == ".json":
         return json.loads(text)
     elif path.suffix in (".yaml", ".yml"):
-        return yaml.safe_load(text)
+        try:
+            return yaml.load(text, Loader=_DuplicateKeySafeLoader)
+        except yaml.YAMLError as exc:
+            raise ManifestLoadError(str(path), str(exc)) from exc
     else:
         raise ManifestLoadError(str(path), f"Unknown extension: {path.suffix}")
 

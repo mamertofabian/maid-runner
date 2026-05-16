@@ -86,6 +86,11 @@ class ValidationEngine:
             try:
                 manifest = load_manifest(manifest)
             except ManifestLoadError as e:
+                code = (
+                    ErrorCode.FILE_NOT_FOUND
+                    if e.reason == "File not found"
+                    else ErrorCode.MANIFEST_PARSE_ERROR
+                )
                 return ValidationResult(
                     success=False,
                     manifest_slug="unknown",
@@ -93,7 +98,7 @@ class ValidationEngine:
                     mode=mode,
                     errors=[
                         ValidationError(
-                            code=ErrorCode.FILE_NOT_FOUND,
+                            code=code,
                             message=str(e),
                         )
                     ],
