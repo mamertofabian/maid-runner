@@ -45,7 +45,11 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
             return 0 if result.success else 1
         else:
-            batch = engine.validate_all(args.manifest_dir, mode=mode)
+            batch = engine.validate_all(
+                args.manifest_dir,
+                mode=mode,
+                allow_empty=getattr(args, "allow_empty", False),
+            )
             print(format_batch_result(batch, json_mode=args.json, quiet=args.quiet))
 
             if args.coherence and batch.success:
@@ -189,7 +193,11 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
             if output:
                 print(output)
         else:
-            batch = engine.validate_all(args.manifest_dir, mode=mode)
+            batch = engine.validate_all(
+                args.manifest_dir,
+                mode=mode,
+                allow_empty=getattr(args, "allow_empty", False),
+            )
             print(format_batch_result(batch, json_mode=args.json, quiet=args.quiet))
     except Exception as e:
         print_error(str(e), json_mode=args.json)

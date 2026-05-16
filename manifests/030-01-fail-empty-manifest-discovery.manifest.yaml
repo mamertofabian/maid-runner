@@ -1,10 +1,8 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Make directory-wide validation fail when manifest discovery is missing or empty unless explicitly allowed"
 type: fix
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - validate
     - manifest-discovery

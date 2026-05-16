@@ -2437,6 +2437,65 @@ validate:
             e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors
         )
 
+    def test_validate_all_fails_when_manifest_dir_is_missing_by_default(
+        self, tmp_path
+    ):
+        engine = ValidationEngine(tmp_path)
+
+        result = engine.validate_all("missing-manifests")
+
+        assert result.success is False
+        assert result.total_manifests == 0
+        assert result.failed == 1
+        assert any(e.code == ErrorCode.EMPTY_MANIFEST_SET for e in result.chain_errors)
+        assert "missing-manifests" in result.chain_errors[0].message
+
+    def test_validate_all_fails_when_manifest_dir_contains_no_active_manifests(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        (manifest_dir / "drafts").mkdir(parents=True)
+        _write_manifest(
+            manifest_dir / "drafts",
+            "future.manifest.yaml",
+            """# draft-kind: implementation
+schema: "2"
+goal: "Future draft"
+files:
+  create:
+    - path: src/future.py
+      artifacts:
+        - kind: function
+          name: future
+validate:
+  - pytest
+""",
+        )
+        engine = ValidationEngine(tmp_path)
+
+        result = engine.validate_all("manifests")
+
+        assert result.success is False
+        assert result.total_manifests == 0
+        assert result.failed == 1
+        assert any(e.code == ErrorCode.EMPTY_MANIFEST_SET for e in result.chain_errors)
+        assert "No active manifests discovered" in result.chain_errors[0].message
+
+    def test_validate_all_allows_empty_manifest_set_only_when_explicit(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        engine = ValidationEngine(tmp_path)
+
+        result = engine.validate_all("manifests", allow_empty=True)
+
+        assert result.success is True
+        assert result.total_manifests == 0
+        assert result.passed == 0
+        assert result.failed == 0
+        assert result.chain_errors == []
+
     def test_validate_all_performance_with_many_manifests(self, project):
         """validate_all with 20 manifests should complete quickly (under 5s)."""
         import time
