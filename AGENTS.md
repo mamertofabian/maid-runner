@@ -23,6 +23,14 @@ Use Python 3.10+ with type hints for public APIs. Follow Black formatting and Ru
 
 This repository dogfoods MAID. For code changes, create or evolve the relevant manifest before implementation, add focused behavioral tests, then run behavioral and implementation validation for the touched manifest. Finish with `uv run maid validate`, `uv run maid test`, and the relevant pytest scope. Tests should assert observable behavior, include failure cases, and follow `docs/unit-testing-rules.md`.
 
+## MAID Review-Fix-Ready Loop
+
+Every MAID-backed coding session must end with an implementation review gate before handoff. After implementation and validation, run `maid-implementation-review` or an equivalent read-only reviewer against a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
+
+For Codex reviewer subagents, use the same independence pattern as `tools/codex_maid_loop.py`: `fork_context=false`, prefer `agent_type=explorer`, use `gpt-5.5` with `reasoning_effort=medium` when the environment permits, and pass only the explicit review packet instead of the implementation transcript. If `explorer` is unavailable, use the default role with the same read-only packet. Close each reviewer subagent with `close_agent` after consuming its verdict.
+
+Fix valid review findings, rerun the focused validation commands, and re-review until the final verdict is ready. Do not report ready, merge-ready, or commit-ready while the latest review verdict is `needs changes`, `needs discussion`, blocked, or missing. If subagents are unavailable, perform the same read-only review locally and state that no independent reviewer subagent was run.
+
 ## Commit & Pull Request Guidelines
 
 Recent history uses Conventional Commits, including `fix:`, `feat:`, `docs:`, and `release:`. Keep commits scoped to one logical change and do not mix generated artifacts with unrelated edits. Pull requests should explain the behavior change, link issues when applicable, list the exact validation commands run, and call out any intentionally skipped checks.

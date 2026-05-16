@@ -94,8 +94,17 @@ Before reporting completion, run a read-only MAID implementation review using th
 - validation passed
 - no implementation-phase drift or process violations were introduced
 
-Fix concrete implementation defects and revalidate before finishing.
+When using a reviewer subagent, use a fresh read-only reviewer with an explicit
+review packet containing the manifest path, changed files, diff summary, and
+validation output. Do not rely on the full implementation transcript.
+
+Treat the review verdict as a gate. Fix concrete implementation defects, rerun
+focused validation, and run another implementation review. Repeat until the
+latest review verdict is `Ready to merge`, or stop with `Needs changes` or
+`Needs discussion` if the remaining issue requires user or plan revision input.
 
 ## Phase 8 — Report
 
-Report changed files and validation results. If all checks pass, the work is ready for commit or further integration.
+Report changed files, validation results, reviewer verdict, and whether a
+subagent reviewer was used. Only call the work ready for commit or further
+integration when validation passes and the latest review verdict is ready.

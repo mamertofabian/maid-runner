@@ -37,6 +37,12 @@ Confirm the high-level goal with user before proceeding.
 2. Run all MAID tests: `uv run maid test`
 3. Run full test suite: `uv run python -m pytest tests/ -v`
 
+### Phase 5: Review-Fix-Ready Loop
+1. Run `maid-implementation-review` or the repo-level `maid-implementation-reviewer` before handoff.
+2. Give the reviewer a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
+3. Fix valid findings, rerun focused validation, and re-review until the final verdict is `Ready to merge`.
+4. Do not report ready, merge-ready, or commit-ready while the latest review verdict is `Needs changes`, `Needs discussion`, blocked, or missing.
+
 ## MAID Skills Workflow
 
 When MAID skills are available, use them as the primary workflow:
