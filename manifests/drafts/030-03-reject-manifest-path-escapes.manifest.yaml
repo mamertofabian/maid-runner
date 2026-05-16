@@ -1,0 +1,127 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Reject manifest file paths that escape the project root"
+type: fix
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - manifest
+    - path-safety
+    - validation
+  priority: critical
+description: |
+  Close the loophole where a manifest can validate `../outside.py` or other
+  absolute/parent-relative paths outside the project root. MAID manifests are
+  repository contracts; every path field must resolve inside the selected
+  project root before the validator reads, writes, checks absence, or treats
+  the path as test context.
+
+  Reuse the fail-closed posture already applied to `removed_artifacts`, but
+  make it comprehensive for `files.create`, `files.edit`, `files.snapshot`,
+  `files.read`, `files.delete`, acceptance test commands, and validation
+  command test-path extraction.
+temptations:
+  - risk: "Do not only reject escapes in implementation validation."
+    instead: "Validate path boundaries before behavioral, implementation, schema-adjacent command discovery, file tracking, and delete checks consume paths."
+  - risk: "Do not normalize ../ away and silently validate a different file."
+    instead: "Reject absolute paths and parent-relative escapes with a structured error."
+  - risk: "Do not apply the rule only to FileSpec paths."
+    instead: "Check files.read, files.delete, removed_artifacts, acceptance test file paths, and test paths extracted from validate commands."
+  - risk: "Do not make unsupported path forms warnings."
+    instead: "Path escapes are validation errors because they violate the project boundary."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: MANIFEST_PATH_OUTSIDE_PROJECT
+          of: ErrorCode
+          type: str
+          description: "Structured error code for any manifest-declared path that resolves outside the project root."
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_paths
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Union[str, Path]
+          returns: list[ValidationError]
+          description: "Validate every project-relative path declared by a parsed manifest."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+        - kind: method
+          name: validate_acceptance
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+    - path: tests/core/test_manifest.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_parent_relative_file_spec
+          source_scenario: "A parsed manifest declares files.snapshot path ../outside.py."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation returns MANIFEST_PATH_OUTSIDE_PROJECT before source parsing."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_absolute_files_read
+          source_scenario: "A parsed manifest declares an absolute test or dependency path in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the absolute path with a project-boundary error."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_rejects_file_spec_path_that_escapes_project_root
+          source_scenario: "Implementation validation sees a manifest whose FileSpec path points outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT and does not read the outside file."
+        - kind: test_function
+          name: test_behavioral_validate_rejects_escaped_test_path_from_files_read
+          source_scenario: "Behavioral validation sees a files.read test path outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails before collecting behavioral artifacts from the outside file."
+        - kind: test_function
+          name: test_validate_rejects_delete_path_that_escapes_project_root
+          source_scenario: "A files.delete entry uses ../outside.py."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT instead of checking absence outside the repo."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/supersession_audit.py
+    - tests/core/test_removed_artifacts.py
+    - tests/core/test_validation_test_artifacts.py
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest.py tests/core/test_validate.py tests/core/test_removed_artifacts.py tests/core/test_validation_test_artifacts.py

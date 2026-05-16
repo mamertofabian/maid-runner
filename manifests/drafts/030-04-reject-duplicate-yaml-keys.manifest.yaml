@@ -1,0 +1,90 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Reject duplicate YAML mapping keys when loading MAID manifests"
+type: fix
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - manifest
+    - yaml
+    - audit-integrity
+  priority: critical
+description: |
+  Close the loophole where YAML manifests with duplicate mapping keys silently
+  overwrite earlier values. A reviewer can see one `files:` or `validate:`
+  block while the parser validates only the last duplicate key, making the
+  manifest contract ambiguous and gameable.
+
+  The loader must reject duplicate keys at any mapping level with a
+  ManifestLoadError. This belongs in raw manifest loading so direct manifest
+  validation, manifest chains, CLI commands, and schema-mode validation all
+  get the same failure.
+temptations:
+  - risk: "Do not rely on JSON Schema to detect duplicate keys after YAML parsing."
+    instead: "Detect duplicate keys during YAML construction before the earlier value is overwritten."
+  - risk: "Do not only check top-level duplicate keys."
+    instead: "Reject duplicates inside nested files, artifacts, metadata, acceptance, and test_function_details maps."
+  - risk: "Do not turn duplicate keys into warnings."
+    instead: "Raise ManifestLoadError so validation fails closed with a parse error."
+  - risk: "Do not change JSON manifest loading semantics unnecessarily."
+    instead: "Keep JSON loading stable unless an equivalent duplicate-key check is intentionally added and tested."
+files:
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: load_manifest_raw
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: dict
+        - kind: class
+          name: ManifestLoadError
+    - path: tests/core/test_manifest.py
+      artifacts:
+        - kind: test_function
+          name: test_load_manifest_raw_rejects_duplicate_top_level_yaml_key
+          source_scenario: "A YAML manifest contains two top-level files keys."
+          actions:
+            - type: api_call
+              subject:
+                export: load_manifest_raw
+          expected:
+            behavior: "load_manifest_raw raises ManifestLoadError naming the duplicate key."
+        - kind: test_function
+          name: test_load_manifest_raw_rejects_duplicate_nested_yaml_key
+          source_scenario: "A YAML manifest contains duplicate artifact names inside one artifact mapping."
+          actions:
+            - type: api_call
+              subject:
+                export: load_manifest_raw
+          expected:
+            behavior: "The loader rejects the nested duplicate before schema validation."
+        - kind: test_function
+          name: test_validate_schema_reports_duplicate_yaml_key_as_parse_error
+          source_scenario: "The validation engine loads a manifest with duplicate YAML keys in schema mode."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PARSE_ERROR instead of passing the overwritten mapping."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_schema_mode_cli_returns_1_for_duplicate_yaml_key
+          source_scenario: "The CLI validates a manifest with duplicate YAML keys in schema mode."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --mode schema exits 1 and prints E003."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/chain.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/result.py
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest.py tests/cli/test_validate_cmd.py
