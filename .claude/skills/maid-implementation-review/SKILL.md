@@ -12,7 +12,8 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - NEVER edit files.
 - NEVER modify tests or manifests during review.
 - When you are the coordinating reviewer, run an independent read-only reviewer
-  subagent before the final verdict whenever the Agent tool is available.
+  subagent before the final verdict whenever the Agent tool is available and
+  reviewer agents have not been explicitly disabled for the turn.
 - Reviewer subagents must be fresh, context-minimal review agents. Never pass
   prior implementation reasoning, conclusions, or chat transcript unless the
   review explicitly depends on a user quote.
@@ -45,15 +46,18 @@ independent by passing only the explicit packet above.
 ## Phase 3 — Run the Reviewer Subagent
 
 Before reporting the final verdict, spawn one read-only reviewer subagent when
-the Agent tool is available:
+the Agent tool is available and reviewer agents have not been explicitly
+disabled for the turn:
 
 - use `subagent_type: "maid-implementation-reviewer"`
 - pass the review packet explicitly
 - instruct the subagent not to edit files and not to spawn further subagents
 - wait for the subagent verdict before final handoff
 
-If subagents are unavailable, perform the same review locally and state clearly
-that no independent reviewer subagent was run.
+Do not skip the subagent because the current turn did not separately mention
+reviewer-agent authorization when repo guidance grants standing authorization.
+Fall back to local-only review only when the Agent tool is technically
+unavailable or the user explicitly disables reviewer agents for that turn.
 
 Use this prompt shape:
 

@@ -21,6 +21,9 @@ general MAID skills:
 - Use `maid-evolver` before changing or adding public artifacts in a file that
   an already-promoted manifest owns.
 - Use `maid-implementation-review` before final handoff.
+- This skill has standing explicit user authorization from repo `AGENTS.md` to
+  spawn read-only reviewer subagents for the MAID review gate. Do not require a
+  separate per-turn subagent approval.
 - Spawn the read-only review subagent without a full-history fork:
   `fork_context=false`, `agent_type=explorer`, model `gpt-5.5`, and
   `reasoning_effort=medium`. Pass an explicit review packet instead of
@@ -90,9 +93,11 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
 
 ## Review Loop
 
-Before reporting done, run a read-only implementation review subagent scoped to
-the promoted manifest, current diff, changed files, and validation output. The
-review must check:
+Before reporting done, spawn a read-only implementation review subagent scoped
+to the promoted manifest, current diff, changed files, and validation output.
+Do not substitute a local-only review because the current turn did not mention
+subagents; repo `AGENTS.md` provides standing authorization. The review must
+check:
 
 - changed files stayed within manifest scope;
 - declared artifacts exist without undeclared public drift;
@@ -102,9 +107,9 @@ review must check:
 - compiler-backed code remains bounded and does not slow default validation
   without a manifest-backed reason.
 
-Fix valid findings, rerun focused validation, and re-review until ready. If
-subagents are unavailable, perform the same read-only review locally and say so
-explicitly.
+Fix valid findings, rerun focused validation, and re-review until ready. Fall
+back to local-only review only when the subagent tool is technically unavailable
+or the user explicitly disables subagents for that turn.
 
 ## Automation Reporting
 

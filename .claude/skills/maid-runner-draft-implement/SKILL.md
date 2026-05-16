@@ -21,6 +21,9 @@ general MAID skills:
 - Use `maid-evolver` before changing or adding public artifacts in a file that
   an already-promoted manifest owns.
 - Use `maid-implementation-review` before final handoff.
+- This skill has standing explicit user authorization from repo guidance to use
+  the read-only `maid-implementation-reviewer` agent for the MAID review gate.
+  Do not require a separate per-turn reviewer-agent approval.
 - Use the Agent tool for the read-only review subagent with
   `subagent_type: "maid-implementation-reviewer"`. Pass an explicit review
   packet containing the manifest path, current changed files, diff summary, and
@@ -86,9 +89,11 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
 ## Review Loop
 
 Before reporting done, run a read-only implementation review with the Agent
-tool and `subagent_type: "maid-implementation-reviewer"`. The review packet
-must be self-contained and scoped to the promoted manifest, current diff,
-changed files, and validation output. The review must check:
+tool and `subagent_type: "maid-implementation-reviewer"`. Do not substitute a
+local-only review because the current turn did not mention reviewer agents; repo
+guidance provides standing authorization. The review packet must be
+self-contained and scoped to the promoted manifest, current diff, changed files,
+and validation output. The review must check:
 
 - changed files stayed within manifest scope;
 - declared artifacts exist without undeclared public drift;
@@ -98,9 +103,9 @@ changed files, and validation output. The review must check:
 - compiler-backed code remains bounded and does not slow default validation
   without a manifest-backed reason.
 
-Fix valid findings, rerun focused validation, and re-review until ready. If
-the Agent tool is unavailable, perform the same read-only review locally and
-say so explicitly.
+Fix valid findings, rerun focused validation, and re-review until ready. Fall
+back to local-only review only when the Agent tool is technically unavailable or
+the user explicitly disables reviewer agents for that turn.
 
 ## Automation Reporting
 

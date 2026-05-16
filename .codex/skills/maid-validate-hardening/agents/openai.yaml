@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Validate Hardening"
+  short_description: "Audit maid validate loopholes and draft hardening manifests"
+  default_prompt: "Use $maid-validate-hardening to audit maid validate for confirmed anti-gaming loopholes, save the findings, create a substantial draft-manifest hardening queue, self-review the plans, and run schema validation."

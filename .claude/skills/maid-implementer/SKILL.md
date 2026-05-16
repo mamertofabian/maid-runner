@@ -94,9 +94,10 @@ Before reporting completion, run a read-only MAID implementation review using th
 - validation passed
 - no implementation-phase drift or process violations were introduced
 
-When using a reviewer subagent, use a fresh read-only reviewer with an explicit
-review packet containing the manifest path, changed files, diff summary, and
-validation output. Do not rely on the full implementation transcript.
+Use a fresh read-only reviewer with an explicit review packet containing the
+manifest path, changed files, diff summary, and validation output. Do not rely
+on the full implementation transcript, and do not require separate per-turn
+reviewer-agent approval when repo guidance grants standing authorization.
 
 Treat the review verdict as a gate. Fix concrete implementation defects, rerun
 focused validation, and run another implementation review. Repeat until the
