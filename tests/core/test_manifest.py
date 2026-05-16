@@ -11,8 +11,10 @@ from maid_runner.core.manifest import (
     load_manifest_raw,
     save_manifest,
     slug_from_path,
+    validate_manifest_paths,
     validate_manifest_schema,
 )
+from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import (
     ArtifactSpec,
     ArtifactKind,
@@ -24,6 +26,7 @@ from maid_runner.core.types import (
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "manifests"
 V2_FIXTURES = FIXTURES_DIR / "v2"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestSlugFromPath:
@@ -304,6 +307,190 @@ validate:
         """Existing manifests without acceptance keep working."""
         manifest = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
         assert manifest.acceptance is None
+
+
+class TestValidateManifestPaths:
+    def test_validate_manifest_paths_rejects_parent_relative_file_spec(self, tmp_path):
+        path = tmp_path / "escape.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject escaped snapshot"
+type: fix
+files:
+  snapshot:
+    - path: ../outside.py
+      artifacts:
+        - kind: function
+          name: outside
+validate:
+  - pytest tests/test_escape.py -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == "../outside.py"
+        assert "project root" in errors[0].message
+
+    def test_validate_manifest_paths_rejects_absolute_files_read(self, tmp_path):
+        path = tmp_path / "escape-read.manifest.yaml"
+        absolute_test = tmp_path / "tests" / "test_abs.py"
+        path.write_text(
+            f"""schema: "2"
+goal: "Reject absolute read"
+type: fix
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - {absolute_test}
+validate:
+  - pytest tests/test_app.py -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == str(absolute_test)
+        assert "files.read" in errors[0].message
+
+    def test_validate_manifest_paths_rejects_validate_command_test_path_escape(
+        self, tmp_path
+    ):
+        path = tmp_path / "escape-validate.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject escaped validate command test path"
+type: fix
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest ../tests/test_escape.py -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == "../tests/test_escape.py"
+        assert "validate command test path" in errors[0].message
+
+    def test_validate_manifest_paths_rejects_validate_command_directory_escape(
+        self, tmp_path
+    ):
+        path = tmp_path / "escape-validate-dir.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject escaped validate command directory"
+type: fix
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest ../outside-suite -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == "../outside-suite"
+        assert "validate command test path" in errors[0].message
+
+    def test_validate_manifest_paths_rejects_acceptance_test_path_escape(
+        self, tmp_path
+    ):
+        path = tmp_path / "escape-acceptance.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject escaped acceptance test path"
+type: fix
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+acceptance:
+  tests:
+    - pytest ../acceptance/test_escape.py -v
+validate:
+  - pytest tests/test_app.py -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == "../acceptance/test_escape.py"
+        assert "acceptance test path" in errors[0].message
+
+    def test_validate_manifest_paths_rejects_acceptance_directory_escape(
+        self, tmp_path
+    ):
+        path = tmp_path / "escape-acceptance-dir.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject escaped acceptance directory"
+type: fix
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+acceptance:
+  tests:
+    - pytest ../acceptance-suite -v
+validate:
+  - pytest tests/test_app.py -v
+"""
+        )
+        manifest = load_manifest(path)
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location.file == "../acceptance-suite"
+        assert "acceptance test path" in errors[0].message
+
+    def test_validate_manifest_paths_accepts_project_local_loop_manifest_context(self):
+        for relative_path in (
+            "manifests/018-01-codex-maid-loop-automation.manifest.yaml",
+            "manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml",
+        ):
+            manifest = load_manifest(PROJECT_ROOT / relative_path)
+
+            assert validate_manifest_paths(manifest, PROJECT_ROOT) == []
 
     def test_load_with_temptations(self, tmp_path):
         content = """schema: "2"

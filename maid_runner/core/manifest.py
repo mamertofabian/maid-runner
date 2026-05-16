@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import shlex
-from typing import Union
+from typing import Iterable, Union
 
 import jsonschema
 import yaml
 
+from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import (
     AcceptanceConfig,
     ArgSpec,
@@ -27,6 +30,27 @@ from maid_runner.core.types import (
 )
 
 _SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
+_TEST_RUNNERS = {
+    "ava",
+    "cypress",
+    "jest",
+    "mocha",
+    "playwright",
+    "py.test",
+    "pytest",
+    "vitest",
+}
+_TEST_RUNNER_NON_PATH_VALUE_OPTIONS = {"-k", "-m", "-o", "-p"}
+_TEST_RUNNER_PATH_VALUE_OPTIONS = {
+    "--basetemp",
+    "--confcutdir",
+    "--cov",
+    "--deselect",
+    "--ignore",
+    "--ignore-glob",
+    "--junitxml",
+    "--rootdir",
+}
 
 
 class ManifestLoadError(Exception):
@@ -58,6 +82,186 @@ def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]
     schema = json.loads(schema_file.read_text())
     validator = jsonschema.Draft7Validator(schema)
     return [e.message for e in validator.iter_errors(data)]
+
+
+def validate_manifest_paths(
+    manifest: Manifest,
+    project_root: Union[str, Path],
+) -> list[ValidationError]:
+    """Validate every project-relative manifest path stays in project_root."""
+    root = Path(project_root)
+    errors: list[ValidationError] = []
+
+    for fs in manifest.files_create:
+        errors.extend(_validate_project_path(root, fs.path, "files.create path"))
+    for fs in manifest.files_edit:
+        errors.extend(_validate_project_path(root, fs.path, "files.edit path"))
+    for fs in manifest.files_snapshot:
+        errors.extend(_validate_project_path(root, fs.path, "files.snapshot path"))
+    for path in manifest.files_read:
+        errors.extend(_validate_project_path(root, path, "files.read path"))
+    for spec in manifest.files_delete:
+        errors.extend(_validate_project_path(root, spec.path, "files.delete path"))
+    for spec in manifest.removed_artifacts:
+        errors.extend(_validate_project_path(root, spec.file, "removed_artifacts file"))
+    for path, source in _test_paths_from_commands(
+        manifest.validate_commands,
+        source="validate command test path",
+    ):
+        errors.extend(_validate_project_path(root, path, source))
+    if manifest.acceptance is not None:
+        for path, source in _test_paths_from_commands(
+            manifest.acceptance.tests,
+            source="acceptance test path",
+        ):
+            errors.extend(_validate_project_path(root, path, source))
+
+    return errors
+
+
+def _validate_project_path(
+    project_root: Path,
+    path: str,
+    source: str,
+) -> list[ValidationError]:
+    candidate = Path(path)
+    if _path_is_within_project(project_root, candidate):
+        return []
+    return [
+        ValidationError(
+            code=ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+            message=(f"Manifest {source} '{path}' resolves outside the project root"),
+            location=Location(file=path),
+            suggestion=(
+                "Use a project-relative path inside the repository; absolute "
+                "and parent-relative paths are not allowed."
+            ),
+        )
+    ]
+
+
+def _path_is_within_project(project_root: Path, path: Path) -> bool:
+    if path.is_absolute():
+        return False
+    try:
+        root = project_root.resolve()
+        full_path = (project_root / path).resolve()
+        full_path.relative_to(root)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+def _test_paths_from_commands(
+    commands: Iterable[tuple[str, ...]],
+    *,
+    source: str,
+) -> Iterable[tuple[str, str]]:
+    for command in commands:
+        cwd = Path(".")
+        for segment in _command_segments(command):
+            if not segment:
+                continue
+            in_test_runner = False
+            skip_next_non_path_value = False
+            next_value_is_path = False
+            if segment[0] == "cd":
+                if len(segment) > 1:
+                    cwd = cwd / segment[1]
+                    yield str(cwd), f"{source} working directory"
+                continue
+            index = 0
+            while index < len(segment):
+                part = segment[index]
+                if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
+                    segment
+                ):
+                    cwd = cwd / segment[index + 1]
+                    yield str(cwd), f"{source} working directory"
+                    index += 2
+                    continue
+                if skip_next_non_path_value:
+                    skip_next_non_path_value = False
+                    index += 1
+                    continue
+                if next_value_is_path:
+                    next_value_is_path = False
+                    yield str(cwd / part), source
+                    index += 1
+                    continue
+                option_name, option_value = _split_command_option(part)
+                if in_test_runner and option_name in _TEST_RUNNER_PATH_VALUE_OPTIONS:
+                    if option_value is not None:
+                        yield str(cwd / option_value), source
+                    else:
+                        next_value_is_path = True
+                    index += 1
+                    continue
+                if (
+                    in_test_runner
+                    and option_name in _TEST_RUNNER_NON_PATH_VALUE_OPTIONS
+                ):
+                    if option_value is None:
+                        skip_next_non_path_value = True
+                    index += 1
+                    continue
+                if part.startswith("-"):
+                    index += 1
+                    continue
+                if _is_test_runner(part):
+                    in_test_runner = True
+                    index += 1
+                    continue
+                candidate = cwd / part
+                if _looks_like_manifest_test_path(part) or (
+                    in_test_runner and _looks_like_path_argument(part)
+                ):
+                    yield str(candidate), source
+                index += 1
+
+
+def _command_segments(command: tuple[str, ...]) -> list[list[str]]:
+    segments: list[list[str]] = [[]]
+    for part in command:
+        if part in {"&&", "||", ";"}:
+            segments.append([])
+        else:
+            segments[-1].append(part)
+    return segments
+
+
+def _looks_like_manifest_test_path(path: str) -> bool:
+    candidate = Path(path)
+    if is_test_file(path):
+        return True
+    test_dir_names = {"test", "tests", "__tests__", "spec", "specs"}
+    if any(part.lower() in test_dir_names for part in candidate.parts):
+        return True
+    return candidate.suffix in {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
+
+
+def _is_test_runner(part: str) -> bool:
+    name = Path(part).name
+    if name.endswith(".exe"):
+        name = name.removesuffix(".exe")
+    return name in _TEST_RUNNERS
+
+
+def _split_command_option(part: str) -> tuple[str, str | None]:
+    if not part.startswith("-"):
+        return part, None
+    option, separator, value = part.partition("=")
+    return option, value if separator else None
+
+
+def _looks_like_path_argument(part: str) -> bool:
+    if Path(part).is_absolute():
+        return True
+    return (
+        part.startswith(".")
+        or os.sep in part
+        or (os.altsep is not None and os.altsep in part)
+    )
 
 
 def load_manifest_raw(path: Union[str, Path]) -> dict:

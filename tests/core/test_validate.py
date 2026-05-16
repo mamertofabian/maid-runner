@@ -6,6 +6,7 @@ Golden test cases from 15-golden-tests.md sections 6 and 7.
 import pytest
 
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
 from maid_runner.core.validate import ValidationEngine, validate, _check_test_assertions
@@ -341,6 +342,61 @@ validate:
         assert result.success is False
         assert any(e.code == ErrorCode.FILE_SHOULD_BE_PRESENT for e in result.errors)
 
+    def test_validate_rejects_file_spec_path_that_escapes_project_root(self, project):
+        """Escaped file specs fail before the outside file can be read."""
+        outside = project.parent / "outside.py"
+        outside.write_text("def secret():\n    return 'leak'\n")
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "escaped-file.manifest.yaml",
+            """schema: "2"
+goal: "Reject escaped source"
+files:
+  edit:
+    - path: ../outside.py
+      artifacts:
+        - kind: function
+          name: secret
+validate:
+  - pytest tests/ -v
+""",
+        )
+
+        result = ValidationEngine(project_root=project).validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+
+        assert result.success is False
+        assert [error.code for error in result.errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert outside.read_text() == "def secret():\n    return 'leak'\n"
+
+    def test_validate_rejects_delete_path_that_escapes_project_root(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "escaped-delete.manifest.yaml",
+            """schema: "2"
+goal: "Reject escaped delete"
+files:
+  delete:
+    - path: ../outside.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+
+        result = ValidationEngine(project_root=project).validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+
+        assert result.success is False
+        assert [error.code for error in result.errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+
 
 class TestBehavioralValidation:
     def test_artifact_used_in_test_pass(self, project):
@@ -435,6 +491,44 @@ validate:
         assert any(
             e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for e in result.errors
         )
+
+    def test_behavioral_validate_rejects_escaped_test_path_from_files_read(
+        self, project
+    ):
+        outside_tests = project.parent / "tests"
+        outside_tests.mkdir()
+        (outside_tests / "test_secret.py").write_text(
+            "from src.greet import greet\n\n"
+            "def test_secret():\n"
+            "    assert greet() == 'hello'\n"
+        )
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "escaped-read.manifest.yaml",
+            """schema: "2"
+goal: "Reject escaped test read"
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - ../tests/test_secret.py
+validate:
+  - pytest tests/ -v
+""",
+        )
+
+        result = ValidationEngine(project_root=project).validate(
+            manifest_path,
+            mode=ValidationMode.BEHAVIORAL,
+        )
+
+        assert result.success is False
+        assert [error.code for error in result.errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
 
 
 class TestMissingAnnotationWarning:
@@ -609,6 +703,33 @@ validate:
         assert any(
             e.code == ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND for e in result.errors
         )
+
+    def test_validate_acceptance_rejects_escaped_acceptance_test_path(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "escaped-acceptance.manifest.yaml",
+            """schema: "2"
+goal: "Reject escaped acceptance"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: class
+          name: AuthService
+acceptance:
+  tests:
+    - pytest ../acceptance/test_auth.py -v
+validate:
+  - pytest tests/test_auth.py -v
+""",
+        )
+        manifest = load_manifest(manifest_path)
+
+        errors = ValidationEngine(project_root=project).validate_acceptance(manifest)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
 
     def test_no_acceptance_no_errors(self, project):
         """Manifest without acceptance -> no E500 errors."""
@@ -2437,9 +2558,7 @@ validate:
             e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors
         )
 
-    def test_validate_all_fails_when_manifest_dir_is_missing_by_default(
-        self, tmp_path
-    ):
+    def test_validate_all_fails_when_manifest_dir_is_missing_by_default(self, tmp_path):
         engine = ValidationEngine(tmp_path)
 
         result = engine.validate_all("missing-manifests")
@@ -2481,9 +2600,7 @@ validate:
         assert any(e.code == ErrorCode.EMPTY_MANIFEST_SET for e in result.chain_errors)
         assert "No active manifests discovered" in result.chain_errors[0].message
 
-    def test_validate_all_allows_empty_manifest_set_only_when_explicit(
-        self, tmp_path
-    ):
+    def test_validate_all_allows_empty_manifest_set_only_when_explicit(self, tmp_path):
         manifest_dir = tmp_path / "manifests"
         manifest_dir.mkdir()
         engine = ValidationEngine(tmp_path)
@@ -3863,7 +3980,7 @@ it("uses literal computed completion flags", () => {
         untested = [
             w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
-        assert not any("[\"audit-details\"]" in w.message for w in untested)
+        assert not any('["audit-details"]' in w.message for w in untested)
 
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""

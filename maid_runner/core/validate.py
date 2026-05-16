@@ -28,6 +28,7 @@ from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
     load_manifest,
+    validate_manifest_paths,
 )
 from maid_runner.core.result import (
     BatchValidationResult,
@@ -110,6 +111,18 @@ class ValidationEngine:
                         )
                     ],
                 )
+
+        path_errors = validate_manifest_paths(manifest, self._project_root)
+        if path_errors:
+            duration = (time.monotonic() - start) * 1000
+            return ValidationResult(
+                success=False,
+                manifest_slug=manifest.slug,
+                manifest_path=manifest.source_path,
+                mode=mode,
+                errors=path_errors,
+                duration_ms=duration,
+            )
 
         if mode == ValidationMode.SCHEMA:
             duration = (time.monotonic() - start) * 1000
@@ -267,6 +280,10 @@ class ValidationEngine:
         *,
         check_assertions: bool = False,
     ) -> list[ValidationError]:
+        path_errors = validate_manifest_paths(manifest, self._project_root)
+        if path_errors:
+            return path_errors
+
         errors: list[ValidationError] = []
 
         # Find test files
@@ -369,6 +386,10 @@ class ValidationEngine:
 
         if manifest.acceptance is None:
             return errors
+
+        path_errors = validate_manifest_paths(manifest, self._project_root)
+        if path_errors:
+            return path_errors
 
         for cmd in manifest.acceptance.tests:
             for part in cmd:
@@ -545,6 +566,10 @@ class ValidationEngine:
         *,
         check_stubs: bool = False,
     ) -> list[ValidationError]:
+        path_errors = validate_manifest_paths(manifest, self._project_root)
+        if path_errors:
+            return path_errors
+
         errors: list[ValidationError] = []
 
         # Check delete files

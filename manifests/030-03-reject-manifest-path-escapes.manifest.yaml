@@ -1,10 +1,8 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Reject manifest file paths that escape the project root"
 type: fix
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - manifest
     - path-safety
@@ -88,6 +86,51 @@ files:
                 export: validate_manifest_paths
           expected:
             behavior: "Path validation rejects the absolute path with a project-boundary error."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_validate_command_test_path_escape
+          source_scenario: "A parsed manifest declares a parent-relative test path in validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the extracted validate command test path with a project-boundary error."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_validate_command_directory_escape
+          source_scenario: "A parsed manifest declares a parent-relative directory argument to pytest in validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the escaped test runner directory even when the directory name does not contain test or spec."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_acceptance_test_path_escape
+          source_scenario: "A parsed manifest declares a parent-relative acceptance test path."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the acceptance test path with a project-boundary error."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_acceptance_directory_escape
+          source_scenario: "A parsed manifest declares a parent-relative directory argument to pytest in acceptance tests."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the escaped acceptance directory even when the directory name does not contain test or spec."
+        - kind: test_function
+          name: test_validate_manifest_paths_accepts_project_local_loop_manifest_context
+          source_scenario: "Historical MAID loop manifests previously referenced sibling-repo files in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation accepts the repaired manifests because remaining context paths are project-local."
     - path: tests/core/test_validate.py
       artifacts:
         - kind: test_function
@@ -117,8 +160,19 @@ files:
                 export: ValidationEngine
           expected:
             behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT instead of checking absence outside the repo."
+        - kind: test_function
+          name: test_validate_acceptance_rejects_escaped_acceptance_test_path
+          source_scenario: "A direct validate_acceptance call sees a parent-relative acceptance test path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Acceptance validation returns MANIFEST_PATH_OUTSIDE_PROJECT before checking for the outside test file."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+    - manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
     - maid_runner/core/_validation_test_artifacts.py
     - maid_runner/core/supersession_audit.py
     - tests/core/test_removed_artifacts.py

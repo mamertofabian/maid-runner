@@ -246,7 +246,5 @@ files:
           description: "Local-only Codex automation logs and caches"
   read:
     - manifests/018-01-codex-maid-loop-automation.manifest.yaml
-    - ../atomic-carpool/tools/codex_maid_loop.py
-    - ../atomic-carpool/tests/tools/test_codex_maid_loop.py
 validate:
   - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py
