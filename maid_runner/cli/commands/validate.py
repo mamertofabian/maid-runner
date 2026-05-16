@@ -41,7 +41,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 print(output)
 
             if args.coherence and result.success:
-                _print_coherence(args)
+                coherence = run_coherence(args.manifest_dir, args.json)
+                _print_coherence_result(coherence, json_mode=args.json)
+                if not coherence.success:
+                    return 1
 
             return 0 if result.success else 1
         else:
@@ -53,7 +56,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
             print(format_batch_result(batch, json_mode=args.json, quiet=args.quiet))
 
             if args.coherence and batch.success:
-                _print_coherence(args)
+                coherence = run_coherence(args.manifest_dir, args.json)
+                _print_coherence_result(coherence, json_mode=args.json)
+                if not coherence.success:
+                    return 1
 
             return 0 if batch.success else 1
     except Exception as e:
@@ -63,15 +69,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 def _run_coherence_only(args: argparse.Namespace) -> int:
     """Run only coherence checks, no structural validation."""
-    from pathlib import Path
-
-    from maid_runner.coherence.engine import CoherenceEngine
-    from maid_runner.core.chain import ManifestChain
-
     try:
-        chain = ManifestChain(args.manifest_dir)
-        engine = CoherenceEngine()
-        result = engine.validate(chain, project_root=Path.cwd())
+        result = run_coherence(args.manifest_dir, args.json)
         print(format_coherence_result(result, json_mode=args.json))
         return 0 if result.success else 1
     except Exception as e:
@@ -79,21 +78,25 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
         return 2
 
 
-def _print_coherence(args: argparse.Namespace) -> None:
-    """Run and print coherence checks as an addition to structural validation."""
+def run_coherence(manifest_dir: str, json_mode: bool) -> "CoherenceResult":
+    """Run coherence checks and return the result."""
     from pathlib import Path
 
     from maid_runner.coherence.engine import CoherenceEngine
+    from maid_runner.coherence.result import CoherenceResult
     from maid_runner.core.chain import ManifestChain
 
-    try:
-        chain = ManifestChain(args.manifest_dir)
-        engine = CoherenceEngine()
-        result = engine.validate(chain, project_root=Path.cwd())
-        print()
-        print(format_coherence_result(result, json_mode=args.json))
-    except Exception:
-        pass  # Coherence is best-effort when used as --coherence flag
+    del json_mode
+    chain = ManifestChain(manifest_dir)
+    engine = CoherenceEngine()
+    result: CoherenceResult = engine.validate(chain, project_root=Path.cwd())
+    return result
+
+
+def _print_coherence_result(result: "CoherenceResult", *, json_mode: bool) -> None:
+    """Print coherence output after structural validation output."""
+    print()
+    print(format_coherence_result(result, json_mode=json_mode))
 
 
 def _run_watch(args: argparse.Namespace) -> int:

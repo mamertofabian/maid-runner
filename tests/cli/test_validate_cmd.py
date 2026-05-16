@@ -484,6 +484,120 @@ class TestCmdValidateCoherenceOnly:
 
 
 class TestCmdValidateCoherenceFlag:
+    def test_coherence_flag_returns_1_when_coherence_errors(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-greet",
+                            "description": "greet module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/greet.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--coherence",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Coherence: FAIL" in captured.out
+        assert "greet module is blocked" in captured.out
+
+    def test_coherence_flag_json_reports_failure_and_exits_1(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-greet",
+                            "description": "greet module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/greet.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--coherence",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        decoder = json.JSONDecoder()
+        _, offset = decoder.raw_decode(captured.out)
+        coherence, _ = decoder.raw_decode(captured.out[offset:].lstrip())
+        assert coherence["success"] is False
+        assert coherence["errors"] == 1
+        assert coherence["issues"][0]["message"] == "greet module is blocked"
+
+    def test_coherence_flag_returns_2_when_coherence_cannot_run(
+        self, project_dir, capsys, monkeypatch
+    ):
+        from maid_runner.cli.commands import validate
+        from maid_runner.cli.commands.validate import run_coherence
+
+        assert callable(run_coherence)
+
+        def fail_coherence(manifest_dir, json_mode):
+            raise RuntimeError(f"cannot run coherence for {manifest_dir}")
+
+        monkeypatch.setattr(validate, "run_coherence", fail_coherence)
+
+        os.chdir(project_dir)
+        args = argparse.Namespace(
+            watch=False,
+            watch_all=False,
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            coherence=True,
+            coherence_only=False,
+        )
+
+        exit_code = validate.cmd_validate(args)
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        assert "cannot run coherence for manifests/" in captured.err
+
     def test_coherence_flag_appends_coherence_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 
