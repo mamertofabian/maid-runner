@@ -403,13 +403,46 @@ class TestCmdValidateAll:
         assert "total" in data
         assert "passed" in data
 
-    def test_validate_nonexistent_dir_returns_0(self, tmp_path, capsys):
+    def test_validate_nonexistent_dir_returns_1_by_default(self, tmp_path, capsys):
         from maid_runner.cli.commands._main import main
 
         os.chdir(tmp_path)
-        # Nonexistent manifest dir returns 0 (no manifests = nothing to fail)
         exit_code = main(["validate", "--manifest-dir", "nonexistent/"])
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E112" in captured.out
+        assert "nonexistent" in captured.out
+
+    def test_validate_empty_manifest_dir_returns_1_by_default(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        os.chdir(tmp_path)
+
+        exit_code = main(["validate"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E112" in captured.out
+        assert "No active manifests discovered" in captured.out
+
+    def test_validate_allow_empty_returns_0_for_empty_manifest_dir(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import build_parser
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        os.chdir(tmp_path)
+
+        args = build_parser().parse_args(["validate", "--allow-empty"])
+        assert args.allow_empty is True
+
+        exit_code = main(["validate", "--allow-empty"])
+
         assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Validation Results: 0 manifests" in captured.out
 
     def test_behavioral_mode(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main

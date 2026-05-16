@@ -25,6 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["schema", "behavioral", "implementation"],
     )
     p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Allow directory-wide validation to succeed when no active manifests are found",
+    )
     p.add_argument("--no-chain", action="store_true")
     p.add_argument(
         "--use-manifest-chain", action="store_true", help=argparse.SUPPRESS

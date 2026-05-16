@@ -163,19 +163,41 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         *,
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
+        allow_empty: bool = False,
     ) -> BatchValidationResult:
         start = time.monotonic()
         chain_dir = self._project_root / manifest_dir
 
         if not chain_dir.exists():
+            if not allow_empty:
+                duration = (time.monotonic() - start) * 1000
+                return _empty_manifest_set_result(
+                    chain_dir,
+                    message=f"Manifest directory not found: {chain_dir}",
+                    duration_ms=duration,
+                )
             return BatchValidationResult(
-                results=[], total_manifests=0, passed=0, failed=0, skipped=0
+                results=[],
+                total_manifests=0,
+                passed=0,
+                failed=0,
+                skipped=0,
+                duration_ms=(time.monotonic() - start) * 1000,
             )
 
         chain = ManifestChain(chain_dir, self._project_root)
 
         if mode == ValidationMode.SCHEMA:
             manifests = chain.all_manifests
+            if not manifests and not chain.load_errors and not allow_empty:
+                duration = (time.monotonic() - start) * 1000
+                return _empty_manifest_set_result(
+                    chain_dir,
+                    message=f"No active manifests discovered in {chain_dir}",
+                    chain_errors=chain.load_errors
+                    + chain.inactive_manifest_diagnostics(),
+                    duration_ms=duration,
+                )
             results: list[ValidationResult] = []
             for manifest in manifests:
                 result = self.validate(manifest, mode=mode)
@@ -197,6 +219,15 @@ class ValidationEngine:
         chain_errors = chain.diagnostics()
         active = chain.active_manifests()
         superseded = chain.superseded_manifests()
+
+        if not active and not allow_empty:
+            duration = (time.monotonic() - start) * 1000
+            return _empty_manifest_set_result(
+                chain_dir,
+                message=f"No active manifests discovered in {chain_dir}",
+                chain_errors=chain_errors,
+                duration_ms=duration,
+            )
 
         results: list[ValidationResult] = []
         passed = 0
@@ -848,10 +879,38 @@ def validate_all(
     *,
     mode: ValidationMode = ValidationMode.IMPLEMENTATION,
     project_root: Union[str, Path] = ".",
+    allow_empty: bool = False,
     registry: ValidatorRegistry | None = None,
 ) -> BatchValidationResult:
     engine = ValidationEngine(project_root=project_root, registry=registry)
-    return engine.validate_all(manifest_dir, mode=mode)
+    return engine.validate_all(manifest_dir, mode=mode, allow_empty=allow_empty)
+
+
+def _empty_manifest_set_result(
+    manifest_dir: Path,
+    *,
+    message: str,
+    chain_errors: list[ValidationError] | None = None,
+    duration_ms: float | None = None,
+) -> BatchValidationResult:
+    errors = list(chain_errors or [])
+    errors.append(
+        ValidationError(
+            code=ErrorCode.EMPTY_MANIFEST_SET,
+            message=message,
+            location=Location(file=str(manifest_dir)),
+            suggestion="Pass --allow-empty only when an empty manifest set is intentional.",
+        )
+    )
+    return BatchValidationResult(
+        results=[],
+        total_manifests=0,
+        passed=0,
+        failed=1,
+        skipped=0,
+        chain_errors=errors,
+        duration_ms=duration_ms,
+    )
 
 
 def _compare_artifacts(
