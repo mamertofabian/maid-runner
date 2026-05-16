@@ -170,7 +170,7 @@ class TestPrivateMembers:
     def test_privacy_detection(self, validator):
         source = """class Foo {
   public bar(): void {}
-  private _baz(): void {}
+  _baz(): void {}
 }
 """
         result = validator.collect_implementation_artifacts(source, "test.ts")
@@ -178,6 +178,42 @@ class TestPrivateMembers:
         baz = _find(result.artifacts, "_baz", of="Foo")
         assert bar is not None and bar.is_private is False
         assert baz is not None and baz.is_private is True
+
+    def test_private_and_protected_keyword_methods_are_not_public_artifacts(
+        self, validator
+    ):
+        source = """class Foo {
+  private hidden(): void {}
+  protected semiHidden(): void {}
+  private get secret(): string { return "secret"; }
+  protected set secret(value: string) {}
+  public shown(): void {}
+}
+"""
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        names = {artifact.qualified_name for artifact in result.artifacts}
+
+        assert "Foo.shown" in names
+        assert "Foo.hidden" not in names
+        assert "Foo.semiHidden" not in names
+        assert "Foo.secret" not in names
+
+    def test_public_accessor_survives_private_accessor_with_same_name(self, validator):
+        source = """class Meter {
+  public get size(): number { return 1; }
+  private set size(value: number) {}
+}
+"""
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        size_artifacts = [
+            artifact
+            for artifact in result.artifacts
+            if artifact.qualified_name == "Meter.size"
+        ]
+
+        assert len(size_artifacts) == 1
+        assert size_artifacts[0].returns == "number"
+        assert size_artifacts[0].args == ()
 
     def test_es_private_method(self, validator):
         """#name ES private methods must be collected and marked private."""

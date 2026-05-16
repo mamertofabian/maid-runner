@@ -223,6 +223,81 @@ export default (props: BannerProps): JSX.Element => {
     assert component.returns == "JSX.Element"
 
 
+def test_default_exported_memo_local_reference_is_collected_as_component() -> None:
+    source = """import { memo } from 'react';
+
+type RowProps = { label: string };
+
+function Row(props: RowProps): JSX.Element {
+  return <div>{props.label}</div>;
+}
+
+function localHelper(): string {
+  return 'hidden';
+}
+
+export default memo(Row);
+"""
+
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/components/Row.tsx"
+    )
+    names = {artifact.name for artifact in result.artifacts}
+    component = _artifact(result, "Row", ArtifactKind.FUNCTION)
+
+    assert result.errors == []
+    assert component.args[0].name == "props"
+    assert component.args[0].type == "RowProps"
+    assert component.returns == "JSX.Element"
+    assert "localHelper" not in names
+
+
+def test_default_exported_memo_named_inline_component_is_collected_as_component() -> (
+    None
+):
+    source = """import React from 'react';
+
+type RowProps = { label: string };
+
+export default React.memo(function Row(props: RowProps): JSX.Element {
+  return <div>{props.label}</div>;
+});
+"""
+
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/components/Row.tsx"
+    )
+    component = _artifact(result, "Row", ArtifactKind.FUNCTION)
+
+    assert result.errors == []
+    assert component.args[0].name == "props"
+    assert component.args[0].type == "RowProps"
+    assert component.returns == "JSX.Element"
+
+
+def test_default_exported_memo_anonymous_arrow_is_collected_as_default_function() -> (
+    None
+):
+    source = """import { memo } from 'react';
+
+type RowProps = { label: string };
+
+export default memo((props: RowProps): JSX.Element => {
+  return <div>{props.label}</div>;
+});
+"""
+
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/components/Row.tsx"
+    )
+    component = _artifact(result, "default", ArtifactKind.FUNCTION)
+
+    assert result.errors == []
+    assert component.args[0].name == "props"
+    assert component.args[0].type == "RowProps"
+    assert component.returns == "JSX.Element"
+
+
 def test_non_component_react_calls_remain_attributes() -> None:
     source = """import React from 'react';
 

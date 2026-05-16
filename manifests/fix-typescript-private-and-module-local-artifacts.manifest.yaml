@@ -1,0 +1,115 @@
+schema: "2"
+goal: "Stop TypeScript implementation validation from treating private class members and module-local declarations as public artifacts"
+type: fix
+created: "2026-05-16"
+metadata:
+  tags:
+    - typescript
+    - implementation-validation
+    - privacy
+    - artifact-collection
+  priority: high
+description: |
+  Fix TypeScript artifact collection so implementation validation does not
+  report E301 for declarations that are not part of a TypeScript module's
+  public surface.
+
+  The public validator entry point remains
+  TypeScriptValidator.collect_implementation_artifacts. Its behavior should
+  continue to collect public TypeScript artifacts, exported module attributes,
+  and script-style top-level declarations, while ignoring TypeScript
+  `private`/`protected` class methods/accessors and non-exported module-local
+  declarations in files that are ES modules.
+
+  Rationale: MAID strict implementation validation treats collected
+  non-private artifacts as manifest public contract. TypeScript's `private`
+  keyword and ES module export boundary must therefore be reflected by the
+  collector, otherwise large Angular components are forced to declare and test
+  implementation helpers such as private methods and local constants.
+temptations:
+  - risk: "Do not make manifests declare or test TypeScript private methods to silence E301."
+    instead: "Classify private/protected TypeScript class members as non-public collector output."
+  - risk: "Do not drop exported constants or React/Angular route attributes while hiding module-local constants."
+    instead: "Preserve exported variable declarations as public attributes and add regression coverage for exported constants."
+  - risk: "Do not make every top-level script declaration private."
+    instead: "Only apply the module-local export boundary when a file is an ES module with import/export syntax."
+  - risk: "Do not couple tests to private collector helpers."
+    instead: "Exercise behavior through TypeScriptValidator.collect_implementation_artifacts and ValidationEngine implementation checks."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: maid_runner/validators/_typescript_implementation.py
+      artifacts:
+        - kind: function
+          name: collect_implementation_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+          returns: list[FoundArtifact]
+    - path: tests/validators/test_typescript.py
+      artifacts:
+        - kind: test_function
+          name: test_privacy_detection
+        - kind: test_function
+          name: test_private_and_protected_keyword_methods_are_not_public_artifacts
+        - kind: test_function
+          name: test_public_accessor_survives_private_accessor_with_same_name
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_module_local_declarations_in_es_modules_are_not_public_artifacts
+        - kind: test_function
+          name: test_named_export_clause_keeps_local_declarations_public
+        - kind: test_function
+          name: test_export_assignment_keeps_local_declaration_public
+        - kind: test_function
+          name: test_script_style_top_level_declarations_remain_public_artifacts
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_mode_validates_declared_interface_members
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_private_keyword_methods
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_public_getter_with_private_setter
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_module_local_constants
+        - kind: test_function
+          name: test_typescript_strict_mode_still_flags_exported_undeclared_constants
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_export_assignment_target
+    - path: tests/validators/test_typescript_react.py
+      artifacts:
+        - kind: test_function
+          name: test_default_exported_memo_local_reference_is_collected_as_component
+        - kind: test_function
+          name: test_default_exported_memo_named_inline_component_is_collected_as_component
+        - kind: test_function
+          name: test_default_exported_memo_anonymous_arrow_is_collected_as_default_function
+  read:
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript_implementation_collector_refactor.py
+    - tests/validators/test_typescript_angular.py
+    - tests/core/test_validate_angular.py
+    - tests/core/test_validate_react.py
+    - manifests/029-02-move-typescript-implementation-collector-module.manifest.yaml
+    - manifests/028-06-split-typescript-implementation-artifact-collector.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_validate.py
+  - uv run python -m pytest -q tests/validators/test_typescript_react.py tests/validators/test_typescript_angular.py tests/core/test_validate_react.py tests/core/test_validate_angular.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

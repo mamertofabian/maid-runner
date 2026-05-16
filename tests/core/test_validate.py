@@ -212,6 +212,289 @@ validate:
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert result.success is True
 
+    def test_typescript_strict_mode_allows_private_keyword_methods(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-worker.manifest.yaml",
+            """schema: "2"
+goal: "Add worker"
+files:
+  create:
+    - path: src/worker.ts
+      artifacts:
+        - kind: class
+          name: Worker
+        - kind: method
+          name: run
+          of: Worker
+          args: []
+          returns: string
+  read:
+    - tests/worker.test.ts
+validate:
+  - vitest run tests/worker.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/worker.ts",
+            """export class Worker {
+  run(): string {
+    return this.format();
+  }
+
+  private format(): string {
+    return 'ok';
+  }
+
+  protected audit(): void {}
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/worker.test.ts",
+            """import { Worker } from '../src/worker';
+
+test('worker runs', () => {
+  expect(new Worker().run()).toBe('ok');
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is True
+        assert not any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_typescript_strict_mode_allows_public_getter_with_private_setter(
+        self, project
+    ):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-meter.manifest.yaml",
+            """schema: "2"
+goal: "Add meter"
+files:
+  create:
+    - path: src/meter.ts
+      artifacts:
+        - kind: class
+          name: Meter
+        - kind: method
+          name: size
+          of: Meter
+          args: []
+          returns: number
+  read:
+    - tests/meter.test.ts
+validate:
+  - vitest run tests/meter.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/meter.ts",
+            """export class Meter {
+  private value = 0;
+
+  public get size(): number {
+    return this.value;
+  }
+
+  private set size(value: number) {
+    this.value = value;
+  }
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/meter.test.ts",
+            """import { Meter } from '../src/meter';
+
+test('meter exposes size', () => {
+  expect(new Meter().size).toBe(0);
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is True
+        assert not any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_typescript_strict_mode_allows_module_local_constants(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-listing-component.manifest.yaml",
+            """schema: "2"
+goal: "Add listing component"
+files:
+  create:
+    - path: src/listing.component.ts
+      artifacts:
+        - kind: class
+          name: ListingComponent
+        - kind: method
+          name: render
+          of: ListingComponent
+          args: []
+          returns: string
+  read:
+    - tests/listing.component.test.ts
+validate:
+  - vitest run tests/listing.component.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/listing.component.ts",
+            """import { Component } from '@angular/core';
+
+const LCS_DEFAULT_POINTS: Record<string, number> = {};
+function localHelper(): number {
+  return 1;
+}
+
+export class ListingComponent {
+  render(): string {
+    return String(localHelper() + Object.keys(LCS_DEFAULT_POINTS).length);
+  }
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/listing.component.test.ts",
+            """import { ListingComponent } from '../src/listing.component';
+
+test('listing component renders', () => {
+  expect(new ListingComponent().render()).toBe('1');
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is True
+        assert not any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
+    def test_typescript_strict_mode_still_flags_exported_undeclared_constants(
+        self, project
+    ):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-listing-component.manifest.yaml",
+            """schema: "2"
+goal: "Add listing component"
+files:
+  create:
+    - path: src/listing.component.ts
+      artifacts:
+        - kind: class
+          name: ListingComponent
+        - kind: method
+          name: render
+          of: ListingComponent
+          args: []
+          returns: string
+  read:
+    - tests/listing.component.test.ts
+validate:
+  - vitest run tests/listing.component.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/listing.component.ts",
+            """import { Component } from '@angular/core';
+
+const LOCAL_POINTS: Record<string, number> = {};
+export const PUBLIC_POINTS: Record<string, number> = {};
+
+export class ListingComponent {
+  render(): string {
+    return String(Object.keys(LOCAL_POINTS).length);
+  }
+}
+""",
+        )
+        _write_source(
+            project,
+            "tests/listing.component.test.ts",
+            """import { ListingComponent } from '../src/listing.component';
+
+test('listing component renders', () => {
+  expect(new ListingComponent().render()).toBe('0');
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is False
+        unexpected_messages = [
+            e.message for e in result.errors if e.code == ErrorCode.UNEXPECTED_ARTIFACT
+        ]
+        assert any("PUBLIC_POINTS" in message for message in unexpected_messages)
+        assert not any("LOCAL_POINTS" in message for message in unexpected_messages)
+
+    def test_typescript_strict_mode_allows_export_assignment_target(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-create-config.manifest.yaml",
+            """schema: "2"
+goal: "Add CommonJS config factory"
+files:
+  create:
+    - path: src/create-config.cts
+      artifacts:
+        - kind: function
+          name: createConfig
+          args: []
+          returns: Config
+  read:
+    - tests/create-config.test.ts
+validate:
+  - vitest run tests/create-config.test.ts
+""",
+        )
+        _write_source(
+            project,
+            "src/create-config.cts",
+            """function createConfig(): Config {
+  return { ready: true };
+}
+
+function localHelper(): Config {
+  return createConfig();
+}
+
+export = createConfig;
+""",
+        )
+        _write_source(
+            project,
+            "tests/create-config.test.ts",
+            """import createConfig = require('../src/create-config');
+
+test('config can be created', () => {
+  expect(createConfig()).toEqual({ ready: true });
+});
+""",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is True
+        assert not any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
+
     def test_permissive_mode_extra_public_allowed(self, project):
         """Golden test 6.5: Edit mode allows extra public."""
         manifest_path = _write_manifest(
@@ -2437,9 +2720,7 @@ validate:
             e.code == ErrorCode.SCHEMA_VALIDATION_ERROR for e in result.chain_errors
         )
 
-    def test_validate_all_fails_when_manifest_dir_is_missing_by_default(
-        self, tmp_path
-    ):
+    def test_validate_all_fails_when_manifest_dir_is_missing_by_default(self, tmp_path):
         engine = ValidationEngine(tmp_path)
 
         result = engine.validate_all("missing-manifests")
@@ -2481,9 +2762,7 @@ validate:
         assert any(e.code == ErrorCode.EMPTY_MANIFEST_SET for e in result.chain_errors)
         assert "No active manifests discovered" in result.chain_errors[0].message
 
-    def test_validate_all_allows_empty_manifest_set_only_when_explicit(
-        self, tmp_path
-    ):
+    def test_validate_all_allows_empty_manifest_set_only_when_explicit(self, tmp_path):
         manifest_dir = tmp_path / "manifests"
         manifest_dir.mkdir()
         engine = ValidationEngine(tmp_path)
@@ -2654,7 +2933,7 @@ validate:
         _write_source(
             project,
             "src/auth.ts",
-            "interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+            "export interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
             "export function authenticate(): boolean { return true; }\n",
         )
         _add_test_file(project, "tests/test_auth.py", "src.auth", ["authenticate"])
@@ -2744,7 +3023,7 @@ validate:
         _write_source(
             project,
             "src/auth.ts",
-            "interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+            "export interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
             "export function authenticate(): boolean { return true; }\n",
         )
 
@@ -3863,7 +4142,7 @@ it("uses literal computed completion flags", () => {
         untested = [
             w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
-        assert not any("[\"audit-details\"]" in w.message for w in untested)
+        assert not any('["audit-details"]' in w.message for w in untested)
 
     def test_private_artifact_not_in_test_no_warning(self, project):
         """Private artifacts not in tests -> no warning (private is optional)."""
