@@ -26,8 +26,10 @@ def _reference_can_cover_artifact(
 ) -> bool:
     if reference.kind == ArtifactKind.TEST_FUNCTION:
         return False
-    if reference.reference_context in {"import", "local"}:
+    if reference.reference_context == "import":
         return False
+    if reference.reference_context == "local":
+        return artifact.kind == ArtifactKind.METHOD
     if reference.reference_context == "type" and artifact.kind not in {
         ArtifactKind.INTERFACE,
         ArtifactKind.TYPE,
@@ -97,6 +99,73 @@ def _module_import_should_block_name_fallback(artifact: FoundArtifact) -> bool:
     }
 
 
+def _module_scoped_artifact_requires_identity(artifact: FoundArtifact) -> bool:
+    return (
+        artifact.module_path is not None
+        and artifact.of is None
+        and artifact.kind
+        in {
+            ArtifactKind.CLASS,
+            ArtifactKind.ENUM,
+            ArtifactKind.FUNCTION,
+            ArtifactKind.INTERFACE,
+            ArtifactKind.TYPE,
+        }
+    )
+
+
+def _private_implementation_facade_module(
+    artifact: FoundArtifact,
+) -> Optional[str]:
+    if artifact.module_path is None:
+        return None
+    parts = artifact.module_path.replace("/", ".").split(".")
+    if not parts:
+        return None
+    leaf = parts[-1]
+    suffix = "_implementation"
+    if not (leaf.startswith("_") and leaf.endswith(suffix)):
+        return None
+    facade = leaf[1 : -len(suffix)]
+    if not facade:
+        return None
+    return ".".join([*parts[:-1], facade])
+
+
+def _module_name_matches(left: str, right: str) -> bool:
+    return left.replace("/", ".") == right.replace("/", ".")
+
+
+def _has_private_implementation_facade_reference(
+    references: Iterable[FoundArtifact],
+    artifact: FoundArtifact,
+) -> bool:
+    facade = _private_implementation_facade_module(artifact)
+    if facade is None:
+        return False
+    return any(
+        ref.import_source is not None
+        and _module_name_matches(ref.import_source, facade)
+        for ref in references
+    )
+
+
+def _reference_owner_can_cover_artifact(
+    reference: FoundArtifact,
+    artifact: FoundArtifact,
+) -> bool:
+    if (
+        artifact.kind != ArtifactKind.ATTRIBUTE
+        or reference.reference_context != "keyword"
+    ):
+        return True
+    if artifact.of is None:
+        return True
+    if reference.of is None:
+        return reference.import_source is None
+    return reference.of == artifact.of
+
+
 def _reference_can_block_name_fallback(
     reference: FoundArtifact,
     artifact: FoundArtifact,
@@ -154,6 +223,10 @@ def match_artifact_to_references(
         )
         for ref in refs
     )
+    has_private_facade_reference = _has_private_implementation_facade_reference(
+        refs,
+        artifact,
+    )
 
     for ref in refs:
         if not _reference_can_cover_artifact(ref, artifact):
@@ -161,9 +234,22 @@ def match_artifact_to_references(
         ref_name = ref.alias_of or ref.name
         if ref_name != artifact.name:
             continue
+        if not _reference_owner_can_cover_artifact(ref, artifact):
+            continue
 
         if ref.import_source is None:
             if has_artifact_identity_import:
+                continue
+            if (
+                ref.reference_context
+                in {
+                    "access",
+                    "call",
+                    "type",
+                }
+                and _module_scoped_artifact_requires_identity(artifact)
+                and not has_private_facade_reference
+            ):
                 continue
             return True
 

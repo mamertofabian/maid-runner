@@ -185,6 +185,9 @@ class _BehavioralCollector(ast.NodeVisitor):
             dict[str, tuple[Optional[str], Optional[str]]]
         ] = []
         self._local_module_import_scopes: list[dict[str, str]] = []
+        self._local_value_scopes: list[set[str]] = [set()]
+        self._object_owner_scopes: list[dict[str, tuple[Optional[str], str]]] = []
+        self._argument_name_scopes: list[set[str]] = []
         self._shadowed_import_scopes: list[set[str]] = []
         self._function_import_bound_scopes: list[set[str]] = []
 
@@ -193,11 +196,15 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._module_imports.clear()
         self._imported_names.clear()
         self._module_shadowed_imports.clear()
+        self._local_value_scopes[0].clear()
 
         if not isinstance(tree, ast.Module):
             return
         for statement in tree.body:
             self._apply_module_statement_binding(statement)
+            self._local_value_scopes[0].update(
+                _module_statement_local_value_bindings(statement)
+            )
 
     def _apply_module_statement_binding(self, statement: ast.stmt) -> None:
         if isinstance(statement, ast.ImportFrom):
@@ -268,7 +275,13 @@ class _BehavioralCollector(ast.NodeVisitor):
     ) -> None:
         self._imported_names[bound] = (source_module, alias_of)
         if namespace_root is None:
-            self._module_imports.pop(bound, None)
+            module_source = _module_member_import_source(
+                source_module, alias_of or bound
+            )
+            if module_source is None:
+                self._module_imports.pop(bound, None)
+            else:
+                self._module_imports[bound] = module_source
         else:
             self._module_imports[bound] = namespace_root
         self._module_shadowed_imports.discard(bound)
@@ -326,7 +339,13 @@ class _BehavioralCollector(ast.NodeVisitor):
         if self._local_import_scopes:
             for bound, source_module, alias_of in entries:
                 self._local_import_scopes[-1][bound] = (source_module, alias_of)
-                self._local_module_import_scopes[-1].pop(bound, None)
+                module_source = _module_member_import_source(
+                    source_module, alias_of or bound
+                )
+                if module_source is None:
+                    self._local_module_import_scopes[-1].pop(bound, None)
+                else:
+                    self._local_module_import_scopes[-1][bound] = module_source
         self._record_import_from_reference(node)
         self.generic_visit(node)
 
@@ -380,7 +399,12 @@ class _BehavioralCollector(ast.NodeVisitor):
                 )
             else:
                 context = (
-                    "local" if self._attribute_root_is_shadowed(node.func) else "call"
+                    "local"
+                    if (
+                        self._attribute_root_is_shadowed(node.func)
+                        or self._attribute_root_is_local_value(node.func)
+                    )
+                    else "call"
                 )
                 self._add_reference(node.func.attr, reference_context=context)
         for kw in node.keywords:
@@ -402,8 +426,16 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_Attribute(self, node: ast.Attribute) -> None:
         if not isinstance(node.ctx, ast.Load):
             return None
-        resolved = self._resolve_attribute_chain(node)
-        if resolved is not None:
+        owner_identity = self._object_owner_identity_for_member_access(node)
+        if owner_identity is not None:
+            source, owner = owner_identity
+            self._add_reference(
+                node.attr,
+                import_source=source,
+                of=owner,
+                reference_context="access",
+            )
+        elif (resolved := self._resolve_attribute_chain(node)) is not None:
             leaf, source = resolved
             self._add_reference(
                 leaf,
@@ -411,14 +443,35 @@ class _BehavioralCollector(ast.NodeVisitor):
                 reference_context="access",
             )
         else:
-            context = "local" if self._attribute_root_is_shadowed(node) else "access"
+            context = (
+                "local"
+                if (
+                    self._attribute_root_is_shadowed(node)
+                    or self._attribute_root_is_local_value(node)
+                )
+                else "access"
+            )
             self._add_reference(node.attr, reference_context=context)
         self.generic_visit(node)
 
     def visit_arg(self, node: ast.arg) -> None:
         return None
 
+    def visit_Assign(self, node: ast.Assign) -> None:
+        names: set[str] = set()
+        for target in node.targets:
+            _collect_target_bindings(target, names)
+        if self._assignment_value_is_local_value(node.value):
+            self._local_value_scopes[-1].update(names)
+        self._record_assignment_owner_bindings(node.targets, node.value)
+        self.visit(node.value)
+
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        names: set[str] = set()
+        _collect_target_bindings(node.target, names)
+        if self._assignment_value_is_local_value(node.value):
+            self._local_value_scopes[-1].update(names)
+        self._record_assignment_owner_bindings([node.target], node.value)
         self.visit(node.target)
         if node.value is not None:
             self.visit(node.value)
@@ -513,6 +566,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         return import_source, alias_of or name
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self._local_value_scopes[-1].add(node.name)
         is_top_level = self._function_depth == 0 and not self._class_stack
         self._class_stack.append(
             is_top_level and _is_pytest_discoverable_test_class(node)
@@ -521,6 +575,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._class_stack.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
             self._add_reference(node.name, reference_context="access")
@@ -531,17 +586,24 @@ class _BehavioralCollector(ast.NodeVisitor):
         )
         self._local_import_scopes.append({})
         self._local_module_import_scopes.append({})
+        self._local_value_scopes.append(set())
+        self._object_owner_scopes.append({})
+        self._argument_name_scopes.append(_argument_names(node.args))
         self._function_depth += 1
         try:
             self._visit_function_body(node)
         finally:
             self._function_depth -= 1
+            self._argument_name_scopes.pop()
+            self._object_owner_scopes.pop()
+            self._local_value_scopes.pop()
             self._local_module_import_scopes.pop()
             self._local_import_scopes.pop()
             self._function_import_bound_scopes.pop()
             self._shadowed_import_scopes.pop()
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
             self._add_reference(node.name, reference_context="access")
@@ -552,11 +614,17 @@ class _BehavioralCollector(ast.NodeVisitor):
         )
         self._local_import_scopes.append({})
         self._local_module_import_scopes.append({})
+        self._local_value_scopes.append(set())
+        self._object_owner_scopes.append({})
+        self._argument_name_scopes.append(_argument_names(node.args))
         self._function_depth += 1
         try:
             self._visit_function_body(node)
         finally:
             self._function_depth -= 1
+            self._argument_name_scopes.pop()
+            self._object_owner_scopes.pop()
+            self._local_value_scopes.pop()
             self._local_module_import_scopes.pop()
             self._local_import_scopes.pop()
             self._function_import_bound_scopes.pop()
@@ -638,6 +706,9 @@ class _BehavioralCollector(ast.NodeVisitor):
         local_import = self._resolve_local_imported_name(name)
         if local_import is not None:
             import_source, alias_of = local_import
+        elif self._name_is_local_value(name) and name not in self._imported_names:
+            self._add_reference(name, reference_context="local")
+            return
         elif self._name_is_function_import_bound(name):
             self._add_reference(name, reference_context="local")
             return
@@ -668,6 +739,86 @@ class _BehavioralCollector(ast.NodeVisitor):
                 return scope[name]
         return None
 
+    def _record_assignment_owner_bindings(
+        self,
+        targets: list[ast.expr],
+        value: Optional[ast.AST],
+    ) -> None:
+        if not self._object_owner_scopes:
+            return
+        names: set[str] = set()
+        for target in targets:
+            _collect_target_bindings(target, names)
+        if not names:
+            return
+        owner_identity = self._constructor_owner_identity(value)
+        scope = self._object_owner_scopes[-1]
+        for name in names:
+            if owner_identity is None:
+                scope.pop(name, None)
+            else:
+                scope[name] = owner_identity
+
+    def _constructor_owner_identity(
+        self,
+        value: Optional[ast.AST],
+    ) -> Optional[tuple[Optional[str], str]]:
+        if not isinstance(value, ast.Call):
+            return None
+        func = value.func
+        if isinstance(func, ast.Name):
+            identity = self._keyword_import_identity_for_name(func.id)
+            if identity is None:
+                return None
+            source, owner = identity
+            if _looks_like_constructor_owner(owner):
+                return source, owner
+            return None
+        if isinstance(func, ast.Attribute):
+            resolved = self._resolve_attribute_chain(func)
+            if resolved is not None:
+                owner, source = resolved
+                if _looks_like_constructor_owner(owner):
+                    return source, owner
+        return None
+
+    def _object_owner_identity_for_member_access(
+        self,
+        node: ast.Attribute,
+    ) -> Optional[tuple[Optional[str], str]]:
+        value = node.value
+        if isinstance(value, ast.Call):
+            return self._constructor_owner_identity(value)
+        if isinstance(value, ast.Name):
+            return self._resolve_object_owner(value.id)
+        return None
+
+    def _resolve_object_owner(
+        self,
+        name: str,
+    ) -> Optional[tuple[Optional[str], str]]:
+        for scope in reversed(self._object_owner_scopes):
+            if name in scope:
+                return scope[name]
+        return None
+
+    def _assignment_value_is_local_value(self, value: Optional[ast.AST]) -> bool:
+        if value is None:
+            return False
+        if isinstance(value, (ast.Lambda, ast.FunctionDef, ast.AsyncFunctionDef)):
+            return True
+        if isinstance(value, ast.Call):
+            return self._call_root_is_local_value(value.func)
+        return False
+
+    def _call_root_is_local_value(self, func: ast.expr) -> bool:
+        root = _callable_root_name(func)
+        return (
+            root is not None
+            and _looks_like_local_constructor_owner(root)
+            and self._name_is_local_value(root)
+        )
+
     def _push_function_shadow_scope(
         self,
         node: ast.FunctionDef | ast.AsyncFunctionDef,
@@ -689,13 +840,45 @@ class _BehavioralCollector(ast.NodeVisitor):
     def _name_is_function_import_bound(self, name: str) -> bool:
         return any(name in scope for scope in self._function_import_bound_scopes)
 
+    def _name_is_local_value(self, name: str) -> bool:
+        return any(name in scope for scope in self._local_value_scopes)
+
+    def _name_is_argument(self, name: str) -> bool:
+        return any(name in scope for scope in self._argument_name_scopes)
+
     def _attribute_root_is_shadowed(self, node: ast.Attribute) -> bool:
-        current: ast.expr = node
+        root = _attribute_root_name(node)
+        return root is not None and self._name_is_shadowed_import(root)
+
+    def _attribute_root_is_local_value(self, node: ast.Attribute) -> bool:
+        root = _attribute_root_name(node)
+        return (
+            root is not None
+            and not self._name_is_argument(root)
+            and self._name_is_local_value(root)
+        )
+
+
+def _attribute_root_name(node: ast.Attribute) -> Optional[str]:
+    current: ast.AST = node
+    while isinstance(current, ast.Attribute):
+        current = current.value
+    if isinstance(current, ast.Call):
+        current = current.func
         while isinstance(current, ast.Attribute):
             current = current.value
-        return isinstance(current, ast.Name) and self._name_is_shadowed_import(
-            current.id
-        )
+    if isinstance(current, ast.Name):
+        return current.id
+    return None
+
+
+def _callable_root_name(node: ast.expr) -> Optional[str]:
+    current: ast.AST = node
+    while isinstance(current, ast.Attribute):
+        current = current.value
+    if isinstance(current, ast.Name):
+        return current.id
+    return None
 
 
 def _all_imported_bound_names(tree: ast.AST) -> set[str]:
@@ -712,6 +895,22 @@ def _all_imported_bound_names(tree: ast.AST) -> set[str]:
     return names
 
 
+def _module_statement_local_value_bindings(statement: ast.stmt) -> set[str]:
+    if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return {statement.name}
+    if isinstance(statement, ast.Assign):
+        if isinstance(statement.value, ast.Lambda):
+            bindings: set[str] = set()
+            for target in statement.targets:
+                _collect_target_bindings(target, bindings)
+            return bindings
+    if isinstance(statement, ast.AnnAssign) and isinstance(statement.value, ast.Lambda):
+        bindings = set()
+        _collect_target_bindings(statement.target, bindings)
+        return bindings
+    return set()
+
+
 def _function_shadowed_imports(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
     imported_names: set[str],
@@ -721,6 +920,33 @@ def _function_shadowed_imports(
     for statement in node.body:
         _collect_statement_bindings(statement, bindings)
     return bindings & imported_names
+
+
+def _argument_names(args: ast.arguments) -> set[str]:
+    names: set[str] = set()
+    _collect_argument_names(args, names)
+    return names
+
+
+def _module_member_import_source(
+    source_module: Optional[str],
+    imported_name: str,
+) -> Optional[str]:
+    if not source_module or not _looks_like_module_member_import(imported_name):
+        return None
+    return f"{source_module}.{imported_name}"
+
+
+def _looks_like_module_member_import(name: str) -> bool:
+    return bool(name) and (name[0].islower() or name.startswith("_"))
+
+
+def _looks_like_constructor_owner(name: str) -> bool:
+    return bool(name) and (name[0].isupper() or name.startswith("_"))
+
+
+def _looks_like_local_constructor_owner(name: str) -> bool:
+    return bool(name) and name[0].isupper()
 
 
 def _function_import_bound_names(

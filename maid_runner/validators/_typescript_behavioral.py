@@ -242,6 +242,27 @@ def _scan_imports(
     for child in root.children:
         if child.type != "import_statement":
             continue
+        require_clause = _child_by_type(child, "import_require_clause")
+        if require_clause is not None:
+            spec_node = _child_by_type(require_clause, "string")
+            frag = _child_by_type(spec_node, "string_fragment") if spec_node else None
+            bound = _child_text(require_clause, "identifier", source)
+            if frag is not None and bound:
+                raw_specifier = _text(frag, source)
+                resolved = resolve_ts_import(
+                    raw_specifier,
+                    importer_module,
+                    project_root,
+                )
+                _record_import(
+                    bound,
+                    resolved,
+                    None,
+                    import_map,
+                    artifacts,
+                    seen,
+                )
+            continue
         spec_node = _child_by_type(child, "string")
         if spec_node is None:
             continue
@@ -411,15 +432,46 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
 
 
 def _member_root_name(node, source: bytes) -> Optional[str]:
-    current = node
-    while current is not None and current.type == "member_expression":
-        obj = None
-        for child in current.children:
-            if child.type in ("identifier", "member_expression"):
-                obj = child
-        current = obj
-    if current is not None and current.type == "identifier":
+    current = _member_root_node(node)
+    if current is not None:
         return _text(current, source)
+    return None
+
+
+def _member_root_node(node):
+    current = node
+    while current is not None:
+        if current.type == "identifier":
+            return current
+        if current.type == "member_expression":
+            obj = None
+            for child in current.children:
+                if child.type in {
+                    "identifier",
+                    "member_expression",
+                    "call_expression",
+                    "new_expression",
+                }:
+                    obj = child
+                    break
+            current = obj
+            continue
+        if current.type == "call_expression":
+            current = _call_function_node(current)
+            continue
+        if current.type == "new_expression":
+            next_node = None
+            for child in current.children:
+                if child.type in {
+                    "identifier",
+                    "member_expression",
+                    "call_expression",
+                }:
+                    next_node = child
+                    break
+            current = next_node
+            continue
+        return None
     return None
 
 
@@ -496,6 +548,24 @@ def _direct_block_binding_names(node, source: bytes) -> set[str]:
         if child.type in ("lexical_declaration", "variable_declaration"):
             _collect_declaration_bindings(child, source, names)
         elif child.type in (
+            "function_declaration",
+            "generator_function_declaration",
+            "class_declaration",
+            "abstract_class_declaration",
+            "enum_declaration",
+        ):
+            name = _child_text(child, "identifier", source) or _child_text(
+                child, "type_identifier", source
+            )
+            if name:
+                names.add(name)
+    return names
+
+
+def _direct_local_value_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type in (
             "function_declaration",
             "generator_function_declaration",
             "class_declaration",
@@ -670,6 +740,7 @@ class BehavioralReferenceCollector:
         self._namespace_imports: dict[str, str] = {}
         self._shadowable_import_names: set[str] = set()
         self._shadowed_import_scopes: list[set[str]] = []
+        self._local_value_scopes: list[set[str]] = []
         self._type_shadow_scopes: list[set[str]] = []
 
     def collect(self) -> list[FoundArtifact]:
@@ -698,9 +769,12 @@ class BehavioralReferenceCollector:
         Plain ``test_*`` helpers are treated as ordinary code references.
         """
         scope = self._shadowed_imports_for_scope(node)
+        local_scope = self._local_value_bindings_for_scope(node)
         type_scope = self._type_shadowed_names_for_scope(node)
         if scope:
             self._shadowed_import_scopes.append(scope)
+        if local_scope:
+            self._local_value_scopes.append(local_scope)
         if type_scope:
             self._type_shadow_scopes.append(type_scope)
         try:
@@ -736,12 +810,16 @@ class BehavioralReferenceCollector:
         finally:
             if type_scope:
                 self._type_shadow_scopes.pop()
+            if local_scope:
+                self._local_value_scopes.pop()
             if scope:
                 self._shadowed_import_scopes.pop()
 
     def _record_member_expression(self, node) -> None:
         root_name = _member_root_name(node, self._source)
-        if root_name and self._is_shadowed_import(root_name):
+        if root_name and (
+            self._is_shadowed_import(root_name) or self._is_local_value(root_name)
+        ):
             property_name = _member_property_name(node, self._source)
             if property_name:
                 self._record_local_reference(property_name)
@@ -804,6 +882,9 @@ class BehavioralReferenceCollector:
         if not name:
             return
         if self._is_shadowed_import(name):
+            self._record_local_reference(name)
+            return
+        if self._is_local_value(name):
             self._record_local_reference(name)
             return
         import_info = self._import_map.get(name)
@@ -896,12 +977,28 @@ class BehavioralReferenceCollector:
     def _is_shadowed_import(self, name: str) -> bool:
         return any(name in scope for scope in self._shadowed_import_scopes)
 
+    def _is_local_value(self, name: str) -> bool:
+        return any(name in scope for scope in self._local_value_scopes)
+
     def _is_type_shadowed(self, name: str) -> bool:
         return any(name in scope for scope in self._type_shadow_scopes)
 
     def _shadowed_imports_for_scope(self, node) -> set[str]:
+        return self._local_bindings_for_scope(node) & self._shadowable_import_names
+
+    def _local_value_bindings_for_scope(self, node) -> set[str]:
         names: set[str] = set()
-        if node.type in _FUNCTION_SCOPE_NODE_TYPES:
+        if node.type in {"program", "statement_block"}:
+            names.update(_direct_local_value_names(node, self._source))
+        elif node.type in {"switch_case", "switch_default"}:
+            names.update(_direct_local_value_names(node, self._source))
+        return names
+
+    def _local_bindings_for_scope(self, node) -> set[str]:
+        names: set[str] = set()
+        if node.type == "program":
+            names.update(_direct_block_binding_names(node, self._source))
+        elif node.type in _FUNCTION_SCOPE_NODE_TYPES:
             names.update(_parameter_binding_names(node, self._source))
             names.update(_function_var_binding_names(node, self._source))
         elif node.type == "statement_block":
@@ -911,7 +1008,7 @@ class BehavioralReferenceCollector:
         elif node.type in {"for_statement", "for_in_statement", "catch_clause"}:
             names.update(_control_flow_binding_names(node, self._source))
 
-        return names & self._shadowable_import_names
+        return names
 
     def _type_shadowed_names_for_scope(self, node) -> set[str]:
         names: set[str] = set()
