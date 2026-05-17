@@ -41,15 +41,21 @@ def _write_yaml(path: Path, data: dict) -> None:
     path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
-def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
+def _add_test_file(
+    project_dir, test_rel_path, source_module, artifact_names, exercise_lines=None
+):
     """Write a minimal test file that references the given artifacts."""
     public_names = [n for n in artifact_names if not n.startswith("_")]
     if not public_names:
         public_names = artifact_names
     imports = ", ".join(public_names)
-    tests = "\n".join(
-        f"def test_{n}():\n    assert {n} is not None\n" for n in public_names
-    )
+    exercise_lines = exercise_lines or {}
+    tests = []
+    for name in public_names:
+        body = exercise_lines.get(name, f"assert {name} is not None")
+        indented_body = "\n".join(f"    {line}" for line in body.splitlines())
+        tests.append(f"def test_{name}():\n{indented_body}\n")
+    tests = "\n".join(tests)
     content = f"from {source_module} import {imports}\n\n{tests}\n"
     path = project_dir / test_rel_path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -96,6 +102,13 @@ class TestV2ManifestValidatePass:
                     return f"Hello, {name}!"
             """
             )
+        )
+        _add_test_file(
+            project,
+            "tests/test_greet.py",
+            "src.greet",
+            ["greet"],
+            {"greet": 'assert greet("World") == "Hello, World!"'},
         )
 
         result = validate(
@@ -150,7 +163,18 @@ class TestV2ManifestValidatePass:
             """
             )
         )
-        _add_test_file(project, "tests/test_service.py", "src.service", ["AuthService"])
+        _add_test_file(
+            project,
+            "tests/test_service.py",
+            "src.service",
+            ["AuthService"],
+            {
+                "AuthService": (
+                    "service = AuthService()\n"
+                    'assert service.login("admin", "ignored") is True'
+                )
+            },
+        )
 
         result = validate(
             str(manifest_path),
@@ -414,10 +438,18 @@ class TestMultiFileChainMerge:
             )
         )
         _add_test_file(
-            project, "tests/test_service_base.py", "src.service", ["Service"]
+            project,
+            "tests/test_service_base.py",
+            "src.service",
+            ["Service"],
+            {"Service": "service = Service()\nservice.start()"},
         )
         _add_test_file(
-            project, "tests/test_service_stop.py", "src.service", ["Service"]
+            project,
+            "tests/test_service_stop.py",
+            "src.service",
+            ["Service"],
+            {"Service": "service = Service()\nservice.stop()"},
         )
 
         # Validate with chain

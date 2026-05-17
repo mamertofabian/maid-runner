@@ -613,7 +613,7 @@ class TestValidatorRegistryExtension:
         )
         (project / "src" / "helper.rb").write_text("def helper\n  :ok\nend\n")
         (project / "tests" / "test_helper.py").write_text(
-            "from src.helper import helper\n"
+            "from src.helper import helper\n\n" "def test_helper():\n" "    helper()\n"
         )
 
         registry = ValidatorRegistry.with_builtin_validators()
