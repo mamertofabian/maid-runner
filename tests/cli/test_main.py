@@ -96,6 +96,14 @@ class TestBuildParser:
         assert args.check_stubs is True
         assert args.fail_on_warnings is True
 
+    def test_validate_accepts_run_tests_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["validate", "--run-tests"])
+
+        assert args.run_tests is True
+
     def test_validate_quiet_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

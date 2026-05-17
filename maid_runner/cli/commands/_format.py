@@ -57,17 +57,33 @@ def format_validation_result(
     *,
     json_mode: bool = False,
     quiet: bool = False,
+    test_result: BatchTestResult | None = None,
+    tests_requested: bool = False,
 ) -> str:
     if json_mode:
+        if tests_requested or test_result is not None:
+            return json.dumps(
+                {
+                    "success": result.success
+                    and (test_result.success if test_result is not None else False),
+                    "validation": result.to_dict(),
+                    "tests": (
+                        _test_result_to_dict(test_result)
+                        if test_result is not None
+                        else None
+                    ),
+                },
+                indent=2,
+            )
         return result.to_json()
 
     if quiet:
         if result.success:
-            return ""
+            return _append_test_result("", test_result, quiet=quiet)
         lines = []
         for err in result.errors:
             lines.append(f"  {err.code.value} {err.message}")
-        return "\n".join(lines)
+        return _append_test_result("\n".join(lines), test_result, quiet=quiet)
 
     lines = []
     symbol = "PASS" if result.success else "FAIL"
@@ -86,7 +102,7 @@ def format_validation_result(
         for w in result.warnings:
             lines.append(f"    {w.code.value} {w.message}")
 
-    return "\n".join(lines)
+    return _append_test_result("\n".join(lines), test_result, quiet=quiet)
 
 
 def format_batch_result(
@@ -94,8 +110,24 @@ def format_batch_result(
     *,
     json_mode: bool = False,
     quiet: bool = False,
+    test_result: BatchTestResult | None = None,
+    tests_requested: bool = False,
 ) -> str:
     if json_mode:
+        if tests_requested or test_result is not None:
+            return json.dumps(
+                {
+                    "success": result.success
+                    and (test_result.success if test_result is not None else False),
+                    "validation": result.to_dict(),
+                    "tests": (
+                        _test_result_to_dict(test_result)
+                        if test_result is not None
+                        else None
+                    ),
+                },
+                indent=2,
+            )
         return json.dumps(result.to_dict(), indent=2)
 
     if quiet:
@@ -107,7 +139,7 @@ def format_batch_result(
                 lines.append(f"FAIL {r.manifest_slug}")
                 for err in r.errors:
                     lines.append(f"  {err.code.value} {err.message}")
-        return "\n".join(lines)
+        return _append_test_result("\n".join(lines), test_result, quiet=quiet)
 
     lines = []
     lines.append(f"Validation Results: {result.total_manifests} manifests")
@@ -129,7 +161,7 @@ def format_batch_result(
             lines.append("")
             lines.append(format_validation_result(r))
 
-    return "\n".join(lines)
+    return _append_test_result("\n".join(lines), test_result, quiet=quiet)
 
 
 def format_test_result(
@@ -139,28 +171,7 @@ def format_test_result(
     json_mode: bool = False,
 ) -> str:
     if json_mode:
-        return json.dumps(
-            {
-                "success": result.success,
-                "total": result.total,
-                "passed": result.passed,
-                "failed": result.failed,
-                "duration_ms": result.duration_ms,
-                "chain_errors": [e.to_dict() for e in result.chain_errors],
-                "results": [
-                    {
-                        "manifest": r.manifest_slug,
-                        "command": list(r.command),
-                        "exit_code": r.exit_code,
-                        "success": r.success,
-                        "duration_ms": r.duration_ms,
-                        "stream": r.stream.value,
-                    }
-                    for r in result.results
-                ],
-            },
-            indent=2,
-        )
+        return json.dumps(_test_result_to_dict(result), indent=2)
 
     acceptance = result.acceptance_results
     implementation = result.implementation_results
@@ -179,8 +190,7 @@ def format_test_result(
                 lines.append(f"  {err.code.value} {err.message}")
 
         for r in result.results:
-            symbol = "PASS" if r.success else "FAIL"
-            lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
+            lines.append(_format_test_command_line(r))
             if verbose and r.stdout:
                 for line in r.stdout.strip().splitlines():
                     lines.append(f"    {line}")
@@ -210,8 +220,7 @@ def format_test_result(
     lines.append(f"  Passed: {acc_passed}")
     lines.append(f"  Failed: {acc_failed}")
     for r in acceptance:
-        symbol = "PASS" if r.success else "FAIL"
-        lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
+        lines.append(_format_test_command_line(r))
         if verbose and r.stdout:
             for line in r.stdout.strip().splitlines():
                 lines.append(f"    {line}")
@@ -227,8 +236,7 @@ def format_test_result(
     lines.append(f"  Passed: {imp_passed}")
     lines.append(f"  Failed: {imp_failed}")
     for r in implementation:
-        symbol = "PASS" if r.success else "FAIL"
-        lines.append(f"  {symbol} [{r.manifest_slug}] {' '.join(r.command)}")
+        lines.append(_format_test_command_line(r))
         if verbose and r.stdout:
             for line in r.stdout.strip().splitlines():
                 lines.append(f"    {line}")
@@ -237,6 +245,50 @@ def format_test_result(
                 lines.append(f"    {line}")
 
     return "\n".join(lines)
+
+
+def _append_test_result(
+    formatted_validation: str,
+    test_result: BatchTestResult | None,
+    *,
+    quiet: bool,
+) -> str:
+    if test_result is None:
+        return formatted_validation
+    if quiet and test_result.success:
+        return formatted_validation
+    formatted_tests = format_test_result(test_result)
+    if not formatted_validation:
+        return formatted_tests
+    return f"{formatted_validation}\n\n{formatted_tests}"
+
+
+def _test_result_to_dict(result: BatchTestResult) -> dict:
+    return {
+        "success": result.success,
+        "total": result.total,
+        "passed": result.passed,
+        "failed": result.failed,
+        "duration_ms": result.duration_ms,
+        "chain_errors": [e.to_dict() for e in result.chain_errors],
+        "results": [
+            {
+                "manifest": r.manifest_slug,
+                "command": list(r.command),
+                "exit_code": r.exit_code,
+                "success": r.success,
+                "duration_ms": r.duration_ms,
+                "stream": r.stream.value,
+            }
+            for r in result.results
+        ],
+    }
+
+
+def _format_test_command_line(result) -> str:
+    symbol = "PASS" if result.success else "FAIL"
+    suffix = "" if result.success else f" (exit {result.exit_code})"
+    return f"  {symbol} [{result.manifest_slug}] {' '.join(result.command)}{suffix}"
 
 
 def format_file_tracking(

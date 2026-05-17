@@ -52,6 +52,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Return failure when validation warnings are present",
     )
     p.add_argument(
+        "--run-tests",
+        action="store_true",
+        help="Run manifest validate commands after structural validation succeeds",
+    )
+    p.add_argument(
         "--strict",
         action="store_true",
         help="Enable assertion checks, stub checks, and warning failure",

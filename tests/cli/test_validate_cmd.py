@@ -105,6 +105,44 @@ def failing_project(tmp_path):
     return tmp_path
 
 
+def _write_run_tests_project(tmp_path, slug: str, validate_command: str):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+
+    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (tests_dir / "test_gate.py").write_text(
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
+    )
+    manifest = {
+        "schema": "2",
+        "goal": "Exercise validate run-tests gate",
+        "type": "feature",
+        "files": {
+            "create": [
+                {
+                    "path": "src/gate.py",
+                    "artifacts": [
+                        {
+                            "kind": "function",
+                            "name": "gate",
+                            "returns": "str",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/test_gate.py"],
+        },
+        "validate": [validate_command],
+    }
+    manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    return manifest_path
+
+
 class TestCmdValidateSingleManifest:
     def test_cmd_validate_handler_is_directly_importable(self):
         from maid_runner.cli.commands.validate import cmd_validate
@@ -219,6 +257,175 @@ class TestCmdValidateSingleManifest:
         # Should return 1 (validation failure - manifest not found is a validation error)
         assert exit_code == 1
 
+    def test_validate_run_tests_returns_1_when_manifest_command_fails(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._format import format_test_result
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "PASS run-tests-fail" in captured.out
+        assert "Test Results: 1 commands" in captured.out
+        assert "FAIL [run-tests-fail]" in captured.out
+        assert "sys.exit(42)" in captured.out
+        assert "exit 42" in captured.out
+        assert callable(format_test_result)
+
+    def test_validate_run_tests_returns_0_when_structure_and_commands_pass(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+        from maid_runner.cli.commands.validate import run_validate_commands_for_result
+
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "run-tests-pass",
+            "python -c \"print('run tests passed')\"",
+        )
+
+        os.chdir(tmp_path)
+        helper_result = run_validate_commands_for_result(str(manifest_path))
+
+        assert helper_result.success is True
+
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-pass.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "PASS run-tests-pass" in captured.out
+        assert "Test Results: 1 commands" in captured.out
+        assert "PASS [run-tests-pass]" in captured.out
+
+    def test_validate_run_tests_json_includes_test_result(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-json",
+            "python -c \"print('json ok')\"",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-json.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is True
+        assert data["validation"]["success"] is True
+        assert data["validation"]["manifest"] == "run-tests-json"
+        assert data["tests"]["success"] is True
+        assert data["tests"]["total"] == 1
+        assert data["tests"]["results"][0]["exit_code"] == 0
+
+    def test_validate_run_tests_json_reports_null_tests_when_structure_fails(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-structure-fail",
+            "python -c \"open('ran.txt', 'w').write('ran')\"",
+        )
+        (tmp_path / "src" / "gate.py").write_text("# missing declared gate\n")
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-structure-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is False
+        assert data["validation"]["manifest"] == "run-tests-structure-fail"
+        assert data["tests"] is None
+        assert not (tmp_path / "ran.txt").exists()
+
+    def test_validate_run_tests_quiet_prints_failing_command(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-quiet-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-quiet-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--quiet",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "FAIL [run-tests-quiet-fail]" in captured.out
+        assert "exit 42" in captured.out
+
+    def test_validate_all_run_tests_quiet_prints_failing_command(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-quiet-batch-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--run-tests", "--quiet"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "FAIL [run-tests-quiet-batch-fail]" in captured.out
+        assert "exit 42" in captured.out
+
     def test_behavioral_mode_reports_test_function_behavior_warnings_by_default(
         self, tmp_path, capsys
     ):
@@ -293,7 +500,7 @@ class TestCmdValidateSingleManifest:
         (tmp_path / "tests").mkdir()
         (tmp_path / "src" / "greet.py").write_text("def greet():\n    return 'hello'\n")
         (tmp_path / "tests" / "test_greet.py").write_text(
-            "from src.greet import greet\n\n" "def test_greet():\n" "    greet()\n"
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n"
         )
         manifest = {
             "schema": "2",
@@ -405,7 +612,7 @@ class TestCmdValidateSingleManifest:
         (tmp_path / "tests").mkdir()
         (tmp_path / "src" / "greet.py").write_text("def greet():\n    pass\n")
         (tmp_path / "tests" / "test_greet.py").write_text(
-            "from src.greet import greet\n\n" "def test_greet():\n" "    greet()\n"
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n"
         )
         manifest = {
             "schema": "2",

@@ -15,6 +15,7 @@ from maid_runner.cli.commands._format import (
 
 if TYPE_CHECKING:
     from maid_runner.coherence.result import CoherenceResult
+    from maid_runner.core.result import BatchTestResult
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -53,8 +54,17 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,
             )
+            test_result = None
+            if result.success and getattr(args, "run_tests", False):
+                test_result = run_validate_commands_for_result(args.manifest_path)
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
-            output = format_validation_result(result, json_mode=args.json, quiet=quiet)
+            output = format_validation_result(
+                result,
+                json_mode=args.json,
+                quiet=quiet,
+                test_result=test_result,
+                tests_requested=getattr(args, "run_tests", False),
+            )
             if output:
                 print(output)
 
@@ -64,7 +74,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 if not coherence.success:
                     return 1
 
-            return 0 if result.success else 1
+            tests_success = test_result is None or test_result.success
+            return 0 if result.success and tests_success else 1
         else:
             batch = engine.validate_all(
                 args.manifest_dir,
@@ -78,7 +89,18 @@ def cmd_validate(args: argparse.Namespace) -> int:
             quiet = args.quiet and not _has_warning_failure(
                 batch, fail_on_warnings=fail_on_warnings
             )
-            print(format_batch_result(batch, json_mode=args.json, quiet=quiet))
+            test_result = None
+            if batch.success and getattr(args, "run_tests", False):
+                test_result = _run_validate_commands_for_batch(args.manifest_dir)
+            print(
+                format_batch_result(
+                    batch,
+                    json_mode=args.json,
+                    quiet=quiet,
+                    test_result=test_result,
+                    tests_requested=getattr(args, "run_tests", False),
+                )
+            )
 
             if args.coherence and batch.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
@@ -86,10 +108,31 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 if not coherence.success:
                     return 1
 
-            return 0 if batch.success else 1
+            tests_success = test_result is None or test_result.success
+            return 0 if batch.success and tests_success else 1
     except Exception as e:
         print_error(str(e), json_mode=args.json)
         return 2
+
+
+def run_validate_commands_for_result(
+    manifest_path: str,
+    fail_fast: bool = False,
+) -> BatchTestResult:
+    """Run a validated manifest's validate commands through the shared runner."""
+    from maid_runner.core.test_runner import run_manifest_tests
+
+    return run_manifest_tests(manifest_path, fail_fast=fail_fast)
+
+
+def _run_validate_commands_for_batch(
+    manifest_dir: str,
+    fail_fast: bool = False,
+) -> BatchTestResult:
+    """Run active manifest validate commands through the shared runner."""
+    from maid_runner.core.test_runner import run_tests
+
+    return run_tests(manifest_dir=manifest_dir, fail_fast=fail_fast)
 
 
 def _run_coherence_only(args: argparse.Namespace) -> int:
