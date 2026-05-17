@@ -2,127 +2,170 @@
 
 ## Purpose
 
-This document records confirmed `maid validate` loopholes that can let an AI agent claim MAID compliance without satisfying the real validation intent. The goal is to make the validator fail closed, produce automation-safe exit codes, and resist selective reporting of only the green parts of the workflow.
+This document records confirmed `maid validate` and `maid verify` loopholes
+that can let an AI agent claim MAID compliance without satisfying the real
+validation intent. The goal is fail-closed validation: a green command should
+mean the declared artifacts were covered by real, runnable tests inside the
+manifest boundary.
 
 MAID's core contract is:
 
 1. The manifest declares the intended file and artifact boundary.
 2. Behavioral tests prove the declared artifacts are exercised.
 3. Implementation validation proves the code defines the declared artifacts.
-4. The chain, coherence checks, file tracking, and validation commands make the result hard to game.
+4. Coherence, file tracking, worktree scope, and test execution make the result
+   hard to game.
 
-The findings below focus on places where that contract can currently be weakened.
+## Prior Hardening Wave
+
+The original `030` hardening backlog items have been promoted into active
+manifests:
+
+- `030-01` fails closed on missing or empty manifest discovery.
+- `030-02` makes `--coherence` affect `maid validate` exit status.
+- `030-03` rejects manifest paths that escape the project root.
+- `030-04` rejects duplicate YAML mapping keys.
+- `030-05` promotes missing behavioral coverage to E200 errors.
+- `030-06` exposes strict validation flags.
+- `030-07` adds file-tracking fail gates.
+- `030-08` adds `maid validate --run-tests`.
+- `030-09` adds a worktree scope gate.
+- `030-10` adds the combined `maid verify` done gate.
+
+Those items are no longer the active backlog. The current backlog below is the
+post-030 second pass.
 
 ## Confirmed Loopholes
 
-### 1. Empty Manifest Discovery Exits Green
+### 1. Name-Only Behavioral Coverage Still Covers Local Code
 
-**Scenario:** Running `maid validate --quiet` in a project with no `manifests/` directory returned exit code `0`.
+**Scenario:** A manifest declares `src/widget.py:update`, while the test file
+defines and calls its own local `update()` without importing `src.widget`.
+Implementation validation returned success.
 
-**Why this matters:** An agent can validate the wrong working directory, omit manifests entirely, or point `--manifest-dir` at a missing path and still report success.
+**Observed command and exit:** A throwaway project under `/tmp` was validated
+through `ValidationEngine.validate_all(..., mode=IMPLEMENTATION)`. The probe
+reported `no_import_local_function: success=True passed=1 failed=0`.
 
-**Code path:** `maid_runner/core/validate.py` returns an empty successful `BatchValidationResult` when the manifest directory does not exist.
+**Why this matters:** An agent can satisfy E200 by writing a local helper with
+the same name as the production artifact. This gives a green implementation
+gate without proving the production artifact is imported or exercised.
 
-**Closure shape:** Make missing or empty manifest discovery fail closed by default. Add an explicit `--allow-empty` or library option for bootstrap-only workflows that intentionally validate an empty manifest set.
+**Code path:** `maid_runner/core/identity.py::match_artifact_to_references`
+still accepts name-only fallback when no identity-bearing reference exists.
+Python and TypeScript behavioral collectors can emit local function calls as
+ordinary references with no `import_source`.
 
-### 2. `maid validate` Does Not Execute `validate:` Commands
+**Closure shape:** Require identity-backed coverage for declared production
+artifacts that have a known module path. Preserve legitimate imported calls and
+member access by enriching collectors where needed, not by restoring broad
+name-only fallback.
 
-**Scenario:** A manifest with `validate: python -c "raise SystemExit(42)"` passed `maid validate`, while `maid test --manifest ...` failed.
+### 2. Local Member Access Can Cover Declared Attributes
 
-**Why this matters:** `maid validate` can prove structural alignment while the actual behavioral command is red. An agent can report `maid validate` as the done gate and omit `maid test`.
+**Scenario:** A manifest declares `src/widget.py:Settings.timeout`. A test
+imports `Settings` only to cover the class, then asserts against
+`Local().timeout`. Implementation validation returned success. A test defining
+its own local `Settings.timeout` with no production import also returned
+success.
 
-**Code path:** `validate:` commands are used for test file discovery, but command execution is owned by `maid test`.
+**Observed command and exit:** Throwaway `ValidationEngine` probes reported
+`import_class_local_attribute success=True` and
+`local_same_class_attr_no_import success=True`.
 
-**Closure shape:** Add a combined strict gate command, or add `maid validate --run-tests` / `maid verify` that runs schema, behavioral, implementation, coherence, file tracking, and manifest test commands as one automation-safe gate.
+**Why this matters:** Class coverage and attribute coverage can be split across
+unrelated objects. A manifest can appear to cover a production class attribute
+while only touching a local fake.
 
-### 3. Behavioral Validation Accepts Tests With No Assertions
+**Code path:** `maid_runner/validators/python.py` records bare attribute names
+for unresolved member access, and `maid_runner/core/identity.py` allows
+name-only fallback for attributes when no matching identity-bearing attribute
+reference is present.
 
-**Scenario:** A test that only called the artifact, with no assertion, passed `maid validate --mode behavioral`.
+**Closure shape:** Attribute coverage should carry owner/module identity when
+it comes from an imported class/object, and unresolved local member access
+should not cover a declared owned production attribute.
 
-**Why this matters:** This satisfies "artifact is referenced" without proving observable behavior. It is a low-effort way for an agent to make behavioral validation green with weak tests.
+### 3. Verify Accepts Non-Test `validate:` Commands
 
-**Code path:** Assertion checking exists as `check_assertions=True` in the engine, but the CLI does not expose it and the default path does not enforce it.
+**Scenario:** A manifest lists a real test file in `files.read`, but its
+`validate:` command is `python -c 'raise SystemExit(0)'`. The static behavioral
+and implementation gates pass, the no-op command exits 0, and `maid verify`
+reports `PASS tests`.
 
-**Closure shape:** Add a CLI flag for assertion checks, include it in strict mode, and consider making assertion presence mandatory for feature/fix/refactor manifests.
+**Observed command and exit:** A throwaway project run through
+`maid_runner.cli.commands._main.main(["verify", "--keep-going"])` returned
+`exit=0` and printed all stages as passing.
 
-### 4. Untested Artifacts Are Warnings in Implementation Mode
+**Why this matters:** The combined done gate can execute no tests while still
+claiming that the tests stage passed. This is a direct selective-compliance
+path: the manifest can keep real tests in `files.read` for static reference
+collection but run an unrelated green command.
 
-**Scenario:** A manifest passed implementation validation with `E200 Artifact 'greet' not referenced in any test file` as a warning.
+**Code path:** `maid_runner/core/_validation_test_artifacts.py::find_test_files`
+uses `files.read` and `validate:` commands for static discovery, while
+`maid_runner/core/test_runner.py::run_tests` executes whatever commands the
+manifest declares. No gate verifies that executed commands are test-runner
+commands targeting the discovered test files.
 
-**Why this matters:** A public artifact can be declared and implemented while missing behavioral coverage, yet the command still exits `0`.
+**Closure shape:** Add a validation/test-command integrity check for
+non-snapshot feature, fix, and refactor manifests. `maid verify` and
+`maid validate --run-tests` should fail when a manifest has behavioral test
+files but no validate command that runs those tests through a recognized test
+runner.
 
-**Code path:** `_check_test_coverage` emits `ARTIFACT_NOT_USED_IN_TESTS` as `Severity.WARNING`.
+### 4. `maid verify` Is Not Strict By Default
 
-**Closure shape:** Promote E200 to an error for non-snapshot feature, fix, and refactor manifests. If warning behavior is still useful interactively, put it behind a permissive or advisory mode.
+**Scenario:** A test imports and calls a declared production artifact but has no
+assertions. `maid verify` exits 0 by default. `maid verify --strict` exits 1 on
+the same project.
 
-### 5. File Paths Can Escape the Project Root
+**Observed command and exit:** Throwaway probes reported
+`verify_no_assertions_default exit=0` and
+`verify_no_assertions_strict exit=1`.
 
-**Scenario:** A manifest with `path: ../outside.py` passed implementation validation against a file outside the project root.
+**Why this matters:** The command positioned as the automation-safe done gate
+still allows assertion-free behavioral tests unless the caller remembers to add
+`--strict`. An agent can claim `maid verify` passed while tests only execute
+the artifact without checking observable behavior.
 
-**Why this matters:** A manifest can validate files outside the repository, bypassing the intended project boundary and weakening auditability.
+**Code path:** `maid_runner/cli/commands/verify.py::cmd_verify` only enables
+assertion checks, stub checks, and warning failure when `--strict` or individual
+strict flags are passed.
 
-**Code path:** Normal `files.create`, `files.edit`, `files.snapshot`, `files.read`, and `files.delete` paths are joined with `project_root` without the containment checks already used by `removed_artifacts`.
-
-**Closure shape:** Add a shared project-relative path validator for every manifest path field. Reject absolute paths, parent-relative escapes, and normalized paths outside the project root.
-
-### 6. Duplicate YAML Keys Are Silently Overwritten
-
-**Scenario:** A manifest with two top-level `files:` keys passed schema validation; YAML loading kept only the later key.
-
-**Why this matters:** A manifest can appear to declare one contract to a reviewer while the parser validates a different contract. This is a direct review and audit-integrity risk.
-
-**Code path:** `load_manifest_raw` uses `yaml.safe_load`, which does not reject duplicate mapping keys.
-
-**Closure shape:** Use a YAML loader that rejects duplicate keys with a manifest parse error. Add tests for duplicate top-level and nested keys.
-
-### 7. Undeclared Production Files Do Not Fail `maid validate`
-
-**Scenario:** A project with `src/backdoor.py` outside all manifests passed `maid validate`; `maid files --json` reported the file as undeclared but exited `0`.
-
-**Why this matters:** An agent can add unmanifested production code and still pass the primary validation command.
-
-**Code path:** File tracking is separate from `maid validate`; `run_file_tracking` reports undeclared files but does not act as a failing validation gate.
-
-**Closure shape:** Add `maid validate --file-tracking` or include file tracking in strict mode. Make `maid files --fail-on undeclared` available for CI and agent workflows.
-
-### 8. `maid validate --coherence` Does Not Affect Exit Status
-
-**Scenario:** A forced coherence error printed `Coherence: FAIL`, but `maid validate --coherence` still exited `0`.
-
-**Why this matters:** Automation sees success even when architectural coherence fails. An agent can quote the green structural status and ignore the printed coherence failure.
-
-**Code path:** `cmd_validate` prints coherence after structural success but returns only the structural validation result. `_print_coherence` also swallows coherence exceptions.
-
-**Closure shape:** Make `--coherence` participate in the exit code. Stop swallowing coherence exceptions; represent them as structured validation failures or command errors.
+**Closure shape:** Make `maid verify` strict by default, with an explicit
+advisory escape hatch if interactive workflows still need permissive behavior.
+The JSON and text output should make strict failures visible and structured.
 
 ## Gradual Closure Backlog
 
-1. Fail closed on missing or empty manifest discovery unless explicitly allowed.
-2. Make `--coherence` affect `maid validate` exit status and stop swallowing coherence exceptions.
-3. Enforce project-root containment for every manifest path field.
-4. Reject duplicate YAML mapping keys during manifest loading.
-5. Add strict mode that turns validator warnings into failures.
-6. Promote E200 test-coverage misses to errors for feature, fix, and refactor manifests.
-7. Expose assertion and stub checks in the CLI and include them in strict mode.
-8. Add a worktree scope gate: changed production files must be declared in `files.create`, `files.edit`, or `files.delete`.
-9. Add failing file-tracking options for undeclared and read-only-only production files.
-10. Add a combined `maid verify` or equivalent done gate that runs structural validation, behavioral validation, implementation validation, coherence, file tracking, and manifest test commands together.
+1. Require identity-backed behavioral coverage for production artifacts.
+2. Reject local member access as owned production attribute coverage unless it
+   carries owner/module identity.
+3. Fail `maid verify` and `maid validate --run-tests` when `validate:` commands
+   do not run the manifest's behavioral test files.
+4. Make `maid verify` strict by default.
+5. After those gates are stable, consider making strict identity coverage and
+   assertion enforcement the default for directory-wide `maid validate` in a
+   major-version release.
 
 ## Suggested Acceptance Criteria
 
-For each closure item, include adversarial tests that prove the old gaming path fails:
+For each closure item, include adversarial tests that prove the old gaming path
+fails:
 
-- The command exits non-zero.
-- JSON output reports a structured error code.
-- Text output names the exact file, manifest, or command that caused failure.
-- The failure cannot be bypassed by selecting only one validation mode unless the user explicitly chooses an advisory/permissive mode.
+- The command exits non-zero or the API result has `success=False`.
+- JSON output reports a structured error code and location when the entry point
+  is CLI-facing.
+- Text output names the exact manifest, file, artifact, or command that failed.
+- Positive tests prove legitimate imported artifact use still passes.
+- No closure relies on documentation telling agents to run a different command.
 
 ## Verification Notes
 
-The scenarios were exercised with throwaway projects under `/tmp` using the local CLI entry point. Repo schema validation was also checked with:
+The current findings were exercised with throwaway projects under `/tmp` using
+local `ValidationEngine` calls and the local CLI entry point via
+`maid_runner.cli.commands._main.main`.
 
-```bash
-UV_CACHE_DIR=/tmp/uv-cache uv run maid validate --mode schema --quiet
-```
-
-That command passed.
+New planning inventory was added under `manifests/drafts/032-*` for the
+post-030 hardening pass. Drafts are inactive planning artifacts until promoted.

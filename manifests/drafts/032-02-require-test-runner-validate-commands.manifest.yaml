@@ -1,0 +1,135 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Require done-gate validate commands to run behavioral test files"
+type: fix
+created: "2026-05-17"
+metadata:
+  status: draft
+  tags:
+    - validate
+    - verify
+    - test-runner
+    - anti-gaming
+  priority: critical
+description: |
+  Close the loophole where a manifest can list real behavioral tests in
+  files.read, then declare a no-op `validate:` command such as
+  `python -c 'raise SystemExit(0)'`. Static behavioral validation passes
+  because it reads the test file, and `maid verify` passes because the no-op
+  command exits 0.
+
+  Add a command-integrity gate for automation done paths. For non-snapshot
+  feature, fix, and refactor manifests that have behavioral test files, the
+  done gate must verify that at least one validate command invokes a recognized
+  test runner and targets the discovered test files or a containing test
+  directory. `maid verify` and `maid validate --run-tests` must fail closed on
+  no-op or unrelated commands.
+temptations:
+  - risk: "Do not inspect only whether the validate command exits 0."
+    instead: "Check that the command is structurally a test-runner command targeting the manifest's behavioral tests."
+  - risk: "Do not break legitimate pytest directory targets."
+    instead: "Accept recognized test-runner commands that target a containing tests directory."
+  - risk: "Do not make static files.read discovery count as executed tests."
+    instead: "Require the executed validate command to cover the discovered tests."
+  - risk: "Do not hide the failure in text-only output."
+    instead: "Emit a structured error code and name the offending manifest command."
+  - risk: "Do not accept collection-only, help, dry-run, or list-only test-runner invocations as executed tests."
+    instead: "Reject known non-executing test-runner options or require evidence that the command actually runs the selected test files."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+          of: ErrorCode
+          type: str
+          description: "Structured error code for a validate command set that does not execute discovered behavioral tests."
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: find_test_files
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[str]
+        - kind: function
+          name: validate_manifest_test_commands
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[ValidationError]
+          description: "Return structured errors when validate commands do not run the manifest's discovered behavioral tests."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Apply validate-command integrity before executing --run-tests."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: run_verify
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+          returns: VerificationResult
+          description: "Include validate-command integrity as part of the tests stage or a visible pre-test stage."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_run_tests_rejects_noop_validate_command
+          source_scenario: "A manifest has a real behavioral test in files.read but validate contains only a no-op Python command."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 1 and reports VALIDATE_COMMAND_DOES_NOT_RUN_TESTS."
+        - kind: test_function
+          name: test_validate_run_tests_accepts_pytest_directory_covering_test_file
+          source_scenario: "A manifest has a behavioral test in files.read and validate runs pytest against the containing tests directory."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests proceeds to execute the command."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_rejects_noop_validate_command_for_behavioral_tests
+          source_scenario: "A project has a valid manifest and behavioral test file, but validate is a no-op Python command."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 1 and reports the validate-command integrity error."
+        - kind: test_function
+          name: test_verify_accepts_test_runner_validate_command
+          source_scenario: "A project has a valid manifest whose validate command runs pytest against the declared test file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 0 when every stage and the real test command pass."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/030-08-add-validate-run-tests-gate.manifest.yaml
+    - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/manifest.py
+    - tests/core/test_validation_test_artifacts.py
+    - tests/core/test_test_runner.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py tests/core/test_validation_test_artifacts.py tests/core/test_test_runner.py

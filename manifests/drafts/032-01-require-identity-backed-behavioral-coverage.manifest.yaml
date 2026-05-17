@@ -1,0 +1,121 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Require identity-backed behavioral coverage for production artifacts"
+type: fix
+created: "2026-05-17"
+metadata:
+  status: draft
+  tags:
+    - behavioral-coverage
+    - identity
+    - anti-gaming
+  priority: critical
+description: |
+  Close the remaining name-only behavioral coverage loophole. A test that
+  defines or calls a local helper with the same name as a production artifact
+  must not satisfy E200 coverage for that artifact. A test that touches a local
+  object member named like a declared owned production attribute must not cover
+  that production attribute.
+
+  Preserve legitimate coverage by carrying identity through imported calls and
+  imported member access. The fix should fail closed for artifacts with known
+  module identity while avoiding a broad parser rewrite.
+temptations:
+  - risk: "Do not solve false positives by dropping attribute coverage entirely."
+    instead: "Preserve positive cases where imported constructors or objects provide owner/module identity for the member access."
+  - risk: "Do not add a new permissive fallback for test files with no imports."
+    instead: "Require identity evidence for module-scoped production artifacts when the validator knows the artifact module."
+  - risk: "Do not make TypeScript and Python diverge on the same local-helper bypass."
+    instead: "Add paired Python and TypeScript adversarial tests for local same-name functions."
+  - risk: "Do not update old tests with placeholder imports only."
+    instead: "Update affected tests to exercise the real imported artifact."
+files:
+  edit:
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+          description: "Match behavioral references to declared artifacts without accepting local name-only coverage for module-identified production artifacts."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+          description: "Collect Python behavioral references with enough import and owner identity to distinguish real production member access from local member access."
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+          description: "Collect TypeScript behavioral references without letting local same-name functions cover production artifacts."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_python_local_function_without_identity_import_does_not_cover_artifact
+          source_scenario: "A manifest declares src.widget.update, while the Python test defines and calls a local update function without importing src.widget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because local same-name code is not production artifact coverage."
+        - kind: test_function
+          name: test_typescript_local_function_without_identity_import_does_not_cover_artifact
+          source_scenario: "A manifest declares src/widget.ts update, while the TypeScript test defines and calls a local update function without importing src/widget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because local same-name TypeScript code is not production artifact coverage."
+        - kind: test_function
+          name: test_python_local_attribute_without_owner_identity_does_not_cover_declared_attribute
+          source_scenario: "A manifest declares Settings.timeout, while the test asserts Local().timeout or a local Settings.timeout without exercising the production Settings attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 for the production attribute."
+        - kind: test_function
+          name: test_python_imported_class_member_access_covers_owned_attribute
+          source_scenario: "A Python test imports Settings from src.widget and reads Settings().timeout."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because the member access is tied to the imported production owner."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - maid_runner/validators/base.py
+    - tests/core/test_identity_matching.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_typescript_identity.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/core/test_identity_matching.py tests/validators/test_python_identity.py tests/validators/test_typescript_identity.py
