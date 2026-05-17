@@ -27,9 +27,9 @@ class TestChainSubparserRegistered:
                 for name, sub in action.choices.items():
                     subcommands[name] = sub
 
-        assert "chain" in subcommands, (
-            f"Expected 'chain' subcommand, got: {list(subcommands.keys())}"
-        )
+        assert (
+            "chain" in subcommands
+        ), f"Expected 'chain' subcommand, got: {list(subcommands.keys())}"
 
     def test_build_parser_chain_has_log_subcommand(self) -> None:
         from maid_runner.cli.commands._main import build_parser
@@ -50,9 +50,9 @@ class TestChainSubparserRegistered:
                 for name, sub in action.choices.items():
                     chain_subs[name] = sub
 
-        assert "log" in chain_subs, (
-            f"Expected 'log' sub-subcommand, got: {list(chain_subs.keys())}"
-        )
+        assert (
+            "log" in chain_subs
+        ), f"Expected 'log' sub-subcommand, got: {list(chain_subs.keys())}"
 
 
 # ---------------------------------------------------------------------------
