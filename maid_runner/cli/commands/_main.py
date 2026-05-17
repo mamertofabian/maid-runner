@@ -100,6 +100,44 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-batch", action="store_const", const=False, dest="batch"
     )
 
+    # maid verify
+    p = sub.add_parser("verify", help="Run the full MAID verification gate")
+    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument("--allow-empty", action="store_true")
+    verify_fast = p.add_mutually_exclusive_group()
+    verify_fast.add_argument(
+        "--fail-fast",
+        action="store_true",
+        dest="fail_fast",
+        default=True,
+        help="Stop after the first failing verification stage",
+    )
+    verify_fast.add_argument(
+        "--keep-going",
+        action="store_false",
+        dest="fail_fast",
+        help="Run remaining verification stages after a failure",
+    )
+    p.add_argument("--check-assertions", action="store_true")
+    p.add_argument("--check-stubs", action="store_true")
+    p.add_argument("--fail-on-warnings", action="store_true")
+    p.add_argument(
+        "--strict",
+        action="store_true",
+        help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
+        "--worktree-scope",
+        action="store_true",
+        help="Require the git worktree-scope gate",
+    )
+    p.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Include changed test files in the worktree-scope gate",
+    )
+    p.add_argument("--json", action="store_true")
+
     # maid snapshot
     p = sub.add_parser("snapshot", help="Generate manifest from existing code")
     p.add_argument("file_path")
@@ -258,6 +296,7 @@ def main(argv: list[str] | None = None) -> int:
     dispatch = {
         "validate": "_cmd_validate",
         "test": "_cmd_test",
+        "verify": "_cmd_verify",
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
@@ -282,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     from maid_runner.cli.commands import (
         validate as validate_mod,
         test as test_mod,
+        verify as verify_mod,
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
         init as init_mod,
@@ -298,6 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     handlers = {
         "_cmd_validate": validate_mod.cmd_validate,
         "_cmd_test": test_mod.cmd_test,
+        "_cmd_verify": verify_mod.cmd_verify,
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,

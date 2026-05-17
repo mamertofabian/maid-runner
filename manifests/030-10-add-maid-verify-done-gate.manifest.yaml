@@ -96,6 +96,24 @@ files:
                 export: main
           expected:
             behavior: "JSON output contains schema, behavioral, implementation, coherence, file_tracking, and tests stage objects."
+        - kind: test_function
+          name: test_verify_allow_empty_returns_0_without_manifest_directory
+          source_scenario: "A caller explicitly allows an empty manifest directory during bootstrap."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify --allow-empty exits 0 and reports skipped manifest-dependent stages visibly."
+        - kind: test_function
+          name: test_verify_json_worktree_scope_reports_structured_errors
+          source_scenario: "A git worktree has an out-of-scope changed production file and JSON output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output preserves the worktree-scope E114 code, location, and message details."
   edit:
     - path: maid_runner/core/result.py
       artifacts:

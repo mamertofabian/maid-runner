@@ -11,6 +11,7 @@ from maid_runner.core.result import (
     BatchValidationResult,
     FileTrackingReport,
     ValidationResult,
+    VerificationResult,
 )
 from maid_runner.coherence.result import CoherenceResult
 
@@ -247,6 +248,35 @@ def format_test_result(
     return "\n".join(lines)
 
 
+def format_verify_result(
+    result: VerificationResult,
+    *,
+    json_mode: bool = False,
+) -> str:
+    if json_mode:
+        payload: dict = {
+            "success": _verification_success(result),
+            "stages": [_verify_stage_to_dict(stage) for stage in result.stages],
+        }
+        if result.duration_ms is not None:
+            payload["duration_ms"] = result.duration_ms
+        return json.dumps(payload, indent=2)
+
+    status = "PASS" if _verification_success(result) else "FAIL"
+    lines = [f"Verify: {status}"]
+    if result.duration_ms is not None:
+        lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+
+    for stage in result.stages:
+        stage_status = "PASS" if stage.success else "FAIL"
+        lines.append(f"  {stage_status} {stage.name}")
+        details = _format_verify_stage_details(stage)
+        if details:
+            lines.extend(f"    {line}" for line in details.splitlines())
+
+    return "\n".join(lines)
+
+
 def _append_test_result(
     formatted_validation: str,
     test_result: BatchTestResult | None,
@@ -261,6 +291,92 @@ def _append_test_result(
     if not formatted_validation:
         return formatted_tests
     return f"{formatted_validation}\n\n{formatted_tests}"
+
+
+def _verification_success(result: VerificationResult) -> bool:
+    return all(stage.success for stage in result.stages)
+
+
+def _verify_stage_to_dict(stage) -> dict:
+    data: dict = {
+        "name": stage.name,
+        "success": stage.success,
+    }
+    duration_ms = getattr(stage, "_duration_ms", None)
+    if duration_ms is not None:
+        data["duration_ms"] = duration_ms
+    details = _verify_stage_details(stage)
+    if details:
+        data["details"] = details
+    return data
+
+
+def _verify_stage_details(stage) -> dict:
+    validation = getattr(stage, "_validation", None)
+    if validation is not None:
+        return validation.to_dict()
+
+    coherence = getattr(stage, "_coherence", None)
+    if coherence is not None:
+        return coherence.to_dict()
+
+    file_tracking = getattr(stage, "_file_tracking", None)
+    if file_tracking is not None:
+        return {
+            "tracked": [e.path for e in file_tracking.tracked],
+            "registered": [e.path for e in file_tracking.registered],
+            "undeclared": [e.path for e in file_tracking.undeclared],
+        }
+
+    tests = getattr(stage, "_tests", None)
+    if tests is not None:
+        return _test_result_to_dict(tests)
+
+    errors = getattr(stage, "_errors", ())
+    if errors:
+        return {"errors": [_verify_error_to_dict(error) for error in errors]}
+
+    return {}
+
+
+def _format_verify_stage_details(stage) -> str:
+    validation = getattr(stage, "_validation", None)
+    if validation is not None and not stage.success:
+        if isinstance(validation, BatchValidationResult):
+            return format_batch_result(validation, quiet=True)
+        return format_validation_result(validation, quiet=True)
+
+    coherence = getattr(stage, "_coherence", None)
+    if coherence is not None and not stage.success:
+        return format_coherence_result(coherence)
+
+    file_tracking = getattr(stage, "_file_tracking", None)
+    if file_tracking is not None and not stage.success:
+        return format_file_tracking(file_tracking)
+
+    tests = getattr(stage, "_tests", None)
+    if tests is not None and not stage.success:
+        return format_test_result(tests)
+
+    errors = getattr(stage, "_errors", ())
+    if errors:
+        return "\n".join(_format_verify_error(error) for error in errors)
+
+    return ""
+
+
+def _verify_error_to_dict(error) -> dict | str:
+    if hasattr(error, "to_dict"):
+        return error.to_dict()
+    return str(error)
+
+
+def _format_verify_error(error) -> str:
+    code = getattr(getattr(error, "code", None), "value", None)
+    message = getattr(error, "message", None)
+    if code and message:
+        return f"{code} {message}"
+    return str(error)
 
 
 def _test_result_to_dict(result: BatchTestResult) -> dict:

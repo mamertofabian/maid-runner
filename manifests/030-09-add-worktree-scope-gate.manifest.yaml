@@ -156,7 +156,7 @@ files:
     - docs/plans/maid-validate-hardening-backlog.md
     - maid_runner/core/chain.py
     - maid_runner/core/_file_discovery.py
-    - manifests/drafts/030-10-add-maid-verify-done-gate.manifest.yaml
+    - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
     - tests/ci/test_codex_maid_loop.py
     - tests/ci/test_claude_maid_loop.py
 validate:

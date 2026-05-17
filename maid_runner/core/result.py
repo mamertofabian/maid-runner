@@ -237,3 +237,25 @@ class BatchTestResult:
     @property
     def implementation_results(self) -> list[TestRunResult]:
         return [r for r in self.results if r.stream == TestStream.IMPLEMENTATION]
+
+
+@dataclass(frozen=True)
+class VerificationStageResult:
+    """One stage result from the combined verify gate."""
+
+    name: str
+    success: bool
+    _duration_ms: Optional[float] = None
+    _validation: object | None = None
+    _coherence: object | None = None
+    _file_tracking: FileTrackingReport | None = None
+    _tests: BatchTestResult | None = None
+    _errors: tuple[object, ...] = ()
+
+
+@dataclass(frozen=True)
+class VerificationResult:
+    """Aggregate result from the combined verify gate."""
+
+    stages: tuple[VerificationStageResult, ...]
+    duration_ms: Optional[float] = None
