@@ -163,6 +163,20 @@ class TestMatchArtifactToReferences:
         references = [_ref("Foo", import_source="pkg.other")]
         assert not match_artifact_to_references(artifact, references, tmp_path)
 
+    def test_dotted_reference_matches_path_module_identity(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("authenticate", module_path="src/auth")
+        references = [_ref("authenticate", import_source="src.auth")]
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_dotful_path_modules_do_not_match_slash_normalized_paths(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("UserModel", module_path="src/user.model")
+        references = [_ref("UserModel", import_source="src/user/model")]
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
     def test_fallback_to_name_when_reference_has_no_import_source(
         self, tmp_path: Path
     ) -> None:
@@ -171,6 +185,21 @@ class TestMatchArtifactToReferences:
         artifact = _artifact("Foo", module_path="pkg.mod")
         references = [_ref("Foo", import_source=None)]
         assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_import_context_does_not_satisfy_artifact_coverage(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("Foo", module_path="pkg.mod")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="Foo",
+                import_source="pkg.mod",
+                reference_context="import",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
 
     def test_no_match_when_names_differ(self, tmp_path: Path) -> None:
         artifact = _artifact("Foo", module_path="pkg.mod")

@@ -28,6 +28,19 @@ def project_dir(tmp_path):
         """
         )
     )
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_greet.py").write_text(
+        textwrap.dedent(
+            """\
+        from src.greet import greet
+
+
+        def test_greet():
+            assert greet("World") == "Hello, World"
+        """
+        )
+    )
 
     # Create a v2 manifest
     manifest = {
@@ -47,7 +60,8 @@ def project_dir(tmp_path):
                         }
                     ],
                 }
-            ]
+            ],
+            "read": ["tests/test_greet.py"],
         },
         "validate": ["pytest tests/test_greet.py -v"],
     }
@@ -116,6 +130,64 @@ class TestCmdValidateSingleManifest:
             ["validate", "manifests/add-greet.manifest.yaml", "--no-chain"]
         )
         assert exit_code == 1
+
+    def test_validate_returns_1_for_unreferenced_public_artifact(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        (src_dir / "widget.py").write_text(
+            "def render():\n    return 'rendered'\n\n"
+            "def update():\n    return 'updated'\n"
+        )
+        (tests_dir / "test_widget.py").write_text(
+            "from src.widget import render\n\n"
+            "def test_render():\n"
+            "    assert render() == 'rendered'\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add widget",
+            "type": "feature",
+            "files": {
+                "edit": [
+                    {
+                        "path": "src/widget.py",
+                        "artifacts": [
+                            {"kind": "function", "name": "render"},
+                            {"kind": "function", "name": "update"},
+                        ],
+                    }
+                ],
+                "read": ["tests/test_widget.py"],
+            },
+            "validate": ["pytest tests/test_widget.py -v"],
+        }
+        (manifest_dir / "add-widget.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-widget.manifest.yaml",
+                "--mode",
+                "implementation",
+                "--no-chain",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Errors (1):" in captured.out
+        assert "E200" in captured.out
+        assert "Warnings" not in captured.out
 
     def test_json_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main

@@ -157,7 +157,7 @@ class _BehavioralCollector(ast.NodeVisitor):
 
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
-        self._seen: set[tuple[str, Optional[str], Optional[str]]] = set()
+        self._seen: set[tuple[str, Optional[str], Optional[str], Optional[str]]] = set()
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
@@ -169,6 +169,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         # attribute chains rooted at the bound name (e.g. ``pkg.mod.Foo``)
         # can resolve the leaf reference's import_source.
         self._module_imports: dict[str, str] = {}
+        self._imported_names: dict[str, tuple[Optional[str], Optional[str]]] = {}
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if node.names:
@@ -184,10 +185,12 @@ class _BehavioralCollector(ast.NodeVisitor):
                     continue
                 bound = alias.asname or alias.name
                 alias_of = alias.name if alias.asname else None
+                self._imported_names[bound] = (source_module or None, alias_of)
                 self._add_reference(
                     bound,
                     import_source=source_module or None,
                     alias_of=alias_of,
+                    reference_context="import",
                 )
         self.generic_visit(node)
 
@@ -204,35 +207,49 @@ class _BehavioralCollector(ast.NodeVisitor):
                 alias_of = None
                 namespace_root = bound
             self._module_imports[bound] = namespace_root
-            self._add_reference(bound, import_source=alias.name, alias_of=alias_of)
+            self._imported_names[bound] = (alias.name, alias_of)
+            self._add_reference(
+                bound,
+                import_source=alias.name,
+                alias_of=alias_of,
+                reference_context="import",
+            )
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
         if isinstance(node.func, ast.Name):
-            self._add_reference(node.func.id)
+            self._add_bound_reference(node.func.id, reference_context="call")
         elif isinstance(node.func, ast.Attribute):
             resolved = self._resolve_attribute_chain(node.func)
             if resolved is not None:
                 leaf, source = resolved
-                self._add_reference(leaf, import_source=source)
+                self._add_reference(
+                    leaf,
+                    import_source=source,
+                    reference_context="call",
+                )
             else:
-                self._add_reference(node.func.attr)
+                self._add_reference(node.func.attr, reference_context="call")
         for kw in node.keywords:
             if kw.arg is not None:  # **kwargs has arg=None
-                self._add_reference(kw.arg)
+                self._add_reference(kw.arg, reference_context="access")
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:
-        self._add_reference(node.id)
+        self._add_bound_reference(node.id, reference_context="access")
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         resolved = self._resolve_attribute_chain(node)
         if resolved is not None:
             leaf, source = resolved
-            self._add_reference(leaf, import_source=source)
+            self._add_reference(
+                leaf,
+                import_source=source,
+                reference_context="access",
+            )
         else:
-            self._add_reference(node.attr)
+            self._add_reference(node.attr, reference_context="access")
         self.generic_visit(node)
 
     def _resolve_attribute_chain(
@@ -271,7 +288,7 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name)
+            self._add_reference(node.name, reference_context="access")
         self._function_depth += 1
         self.generic_visit(node)
         self._function_depth -= 1
@@ -279,7 +296,7 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name)
+            self._add_reference(node.name, reference_context="access")
         self._function_depth += 1
         self.generic_visit(node)
         self._function_depth -= 1
@@ -311,8 +328,9 @@ class _BehavioralCollector(ast.NodeVisitor):
         *,
         import_source: Optional[str] = None,
         alias_of: Optional[str] = None,
+        reference_context: Optional[str] = None,
     ) -> None:
-        key = (name, import_source, alias_of)
+        key = (name, import_source, alias_of, reference_context)
         if key in self._seen:
             return
         self._seen.add(key)
@@ -322,7 +340,22 @@ class _BehavioralCollector(ast.NodeVisitor):
                 name=name,
                 import_source=import_source,
                 alias_of=alias_of,
+                reference_context=reference_context,
             )
+        )
+
+    def _add_bound_reference(
+        self,
+        name: str,
+        *,
+        reference_context: str,
+    ) -> None:
+        import_source, alias_of = self._imported_names.get(name, (None, None))
+        self._add_reference(
+            name,
+            import_source=import_source,
+            alias_of=alias_of,
+            reference_context=reference_context,
         )
 
 

@@ -3992,8 +3992,10 @@ validate:
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
 
-    def test_artifact_not_in_test_warns(self, project):
-        """Public artifact not referenced in any test -> E200 warning."""
+    def test_implementation_fails_when_public_artifact_not_referenced_in_tests(
+        self, project
+    ):
+        """Public artifact not referenced in any test -> E200 error."""
         manifest_path = _write_manifest(
             project / "manifests",
             "add-widget.manifest.yaml",
@@ -4027,10 +4029,135 @@ validate:
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Should be warning, not error
+        assert result.success is False
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+        assert untested[0].severity.value == "error"
+
+    def test_python_import_only_reference_does_not_satisfy_coverage(self, project):
+        """Import declarations alone are not behavioral coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def test_widget_placeholder():\n"
+            "    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_import_only_reference_does_not_satisfy_coverage(self, project):
+        """TypeScript import declarations alone are not behavioral coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import { update } from '../src/widget';\n\n"
+            "it('placeholder', () => {\n"
+            "  expect(true).toBe(true);\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_test_label_does_not_satisfy_artifact_coverage(self, project):
+        """A test label matching an artifact name is not behavioral coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import { update } from '../src/widget';\n\n"
+            "it('update', () => {\n"
+            "  expect(true).toBe(true);\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
         assert len(untested) == 1
         assert "update" in untested[0].message
 
@@ -4069,7 +4196,9 @@ validate:
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert untested == []
 
@@ -4127,7 +4256,9 @@ it("uses make", () => {
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any("make" in w.message for w in untested)
 
@@ -4196,7 +4327,9 @@ it("renders rider details from props", () => {
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any("currentUserName" in w.message for w in untested)
         assert not any("communityStatus" in w.message for w in untested)
@@ -4261,7 +4394,9 @@ it("renders rider details from direct JSX props", () => {
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any("currentUserName" in w.message for w in untested)
         assert not any("communityStatus" in w.message for w in untested)
@@ -4335,8 +4470,11 @@ it("uses computed step completion flags", () => {
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any("[ManualAuditStep.AUDIT_DETAILS]" in w.message for w in untested)
         assert not any(
@@ -4398,8 +4536,11 @@ it("uses literal computed completion flags", () => {
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any('["audit-details"]' in w.message for w in untested)
 
@@ -4437,8 +4578,11 @@ validate:
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        assert result.success is True
         untested = [
-            w for w in result.warnings if w.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            e
+            for e in result.errors + result.warnings
+            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert untested == []
 
@@ -4505,6 +4649,119 @@ validate:
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
+
+    def test_snapshot_manifest_still_exempt_from_behavioral_coverage_error(
+        self, project
+    ):
+        """Snapshot manifests do not emit E200 for unreferenced public artifacts."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "snapshot-utils.manifest.yaml",
+            """schema: "2"
+goal: "Snapshot utils"
+type: snapshot
+files:
+  create:
+    - path: src/utils.py
+      artifacts:
+        - kind: function
+          name: helper
+  read:
+    - tests/test_utils.py
+validate:
+  - pytest tests/test_utils.py -v
+""",
+        )
+        _write_source(project, "src/utils.py", "def helper():\n    pass\n")
+        _write_source(
+            project, "tests/test_utils.py", "def test_smoke():\n    assert True\n"
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+        behavioral_result = engine.validate(
+            manifest_path, mode=ValidationMode.BEHAVIORAL
+        )
+
+        assert result.success is True
+        assert not any(
+            e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            for e in result.errors + result.warnings
+        )
+        assert behavioral_result.success is True
+        assert not any(
+            e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+            for e in behavioral_result.errors + behavioral_result.warnings
+        )
+
+    def test_test_file_artifacts_do_not_require_meta_test_coverage(self, project):
+        """test_function artifacts do not need another test file."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-test-coverage.manifest.yaml",
+            """schema: "2"
+goal: "Add tests"
+type: fix
+files:
+  edit:
+    - path: tests/test_widget.py
+      artifacts:
+        - kind: test_function
+          name: test_widget
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "def test_widget():\n    assert True\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        assert result.success is True
+        assert not any(
+            e.code
+            in {
+                ErrorCode.NO_TEST_FILES,
+                ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
+            }
+            for e in result.errors + result.warnings
+        )
+
+        workflow_manifest_path = _write_manifest(
+            project / "manifests",
+            "workflow-test-behavior.manifest.yaml",
+            """schema: "2"
+goal: "Describe workflow behavior"
+type: fix
+files:
+  edit:
+    - path: .github/workflows/publish.yml
+      artifacts:
+        - kind: test_function
+          name: publish_workflow_test_job_installs_npm_dependencies
+validate:
+  - make check
+""",
+        )
+        _write_source(project, ".github/workflows/publish.yml", "name: publish\n")
+
+        workflow_result = engine.validate(
+            workflow_manifest_path, mode=ValidationMode.IMPLEMENTATION
+        )
+
+        assert workflow_result.success is True
+        assert not any(
+            e.code
+            in {
+                ErrorCode.NO_TEST_FILES,
+                ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
+            }
+            for e in workflow_result.errors + workflow_result.warnings
+        )
 
 
 class TestStrictModeChainEnforcement:

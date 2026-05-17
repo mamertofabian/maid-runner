@@ -33,11 +33,15 @@ def _write_source(project_dir, rel_path, content):
     return path
 
 
-def _write_component_test(project, component_name="UserCardComponent"):
+def _write_component_test(
+    project,
+    component_name="UserCardComponent",
+    component_module="../src/app/user-card/user-card.component",
+):
     _write_source(
         project,
         "tests/user-card.component.spec.ts",
-        f"""import {{ {component_name} }} from '../src/app/user-card/user-card.component';
+        f"""import {{ {component_name} }} from '{component_module}';
 
 test('component can be referenced', () => {{
   expect({component_name}).toBeDefined();
@@ -83,7 +87,11 @@ import { UserCardComponent } from '../user-card/user-card.component';
 export class DashboardComponent {}
 """,
     )
-    _write_component_test(project, "DashboardComponent")
+    _write_component_test(
+        project,
+        "DashboardComponent",
+        "../src/app/dashboard/dashboard.component",
+    )
 
     result = ValidationEngine(project_root=project).validate(
         manifest_path, mode=ValidationMode.IMPLEMENTATION

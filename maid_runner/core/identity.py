@@ -13,10 +13,28 @@ from pathlib import Path
 from typing import Callable, Iterable, Optional
 
 from maid_runner.core.module_paths import resolve_reexport as _python_resolve_reexport
+from maid_runner.core.types import ArtifactKind
 from maid_runner.validators.base import FoundArtifact
 
 
 _ReexportResolver = Callable[[str, str, Path], Optional[tuple[str, str]]]
+
+
+def _reference_can_cover_artifact(reference: FoundArtifact) -> bool:
+    return (
+        reference.kind != ArtifactKind.TEST_FUNCTION
+        and reference.reference_context != "import"
+    )
+
+
+def _module_identity_matches(reference_module: str, artifact_module: str) -> bool:
+    if reference_module == artifact_module:
+        return True
+    if "/" in reference_module or "/" not in artifact_module:
+        return False
+    if "." in Path(artifact_module).name:
+        return False
+    return reference_module.replace(".", "/") == artifact_module
 
 
 def match_artifact_to_references(
@@ -52,6 +70,8 @@ def match_artifact_to_references(
     root = Path(project_root)
 
     for ref in refs:
+        if not _reference_can_cover_artifact(ref):
+            continue
         ref_name = ref.alias_of or ref.name
         if ref_name != artifact.name:
             continue
@@ -62,7 +82,7 @@ def match_artifact_to_references(
         if artifact.module_path is None:
             return True
 
-        if ref.import_source == artifact.module_path:
+        if _module_identity_matches(ref.import_source, artifact.module_path):
             return True
 
         reexported = resolver(ref.import_source, ref_name, root)
@@ -78,6 +98,8 @@ def match_artifact_to_references(
         return False
 
     for ref in refs:
+        if not _reference_can_cover_artifact(ref):
+            continue
         if ref.import_source is None:
             continue
         ref_name = ref.alias_of or ref.name

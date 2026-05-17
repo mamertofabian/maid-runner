@@ -310,16 +310,20 @@ def _record_import(
     artifacts: list[FoundArtifact],
     seen: set[str],
 ) -> None:
-    if not bound or bound in seen:
+    if not bound:
+        return
+    seen_key = f"import:{bound}:{resolved}:{alias_of or ''}"
+    if seen_key in seen:
         return
     import_map[bound] = {"source": resolved, "alias_of": alias_of}
-    seen.add(bound)
+    seen.add(seen_key)
     artifacts.append(
         FoundArtifact(
             kind=ArtifactKind.FUNCTION,
             name=bound,
             import_source=resolved or None,
             alias_of=alias_of,
+            reference_context="import",
         )
     )
 
@@ -376,8 +380,17 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
 
 
 def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
-    if name and not any(a.name == name and a.import_source is None for a in artifacts):
-        artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
+    if name and not any(
+        a.name == name and a.import_source is None and a.reference_context == "access"
+        for a in artifacts
+    ):
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name=name,
+                reference_context="access",
+            )
+        )
 
 
 class BehavioralReferenceCollector:
@@ -440,19 +453,25 @@ class BehavioralReferenceCollector:
         resolved = _resolve_member_chain(node, self._source, self._namespace_imports)
         if resolved is not None:
             leaf, source_path = resolved
-            if leaf and leaf not in self._seen:
-                self._seen.add(leaf)
+            seen_key = f"access:{leaf}:{source_path}"
+            if leaf and seen_key not in self._seen:
+                self._seen.add(seen_key)
                 self._artifacts.append(
                     FoundArtifact(
                         kind=ArtifactKind.FUNCTION,
                         name=leaf,
                         import_source=source_path or None,
+                        reference_context="access",
                     )
                 )
         property_name = _member_property_name(node, self._source)
         if property_name and not any(a.name == property_name for a in self._artifacts):
             self._artifacts.append(
-                FoundArtifact(kind=ArtifactKind.FUNCTION, name=property_name)
+                FoundArtifact(
+                    kind=ArtifactKind.FUNCTION,
+                    name=property_name,
+                    reference_context="access",
+                )
             )
 
     def _record_object_pair_reference(self, node) -> None:
@@ -485,9 +504,35 @@ class BehavioralReferenceCollector:
 
     def _record_identifier_reference(self, node) -> None:
         name = _text(node, self._source)
-        if name and name not in self._seen:
-            self._seen.add(name)
-            self._artifacts.append(FoundArtifact(kind=ArtifactKind.FUNCTION, name=name))
+        if not name:
+            return
+        import_info = self._import_map.get(name)
+        if import_info is not None:
+            seen_key = (
+                f"access:{name}:{import_info['source']}:{import_info['alias_of'] or ''}"
+            )
+            if seen_key not in self._seen:
+                self._seen.add(seen_key)
+                self._artifacts.append(
+                    FoundArtifact(
+                        kind=ArtifactKind.FUNCTION,
+                        name=name,
+                        import_source=import_info["source"] or None,
+                        alias_of=import_info["alias_of"],
+                        reference_context="access",
+                    )
+                )
+            return
+        seen_key = f"access:{name}"
+        if seen_key not in self._seen:
+            self._seen.add(seen_key)
+            self._artifacts.append(
+                FoundArtifact(
+                    kind=ArtifactKind.FUNCTION,
+                    name=name,
+                    reference_context="access",
+                )
+            )
 
     def _record_test_label(self, node) -> None:
         callee = _extract_test_callee_name(node, self._source)

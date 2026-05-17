@@ -74,6 +74,22 @@ class TestNamedImportRecordsSource:
         assert foo.import_source == "src/models/user"
         assert foo.alias_of is None
 
+    def test_import_and_access_references_carry_distinct_contexts(
+        self, validator: TypeScriptValidator
+    ) -> None:
+        source = "import { Foo } from './user';\nit('uses Foo', () => { Foo(); });\n"
+        result = validator.collect_behavioral_artifacts(source, "src/models/test_x.ts")
+        foo_refs = [artifact for artifact in result.artifacts if artifact.name == "Foo"]
+
+        assert any(
+            ref.reference_context == "import" and ref.import_source == "src/models/user"
+            for ref in foo_refs
+        )
+        assert any(
+            ref.reference_context == "access" and ref.import_source == "src/models/user"
+            for ref in foo_refs
+        )
+
     def test_named_import_with_alias_records_alias_of(
         self, validator: TypeScriptValidator
     ) -> None:
@@ -402,7 +418,7 @@ class TestPropAttributeReferences:
         source = (
             "it('reads literal computed flags', () => {\n"
             "  const completion = getCompletionState();\n"
-            "  expect(completion[\"audit-details\"]).toBe(true);\n"
+            '  expect(completion["audit-details"]).toBe(true);\n'
             "  expect(completion[404]).toBe(false);\n"
             "});\n"
         )
@@ -410,7 +426,7 @@ class TestPropAttributeReferences:
             source, "src/audit/audit-management.service.spec.ts"
         )
 
-        assert _ref(result.artifacts, "[\"audit-details\"]") is not None
+        assert _ref(result.artifacts, '["audit-details"]') is not None
         assert _ref(result.artifacts, "[404]") is not None
 
 

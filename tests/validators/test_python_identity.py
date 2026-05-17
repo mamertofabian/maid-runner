@@ -40,6 +40,19 @@ class TestImportSourceFromImport:
         assert foo.import_source == "pkg.mod"
         assert foo.alias_of is None
 
+    def test_import_and_call_references_carry_distinct_contexts(
+        self, validator: PythonValidator
+    ) -> None:
+        source = "from pkg.mod import Foo\n\ndef test_x():\n    Foo()\n"
+        result = validator.collect_behavioral_artifacts(source, "test_x.py")
+        foo_refs = [artifact for artifact in result.artifacts if artifact.name == "Foo"]
+
+        assert any(
+            ref.reference_context == "import" and ref.import_source == "pkg.mod"
+            for ref in foo_refs
+        )
+        assert any(ref.reference_context == "call" for ref in foo_refs)
+
     def test_plain_import_records_module_as_source(
         self, validator: PythonValidator
     ) -> None:
@@ -130,6 +143,42 @@ class TestAttributeChainResolution:
         )
         assert not match_artifact_to_references(wrong, result.artifacts, Path("."))
         assert match_artifact_to_references(right, result.artifacts, Path("."))
+
+    def test_from_import_call_rejects_wrong_module_artifact(
+        self, validator: PythonValidator
+    ) -> None:
+        from pathlib import Path
+
+        from maid_runner.core.identity import match_artifact_to_references
+        from maid_runner.core.types import ArtifactKind
+
+        source = "from pkg.other import Foo\n\ndef test_x():\n    Foo()\n"
+        result = validator.collect_behavioral_artifacts(source, "test_x.py")
+
+        wrong = FoundArtifact(
+            kind=ArtifactKind.FUNCTION, name="Foo", module_path="pkg.mod"
+        )
+        right = FoundArtifact(
+            kind=ArtifactKind.FUNCTION, name="Foo", module_path="pkg.other"
+        )
+        assert not match_artifact_to_references(wrong, result.artifacts, Path("."))
+        assert match_artifact_to_references(right, result.artifacts, Path("."))
+
+    def test_from_import_alias_call_matches_original_artifact_name(
+        self, validator: PythonValidator
+    ) -> None:
+        from pathlib import Path
+
+        from maid_runner.core.identity import match_artifact_to_references
+        from maid_runner.core.types import ArtifactKind
+
+        source = "from pkg.mod import Foo as Bar\n\ndef test_x():\n    Bar()\n"
+        result = validator.collect_behavioral_artifacts(source, "test_x.py")
+
+        artifact = FoundArtifact(
+            kind=ArtifactKind.FUNCTION, name="Foo", module_path="pkg.mod"
+        )
+        assert match_artifact_to_references(artifact, result.artifacts, Path("."))
 
 
 # ----------------------------------------------------------------------------
