@@ -1,0 +1,143 @@
+schema: "2"
+goal: "Prune redundant maid test commands before execution"
+type: fix
+created: "2026-05-17"
+description: |
+  `maid test` currently preserves redundant validation targets after batching.
+  In this repository that makes the command run a full `tests/` pytest batch,
+  a second near-suite pytest batch with file targets already covered by
+  `tests/`, and repeated identical `maid validate` commands.
+
+  Keep the existing safety boundary: batch only commands whose runner and
+  behavior-affecting options are compatible. The new behavior removes broad
+  pytest directory targets when focused pytest targets exist beneath them,
+  collapses exact duplicate or file-vs-nodeid pytest targets, batches pytest
+  commands that differ only by output verbosity, executes simple
+  `maid validate` commands through the in-process validation engine, and removes
+  exact duplicate implementation commands before they reach subprocess
+  execution.
+temptations:
+  - risk: "Do not keep legacy full-suite pytest directory targets when focused targets already cover active contracts."
+    instead: "Drop the broad directory target and preserve the focused pytest file or nodeid targets."
+  - risk: "Do not de-duplicate acceptance tests, which may be ordered workflow steps rather than pure validation commands."
+    instead: "Apply exact command de-duplication only to implementation validate commands in multi-manifest runs."
+  - risk: "Do not infer coverage from arbitrary shell strings."
+    instead: "Use the existing normalized pytest command parser and only reason about parsed pytest targets."
+  - risk: "Do not combine pytest commands with different selection, fail-fast, or stateful options."
+    instead: "Only coalesce pytest groups when the non-verbosity options match exactly."
+  - risk: "Do not reinterpret arbitrary `maid` CLI invocations as validation."
+    instead: "Optimize only simple `maid validate` commands with supported mode/json/manifest-dir flags and fall back to subprocess otherwise."
+files:
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: fail_fast
+              type: bool
+              default: "False"
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+            - name: batch
+              type: bool | None
+              default: "None"
+          returns: BatchTestResult
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_default_prunes_directory_pytest_target_when_focused_targets_exist
+          source_scenario: "Two active manifests request `pytest tests/ -v` and `pytest tests/test_a.py -q`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes only the focused file target instead of the broad directory target."
+        - kind: test_function
+          name: test_default_runs_duplicate_implementation_commands_once
+          source_scenario: "Two active manifests declare the same non-batchable implementation validate command."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes that command once and still reports success."
+        - kind: test_function
+          name: test_default_batches_pytest_commands_with_only_verbosity_differences
+          source_scenario: "Two active manifests request pytest targets with equivalent runners but different -q/-v verbosity flags."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes one pytest command with both targets and no behavior-changing option loss."
+        - kind: test_function
+          name: test_default_keeps_same_pytest_target_with_behavior_option_difference
+          source_scenario: "Two active manifests request the same pytest target, but one command uses --lf."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes both commands because --lf changes pytest selection behavior."
+        - kind: test_function
+          name: test_default_keeps_pytest_fail_fast_commands_separate
+          source_scenario: "Two active manifests request different pytest targets with -x fail-fast enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes both commands separately so one target's failure cannot prevent the other command from running."
+        - kind: test_function
+          name: test_default_keeps_duplicate_stateful_pytest_commands_separate
+          source_scenario: "Two active manifests declare the same pytest --lf command."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run does not deduplicate stateful pytest commands whose repeated execution can observe updated cache state."
+        - kind: test_function
+          name: test_default_keeps_duplicate_unknown_pytest_state_alias_commands_separate
+          source_scenario: "Two active manifests declare the same pytest --last-failed command."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run does not deduplicate unparsed pytest commands that may include stateful aliases."
+        - kind: test_function
+          name: test_default_keeps_same_pytest_target_with_different_interpreters
+          source_scenario: "Two active manifests request the same pytest target with different explicit Python interpreters."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run executes both commands so each interpreter remains validated."
+        - kind: test_function
+          name: test_default_executes_simple_maid_validate_commands_in_process
+          source_scenario: "An active manifest declares `uv run maid validate manifests/target.manifest.yaml`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The multi-manifest run validates the target manifest without invoking the generic subprocess runner."
+        - kind: test_function
+          name: test_default_executes_simple_maid_validate_without_existing_chain_dir
+          source_scenario: "An active manifest validates a standalone manifest with --manifest-dir pointing at a missing directory."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The in-process validation path matches CLI behavior by validating without constructing a missing chain."
+validate:
+  - uv run python -m pytest -q tests/core/test_test_runner.py
