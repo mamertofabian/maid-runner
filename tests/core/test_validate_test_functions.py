@@ -1040,16 +1040,16 @@ it("test_api_call", () => {
                 m for c, m in messages if c == ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH
             ]
             # test_logout's body has neither the export nor the endpoint
-            assert any("test_logout" in m and "doLogout" in m for m in mismatches), (
-                f"expected E610 for test_logout/doLogout; got: {mismatches}"
-            )
+            assert any(
+                "test_logout" in m and "doLogout" in m for m in mismatches
+            ), f"expected E610 for test_logout/doLogout; got: {mismatches}"
             assert any(
                 "test_logout" in m and "/api/v1/logout" in m for m in mismatches
             ), f"expected E610 for test_logout/endpoint; got: {mismatches}"
             # test_login's body contains both — no E610 should fire for it
-            assert not any("test_login" in m for m in mismatches), (
-                f"test_login body contains both; should not warn: {mismatches}"
-            )
+            assert not any(
+                "test_login" in m for m in mismatches
+            ), f"test_login body contains both; should not warn: {mismatches}"
 
     def test_behavior_mismatch_api_call(self):
         """API call export not found in test file — warning."""

@@ -17,6 +17,12 @@ from maid_runner.graph.query import (
     QueryType,
     find_cycles,
 )
+from maid_runner.graph.traversal import (
+    analyze_impact as traversal_analyze_impact,
+    find_cycles as traversal_find_cycles,
+    find_node_by_name as traversal_find_node_by_name,
+    find_nodes_by_type as traversal_find_nodes_by_type,
+)
 
 
 def _manifest(slug: str, file_path: str = "src/service.py") -> Manifest:
@@ -55,6 +61,26 @@ def test_graph_query_facade_preserves_find_node_result_shape():
     assert node is not None
     assert node.id == "artifact:src/service.py:class:Service"
     assert node.node_type == NodeType.ARTIFACT
+
+
+def test_traversal_module_public_functions_are_exercised_directly():
+    graph = _service_graph()
+    cycle_graph = KnowledgeGraph()
+    for node_id in ("a", "b"):
+        cycle_graph.add_node(Node(node_id, NodeType.ARTIFACT))
+    cycle_graph.add_edge(Edge("edge:a-b", EdgeType.CREATES, "a", "b"))
+    cycle_graph.add_edge(Edge("edge:b-a", EdgeType.CREATES, "b", "a"))
+
+    nodes = traversal_find_nodes_by_type(graph, NodeType.ARTIFACT)
+    service = traversal_find_node_by_name(graph, "Service")
+    impact = traversal_analyze_impact(graph, "Service")
+    cycles = traversal_find_cycles(cycle_graph)
+
+    assert service is not None
+    assert service in nodes
+    assert impact["affected_files"] == ["src/service.py"]
+    assert impact["total_impact_count"] >= 1
+    assert [[node.id for node in cycle] for cycle in cycles] == [["a", "b"]]
 
 
 def test_query_parser_preserves_dependency_intent_detection():

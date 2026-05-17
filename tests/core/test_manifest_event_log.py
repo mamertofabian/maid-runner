@@ -344,9 +344,9 @@ class TestChainEventLog:
         # Mixed ordering emits a diagnostic warning
         diags = chain.diagnostics()
         mixed = [d for d in diags if d.code == ErrorCode.MIXED_SEQUENCE_NUMBERING]
-        assert len(mixed) == 1, (
-            f"Expected one MIXED_SEQUENCE_NUMBERING diagnostic, got: {diags}"
-        )
+        assert (
+            len(mixed) == 1
+        ), f"Expected one MIXED_SEQUENCE_NUMBERING diagnostic, got: {diags}"
 
 
 # ---------------------------------------------------------------------------
@@ -377,9 +377,9 @@ class TestDuplicateSequenceNumber:
         chain = ManifestChain(manifest_dir, tmp_path)
         diags = chain.diagnostics()
         dupes = [d for d in diags if d.code == ErrorCode.DUPLICATE_SEQUENCE_NUMBER]
-        assert len(dupes) >= 1, (
-            f"Expected DUPLICATE_SEQUENCE_NUMBER diagnostic, got: {diags}"
-        )
+        assert (
+            len(dupes) >= 1
+        ), f"Expected DUPLICATE_SEQUENCE_NUMBER diagnostic, got: {diags}"
 
     def test_unique_sequence_numbers_emit_no_duplicate_error(
         self, tmp_path: Path
@@ -437,9 +437,9 @@ class TestNonMonotonicSequenceOrder:
         chain = ManifestChain(manifest_dir, tmp_path)
         diags = chain.diagnostics()
         nonmono = [d for d in diags if d.code == ErrorCode.NON_MONOTONIC_SEQUENCE_ORDER]
-        assert len(nonmono) >= 1, (
-            f"Expected NON_MONOTONIC_SEQUENCE_ORDER diagnostic, got: {diags}"
-        )
+        assert (
+            len(nonmono) >= 1
+        ), f"Expected NON_MONOTONIC_SEQUENCE_ORDER diagnostic, got: {diags}"
 
     def test_monotonic_sequence_emits_no_warning(self, tmp_path: Path) -> None:
         manifest_dir = tmp_path / "manifests"

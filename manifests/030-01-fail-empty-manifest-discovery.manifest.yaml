@@ -1,0 +1,158 @@
+schema: "2"
+goal: "Make directory-wide validation fail when manifest discovery is missing or empty unless explicitly allowed"
+type: fix
+created: "2026-05-16"
+metadata:
+  tags:
+    - validate
+    - manifest-discovery
+    - fail-closed
+  priority: critical
+description: |
+  Close the loophole where `maid validate` exits 0 when the selected manifest
+  directory does not exist or contains no active manifests. The validator must
+  fail closed by default because an empty manifest set is usually the signal
+  that the agent is in the wrong directory, supplied the wrong `--manifest-dir`,
+  or omitted MAID coverage entirely.
+
+  A deliberate empty project/bootstrap workflow can still be supported, but it
+  must be explicit and visible. Add an `--allow-empty` CLI flag and matching
+  library option so automation can distinguish "nothing to validate by
+  design" from "wrong validation target".
+temptations:
+  - risk: "Do not keep returning an empty successful BatchValidationResult for missing directories."
+    instead: "Return a failed batch with an explicit error that names the selected manifest directory."
+  - risk: "Do not make --quiet hide the failure."
+    instead: "Quiet mode may reduce formatting, but the exit code and structured error must remain non-zero."
+  - risk: "Do not treat superseded-only or inactive-only directories as successful active validation."
+    instead: "Report that no active manifests were discovered unless --allow-empty is explicitly set."
+  - risk: "Do not special-case only the default manifests/ path."
+    instead: "Apply the rule to any selected manifest directory."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: EMPTY_MANIFEST_SET
+          of: ErrorCode
+          type: str
+          description: "Structured error code for missing or empty active manifest discovery."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: allow_empty
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+        - kind: function
+          name: validate_all
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: allow_empty
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_fails_when_manifest_dir_is_missing_by_default
+          source_scenario: "A caller validates a missing manifest directory without opting into empty validation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns success false with EMPTY_MANIFEST_SET in chain_errors."
+        - kind: test_function
+          name: test_validate_all_fails_when_manifest_dir_contains_no_active_manifests
+          source_scenario: "A manifest directory exists but contains no active manifest files."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns success false and reports that no active manifests were discovered."
+        - kind: test_function
+          name: test_validate_all_allows_empty_manifest_set_only_when_explicit
+          source_scenario: "A bootstrap caller intentionally validates an empty manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all(..., allow_empty=True) returns success true with zero manifests."
+        - kind: test_function
+          name: test_validate_all_function_allows_empty_manifest_set_only_when_explicit
+          source_scenario: "A bootstrap caller uses the public validate_all helper for an intentionally empty manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., allow_empty=True) returns success true with zero manifests."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_nonexistent_dir_returns_1_by_default
+          source_scenario: "The CLI validates a nonexistent manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate exits 1 and prints EMPTY_MANIFEST_SET."
+        - kind: test_function
+          name: test_validate_empty_manifest_dir_returns_1_by_default
+          source_scenario: "The CLI validates an existing manifest directory with no active manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate exits 1 rather than treating the empty set as success."
+        - kind: test_function
+          name: test_validate_allow_empty_returns_0_for_empty_manifest_dir
+          source_scenario: "The CLI validates an empty manifest directory with --allow-empty."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --allow-empty exits 0 and makes the empty-set choice explicit."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - tests/core/test_manifest_chain_discovery.py
+    - tests/core/test_result.py
+    - tests/cli/test_format.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/cli/test_validate_cmd.py tests/core/test_result.py tests/cli/test_format.py

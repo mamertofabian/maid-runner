@@ -1,0 +1,530 @@
+schema: "2"
+goal: "Make missing behavioral coverage fail implementation validation for non-snapshot manifests"
+type: fix
+created: "2026-05-16"
+metadata:
+  tags:
+    - behavioral-coverage
+    - implementation-validation
+    - fail-closed
+  priority: high
+description: |
+  Close the loophole where implementation validation exits 0 even when public
+  artifacts are not referenced by any test file. For feature, fix, and
+  refactor manifests, declared public production artifacts require behavioral
+  coverage. Missing coverage must be an error, not an advisory warning.
+
+  Snapshot and system-snapshot manifests remain exempt because they capture
+  existing public surface and may not own behavioral coverage. Test files
+  themselves remain exempt from meta-test coverage.
+temptations:
+  - risk: "Do not silence E200 to keep legacy manifests green."
+    instead: "Promote missing behavioral coverage to an error for non-snapshot implementation manifests."
+  - risk: "Do not require meta-tests for test_function-only manifests."
+    instead: "Keep the existing source-file-only coverage rule and only harden production artifact misses."
+  - risk: "Do not make tests pass by adding placeholder imports that do not exercise behavior."
+    instead: "Require focused tests that import and call/access the declared production artifact."
+  - risk: "Do not remove snapshot exemptions."
+    instead: "Preserve snapshot/system-snapshot behavior and test that those manifests remain exempt."
+files:
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: class
+          name: FoundArtifact
+        - kind: attribute
+          name: reference_context
+          of: FoundArtifact
+          type: Optional[str]
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+          returns: bool
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: _check_test_coverage
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          description: "Collect TypeScript behavioral references while distinguishing import declarations from actual artifact use."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_fails_when_public_artifact_not_referenced_in_tests
+          source_scenario: "A feature manifest declares a public function and names a test file that never imports or calls it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns success false with E200 as an error."
+        - kind: test_function
+          name: test_python_import_only_reference_does_not_satisfy_coverage
+          source_scenario: "A Python test file imports a declared production function but never calls or accesses it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because an import declaration alone is not behavioral coverage."
+        - kind: test_function
+          name: test_python_shadowed_import_reference_does_not_satisfy_coverage
+          source_scenario: "A Python test file imports a declared production function, then shadows that name with a local helper and calls the helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because the local shadowed call does not exercise the imported production artifact."
+        - kind: test_function
+          name: test_python_shadowed_import_before_later_import_does_not_cover_artifact
+          source_scenario: "A Python test function shadows a production function name before the file imports the production function later in the module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because shadow detection is independent of import source order."
+        - kind: test_function
+          name: test_python_module_rebinding_after_import_does_not_cover_artifact
+          source_scenario: "A Python test file imports a declared production function, then rebinds the same module-level name to a local function before the test calls it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because the test calls the module-level local rebinding rather than the imported production artifact."
+        - kind: test_function
+          name: test_python_alias_placeholder_import_does_not_cover_local_artifact
+          source_scenario: "A Python test imports a declared production function under a placeholder alias, then calls a local helper with the artifact's original name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because the placeholder alias import does not make the local helper cover the production artifact."
+        - kind: test_function
+          name: test_python_module_placeholder_import_does_not_cover_local_artifact
+          source_scenario: "A Python test imports the production module under a placeholder alias, then calls a local helper with the artifact's name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because importing the module namespace does not make the local helper cover the production artifact."
+        - kind: test_function
+          name: test_python_function_local_import_still_covers_after_module_shadow
+          source_scenario: "A Python test module rebinds an imported production function name at module scope, then function-locally imports and calls the production function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because a real function-local import retains identity despite module-level shadowing."
+        - kind: test_function
+          name: test_python_expression_scope_shadowed_import_does_not_cover_artifact
+          source_scenario: "A Python test shadows an imported production function inside lambda and comprehension expression scopes."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because expression-local bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_python_binding_expression_shadowed_import_does_not_cover_artifact
+          source_scenario: "A Python test shadows an imported production function through walrus and match capture bindings."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because binding expressions and pattern captures do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_python_annotation_only_reference_does_not_cover_artifact
+          source_scenario: "A Python test references a declared production function only in type annotations."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because annotations are not behavioral runtime coverage."
+        - kind: test_function
+          name: test_python_keyword_argument_does_not_cover_same_module_artifact
+          source_scenario: "A Python test calls one imported function with a keyword argument named like another production artifact in the same module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 for the other artifact because keyword names are not standalone behavior coverage."
+        - kind: test_function
+          name: test_python_starred_shadowed_import_does_not_cover_artifact
+          source_scenario: "A Python test shadows an imported production function through starred assignment and for-loop targets."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because starred target bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_python_late_function_local_import_does_not_cover_artifact
+          source_scenario: "A Python test calls an imported production function name before a later function-local import binds the same name from another module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because function-local imports shadow the name throughout the function."
+        - kind: test_function
+          name: test_python_store_and_delete_references_do_not_cover_artifact
+          source_scenario: "A Python test uses assignment and delete targets named like an imported production function without calling the production function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because Store and Del targets are not behavioral access coverage."
+        - kind: test_function
+          name: test_python_shadowed_constructor_keyword_does_not_cover_attribute
+          source_scenario: "A Python test covers a class import, then shadows the class name with a local callable and passes a keyword named like a production attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 for the attribute because keywords on a shadowed local callable are not production coverage."
+        - kind: test_function
+          name: test_python_constructor_keyword_covers_owned_attribute
+          source_scenario: "A Python test imports a class and passes a keyword named like one of its declared attributes to the constructor."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because the keyword is tied to the imported constructor that owns the declared attribute."
+        - kind: test_function
+          name: test_python_unrelated_imported_callable_keyword_does_not_cover_attribute
+          source_scenario: "A Python test imports a class and an unrelated callable from the same module, then passes a keyword named like the class attribute to the unrelated callable."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 for the class attribute because imported keyword coverage must be tied to the owning callable."
+        - kind: test_function
+          name: test_python_runtime_definition_references_cover_artifact
+          source_scenario: "A Python test references a production function in runtime-evaluated decorators and default argument values."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because decorators and default values are runtime references, unlike annotations."
+        - kind: test_function
+          name: test_typescript_import_only_reference_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test file imports a declared production function but never calls or accesses it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because an import declaration alone is not behavioral coverage."
+        - kind: test_function
+          name: test_typescript_shadowed_import_reference_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test file imports a declared production function, then shadows that name with a local binding and calls the binding."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because the local shadowed call does not exercise the imported production artifact."
+        - kind: test_function
+          name: test_typescript_control_flow_shadowed_import_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test shadows an imported production function through for-loop and catch-clause control-flow bindings."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because control-flow scoped local bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_typescript_function_scope_shadowed_import_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test shadows an imported production function through a single arrow parameter or a function-scoped var binding."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because function-scoped local bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_typescript_switch_case_shadowed_import_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test shadows an imported production function through a switch-case lexical binding."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because switch-case local bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_typescript_destructuring_shadowed_import_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test shadows an imported production function through shorthand object destructuring in declarations, parameters, for headers, and catch bindings."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because destructured local bindings do not exercise the imported production artifact."
+        - kind: test_function
+          name: test_typescript_type_only_reference_does_not_satisfy_coverage
+          source_scenario: "A TypeScript test references a declared production function only through type-only import and type query syntax."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because type-only references are not behavioral runtime coverage."
+        - kind: test_function
+          name: test_typescript_local_type_bindings_do_not_cover_imported_interface
+          source_scenario: "A TypeScript test declares a local interface or generic type parameter with the same name as a production interface."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because local type bindings are not coverage for the production interface."
+        - kind: test_function
+          name: test_typescript_type_declarations_do_not_shadow_runtime_import_coverage
+          source_scenario: "A TypeScript test declares a same-named type alias or interface and also calls the imported runtime function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because type-only declarations do not shadow runtime imports."
+        - kind: test_function
+          name: test_typescript_alias_placeholder_import_does_not_cover_local_artifact
+          source_scenario: "A TypeScript test imports a declared production function under a placeholder alias, then calls a local binding with the artifact's original name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because the placeholder alias import does not make the local binding cover the production artifact."
+        - kind: test_function
+          name: test_typescript_namespace_placeholder_import_does_not_cover_local_artifact
+          source_scenario: "A TypeScript test imports the production module as a namespace, then calls a local binding with the artifact's name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because importing the module namespace does not make the local binding cover the production artifact."
+        - kind: test_function
+          name: test_typescript_test_label_does_not_satisfy_artifact_coverage
+          source_scenario: "A TypeScript test label has the same text as a declared production function but never calls or accesses it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns E200 because test labels do not cover production artifacts."
+        - kind: test_function
+          name: test_snapshot_manifest_still_exempt_from_behavioral_coverage_error
+          source_scenario: "A snapshot manifest declares a public function without test references."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation and behavioral validation do not emit E200 for snapshot manifests."
+        - kind: test_function
+          name: test_test_file_artifacts_do_not_require_meta_test_coverage
+          source_scenario: "A manifest creates or edits a test file with test_function artifacts only."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation does not require another test to test the test file."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_returns_1_for_unreferenced_public_artifact
+          source_scenario: "The CLI validates a feature manifest whose production artifact is not referenced in any test."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate exits 1 and prints E200 in the errors section."
+    - path: tests/core/test_validate_angular.py
+      artifacts:
+        - kind: test_function
+          name: test_angular_standalone_component_static_import_satisfies_required_import
+          source_scenario: "The Angular required-import fixture declares DashboardComponent and expects implementation validation to pass."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The fixture's test file imports and references DashboardComponent so coverage validation remains meaningful."
+    - path: tests/core/test_identity_matching.py
+      artifacts:
+        - kind: test_function
+          name: test_import_context_does_not_satisfy_artifact_coverage
+          source_scenario: "A reference collected from an import declaration has the same name and import source as a production artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher returns false because import declarations alone are not behavioral coverage."
+        - kind: test_function
+          name: test_identity_import_blocks_name_only_fallback_for_same_artifact
+          source_scenario: "A test file has an identity-bearing import for a production artifact but only calls a bare local reference with that artifact name."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher returns false because name-only fallback cannot cover an artifact that already has identity-bearing import evidence."
+        - kind: test_function
+          name: test_module_identity_import_blocks_name_only_fallback
+          source_scenario: "A test file has an identity-bearing import for a production module but only calls a bare local reference with an artifact name from that module."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher returns false because name-only fallback cannot cover an artifact when the test has identity-bearing evidence for that artifact's module."
+        - kind: test_function
+          name: test_noncovering_keyword_reference_does_not_block_method_name_fallback
+          source_scenario: "A method has a same-named keyword reference that cannot cover methods and a real method-name access reference."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher accepts the real access reference because a non-covering keyword reference does not block method name fallback."
+        - kind: test_function
+          name: test_dotted_reference_matches_path_module_identity
+          source_scenario: "A Python test import uses dotted module syntax for a TypeScript/path-style artifact module."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher accepts equivalent dotted and slash-separated project-local module identities."
+        - kind: test_function
+          name: test_dotful_path_modules_do_not_match_slash_normalized_paths
+          source_scenario: "A dotful TypeScript/path-style module name and a slash-normalized path refer to different modules."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The matcher rejects dotful path module identities that would only match by replacing dots with slashes."
+    - path: tests/validators/test_python_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_import_and_call_references_carry_distinct_contexts
+          source_scenario: "A Python test imports and calls the same production function."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral collection emits separate import and call contexts for the same name."
+        - kind: test_function
+          name: test_from_import_call_rejects_wrong_module_artifact
+          source_scenario: "A Python test calls a symbol imported from a different module than the declared production artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Identity matching rejects the wrong module and accepts the module actually imported by the test."
+        - kind: test_function
+          name: test_from_import_alias_call_matches_original_artifact_name
+          source_scenario: "A Python test imports a production function under an alias and calls the alias."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Identity matching covers the original artifact through the aliased call reference."
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_base_validator_module_path_defaults_to_none
+          source_scenario: "A concrete BaseValidator subclass uses the default module_path implementation."
+          actions:
+            - type: api_call
+              subject:
+                export: BaseValidator
+          expected:
+            behavior: "The default module_path method returns None for validators without language-specific module identity."
+        - kind: test_function
+          name: test_import_and_access_references_carry_distinct_contexts
+          source_scenario: "A TypeScript test imports and accesses the same production function."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptValidator
+          expected:
+            behavior: "Behavioral collection emits separate import and access contexts for the same name."
+    - path: tests/coherence/test_coherence_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_coherence_package_facades_are_exercised_by_behavioral_references
+          source_scenario: "The consolidated coherence manifest declares package facade exports that must be exercised through the facade modules."
+          actions:
+            - type: api_call
+              subject:
+                export: CoherenceResult
+          expected:
+            behavior: "The test imports and uses both coherence package facades so strict E200 coverage stays real."
+    - path: tests/graph/test_query_refactor_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_traversal_module_public_functions_are_exercised_directly
+          source_scenario: "The graph traversal extraction manifest declares traversal helper functions."
+          actions:
+            - type: api_call
+              subject:
+                export: find_nodes_by_type
+          expected:
+            behavior: "The test calls the traversal helper functions directly and asserts their observable graph results."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/validators/test_behavioral_test_functions.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/cli/test_validate_cmd.py tests/core/test_identity_matching.py tests/validators/test_python_identity.py tests/validators/test_typescript_identity.py tests/validators/test_behavioral_test_functions.py tests/core/test_validate_angular.py::test_angular_standalone_component_static_import_satisfies_required_import
+  - uv run python -m pytest -q tests/coherence/test_coherence_v2.py::TestCoherenceResult::test_coherence_package_facades_are_exercised_by_behavioral_references tests/graph/test_query_refactor_boundaries.py::test_traversal_module_public_functions_are_exercised_directly

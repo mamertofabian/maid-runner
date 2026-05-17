@@ -29,6 +29,7 @@ class FoundArtifact:
     module_path: Optional[str] = None
     import_source: Optional[str] = None
     alias_of: Optional[str] = None
+    reference_context: Optional[str] = None
 
     @property
     def is_private(self) -> bool:

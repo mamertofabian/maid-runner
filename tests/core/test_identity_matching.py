@@ -163,6 +163,20 @@ class TestMatchArtifactToReferences:
         references = [_ref("Foo", import_source="pkg.other")]
         assert not match_artifact_to_references(artifact, references, tmp_path)
 
+    def test_dotted_reference_matches_path_module_identity(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("authenticate", module_path="src/auth")
+        references = [_ref("authenticate", import_source="src.auth")]
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_dotful_path_modules_do_not_match_slash_normalized_paths(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("UserModel", module_path="src/user.model")
+        references = [_ref("UserModel", import_source="src/user/model")]
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
     def test_fallback_to_name_when_reference_has_no_import_source(
         self, tmp_path: Path
     ) -> None:
@@ -170,6 +184,88 @@ class TestMatchArtifactToReferences:
         # so currently-passing manifests do not regress.
         artifact = _artifact("Foo", module_path="pkg.mod")
         references = [_ref("Foo", import_source=None)]
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_import_context_does_not_satisfy_artifact_coverage(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("Foo", module_path="pkg.mod")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="Foo",
+                import_source="pkg.mod",
+                reference_context="import",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_identity_import_blocks_name_only_fallback_for_same_artifact(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("update", module_path="src.widget")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="real_update",
+                import_source="src.widget",
+                alias_of="update",
+                reference_context="import",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="update",
+                reference_context="call",
+            ),
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_module_identity_import_blocks_name_only_fallback(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("update", module_path="src.widget")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="widget_module",
+                import_source="src.widget",
+                alias_of="src.widget",
+                reference_context="import",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="update",
+                reference_context="call",
+            ),
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_noncovering_keyword_reference_does_not_block_method_name_fallback(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = FoundArtifact(
+            kind=ArtifactKind.METHOD,
+            name="module_path",
+            of="BaseValidator",
+            module_path="maid_runner.validators.base",
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="module_path",
+                import_source="maid_runner.validators.base",
+                reference_context="keyword",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="module_path",
+                reference_context="access",
+            ),
+        ]
+
         assert match_artifact_to_references(artifact, references, tmp_path)
 
     def test_no_match_when_names_differ(self, tmp_path: Path) -> None:

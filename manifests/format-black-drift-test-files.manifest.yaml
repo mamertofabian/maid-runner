@@ -1,0 +1,163 @@
+schema: "2"
+goal: "Format existing test files with Black without changing behavior"
+type: refactor
+created: "2026-05-17"
+metadata:
+  tags:
+    - formatting
+    - safe-refactor
+    - tests
+  priority: medium
+description: |
+  Fix repository-wide Black formatting drift in existing test files. The change
+  is intentionally mechanical: Black may reflow code, but test behavior,
+  assertions, fixtures, and CLI scenarios must remain unchanged.
+
+  Rationale: two formatter targets already have active manifests, while two
+  test files enter MAID coverage for the first time as part of this cleanup.
+  Declaring their test functions protects the touched files without expanding
+  production behavior scope.
+temptations:
+  - risk: "Do not combine formatter output with test behavior changes."
+    instead: "Run Black only and preserve every assertion, fixture, and command scenario."
+  - risk: "Do not skip MAID coverage for newly touched test files."
+    instead: "Declare the existing test_function artifacts for the newly covered test files."
+  - risk: "Do not broaden this cleanup into parser, chain, or manifest-event refactors."
+    instead: "Limit implementation edits to mechanical formatting changes."
+files:
+  edit:
+    - path: tests/cli/test_chain_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_build_parser_includes_chain_subcommand
+        - kind: test_function
+          name: test_build_parser_chain_has_log_subcommand
+        - kind: test_function
+          name: test_text_output_includes_expected_columns
+        - kind: test_function
+          name: test_json_output_is_valid_and_contains_all_entries
+        - kind: test_function
+          name: test_active_only_excludes_superseded
+        - kind: test_function
+          name: test_text_mode_returns_zero
+        - kind: test_function
+          name: test_json_mode_returns_zero
+        - kind: test_function
+          name: test_missing_manifest_dir_returns_2
+        - kind: test_function
+          name: test_json_output_contains_manifest_fields
+        - kind: test_function
+          name: test_until_seq_filters_text_output
+        - kind: test_function
+          name: test_until_seq_filters_json_output
+        - kind: test_function
+          name: test_until_seq_zero_returns_error
+        - kind: test_function
+          name: test_until_seq_active_removes_superseded_from_prefix
+        - kind: test_function
+          name: test_version_tag_filters_text_output
+        - kind: test_function
+          name: test_version_tag_missing_returns_empty_json
+        - kind: test_function
+          name: test_both_flags_until_seq_wins
+        - kind: test_function
+          name: test_version_tag_empty_string_returns_error
+        - kind: test_function
+          name: test_replay_text_output_shows_files_and_artifacts
+        - kind: test_function
+          name: test_replay_json_output_returns_artifact_dicts
+        - kind: test_function
+          name: test_replay_until_seq_cuts_off
+        - kind: test_function
+          name: test_replay_version_tag_cuts_off
+        - kind: test_function
+          name: test_replay_invalid_seq_returns_error
+        - kind: test_function
+          name: test_text_output_lists_files_and_artifacts
+        - kind: test_function
+          name: test_json_output_returns_dict_of_artifact_lists
+        - kind: test_function
+          name: test_empty_result_text
+    - path: tests/core/test_manifest_event_log.py
+      artifacts:
+        - kind: test_function
+          name: test_sequence_number_defaults_to_none
+        - kind: test_function
+          name: test_version_tag_defaults_to_none
+        - kind: test_function
+          name: test_sequence_number_can_be_set
+        - kind: test_function
+          name: test_version_tag_can_be_set
+        - kind: test_function
+          name: test_parses_sequence_number_from_yaml
+        - kind: test_function
+          name: test_parses_version_tag_from_yaml
+        - kind: test_function
+          name: test_backward_compatible_missing_fields
+        - kind: test_function
+          name: test_sequence_number_round_trips
+        - kind: test_function
+          name: test_event_log_includes_all_manifests
+        - kind: test_function
+          name: test_event_log_uses_sequence_number_over_created
+        - kind: test_function
+          name: test_event_log_falls_back_to_created_when_sequence_missing
+        - kind: test_function
+          name: test_event_log_includes_superseded_manifests
+        - kind: test_function
+          name: test_mixed_ordering_does_not_crash
+        - kind: test_function
+          name: test_duplicate_sequence_emits_error
+        - kind: test_function
+          name: test_unique_sequence_numbers_emit_no_duplicate_error
+        - kind: test_function
+          name: test_non_monotonic_emits_warning
+        - kind: test_function
+          name: test_monotonic_sequence_emits_no_warning
+        - kind: test_function
+          name: test_sequence_cutoff_returns_up_to_and_including
+        - kind: test_function
+          name: test_sequence_before_first_returns_empty
+        - kind: test_function
+          name: test_sequence_between_existing_returns_earlier
+        - kind: test_function
+          name: test_sequence_after_last_returns_all_sequenced
+        - kind: test_function
+          name: test_version_tag_cutoff_returns_through_first_match
+        - kind: test_function
+          name: test_version_tag_not_found_returns_empty
+        - kind: test_function
+          name: test_sequence_number_takes_precedence_over_version_tag
+        - kind: test_function
+          name: test_neither_arg_returns_all
+        - kind: test_function
+          name: test_includes_superseded_manifests
+        - kind: test_function
+          name: test_invalid_sequence_number_raises_value_error
+        - kind: test_function
+          name: test_empty_version_tag_raises_value_error
+        - kind: test_function
+          name: test_full_replay_returns_effective_artifacts
+        - kind: test_function
+          name: test_sequence_cutoff_excludes_later_artifacts
+        - kind: test_function
+          name: test_superseded_artifacts_are_replaced
+        - kind: test_function
+          name: test_deleted_file_excluded_from_result
+        - kind: test_function
+          name: test_version_tag_cutoff
+        - kind: test_function
+          name: test_both_args_sequence_wins
+        - kind: test_function
+          name: test_superseder_after_cutoff_preserves_original
+        - kind: test_function
+          name: test_empty_prefix_returns_empty_dict
+    - path: tests/core/test_validate_test_functions.py
+      artifacts:
+        - kind: test_function
+          name: test_behavior_mismatch_scoped_to_specific_test_body
+  read:
+    - tests/validators/test_python_parser_replacement_boundaries.py
+validate:
+  - uv run black --check .
+  - uv run python -m pytest -q tests/cli/test_chain_cmd.py tests/core/test_manifest_event_log.py tests/validators/test_python_parser_replacement_boundaries.py tests/core/test_validate_test_functions.py

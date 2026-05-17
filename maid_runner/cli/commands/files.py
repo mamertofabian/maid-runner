@@ -24,7 +24,11 @@ def cmd_files(args: argparse.Namespace) -> int:
                 report, json_mode=args.json, hide_private=args.hide_private
             )
         )
-        return 0
+        return (
+            1
+            if _has_requested_tracking_status(report, getattr(args, "fail_on", None))
+            else 0
+        )
     except Exception as e:
         print_error(str(e), json_mode=args.json)
         return 2
@@ -45,3 +49,14 @@ def cmd_manifests(args: argparse.Namespace) -> int:
     except Exception as e:
         print_error(str(e), json_mode=args.json)
         return 2
+
+
+def _has_requested_tracking_status(report, fail_on: list[str] | None) -> bool:
+    statuses = set(fail_on or [])
+    if "any" in statuses:
+        statuses.update({"undeclared", "registered"})
+    statuses.discard("any")
+
+    return ("undeclared" in statuses and bool(report.undeclared)) or (
+        "registered" in statuses and bool(report.registered)
+    )

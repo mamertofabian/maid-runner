@@ -79,6 +79,92 @@ class TestCoherenceResult:
         assert r.warning_count == 0
         assert r.duration_ms is None
 
+    def test_coherence_package_facades_are_exercised_by_behavioral_references(self):
+        from maid_runner.coherence import (
+            BaseCheck as FacadeBaseCheck,
+            CoherenceEngine as FacadeCoherenceEngine,
+            CoherenceIssue as FacadeCoherenceIssue,
+            CoherenceResult as FacadeCoherenceResult,
+            ConstraintCheck as FacadeConstraintCheck,
+            ConstraintConfig as FacadeConstraintConfig,
+            ConstraintRule as FacadeConstraintRule,
+            DependencyCheck as FacadeDependencyCheck,
+            DuplicateCheck as FacadeDuplicateCheck,
+            IssueSeverity as FacadeIssueSeverity,
+            IssueType as FacadeIssueType,
+            ModuleBoundaryCheck as FacadeModuleBoundaryCheck,
+            NamingCheck as FacadeNamingCheck,
+            PatternCheck as FacadePatternCheck,
+            SignatureCheck as FacadeSignatureCheck,
+            get_checks as facade_get_checks,
+        )
+        from maid_runner.coherence.checks import (
+            BaseCheck as ChecksBaseCheck,
+            ConstraintCheck as ChecksConstraintCheck,
+            ConstraintConfig as ChecksConstraintConfig,
+            ConstraintRule as ChecksConstraintRule,
+            DependencyCheck as ChecksDependencyCheck,
+            DuplicateCheck as ChecksDuplicateCheck,
+            ModuleBoundaryCheck as ChecksModuleBoundaryCheck,
+            NamingCheck as ChecksNamingCheck,
+            PatternCheck as ChecksPatternCheck,
+            SignatureCheck as ChecksSignatureCheck,
+            get_checks as checks_get_checks,
+        )
+
+        issue = FacadeCoherenceIssue(
+            issue_type=FacadeIssueType.NAMING,
+            severity=FacadeIssueSeverity.WARNING,
+            message="naming warning",
+        )
+        result = FacadeCoherenceResult(issues=[issue])
+        rule = FacadeConstraintRule(
+            name="boundary",
+            description="disallow dependency",
+            pattern={"from": "ui", "to": "db"},
+            severity="warning",
+        )
+        config = FacadeConstraintConfig(version="1", rules=[rule], enabled=True)
+        check_classes = [
+            FacadeDuplicateCheck,
+            FacadeSignatureCheck,
+            FacadeNamingCheck,
+            FacadeModuleBoundaryCheck,
+            FacadeDependencyCheck,
+            FacadePatternCheck,
+            FacadeConstraintCheck,
+            ChecksDuplicateCheck,
+            ChecksSignatureCheck,
+            ChecksNamingCheck,
+            ChecksModuleBoundaryCheck,
+            ChecksDependencyCheck,
+            ChecksPatternCheck,
+            ChecksConstraintCheck,
+        ]
+
+        assert result.warning_count == 1
+        assert isinstance(FacadeCoherenceEngine(), FacadeCoherenceEngine)
+        assert all(issubclass(check, FacadeBaseCheck) for check in check_classes[:7])
+        assert all(issubclass(check, ChecksBaseCheck) for check in check_classes[7:])
+        assert [check.name for check in facade_get_checks()]
+        assert [check.name for check in checks_get_checks()]
+        assert config.rules[0].pattern["from"] == "ui"
+        assert (
+            ChecksConstraintConfig(
+                version="1",
+                rules=[
+                    ChecksConstraintRule(
+                        name="checks",
+                        description="checks facade",
+                        pattern={"from": "core", "to": "cli"},
+                    )
+                ],
+            )
+            .rules[0]
+            .name
+            == "checks"
+        )
+
     def test_consolidated_contract_symbols_are_referenced(self):
         rule = ConstraintRule(
             name="no-cross-boundary",

@@ -28,6 +28,7 @@ from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
     load_manifest,
+    validate_manifest_paths,
 )
 from maid_runner.core.result import (
     BatchValidationResult,
@@ -56,6 +57,51 @@ from maid_runner.validators.registry import (
 _STRUCTURAL_KINDS = _implementation_validation._STRUCTURAL_KINDS
 
 
+def _file_tracking_gate_error(
+    report: FileTrackingReport,
+) -> ValidationError | None:
+    parts = []
+    if report.undeclared:
+        paths = ", ".join(entry.path for entry in report.undeclared)
+        parts.append(f"undeclared: {paths}")
+    if report.registered:
+        paths = ", ".join(entry.path for entry in report.registered)
+        parts.append(f"registered: {paths}")
+    if not parts:
+        return None
+
+    return ValidationError(
+        code=ErrorCode.COHERENCE_BOUNDARY_VIOLATION,
+        message=f"File tracking gate failed ({'; '.join(parts)})",
+        severity=Severity.ERROR,
+    )
+
+
+def _apply_file_tracking_gate(
+    results: list[ValidationResult],
+    chain_errors: list[ValidationError],
+    report: FileTrackingReport,
+    *,
+    passed: int,
+    failed: int,
+) -> tuple[int, int]:
+    tracking_error = _file_tracking_gate_error(report)
+    if tracking_error is None:
+        return passed, failed
+
+    if results:
+        target = results[0]
+        target.file_tracking = report
+        target.errors.append(tracking_error)
+        if target.success:
+            target.success = False
+            return passed - 1, failed + 1
+        return passed, failed
+
+    chain_errors.append(tracking_error)
+    return passed, failed + 1
+
+
 class ValidationEngine:
     def __init__(
         self,
@@ -76,6 +122,7 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         check_stubs: bool = False,
         check_assertions: bool = False,
+        fail_on_warnings: bool = False,
         include_chain_diagnostics: bool = True,
     ) -> ValidationResult:
         start = time.monotonic()
@@ -85,6 +132,11 @@ class ValidationEngine:
             try:
                 manifest = load_manifest(manifest)
             except ManifestLoadError as e:
+                code = (
+                    ErrorCode.FILE_NOT_FOUND
+                    if e.reason == "File not found"
+                    else ErrorCode.MANIFEST_PARSE_ERROR
+                )
                 return ValidationResult(
                     success=False,
                     manifest_slug="unknown",
@@ -92,7 +144,7 @@ class ValidationEngine:
                     mode=mode,
                     errors=[
                         ValidationError(
-                            code=ErrorCode.FILE_NOT_FOUND,
+                            code=code,
                             message=str(e),
                         )
                     ],
@@ -110,6 +162,18 @@ class ValidationEngine:
                         )
                     ],
                 )
+
+        path_errors = validate_manifest_paths(manifest, self._project_root)
+        if path_errors:
+            duration = (time.monotonic() - start) * 1000
+            return ValidationResult(
+                success=False,
+                manifest_slug=manifest.slug,
+                manifest_path=manifest.source_path,
+                mode=mode,
+                errors=path_errors,
+                duration_ms=duration,
+            )
 
         if mode == ValidationMode.SCHEMA:
             duration = (time.monotonic() - start) * 1000
@@ -147,9 +211,10 @@ class ValidationEngine:
 
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
         actual_warnings = [e for e in errors if e.severity == Severity.WARNING]
+        success = len(actual_errors) == 0 and not (fail_on_warnings and actual_warnings)
 
         return ValidationResult(
-            success=len(actual_errors) == 0,
+            success=success,
             manifest_slug=manifest.slug,
             manifest_path=manifest.source_path,
             mode=mode,
@@ -163,40 +228,90 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         *,
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
+        check_file_tracking: bool = False,
+        allow_empty: bool = False,
+        check_stubs: bool = False,
+        check_assertions: bool = False,
+        fail_on_warnings: bool = False,
     ) -> BatchValidationResult:
         start = time.monotonic()
         chain_dir = self._project_root / manifest_dir
 
         if not chain_dir.exists():
+            if not allow_empty:
+                duration = (time.monotonic() - start) * 1000
+                return _empty_manifest_set_result(
+                    chain_dir,
+                    message=f"Manifest directory not found: {chain_dir}",
+                    duration_ms=duration,
+                )
             return BatchValidationResult(
-                results=[], total_manifests=0, passed=0, failed=0, skipped=0
+                results=[],
+                total_manifests=0,
+                passed=0,
+                failed=0,
+                skipped=0,
+                duration_ms=(time.monotonic() - start) * 1000,
             )
 
         chain = ManifestChain(chain_dir, self._project_root)
 
         if mode == ValidationMode.SCHEMA:
             manifests = chain.all_manifests
+            if not manifests and not chain.load_errors and not allow_empty:
+                duration = (time.monotonic() - start) * 1000
+                return _empty_manifest_set_result(
+                    chain_dir,
+                    message=f"No active manifests discovered in {chain_dir}",
+                    chain_errors=chain.load_errors
+                    + chain.inactive_manifest_diagnostics(),
+                    duration_ms=duration,
+                )
             results: list[ValidationResult] = []
             for manifest in manifests:
-                result = self.validate(manifest, mode=mode)
+                result = self.validate(
+                    manifest,
+                    mode=mode,
+                    fail_on_warnings=fail_on_warnings,
+                )
                 results.append(result)
 
             duration = (time.monotonic() - start) * 1000
             passed = sum(1 for result in results if result.success)
             failed = len(results) - passed
+            chain_errors = chain.load_errors + chain.inactive_manifest_diagnostics()
+            if fail_on_warnings and _has_warning(chain_errors):
+                failed += 1
+            if check_file_tracking:
+                passed, failed = _apply_file_tracking_gate(
+                    results,
+                    chain_errors,
+                    self.run_file_tracking(chain),
+                    passed=passed,
+                    failed=failed,
+                )
             return BatchValidationResult(
                 results=results,
                 total_manifests=len(manifests) + len(chain.load_errors),
                 passed=passed,
                 failed=failed,
                 skipped=0,
-                chain_errors=chain.load_errors + chain.inactive_manifest_diagnostics(),
+                chain_errors=chain_errors,
                 duration_ms=duration,
             )
 
         chain_errors = chain.diagnostics()
         active = chain.active_manifests()
         superseded = chain.superseded_manifests()
+
+        if not active and not allow_empty:
+            duration = (time.monotonic() - start) * 1000
+            return _empty_manifest_set_result(
+                chain_dir,
+                message=f"No active manifests discovered in {chain_dir}",
+                chain_errors=chain_errors,
+                duration_ms=duration,
+            )
 
         results: list[ValidationResult] = []
         passed = 0
@@ -209,6 +324,9 @@ class ValidationEngine:
                 use_chain=True,
                 chain=chain,
                 manifest_dir=manifest_dir,
+                check_stubs=check_stubs,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
                 include_chain_diagnostics=False,
             )
             results.append(result)
@@ -216,6 +334,18 @@ class ValidationEngine:
                 passed += 1
             else:
                 failed += 1
+
+        if fail_on_warnings and _has_warning(chain_errors):
+            failed += 1
+
+        if check_file_tracking:
+            passed, failed = _apply_file_tracking_gate(
+                results,
+                chain_errors,
+                self.run_file_tracking(chain),
+                passed=passed,
+                failed=failed,
+            )
 
         duration = (time.monotonic() - start) * 1000
 
@@ -237,6 +367,9 @@ class ValidationEngine:
         check_assertions: bool = False,
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
+        errors.extend(validate_manifest_paths(manifest, self._project_root))
+        if errors:
+            return errors
 
         # Find test files
         test_files = find_test_files(manifest, self._project_root)
@@ -244,54 +377,61 @@ class ValidationEngine:
             test_files, self._project_root, self._registry, errors
         )
 
-        # Check each artifact is used in at least one test
-        # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
-        # validated separately by _validate_test_function_names
-        for fs in manifest.all_file_specs:
-            artifact_validator = (
-                get_validator_for_test(fs.path, self._registry) if fs.path else None
-            )
-            if artifact_validator is not None:
-                artifact_module = artifact_validator.module_path(
-                    fs.path, self._project_root
+        if not (
+            manifest.task_type
+            and manifest.task_type.value in ("snapshot", "system-snapshot")
+        ):
+            # Check each artifact is used in at least one test.
+            # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
+            # validated separately by _validate_test_function_names.
+            for fs in manifest.all_file_specs:
+                artifact_validator = (
+                    get_validator_for_test(fs.path, self._registry) if fs.path else None
                 )
-                resolver = artifact_validator.resolve_reexport
-            else:
-                artifact_module = (
-                    file_to_module_path(fs.path, self._project_root)
-                    if fs.path
-                    else None
-                )
-                resolver = None
-            for artifact in fs.artifacts:
-                if artifact.is_private:
-                    continue
-                if artifact.kind == ArtifactKind.TEST_FUNCTION:
-                    continue
-                identity = FoundArtifact(
-                    kind=artifact.kind,
-                    name=artifact.name,
-                    of=artifact.of,
-                    module_path=artifact_module,
-                )
-                used = False
-                for refs in test_artifacts.values():
-                    if match_artifact_to_references(
-                        identity,
-                        refs,
-                        self._project_root,
-                        reexport_resolver=resolver,
-                    ):
-                        used = True
-                        break
-                if not used:
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
-                            message=f"Artifact '{artifact.name}' not used in any test file",
-                            location=Location(file=fs.path),
-                        )
+                if artifact_validator is not None:
+                    artifact_module = artifact_validator.module_path(
+                        fs.path, self._project_root
                     )
+                    resolver = artifact_validator.resolve_reexport
+                else:
+                    artifact_module = (
+                        file_to_module_path(fs.path, self._project_root)
+                        if fs.path
+                        else None
+                    )
+                    resolver = None
+                for artifact in fs.artifacts:
+                    if artifact.is_private:
+                        continue
+                    if artifact.kind == ArtifactKind.TEST_FUNCTION:
+                        continue
+                    identity = FoundArtifact(
+                        kind=artifact.kind,
+                        name=artifact.name,
+                        of=artifact.of,
+                        module_path=artifact_module,
+                    )
+                    used = False
+                    for refs in test_artifacts.values():
+                        if match_artifact_to_references(
+                            identity,
+                            refs,
+                            self._project_root,
+                            reexport_resolver=resolver,
+                        ):
+                            used = True
+                            break
+                    if not used:
+                        errors.append(
+                            ValidationError(
+                                code=ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
+                                message=(
+                                    f"Artifact '{artifact.name}' not used in any "
+                                    f"test file"
+                                ),
+                                location=Location(file=fs.path),
+                            )
+                        )
 
         errors.extend(
             validate_test_function_names(
@@ -335,6 +475,9 @@ class ValidationEngine:
         Verifies that acceptance test files referenced in commands exist.
         """
         errors: list[ValidationError] = []
+        errors.extend(validate_manifest_paths(manifest, self._project_root))
+        if errors:
+            return errors
 
         if manifest.acceptance is None:
             return errors
@@ -404,7 +547,7 @@ class ValidationEngine:
 
         Returns errors/warnings:
         - E220 (ERROR) if manifest has public artifacts but zero test files
-        - E200 (WARNING) if a public artifact is not referenced in any test
+        - E200 (ERROR) if a public artifact is not referenced in any test
         """
         errors: list[ValidationError] = []
 
@@ -415,14 +558,14 @@ class ValidationEngine:
         ):
             return errors
 
-        # Only check artifacts from non-test source files.
-        # Manifests that create/edit test files don't need meta-test coverage.
+        # Only check production artifacts from non-test source files.
+        # test_function artifacts describe coverage and do not need meta-tests.
         source_file_specs = [
             fs for fs in manifest.all_file_specs if not is_test_file(fs.path)
         ]
 
         has_public_artifacts = any(
-            not artifact.is_private
+            not artifact.is_private and artifact.kind != ArtifactKind.TEST_FUNCTION
             for fs in source_file_specs
             for artifact in fs.artifacts
         )
@@ -453,7 +596,7 @@ class ValidationEngine:
             )
             return errors
 
-        # Check each public artifact is referenced in at least one test (WARNING)
+        # Check each public artifact is referenced in at least one test.
         for fs in source_file_specs:
             artifact_validator = (
                 get_validator_for_test(fs.path, self._registry) if fs.path else None
@@ -471,7 +614,7 @@ class ValidationEngine:
                 )
                 resolver = None
             for artifact in fs.artifacts:
-                if artifact.is_private:
+                if artifact.is_private or artifact.kind == ArtifactKind.TEST_FUNCTION:
                     continue
                 identity = FoundArtifact(
                     kind=artifact.kind,
@@ -497,7 +640,6 @@ class ValidationEngine:
                                 f"Artifact '{artifact.name}' not referenced in "
                                 f"any test file"
                             ),
-                            severity=Severity.WARNING,
                             location=Location(file=fs.path),
                             suggestion=(
                                 f"Add a test that imports and exercises '{artifact.name}'"
@@ -515,6 +657,9 @@ class ValidationEngine:
         check_stubs: bool = False,
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
+        errors.extend(validate_manifest_paths(manifest, self._project_root))
+        if errors:
+            return errors
 
         # Check delete files
         for ds in manifest.files_delete:
@@ -830,6 +975,7 @@ def validate(
     project_root: Union[str, Path] = ".",
     check_stubs: bool = False,
     check_assertions: bool = False,
+    fail_on_warnings: bool = False,
     registry: ValidatorRegistry | None = None,
 ) -> ValidationResult:
     engine = ValidationEngine(project_root=project_root, registry=registry)
@@ -840,6 +986,7 @@ def validate(
         manifest_dir=manifest_dir,
         check_stubs=check_stubs,
         check_assertions=check_assertions,
+        fail_on_warnings=fail_on_warnings,
     )
 
 
@@ -848,10 +995,52 @@ def validate_all(
     *,
     mode: ValidationMode = ValidationMode.IMPLEMENTATION,
     project_root: Union[str, Path] = ".",
+    allow_empty: bool = False,
+    check_stubs: bool = False,
+    check_assertions: bool = False,
+    fail_on_warnings: bool = False,
     registry: ValidatorRegistry | None = None,
 ) -> BatchValidationResult:
     engine = ValidationEngine(project_root=project_root, registry=registry)
-    return engine.validate_all(manifest_dir, mode=mode)
+    return engine.validate_all(
+        manifest_dir,
+        mode=mode,
+        allow_empty=allow_empty,
+        check_stubs=check_stubs,
+        check_assertions=check_assertions,
+        fail_on_warnings=fail_on_warnings,
+    )
+
+
+def _has_warning(errors: list[ValidationError]) -> bool:
+    return any(error.severity == Severity.WARNING for error in errors)
+
+
+def _empty_manifest_set_result(
+    manifest_dir: Path,
+    *,
+    message: str,
+    chain_errors: list[ValidationError] | None = None,
+    duration_ms: float | None = None,
+) -> BatchValidationResult:
+    errors = list(chain_errors or [])
+    errors.append(
+        ValidationError(
+            code=ErrorCode.EMPTY_MANIFEST_SET,
+            message=message,
+            location=Location(file=str(manifest_dir)),
+            suggestion="Pass --allow-empty only when an empty manifest set is intentional.",
+        )
+    )
+    return BatchValidationResult(
+        results=[],
+        total_manifests=0,
+        passed=0,
+        failed=1,
+        skipped=0,
+        chain_errors=errors,
+        duration_ms=duration_ms,
+    )
 
 
 def _compare_artifacts(

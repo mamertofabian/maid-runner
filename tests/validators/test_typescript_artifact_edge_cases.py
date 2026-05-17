@@ -461,6 +461,95 @@ def test_intersection_typed_const_function_return_preserves_full_annotation() ->
     assert fn.returns == "(() => string) & { meta: string }"
 
 
+def test_module_local_declarations_in_es_modules_are_not_public_artifacts() -> None:
+    source = """import { Injectable } from '@angular/core';
+
+const LOCAL_POINTS: Record<string, number> = {};
+function localHelper(): number {
+  return 1;
+}
+class InternalModel {}
+
+export const PUBLIC_POINTS: Record<string, number> = {};
+export class ListingComponent {
+  render(): string {
+    return 'ok';
+  }
+
+  private format(): string {
+    return 'hidden';
+  }
+}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/listing.component.ts"
+    )
+
+    names = {artifact.qualified_name for artifact in result.artifacts}
+
+    assert "PUBLIC_POINTS" in names
+    assert "ListingComponent" in names
+    assert "ListingComponent.render" in names
+    assert "LOCAL_POINTS" not in names
+    assert "localHelper" not in names
+    assert "InternalModel" not in names
+    assert "ListingComponent.format" not in names
+
+
+def test_named_export_clause_keeps_local_declarations_public() -> None:
+    source = """const EXPORTED_POINTS: Record<string, number> = {};
+function buildExportedValue(): number {
+  return 1;
+}
+
+export { EXPORTED_POINTS, buildExportedValue as buildValue };
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/exported-values.ts"
+    )
+
+    exported_points = next(a for a in result.artifacts if a.name == "EXPORTED_POINTS")
+    build_value = next(a for a in result.artifacts if a.name == "buildExportedValue")
+
+    assert exported_points.kind == ArtifactKind.ATTRIBUTE
+    assert build_value.kind == ArtifactKind.FUNCTION
+
+
+def test_export_assignment_keeps_local_declaration_public() -> None:
+    source = """function createConfig(): Config {
+  return { ready: true };
+}
+
+export = createConfig;
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/create-config.cts"
+    )
+
+    create_config = next(a for a in result.artifacts if a.name == "createConfig")
+
+    assert create_config.kind == ArtifactKind.FUNCTION
+    assert create_config.returns == "Config"
+
+
+def test_script_style_top_level_declarations_remain_public_artifacts() -> None:
+    source = """const GLOBAL_POINTS: Record<string, number> = {};
+function globalHelper(): number {
+  return 1;
+}
+class GlobalModel {}
+"""
+    result = TypeScriptValidator().collect_implementation_artifacts(
+        source, "src/global-script.ts"
+    )
+
+    names = {artifact.name for artifact in result.artifacts}
+
+    assert "GLOBAL_POINTS" in names
+    assert "globalHelper" in names
+    assert "GlobalModel" in names
+
+
 def test_decorator_factory_preserves_class_and_method_identity() -> None:
     source = """@Component({ selector: 'app-root' })
 export class AppComponent {

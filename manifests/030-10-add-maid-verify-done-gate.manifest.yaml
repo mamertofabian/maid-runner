@@ -1,0 +1,209 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add a combined `maid verify` command as the automation-safe done gate"
+type: feature
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - verify
+    - ci
+    - automation
+    - done-gate
+  priority: critical
+description: |
+  Add a single command for agents and CI to use when claiming MAID compliance:
+  `maid verify`. The command should run the full validation stack in an
+  ordered, fail-closed way:
+
+  1. schema validation over the selected manifest directory;
+  2. behavioral validation;
+  3. implementation validation;
+  4. coherence validation;
+  5. file-tracking gate;
+  6. optional worktree-scope gate when git metadata is available or requested;
+  7. manifest `validate:` commands through the existing test runner.
+
+  This does not replace focused developer commands. It provides one
+  automation-safe command whose exit code reflects the entire MAID contract,
+  preventing selective reporting of only `maid validate` or only `maid test`.
+temptations:
+  - risk: "Do not make verify a thin alias for implementation-mode validate."
+    instead: "Run every declared gate and aggregate their results into one final status."
+  - risk: "Do not continue to tests after an earlier structural gate makes the result meaningless."
+    instead: "Default to fail-fast by stage, with an explicit --keep-going option for diagnostics."
+  - risk: "Do not invent a second test runner."
+    instead: "Reuse validate_all, coherence, file tracking, worktree scope, and test_runner APIs."
+  - risk: "Do not emit unstructured text only."
+    instead: "Support --json with per-stage success, duration, and error details for automation."
+  - risk: "Do not make the command impossible to use during bootstrap."
+    instead: "Thread explicit escape hatches such as --allow-empty from the earlier validation gate."
+files:
+  create:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "CLI handler for the combined MAID verification gate."
+        - kind: function
+          name: run_verify
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+          returns: VerificationResult
+          description: "Run all verification stages and return structured stage outcomes."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_returns_0_when_all_gates_pass
+          source_scenario: "A project has a valid manifest, coherent chain, no undeclared files, and passing validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 0 and reports every stage as passing."
+        - kind: test_function
+          name: test_verify_returns_1_when_behavioral_validation_fails
+          source_scenario: "Schema validation passes but behavioral validation fails because tests do not exercise the artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 1 and identifies behavioral validation as the failing stage."
+        - kind: test_function
+          name: test_verify_returns_1_when_manifest_validate_command_fails
+          source_scenario: "Structural validation passes but the manifest validate command exits non-zero."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 1 and includes the failing command result."
+        - kind: test_function
+          name: test_verify_json_reports_all_stage_statuses
+          source_scenario: "A caller requests JSON verification output."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output contains schema, behavioral, implementation, coherence, file_tracking, and tests stage objects."
+        - kind: test_function
+          name: test_verify_allow_empty_returns_0_without_manifest_directory
+          source_scenario: "A caller explicitly allows an empty manifest directory during bootstrap."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify --allow-empty exits 0 and reports skipped manifest-dependent stages visibly."
+        - kind: test_function
+          name: test_verify_json_worktree_scope_reports_structured_errors
+          source_scenario: "A git worktree has an out-of-scope changed production file and JSON output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output preserves the worktree-scope E114 code, location, and message details."
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: class
+          name: VerificationResult
+          description: "Structured aggregate result for the verify command."
+        - kind: attribute
+          name: stages
+          of: VerificationResult
+          type: "tuple[VerificationStageResult, ...]"
+        - kind: attribute
+          name: duration_ms
+          of: VerificationResult
+          type: "Optional[float]"
+        - kind: class
+          name: VerificationStageResult
+          description: "One verify-stage status with optional validation, coherence, tracking, or test details."
+        - kind: attribute
+          name: name
+          of: VerificationStageResult
+          type: str
+        - kind: attribute
+          name: success
+          of: VerificationStageResult
+          type: bool
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: "list[str] | None"
+              default: None
+          returns: int
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_verify_result
+          args:
+            - name: result
+              type: VerificationResult
+          returns: str
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_parser_has_verify_subcommand
+          source_scenario: "The CLI parser receives the verify subcommand."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parser accepts verify with manifest-dir, json, fail-fast, and strict-related flags."
+    - path: tests/cli/test_format.py
+      artifacts:
+        - kind: test_function
+          name: test_format_verify_result_text_lists_stage_statuses
+          source_scenario: "A verify result has multiple stage statuses."
+          actions:
+            - type: api_call
+              subject:
+                export: format_verify_result
+          expected:
+            behavior: "Text output lists each stage and the aggregate pass/fail status."
+        - kind: test_function
+          name: test_format_verify_result_json_contains_stage_objects
+          source_scenario: "A verify result is formatted as JSON."
+          actions:
+            - type: api_call
+              subject:
+                export: format_verify_result
+          expected:
+            behavior: "JSON output contains machine-readable stage names and success values."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/030-01-fail-empty-manifest-discovery.manifest.yaml
+    - manifests/030-02-make-coherence-flag-fail-closed.manifest.yaml
+    - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/030-08-add-validate-run-tests-gate.manifest.yaml
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+    - maid_runner/core/validate.py
+    - maid_runner/core/test_runner.py
+    - maid_runner/coherence/engine.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/test.py
+    - maid_runner/cli/commands/files.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/cli/test_main.py tests/cli/test_format.py

@@ -241,9 +241,6 @@ files:
           type: string
           description: "Local-only Codex automation logs and caches"
   read:
-    - ../atomic-carpool/.codex/skills/atomic-carpool-maid-draft-implement/SKILL.md
-    - ../atomic-carpool/tools/codex_maid_loop.py
-    - ../atomic-carpool/tests/tools/test_codex_maid_loop.py
     - manifests/drafts/README.md
     - manifests/drafts/000-parser-replacement-roadmap.md
     - .claude/skills/maid-implementer/SKILL.md

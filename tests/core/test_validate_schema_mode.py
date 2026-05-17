@@ -7,7 +7,7 @@ import yaml
 
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
-from maid_runner.core.validate import ValidationEngine
+from maid_runner.core.validate import ValidationEngine, validate_all
 
 
 def _valid_manifest(**overrides):
@@ -85,6 +85,24 @@ def test_validation_engine_schema_mode_all_reports_invalid_manifest_load_errors(
     assert [error.code for error in result.chain_errors] == [
         ErrorCode.SCHEMA_VALIDATION_ERROR
     ]
+
+
+def test_validate_all_function_schema_mode_accepts_valid_manifest_without_source_or_tests(
+    tmp_path,
+):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest_path = manifest_dir / "schema-only.manifest.yaml"
+    manifest_path.write_text(yaml.dump(_valid_manifest()))
+
+    result = validate_all(
+        "manifests", project_root=tmp_path, mode=ValidationMode.SCHEMA
+    )
+
+    assert result.success is True
+    assert result.passed == 1
+    assert result.failed == 0
+    assert result.chain_errors == []
 
 
 def test_validation_engine_schema_mode_all_ignores_chain_diagnostics_for_schema_valid_manifests(

@@ -71,6 +71,7 @@ class PythonValidator(BaseValidator):
             )
 
         collector = _BehavioralCollector(file_path=str(file_path))
+        collector.scan_imports(tree)
         collector.visit(tree)
 
         return CollectionResult(
@@ -157,7 +158,15 @@ class _BehavioralCollector(ast.NodeVisitor):
 
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
-        self._seen: set[tuple[str, Optional[str], Optional[str]]] = set()
+        self._seen: set[
+            tuple[
+                str,
+                Optional[str],
+                Optional[str],
+                Optional[str],
+                Optional[str],
+            ]
+        ] = set()
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
@@ -169,29 +178,135 @@ class _BehavioralCollector(ast.NodeVisitor):
         # attribute chains rooted at the bound name (e.g. ``pkg.mod.Foo``)
         # can resolve the leaf reference's import_source.
         self._module_imports: dict[str, str] = {}
+        self._imported_names: dict[str, tuple[Optional[str], Optional[str]]] = {}
+        self._known_imported_names: set[str] = set()
+        self._module_shadowed_imports: set[str] = set()
+        self._local_import_scopes: list[
+            dict[str, tuple[Optional[str], Optional[str]]]
+        ] = []
+        self._local_module_import_scopes: list[dict[str, str]] = []
+        self._shadowed_import_scopes: list[set[str]] = []
+        self._function_import_bound_scopes: list[set[str]] = []
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        if node.names:
-            level = node.level or 0
-            if level > 0 and self._importer_module:
-                source_module = resolve_relative_import(
-                    node.module, level, self._importer_module
-                )
-            else:
-                source_module = node.module or ""
-            for alias in node.names:
-                if alias.name == "*":
-                    continue
-                bound = alias.asname or alias.name
-                alias_of = alias.name if alias.asname else None
-                self._add_reference(
+    def scan_imports(self, tree: ast.AST) -> None:
+        self._known_imported_names = _all_imported_bound_names(tree)
+        self._module_imports.clear()
+        self._imported_names.clear()
+        self._module_shadowed_imports.clear()
+
+        if not isinstance(tree, ast.Module):
+            return
+        for statement in tree.body:
+            self._apply_module_statement_binding(statement)
+
+    def _apply_module_statement_binding(self, statement: ast.stmt) -> None:
+        if isinstance(statement, ast.ImportFrom):
+            for bound, source_module, alias_of in self._import_from_entries(statement):
+                self._bind_imported_name(bound, source_module, alias_of)
+            return
+        if isinstance(statement, ast.Import):
+            for bound, source_module, alias_of, namespace_root in self._import_entries(
+                statement
+            ):
+                self._bind_imported_name(
                     bound,
-                    import_source=source_module or None,
-                    alias_of=alias_of,
+                    source_module,
+                    alias_of,
+                    namespace_root=namespace_root,
                 )
-        self.generic_visit(node)
+            return
 
-    def visit_Import(self, node: ast.Import) -> None:
+        if isinstance(statement, ast.Try):
+            for child in statement.body:
+                self._apply_module_statement_binding(child)
+            for handler in statement.handlers:
+                if handler.name:
+                    self._unbind_imported_name(handler.name)
+                for child in handler.body:
+                    self._apply_module_statement_binding(child)
+            for child in statement.orelse + statement.finalbody:
+                self._apply_module_statement_binding(child)
+            return
+
+        if isinstance(statement, (ast.If, ast.While)):
+            for child in statement.body + statement.orelse:
+                self._apply_module_statement_binding(child)
+            return
+
+        if isinstance(statement, (ast.For, ast.AsyncFor)):
+            bindings: set[str] = set()
+            _collect_target_bindings(statement.target, bindings)
+            for name in bindings:
+                self._unbind_imported_name(name)
+            for child in statement.body + statement.orelse:
+                self._apply_module_statement_binding(child)
+            return
+
+        if isinstance(statement, (ast.With, ast.AsyncWith)):
+            bindings: set[str] = set()
+            for item in statement.items:
+                if item.optional_vars is not None:
+                    _collect_target_bindings(item.optional_vars, bindings)
+            for name in bindings:
+                self._unbind_imported_name(name)
+            for child in statement.body:
+                self._apply_module_statement_binding(child)
+            return
+
+        bindings: set[str] = set()
+        _collect_statement_bindings(statement, bindings)
+        for name in bindings & self._known_imported_names:
+            self._unbind_imported_name(name)
+
+    def _bind_imported_name(
+        self,
+        bound: str,
+        source_module: Optional[str],
+        alias_of: Optional[str],
+        *,
+        namespace_root: Optional[str] = None,
+    ) -> None:
+        self._imported_names[bound] = (source_module, alias_of)
+        if namespace_root is None:
+            self._module_imports.pop(bound, None)
+        else:
+            self._module_imports[bound] = namespace_root
+        self._module_shadowed_imports.discard(bound)
+
+    def _unbind_imported_name(self, name: str) -> None:
+        self._imported_names.pop(name, None)
+        self._module_imports.pop(name, None)
+        self._module_shadowed_imports.add(name)
+
+    def _import_from_entries(
+        self,
+        node: ast.ImportFrom,
+    ) -> list[tuple[str, Optional[str], Optional[str]]]:
+        entries: list[tuple[str, Optional[str], Optional[str]]] = []
+        if not node.names:
+            return entries
+        level = node.level or 0
+        if level > 0 and self._importer_module:
+            source_module = resolve_relative_import(
+                node.module,
+                level,
+                self._importer_module,
+            )
+        else:
+            source_module = node.module or ""
+        for alias in node.names:
+            if alias.name == "*":
+                continue
+            bound = alias.asname or alias.name
+            alias_of = alias.name if alias.asname else None
+            entries.append((bound, source_module or None, alias_of))
+        return entries
+
+    def _import_entries(
+        self,
+        node: ast.Import,
+    ) -> list[tuple[str, str, Optional[str], str]]:
+        entries: list[tuple[str, str, Optional[str], str]] = []
         for alias in node.names:
             # `import pkg.mod`       -> Python binds the top-level `pkg`.
             # `import pkg.mod as pm` -> Python binds `pm`.
@@ -203,37 +318,148 @@ class _BehavioralCollector(ast.NodeVisitor):
                 bound = alias.name.split(".", 1)[0]
                 alias_of = None
                 namespace_root = bound
-            self._module_imports[bound] = namespace_root
-            self._add_reference(bound, import_source=alias.name, alias_of=alias_of)
+            entries.append((bound, alias.name, alias_of, namespace_root))
+        return entries
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        entries = self._import_from_entries(node)
+        if self._local_import_scopes:
+            for bound, source_module, alias_of in entries:
+                self._local_import_scopes[-1][bound] = (source_module, alias_of)
+                self._local_module_import_scopes[-1].pop(bound, None)
+        self._record_import_from_reference(node)
         self.generic_visit(node)
 
+    def _record_import_from_reference(self, node: ast.ImportFrom) -> None:
+        for bound, source_module, alias_of in self._import_from_entries(node):
+            self._add_reference(
+                bound,
+                import_source=source_module,
+                alias_of=alias_of,
+                reference_context="import",
+            )
+
+    def visit_Import(self, node: ast.Import) -> None:
+        entries = self._import_entries(node)
+        if self._local_import_scopes:
+            for bound, source_module, alias_of, namespace_root in entries:
+                self._local_import_scopes[-1][bound] = (source_module, alias_of)
+                self._local_module_import_scopes[-1][bound] = namespace_root
+        self._record_import_reference(node)
+        self.generic_visit(node)
+
+    def _record_import_reference(self, node: ast.Import) -> None:
+        for bound, source_module, alias_of, _namespace_root in self._import_entries(
+            node
+        ):
+            self._add_reference(
+                bound,
+                import_source=source_module,
+                alias_of=alias_of,
+                reference_context="import",
+            )
+
     def visit_Call(self, node: ast.Call) -> None:
+        keyword_import_source: Optional[str] = None
+        keyword_owner: Optional[str] = None
         if isinstance(node.func, ast.Name):
-            self._add_reference(node.func.id)
+            keyword_identity = self._keyword_import_identity_for_name(node.func.id)
+            if keyword_identity is not None:
+                keyword_import_source, keyword_owner = keyword_identity
+            self._add_bound_reference(node.func.id, reference_context="call")
         elif isinstance(node.func, ast.Attribute):
             resolved = self._resolve_attribute_chain(node.func)
             if resolved is not None:
                 leaf, source = resolved
-                self._add_reference(leaf, import_source=source)
+                keyword_import_source = source
+                keyword_owner = leaf
+                self._add_reference(
+                    leaf,
+                    import_source=source,
+                    reference_context="call",
+                )
             else:
-                self._add_reference(node.func.attr)
+                context = (
+                    "local" if self._attribute_root_is_shadowed(node.func) else "call"
+                )
+                self._add_reference(node.func.attr, reference_context=context)
         for kw in node.keywords:
             if kw.arg is not None:  # **kwargs has arg=None
-                self._add_reference(kw.arg)
+                self._add_reference(
+                    kw.arg,
+                    import_source=keyword_import_source,
+                    of=keyword_owner,
+                    reference_context="keyword",
+                )
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:
-        self._add_reference(node.id)
+        if not isinstance(node.ctx, ast.Load):
+            return None
+        self._add_bound_reference(node.id, reference_context="access")
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
+        if not isinstance(node.ctx, ast.Load):
+            return None
         resolved = self._resolve_attribute_chain(node)
         if resolved is not None:
             leaf, source = resolved
-            self._add_reference(leaf, import_source=source)
+            self._add_reference(
+                leaf,
+                import_source=source,
+                reference_context="access",
+            )
         else:
-            self._add_reference(node.attr)
+            context = "local" if self._attribute_root_is_shadowed(node) else "access"
+            self._add_reference(node.attr, reference_context=context)
         self.generic_visit(node)
+
+    def visit_arg(self, node: ast.arg) -> None:
+        return None
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        self.visit(node.target)
+        if node.value is not None:
+            self.visit(node.value)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        bindings: set[str] = set()
+        _collect_argument_names(node.args, bindings)
+        self._visit_with_expression_shadow_scope(node, bindings)
+
+    def visit_ListComp(self, node: ast.ListComp) -> None:
+        self._visit_comprehension(node)
+
+    def visit_SetComp(self, node: ast.SetComp) -> None:
+        self._visit_comprehension(node)
+
+    def visit_DictComp(self, node: ast.DictComp) -> None:
+        self._visit_comprehension(node)
+
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:
+        self._visit_comprehension(node)
+
+    def _visit_comprehension(
+        self,
+        node: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp,
+    ) -> None:
+        bindings: set[str] = set()
+        for generator in node.generators:
+            _collect_target_bindings(generator.target, bindings)
+        self._visit_with_expression_shadow_scope(node, bindings)
+
+    def _visit_with_expression_shadow_scope(
+        self,
+        node: ast.AST,
+        bindings: set[str],
+    ) -> None:
+        scope = bindings & self._known_imported_names
+        self._shadowed_import_scopes.append(scope)
+        try:
+            self.generic_visit(node)
+        finally:
+            self._shadowed_import_scopes.pop()
 
     def _resolve_attribute_chain(
         self, node: ast.Attribute
@@ -251,7 +477,15 @@ class _BehavioralCollector(ast.NodeVisitor):
             current = current.value
         if not isinstance(current, ast.Name):
             return None
-        namespace = self._module_imports.get(current.id)
+        if self._name_is_lexically_shadowed_import(current.id):
+            return None
+        namespace = self._resolve_local_module_import(current.id)
+        if namespace is None:
+            if self._name_is_function_import_bound(current.id):
+                return None
+            if current.id in self._module_shadowed_imports:
+                return None
+            namespace = self._module_imports.get(current.id)
         if namespace is None:
             return None
         attrs.reverse()  # outermost (leaf) is now last
@@ -259,6 +493,24 @@ class _BehavioralCollector(ast.NodeVisitor):
         middle = attrs[:-1]
         source = ".".join([namespace, *middle]) if middle else namespace
         return leaf, source
+
+    def _keyword_import_identity_for_name(
+        self, name: str
+    ) -> Optional[tuple[Optional[str], str]]:
+        if self._name_is_lexically_shadowed_import(name):
+            return None
+        local_import = self._resolve_local_imported_name(name)
+        if local_import is not None:
+            import_source, alias_of = local_import
+            return import_source, alias_of or name
+        if self._name_is_function_import_bound(name):
+            return None
+        if name in self._module_shadowed_imports:
+            return None
+        if name not in self._imported_names:
+            return None
+        import_source, alias_of = self._imported_names[name]
+        return import_source, alias_of or name
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         is_top_level = self._function_depth == 0 and not self._class_stack
@@ -271,18 +523,63 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name)
+            self._add_reference(node.name, reference_context="access")
+        self._visit_runtime_definition_expressions(node)
+        self._push_function_shadow_scope(node)
+        self._function_import_bound_scopes.append(
+            _function_import_bound_names(node, self._known_imported_names)
+        )
+        self._local_import_scopes.append({})
+        self._local_module_import_scopes.append({})
         self._function_depth += 1
-        self.generic_visit(node)
-        self._function_depth -= 1
+        try:
+            self._visit_function_body(node)
+        finally:
+            self._function_depth -= 1
+            self._local_module_import_scopes.pop()
+            self._local_import_scopes.pop()
+            self._function_import_bound_scopes.pop()
+            self._shadowed_import_scopes.pop()
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name)
+            self._add_reference(node.name, reference_context="access")
+        self._visit_runtime_definition_expressions(node)
+        self._push_function_shadow_scope(node)
+        self._function_import_bound_scopes.append(
+            _function_import_bound_names(node, self._known_imported_names)
+        )
+        self._local_import_scopes.append({})
+        self._local_module_import_scopes.append({})
         self._function_depth += 1
-        self.generic_visit(node)
-        self._function_depth -= 1
+        try:
+            self._visit_function_body(node)
+        finally:
+            self._function_depth -= 1
+            self._local_module_import_scopes.pop()
+            self._local_import_scopes.pop()
+            self._function_import_bound_scopes.pop()
+            self._shadowed_import_scopes.pop()
+
+    def _visit_runtime_definition_expressions(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for default in node.args.defaults:
+            self.visit(default)
+        for default in node.args.kw_defaults:
+            if default is not None:
+                self.visit(default)
+
+    def _visit_function_body(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for statement in node.body:
+            self.visit(statement)
 
     def _is_pytest_discoverable_test_function(self, name: str) -> bool:
         if not name.startswith("test_"):
@@ -309,10 +606,12 @@ class _BehavioralCollector(ast.NodeVisitor):
         self,
         name: str,
         *,
+        of: Optional[str] = None,
         import_source: Optional[str] = None,
         alias_of: Optional[str] = None,
+        reference_context: Optional[str] = None,
     ) -> None:
-        key = (name, import_source, alias_of)
+        key = (name, of, import_source, alias_of, reference_context)
         if key in self._seen:
             return
         self._seen.add(key)
@@ -320,10 +619,261 @@ class _BehavioralCollector(ast.NodeVisitor):
             FoundArtifact(
                 kind=ArtifactKind.FUNCTION,  # Kind doesn't matter for behavioral
                 name=name,
+                of=of,
                 import_source=import_source,
                 alias_of=alias_of,
+                reference_context=reference_context,
             )
         )
+
+    def _add_bound_reference(
+        self,
+        name: str,
+        *,
+        reference_context: str,
+    ) -> None:
+        if self._name_is_lexically_shadowed_import(name):
+            self._add_reference(name, reference_context="local")
+            return
+        local_import = self._resolve_local_imported_name(name)
+        if local_import is not None:
+            import_source, alias_of = local_import
+        elif self._name_is_function_import_bound(name):
+            self._add_reference(name, reference_context="local")
+            return
+        elif name in self._module_shadowed_imports:
+            self._add_reference(name, reference_context="local")
+            return
+        else:
+            import_source, alias_of = self._imported_names.get(name, (None, None))
+        self._add_reference(
+            name,
+            import_source=import_source,
+            alias_of=alias_of,
+            reference_context=reference_context,
+        )
+
+    def _resolve_local_imported_name(
+        self,
+        name: str,
+    ) -> Optional[tuple[Optional[str], Optional[str]]]:
+        for scope in reversed(self._local_import_scopes):
+            if name in scope:
+                return scope[name]
+        return None
+
+    def _resolve_local_module_import(self, name: str) -> Optional[str]:
+        for scope in reversed(self._local_module_import_scopes):
+            if name in scope:
+                return scope[name]
+        return None
+
+    def _push_function_shadow_scope(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        self._shadowed_import_scopes.append(
+            _function_shadowed_imports(node, self._known_imported_names)
+        )
+
+    def _name_is_shadowed_import(self, name: str) -> bool:
+        return (
+            name in self._module_shadowed_imports
+            or self._name_is_function_import_bound(name)
+            or any(name in scope for scope in self._shadowed_import_scopes)
+        )
+
+    def _name_is_lexically_shadowed_import(self, name: str) -> bool:
+        return any(name in scope for scope in self._shadowed_import_scopes)
+
+    def _name_is_function_import_bound(self, name: str) -> bool:
+        return any(name in scope for scope in self._function_import_bound_scopes)
+
+    def _attribute_root_is_shadowed(self, node: ast.Attribute) -> bool:
+        current: ast.expr = node
+        while isinstance(current, ast.Attribute):
+            current = current.value
+        return isinstance(current, ast.Name) and self._name_is_shadowed_import(
+            current.id
+        )
+
+
+def _all_imported_bound_names(tree: ast.AST) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                if alias.name != "*":
+                    names.add(alias.asname or alias.name)
+                    names.add(alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                names.add(alias.asname or alias.name.split(".", 1)[0])
+    return names
+
+
+def _function_shadowed_imports(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    imported_names: set[str],
+) -> set[str]:
+    bindings: set[str] = set()
+    _collect_argument_names(node.args, bindings)
+    for statement in node.body:
+        _collect_statement_bindings(statement, bindings)
+    return bindings & imported_names
+
+
+def _function_import_bound_names(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    imported_names: set[str],
+) -> set[str]:
+    bindings: set[str] = set()
+    for statement in node.body:
+        _collect_import_statement_bindings(statement, bindings)
+    return bindings & imported_names
+
+
+def _collect_import_statement_bindings(node: ast.AST, bindings: set[str]) -> None:
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return
+    if isinstance(node, ast.ImportFrom):
+        for alias in node.names:
+            if alias.name != "*":
+                bindings.add(alias.asname or alias.name)
+        return
+    if isinstance(node, ast.Import):
+        for alias in node.names:
+            bindings.add(alias.asname or alias.name.split(".", 1)[0])
+        return
+    if isinstance(node, ast.match_case):
+        for statement in node.body:
+            _collect_import_statement_bindings(statement, bindings)
+        return
+
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.stmt, ast.match_case)):
+            _collect_import_statement_bindings(child, bindings)
+
+
+def _collect_argument_names(args: ast.arguments, bindings: set[str]) -> None:
+    for arg in list(args.posonlyargs) + list(args.args) + list(args.kwonlyargs):
+        bindings.add(arg.arg)
+    if args.vararg is not None:
+        bindings.add(args.vararg.arg)
+    if args.kwarg is not None:
+        bindings.add(args.kwarg.arg)
+
+
+def _collect_statement_bindings(statement: ast.stmt, bindings: set[str]) -> None:
+    if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        bindings.add(statement.name)
+        return
+    if isinstance(statement, ast.Return):
+        _collect_expression_bindings(statement.value, bindings)
+        return
+    if isinstance(statement, ast.Expr):
+        _collect_expression_bindings(statement.value, bindings)
+        return
+    if isinstance(statement, ast.Assert):
+        _collect_expression_bindings(statement.test, bindings)
+        _collect_expression_bindings(statement.msg, bindings)
+        return
+    if isinstance(statement, ast.Assign):
+        for target in statement.targets:
+            _collect_target_bindings(target, bindings)
+        _collect_expression_bindings(statement.value, bindings)
+        return
+    if isinstance(statement, (ast.AnnAssign, ast.AugAssign)):
+        _collect_target_bindings(statement.target, bindings)
+        _collect_expression_bindings(statement.value, bindings)
+        return
+    if isinstance(statement, (ast.For, ast.AsyncFor)):
+        _collect_target_bindings(statement.target, bindings)
+        _collect_expression_bindings(statement.iter, bindings)
+        for child in statement.body + statement.orelse:
+            _collect_statement_bindings(child, bindings)
+        return
+    if isinstance(statement, (ast.With, ast.AsyncWith)):
+        for item in statement.items:
+            _collect_expression_bindings(item.context_expr, bindings)
+            if item.optional_vars is not None:
+                _collect_target_bindings(item.optional_vars, bindings)
+        for child in statement.body:
+            _collect_statement_bindings(child, bindings)
+        return
+    if isinstance(statement, (ast.If, ast.While)):
+        _collect_expression_bindings(statement.test, bindings)
+        for child in statement.body + statement.orelse:
+            _collect_statement_bindings(child, bindings)
+        return
+    if isinstance(statement, ast.Try):
+        for child in statement.body + statement.orelse + statement.finalbody:
+            _collect_statement_bindings(child, bindings)
+        for handler in statement.handlers:
+            if handler.name:
+                bindings.add(handler.name)
+            for child in handler.body:
+                _collect_statement_bindings(child, bindings)
+        return
+    if isinstance(statement, ast.Match):
+        _collect_expression_bindings(statement.subject, bindings)
+        for case in statement.cases:
+            _collect_pattern_bindings(case.pattern, bindings)
+            _collect_expression_bindings(case.guard, bindings)
+            for child in case.body:
+                _collect_statement_bindings(child, bindings)
+
+
+def _collect_target_bindings(target: ast.expr, bindings: set[str]) -> None:
+    if isinstance(target, ast.Name):
+        bindings.add(target.id)
+        return
+    if isinstance(target, ast.Starred):
+        _collect_target_bindings(target.value, bindings)
+        return
+    if isinstance(target, (ast.Tuple, ast.List)):
+        for element in target.elts:
+            _collect_target_bindings(element, bindings)
+
+
+def _collect_expression_bindings(expr: Optional[ast.AST], bindings: set[str]) -> None:
+    if expr is None:
+        return
+    if isinstance(expr, ast.NamedExpr):
+        _collect_target_bindings(expr.target, bindings)
+        _collect_expression_bindings(expr.value, bindings)
+        return
+    if isinstance(expr, ast.Lambda):
+        return
+    for child in ast.iter_child_nodes(expr):
+        if isinstance(child, ast.expr):
+            _collect_expression_bindings(child, bindings)
+
+
+def _collect_pattern_bindings(pattern: ast.pattern, bindings: set[str]) -> None:
+    if isinstance(pattern, ast.MatchAs):
+        if pattern.name:
+            bindings.add(pattern.name)
+        if pattern.pattern is not None:
+            _collect_pattern_bindings(pattern.pattern, bindings)
+        return
+    if isinstance(pattern, ast.MatchStar):
+        if pattern.name:
+            bindings.add(pattern.name)
+        return
+    if isinstance(pattern, ast.MatchMapping):
+        if pattern.rest:
+            bindings.add(pattern.rest)
+        for child in pattern.patterns:
+            _collect_pattern_bindings(child, bindings)
+        return
+    if isinstance(pattern, ast.MatchClass):
+        for child in list(pattern.patterns) + list(pattern.kwd_patterns):
+            _collect_pattern_bindings(child, bindings)
+        return
+    if isinstance(pattern, (ast.MatchSequence, ast.MatchOr)):
+        for child in pattern.patterns:
+            _collect_pattern_bindings(child, bindings)
 
 
 def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:

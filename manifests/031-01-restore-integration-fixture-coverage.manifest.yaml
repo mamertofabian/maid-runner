@@ -1,0 +1,84 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Restore full integration test suite by updating stale coverage fixtures"
+type: fix
+created: "2026-05-17"
+metadata:
+  status: draft
+  tags:
+    - integration-tests
+    - behavioral-coverage
+    - fixtures
+  priority: medium
+description: |
+  Four integration tests still encode pre-hardening fixture assumptions after
+  missing behavioral coverage became an implementation-validation error. The
+  failures are not evidence that production validation should be loosened:
+  the sample manifests in those tests declare public artifacts whose fixture
+  tests either do not exist or only import a symbol without exercising every
+  declared artifact.
+
+  Update the integration fixtures so they satisfy the current behavioral
+  coverage contract. The intended fix is limited to test fixture data and test
+  helper usage: create or update the sample test files to call/access the
+  declared production artifacts, and keep the assertions about successful
+  validation unchanged.
+temptations:
+  - risk: "Do not weaken E200 coverage enforcement to make legacy fixtures green."
+    instead: "Change only the integration fixture manifests/test files so each declared artifact is behaviorally referenced."
+  - risk: "Do not satisfy coverage with import-only placeholder tests."
+    instead: "Use fixture tests that call functions and methods, or otherwise access the declared artifact in the test body."
+  - risk: "Do not broaden the fix into production validator behavior unless a fixture update proves impossible."
+    instead: "Treat this as a stale integration-fixture repair and stop for plan revision if production code must change."
+  - risk: "Do not mask the isolated-registry scenario by removing its custom validator path."
+    instead: "Keep the custom Ruby validator scenario and make its Python fixture test behaviorally reference the declared helper."
+files:
+  edit:
+    - path: tests/integration/test_full_workflow.py
+      artifacts:
+        - kind: test_function
+          name: test_simple_function_passes
+          source_scenario: "A manifest declares greet(name) and validates successfully under current coverage rules."
+          actions:
+            - type: api_call
+              subject:
+                export: validate
+          expected:
+            behavior: "The fixture creates a test that imports and calls greet, so implementation validation succeeds."
+        - kind: test_function
+          name: test_class_with_method_passes
+          source_scenario: "A manifest declares AuthService and AuthService.login."
+          actions:
+            - type: api_call
+              subject:
+                export: validate
+          expected:
+            behavior: "The fixture test instantiates AuthService and calls login, so both declared artifacts are covered."
+        - kind: test_function
+          name: test_chain_merges_artifacts_from_multiple_manifests
+          source_scenario: "A two-manifest chain declares Service.start in the base manifest and Service.stop in the edit manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Each fixture test exercises the method declared by its manifest, and batch validation succeeds."
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_engine_can_use_isolated_registry
+          source_scenario: "A custom Ruby validator is registered for a manifest that declares helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The Python fixture test behaviorally references helper while the isolated registry path remains intact."
+  read:
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - maid_runner/core/validate.py
+    - maid_runner/core/identity.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/python.py
+validate:
+  - uv run python -m pytest -q tests/integration/test_full_workflow.py::TestV2ManifestValidatePass::test_simple_function_passes tests/integration/test_full_workflow.py::TestV2ManifestValidatePass::test_class_with_method_passes tests/integration/test_full_workflow.py::TestMultiFileChainMerge::test_chain_merges_artifacts_from_multiple_manifests tests/integration/test_library_api.py::TestValidatorRegistryExtension::test_engine_can_use_isolated_registry

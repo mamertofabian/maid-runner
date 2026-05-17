@@ -25,12 +25,57 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["schema", "behavioral", "implementation"],
     )
     p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Allow directory-wide validation to succeed when no active manifests are found",
+    )
     p.add_argument("--no-chain", action="store_true")
     p.add_argument(
         "--use-manifest-chain", action="store_true", help=argparse.SUPPRESS
     )  # v1 compat alias (chain is default)
     p.add_argument("--coherence", action="store_true")
     p.add_argument("--coherence-only", action="store_true")
+    p.add_argument(
+        "--check-assertions",
+        action="store_true",
+        help="Warn when behavioral tests exercise artifacts without assertions",
+    )
+    p.add_argument(
+        "--check-stubs",
+        action="store_true",
+        help="Warn when implementation validation finds stubbed artifacts",
+    )
+    p.add_argument(
+        "--fail-on-warnings",
+        action="store_true",
+        help="Return failure when validation warnings are present",
+    )
+    p.add_argument(
+        "--run-tests",
+        action="store_true",
+        help="Run manifest validate commands after structural validation succeeds",
+    )
+    p.add_argument(
+        "--strict",
+        action="store_true",
+        help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
+        "--file-tracking",
+        action="store_true",
+        help="Fail validation when undeclared or weakly registered production files exist",
+    )
+    p.add_argument(
+        "--worktree-scope",
+        action="store_true",
+        help="Fail validation when changed production files are outside writable manifest scope",
+    )
+    p.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Include changed test files in --worktree-scope checks",
+    )
     p.add_argument(
         "--json", "--json-output", action="store_true"
     )  # --json-output is v1 compat alias
@@ -54,6 +99,44 @@ def build_parser() -> argparse.ArgumentParser:
     batch_group.add_argument(
         "--no-batch", action="store_const", const=False, dest="batch"
     )
+
+    # maid verify
+    p = sub.add_parser("verify", help="Run the full MAID verification gate")
+    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument("--allow-empty", action="store_true")
+    verify_fast = p.add_mutually_exclusive_group()
+    verify_fast.add_argument(
+        "--fail-fast",
+        action="store_true",
+        dest="fail_fast",
+        default=True,
+        help="Stop after the first failing verification stage",
+    )
+    verify_fast.add_argument(
+        "--keep-going",
+        action="store_false",
+        dest="fail_fast",
+        help="Run remaining verification stages after a failure",
+    )
+    p.add_argument("--check-assertions", action="store_true")
+    p.add_argument("--check-stubs", action="store_true")
+    p.add_argument("--fail-on-warnings", action="store_true")
+    p.add_argument(
+        "--strict",
+        action="store_true",
+        help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
+        "--worktree-scope",
+        action="store_true",
+        help="Require the git worktree-scope gate",
+    )
+    p.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Include changed test files in the worktree-scope gate",
+    )
+    p.add_argument("--json", action="store_true")
 
     # maid snapshot
     p = sub.add_parser("snapshot", help="Generate manifest from existing code")
@@ -116,6 +199,13 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("files", help="Show file tracking status")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--hide-private", action="store_true")
+    p.add_argument(
+        "--fail-on",
+        action="append",
+        choices=["undeclared", "registered", "any"],
+        default=None,
+        help="Return 1 when the selected file-tracking status is present",
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--quiet", action="store_true")
 
@@ -206,6 +296,7 @@ def main(argv: list[str] | None = None) -> int:
     dispatch = {
         "validate": "_cmd_validate",
         "test": "_cmd_test",
+        "verify": "_cmd_verify",
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
@@ -230,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     from maid_runner.cli.commands import (
         validate as validate_mod,
         test as test_mod,
+        verify as verify_mod,
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
         init as init_mod,
@@ -246,6 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     handlers = {
         "_cmd_validate": validate_mod.cmd_validate,
         "_cmd_test": test_mod.cmd_test,
+        "_cmd_verify": verify_mod.cmd_verify,
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,

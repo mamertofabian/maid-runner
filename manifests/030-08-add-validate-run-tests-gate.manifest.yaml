@@ -1,0 +1,128 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Let `maid validate` optionally execute manifest validation commands as part of the same gate"
+type: feature
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - validate
+    - test-runner
+    - done-gate
+  priority: high
+description: |
+  Close the loophole where `maid validate` can pass while the manifest's own
+  `validate:` commands fail. Structural validation and command execution are
+  currently split between `maid validate` and `maid test`; that split is useful
+  interactively, but it is easy for an agent to report only the green half.
+
+  Add `maid validate --run-tests` as an explicit combined gate. When enabled,
+  structural validation must pass first, then the selected manifest test
+  commands must execute through the existing test runner. The command exits
+  non-zero if either structural validation or test execution fails. JSON output
+  must include both structural and test results so automation can inspect the
+  failure source.
+temptations:
+  - risk: "Do not duplicate subprocess execution logic inside the validate command."
+    instead: "Reuse maid_runner.core.test_runner so command resolution, uv wrapping, batching, and timeouts remain consistent."
+  - risk: "Do not run tests if structural validation already failed."
+    instead: "Fail fast on structural errors unless an explicit future flag requests best-effort diagnostics."
+  - risk: "Do not silently ignore a failing validate command because structural validation was green."
+    instead: "Combine the structural and test result success values into the final exit code."
+  - risk: "Do not make --run-tests the default yet."
+    instead: "Add the explicit gate first, then let the later verify command decide the full automation default."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+        - kind: function
+          name: run_validate_commands_for_result
+          args:
+            - name: manifest_path
+              type: str
+            - name: fail_fast
+              type: bool
+              default: "False"
+          returns: BatchTestResult
+          description: "Command helper that runs manifest validate commands after structural validation succeeds."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_validation_result
+          args:
+            - name: result
+              type: ValidationResult
+          returns: str
+        - kind: function
+          name: format_batch_result
+          args:
+            - name: result
+              type: BatchValidationResult
+          returns: str
+        - kind: function
+          name: format_test_result
+          args:
+            - name: result
+              type: BatchTestResult
+          returns: str
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_accepts_run_tests_flag
+          source_scenario: "The CLI parser receives validate --run-tests."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parser accepts --run-tests and stores it on validate args."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_run_tests_returns_1_when_manifest_command_fails
+          source_scenario: "Structural validation succeeds but the manifest validate command exits 42."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 1 and prints the failing command result."
+        - kind: test_function
+          name: test_validate_run_tests_returns_0_when_structure_and_commands_pass
+          source_scenario: "Structural validation succeeds and the manifest validate command exits 0."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 0 and includes both validation and test success."
+        - kind: test_function
+          name: test_validate_run_tests_json_includes_test_result
+          source_scenario: "A caller requests JSON while run-tests is enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output contains structural validation data and test command result data."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/result.py
+    - maid_runner/cli/commands/test.py
+    - tests/core/test_test_runner.py
+    - tests/cli/test_test_cmd.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py tests/core/test_test_runner.py

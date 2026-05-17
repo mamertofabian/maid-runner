@@ -403,6 +403,593 @@ validate:
             "-v",
         )
 
+    def test_default_prunes_directory_pytest_target_when_focused_targets_exist(
+        self, tmp_path, monkeypatch
+    ):
+        (tmp_path / "uv.lock").write_text("")
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/ -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - python -m pytest tests/test_a.py -q
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 1
+        assert observed == [("python", "-m", "pytest", "tests/test_a.py", "-q")]
+
+    def test_default_runs_duplicate_implementation_commands_once(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - echo shared-validation
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - echo shared-validation
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 1
+        assert observed == [("echo", "shared-validation")]
+
+    def test_default_batches_pytest_commands_with_only_verbosity_differences(
+        self, tmp_path, monkeypatch
+    ):
+        (tmp_path / "uv.lock").write_text("")
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -v
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - python -m pytest tests/test_b.py -q
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 1
+        assert observed == [("pytest", "tests/test_a.py", "tests/test_b.py")]
+
+    def test_default_keeps_same_pytest_target_with_behavior_option_difference(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py --lf
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_a.py
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 2
+        assert observed == [
+            ("pytest", "tests/test_a.py", "--lf"),
+            ("pytest", "tests/test_a.py"),
+        ]
+
+    def test_default_keeps_pytest_fail_fast_commands_separate(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py -x
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -x
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 2
+        assert observed == [
+            ("pytest", "tests/test_a.py", "-x"),
+            ("pytest", "tests/test_b.py", "-x"),
+        ]
+
+    def test_default_keeps_duplicate_stateful_pytest_commands_separate(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py --lf
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_a.py --lf
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 2
+        assert observed == [
+            ("pytest", "tests/test_a.py", "--lf"),
+            ("pytest", "tests/test_a.py", "--lf"),
+        ]
+
+    def test_default_keeps_duplicate_unknown_pytest_state_alias_commands_separate(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - pytest tests/test_a.py --last-failed
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_a.py --last-failed
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 2
+        assert observed == [
+            ("pytest", "tests/test_a.py", "--last-failed"),
+            ("pytest", "tests/test_a.py", "--last-failed"),
+        ]
+
+    def test_default_keeps_same_pytest_target_with_different_interpreters(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        manifests_dir.mkdir()
+        (manifests_dir / "a.manifest.yaml").write_text(
+            """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - python3.11 -m pytest tests/test_a.py
+"""
+        )
+        (manifests_dir / "b.manifest.yaml").write_text(
+            """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - python3.12 -m pytest tests/test_a.py
+"""
+        )
+        observed: list[tuple[str, ...]] = []
+
+        def fake_run_command(command, **kwargs):
+            observed.append(command)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command", fake_run_command
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 2
+        assert observed == [
+            ("python3.11", "-m", "pytest", "tests/test_a.py"),
+            ("python3.12", "-m", "pytest", "tests/test_a.py"),
+        ]
+
+    def test_default_executes_simple_maid_validate_commands_in_process(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        contracts_dir = tmp_path / "contracts"
+        src_dir = tmp_path / "src"
+        manifests_dir.mkdir()
+        contracts_dir.mkdir()
+        src_dir.mkdir()
+        (src_dir / "target.py").write_text("def target():\n    return None\n")
+        (src_dir / "driver.py").write_text("def driver():\n    return None\n")
+        (contracts_dir / "target.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  snapshot:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+          args: []
+          returns: "None"
+validate:
+  - echo target
+"""
+        )
+        (manifests_dir / "driver.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Driver"
+type: snapshot
+files:
+  snapshot:
+    - path: src/driver.py
+      artifacts:
+        - kind: function
+          name: driver
+          args: []
+          returns: "None"
+validate:
+  - uv run maid validate contracts/target.manifest.yaml
+"""
+        )
+
+        def fail_if_subprocess_runner_is_used(command, **kwargs):
+            raise AssertionError(f"unexpected subprocess command: {command}")
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command",
+            fail_if_subprocess_runner_is_used,
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 1
+        assert result.results[0].command == (
+            "uv",
+            "run",
+            "maid",
+            "validate",
+            "contracts/target.manifest.yaml",
+        )
+
+    def test_default_executes_simple_maid_validate_without_existing_chain_dir(
+        self, tmp_path, monkeypatch
+    ):
+        manifests_dir = tmp_path / "manifests"
+        contracts_dir = tmp_path / "contracts"
+        src_dir = tmp_path / "src"
+        manifests_dir.mkdir()
+        contracts_dir.mkdir()
+        src_dir.mkdir()
+        (src_dir / "target.py").write_text("def target():\n    return None\n")
+        (src_dir / "driver.py").write_text("def driver():\n    return None\n")
+        (contracts_dir / "target.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  snapshot:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+          args: []
+          returns: "None"
+validate:
+  - echo target
+"""
+        )
+        (manifests_dir / "driver.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Driver"
+type: snapshot
+files:
+  snapshot:
+    - path: src/driver.py
+      artifacts:
+        - kind: function
+          name: driver
+          args: []
+          returns: "None"
+validate:
+  - uv run maid validate contracts/target.manifest.yaml --manifest-dir missing-manifests
+"""
+        )
+
+        def fail_if_subprocess_runner_is_used(command, **kwargs):
+            raise AssertionError(f"unexpected subprocess command: {command}")
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command",
+            fail_if_subprocess_runner_is_used,
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is True
+        assert result.total == 1
+        assert result.results[0].command == (
+            "uv",
+            "run",
+            "maid",
+            "validate",
+            "contracts/target.manifest.yaml",
+            "--manifest-dir",
+            "missing-manifests",
+        )
+
     def test_default_batches_compatible_vitest_commands(self, tmp_path, monkeypatch):
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()

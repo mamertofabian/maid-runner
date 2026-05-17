@@ -1,0 +1,184 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Expose assertion, stub, and warning-failure checks through strict validation CLI flags"
+type: feature
+created: "2026-05-16"
+metadata:
+  status: draft
+  tags:
+    - cli
+    - strict-mode
+    - assertions
+    - stubs
+  priority: high
+description: |
+  The validation engine already has hidden checks for missing assertions in
+  behavioral tests and stub implementations in implementation mode, but the
+  CLI cannot enable them. This leaves a gaming path where tests can call an
+  artifact without assertions, or code can define hollow stubs, while the
+  normal command remains green.
+
+  Add explicit CLI flags:
+  - `--check-assertions` for behavioral validation.
+  - `--check-stubs` for implementation validation.
+  - `--fail-on-warnings` to make any warning fail the result.
+  - `--strict` as the automation preset that enables all applicable checks.
+
+  Batch validation must thread the same options into every manifest. JSON and
+  text output should keep warning details visible even when warnings cause
+  the command to fail.
+temptations:
+  - risk: "Do not add parser flags that are ignored by cmd_validate."
+    instead: "Thread the flags through CLI, ValidationEngine.validate, validate_all, and top-level library helpers."
+  - risk: "Do not make --strict a documentation-only alias."
+    instead: "--strict must enable assertion checks, stub checks, and warning failure where the mode supports them."
+  - risk: "Do not hide warning details after converting them into failures."
+    instead: "Keep warnings in the warnings section and make success false through explicit policy."
+  - risk: "Do not run assertion checks in implementation mode when no behavioral test files are in scope."
+    instead: "Apply each strict sub-check only to the validation modes where it has meaningful inputs."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+        - kind: function
+          name: validate
+          args:
+            - name: manifest_path
+              type: Union[str, Path]
+          returns: ValidationResult
+        - kind: function
+          name: validate_all
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "A manifest produces a validation warning but no errors."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate(..., fail_on_warnings=True) returns success false while preserving the warning details."
+        - kind: test_function
+          name: test_validate_all_threads_strict_warning_policy_to_each_manifest
+          source_scenario: "Batch validation contains one manifest that emits a warning."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all(..., fail_on_warnings=True) counts the warning manifest as failed."
+        - kind: test_function
+          name: test_validate_all_function_threads_strict_warning_policy_to_each_manifest
+          source_scenario: "The public validate_all helper receives strict warning policy options."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., fail_on_warnings=True) counts the warning manifest as failed."
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_accepts_strict_assertion_stub_warning_flags
+          source_scenario: "The CLI parser receives validate strictness flags."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parser accepts --strict, --check-assertions, --check-stubs, and --fail-on-warnings."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_validate_check_assertions_returns_1_for_no_assertions
+          source_scenario: "A behavioral test imports and calls the artifact but has no assertion."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --mode behavioral --check-assertions --fail-on-warnings exits 1 with E210."
+        - kind: test_function
+          name: test_implementation_validate_check_stubs_returns_1_for_stub_function
+          source_scenario: "A manifest declares a function whose body is a pass/ellipsis stub."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --check-stubs --fail-on-warnings exits 1 with E310."
+        - kind: test_function
+          name: test_validate_strict_enables_assertion_stub_and_warning_failure
+          source_scenario: "The CLI strict preset is used instead of individual flags."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --strict fails on the same assertion or stub warning that otherwise exits green."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_implementation_validation.py
+    - tests/core/test_implementation_validation.py
+    - tests/core/test_validate_test_functions.py
+validate:
+  - uv run python -m pytest -q tests/core/test_validate.py tests/core/test_implementation_validation.py tests/core/test_validate_test_functions.py tests/cli/test_main.py tests/cli/test_validate_cmd.py

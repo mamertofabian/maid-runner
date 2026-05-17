@@ -138,9 +138,9 @@ from .utils import *
 from .constants import *
 """
     star_result = validator.collect_implementation_artifacts(star_source, "__init__.py")
-    assert star_result.artifacts == [], (
-        "star imports must produce zero artifacts — expansion is out of scope"
-    )
+    assert (
+        star_result.artifacts == []
+    ), "star imports must produce zero artifacts — expansion is out of scope"
 
     # __all__ is collected as a raw attribute, not expanded.
     all_source = """\
@@ -170,9 +170,9 @@ from .extras import *
     mixed_names = {a.name for a in mixed_result.artifacts}
     assert "BaseClass" in mixed_names, "named import must still be collected"
     # No artifact should appear whose source is the star import.
-    assert len(mixed_result.artifacts) == 1, (
-        "star import side must contribute zero artifacts"
-    )
+    assert (
+        len(mixed_result.artifacts) == 1
+    ), "star import side must contribute zero artifacts"
 
 
 def test_namespace_package_identity_remains_file_local(validator):
@@ -212,6 +212,6 @@ def test_namespace_package_identity_remains_file_local(validator):
     )
     helper = _find(result.artifacts, "helper", kind=ArtifactKind.FUNCTION)
     assert helper is not None
-    assert helper.module_path == "myns.subpkg.utils", (
-        "module_path must reflect file-local derivation, not filesystem checks"
-    )
+    assert (
+        helper.module_path == "myns.subpkg.utils"
+    ), "module_path must reflect file-local derivation, not filesystem checks"

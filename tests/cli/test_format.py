@@ -302,6 +302,52 @@ class TestFormatFileTracking:
         assert "tracked" in data
 
 
+class TestFormatVerifyResult:
+    def test_format_verify_result_text_lists_stage_statuses(self):
+        from maid_runner.cli.commands._format import format_verify_result
+        from maid_runner.core.result import (
+            VerificationResult,
+            VerificationStageResult,
+        )
+
+        result = VerificationResult(
+            stages=(
+                VerificationStageResult(name="schema", success=True),
+                VerificationStageResult(name="behavioral", success=False),
+            ),
+            duration_ms=12.0,
+        )
+
+        output = format_verify_result(result)
+
+        assert "Verify: FAIL" in output
+        assert "PASS schema" in output
+        assert "FAIL behavioral" in output
+
+    def test_format_verify_result_json_contains_stage_objects(self):
+        from maid_runner.cli.commands._format import format_verify_result
+        from maid_runner.core.result import (
+            VerificationResult,
+            VerificationStageResult,
+        )
+
+        result = VerificationResult(
+            stages=(
+                VerificationStageResult(name="schema", success=True),
+                VerificationStageResult(name="tests", success=True),
+            )
+        )
+
+        output = format_verify_result(result, json_mode=True)
+        data = json.loads(output)
+
+        assert data["success"] is True
+        assert data["stages"] == [
+            {"name": "schema", "success": True},
+            {"name": "tests", "success": True},
+        ]
+
+
 class TestPrintError:
     def test_text_mode_prints_to_stderr(self, capsys):
         from maid_runner.cli.commands._format import print_error

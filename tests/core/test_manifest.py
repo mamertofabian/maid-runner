@@ -11,8 +11,10 @@ from maid_runner.core.manifest import (
     load_manifest_raw,
     save_manifest,
     slug_from_path,
+    validate_manifest_paths,
     validate_manifest_schema,
 )
+from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import (
     ArtifactSpec,
     ArtifactKind,
@@ -109,6 +111,76 @@ class TestValidateManifestSchema:
         assert len(errors) > 0
 
 
+class TestValidateManifestPaths:
+    def test_validate_manifest_paths_rejects_parent_relative_file_spec(self, tmp_path):
+        project = tmp_path / "project"
+        project.mkdir()
+        manifest_path = project / "path-escape.manifest.yaml"
+        manifest_path.write_text(
+            """schema: "2"
+goal: "Reject escaped snapshot"
+type: fix
+files:
+  create:
+    - path: ../created.py
+      artifacts:
+        - kind: function
+          name: created
+  snapshot:
+    - path: ../outside.py
+      artifacts:
+        - kind: function
+          name: escaped
+validate:
+  - pytest tests/test_contract.py -v
+"""
+        )
+
+        manifest = load_manifest(manifest_path)
+        errors = validate_manifest_paths(manifest, project)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
+        ]
+        by_location = {error.location.file: error for error in errors if error.location}
+        assert set(by_location) == {"../created.py", "../outside.py"}
+        assert "files.create" in by_location["../created.py"].message
+        assert "files.snapshot" in by_location["../outside.py"].message
+
+    def test_validate_manifest_paths_rejects_absolute_files_read(self, tmp_path):
+        project = tmp_path / "project"
+        project.mkdir()
+        outside = tmp_path / "outside_test.py"
+        manifest_path = project / "path-escape.manifest.yaml"
+        manifest_path.write_text(
+            f"""schema: "2"
+goal: "Reject absolute read path"
+type: fix
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - {outside}
+validate:
+  - pytest tests/test_contract.py -v
+"""
+        )
+
+        manifest = load_manifest(manifest_path)
+        errors = validate_manifest_paths(manifest, project)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+        assert errors[0].location is not None
+        assert errors[0].location.file == str(outside)
+        assert "files.read" in errors[0].message
+
+
 class TestLoadManifestRaw:
     def test_load_yaml(self):
         data = load_manifest_raw(V2_FIXTURES / "simple-feature.manifest.yaml")
@@ -118,6 +190,96 @@ class TestLoadManifestRaw:
     def test_load_nonexistent(self):
         with pytest.raises(ManifestLoadError):
             load_manifest_raw("/nonexistent/file.manifest.yaml")
+
+    def test_load_manifest_raw_rejects_duplicate_top_level_yaml_key(self, tmp_path):
+        path = tmp_path / "duplicate-top-level.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject duplicate top-level key"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        with pytest.raises(ManifestLoadError) as exc_info:
+            load_manifest_raw(path)
+
+        assert "duplicate YAML key" in exc_info.value.reason
+        assert "'files'" in exc_info.value.reason
+
+    def test_load_manifest_raw_rejects_duplicate_nested_yaml_key(self, tmp_path):
+        path = tmp_path / "duplicate-nested.manifest.yaml"
+        path.write_text(
+            """schema: "2"
+goal: "Reject duplicate nested key"
+type: fix
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: visible
+          name: actual
+validate:
+  - pytest tests/test_app.py -q
+"""
+        )
+
+        with pytest.raises(ManifestLoadError) as exc_info:
+            load_manifest_raw(path)
+
+        assert "duplicate YAML key" in exc_info.value.reason
+        assert "'name'" in exc_info.value.reason
+
+    def test_validate_schema_reports_duplicate_yaml_key_as_parse_error(self, tmp_path):
+        from maid_runner.core.types import ValidationMode
+        from maid_runner.core.validate import ValidationEngine
+
+        manifest_path = tmp_path / "duplicate.manifest.yaml"
+        manifest_path.write_text(
+            """schema: "2"
+goal: "Reject duplicate key in schema mode"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        result = ValidationEngine(project_root=tmp_path).validate(
+            manifest_path,
+            mode=ValidationMode.SCHEMA,
+        )
+
+        assert result.success is False
+        assert [error.code for error in result.errors] == [
+            ErrorCode.MANIFEST_PARSE_ERROR
+        ]
+        assert "duplicate YAML key" in result.errors[0].message
 
 
 class TestLoadManifest:

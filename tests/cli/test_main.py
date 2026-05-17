@@ -77,6 +77,66 @@ class TestBuildParser:
         args = parser.parse_args(["validate", "--json"])
         assert args.json is True
 
+    def test_validate_accepts_strict_assertion_stub_warning_flags(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "validate",
+                "--strict",
+                "--check-assertions",
+                "--check-stubs",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert args.strict is True
+        assert args.check_assertions is True
+        assert args.check_stubs is True
+        assert args.fail_on_warnings is True
+
+    def test_validate_accepts_run_tests_flag(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["validate", "--run-tests"])
+
+        assert args.run_tests is True
+
+    def test_parser_has_verify_subcommand(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "verify",
+                "--manifest-dir",
+                "custom-manifests/",
+                "--json",
+                "--keep-going",
+                "--strict",
+                "--check-assertions",
+                "--check-stubs",
+                "--fail-on-warnings",
+                "--allow-empty",
+                "--worktree-scope",
+                "--include-tests",
+            ]
+        )
+
+        assert args.command == "verify"
+        assert args.manifest_dir == "custom-manifests/"
+        assert args.json is True
+        assert args.fail_fast is False
+        assert args.strict is True
+        assert args.check_assertions is True
+        assert args.check_stubs is True
+        assert args.fail_on_warnings is True
+        assert args.allow_empty is True
+        assert args.worktree_scope is True
+        assert args.include_tests is True
+
     def test_validate_quiet_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

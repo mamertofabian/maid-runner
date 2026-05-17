@@ -28,6 +28,19 @@ def project_dir(tmp_path):
         """
         )
     )
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_greet.py").write_text(
+        textwrap.dedent(
+            """\
+        from src.greet import greet
+
+
+        def test_greet():
+            assert greet("World") == "Hello, World"
+        """
+        )
+    )
 
     # Create a v2 manifest
     manifest = {
@@ -47,7 +60,8 @@ def project_dir(tmp_path):
                         }
                     ],
                 }
-            ]
+            ],
+            "read": ["tests/test_greet.py"],
         },
         "validate": ["pytest tests/test_greet.py -v"],
     }
@@ -91,6 +105,44 @@ def failing_project(tmp_path):
     return tmp_path
 
 
+def _write_run_tests_project(tmp_path, slug: str, validate_command: str):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+
+    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (tests_dir / "test_gate.py").write_text(
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
+    )
+    manifest = {
+        "schema": "2",
+        "goal": "Exercise validate run-tests gate",
+        "type": "feature",
+        "files": {
+            "create": [
+                {
+                    "path": "src/gate.py",
+                    "artifacts": [
+                        {
+                            "kind": "function",
+                            "name": "gate",
+                            "returns": "str",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/test_gate.py"],
+        },
+        "validate": [validate_command],
+    }
+    manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    return manifest_path
+
+
 class TestCmdValidateSingleManifest:
     def test_cmd_validate_handler_is_directly_importable(self):
         from maid_runner.cli.commands.validate import cmd_validate
@@ -116,6 +168,64 @@ class TestCmdValidateSingleManifest:
             ["validate", "manifests/add-greet.manifest.yaml", "--no-chain"]
         )
         assert exit_code == 1
+
+    def test_validate_returns_1_for_unreferenced_public_artifact(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        (src_dir / "widget.py").write_text(
+            "def render():\n    return 'rendered'\n\n"
+            "def update():\n    return 'updated'\n"
+        )
+        (tests_dir / "test_widget.py").write_text(
+            "from src.widget import render\n\n"
+            "def test_render():\n"
+            "    assert render() == 'rendered'\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add widget",
+            "type": "feature",
+            "files": {
+                "edit": [
+                    {
+                        "path": "src/widget.py",
+                        "artifacts": [
+                            {"kind": "function", "name": "render"},
+                            {"kind": "function", "name": "update"},
+                        ],
+                    }
+                ],
+                "read": ["tests/test_widget.py"],
+            },
+            "validate": ["pytest tests/test_widget.py -v"],
+        }
+        (manifest_dir / "add-widget.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-widget.manifest.yaml",
+                "--mode",
+                "implementation",
+                "--no-chain",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Errors (1):" in captured.out
+        assert "E200" in captured.out
+        assert "Warnings" not in captured.out
 
     def test_json_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
@@ -146,6 +256,175 @@ class TestCmdValidateSingleManifest:
         exit_code = main(["validate", "manifests/nonexistent.yaml", "--no-chain"])
         # Should return 1 (validation failure - manifest not found is a validation error)
         assert exit_code == 1
+
+    def test_validate_run_tests_returns_1_when_manifest_command_fails(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._format import format_test_result
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "PASS run-tests-fail" in captured.out
+        assert "Test Results: 1 commands" in captured.out
+        assert "FAIL [run-tests-fail]" in captured.out
+        assert "sys.exit(42)" in captured.out
+        assert "exit 42" in captured.out
+        assert callable(format_test_result)
+
+    def test_validate_run_tests_returns_0_when_structure_and_commands_pass(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+        from maid_runner.cli.commands.validate import run_validate_commands_for_result
+
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "run-tests-pass",
+            "python -c \"print('run tests passed')\"",
+        )
+
+        os.chdir(tmp_path)
+        helper_result = run_validate_commands_for_result(str(manifest_path))
+
+        assert helper_result.success is True
+
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-pass.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "PASS run-tests-pass" in captured.out
+        assert "Test Results: 1 commands" in captured.out
+        assert "PASS [run-tests-pass]" in captured.out
+
+    def test_validate_run_tests_json_includes_test_result(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-json",
+            "python -c \"print('json ok')\"",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-json.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is True
+        assert data["validation"]["success"] is True
+        assert data["validation"]["manifest"] == "run-tests-json"
+        assert data["tests"]["success"] is True
+        assert data["tests"]["total"] == 1
+        assert data["tests"]["results"][0]["exit_code"] == 0
+
+    def test_validate_run_tests_json_reports_null_tests_when_structure_fails(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-structure-fail",
+            "python -c \"open('ran.txt', 'w').write('ran')\"",
+        )
+        (tmp_path / "src" / "gate.py").write_text("# missing declared gate\n")
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-structure-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is False
+        assert data["validation"]["manifest"] == "run-tests-structure-fail"
+        assert data["tests"] is None
+        assert not (tmp_path / "ran.txt").exists()
+
+    def test_validate_run_tests_quiet_prints_failing_command(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-quiet-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-quiet-fail.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--quiet",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "FAIL [run-tests-quiet-fail]" in captured.out
+        assert "exit 42" in captured.out
+
+    def test_validate_all_run_tests_quiet_prints_failing_command(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-quiet-batch-fail",
+            'python -c "import sys; sys.exit(42)"',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--run-tests", "--quiet"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "FAIL [run-tests-quiet-batch-fail]" in captured.out
+        assert "exit 42" in captured.out
 
     def test_behavioral_mode_reports_test_function_behavior_warnings_by_default(
         self, tmp_path, capsys
@@ -209,6 +488,188 @@ class TestCmdValidateSingleManifest:
         captured = capsys.readouterr()
         data = json.loads(captured.out)
         assert any(w["code"] == "E610" for w in data["warnings"])
+
+    def test_behavioral_validate_check_assertions_returns_1_for_no_assertions(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    return 'hello'\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+                "--check-assertions",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E210" in captured.out
+        assert "Warnings" in captured.out
+
+    def test_implementation_validate_check_stubs_returns_1_for_stub_function(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    pass\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\n"
+            "def test_greet():\n"
+            "    assert greet is not None\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--check-stubs",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E310" in captured.out
+        assert "Warnings" in captured.out
+
+        quiet_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--check-stubs",
+                "--fail-on-warnings",
+                "--quiet",
+            ]
+        )
+
+        assert quiet_exit_code == 1
+        quiet_output = capsys.readouterr().out
+        assert "E310" in quiet_output
+        assert "Warnings" in quiet_output
+
+    def test_validate_strict_enables_assertion_stub_and_warning_failure(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    pass\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\ndef test_greet():\n    greet()\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        default_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+            ]
+        )
+        assert default_exit_code == 0
+        capsys.readouterr()
+
+        behavioral_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+                "--strict",
+            ]
+        )
+        behavioral_output = capsys.readouterr().out
+
+        implementation_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--strict",
+            ]
+        )
+        implementation_output = capsys.readouterr().out
+
+        assert behavioral_exit_code == 1
+        assert "E210" in behavioral_output
+        assert implementation_exit_code == 1
+        assert "E310" in implementation_output
 
     def test_schema_mode_single_manifest_returns_0_for_valid_schema_without_source_files(
         self, tmp_path, capsys
@@ -274,6 +735,47 @@ class TestCmdValidateSingleManifest:
         captured = capsys.readouterr()
         assert "E004" in captured.out
 
+    def test_schema_mode_cli_returns_1_for_duplicate_yaml_key(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (manifest_dir / "duplicate.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Reject duplicate key"
+type: fix
+files:
+  create:
+    - path: src/visible.py
+      artifacts:
+        - kind: function
+          name: visible
+files:
+  create:
+    - path: src/actual.py
+      artifacts:
+        - kind: function
+          name: actual
+validate:
+  - pytest tests/test_actual.py -q
+"""
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/duplicate.manifest.yaml",
+                "--mode",
+                "schema",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E003" in captured.out
+        assert "duplicate YAML key" in captured.out
+
     def test_schema_mode_all_manifests_reports_schema_load_errors(
         self, tmp_path, capsys
     ):
@@ -316,6 +818,102 @@ class TestCmdValidateAll:
         os.chdir(project_dir)
         exit_code = main(["validate"])
         assert exit_code == 0
+
+    def test_validate_file_tracking_gate_returns_1_for_undeclared_source(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / "src" / "extra.py").write_text(
+            "def extra():\n    return 'drift'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--file-tracking"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/extra.py" in captured.out
+
+        json_exit_code = main(["validate", "--file-tracking", "--json"])
+
+        assert json_exit_code == 1
+        json_output = capsys.readouterr().out
+        data = json.loads(json_output)
+        assert "src/extra.py" in json.dumps(data)
+
+        schema_exit_code = main(["validate", "--mode", "schema", "--file-tracking"])
+
+        assert schema_exit_code == 1
+        schema_output = capsys.readouterr().out
+        assert "src/extra.py" in schema_output
+
+        from maid_runner.cli.commands import validate as validate_cmd
+
+        watch_args = argparse.Namespace(
+            watch=True,
+            watch_all=False,
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            coherence=False,
+            coherence_only=False,
+            file_tracking=True,
+        )
+        watch_exit_code = validate_cmd.cmd_validate(watch_args)
+
+        assert watch_exit_code == 2
+        watch_output = capsys.readouterr()
+        assert "--file-tracking is only supported" in watch_output.err
+
+    def test_validate_worktree_scope_returns_1_for_out_of_scope_change(
+        self, project_dir, capsys
+    ):
+        import subprocess
+
+        from maid_runner.cli.commands._main import main
+
+        subprocess.run(
+            ["git", "init"], cwd=project_dir, check=True, capture_output=True
+        )
+        (project_dir / "src" / "extra.py").write_text(
+            "def extra():\n    return 'drift'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--worktree-scope"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/extra.py" in captured.out
+        assert "E114" in captured.out
+
+    def test_validate_worktree_scope_include_tests_reports_changed_test_file(
+        self, project_dir, capsys
+    ):
+        import subprocess
+
+        from maid_runner.cli.commands._main import main
+
+        subprocess.run(
+            ["git", "init"], cwd=project_dir, check=True, capture_output=True
+        )
+
+        os.chdir(project_dir)
+        default_exit_code = main(["validate", "--worktree-scope"])
+        default_output = capsys.readouterr().out
+
+        include_exit_code = main(["validate", "--worktree-scope", "--include-tests"])
+        include_output = capsys.readouterr().out
+
+        assert default_exit_code == 0
+        assert "tests/test_greet.py" not in default_output
+        assert include_exit_code == 1
+        assert "tests/test_greet.py" in include_output
+        assert "E114" in include_output
 
     def test_validate_all_returns_1_on_failure(self, failing_project, capsys):
         from maid_runner.cli.commands._main import main
@@ -403,13 +1001,46 @@ class TestCmdValidateAll:
         assert "total" in data
         assert "passed" in data
 
-    def test_validate_nonexistent_dir_returns_0(self, tmp_path, capsys):
+    def test_validate_nonexistent_dir_returns_1_by_default(self, tmp_path, capsys):
         from maid_runner.cli.commands._main import main
 
         os.chdir(tmp_path)
-        # Nonexistent manifest dir returns 0 (no manifests = nothing to fail)
         exit_code = main(["validate", "--manifest-dir", "nonexistent/"])
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E112" in captured.out
+        assert "nonexistent" in captured.out
+
+    def test_validate_empty_manifest_dir_returns_1_by_default(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        os.chdir(tmp_path)
+
+        exit_code = main(["validate"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E112" in captured.out
+        assert "No active manifests discovered" in captured.out
+
+    def test_validate_allow_empty_returns_0_for_empty_manifest_dir(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import build_parser
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        os.chdir(tmp_path)
+
+        args = build_parser().parse_args(["validate", "--allow-empty"])
+        assert args.allow_empty is True
+
+        exit_code = main(["validate", "--allow-empty"])
+
         assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Validation Results: 0 manifests" in captured.out
 
     def test_behavioral_mode(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
@@ -451,6 +1082,116 @@ class TestCmdValidateCoherenceOnly:
 
 
 class TestCmdValidateCoherenceFlag:
+    def test_coherence_flag_returns_1_when_coherence_errors(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-greet",
+                            "description": "greet module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/greet.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--coherence",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Coherence: FAIL" in captured.out
+        assert "greet module is blocked" in captured.out
+
+    def test_coherence_flag_json_reports_failure_and_exits_1(self, project_dir, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-greet",
+                            "description": "greet module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/greet.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--coherence",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        decoder = json.JSONDecoder()
+        _, offset = decoder.raw_decode(captured.out)
+        coherence, _ = decoder.raw_decode(captured.out[offset:].lstrip())
+        assert coherence["success"] is False
+        assert coherence["errors"] == 1
+        assert coherence["issues"][0]["message"] == "greet module is blocked"
+
+    def test_coherence_flag_returns_2_when_coherence_cannot_run(
+        self, project_dir, capsys, monkeypatch
+    ):
+        from maid_runner.cli.commands import validate
+        from maid_runner.cli.commands.validate import run_coherence
+
+        assert callable(run_coherence)
+
+        def fail_coherence(manifest_dir, json_mode):
+            raise RuntimeError(f"cannot run coherence for {manifest_dir}")
+
+        monkeypatch.setattr(validate, "run_coherence", fail_coherence)
+
+        os.chdir(project_dir)
+        args = argparse.Namespace(
+            watch=False,
+            watch_all=False,
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            coherence=True,
+            coherence_only=False,
+        )
+
+        exit_code = validate.cmd_validate(args)
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        assert "cannot run coherence for manifests/" in captured.err
+
     def test_coherence_flag_appends_coherence_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main
 

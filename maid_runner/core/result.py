@@ -28,6 +28,9 @@ class ErrorCode(str, Enum):
     INACTIVE_MANIFEST_NOT_MARKED = "E109"
     ARTIFACT_DROPPED_BY_SUPERSESSION = "E110"
     GRANDFATHERED_SUPERSESSION = "E111"
+    EMPTY_MANIFEST_SET = "E112"
+    MANIFEST_PATH_OUTSIDE_PROJECT = "E113"
+    CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE = "E114"
 
     ARTIFACT_NOT_USED_IN_TESTS = "E200"
     TEST_FILE_NOT_FOUND = "E201"
@@ -234,3 +237,25 @@ class BatchTestResult:
     @property
     def implementation_results(self) -> list[TestRunResult]:
         return [r for r in self.results if r.stream == TestStream.IMPLEMENTATION]
+
+
+@dataclass(frozen=True)
+class VerificationStageResult:
+    """One stage result from the combined verify gate."""
+
+    name: str
+    success: bool
+    _duration_ms: Optional[float] = None
+    _validation: object | None = None
+    _coherence: object | None = None
+    _file_tracking: FileTrackingReport | None = None
+    _tests: BatchTestResult | None = None
+    _errors: tuple[object, ...] = ()
+
+
+@dataclass(frozen=True)
+class VerificationResult:
+    """Aggregate result from the combined verify gate."""
+
+    stages: tuple[VerificationStageResult, ...]
+    duration_ms: Optional[float] = None

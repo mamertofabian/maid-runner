@@ -102,7 +102,153 @@ def _is_stub_body_ts(node, source: bytes) -> bool:
 def collect_implementation_artifacts(root: Any, source: bytes) -> list[FoundArtifact]:
     artifacts: list[FoundArtifact] = []
     _collect_impl(root, source, artifacts, current_class=None)
-    return artifacts
+    return _filter_public_implementation_artifacts(artifacts, root, source)
+
+
+def _filter_public_implementation_artifacts(
+    artifacts: list[FoundArtifact], root: Any, source: bytes
+) -> list[FoundArtifact]:
+    is_es_module = _is_es_module(root)
+    exported_names = _exported_local_names(root, source) if is_es_module else set()
+
+    visible: list[FoundArtifact] = []
+    for artifact in artifacts:
+        if is_es_module and not _artifact_is_export_visible(artifact, exported_names):
+            continue
+        visible.append(artifact)
+    return visible
+
+
+def _artifact_is_export_visible(
+    artifact: FoundArtifact, exported_names: set[str]
+) -> bool:
+    if artifact.of:
+        return artifact.of in exported_names
+    return artifact.name in exported_names
+
+
+def _is_es_module(root) -> bool:
+    return any(
+        child.type in ("import_statement", "export_statement")
+        for child in root.children
+    )
+
+
+def _exported_local_names(root, source: bytes) -> set[str]:
+    exported: set[str] = set()
+    for child in root.children:
+        if child.type == "export_statement":
+            exported.update(_exported_names_from_statement(child, source))
+    return exported
+
+
+def _exported_names_from_statement(node, source: bytes) -> set[str]:
+    exported: set[str] = set()
+    if _child_by_type(node, "string") is not None:
+        return exported
+    if any(child.type == "=" for child in node.children):
+        return _export_assignment_local_names(node, source)
+
+    has_default = any(child.type == "default" for child in node.children)
+    for child in node.children:
+        if child.type == "export_clause":
+            exported.update(_export_clause_local_names(child, source))
+        elif has_default and child.type == "call_expression":
+            exported.update(_default_export_wrapper_local_names(child, source))
+        else:
+            exported.update(_top_level_declaration_names(child, source))
+        if has_default and child.type == "identifier":
+            exported.add(_text(child, source))
+    return exported
+
+
+def _export_assignment_local_names(node, source: bytes) -> set[str]:
+    seen_equals = False
+    for child in node.children:
+        if child.type == "=":
+            seen_equals = True
+            continue
+        if seen_equals and child.type in ("identifier", "type_identifier"):
+            return {_text(child, source)}
+    return set()
+
+
+def _export_clause_local_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type != "export_specifier":
+            continue
+        identifiers = [
+            _text(grandchild, source)
+            for grandchild in child.children
+            if grandchild.type in ("identifier", "type_identifier")
+        ]
+        if identifiers:
+            names.add(identifiers[0])
+    return names
+
+
+def _default_export_wrapper_local_names(node, source: bytes) -> set[str]:
+    if not _is_react_component_wrapper_call(node, source):
+        return set()
+
+    target = _react_wrapper_export_argument(node, source)
+    if target is None:
+        return set()
+    if target.type in ("identifier", "type_identifier"):
+        return {_text(target, source)}
+    if target.type in ("function_expression", "generator_function"):
+        name = _function_declaration_name(target, source)
+        return {name} if name else {"default"}
+    if target.type == "arrow_function":
+        return {"default"}
+    return set()
+
+
+def _top_level_declaration_names(node, source: bytes) -> set[str]:
+    if node.type in ("class_declaration", "abstract_class_declaration", "class"):
+        name = _class_declaration_name(node, source)
+        return {name} if name else set()
+    if node.type == "interface_declaration":
+        name = _interface_declaration_name(node, source)
+        return {name} if name else set()
+    if node.type in (
+        "function_declaration",
+        "generator_function_declaration",
+        "function_signature",
+        "function_expression",
+        "arrow_function",
+    ):
+        name = _function_declaration_name(node, source)
+        return {name} if name else set()
+    if node.type == "type_alias_declaration":
+        name = _type_alias_name(node, source)
+        return {name} if name else set()
+    if node.type == "enum_declaration":
+        name = _enum_declaration_name(node, source)
+        return {name} if name else set()
+    if node.type == "internal_module":
+        name = _namespace_declaration_name(node, source)
+        return {name} if name else set()
+    if node.type in ("lexical_declaration", "variable_declaration"):
+        return {
+            name
+            for child in node.children
+            if child.type == "variable_declarator"
+            for name in _top_level_declaration_names(child, source)
+        }
+    if node.type == "variable_declarator":
+        name = _child_text(node, "identifier", source)
+        return {name} if name else set()
+    return set()
+
+
+def _has_private_or_protected_modifier(node, source: bytes) -> bool:
+    return any(
+        child.type == "accessibility_modifier"
+        and _text(child, source) in ("private", "protected")
+        for child in node.children
+    )
 
 
 def _collect_impl(
@@ -136,11 +282,7 @@ def _collect_class_declaration(
     if node.type not in ("class_declaration", "abstract_class_declaration", "class"):
         return False
 
-    name = _child_text(node, "type_identifier", source) or _child_text(
-        node, "identifier", source
-    )
-    if not name and node.type == "class" and _is_default_export_child(node):
-        name = "default"
+    name = _class_declaration_name(node, source)
     if not name:
         return False
 
@@ -246,9 +388,7 @@ def _collect_type_alias_declaration(
     if node.type != "type_alias_declaration":
         return False
 
-    name = _child_text(node, "type_identifier", source) or _child_text(
-        node, "identifier", source
-    )
+    name = _type_alias_name(node, source)
     if name:
         artifacts.append(
             FoundArtifact(
@@ -268,7 +408,7 @@ def _collect_enum_declaration(
     if node.type != "enum_declaration":
         return False
 
-    name = _child_text(node, "identifier", source)
+    name = _enum_declaration_name(node, source)
     if name:
         artifacts.append(
             FoundArtifact(
@@ -286,9 +426,7 @@ def _collect_namespace_declaration(
     if node.type != "internal_module":
         return False
 
-    name = _child_text(node, "identifier", source) or _child_text(
-        node, "type_identifier", source
-    )
+    name = _namespace_declaration_name(node, source)
     if name:
         artifacts.append(
             FoundArtifact(
@@ -311,13 +449,7 @@ def _collect_function_declaration(
     ):
         return False
 
-    name = _child_text(node, "identifier", source)
-    if (
-        not name
-        and node.type == "function_expression"
-        and _is_default_export_child(node)
-    ):
-        name = "default"
+    name = _function_declaration_name(node, source)
     if name:
         _append_function_artifact(node, source, artifacts, name)
     return True
@@ -356,6 +488,8 @@ def _collect_class_method_signature(
 ) -> bool:
     if node.type != "abstract_method_signature" or not current_class:
         return False
+    if _has_private_or_protected_modifier(node, source):
+        return True
 
     name_node = _child_by_type(node, "property_identifier")
     if name_node:
@@ -379,14 +513,11 @@ def _collect_class_method_definition(
 ) -> bool:
     if node.type != "method_definition" or not current_class:
         return False
+    if _has_private_or_protected_modifier(node, source):
+        return True
 
-    name_node = (
-        _child_by_type(node, "property_identifier")
-        or _child_by_type(node, "private_property_identifier")
-        or _child_by_type(node, "computed_property_name")
-    )
-    if name_node:
-        name = _text(name_node, source)
+    name = _method_definition_name(node, source)
+    if name:
         if name == "constructor":
             _collect_constructor_parameter_properties(
                 node, source, artifacts, current_class
@@ -448,9 +579,43 @@ def _collect_export_statement(
 ) -> bool:
     if node.type != "export_statement":
         return False
+    if _collect_default_react_wrapped_component(node, source, artifacts):
+        return True
 
     for child in node.children:
         _collect_impl(child, source, artifacts, current_class)
+    return True
+
+
+def _collect_default_react_wrapped_component(
+    node, source: bytes, artifacts: list[FoundArtifact]
+) -> bool:
+    if not any(child.type == "default" for child in node.children):
+        return False
+
+    call = _child_by_type(node, "call_expression")
+    if call is None or not _is_react_component_wrapper_call(call, source):
+        return False
+
+    wrapped_value = _react_component_function_argument(call, source)
+    if wrapped_value is None:
+        return False
+    if _function_declaration_name(wrapped_value, source):
+        return False
+
+    args, returns = _extract_func_signature(wrapped_value, source)
+    artifacts.append(
+        FoundArtifact(
+            kind=ArtifactKind.FUNCTION,
+            name="default",
+            args=args,
+            returns=returns,
+            type_parameters=_extract_type_parameters(wrapped_value, source),
+            is_async=any(c.type == "async" for c in wrapped_value.children),
+            is_stub=_is_stub_body_ts(wrapped_value, source),
+            line=wrapped_value.start_point[0] + 1,
+        )
+    )
     return True
 
 
@@ -559,6 +724,22 @@ def _react_component_function_argument(call, source: bytes):
         if child.type in ("(", ","):
             continue
         return None
+    return None
+
+
+def _react_wrapper_export_argument(call, source: bytes):
+    arguments = _child_by_type(call, "arguments")
+    if arguments is None:
+        return None
+
+    for child in arguments.children:
+        if child.type in ("(", ","):
+            continue
+        if child.type == "call_expression" and _is_react_component_wrapper_call(
+            child, source
+        ):
+            return _react_wrapper_export_argument(child, source)
+        return child
     return None
 
 
@@ -938,6 +1119,53 @@ def _is_default_export_child(node) -> bool:
     if parent is None or parent.type != "export_statement":
         return False
     return any(child.type == "default" for child in parent.children)
+
+
+def _class_declaration_name(node, source: bytes) -> Optional[str]:
+    name = _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+    if not name and node.type == "class" and _is_default_export_child(node):
+        return "default"
+    return name
+
+
+def _function_declaration_name(node, source: bytes) -> Optional[str]:
+    name = _child_text(node, "identifier", source)
+    if not name and _is_default_export_child(node):
+        return "default"
+    return name
+
+
+def _type_alias_name(node, source: bytes) -> Optional[str]:
+    return _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+
+
+def _interface_declaration_name(node, source: bytes) -> Optional[str]:
+    return _child_text(node, "type_identifier", source) or _child_text(
+        node, "identifier", source
+    )
+
+
+def _enum_declaration_name(node, source: bytes) -> Optional[str]:
+    return _child_text(node, "identifier", source)
+
+
+def _namespace_declaration_name(node, source: bytes) -> Optional[str]:
+    return _child_text(node, "identifier", source) or _child_text(
+        node, "type_identifier", source
+    )
+
+
+def _method_definition_name(node, source: bytes) -> Optional[str]:
+    name_node = (
+        _child_by_type(node, "property_identifier")
+        or _child_by_type(node, "private_property_identifier")
+        or _child_by_type(node, "computed_property_name")
+    )
+    return _text(name_node, source) if name_node else None
 
 
 def _child_by_type(node, type_name: str):
