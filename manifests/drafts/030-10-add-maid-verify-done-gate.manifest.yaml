@@ -180,7 +180,7 @@ files:
     - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
     - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
     - manifests/030-08-add-validate-run-tests-gate.manifest.yaml
-    - manifests/drafts/030-09-add-worktree-scope-gate.manifest.yaml
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
     - maid_runner/core/validate.py
     - maid_runner/core/test_runner.py
     - maid_runner/coherence/engine.py

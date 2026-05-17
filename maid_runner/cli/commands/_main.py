@@ -67,6 +67,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fail validation when undeclared or weakly registered production files exist",
     )
     p.add_argument(
+        "--worktree-scope",
+        action="store_true",
+        help="Fail validation when changed production files are outside writable manifest scope",
+    )
+    p.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Include changed test files in --worktree-scope checks",
+    )
+    p.add_argument(
         "--json", "--json-output", action="store_true"
     )  # --json-output is v1 compat alias
     p.add_argument("--quiet", action="store_true")

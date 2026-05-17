@@ -105,6 +105,33 @@ files:
                 export: validate_worktree_scope
           expected:
             behavior: "The gate reports the file because read context is not edit permission."
+        - kind: test_function
+          name: test_worktree_scope_gate_reports_rename_source_outside_writable_scope
+          source_scenario: "A staged git rename moves an undeclared production file to a writable destination."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports the renamed source path because the deletion is not declared in files.delete."
+        - kind: test_function
+          name: test_worktree_scope_gate_includes_test_files_only_when_requested
+          source_scenario: "A git repo has a changed test file listed only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate ignores the test file by default and reports it when include_tests is true."
+        - kind: test_function
+          name: test_changed_files_returns_paths_relative_to_nested_project_root
+          source_scenario: "The project root is a subdirectory inside a larger git worktree."
+          actions:
+            - type: api_call
+              subject:
+                export: changed_files
+          expected:
+            behavior: "changed_files returns project-root-relative paths and ignores changes outside the project root."
     - path: tests/cli/test_validate_cmd.py
       artifacts:
         - kind: test_function
@@ -116,10 +143,20 @@ files:
                 export: main
           expected:
             behavior: "maid validate --worktree-scope exits 1 and names the changed file."
+        - kind: test_function
+          name: test_validate_worktree_scope_include_tests_reports_changed_test_file
+          source_scenario: "The CLI validates a structurally green manifest chain while git reports a changed test file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --worktree-scope ignores the test by default, while --include-tests exits 1 and names it."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - maid_runner/core/chain.py
     - maid_runner/core/_file_discovery.py
+    - manifests/drafts/030-10-add-maid-verify-done-gate.manifest.yaml
     - tests/ci/test_codex_maid_loop.py
     - tests/ci/test_claude_maid_loop.py
 validate:

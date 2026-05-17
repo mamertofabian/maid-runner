@@ -55,6 +55,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 fail_on_warnings=fail_on_warnings,
             )
             test_result = None
+            if result.success and getattr(args, "worktree_scope", False):
+                _apply_worktree_scope_to_result(result, args)
             if result.success and getattr(args, "run_tests", False):
                 test_result = run_validate_commands_for_result(args.manifest_path)
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
@@ -86,6 +88,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,
             )
+            if batch.success and getattr(args, "worktree_scope", False):
+                _apply_worktree_scope_to_batch(batch, args)
             quiet = args.quiet and not _has_warning_failure(
                 batch, fail_on_warnings=fail_on_warnings
             )
@@ -277,6 +281,8 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,
             )
+            if result.success and getattr(args, "worktree_scope", False):
+                _apply_worktree_scope_to_result(result, args)
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
             output = format_validation_result(result, json_mode=args.json, quiet=quiet)
             if output:
@@ -291,9 +297,59 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,
             )
+            if batch.success and getattr(args, "worktree_scope", False):
+                _apply_worktree_scope_to_batch(batch, args)
             quiet = args.quiet and not _has_warning_failure(
                 batch, fail_on_warnings=fail_on_warnings
             )
             print(format_batch_result(batch, json_mode=args.json, quiet=quiet))
     except Exception as e:
         print_error(str(e), json_mode=args.json)
+
+
+def _apply_worktree_scope_to_result(result, args: argparse.Namespace) -> None:
+    errors = _run_worktree_scope(args)
+    if not errors:
+        return
+    result.errors.extend(errors)
+    result.success = False
+
+
+def _apply_worktree_scope_to_batch(batch, args: argparse.Namespace) -> None:
+    errors = _run_worktree_scope(args)
+    if not errors:
+        return
+
+    if batch.results:
+        target = batch.results[0]
+        target.errors.extend(errors)
+        if target.success:
+            target.success = False
+            batch.passed = max(0, batch.passed - 1)
+            batch.failed += 1
+        return
+
+    batch.chain_errors.extend(errors)
+    batch.failed += 1
+
+
+def _run_worktree_scope(args: argparse.Namespace):
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.result import ErrorCode, Severity, ValidationError
+    from maid_runner.core.worktree import validate_worktree_scope
+
+    try:
+        chain = ManifestChain(args.manifest_dir, ".")
+        return validate_worktree_scope(
+            ".",
+            chain,
+            include_tests=getattr(args, "include_tests", False),
+        )
+    except Exception as exc:
+        return [
+            ValidationError(
+                code=ErrorCode.FILE_READ_ERROR,
+                message=f"Worktree scope gate failed: {exc}",
+                severity=Severity.ERROR,
+            )
+        ]

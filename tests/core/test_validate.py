@@ -36,6 +36,32 @@ def _write_source(project_dir, rel_path, content):
     return path
 
 
+def _commit_all(project_dir):
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "add", "."], cwd=project_dir, check=True, capture_output=True
+    )
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "user.name=Test User",
+            "commit",
+            "-m",
+            "baseline",
+        ],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+    )
+
+
 def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
     """Write a minimal test file that references the given artifacts.
 
@@ -1122,6 +1148,218 @@ validate:
         assert entry.status == FileTrackingStatus.REGISTERED
         assert entry.status != FileTrackingStatus.UNDECLARED
         assert any("read" in issue.lower() for issue in entry.issues)
+
+    def test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope(
+        self, project
+    ):
+        """Changed production files must be writable in the active manifest chain."""
+        import subprocess
+
+        from maid_runner.core.worktree import changed_files, validate_worktree_scope
+
+        _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest tests/test_app.py -v
+""",
+        )
+        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+        _write_source(project, "src/drift.py", "def drift():\n    return 'drift'\n")
+        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+        chain = ManifestChain(project / "manifests", project_root=project)
+        errors = validate_worktree_scope(project, chain)
+
+        assert "src/drift.py" in changed_files(project)
+        assert any(
+            error.code == ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+            and error.location
+            and error.location.file == "src/drift.py"
+            for error in errors
+        )
+
+    def test_worktree_scope_gate_allows_changed_file_in_files_edit(self, project):
+        """Changed production files listed in files.edit are inside writable scope."""
+        import subprocess
+
+        from maid_runner.core.worktree import validate_worktree_scope
+
+        _write_manifest(
+            project / "manifests",
+            "edit-app.manifest.yaml",
+            """schema: "2"
+goal: "Edit app"
+files:
+  edit:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest tests/test_app.py -v
+""",
+        )
+        _write_source(project, "src/app.py", "def run():\n    return 'changed'\n")
+        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+        chain = ManifestChain(project / "manifests", project_root=project)
+
+        assert validate_worktree_scope(project, chain) == []
+
+    def test_worktree_scope_gate_treats_files_read_as_not_writable(self, project):
+        """files.read gives context, not permission to change production code."""
+        import subprocess
+
+        from maid_runner.core.worktree import validate_worktree_scope
+
+        _write_manifest(
+            project / "manifests",
+            "use-dep.manifest.yaml",
+            """schema: "2"
+goal: "Use dependency"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - src/dep.py
+validate:
+  - pytest tests/test_app.py -v
+""",
+        )
+        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+        _write_source(project, "src/dep.py", "def helper():\n    return 'changed'\n")
+        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+        chain = ManifestChain(project / "manifests", project_root=project)
+        errors = validate_worktree_scope(project, chain)
+
+        assert any(
+            error.code == ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+            and error.location
+            and error.location.file == "src/dep.py"
+            for error in errors
+        )
+
+    def test_worktree_scope_gate_reports_rename_source_outside_writable_scope(
+        self, project
+    ):
+        """A git rename must check the deleted source path, not only the destination."""
+        import subprocess
+
+        from maid_runner.core.worktree import changed_files, validate_worktree_scope
+
+        _write_manifest(
+            project / "manifests",
+            "add-new.manifest.yaml",
+            """schema: "2"
+goal: "Add renamed module"
+files:
+  create:
+    - path: src/new.py
+      artifacts:
+        - kind: function
+          name: old
+validate:
+  - pytest tests/test_new.py -v
+""",
+        )
+        _write_source(project, "src/old.py", "def old():\n    return 'old'\n")
+        _commit_all(project)
+        subprocess.run(
+            ["git", "mv", "src/old.py", "src/new.py"],
+            cwd=project,
+            check=True,
+            capture_output=True,
+        )
+
+        chain = ManifestChain(project / "manifests", project_root=project)
+        paths = changed_files(project)
+        errors = validate_worktree_scope(project, chain)
+
+        assert "src/new.py" in paths
+        assert "src/old.py" in paths
+        assert any(
+            error.code == ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+            and error.location
+            and error.location.file == "src/old.py"
+            for error in errors
+        )
+        assert not any(
+            error.location and error.location.file == "src/new.py" for error in errors
+        )
+
+    def test_worktree_scope_gate_includes_test_files_only_when_requested(self, project):
+        """Changed test files are ignored by default and checked on request."""
+        import subprocess
+
+        from maid_runner.core.worktree import validate_worktree_scope
+
+        _write_manifest(
+            project / "manifests",
+            "add-app.manifest.yaml",
+            """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - tests/test_app.py
+validate:
+  - pytest tests/test_app.py -v
+""",
+        )
+        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+        _write_source(project, "tests/test_app.py", "from src.app import run\n")
+        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+        chain = ManifestChain(project / "manifests", project_root=project)
+
+        assert validate_worktree_scope(project, chain) == []
+        errors = validate_worktree_scope(project, chain, include_tests=True)
+        assert any(
+            error.code == ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+            and error.location
+            and error.location.file == "tests/test_app.py"
+            for error in errors
+        )
+
+    def test_changed_files_returns_paths_relative_to_nested_project_root(
+        self, tmp_path
+    ):
+        """Nested project roots should not receive repo-root-relative paths."""
+        from maid_runner.core.worktree import changed_files
+
+        repo = tmp_path / "repo"
+        project_root = repo / "project"
+        (project_root / "src").mkdir(parents=True)
+        (repo / "outside").mkdir(parents=True)
+        (project_root / "src" / "app.py").write_text(
+            "def run():\n    return 'before'\n"
+        )
+        (repo / "outside" / "other.py").write_text(
+            "def other():\n    return 'before'\n"
+        )
+        _commit_all(repo)
+
+        (project_root / "src" / "app.py").write_text("def run():\n    return 'after'\n")
+        (repo / "outside" / "other.py").write_text("def other():\n    return 'after'\n")
+
+        assert changed_files(project_root) == ("src/app.py",)
 
 
 class TestAcceptanceValidation:

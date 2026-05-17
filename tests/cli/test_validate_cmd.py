@@ -869,6 +869,52 @@ class TestCmdValidateAll:
         watch_output = capsys.readouterr()
         assert "--file-tracking is only supported" in watch_output.err
 
+    def test_validate_worktree_scope_returns_1_for_out_of_scope_change(
+        self, project_dir, capsys
+    ):
+        import subprocess
+
+        from maid_runner.cli.commands._main import main
+
+        subprocess.run(
+            ["git", "init"], cwd=project_dir, check=True, capture_output=True
+        )
+        (project_dir / "src" / "extra.py").write_text(
+            "def extra():\n    return 'drift'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--worktree-scope"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/extra.py" in captured.out
+        assert "E114" in captured.out
+
+    def test_validate_worktree_scope_include_tests_reports_changed_test_file(
+        self, project_dir, capsys
+    ):
+        import subprocess
+
+        from maid_runner.cli.commands._main import main
+
+        subprocess.run(
+            ["git", "init"], cwd=project_dir, check=True, capture_output=True
+        )
+
+        os.chdir(project_dir)
+        default_exit_code = main(["validate", "--worktree-scope"])
+        default_output = capsys.readouterr().out
+
+        include_exit_code = main(["validate", "--worktree-scope", "--include-tests"])
+        include_output = capsys.readouterr().out
+
+        assert default_exit_code == 0
+        assert "tests/test_greet.py" not in default_output
+        assert include_exit_code == 1
+        assert "tests/test_greet.py" in include_output
+        assert "E114" in include_output
+
     def test_validate_all_returns_1_on_failure(self, failing_project, capsys):
         from maid_runner.cli.commands._main import main
 
