@@ -1513,6 +1513,79 @@ validate:
         assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
 
 
+class TestStrictWarningPolicy:
+    def test_validate_fail_on_warnings_marks_result_unsuccessful(self, project):
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+            fail_on_warnings=True,
+        )
+
+        assert result.success is False
+        assert result.errors == []
+        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
+
+    def test_validate_all_threads_strict_warning_policy_to_each_manifest(self, project):
+        _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
+
+        engine = ValidationEngine(project_root=project)
+        batch = engine.validate_all(
+            project / "manifests",
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+            fail_on_warnings=True,
+        )
+
+        assert batch.success is False
+        assert batch.passed == 0
+        assert batch.failed == 1
+        assert any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED
+            for result in batch.results
+            for w in result.warnings
+        )
+
+
 class TestImportVerification:
     """Tests for required imports field on FileSpec."""
 

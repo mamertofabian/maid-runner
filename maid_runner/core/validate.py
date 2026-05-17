@@ -77,6 +77,7 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         check_stubs: bool = False,
         check_assertions: bool = False,
+        fail_on_warnings: bool = False,
         include_chain_diagnostics: bool = True,
     ) -> ValidationResult:
         start = time.monotonic()
@@ -165,9 +166,10 @@ class ValidationEngine:
 
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
         actual_warnings = [e for e in errors if e.severity == Severity.WARNING]
+        success = len(actual_errors) == 0 and not (fail_on_warnings and actual_warnings)
 
         return ValidationResult(
-            success=len(actual_errors) == 0,
+            success=success,
             manifest_slug=manifest.slug,
             manifest_path=manifest.source_path,
             mode=mode,
@@ -182,6 +184,9 @@ class ValidationEngine:
         *,
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
         allow_empty: bool = False,
+        check_stubs: bool = False,
+        check_assertions: bool = False,
+        fail_on_warnings: bool = False,
     ) -> BatchValidationResult:
         start = time.monotonic()
         chain_dir = self._project_root / manifest_dir
@@ -218,19 +223,26 @@ class ValidationEngine:
                 )
             results: list[ValidationResult] = []
             for manifest in manifests:
-                result = self.validate(manifest, mode=mode)
+                result = self.validate(
+                    manifest,
+                    mode=mode,
+                    fail_on_warnings=fail_on_warnings,
+                )
                 results.append(result)
 
             duration = (time.monotonic() - start) * 1000
             passed = sum(1 for result in results if result.success)
             failed = len(results) - passed
+            chain_errors = chain.load_errors + chain.inactive_manifest_diagnostics()
+            if fail_on_warnings and _has_warning(chain_errors):
+                failed += 1
             return BatchValidationResult(
                 results=results,
                 total_manifests=len(manifests) + len(chain.load_errors),
                 passed=passed,
                 failed=failed,
                 skipped=0,
-                chain_errors=chain.load_errors + chain.inactive_manifest_diagnostics(),
+                chain_errors=chain_errors,
                 duration_ms=duration,
             )
 
@@ -258,6 +270,9 @@ class ValidationEngine:
                 use_chain=True,
                 chain=chain,
                 manifest_dir=manifest_dir,
+                check_stubs=check_stubs,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
                 include_chain_diagnostics=False,
             )
             results.append(result)
@@ -265,6 +280,9 @@ class ValidationEngine:
                 passed += 1
             else:
                 failed += 1
+
+        if fail_on_warnings and _has_warning(chain_errors):
+            failed += 1
 
         duration = (time.monotonic() - start) * 1000
 
@@ -894,6 +912,7 @@ def validate(
     project_root: Union[str, Path] = ".",
     check_stubs: bool = False,
     check_assertions: bool = False,
+    fail_on_warnings: bool = False,
     registry: ValidatorRegistry | None = None,
 ) -> ValidationResult:
     engine = ValidationEngine(project_root=project_root, registry=registry)
@@ -904,6 +923,7 @@ def validate(
         manifest_dir=manifest_dir,
         check_stubs=check_stubs,
         check_assertions=check_assertions,
+        fail_on_warnings=fail_on_warnings,
     )
 
 
@@ -913,10 +933,24 @@ def validate_all(
     mode: ValidationMode = ValidationMode.IMPLEMENTATION,
     project_root: Union[str, Path] = ".",
     allow_empty: bool = False,
+    check_stubs: bool = False,
+    check_assertions: bool = False,
+    fail_on_warnings: bool = False,
     registry: ValidatorRegistry | None = None,
 ) -> BatchValidationResult:
     engine = ValidationEngine(project_root=project_root, registry=registry)
-    return engine.validate_all(manifest_dir, mode=mode, allow_empty=allow_empty)
+    return engine.validate_all(
+        manifest_dir,
+        mode=mode,
+        allow_empty=allow_empty,
+        check_stubs=check_stubs,
+        check_assertions=check_assertions,
+        fail_on_warnings=fail_on_warnings,
+    )
+
+
+def _has_warning(errors: list[ValidationError]) -> bool:
+    return any(error.severity == Severity.WARNING for error in errors)
 
 
 def _empty_manifest_set_result(

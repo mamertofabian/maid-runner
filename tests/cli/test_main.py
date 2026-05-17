@@ -77,6 +77,25 @@ class TestBuildParser:
         args = parser.parse_args(["validate", "--json"])
         assert args.json is True
 
+    def test_validate_accepts_strict_assertion_stub_warning_flags(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "validate",
+                "--strict",
+                "--check-assertions",
+                "--check-stubs",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert args.strict is True
+        assert args.check_assertions is True
+        assert args.check_stubs is True
+        assert args.fail_on_warnings is True
+
     def test_validate_quiet_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

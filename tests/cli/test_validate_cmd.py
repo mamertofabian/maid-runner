@@ -282,6 +282,188 @@ class TestCmdValidateSingleManifest:
         data = json.loads(captured.out)
         assert any(w["code"] == "E610" for w in data["warnings"])
 
+    def test_behavioral_validate_check_assertions_returns_1_for_no_assertions(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    return 'hello'\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\n" "def test_greet():\n" "    greet()\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+                "--check-assertions",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E210" in captured.out
+        assert "Warnings" in captured.out
+
+    def test_implementation_validate_check_stubs_returns_1_for_stub_function(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    pass\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\n"
+            "def test_greet():\n"
+            "    assert greet is not None\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--check-stubs",
+                "--fail-on-warnings",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E310" in captured.out
+        assert "Warnings" in captured.out
+
+        quiet_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--check-stubs",
+                "--fail-on-warnings",
+                "--quiet",
+            ]
+        )
+
+        assert quiet_exit_code == 1
+        quiet_output = capsys.readouterr().out
+        assert "E310" in quiet_output
+        assert "Warnings" in quiet_output
+
+    def test_validate_strict_enables_assertion_stub_and_warning_failure(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "greet.py").write_text("def greet():\n    pass\n")
+        (tmp_path / "tests" / "test_greet.py").write_text(
+            "from src.greet import greet\n\n" "def test_greet():\n" "    greet()\n"
+        )
+        manifest = {
+            "schema": "2",
+            "goal": "Add greet",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [{"kind": "function", "name": "greet"}],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (manifest_dir / "add-greet.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        default_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+            ]
+        )
+        assert default_exit_code == 0
+        capsys.readouterr()
+
+        behavioral_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--mode",
+                "behavioral",
+                "--no-chain",
+                "--strict",
+            ]
+        )
+        behavioral_output = capsys.readouterr().out
+
+        implementation_exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--strict",
+            ]
+        )
+        implementation_output = capsys.readouterr().out
+
+        assert behavioral_exit_code == 1
+        assert "E210" in behavioral_output
+        assert implementation_exit_code == 1
+        assert "E310" in implementation_output
+
     def test_schema_mode_single_manifest_returns_0_for_valid_schema_without_source_files(
         self, tmp_path, capsys
     ):

@@ -37,6 +37,26 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--coherence", action="store_true")
     p.add_argument("--coherence-only", action="store_true")
     p.add_argument(
+        "--check-assertions",
+        action="store_true",
+        help="Warn when behavioral tests exercise artifacts without assertions",
+    )
+    p.add_argument(
+        "--check-stubs",
+        action="store_true",
+        help="Warn when implementation validation finds stubbed artifacts",
+    )
+    p.add_argument(
+        "--fail-on-warnings",
+        action="store_true",
+        help="Return failure when validation warnings are present",
+    )
+    p.add_argument(
+        "--strict",
+        action="store_true",
+        help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
         "--json", "--json-output", action="store_true"
     )  # --json-output is v1 compat alias
     p.add_argument("--quiet", action="store_true")

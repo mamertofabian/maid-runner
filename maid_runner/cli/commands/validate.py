@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from typing import TYPE_CHECKING
 
 from maid_runner.cli.commands._format import (
     format_batch_result,
@@ -11,6 +12,9 @@ from maid_runner.cli.commands._format import (
     format_validation_result,
     print_error,
 )
+
+if TYPE_CHECKING:
+    from maid_runner.coherence.result import CoherenceResult
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -25,6 +29,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
     mode = ValidationMode(args.mode)
     engine = ValidationEngine(project_root=".")
+    check_assertions, check_stubs, fail_on_warnings = _strict_options(args)
 
     try:
         if args.manifest_path:
@@ -33,10 +38,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 mode=mode,
                 use_chain=not args.no_chain,
                 manifest_dir=args.manifest_dir,
+                check_assertions=check_assertions,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
             )
-            output = format_validation_result(
-                result, json_mode=args.json, quiet=args.quiet
-            )
+            quiet = args.quiet and not (fail_on_warnings and result.warnings)
+            output = format_validation_result(result, json_mode=args.json, quiet=quiet)
             if output:
                 print(output)
 
@@ -52,8 +59,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 args.manifest_dir,
                 mode=mode,
                 allow_empty=getattr(args, "allow_empty", False),
+                check_assertions=check_assertions,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
             )
-            print(format_batch_result(batch, json_mode=args.json, quiet=args.quiet))
+            quiet = args.quiet and not _has_warning_failure(
+                batch, fail_on_warnings=fail_on_warnings
+            )
+            print(format_batch_result(batch, json_mode=args.json, quiet=quiet))
 
             if args.coherence and batch.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
@@ -83,13 +96,12 @@ def run_coherence(manifest_dir: str, json_mode: bool) -> "CoherenceResult":
     from pathlib import Path
 
     from maid_runner.coherence.engine import CoherenceEngine
-    from maid_runner.coherence.result import CoherenceResult
     from maid_runner.core.chain import ManifestChain
 
     del json_mode
     chain = ManifestChain(manifest_dir)
     engine = CoherenceEngine()
-    result: CoherenceResult = engine.validate(chain, project_root=Path.cwd())
+    result = engine.validate(chain, project_root=Path.cwd())
     return result
 
 
@@ -97,6 +109,22 @@ def _print_coherence_result(result: "CoherenceResult", *, json_mode: bool) -> No
     """Print coherence output after structural validation output."""
     print()
     print(format_coherence_result(result, json_mode=json_mode))
+
+
+def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:
+    strict = getattr(args, "strict", False)
+    check_assertions = getattr(args, "check_assertions", False) or strict
+    check_stubs = getattr(args, "check_stubs", False) or strict
+    fail_on_warnings = getattr(args, "fail_on_warnings", False) or strict
+    return check_assertions, check_stubs, fail_on_warnings
+
+
+def _has_warning_failure(batch, *, fail_on_warnings: bool) -> bool:
+    if not fail_on_warnings:
+        return False
+    if any(result.warnings for result in batch.results):
+        return True
+    return any(error.severity.value == "warning" for error in batch.chain_errors)
 
 
 def _run_watch(args: argparse.Namespace) -> int:
@@ -181,6 +209,7 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
 
     mode = ValidationMode(args.mode)
     engine = ValidationEngine(project_root=".")
+    check_assertions, check_stubs, fail_on_warnings = _strict_options(args)
 
     try:
         if args.manifest_path and not args.watch_all:
@@ -189,10 +218,12 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 mode=mode,
                 use_chain=not args.no_chain,
                 manifest_dir=args.manifest_dir,
+                check_assertions=check_assertions,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
             )
-            output = format_validation_result(
-                result, json_mode=args.json, quiet=args.quiet
-            )
+            quiet = args.quiet and not (fail_on_warnings and result.warnings)
+            output = format_validation_result(result, json_mode=args.json, quiet=quiet)
             if output:
                 print(output)
         else:
@@ -200,7 +231,13 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 args.manifest_dir,
                 mode=mode,
                 allow_empty=getattr(args, "allow_empty", False),
+                check_assertions=check_assertions,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
             )
-            print(format_batch_result(batch, json_mode=args.json, quiet=args.quiet))
+            quiet = args.quiet and not _has_warning_failure(
+                batch, fail_on_warnings=fail_on_warnings
+            )
+            print(format_batch_result(batch, json_mode=args.json, quiet=quiet))
     except Exception as e:
         print_error(str(e), json_mode=args.json)

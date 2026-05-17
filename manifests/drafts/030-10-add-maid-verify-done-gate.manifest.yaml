@@ -175,9 +175,9 @@ files:
             behavior: "JSON output contains machine-readable stage names and success values."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
-    - manifests/drafts/030-01-fail-empty-manifest-discovery.manifest.yaml
-    - manifests/drafts/030-02-make-coherence-flag-fail-closed.manifest.yaml
-    - manifests/drafts/030-06-add-strict-validation-cli-flags.manifest.yaml
+    - manifests/030-01-fail-empty-manifest-discovery.manifest.yaml
+    - manifests/030-02-make-coherence-flag-fail-closed.manifest.yaml
+    - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
     - manifests/drafts/030-07-add-file-tracking-fail-gates.manifest.yaml
     - manifests/drafts/030-08-add-validate-run-tests-gate.manifest.yaml
     - manifests/drafts/030-09-add-worktree-scope-gate.manifest.yaml
