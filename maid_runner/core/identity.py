@@ -20,11 +20,26 @@ from maid_runner.validators.base import FoundArtifact
 _ReexportResolver = Callable[[str, str, Path], Optional[tuple[str, str]]]
 
 
-def _reference_can_cover_artifact(reference: FoundArtifact) -> bool:
-    return (
-        reference.kind != ArtifactKind.TEST_FUNCTION
-        and reference.reference_context != "import"
-    )
+def _reference_can_cover_artifact(
+    reference: FoundArtifact,
+    artifact: FoundArtifact,
+) -> bool:
+    if reference.kind == ArtifactKind.TEST_FUNCTION:
+        return False
+    if reference.reference_context in {"import", "local"}:
+        return False
+    if reference.reference_context == "type" and artifact.kind not in {
+        ArtifactKind.INTERFACE,
+        ArtifactKind.TYPE,
+    }:
+        return False
+    if reference.reference_context == "keyword":
+        return (
+            artifact.kind == ArtifactKind.ATTRIBUTE
+            and reference.import_source is not None
+            and (artifact.of is None or reference.of == artifact.of)
+        )
+    return True
 
 
 def _module_identity_matches(reference_module: str, artifact_module: str) -> bool:
@@ -35,6 +50,61 @@ def _module_identity_matches(reference_module: str, artifact_module: str) -> boo
     if "." in Path(artifact_module).name:
         return False
     return reference_module.replace(".", "/") == artifact_module
+
+
+def _reference_identity_can_represent_artifact(
+    reference: FoundArtifact,
+    artifact: FoundArtifact,
+    project_root: Path,
+    resolver: _ReexportResolver,
+) -> bool:
+    ref_name = reference.alias_of or reference.name
+    if ref_name != artifact.name:
+        return False
+    if reference.import_source is None or artifact.module_path is None:
+        return False
+    if _module_identity_matches(reference.import_source, artifact.module_path):
+        return True
+    reexported = resolver(reference.import_source, ref_name, project_root)
+    if reexported is None:
+        return False
+    resolved_module, original_name = reexported
+    return resolved_module == artifact.module_path and original_name == artifact.name
+
+
+def _reference_module_can_represent_artifact(
+    reference: FoundArtifact,
+    artifact: FoundArtifact,
+    project_root: Path,
+    resolver: _ReexportResolver,
+) -> bool:
+    if reference.import_source is None or artifact.module_path is None:
+        return False
+    if _module_identity_matches(reference.import_source, artifact.module_path):
+        return True
+
+    reexported = resolver(reference.import_source, artifact.name, project_root)
+    if reexported is None:
+        return False
+    resolved_module, original_name = reexported
+    return resolved_module == artifact.module_path and original_name == artifact.name
+
+
+def _module_import_should_block_name_fallback(artifact: FoundArtifact) -> bool:
+    return artifact.of is None and artifact.kind in {
+        ArtifactKind.CLASS,
+        ArtifactKind.FUNCTION,
+    }
+
+
+def _reference_can_block_name_fallback(
+    reference: FoundArtifact,
+    artifact: FoundArtifact,
+) -> bool:
+    return reference.reference_context == "import" or _reference_can_cover_artifact(
+        reference,
+        artifact,
+    )
 
 
 def match_artifact_to_references(
@@ -68,15 +138,33 @@ def match_artifact_to_references(
     refs = list(references)
     resolver = reexport_resolver or _python_resolve_reexport
     root = Path(project_root)
+    has_artifact_identity_import = any(
+        _reference_can_block_name_fallback(ref, artifact)
+        and (
+            _reference_identity_can_represent_artifact(ref, artifact, root, resolver)
+            or (
+                _module_import_should_block_name_fallback(artifact)
+                and _reference_module_can_represent_artifact(
+                    ref,
+                    artifact,
+                    root,
+                    resolver,
+                )
+            )
+        )
+        for ref in refs
+    )
 
     for ref in refs:
-        if not _reference_can_cover_artifact(ref):
+        if not _reference_can_cover_artifact(ref, artifact):
             continue
         ref_name = ref.alias_of or ref.name
         if ref_name != artifact.name:
             continue
 
         if ref.import_source is None:
+            if has_artifact_identity_import:
+                continue
             return True
 
         if artifact.module_path is None:
@@ -98,7 +186,7 @@ def match_artifact_to_references(
         return False
 
     for ref in refs:
-        if not _reference_can_cover_artifact(ref):
+        if not _reference_can_cover_artifact(ref, artifact):
             continue
         if ref.import_source is None:
             continue

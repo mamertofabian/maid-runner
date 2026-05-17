@@ -201,6 +201,73 @@ class TestMatchArtifactToReferences:
 
         assert not match_artifact_to_references(artifact, references, tmp_path)
 
+    def test_identity_import_blocks_name_only_fallback_for_same_artifact(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("update", module_path="src.widget")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="real_update",
+                import_source="src.widget",
+                alias_of="update",
+                reference_context="import",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="update",
+                reference_context="call",
+            ),
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_module_identity_import_blocks_name_only_fallback(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact("update", module_path="src.widget")
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="widget_module",
+                import_source="src.widget",
+                alias_of="src.widget",
+                reference_context="import",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="update",
+                reference_context="call",
+            ),
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_noncovering_keyword_reference_does_not_block_method_name_fallback(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = FoundArtifact(
+            kind=ArtifactKind.METHOD,
+            name="module_path",
+            of="BaseValidator",
+            module_path="maid_runner.validators.base",
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="module_path",
+                import_source="maid_runner.validators.base",
+                reference_context="keyword",
+            ),
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="module_path",
+                reference_context="access",
+            ),
+        ]
+
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
     def test_no_match_when_names_differ(self, tmp_path: Path) -> None:
         artifact = _artifact("Foo", module_path="pkg.mod")
         references = [_ref("Bar", import_source="pkg.mod")]

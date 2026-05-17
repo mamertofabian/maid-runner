@@ -14,7 +14,7 @@ import pytest
 
 from maid_runner.core.identity import match_artifact_to_references
 from maid_runner.core.types import ArtifactKind
-from maid_runner.validators.base import FoundArtifact
+from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 from maid_runner.validators.typescript import TypeScriptValidator
 
 
@@ -30,12 +30,36 @@ def _ref(artifacts: list[FoundArtifact], name: str) -> FoundArtifact | None:
     return None
 
 
+class _NoopValidator(BaseValidator):
+    @classmethod
+    def supported_extensions(cls) -> tuple[str, ...]:
+        return (".noop",)
+
+    def collect_implementation_artifacts(
+        self,
+        source: str,
+        file_path: str | Path,
+    ) -> CollectionResult:
+        return CollectionResult(artifacts=[], language="noop", file_path=str(file_path))
+
+    def collect_behavioral_artifacts(
+        self,
+        source: str,
+        file_path: str | Path,
+    ) -> CollectionResult:
+        return CollectionResult(artifacts=[], language="noop", file_path=str(file_path))
+
+
 # ----------------------------------------------------------------------------
 # Validator-owned resolver methods
 # ----------------------------------------------------------------------------
 
 
 class TestValidatorResolverMethods:
+    def test_base_validator_module_path_defaults_to_none(self, tmp_path: Path) -> None:
+        assert issubclass(_NoopValidator, BaseValidator)
+        assert _NoopValidator().module_path(tmp_path / "source.noop", tmp_path) is None
+
     def test_module_path_strips_extension_and_normalizes(
         self, validator: TypeScriptValidator, tmp_path: Path
     ) -> None:

@@ -111,6 +111,15 @@ files:
                 export: ValidationEngine
           expected:
             behavior: "validate_all(..., allow_empty=True) returns success true with zero manifests."
+        - kind: test_function
+          name: test_validate_all_function_allows_empty_manifest_set_only_when_explicit
+          source_scenario: "A bootstrap caller uses the public validate_all helper for an intentionally empty manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., allow_empty=True) returns success true with zero manifests."
     - path: tests/cli/test_validate_cmd.py
       artifacts:
         - kind: test_function

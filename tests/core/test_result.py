@@ -412,6 +412,16 @@ class TestBatchTestResult:
         batch = BatchTestResult(results=[], total=2, passed=1, failed=1)
         assert batch.success is False
 
+    def test_duration_ms_attribute(self):
+        batch = BatchTestResult(
+            results=[],
+            total=1,
+            passed=1,
+            failed=0,
+            duration_ms=42.5,
+        )
+        assert batch.duration_ms == 42.5
+
     def test_chain_errors_affect_success(self):
         batch = BatchTestResult(
             results=[],

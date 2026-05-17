@@ -126,6 +126,15 @@ files:
                 export: ValidationEngine
           expected:
             behavior: "validate_all(..., fail_on_warnings=True) counts the warning manifest as failed."
+        - kind: test_function
+          name: test_validate_all_function_threads_strict_warning_policy_to_each_manifest
+          source_scenario: "The public validate_all helper receives strict warning policy options."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., fail_on_warnings=True) counts the warning manifest as failed."
     - path: tests/cli/test_main.py
       artifacts:
         - kind: test_function

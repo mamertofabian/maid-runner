@@ -298,6 +298,17 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
             stderr_path=Path(".claude-automation/run.stderr.log"),
             final_message_path=Path(".claude-automation/run.final.md"),
         )
+        self.assertEqual(0, result.returncode)
+        self.assertEqual("session-1", result.session_id)
+        self.assertEqual(
+            Path(".claude-automation/run.jsonl"),
+            result.stdout_jsonl_path,
+        )
+        self.assertEqual(Path(".claude-automation/run.stderr.log"), result.stderr_path)
+        self.assertEqual(
+            Path(".claude-automation/run.final.md"),
+            result.final_message_path,
+        )
 
         with (
             tempfile.TemporaryDirectory() as temp_dir,

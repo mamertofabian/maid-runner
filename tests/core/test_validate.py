@@ -8,7 +8,12 @@ import pytest
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
-from maid_runner.core.validate import ValidationEngine, validate, _check_test_assertions
+from maid_runner.core.validate import (
+    ValidationEngine,
+    validate,
+    validate_all,
+    _check_test_assertions,
+)
 
 
 @pytest.fixture()
@@ -1858,6 +1863,46 @@ validate:
             for w in result.warnings
         )
 
+    def test_validate_all_function_threads_strict_warning_policy_to_each_manifest(
+        self, project
+    ):
+        _write_manifest(
+            project / "manifests",
+            "add-greet.manifest.yaml",
+            """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+        )
+        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
+        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
+
+        batch = validate_all(
+            "manifests",
+            project_root=project,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+            fail_on_warnings=True,
+        )
+
+        assert batch.success is False
+        assert batch.passed == 0
+        assert batch.failed == 1
+        assert any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED
+            for result in batch.results
+            for w in result.warnings
+        )
+
 
 class TestImportVerification:
     """Tests for required imports field on FileSpec."""
@@ -3380,6 +3425,20 @@ validate:
         assert result.failed == 0
         assert result.chain_errors == []
 
+    def test_validate_all_function_allows_empty_manifest_set_only_when_explicit(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        result = validate_all("manifests", project_root=tmp_path, allow_empty=True)
+
+        assert result.success is True
+        assert result.total_manifests == 0
+        assert result.passed == 0
+        assert result.failed == 0
+        assert result.chain_errors == []
+
     def test_validate_all_performance_with_many_manifests(self, project):
         """validate_all with 20 manifests should complete quickly (under 5s)."""
         import time
@@ -4421,6 +4480,796 @@ validate:
         assert len(untested) == 1
         assert "update" in untested[0].message
 
+    def test_python_shadowed_import_reference_does_not_satisfy_coverage(self, project):
+        """A local test helper with the same name as an import is not coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def test_widget_shadow():\n"
+            "    def update():\n"
+            "        return 'local'\n"
+            "    assert update() == 'local'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_shadowed_import_before_later_import_does_not_cover_artifact(
+        self, project
+    ):
+        """Shadow detection is not dependent on source order of imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "def test_widget_shadow():\n"
+            "    def update():\n"
+            "        return 'local'\n"
+            "    assert update() == 'local'\n\n"
+            "from src.widget import update\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_module_rebinding_after_import_does_not_cover_artifact(
+        self, project
+    ):
+        """A module-level local rebinding after import is not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def update():\n"
+            "    return 'local'\n\n"
+            "def test_widget_shadow():\n"
+            "    assert update() == 'local'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_alias_placeholder_import_does_not_cover_local_artifact(
+        self, project
+    ):
+        """Importing the artifact under an alias does not cover a local namesake."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update as real_update\n\n"
+            "def update():\n"
+            "    return 'local'\n\n"
+            "def test_widget_shadow():\n"
+            "    assert update() == 'local'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_module_placeholder_import_does_not_cover_local_artifact(
+        self, project
+    ):
+        """Importing the artifact module under an alias is not local coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "import src.widget as widget_module\n\n"
+            "def update():\n"
+            "    return 'local'\n\n"
+            "def test_widget_shadow():\n"
+            "    assert update() == 'local'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_function_local_import_still_covers_after_module_shadow(
+        self, project
+    ):
+        """A real function-local import keeps identity despite module rebinding."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def update():\n"
+            "    return 'local'\n\n"
+            "def test_widget_imports_real_update():\n"
+            "    from src.widget import update\n"
+            "    assert update() == 'updated'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True
+        assert untested == []
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_lambda_shadow():\n"
+                "    assert (lambda update: update())(lambda: 'local') == 'local'\n",
+                "lambda parameter",
+            ),
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_comprehension_shadow():\n"
+                "    values = [update() for update in [lambda: 'local']]\n"
+                "    assert values == ['local']\n",
+                "comprehension target",
+            ),
+        ],
+    )
+    def test_python_expression_scope_shadowed_import_does_not_cover_artifact(
+        self, project, source, scenario
+    ):
+        """Lambda and comprehension-local names are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "tests/test_widget.py", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_walrus_shadow():\n"
+                "    assert (update := (lambda: 'local'))() == 'local'\n",
+                "walrus binding",
+            ),
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_match_shadow():\n"
+                "    match (lambda: 'local'):\n"
+                "        case update:\n"
+                "            assert update() == 'local'\n",
+                "match capture",
+            ),
+        ],
+    )
+    def test_python_binding_expression_shadowed_import_does_not_cover_artifact(
+        self, project, source, scenario
+    ):
+        """Walrus and match bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "tests/test_widget.py", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_annotation_only_reference_does_not_cover_artifact(self, project):
+        """Python type annotations are not behavioral runtime coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def test_widget_annotation_only(value: update = None) -> update:\n"
+            "    assert value is None\n"
+            "    return None\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_keyword_argument_does_not_cover_same_module_artifact(self, project):
+        """A keyword name passed to one function does not cover another artifact."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.py",
+            "def render(**kwargs):\n    return kwargs\n\n"
+            "def update():\n    return 'updated'\n",
+        )
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import render\n\n"
+            "def test_widget_render_flag():\n"
+            "    assert render(update=True) == {'update': True}\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_starred_assignment_shadow():\n"
+                "    *update, = [lambda: 'local']\n"
+                "    assert update[0]() == 'local'\n",
+                "starred assignment",
+            ),
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_starred_for_shadow():\n"
+                "    for *update, in [[lambda: 'local']]:\n"
+                "        assert update[0]() == 'local'\n",
+                "starred for target",
+            ),
+        ],
+    )
+    def test_python_starred_shadowed_import_does_not_cover_artifact(
+        self, project, source, scenario
+    ):
+        """Starred Python target bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "tests/test_widget.py", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_late_function_local_import_does_not_cover_artifact(self, project):
+        """A later local import shadows earlier same-name calls in a function."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "src/other.py", "def update():\n    return 'other'\n")
+        _write_source(
+            project,
+            "tests/test_widget.py",
+            "from src.widget import update\n\n"
+            "def test_widget_late_local_import_shadow():\n"
+            "    update()\n"
+            "    from src.other import update\n"
+            "    assert update() == 'other'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "from src.widget import update\n\n"
+                "class TestWidget:\n"
+                "    update = staticmethod(lambda: 'local')\n\n"
+                "    def test_local_class_attribute(self):\n"
+                "        assert self.update() == 'local'\n",
+                "class attribute assignment",
+            ),
+            (
+                "from src.widget import update\n\n"
+                "del update\n\n"
+                "def test_delete_placeholder():\n"
+                "    assert True\n",
+                "delete target",
+            ),
+        ],
+    )
+    def test_python_store_and_delete_references_do_not_cover_artifact(
+        self, project, source, scenario
+    ):
+        """Store and delete targets are not behavioral access coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "tests/test_widget.py", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_python_shadowed_constructor_keyword_does_not_cover_attribute(
+        self, project
+    ):
+        """A keyword on a shadowed local callable does not cover an attribute."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-settings.manifest.yaml",
+            """schema: "2"
+goal: "Add settings"
+files:
+  edit:
+    - path: src/settings.py
+      artifacts:
+        - kind: class
+          name: Settings
+        - kind: attribute
+          name: timeout
+          of: Settings
+  read:
+    - tests/test_settings.py
+validate:
+  - pytest tests/test_settings.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/settings.py",
+            "class Settings:\n"
+            "    def __init__(self, timeout):\n"
+            "        self.timeout = timeout\n",
+        )
+        _write_source(
+            project,
+            "tests/test_settings.py",
+            "from src.settings import Settings as RealSettings\n\n"
+            "def test_settings_shadowed_keyword():\n"
+            "    assert RealSettings is not None\n"
+            "    def Settings(**kwargs):\n"
+            "        return kwargs\n"
+            "    assert Settings(timeout=5) == {'timeout': 5}\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "timeout" in untested[0].message
+
+    def test_python_constructor_keyword_covers_owned_attribute(self, project):
+        """A keyword on an imported constructor covers that class's attribute."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-settings.manifest.yaml",
+            """schema: "2"
+goal: "Add settings"
+files:
+  edit:
+    - path: src/settings.py
+      artifacts:
+        - kind: class
+          name: Settings
+        - kind: attribute
+          name: timeout
+          of: Settings
+  read:
+    - tests/test_settings.py
+validate:
+  - pytest tests/test_settings.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/settings.py",
+            "class Settings:\n"
+            "    def __init__(self, timeout):\n"
+            "        self.timeout = timeout\n",
+        )
+        _write_source(
+            project,
+            "tests/test_settings.py",
+            "from src.settings import Settings\n\n"
+            "def test_settings_timeout_keyword():\n"
+            "    settings = Settings(timeout=5)\n"
+            "    assert settings.timeout == 5\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True
+        assert untested == []
+
+    def test_python_unrelated_imported_callable_keyword_does_not_cover_attribute(
+        self, project
+    ):
+        """A keyword on an unrelated imported callable does not cover an attribute."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-settings.manifest.yaml",
+            """schema: "2"
+goal: "Add settings"
+files:
+  edit:
+    - path: src/settings.py
+      artifacts:
+        - kind: class
+          name: Settings
+        - kind: attribute
+          name: timeout
+          of: Settings
+  read:
+    - tests/test_settings.py
+validate:
+  - pytest tests/test_settings.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/settings.py",
+            "class Settings:\n"
+            "    def __init__(self, timeout):\n"
+            "        self.timeout = timeout\n\n"
+            "def render(**kwargs):\n"
+            "    return kwargs\n",
+        )
+        _write_source(
+            project,
+            "tests/test_settings.py",
+            "from src.settings import Settings, render\n\n"
+            "def test_settings_unrelated_keyword():\n"
+            "    assert Settings is not None\n"
+            "    assert render(timeout=5) == {'timeout': 5}\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "timeout" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "from src.widget import update\n"
+                "import pytest\n\n"
+                "@pytest.mark.parametrize('value', [update()])\n"
+                "def test_widget_decorator(value):\n"
+                "    assert value == 'updated'\n",
+                "decorator",
+            ),
+            (
+                "from src.widget import update\n\n"
+                "def test_widget_default(value=update()):\n"
+                "    assert value == 'updated'\n",
+                "default value",
+            ),
+        ],
+    )
+    def test_python_runtime_definition_references_cover_artifact(
+        self, project, source, scenario
+    ):
+        """Runtime decorators and default values are behavioral coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+        )
+        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
+        _write_source(project, "tests/test_widget.py", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True, scenario
+        assert untested == []
+
     def test_typescript_import_only_reference_does_not_satisfy_coverage(self, project):
         """TypeScript import declarations alone are not behavioral coverage."""
         manifest_path = _write_manifest(
@@ -4451,6 +5300,563 @@ validate:
             "import { update } from '../src/widget';\n\n"
             "it('placeholder', () => {\n"
             "  expect(true).toBe(true);\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_shadowed_import_reference_does_not_satisfy_coverage(
+        self, project
+    ):
+        """A local TypeScript binding with the same name as an import is not coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import { update } from '../src/widget';\n\n"
+            "it('shadows update', () => {\n"
+            "  const update = () => 'local';\n"
+            "  expect(update()).toBe('local');\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update in a for loop', () => {\n"
+                "  for (const update of [() => 'local']) {\n"
+                "    expect(update()).toBe('local');\n"
+                "  }\n"
+                "});\n",
+                "for loop binding",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update in a catch clause', () => {\n"
+                "  try {\n"
+                "    throw () => 'local';\n"
+                "  } catch (update) {\n"
+                "    expect(update()).toBe('local');\n"
+                "  }\n"
+                "});\n",
+                "catch clause binding",
+            ),
+        ],
+    )
+    def test_typescript_control_flow_shadowed_import_does_not_satisfy_coverage(
+        self, project, source, scenario
+    ):
+        """Control-flow scoped TypeScript bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(project, "tests/widget.test.ts", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update as an arrow parameter', update => {\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "single arrow parameter",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update with nested var', () => {\n"
+                "  { var update = () => 'local'; }\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "nested var binding",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update with for-var', () => {\n"
+                "  for (var update of [() => 'local']) {}\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "for-var binding",
+            ),
+        ],
+    )
+    def test_typescript_function_scope_shadowed_import_does_not_satisfy_coverage(
+        self, project, source, scenario
+    ):
+        """Function-scoped TypeScript bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(project, "tests/widget.test.ts", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_switch_case_shadowed_import_does_not_satisfy_coverage(
+        self, project
+    ):
+        """Switch-case lexical bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import { update } from '../src/widget';\n\n"
+            "it('shadows update in a switch case', () => {\n"
+            "  switch ('local') {\n"
+            "    case 'local':\n"
+            "      const update = () => 'local';\n"
+            "      expect(update()).toBe('local');\n"
+            "      break;\n"
+            "  }\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update through destructuring', () => {\n"
+                "  const helper = { update: () => 'local' };\n"
+                "  const { update } = helper;\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "variable destructuring",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update through a parameter', ({ update }) => {\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "parameter destructuring",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update through a for header', () => {\n"
+                "  for (const { update } of [{ update: () => 'local' }]) {\n"
+                "    expect(update()).toBe('local');\n"
+                "  }\n"
+                "});\n",
+                "for destructuring",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "it('shadows update through a catch binding', () => {\n"
+                "  try {\n"
+                "    throw { update: () => 'local' };\n"
+                "  } catch ({ update }) {\n"
+                "    expect(update()).toBe('local');\n"
+                "  }\n"
+                "});\n",
+                "catch destructuring",
+            ),
+        ],
+    )
+    def test_typescript_destructuring_shadowed_import_does_not_satisfy_coverage(
+        self, project, source, scenario
+    ):
+        """Destructured TypeScript bindings are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(project, "tests/widget.test.ts", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_type_only_reference_does_not_satisfy_coverage(self, project):
+        """Type-only TypeScript references are not runtime coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import type { update } from '../src/widget';\n\n"
+            "type UpdateType = typeof update;\n\n"
+            "it('placeholder', () => {\n"
+            "  expect(true).toBe(true);\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "interface User { id: string }\n\n"
+                "it('uses a local interface only', () => {\n"
+                "  expect(true).toBe(true);\n"
+                "});\n",
+                "local interface",
+            ),
+            (
+                "function identity<User>(value: User): User {\n"
+                "  return value;\n"
+                "}\n\n"
+                "it('uses a local type parameter only', () => {\n"
+                "  expect(identity({ id: 'local' })).toEqual({ id: 'local' });\n"
+                "});\n",
+                "type parameter",
+            ),
+        ],
+    )
+    def test_typescript_local_type_bindings_do_not_cover_imported_interface(
+        self, project, source, scenario
+    ):
+        """Local type declarations and parameters are not production coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-user.manifest.yaml",
+            """schema: "2"
+goal: "Add user"
+files:
+  edit:
+    - path: src/user.ts
+      artifacts:
+        - kind: interface
+          name: User
+  read:
+    - tests/user.test.ts
+validate:
+  - pytest tests/user.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/user.ts",
+            "export interface User {\n  id: string;\n}\n",
+        )
+        _write_source(project, "tests/user.test.ts", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False, scenario
+        assert len(untested) == 1
+        assert "User" in untested[0].message
+
+    @pytest.mark.parametrize(
+        ("source", "scenario"),
+        [
+            (
+                "import { update } from '../src/widget';\n\n"
+                "type update = () => string;\n\n"
+                "it('calls the runtime update', () => {\n"
+                "  expect(update()).toBe('updated');\n"
+                "});\n",
+                "type alias",
+            ),
+            (
+                "import { update } from '../src/widget';\n\n"
+                "interface update { value: string }\n\n"
+                "it('calls the runtime update', () => {\n"
+                "  expect(update()).toBe('updated');\n"
+                "});\n",
+                "interface",
+            ),
+        ],
+    )
+    def test_typescript_type_declarations_do_not_shadow_runtime_import_coverage(
+        self, project, source, scenario
+    ):
+        """Type-only declarations do not shadow same-named runtime imports."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(project, "tests/widget.test.ts", source)
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True, scenario
+        assert untested == []
+
+    def test_typescript_alias_placeholder_import_does_not_cover_local_artifact(
+        self, project
+    ):
+        """Importing a TypeScript artifact under an alias is not local coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import { update as realUpdate } from '../src/widget';\n\n"
+            "it('uses a local update', () => {\n"
+            "  const update = () => 'local';\n"
+            "  expect(update()).toBe('local');\n"
+            "});\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is False
+        assert len(untested) == 1
+        assert "update" in untested[0].message
+
+    def test_typescript_namespace_placeholder_import_does_not_cover_local_artifact(
+        self, project
+    ):
+        """Importing the artifact namespace is not local binding coverage."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-widget.manifest.yaml",
+            """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.ts
+      artifacts:
+        - kind: function
+          name: update
+  read:
+    - tests/widget.test.ts
+validate:
+  - pytest tests/widget.test.ts -v
+""",
+        )
+        _write_source(
+            project,
+            "src/widget.ts",
+            "export function update() {\n  return 'updated';\n}\n",
+        )
+        _write_source(
+            project,
+            "tests/widget.test.ts",
+            "import * as widget from '../src/widget';\n\n"
+            "it('uses a local update', () => {\n"
+            "  const update = () => 'local';\n"
+            "  expect(update()).toBe('local');\n"
             "});\n",
         )
 

@@ -233,7 +233,7 @@ def _scan_imports(
     bound import name into ``artifacts`` with import_source/alias_of so
     later identifier walks dedup into the identity-bearing record.
 
-    - ``import_map``: bound name -> {"source": resolved_module, "alias_of": Optional[str]}
+    - ``import_map``: bound name -> {"source": resolved_module, "alias_of": Optional[str], "type_only": bool}
     - ``namespace_imports``: bound name -> resolved_module (only for `* as ns` imports)
     """
     import_map: dict[str, dict] = {}
@@ -250,6 +250,7 @@ def _scan_imports(
             continue
         raw_specifier = _text(frag, source)
         resolved = resolve_ts_import(raw_specifier, importer_module, project_root)
+        statement_type_only = any(c.type == "type" for c in child.children)
 
         clause = _child_by_type(child, "import_clause")
         if clause is None:
@@ -264,6 +265,9 @@ def _scan_imports(
                     idents = [c for c in spec.children if c.type == "identifier"]
                     if not idents:
                         continue
+                    specifier_type_only = statement_type_only or any(
+                        c.type == "type" for c in spec.children
+                    )
                     if len(idents) >= 2:
                         original = _text(idents[0], source)
                         bound = _text(idents[1], source)
@@ -272,20 +276,41 @@ def _scan_imports(
                         bound = _text(idents[0], source)
                         alias_of = None
                     _record_import(
-                        bound, resolved, alias_of, import_map, artifacts, seen
+                        bound,
+                        resolved,
+                        alias_of,
+                        import_map,
+                        artifacts,
+                        seen,
+                        bind_value=not specifier_type_only,
                     )
             elif cc.type == "namespace_import":
                 for nc in cc.children:
                     if nc.type == "identifier":
                         bound = _text(nc, source)
-                        namespace_imports[bound] = resolved
+                        if not statement_type_only:
+                            namespace_imports[bound] = resolved
                         _record_import(
-                            bound, resolved, None, import_map, artifacts, seen
+                            bound,
+                            resolved,
+                            None,
+                            import_map,
+                            artifacts,
+                            seen,
+                            bind_value=not statement_type_only,
                         )
                         break
             elif cc.type == "identifier":
                 bound = _text(cc, source)
-                _record_import(bound, resolved, None, import_map, artifacts, seen)
+                _record_import(
+                    bound,
+                    resolved,
+                    None,
+                    import_map,
+                    artifacts,
+                    seen,
+                    bind_value=not statement_type_only,
+                )
 
     return import_map, namespace_imports
 
@@ -309,13 +334,19 @@ def _record_import(
     import_map: dict[str, dict],
     artifacts: list[FoundArtifact],
     seen: set[str],
+    *,
+    bind_value: bool = True,
 ) -> None:
     if not bound:
         return
     seen_key = f"import:{bound}:{resolved}:{alias_of or ''}"
     if seen_key in seen:
         return
-    import_map[bound] = {"source": resolved, "alias_of": alias_of}
+    import_map[bound] = {
+        "source": resolved,
+        "alias_of": alias_of,
+        "type_only": not bind_value,
+    }
     seen.add(seen_key)
     artifacts.append(
         FoundArtifact(
@@ -379,6 +410,19 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
     return None
 
 
+def _member_root_name(node, source: bytes) -> Optional[str]:
+    current = node
+    while current is not None and current.type == "member_expression":
+        obj = None
+        for child in current.children:
+            if child.type in ("identifier", "member_expression"):
+                obj = child
+        current = obj
+    if current is not None and current.type == "identifier":
+        return _text(current, source)
+    return None
+
+
 def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
     if name and not any(
         a.name == name and a.import_source is None and a.reference_context == "access"
@@ -393,6 +437,226 @@ def _record_bare_reference(name: str, artifacts: list[FoundArtifact]) -> None:
         )
 
 
+_FUNCTION_SCOPE_NODE_TYPES = {
+    "arrow_function",
+    "function_declaration",
+    "function_expression",
+    "generator_function",
+    "method_definition",
+}
+
+
+_TYPE_ONLY_NODE_TYPES = {
+    "type_alias_declaration",
+    "interface_declaration",
+    "type_annotation",
+    "type_arguments",
+    "type_parameters",
+    "type_parameter",
+    "type_query",
+    "extends_type_clause",
+    "implements_clause",
+}
+
+_TYPE_PARAMETER_SCOPE_NODES = _FUNCTION_SCOPE_NODE_TYPES | {
+    "class_declaration",
+    "abstract_class_declaration",
+    "interface_declaration",
+    "type_alias_declaration",
+}
+
+
+def _parameter_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    parameters = _child_by_type(node, "formal_parameters")
+    if parameters is not None:
+        for child in parameters.children:
+            _collect_binding_identifiers(child, source, names)
+        return names
+    if node.type == "arrow_function":
+        for child in node.children:
+            if child.type == "=>":
+                break
+            if child.type in {
+                "identifier",
+                "object_pattern",
+                "array_pattern",
+                "required_parameter",
+                "optional_parameter",
+                "rest_pattern",
+            }:
+                _collect_binding_identifiers(child, source, names)
+                break
+    return names
+
+
+def _direct_block_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type in ("lexical_declaration", "variable_declaration"):
+            _collect_declaration_bindings(child, source, names)
+        elif child.type in (
+            "function_declaration",
+            "generator_function_declaration",
+            "class_declaration",
+            "abstract_class_declaration",
+            "enum_declaration",
+        ):
+            name = _child_text(child, "identifier", source) or _child_text(
+                child, "type_identifier", source
+            )
+            if name:
+                names.add(name)
+    return names
+
+
+def _direct_type_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type in {"interface_declaration", "type_alias_declaration"}:
+            name = _child_text(child, "type_identifier", source) or _child_text(
+                child,
+                "identifier",
+                source,
+            )
+            if name:
+                names.add(name)
+    return names
+
+
+def _type_parameter_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    type_parameters = _child_by_type(node, "type_parameters")
+    if type_parameters is None:
+        return names
+    for child in type_parameters.children:
+        if child.type != "type_parameter":
+            continue
+        name = _first_type_name_child(child, source)
+        if name:
+            names.add(name)
+    return names
+
+
+def _first_type_name_child(node, source: bytes) -> Optional[str]:
+    for child in node.children:
+        if child.type in {"identifier", "type_identifier"}:
+            return _text(child, source)
+    return None
+
+
+def _control_flow_binding_names(node, source: bytes) -> set[str]:
+    if node.type in {"for_statement", "for_in_statement"}:
+        return _for_binding_names(node, source)
+    if node.type == "catch_clause":
+        return _catch_binding_names(node, source)
+    return set()
+
+
+def _for_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type in {";", "of", "in", "statement_block"}:
+            break
+        if child.type in ("lexical_declaration", "variable_declaration"):
+            _collect_declaration_bindings(child, source, names)
+        elif child.type in {
+            "identifier",
+            "object_pattern",
+            "array_pattern",
+            "shorthand_property_identifier_pattern",
+        }:
+            _collect_binding_identifiers(child, source, names)
+    return names
+
+
+def _catch_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    for child in node.children:
+        if child.type == "statement_block":
+            break
+        if child.type in {
+            "identifier",
+            "object_pattern",
+            "array_pattern",
+        }:
+            _collect_binding_identifiers(child, source, names)
+    return names
+
+
+def _function_var_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+
+    def visit(current, *, is_root: bool = False) -> None:
+        if not is_root and current.type in _FUNCTION_SCOPE_NODE_TYPES:
+            return
+        if current.type == "variable_declaration":
+            _collect_declaration_bindings(current, source, names)
+        elif current.type in {"for_statement", "for_in_statement"}:
+            names.update(_for_var_binding_names(current, source))
+        for child in current.children:
+            visit(child)
+
+    visit(node, is_root=True)
+    return names
+
+
+def _for_var_binding_names(node, source: bytes) -> set[str]:
+    names: set[str] = set()
+    saw_var = False
+    for child in node.children:
+        if child.type in {";", "of", "in", "statement_block"}:
+            break
+        if child.type == "var":
+            saw_var = True
+            continue
+        if child.type == "variable_declaration":
+            _collect_declaration_bindings(child, source, names)
+            return names
+        if saw_var and child.type in {
+            "identifier",
+            "object_pattern",
+            "array_pattern",
+            "shorthand_property_identifier_pattern",
+        }:
+            _collect_binding_identifiers(child, source, names)
+            return names
+    return names
+
+
+def _collect_declaration_bindings(node, source: bytes, names: set[str]) -> None:
+    for child in node.children:
+        if child.type == "variable_declarator":
+            _collect_variable_declarator_binding(child, source, names)
+
+
+def _collect_variable_declarator_binding(node, source: bytes, names: set[str]) -> None:
+    for child in node.children:
+        if child.type in {
+            "identifier",
+            "object_pattern",
+            "array_pattern",
+        }:
+            _collect_binding_identifiers(child, source, names)
+            return
+
+
+def _collect_binding_identifiers(node, source: bytes, names: set[str]) -> None:
+    if node.type in {"identifier", "shorthand_property_identifier_pattern"}:
+        names.add(_text(node, source))
+        return
+    if node.type in {
+        "required_parameter",
+        "optional_parameter",
+        "rest_pattern",
+        "object_pattern",
+        "array_pattern",
+        "pair_pattern",
+    }:
+        for child in node.children:
+            _collect_binding_identifiers(child, source, names)
+
+
 class BehavioralReferenceCollector:
     """Collect import identity, references, and executable test labels."""
 
@@ -404,6 +668,9 @@ class BehavioralReferenceCollector:
         self._seen: set[str] = set()
         self._import_map: dict[str, dict] = {}
         self._namespace_imports: dict[str, str] = {}
+        self._shadowable_import_names: set[str] = set()
+        self._shadowed_import_scopes: list[set[str]] = []
+        self._type_shadow_scopes: list[set[str]] = []
 
     def collect(self) -> list[FoundArtifact]:
         project_root = _ts_project_root_for(self._file_path)
@@ -416,6 +683,10 @@ class BehavioralReferenceCollector:
             self._artifacts,
             self._seen,
         )
+        self._shadowable_import_names = set(self._import_map)
+        self._shadowable_import_names.update(
+            info["alias_of"] for info in self._import_map.values() if info["alias_of"]
+        )
         self._collect_references(self._root)
         return self._artifacts
 
@@ -426,30 +697,56 @@ class BehavioralReferenceCollector:
         ``test("name", ...)`` are emitted as ``ArtifactKind.TEST_FUNCTION``.
         Plain ``test_*`` helpers are treated as ordinary code references.
         """
-        # Imports were collected separately by _scan_imports; skip walking them.
-        if node.type == "import_statement":
-            return
+        scope = self._shadowed_imports_for_scope(node)
+        type_scope = self._type_shadowed_names_for_scope(node)
+        if scope:
+            self._shadowed_import_scopes.append(scope)
+        if type_scope:
+            self._type_shadow_scopes.append(type_scope)
+        try:
+            # Imports were collected separately by _scan_imports; skip walking them.
+            if node.type == "import_statement":
+                return
+            if node.type in _TYPE_ONLY_NODE_TYPES:
+                self._record_type_references(node)
+                return
 
-        if node.type == "member_expression":
-            self._record_member_expression(node)
-        elif node.type == "pair":
-            self._record_object_pair_reference(node)
-        elif node.type == "subscript_expression":
-            self._record_subscript_expression_reference(node)
-        elif node.type == "shorthand_property_identifier":
-            _record_bare_reference(_text(node, self._source), self._artifacts)
-        elif node.type == "jsx_attribute":
-            self._record_jsx_attribute_reference(node)
+            if node.type == "member_expression":
+                self._record_member_expression(node)
+            elif node.type == "pair":
+                self._record_object_pair_reference(node)
+            elif node.type == "subscript_expression":
+                self._record_subscript_expression_reference(node)
+            elif node.type == "shorthand_property_identifier":
+                name = _text(node, self._source)
+                if self._is_shadowed_import(name):
+                    self._record_local_reference(name)
+                else:
+                    _record_bare_reference(name, self._artifacts)
+            elif node.type == "jsx_attribute":
+                self._record_jsx_attribute_reference(node)
 
-        if node.type in {"identifier", "type_identifier"}:
-            self._record_identifier_reference(node)
-        elif node.type == "call_expression":
-            self._record_test_label(node)
+            if node.type == "identifier":
+                self._record_identifier_reference(node)
+            elif node.type == "call_expression":
+                self._record_test_label(node)
 
-        for child in node.children:
-            self._collect_references(child)
+            for child in node.children:
+                self._collect_references(child)
+        finally:
+            if type_scope:
+                self._type_shadow_scopes.pop()
+            if scope:
+                self._shadowed_import_scopes.pop()
 
     def _record_member_expression(self, node) -> None:
+        root_name = _member_root_name(node, self._source)
+        if root_name and self._is_shadowed_import(root_name):
+            property_name = _member_property_name(node, self._source)
+            if property_name:
+                self._record_local_reference(property_name)
+            return
+
         resolved = _resolve_member_chain(node, self._source, self._namespace_imports)
         if resolved is not None:
             leaf, source_path = resolved
@@ -506,8 +803,14 @@ class BehavioralReferenceCollector:
         name = _text(node, self._source)
         if not name:
             return
+        if self._is_shadowed_import(name):
+            self._record_local_reference(name)
+            return
         import_info = self._import_map.get(name)
         if import_info is not None:
+            if import_info.get("type_only"):
+                self._record_unresolved_reference(name)
+                return
             seen_key = (
                 f"access:{name}:{import_info['source']}:{import_info['alias_of'] or ''}"
             )
@@ -523,6 +826,9 @@ class BehavioralReferenceCollector:
                     )
                 )
             return
+        self._record_unresolved_reference(name)
+
+    def _record_unresolved_reference(self, name: str) -> None:
         seen_key = f"access:{name}"
         if seen_key not in self._seen:
             self._seen.add(seen_key)
@@ -533,6 +839,87 @@ class BehavioralReferenceCollector:
                     reference_context="access",
                 )
             )
+
+    def _record_type_references(self, node) -> None:
+        skipped_binding_name = False
+        for child in node.children:
+            if child.type in {"identifier", "type_identifier"}:
+                if (
+                    node.type
+                    in {
+                        "interface_declaration",
+                        "type_alias_declaration",
+                        "type_parameter",
+                    }
+                    and not skipped_binding_name
+                ):
+                    skipped_binding_name = True
+                    continue
+                self._record_type_reference(_text(child, self._source))
+            else:
+                self._record_type_references(child)
+
+    def _record_type_reference(self, name: str) -> None:
+        if not name:
+            return
+        if self._is_type_shadowed(name):
+            return
+        import_info = self._import_map.get(name)
+        import_source = import_info["source"] if import_info is not None else None
+        alias_of = import_info["alias_of"] if import_info is not None else None
+        seen_key = f"type:{name}:{import_source or ''}:{alias_of or ''}"
+        if seen_key in self._seen:
+            return
+        self._seen.add(seen_key)
+        self._artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name=name,
+                import_source=import_source or None,
+                alias_of=alias_of,
+                reference_context="type",
+            )
+        )
+
+    def _record_local_reference(self, name: str) -> None:
+        seen_key = f"local:{name}"
+        if name and seen_key not in self._seen:
+            self._seen.add(seen_key)
+            self._artifacts.append(
+                FoundArtifact(
+                    kind=ArtifactKind.FUNCTION,
+                    name=name,
+                    reference_context="local",
+                )
+            )
+
+    def _is_shadowed_import(self, name: str) -> bool:
+        return any(name in scope for scope in self._shadowed_import_scopes)
+
+    def _is_type_shadowed(self, name: str) -> bool:
+        return any(name in scope for scope in self._type_shadow_scopes)
+
+    def _shadowed_imports_for_scope(self, node) -> set[str]:
+        names: set[str] = set()
+        if node.type in _FUNCTION_SCOPE_NODE_TYPES:
+            names.update(_parameter_binding_names(node, self._source))
+            names.update(_function_var_binding_names(node, self._source))
+        elif node.type == "statement_block":
+            names.update(_direct_block_binding_names(node, self._source))
+        elif node.type in {"switch_case", "switch_default"}:
+            names.update(_direct_block_binding_names(node, self._source))
+        elif node.type in {"for_statement", "for_in_statement", "catch_clause"}:
+            names.update(_control_flow_binding_names(node, self._source))
+
+        return names & self._shadowable_import_names
+
+    def _type_shadowed_names_for_scope(self, node) -> set[str]:
+        names: set[str] = set()
+        if node.type in {"program", "statement_block", "switch_case", "switch_default"}:
+            names.update(_direct_type_binding_names(node, self._source))
+        if node.type in _TYPE_PARAMETER_SCOPE_NODES:
+            names.update(_type_parameter_binding_names(node, self._source))
+        return names
 
     def _record_test_label(self, node) -> None:
         callee = _extract_test_callee_name(node, self._source)
