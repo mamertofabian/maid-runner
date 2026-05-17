@@ -77,6 +77,41 @@ def project_with_failing_tests(tmp_path):
     return tmp_path
 
 
+def _write_noop_behavioral_test_project(tmp_path, slug: str = "test-noop"):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir(exist_ok=True)
+    src_dir = tmp_path / "src"
+    src_dir.mkdir(exist_ok=True)
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir(exist_ok=True)
+
+    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (tests_dir / "test_gate.py").write_text(
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'not ok'\n"
+    )
+
+    manifest = {
+        "schema": "2",
+        "goal": "Reject no-op validate command",
+        "type": "fix",
+        "files": {
+            "edit": [
+                {
+                    "path": "src/gate.py",
+                    "artifacts": [
+                        {"kind": "function", "name": "gate"},
+                    ],
+                }
+            ],
+            "read": ["tests/test_gate.py"],
+        },
+        "validate": ['python -c "raise SystemExit(0)"'],
+    }
+    manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    return manifest_path
+
+
 class TestCmdTestAll:
     def test_passing_tests_return_0(self, project_with_tests, capsys):
         from maid_runner.cli.commands._main import main
@@ -146,6 +181,21 @@ class TestCmdTestAll:
         assert exit_code == 0
         assert captured["batch"] is None
 
+    def test_test_rejects_noop_validate_command_for_behavioral_tests(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_noop_behavioral_test_project(tmp_path)
+
+        os.chdir(tmp_path)
+        exit_code = main(["test"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "python -c" in captured.out
+
 
 class TestCmdTestSingleManifest:
     def test_single_manifest_passing(self, project_with_tests, capsys):
@@ -161,6 +211,21 @@ class TestCmdTestSingleManifest:
         os.chdir(project_with_failing_tests)
         exit_code = main(["test", "--manifest", "manifests/fail-task.manifest.yaml"])
         assert exit_code == 1
+
+    def test_test_manifest_rejects_noop_validate_command_for_behavioral_tests(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = _write_noop_behavioral_test_project(tmp_path)
+
+        os.chdir(tmp_path)
+        exit_code = main(["test", "--manifest", str(manifest_path)])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "python -c" in captured.out
 
 
 class TestCmdTestFailFast:

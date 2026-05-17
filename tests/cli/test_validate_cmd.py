@@ -6,9 +6,14 @@ import argparse
 import json
 import os
 import textwrap
+from pathlib import Path
 
 import pytest
 import yaml
+
+from maid_runner.core._validation_test_artifacts import validate_manifest_test_commands
+from maid_runner.core.manifest import load_manifest
+from maid_runner.core.result import ErrorCode
 
 
 @pytest.fixture
@@ -105,39 +110,55 @@ def failing_project(tmp_path):
     return tmp_path
 
 
-def _write_run_tests_project(tmp_path, slug: str, validate_command: str):
+def _write_run_tests_project(
+    tmp_path,
+    slug: str,
+    validate_command: str,
+    *,
+    include_files_read: bool = True,
+    test_assertion: str = "gate() == 'ok'",
+    test_path: str = "tests/test_gate.py",
+    include_type: bool = True,
+    created: str | None = None,
+):
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir()
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    tests_dir = tmp_path / "tests"
-    tests_dir.mkdir()
 
     (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
-    (tests_dir / "test_gate.py").write_text(
-        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
+    test_file = tmp_path / test_path
+    test_file.parent.mkdir(parents=True, exist_ok=True)
+    test_file.write_text(
+        f"from src.gate import gate\n\ndef test_gate():\n    assert {test_assertion}\n"
     )
+    files = {
+        "create": [
+            {
+                "path": "src/gate.py",
+                "artifacts": [
+                    {
+                        "kind": "function",
+                        "name": "gate",
+                        "returns": "str",
+                    }
+                ],
+            }
+        ],
+    }
+    if include_files_read:
+        files["read"] = [test_path]
+
     manifest = {
         "schema": "2",
         "goal": "Exercise validate run-tests gate",
-        "type": "feature",
-        "files": {
-            "create": [
-                {
-                    "path": "src/gate.py",
-                    "artifacts": [
-                        {
-                            "kind": "function",
-                            "name": "gate",
-                            "returns": "str",
-                        }
-                    ],
-                }
-            ],
-            "read": ["tests/test_gate.py"],
-        },
+        "files": files,
         "validate": [validate_command],
     }
+    if include_type:
+        manifest["type"] = "feature"
+    if created is not None:
+        manifest["created"] = created
     manifest_path = manifest_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(yaml.dump(manifest))
     return manifest_path
@@ -266,7 +287,7 @@ class TestCmdValidateSingleManifest:
         _write_run_tests_project(
             tmp_path,
             "run-tests-fail",
-            'python -c "import sys; sys.exit(42)"',
+            "python -m pytest tests/test_gate.py -q --bad-option",
         )
 
         os.chdir(tmp_path)
@@ -284,8 +305,8 @@ class TestCmdValidateSingleManifest:
         assert "PASS run-tests-fail" in captured.out
         assert "Test Results: 1 commands" in captured.out
         assert "FAIL [run-tests-fail]" in captured.out
-        assert "sys.exit(42)" in captured.out
-        assert "exit 42" in captured.out
+        assert "--bad-option" in captured.out
+        assert "exit" in captured.out
         assert callable(format_test_result)
 
     def test_validate_run_tests_returns_0_when_structure_and_commands_pass(
@@ -297,7 +318,7 @@ class TestCmdValidateSingleManifest:
         manifest_path = _write_run_tests_project(
             tmp_path,
             "run-tests-pass",
-            "python -c \"print('run tests passed')\"",
+            "python -m pytest tests/test_gate.py -q",
         )
 
         os.chdir(tmp_path)
@@ -320,13 +341,840 @@ class TestCmdValidateSingleManifest:
         assert "Test Results: 1 commands" in captured.out
         assert "PASS [run-tests-pass]" in captured.out
 
+    def test_validate_run_tests_rejects_noop_validate_command(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "run-tests-noop",
+            'python -c "raise SystemExit(0)"',
+        )
+        manifest = load_manifest(manifest_path)
+
+        errors = validate_manifest_test_commands(manifest, tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-noop.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "python -c" in captured.out
+
+    def test_validate_run_tests_rejects_noop_validate_command_path_only(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-noop-path-only",
+            'python -c "raise SystemExit(0)" tests/test_gate.py',
+            include_files_read=False,
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-noop-path-only.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_noop_with_editable_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "run-tests-editable-test-noop",
+            'python -c "raise SystemExit(0)"',
+            include_files_read=False,
+        )
+        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest["files"].setdefault("edit", []).append(
+            {
+                "path": "tests/test_gate.py",
+                "artifacts": [
+                    {
+                        "kind": "test_function",
+                        "name": "test_gate",
+                    }
+                ],
+            }
+        )
+        manifest_path.write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-editable-test-noop.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_noop_without_manifest_type(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-no-type-noop",
+            'python -c "raise SystemExit(0)"',
+            include_type=False,
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-no-type-noop.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_noop_with_root_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-root-noop",
+            'python -c "raise SystemExit(0)"',
+            test_path="test_gate.py",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-root-noop.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_noop_with_colocated_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-colocated-noop",
+            'python -c "raise SystemExit(0)"',
+            test_path="src/test_gate.py",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-colocated-noop.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "src/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_noop_validate_path_colocated_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-colocated-path-only",
+            'python -c "raise SystemExit(0)" src/test_gate.py',
+            include_files_read=False,
+            test_path="src/test_gate.py",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-colocated-path-only.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "src/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_shell_separator_runner_segment(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-separator",
+            'python -c "raise SystemExit(0)" || pytest tests/test_gate.py',
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-separator.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "|| pytest tests/test_gate.py" in captured.out
+
+    def test_validate_run_tests_requires_all_discovered_test_files(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "run-tests-partial",
+            "python -m pytest tests/test_gate.py -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest["files"]["read"] = ["tests/test_gate.py", "tests/test_other.py"]
+        manifest_path.write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-partial.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_other.py" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_setup_plan(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-setup-plan",
+            "python -m pytest --setup-plan tests/test_gate.py -q",
+            test_assertion="gate() == 'not ok'",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-setup-plan.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "--setup-plan" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_setup_only(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-setup-only",
+            "python -m pytest --setup-only tests/test_gate.py -q",
+            test_assertion="gate() == 'not ok'",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-setup-only.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "--setup-only" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_ignore_excluding_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-ignore",
+            "python -m pytest tests -q --ignore=tests/test_gate.py",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-ignore.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "--ignore=tests/test_gate.py" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_selector_skipping_declared_test(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-selector",
+            "python -m pytest tests -q -k test_other",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "-k test_other" in captured.out
+
+    def test_validate_run_tests_rejects_attached_pytest_selector_skipping_declared_test(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-attached-selector",
+            "python -m pytest -ktest_other tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-attached-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "-ktest_other" in captured.out
+
+    def test_validate_run_tests_rejects_clustered_pytest_selector_skipping_declared_test(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-clustered-selector",
+            "python -m pytest -qktest_other tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-clustered-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "-qktest_other" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_addopts_selector(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-addopts-selector",
+            "env PYTEST_ADDOPTS=-qktest_other python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-addopts-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "PYTEST_ADDOPTS=-qktest_other" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_addopts_non_executing_mode(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-addopts-collect-only",
+            "env PYTEST_ADDOPTS=--collect-only python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-addopts-collect-only.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "PYTEST_ADDOPTS=--collect-only" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_addopts_override_ini_selector(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-addopts-override-ini-selector",
+            'env PYTEST_ADDOPTS="-o addopts=-ktest_other" python -m pytest tests -q',
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-addopts-override-ini-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "addopts=-ktest_other" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_override_ini_addopts_selector(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        cases = [
+            (
+                "run-tests-override-ini-addopts-selector",
+                "python -m pytest tests -q -o addopts=-ktest_other",
+                "-o addopts=-ktest_other",
+            ),
+            (
+                "run-tests-override-ini-equals-addopts-selector",
+                "python -m pytest tests -q --override-ini=addopts=-ktest_other",
+                "--override-ini=addopts=-ktest_other",
+            ),
+        ]
+
+        for slug, validate_command, expected in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                validate_command,
+                test_assertion="gate() == 'not ok'",
+            )
+            (project_root / "tests" / "test_other.py").write_text(
+                "from src.gate import gate\n\n"
+                "def test_other():\n"
+                "    assert gate() == 'ok'\n"
+            )
+
+            os.chdir(project_root)
+            exit_code = main(
+                [
+                    "validate",
+                    f"manifests/{manifest_path.name}",
+                    "--no-chain",
+                    "--run-tests",
+                ]
+            )
+
+            assert exit_code == 1
+            captured = capsys.readouterr()
+            assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+            assert expected in captured.out
+
+    def test_validate_run_tests_rejects_pytest_node_selector_skipping_declared_test(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-node-selector",
+            "python -m pytest tests/test_gate.py::test_other -q",
+        )
+        (tmp_path / "tests" / "test_gate.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-node-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_gate.py::test_other" in captured.out
+
+    def test_validate_command_integrity_rejects_js_runner_selectors(self, tmp_path):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        cases = [
+            (
+                "jest-test-path-pattern",
+                "tests/foo.test.js",
+                "jest tests --testPathPattern=foo.other.test.js",
+            ),
+            (
+                "jest-test-path-ignore-pattern",
+                "tests/foo.test.js",
+                "jest tests --testPathIgnorePatterns=foo.test.js",
+            ),
+            (
+                "jest-test-name-pattern",
+                "tests/foo.test.js",
+                "jest tests --testNamePattern test_other",
+            ),
+            (
+                "playwright-grep",
+                "tests/foo.spec.ts",
+                "playwright test tests --grep test_other",
+            ),
+            (
+                "playwright-short-grep",
+                "tests/foo.spec.ts",
+                "playwright test tests -g test_other",
+            ),
+        ]
+
+        for slug, test_path, validate_command in cases:
+            test_file = tmp_path / test_path
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text("test('foo', () => expect(true).toBe(true));\n")
+            manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject JS runner selectors",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.ts",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": [test_path],
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_run_tests_rejects_backdated_pytest_node_selector(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-backdated-node-selector",
+            "python -m pytest tests/test_gate.py::test_other -q",
+            created="2026-05-16",
+        )
+        (tmp_path / "tests" / "test_gate.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-backdated-node-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "tests/test_gate.py::test_other" in captured.out
+
+    def test_validate_command_integrity_rejects_non_executing_js_runner_modes(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        cases = [
+            (
+                "vitest-list",
+                "src/foo.test.ts",
+                "vitest list src/foo.test.ts",
+            ),
+            (
+                "jest-clear-cache",
+                "tests/foo.test.js",
+                "jest --clearCache tests/foo.test.js",
+            ),
+        ]
+
+        for slug, test_path, validate_command in cases:
+            test_file = tmp_path / test_path
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text("test('foo', () => expect(true).toBe(true));\n")
+            manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject non-executing JS runner modes",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.ts",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": [test_path],
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_run_tests_accepts_pytest_directory_covering_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-directory",
+            "python -m pytest tests -q",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-directory.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "PASS run-tests-directory" in captured.out
+        assert "PASS [run-tests-directory] python -m pytest tests -q" in captured.out
+
+    def test_validate_run_tests_accepts_pytest_project_root_covering_test_file(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-project-root",
+            "python -m pytest . -q",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-project-root.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "PASS run-tests-project-root" in captured.out
+        assert "PASS [run-tests-project-root] python -m pytest . -q" in captured.out
+
+    def test_validate_command_integrity_allows_known_legacy_pytest_node_selector(
+        self,
+    ):
+        manifest = load_manifest(
+            "manifests/replace-ts-required-import-regex-scanner.manifest.yaml"
+        )
+
+        errors = validate_manifest_test_commands(manifest, Path("."))
+
+        assert errors == []
+
     def test_validate_run_tests_json_includes_test_result(self, tmp_path, capsys):
         from maid_runner.cli.commands._main import main
 
         _write_run_tests_project(
             tmp_path,
             "run-tests-json",
-            "python -c \"print('json ok')\"",
+            "python -m pytest tests/test_gate.py -q",
         )
 
         os.chdir(tmp_path)
@@ -388,7 +1236,7 @@ class TestCmdValidateSingleManifest:
         _write_run_tests_project(
             tmp_path,
             "run-tests-quiet-fail",
-            'python -c "import sys; sys.exit(42)"',
+            "python -m pytest tests/test_gate.py -q --bad-option",
         )
 
         os.chdir(tmp_path)
@@ -405,7 +1253,7 @@ class TestCmdValidateSingleManifest:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "FAIL [run-tests-quiet-fail]" in captured.out
-        assert "exit 42" in captured.out
+        assert "--bad-option" in captured.out
 
     def test_validate_all_run_tests_quiet_prints_failing_command(
         self, tmp_path, capsys
@@ -415,7 +1263,7 @@ class TestCmdValidateSingleManifest:
         _write_run_tests_project(
             tmp_path,
             "run-tests-quiet-batch-fail",
-            'python -c "import sys; sys.exit(42)"',
+            "python -m pytest tests/test_gate.py -q --bad-option",
         )
 
         os.chdir(tmp_path)
@@ -424,7 +1272,7 @@ class TestCmdValidateSingleManifest:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "FAIL [run-tests-quiet-batch-fail]" in captured.out
-        assert "exit 42" in captured.out
+        assert "--bad-option" in captured.out
 
     def test_behavioral_mode_reports_test_function_behavior_warnings_by_default(
         self, tmp_path, capsys

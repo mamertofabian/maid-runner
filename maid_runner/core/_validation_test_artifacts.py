@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import ast
 import re
+import shlex
 from pathlib import Path
 from typing import Optional
 
@@ -13,6 +15,146 @@ from maid_runner.validators.base import BaseValidator, FoundArtifact
 from maid_runner.validators.registry import (
     UnsupportedLanguageError,
     ValidatorRegistry,
+)
+
+_TEST_RUNNERS = frozenset(
+    {
+        "pytest",
+        "py.test",
+        "vitest",
+        "jest",
+        "playwright",
+    }
+)
+_PYTHON_MODULE_TEST_RUNNERS = frozenset({"pytest", "py.test"})
+_DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
+_PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
+_STRICT_TEST_COMMAND_COVERAGE_SINCE = "2026-05-17"
+_TEST_COMMAND_TASK_TYPES = frozenset({"feature", "fix", "refactor"})
+_TEST_DIRECTORY_NAMES = frozenset({"test", "tests", "__tests__", "spec", "specs"})
+_NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
+    {
+        "-h",
+        "--help",
+        "--version",
+        "--collect-only",
+        "--co",
+        "--fixtures",
+        "--fixtures-per-test",
+        "--markers",
+        "--setup-only",
+        "--setup-plan",
+        "--clearCache",
+        "--list",
+        "--list-tests",
+        "--listTests",
+        "--showConfig",
+        "--dry-run",
+        "--dryRun",
+        "--deselect",
+        "--ignore",
+        "--ignore-glob",
+    }
+)
+_NON_EXECUTING_TEST_RUNNER_SUBCOMMANDS = {
+    "vitest": frozenset({"list"}),
+}
+_TEST_RUNNER_SELECTOR_FLAGS = frozenset(
+    {
+        "-k",
+        "-m",
+        "--testNamePattern",
+        "--testPathPattern",
+        "--testPathPatterns",
+        "--testPathIgnorePatterns",
+        "--testRegex",
+        "--testMatch",
+        "--runTestsByPath",
+        "--findRelatedTests",
+        "--changedSince",
+        "--changedFilesWithAncestor",
+        "--last-failed",
+        "--onlyChanged",
+        "--onlyFailures",
+        "--filter",
+        "--grep",
+        "--grep-invert",
+        "--only-changed",
+        "--shard",
+        "--lf",
+        "-g",
+        "-t",
+    }
+)
+_TEST_RUNNER_VALUE_FLAGS = frozenset(
+    {
+        "-k",
+        "-m",
+        "-o",
+        "--basetemp",
+        "--confcutdir",
+        "--cov",
+        "--import-mode",
+        "--junitxml",
+        "--maxfail",
+        "--override-ini",
+        "--rootdir",
+        "--tb",
+        "--config",
+        "-c",
+        "--environment",
+        "--pool",
+        "--reporter",
+        "--testNamePattern",
+        "-t",
+    }
+)
+_LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
+    {
+        "017-04-typescript-decorator-metadata-boundary",
+        "017-06-compiler-backed-required-import-resolution",
+        "017-07-python-parser-replacement-boundaries",
+        "019-01-claude-maid-loop-automation",
+        "024-02-review-readiness-required-import-and-doc-fixes",
+        "025-01-characterize-angular-typescript-artifacts",
+        "025-02-characterize-angular-required-imports-and-routes",
+        "025-03-add-angular-component-companion-file-tracking",
+        "025-04-document-angular-support-boundaries",
+        "026-01-restore-schema-validation-mode",
+        "027-01-characterize-react-typescript-artifacts",
+        "027-02-add-react-wrapped-component-extraction",
+        "027-03-characterize-react-required-imports-and-testing-library",
+        "027-04-add-react-snapshot-companion-file-tracking",
+        "028-01-extract-js-ts-import-scanner",
+        "028-07-split-typescript-behavioral-reference-collector",
+        "028-08-simplify-graph-query-facade-and-parser",
+        "030-01-fail-empty-manifest-discovery",
+        "030-05-promote-coverage-misses-to-errors",
+        "031-01-restore-integration-fixture-coverage",
+        "add-manifest-event-log",
+        "add-semantic-reference-index",
+        "add-semantic-reference-index-typescript",
+        "add-supersession-artifact-preservation",
+        "add-typescript-annotated-function-return-extraction",
+        "add-typescript-compiler-backed-identity-resolution",
+        "add-typescript-computed-property-artifact-extraction",
+        "add-typescript-generic-type-parameter-storage",
+        "add-typescript-mjs-cjs-barrel-identity",
+        "add-typescript-tsconfig-extends-identity",
+        "add-typescript-tsconfig-path-alias-identity",
+        "add-typescript-type-alias-target-extraction",
+        "characterize-typescript-namespace-reexport-identity",
+        "extend-typescript-barrel-reexport-identity",
+        "fix-file-tracking-noise-filter",
+        "fix-manifest-dir-active-subdirectory-discovery",
+        "fix-publish-workflow-npm-dependencies",
+        "fix-typescript-computed-key-behavioral-coverage",
+        "fix-typescript-literal-computed-subscript-coverage",
+        "fix-typescript-private-and-module-local-artifacts",
+        "fix-validation-test-discovery-and-ts-import-query",
+        "gate-archspec-e2e-strict-mode",
+        "replace-ts-required-import-regex-scanner",
+    }
 )
 
 
@@ -38,6 +180,9 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
 
     for path in manifest.files_read:
         add_test_path(path)
+
+    for file_spec in manifest.all_file_specs:
+        add_test_path(file_spec.path)
 
     for cmd in manifest.validate_commands:
         for path in _test_paths_from_validate_command(cmd, project_root):
@@ -72,6 +217,9 @@ def _test_paths_from_validate_command(
                 cwd = Path(_normalize_relative_path(cwd / segment[index + 1]))
                 index += 2
                 continue
+            if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(segment):
+                index += 2
+                continue
             if part.startswith("-"):
                 index += 1
                 continue
@@ -89,14 +237,460 @@ def _test_paths_from_validate_command(
 
 
 def _runs_known_test_runner(segment: list[str]) -> bool:
-    test_runners = {
-        "pytest",
-        "py.test",
-        "vitest",
-        "jest",
-        "playwright",
+    return _invokes_known_test_runner(segment)
+
+
+def _invokes_known_test_runner(segment: list[str]) -> bool:
+    return _test_runner_invocation(segment) is not None
+
+
+def _strip_environment_prefix(segment: list[str]) -> list[str]:
+    parts = list(segment)
+    while parts and _looks_like_environment_assignment(parts[0]):
+        parts.pop(0)
+
+    if not parts or _command_name(parts[0]) != "env":
+        return parts
+
+    index = 1
+    while index < len(parts):
+        part = parts[index]
+        if _looks_like_environment_assignment(part):
+            index += 1
+            continue
+        if part in {"-i", "-0"}:
+            index += 1
+            continue
+        if part in {"-u", "--unset"} and index + 1 < len(parts):
+            index += 2
+            continue
+        if part.startswith("-"):
+            return parts
+        break
+    return parts[index:]
+
+
+def _looks_like_environment_assignment(part: str) -> bool:
+    return bool(re.match(r"[A-Za-z_][A-Za-z0-9_]*=", part))
+
+
+def _command_name(part: str) -> str:
+    return Path(part).name
+
+
+def _is_python_command(command: str) -> bool:
+    return command in {"python", "python3", "py"} or command.startswith("python3.")
+
+
+def validate_manifest_test_commands(
+    manifest: Manifest,
+    project_root: Path,
+) -> list[ValidationError]:
+    """Require validate commands to execute discovered behavioral tests."""
+    if not _requires_validate_command_test_coverage(manifest):
+        return []
+
+    test_files = _find_command_integrity_test_files(manifest, project_root)
+    if not test_files:
+        return []
+
+    covered: set[str] = set()
+    for command in manifest.validate_commands:
+        covered.update(
+            _test_files_covered_by_validate_command(command, test_files, project_root)
+        )
+
+    missing = [test_file for test_file in test_files if test_file not in covered]
+    if not missing:
+        return []
+    if _allows_legacy_test_command_target(
+        manifest,
+        project_root,
+    ) and _has_executing_test_runner_target(manifest, project_root):
+        return []
+
+    command_list = "; ".join(
+        _format_command(command) for command in manifest.validate_commands
+    )
+    if not command_list:
+        command_list = "<none>"
+    missing_list = ", ".join(missing)
+    return [
+        ValidationError(
+            code=ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS,
+            message=(
+                "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS: "
+                f"Manifest '{manifest.slug}' validate commands do not run any "
+                f"discovered behavioral test files: {missing_list}. "
+                f"Commands: {command_list}"
+            ),
+            location=Location(file=manifest.source_path),
+            suggestion=(
+                "Run the behavioral tests with a recognized test runner and "
+                "target each test file or a containing test directory."
+            ),
+        )
+    ]
+
+
+def _requires_validate_command_test_coverage(manifest: Manifest) -> bool:
+    if manifest.task_type is None:
+        return True
+    return manifest.task_type.value in _TEST_COMMAND_TASK_TYPES
+
+
+def _allows_legacy_test_command_target(manifest: Manifest, project_root: Path) -> bool:
+    if manifest.created is None:
+        return False
+    if manifest.created > _STRICT_TEST_COMMAND_COVERAGE_SINCE:
+        return False
+    if manifest.slug not in _LEGACY_TEST_COMMAND_TARGET_SLUGS:
+        return False
+    return _is_top_level_active_manifest_source_path(manifest, project_root)
+
+
+def _is_top_level_active_manifest_source_path(
+    manifest: Manifest,
+    project_root: Path,
+) -> bool:
+    try:
+        relative_path = (
+            Path(manifest.source_path).resolve().relative_to(project_root.resolve())
+        )
+    except ValueError:
+        return False
+    return relative_path.as_posix() == f"manifests/{manifest.slug}.manifest.yaml"
+
+
+def _has_executing_test_runner_target(manifest: Manifest, project_root: Path) -> bool:
+    return any(
+        _test_paths_from_executing_validate_command(
+            command,
+            project_root,
+            allow_selectors=True,
+        )
+        for command in manifest.validate_commands
+    )
+
+
+def _find_command_integrity_test_files(
+    manifest: Manifest,
+    project_root: Path,
+) -> list[str]:
+    test_files: list[str] = []
+
+    def add_test_file(path: str) -> None:
+        if (
+            _is_command_integrity_test_file(path, project_root)
+            and path not in test_files
+        ):
+            test_files.append(path)
+
+    def add_test_path(path: str) -> None:
+        add_test_file(path)
+
+        full_path = project_root / path
+        if not full_path.is_dir():
+            return
+
+        for child in sorted(full_path.rglob("*")):
+            if not child.is_file():
+                continue
+            rel_path = str(child.relative_to(project_root))
+            add_test_file(rel_path)
+
+    for path in manifest.files_read:
+        add_test_path(path)
+    for file_spec in manifest.all_file_specs:
+        add_test_path(file_spec.path)
+    for command in manifest.validate_commands:
+        for path in _test_paths_from_validate_command(command, project_root):
+            add_test_path(path)
+
+    return test_files
+
+
+def _is_command_integrity_test_file(path: str, project_root: Path) -> bool:
+    name = Path(path).name
+    if name == "conftest.py":
+        return False
+    if not is_test_file(path):
+        return False
+
+    if name.endswith(".py"):
+        return _is_python_behavioral_test_file(path, project_root)
+
+    parts = Path(path).parts
+    if any(part.lower() in _TEST_DIRECTORY_NAMES for part in parts[:-1]):
+        return True
+
+    return bool(re.search(r"\.(test|spec)\.(ts|tsx|js|jsx)$", name))
+
+
+def _is_python_behavioral_test_file(path: str, project_root: Path) -> bool:
+    full_path = project_root / path
+    try:
+        source = full_path.read_text()
+        tree = ast.parse(source, filename=path)
+    except (OSError, SyntaxError):
+        return True
+
+    for statement in tree.body:
+        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if statement.name.startswith("test_"):
+                return True
+        if isinstance(statement, ast.ClassDef) and statement.name.startswith("Test"):
+            for child in statement.body:
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if child.name.startswith("test_"):
+                        return True
+
+    return False
+
+
+def _test_files_covered_by_validate_command(
+    command: tuple[str, ...],
+    test_files: list[str],
+    project_root: Path,
+) -> set[str]:
+    covered: set[str] = set()
+    for target in _test_paths_from_executing_validate_command(command, project_root):
+        for test_file in test_files:
+            if _test_target_covers_file(target, test_file, project_root):
+                covered.add(test_file)
+    return covered
+
+
+def _test_paths_from_executing_validate_command(
+    command: tuple[str, ...],
+    project_root: Path,
+    *,
+    allow_selectors: bool = False,
+) -> list[str]:
+    paths: list[str] = []
+    cwd = Path(".")
+    segment = list(command)
+
+    if not segment:
+        return paths
+    if any(part in {"&&", "||", ";"} for part in segment):
+        return paths
+    if segment[0] == "cd":
+        return paths
+    if not _runs_known_test_runner(segment):
+        return paths
+    if _has_non_executing_test_runner_mode(segment):
+        return paths
+    if not allow_selectors and _has_test_runner_selector(segment):
+        return paths
+
+    index = 0
+    while index < len(segment):
+        part = segment[index]
+        if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(segment):
+            cwd = Path(_normalize_relative_path(cwd / segment[index + 1]))
+            index += 2
+            continue
+        if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(segment):
+            index += 2
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+
+        raw_candidate = _normalize_relative_path(cwd / part)
+        if "::" in raw_candidate and not allow_selectors:
+            index += 1
+            continue
+        candidate = _normalize_test_selector(cwd / part) or "."
+        if _looks_like_test_path(
+            candidate,
+            project_root,
+            allow_explicit_directories=True,
+        ):
+            paths.append(candidate)
+        index += 1
+
+    return paths
+
+
+def _has_non_executing_test_runner_mode(segment: list[str]) -> bool:
+    invocation = _effective_test_runner_invocation(segment)
+    if invocation is None:
+        return False
+
+    runner, args = invocation
+    if args:
+        first = args[0].split("=", 1)[0]
+        if first in _NON_EXECUTING_TEST_RUNNER_SUBCOMMANDS.get(runner, frozenset()):
+            return True
+
+    for part in args:
+        flag = part.split("=", 1)[0]
+        if flag in _NON_EXECUTING_TEST_RUNNER_FLAGS:
+            return True
+    return False
+
+
+def _has_test_runner_selector(segment: list[str]) -> bool:
+    invocation = _effective_test_runner_invocation(segment)
+    if invocation is None:
+        return False
+
+    _, args = invocation
+    for part in args:
+        if _is_test_runner_selector_flag(part):
+            return True
+    return False
+
+
+def _is_test_runner_selector_flag(part: str) -> bool:
+    flag = part.split("=", 1)[0]
+    if flag in _TEST_RUNNER_SELECTOR_FLAGS:
+        return True
+    if part.startswith("--") or not part.startswith("-") or len(part) <= 2:
+        return False
+
+    short_selectors = {
+        flag[1:]
+        for flag in _TEST_RUNNER_SELECTOR_FLAGS
+        if flag.startswith("-") and not flag.startswith("--") and len(flag) == 2
     }
-    return any(Path(part).name in test_runners for part in segment)
+    return any(selector in part[1:] for selector in short_selectors)
+
+
+def _effective_test_runner_invocation(
+    segment: list[str],
+) -> tuple[str, list[str]] | None:
+    invocation = _test_runner_invocation(segment)
+    if invocation is None:
+        return None
+
+    runner, args = invocation
+    if runner not in _PYTHON_MODULE_TEST_RUNNERS:
+        return runner, args
+
+    args = [*_pytest_addopts_args(segment), *args]
+    return runner, [
+        *_pytest_override_ini_addopts_args(args),
+        *args,
+    ]
+
+
+def _pytest_addopts_args(segment: list[str]) -> list[str]:
+    args: list[str] = []
+    for part in segment:
+        if not _looks_like_environment_assignment(part):
+            continue
+        name, value = part.split("=", 1)
+        if name != "PYTEST_ADDOPTS":
+            continue
+        try:
+            args.extend(shlex.split(value))
+        except ValueError:
+            args.append(value)
+    return args
+
+
+def _pytest_override_ini_addopts_args(args: list[str]) -> list[str]:
+    addopts_args: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        if part in {"-o", "--override-ini"} and index + 1 < len(args):
+            addopts_args.extend(_pytest_ini_addopts_args(args[index + 1]))
+            index += 2
+            continue
+        if part.startswith("--override-ini="):
+            addopts_args.extend(_pytest_ini_addopts_args(part.split("=", 1)[1]))
+            index += 1
+            continue
+        if part.startswith("-o") and part != "-o":
+            addopts_args.extend(_pytest_ini_addopts_args(part[2:]))
+            index += 1
+            continue
+        index += 1
+    return addopts_args
+
+
+def _pytest_ini_addopts_args(value: str) -> list[str]:
+    if not value.startswith("addopts="):
+        return []
+    try:
+        return shlex.split(value.split("=", 1)[1])
+    except ValueError:
+        return [value.split("=", 1)[1]]
+
+
+def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
+    parts = _strip_environment_prefix(segment)
+    if not parts:
+        return None
+
+    command = _command_name(parts[0])
+
+    if command == "uv" and len(parts) >= 3 and parts[1] == "run":
+        return _test_runner_invocation(parts[2:])
+
+    if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
+        return _test_runner_invocation(parts[2:])
+
+    if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
+        return _test_runner_invocation(parts[3:])
+
+    if (
+        _is_python_command(command)
+        and len(parts) >= 3
+        and parts[1] == "-m"
+        and _command_name(parts[2]) in _PYTHON_MODULE_TEST_RUNNERS
+    ):
+        return _command_name(parts[2]), parts[3:]
+
+    if command in _DIRECT_TEST_RUNNERS:
+        return command, parts[1:]
+
+    if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
+        return command, parts[2:]
+
+    if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
+        start = 2 if len(parts) >= 3 and parts[1] == "exec" else 1
+        return _test_runner_invocation(parts[start:])
+
+    if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
+        return _test_runner_invocation(parts[2:])
+
+    return None
+
+
+def _normalize_test_selector(path: Path) -> str:
+    normalized = _normalize_relative_path(path)
+    path_part, separator, _ = normalized.partition("::")
+    if not separator:
+        return normalized
+    return path_part
+
+
+def _test_target_covers_file(
+    target: str,
+    test_file: str,
+    project_root: Path,
+) -> bool:
+    target = target.rstrip("/")
+    test_file = test_file.rstrip("/")
+    if target in {"", "."}:
+        return True
+    if target == test_file:
+        return True
+
+    full_target = project_root / target
+    if full_target.is_dir():
+        return test_file.startswith(f"{target}/")
+
+    return False
+
+
+def _format_command(command: tuple[str, ...]) -> str:
+    return " ".join(command)
 
 
 def _command_segments(command: tuple[str, ...]) -> list[list[str]]:

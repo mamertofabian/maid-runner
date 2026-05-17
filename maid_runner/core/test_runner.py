@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import time
+from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Union
 
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.manifest import load_manifest
-from maid_runner.core.result import BatchTestResult, Severity, TestRunResult
-from maid_runner.core.types import TestStream
+from maid_runner.core.result import (
+    BatchTestResult,
+    Severity,
+    TestRunResult,
+    ValidationError,
+)
+from maid_runner.core.types import Manifest, TestStream
 
 
 _PYTHON_COMMANDS = frozenset({"pytest", "python", "python3", "py.test"})
@@ -92,6 +99,7 @@ def run_command(
     stream: TestStream = TestStream.IMPLEMENTATION,
 ) -> TestRunResult:
     command = _resolve_command(command, cwd=cwd)
+    env = _test_command_environment()
     start = time.monotonic()
     try:
         proc = subprocess.run(
@@ -100,6 +108,7 @@ def run_command(
             text=True,
             cwd=str(cwd),
             timeout=timeout,
+            env=env,
         )
         duration = (time.monotonic() - start) * 1000
         return TestRunResult(
@@ -135,6 +144,12 @@ def run_command(
         )
 
 
+def _test_command_environment() -> dict[str, str]:
+    env = dict(os.environ)
+    env.pop("PYTEST_ADDOPTS", None)
+    return env
+
+
 def run_manifest_tests(
     manifest_path: Union[str, Path],
     *,
@@ -143,6 +158,18 @@ def run_manifest_tests(
 ) -> BatchTestResult:
     manifest = load_manifest(manifest_path)
     project_root = Path(project_root)
+
+    integrity_errors = _validate_manifest_test_command_integrity(
+        [manifest], project_root
+    )
+    if integrity_errors:
+        return BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=integrity_errors,
+        )
 
     results: list[TestRunResult] = []
     passed = 0
@@ -806,6 +833,15 @@ def run_tests(
             chain_errors=chain_errors,
         )
     active = chain.active_manifests()
+    integrity_errors = _validate_manifest_test_command_integrity(active, project_root)
+    if integrity_errors:
+        return BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=[*chain_errors, *integrity_errors],
+        )
 
     # Collect all commands with stream tags
     all_commands: list[tuple[tuple[str, ...], str, TestStream]] = []
@@ -928,3 +964,17 @@ def run_tests(
         failed=failed,
         chain_errors=chain_errors,
     )
+
+
+def _validate_manifest_test_command_integrity(
+    manifests: Iterable[Manifest],
+    project_root: Path,
+) -> list[ValidationError]:
+    from maid_runner.core._validation_test_artifacts import (
+        validate_manifest_test_commands,
+    )
+
+    errors = []
+    for manifest in manifests:
+        errors.extend(validate_manifest_test_commands(manifest, project_root))
+    return errors

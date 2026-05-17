@@ -233,7 +233,22 @@ def _tests_stage(
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
+        from maid_runner.cli.commands.validate import (
+            _validate_command_integrity_for_manifest_dir,
+        )
         from maid_runner.core.test_runner import run_tests
+
+        integrity_errors = _validate_command_integrity_for_manifest_dir(
+            manifest_dir,
+            project_root=root,
+        )
+        if integrity_errors:
+            return VerificationStageResult(
+                name="tests",
+                success=False,
+                _duration_ms=_elapsed_ms(started),
+                _errors=tuple(integrity_errors),
+            )
 
         result = run_tests(
             manifest_dir=manifest_dir,

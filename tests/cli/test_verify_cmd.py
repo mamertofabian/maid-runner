@@ -26,9 +26,7 @@ def _write_verify_project(
     (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
     if test_source is None:
         test_source = (
-            "from src.gate import gate\n\n"
-            "def test_gate():\n"
-            "    assert gate() == 'ok'\n"
+            "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
         )
     (tests_dir / "test_gate.py").write_text(test_source)
 
@@ -51,7 +49,7 @@ def _write_verify_project(
             ],
             "read": ["tests/test_gate.py"],
         },
-        "validate": [validate_command or "python -c \"print('verify ok')\""],
+        "validate": [validate_command or "python -m pytest tests/test_gate.py -q"],
     }
     manifest_path = manifest_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(yaml.dump(manifest))
@@ -112,7 +110,12 @@ def test_verify_returns_1_when_manifest_validate_command_fails(tmp_path, capsys)
     _write_verify_project(
         tmp_path,
         slug="verify-test-fail",
-        validate_command='python -c "import sys; sys.exit(7)"',
+        test_source=(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n"
+        ),
+        validate_command="python -m pytest tests/test_gate.py -q",
     )
 
     exit_code = main(["verify"])
@@ -122,7 +125,63 @@ def test_verify_returns_1_when_manifest_validate_command_fails(tmp_path, capsys)
     assert "PASS implementation" in output
     assert "FAIL tests" in output
     assert "FAIL [verify-test-fail]" in output
-    assert "exit 7" in output
+    assert "exit 1" in output
+
+
+def test_verify_rejects_noop_validate_command_for_behavioral_tests(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-noop",
+        validate_command='python -c "raise SystemExit(0)"',
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 1
+    output = capsys.readouterr().out
+    assert "FAIL tests" in output
+    assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in output
+    assert "python -c" in output
+
+
+def test_verify_rejects_runner_name_that_is_not_invoked(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-echo-runner-name",
+        validate_command="echo pytest tests/test_gate.py",
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 1
+    output = capsys.readouterr().out
+    assert "FAIL tests" in output
+    assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in output
+    assert "echo pytest tests/test_gate.py" in output
+
+
+def test_verify_accepts_test_runner_validate_command(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-test-runner",
+        validate_command="python -m pytest tests -q",
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "PASS tests" in output
 
 
 def test_verify_allow_empty_returns_0_without_manifest_directory(tmp_path, capsys):

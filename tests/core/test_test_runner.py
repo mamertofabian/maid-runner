@@ -9,8 +9,40 @@ from maid_runner.core.test_runner import (
     _can_batch,
     _batch_pytest,
 )
-from maid_runner.core.result import TestRunResult
+from maid_runner.core.result import ErrorCode, TestRunResult
 from maid_runner.core.types import TestStream
+
+
+def _write_noop_behavioral_test_project(tmp_path, slug: str = "noop-gate"):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir(exist_ok=True)
+    src_dir = tmp_path / "src"
+    src_dir.mkdir(exist_ok=True)
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir(exist_ok=True)
+
+    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (tests_dir / "test_gate.py").write_text(
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'not ok'\n"
+    )
+    manifest_path = manifests_dir / f"{slug}.manifest.yaml"
+    manifest_path.write_text(
+        """schema: "2"
+goal: "Reject no-op test command"
+type: fix
+files:
+  edit:
+    - path: src/gate.py
+      artifacts:
+        - kind: function
+          name: gate
+  read:
+    - tests/test_gate.py
+validate:
+  - python -c "raise SystemExit(0)"
+"""
+    )
+    return manifest_path
 
 
 class TestRunCommand:
@@ -101,6 +133,61 @@ validate:
         # With fail_fast, second command should not run
         assert result.total <= 1
 
+    def test_run_manifest_tests_rejects_noop_validate_command_for_behavioral_tests(
+        self, tmp_path
+    ):
+        manifest = _write_noop_behavioral_test_project(tmp_path)
+
+        result = run_manifest_tests(manifest, project_root=tmp_path)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_run_manifest_tests_ignores_ambient_pytest_addopts(
+        self, tmp_path, monkeypatch
+    ):
+        manifest = tmp_path / "manifests" / "ambient.manifest.yaml"
+        manifest.parent.mkdir()
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+        (tests_dir / "test_gate.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        manifest.write_text(
+            """schema: "2"
+goal: "Run pytest without ambient selectors"
+type: fix
+files:
+  edit:
+    - path: src/gate.py
+      artifacts:
+        - kind: function
+          name: gate
+  read:
+    - tests/test_gate.py
+validate:
+  - python -m pytest tests -q
+"""
+        )
+        monkeypatch.setenv("PYTEST_ADDOPTS", "-ktest_other")
+
+        result = run_manifest_tests(manifest, project_root=tmp_path)
+
+        assert result.success is False
+        assert result.total == 1
+        assert result.failed == 1
+        assert "test_gate" in result.results[0].stdout
+
 
 class TestRunTestsChainDiagnostics:
     def test_invalid_manifest_prevents_batch_run(self, tmp_path):
@@ -120,6 +207,19 @@ validate:
         assert result.success is False
         assert result.total == 0
         assert len(result.chain_errors) == 1
+
+    def test_run_tests_rejects_noop_validate_command_for_behavioral_tests(
+        self, tmp_path
+    ):
+        _write_noop_behavioral_test_project(tmp_path)
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
 
 
 class TestBatchMode:
@@ -169,6 +269,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.py
@@ -578,6 +679,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.py
@@ -591,6 +693,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.py
@@ -649,6 +752,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.py
@@ -694,6 +798,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.py
@@ -707,6 +812,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.py
@@ -752,6 +858,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.py
@@ -765,6 +872,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.py
@@ -996,6 +1104,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.ts
@@ -1060,6 +1169,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.ts
@@ -1073,6 +1183,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.ts
@@ -1151,6 +1262,7 @@ validate:
         (manifests_dir / "a.manifest.yaml").write_text(
             """schema: "2"
 goal: "A"
+type: snapshot
 files:
   create:
     - path: src/a.py
@@ -1164,6 +1276,7 @@ validate:
         (manifests_dir / "b.manifest.yaml").write_text(
             """schema: "2"
 goal: "B"
+type: snapshot
 files:
   create:
     - path: src/b.py

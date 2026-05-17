@@ -124,7 +124,25 @@ def run_validate_commands_for_result(
     fail_fast: bool = False,
 ) -> BatchTestResult:
     """Run a validated manifest's validate commands through the shared runner."""
+    from pathlib import Path
+
+    from maid_runner.core._validation_test_artifacts import (
+        validate_manifest_test_commands,
+    )
+    from maid_runner.core.manifest import load_manifest
+    from maid_runner.core.result import BatchTestResult
     from maid_runner.core.test_runner import run_manifest_tests
+
+    manifest = load_manifest(manifest_path)
+    integrity_errors = validate_manifest_test_commands(manifest, Path("."))
+    if integrity_errors:
+        return BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=integrity_errors,
+        )
 
     return run_manifest_tests(manifest_path, fail_fast=fail_fast)
 
@@ -134,9 +152,47 @@ def _run_validate_commands_for_batch(
     fail_fast: bool = False,
 ) -> BatchTestResult:
     """Run active manifest validate commands through the shared runner."""
+    from pathlib import Path
+
+    from maid_runner.core.result import BatchTestResult
     from maid_runner.core.test_runner import run_tests
 
+    integrity_errors = _validate_command_integrity_for_manifest_dir(
+        manifest_dir,
+        project_root=Path("."),
+    )
+    if integrity_errors:
+        return BatchTestResult(
+            results=[],
+            total=0,
+            passed=0,
+            failed=0,
+            chain_errors=integrity_errors,
+        )
+
     return run_tests(manifest_dir=manifest_dir, fail_fast=fail_fast)
+
+
+def _validate_command_integrity_for_manifest_dir(
+    manifest_dir: str,
+    *,
+    project_root,
+):
+    from maid_runner.core._validation_test_artifacts import (
+        validate_manifest_test_commands,
+    )
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.result import Severity
+
+    chain = ManifestChain(project_root / manifest_dir, project_root)
+    chain_errors = chain.diagnostics()
+    if any(error.severity == Severity.ERROR for error in chain_errors):
+        return chain_errors
+
+    errors = []
+    for manifest in chain.active_manifests():
+        errors.extend(validate_manifest_test_commands(manifest, project_root))
+    return errors
 
 
 def _run_coherence_only(args: argparse.Namespace) -> int:
