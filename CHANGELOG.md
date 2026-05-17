@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.1] - 2026-05-17
+
+### Added
+- **`maid verify` release gate** — Added a combined verification command that runs schema, behavioral, implementation, coherence, file-tracking, worktree-scope, and manifest test gates with text and JSON output.
+- **Validation hardening manifests** — Added the MAID validation hardening manifest set covering empty manifest discovery, coherence failure behavior, path-escape rejection, duplicate YAML keys, file tracking, `--run-tests`, worktree scope, and integration fixture coverage.
+
+### Fixed
+- **Behavioral coverage identity hardening** — Python and TypeScript implementation validation now reject import-only references, shadowed local references, type-only references for runtime artifacts, assignment/delete targets, and unrelated keyword arguments as fake behavioral coverage.
+- **Python reference collection accuracy** — Function-local imports, module rebinding, lambda/comprehension scopes, walrus and match captures, starred targets, runtime decorators/default values, and constructor keyword ownership now preserve real behavioral identity.
+- **TypeScript reference collection accuracy** — Control-flow, switch, destructuring, namespace placeholder, local type declaration, and generic type-parameter cases now preserve the distinction between runtime value references and type-only references.
+- **Strict validation coverage** — Existing loop/result tests now assert result fields directly so stricter validation no longer relies on dataclass constructor keyword names as coverage.
+
 ## [2.9.0] - 2026-05-15
 
 ### Added
