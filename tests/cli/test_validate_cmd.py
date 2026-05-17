@@ -612,6 +612,56 @@ class TestCmdValidateAll:
         exit_code = main(["validate"])
         assert exit_code == 0
 
+    def test_validate_file_tracking_gate_returns_1_for_undeclared_source(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (project_dir / "src" / "extra.py").write_text(
+            "def extra():\n    return 'drift'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--file-tracking"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/extra.py" in captured.out
+
+        json_exit_code = main(["validate", "--file-tracking", "--json"])
+
+        assert json_exit_code == 1
+        json_output = capsys.readouterr().out
+        data = json.loads(json_output)
+        assert "src/extra.py" in json.dumps(data)
+
+        schema_exit_code = main(["validate", "--mode", "schema", "--file-tracking"])
+
+        assert schema_exit_code == 1
+        schema_output = capsys.readouterr().out
+        assert "src/extra.py" in schema_output
+
+        from maid_runner.cli.commands import validate as validate_cmd
+
+        watch_args = argparse.Namespace(
+            watch=True,
+            watch_all=False,
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=False,
+            quiet=False,
+            no_chain=True,
+            coherence=False,
+            coherence_only=False,
+            file_tracking=True,
+        )
+        watch_exit_code = validate_cmd.cmd_validate(watch_args)
+
+        assert watch_exit_code == 2
+        watch_output = capsys.readouterr()
+        assert "--file-tracking is only supported" in watch_output.err
+
     def test_validate_all_returns_1_on_failure(self, failing_project, capsys):
         from maid_runner.cli.commands._main import main
 

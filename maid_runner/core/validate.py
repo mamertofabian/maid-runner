@@ -57,6 +57,51 @@ from maid_runner.validators.registry import (
 _STRUCTURAL_KINDS = _implementation_validation._STRUCTURAL_KINDS
 
 
+def _file_tracking_gate_error(
+    report: FileTrackingReport,
+) -> ValidationError | None:
+    parts = []
+    if report.undeclared:
+        paths = ", ".join(entry.path for entry in report.undeclared)
+        parts.append(f"undeclared: {paths}")
+    if report.registered:
+        paths = ", ".join(entry.path for entry in report.registered)
+        parts.append(f"registered: {paths}")
+    if not parts:
+        return None
+
+    return ValidationError(
+        code=ErrorCode.COHERENCE_BOUNDARY_VIOLATION,
+        message=f"File tracking gate failed ({'; '.join(parts)})",
+        severity=Severity.ERROR,
+    )
+
+
+def _apply_file_tracking_gate(
+    results: list[ValidationResult],
+    chain_errors: list[ValidationError],
+    report: FileTrackingReport,
+    *,
+    passed: int,
+    failed: int,
+) -> tuple[int, int]:
+    tracking_error = _file_tracking_gate_error(report)
+    if tracking_error is None:
+        return passed, failed
+
+    if results:
+        target = results[0]
+        target.file_tracking = report
+        target.errors.append(tracking_error)
+        if target.success:
+            target.success = False
+            return passed - 1, failed + 1
+        return passed, failed
+
+    chain_errors.append(tracking_error)
+    return passed, failed + 1
+
+
 class ValidationEngine:
     def __init__(
         self,
@@ -183,6 +228,7 @@ class ValidationEngine:
         manifest_dir: Union[str, Path] = "manifests/",
         *,
         mode: ValidationMode = ValidationMode.IMPLEMENTATION,
+        check_file_tracking: bool = False,
         allow_empty: bool = False,
         check_stubs: bool = False,
         check_assertions: bool = False,
@@ -236,6 +282,14 @@ class ValidationEngine:
             chain_errors = chain.load_errors + chain.inactive_manifest_diagnostics()
             if fail_on_warnings and _has_warning(chain_errors):
                 failed += 1
+            if check_file_tracking:
+                passed, failed = _apply_file_tracking_gate(
+                    results,
+                    chain_errors,
+                    self.run_file_tracking(chain),
+                    passed=passed,
+                    failed=failed,
+                )
             return BatchValidationResult(
                 results=results,
                 total_manifests=len(manifests) + len(chain.load_errors),
@@ -283,6 +337,15 @@ class ValidationEngine:
 
         if fail_on_warnings and _has_warning(chain_errors):
             failed += 1
+
+        if check_file_tracking:
+            passed, failed = _apply_file_tracking_gate(
+                results,
+                chain_errors,
+                self.run_file_tracking(chain),
+                passed=passed,
+                failed=failed,
+            )
 
         duration = (time.monotonic() - start) * 1000
 

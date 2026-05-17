@@ -18,6 +18,17 @@ if TYPE_CHECKING:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
+    if (
+        getattr(args, "manifest_path", None)
+        and getattr(args, "file_tracking", False)
+        and not getattr(args, "watch_all", False)
+    ):
+        print_error(
+            "--file-tracking is only supported for directory-wide validation",
+            json_mode=getattr(args, "json", False),
+        )
+        return 2
+
     if args.watch or args.watch_all:
         return _run_watch(args)
 
@@ -59,6 +70,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 args.manifest_dir,
                 mode=mode,
                 allow_empty=getattr(args, "allow_empty", False),
+                check_file_tracking=getattr(args, "file_tracking", False),
                 check_assertions=check_assertions,
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,
@@ -231,6 +243,7 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 args.manifest_dir,
                 mode=mode,
                 allow_empty=getattr(args, "allow_empty", False),
+                check_file_tracking=getattr(args, "file_tracking", False),
                 check_assertions=check_assertions,
                 check_stubs=check_stubs,
                 fail_on_warnings=fail_on_warnings,

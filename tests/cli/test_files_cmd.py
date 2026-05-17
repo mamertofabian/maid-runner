@@ -100,6 +100,52 @@ class TestCmdFiles:
         exit_code = main(["files"])
         assert exit_code == 0
 
+    def test_files_fail_on_undeclared_returns_1(self, project_with_files, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (project_with_files / "src" / "extra.py").write_text(
+            "def extra():\n    return 'drift'\n"
+        )
+
+        os.chdir(project_with_files)
+        exit_code = main(["files", "--fail-on", "undeclared"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/extra.py" in captured.out
+
+        repeated_exit_code = main(
+            ["files", "--fail-on", "registered", "--fail-on", "undeclared"]
+        )
+        assert repeated_exit_code == 1
+        repeated_output = capsys.readouterr().out
+        assert "src/extra.py" in repeated_output
+
+        any_exit_code = main(["files", "--fail-on", "any"])
+        assert any_exit_code == 1
+        any_output = capsys.readouterr().out
+        assert "src/extra.py" in any_output
+
+    def test_files_fail_on_registered_returns_1_for_read_only_production_file(
+        self, project_with_files, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = project_with_files / "manifests" / "add-greet.manifest.yaml"
+        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest["files"]["read"] = ["src/dep.py"]
+        manifest_path.write_text(yaml.dump(manifest))
+        (project_with_files / "src" / "dep.py").write_text(
+            "def helper():\n    return 'registered'\n"
+        )
+
+        os.chdir(project_with_files)
+        exit_code = main(["files", "--fail-on", "registered"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "src/dep.py" in captured.out
+
     def test_files_json_output(self, project_with_files, capsys):
         from maid_runner.cli.commands._main import main
 

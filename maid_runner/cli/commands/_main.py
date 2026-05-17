@@ -57,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable assertion checks, stub checks, and warning failure",
     )
     p.add_argument(
+        "--file-tracking",
+        action="store_true",
+        help="Fail validation when undeclared or weakly registered production files exist",
+    )
+    p.add_argument(
         "--json", "--json-output", action="store_true"
     )  # --json-output is v1 compat alias
     p.add_argument("--quiet", action="store_true")
@@ -141,6 +146,13 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("files", help="Show file tracking status")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--hide-private", action="store_true")
+    p.add_argument(
+        "--fail-on",
+        action="append",
+        choices=["undeclared", "registered", "any"],
+        default=None,
+        help="Return 1 when the selected file-tracking status is present",
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--quiet", action="store_true")
 
