@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.4] - 2026-05-18
+
+### Fixed
+- **Python `importlib` dynamic module coverage** — Identity-backed E200 coverage checks now accept literal `importlib.import_module()` aliases for modules that cannot be imported with normal syntax, including numeric Django migrations, while preserving strict rebinding and shadowing checks so stale aliases cannot satisfy coverage.
+
 ## [2.9.3] - 2026-05-18
 
 ### Fixed
