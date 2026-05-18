@@ -14,17 +14,20 @@ from maid_runner.core.result import VerificationResult, VerificationStageResult
 
 def cmd_verify(args: argparse.Namespace) -> int:
     try:
+        advisory = getattr(args, "advisory", False)
+        fail_on_warnings = (
+            not advisory
+            or getattr(args, "strict", False)
+            or getattr(args, "fail_on_warnings", False)
+        )
         result = _run_verify(
             manifest_dir=args.manifest_dir,
             project_root=".",
             allow_empty=getattr(args, "allow_empty", False),
             fail_fast=getattr(args, "fail_fast", True),
-            check_assertions=getattr(args, "check_assertions", False)
-            or getattr(args, "strict", False),
-            check_stubs=getattr(args, "check_stubs", False)
-            or getattr(args, "strict", False),
-            fail_on_warnings=getattr(args, "fail_on_warnings", False)
-            or getattr(args, "strict", False),
+            check_assertions=True,
+            check_stubs=True,
+            fail_on_warnings=fail_on_warnings,
             require_worktree_scope=getattr(args, "worktree_scope", False),
             include_tests=getattr(args, "include_tests", False),
         )
@@ -39,7 +42,13 @@ def run_verify(
     manifest_dir: str,
     project_root: Union[str, Path],
 ) -> VerificationResult:
-    return _run_verify(manifest_dir=manifest_dir, project_root=project_root)
+    return _run_verify(
+        manifest_dir=manifest_dir,
+        project_root=project_root,
+        check_assertions=True,
+        check_stubs=True,
+        fail_on_warnings=True,
+    )
 
 
 def _run_verify(
@@ -48,9 +57,9 @@ def _run_verify(
     project_root: Union[str, Path],
     allow_empty: bool = False,
     fail_fast: bool = True,
-    check_assertions: bool = False,
-    check_stubs: bool = False,
-    fail_on_warnings: bool = False,
+    check_assertions: bool = True,
+    check_stubs: bool = True,
+    fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
     include_tests: bool = False,
 ) -> VerificationResult:

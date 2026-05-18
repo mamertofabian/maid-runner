@@ -127,6 +127,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable assertion checks, stub checks, and warning failure",
     )
     p.add_argument(
+        "--advisory",
+        action="store_true",
+        help="Report verify strictness warnings without failing on warnings",
+    )
+    p.add_argument(
         "--worktree-scope",
         action="store_true",
         help="Require the git worktree-scope gate",

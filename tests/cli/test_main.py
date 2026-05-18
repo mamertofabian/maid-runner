@@ -137,6 +137,15 @@ class TestBuildParser:
         assert args.worktree_scope is True
         assert args.include_tests is True
 
+    def test_parser_exposes_verify_advisory_opt_out(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["verify", "--advisory"])
+
+        assert args.command == "verify"
+        assert args.advisory is True
+
     def test_validate_quiet_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

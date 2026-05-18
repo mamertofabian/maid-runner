@@ -341,10 +341,10 @@ def _verify_stage_details(stage) -> dict:
 
 def _format_verify_stage_details(stage) -> str:
     validation = getattr(stage, "_validation", None)
-    if validation is not None and not stage.success:
-        if isinstance(validation, BatchValidationResult):
-            return format_batch_result(validation, quiet=True)
-        return format_validation_result(validation, quiet=True)
+    if validation is not None and (
+        not stage.success or _validation_has_warnings(validation)
+    ):
+        return _format_verify_validation_details(validation)
 
     coherence = getattr(stage, "_coherence", None)
     if coherence is not None and not stage.success:
@@ -377,6 +377,49 @@ def _format_verify_error(error) -> str:
     if code and message:
         return f"{code} {message}"
     return str(error)
+
+
+def _format_verify_validation_details(validation) -> str:
+    if isinstance(validation, BatchValidationResult):
+        return _format_verify_batch_validation_details(validation)
+    return _format_verify_single_validation_details(validation)
+
+
+def _format_verify_batch_validation_details(result: BatchValidationResult) -> str:
+    lines = [_format_verify_error(error) for error in result.chain_errors]
+    for validation in result.results:
+        if not validation.success or validation.warnings:
+            status = "FAIL" if not validation.success else "WARN"
+            lines.append(f"{status} {validation.manifest_slug}")
+            lines.extend(
+                _format_verify_single_validation_details(validation).splitlines()
+            )
+    return "\n".join(line for line in lines if line)
+
+
+def _format_verify_single_validation_details(validation) -> str:
+    lines = []
+    if not validation.success:
+        lines.extend(_format_verify_error(error) for error in validation.errors)
+    lines.extend(_format_verify_error(warning) for warning in validation.warnings)
+    return "\n".join(f"  {line}" for line in lines)
+
+
+def _validation_has_warnings(validation) -> bool:
+    warnings = getattr(validation, "warnings", None)
+    if warnings:
+        return True
+
+    results = getattr(validation, "results", ())
+    if any(getattr(result, "warnings", ()) for result in results):
+        return True
+
+    return any(_is_warning(error) for error in getattr(validation, "chain_errors", ()))
+
+
+def _is_warning(error) -> bool:
+    severity = getattr(error, "severity", None)
+    return getattr(severity, "value", severity) == "warning"
 
 
 def _test_result_to_dict(result: BatchTestResult) -> dict:

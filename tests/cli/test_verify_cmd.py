@@ -23,7 +23,9 @@ def _write_verify_project(
     tests_dir = tmp_path / "tests"
     tests_dir.mkdir()
 
-    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (src_dir / "gate.py").write_text(
+        "def gate() -> str:\n    value = 'ok'\n    return value\n"
+    )
     if test_source is None:
         test_source = (
             "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
@@ -101,6 +103,72 @@ def test_verify_returns_1_when_behavioral_validation_fails(tmp_path, capsys):
     assert "PASS schema" in output
     assert "FAIL behavioral" in output
     assert "Artifact 'gate'" in output
+
+
+def test_verify_default_fails_when_test_has_no_assertions(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-no-assertions",
+        test_source=(
+            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
+        ),
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 1
+    output = capsys.readouterr().out
+    assert "FAIL behavioral" in output
+    assert "E210" in output
+    assert "test_gate" in output
+
+
+def test_verify_advisory_mode_allows_missing_assertion_warning(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-advisory-no-assertions",
+        test_source=(
+            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
+        ),
+    )
+
+    exit_code = main(["verify", "--advisory"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "PASS behavioral" in output
+    assert "E210" in output
+    assert "test_gate" in output
+
+
+def test_verify_json_preserves_missing_assertion_details(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-json-no-assertions",
+        test_source=(
+            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
+        ),
+    )
+
+    exit_code = main(["verify", "--json"])
+
+    assert exit_code == 1
+    data = json.loads(capsys.readouterr().out)
+    stages = {stage["name"]: stage for stage in data["stages"]}
+    warnings = stages["behavioral"]["details"]["results"][0]["warnings"]
+    assert warnings[0]["code"] == "E210"
+    assert warnings[0]["severity"] == "warning"
+    assert warnings[0]["location"]["file"] == "tests/test_gate.py"
 
 
 def test_verify_returns_1_when_manifest_validate_command_fails(tmp_path, capsys):
