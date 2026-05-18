@@ -4531,6 +4531,65 @@ validate:
         assert result.success is True
         assert untested == []
 
+    def test_python_importlib_dynamic_module_attribute_covers_numeric_migration_class(
+        self, project
+    ):
+        """A literal importlib module load can cover numeric migration modules."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "split-scores.manifest.yaml",
+            """schema: "2"
+goal: "Add split scores migration"
+type: fix
+files:
+  edit:
+    - path: src/ai_analysis/migrations/0023_split_scores_and_cosmo_evidence.py
+      artifacts:
+        - kind: class
+          name: Migration
+        - kind: attribute
+          name: dependencies
+          of: Migration
+          type: list
+        - kind: attribute
+          name: operations
+          of: Migration
+          type: list
+  read:
+    - tests/test_split_scores_migration.py
+validate:
+  - pytest tests/test_split_scores_migration.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/ai_analysis/migrations/0023_split_scores_and_cosmo_evidence.py",
+            "class Migration:\n"
+            "    dependencies = [('ai_analysis', '0022_previous')]\n"
+            "    operations = ['split_scores']\n",
+        )
+        _write_source(
+            project,
+            "tests/test_split_scores_migration.py",
+            "import importlib\n\n"
+            "def test_split_scores_migration_declares_dependencies():\n"
+            "    module = importlib.import_module(\n"
+            "        'ai_analysis.migrations.0023_split_scores_and_cosmo_evidence'\n"
+            "    )\n"
+            "    Migration = module.Migration\n"
+            "    assert Migration.dependencies\n"
+            "    assert Migration.operations\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True
+        assert untested == []
+
     @pytest.mark.parametrize(
         ("test_source", "scenario"),
         [

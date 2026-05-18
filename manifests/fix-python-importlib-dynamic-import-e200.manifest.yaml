@@ -1,0 +1,100 @@
+schema: "2"
+goal: "Fix Python E200 false positives for importlib-loaded modules"
+type: fix
+created: "2026-05-18"
+metadata:
+  tags:
+    - python
+    - behavioral-coverage
+    - identity
+    - importlib
+  priority: high
+description: |
+  Some legitimate Python modules cannot be referenced with normal import syntax,
+  including Django migrations whose module names begin with a numeric migration
+  prefix. Tests load those modules with importlib.import_module("<module>") and
+  then access public artifacts through the returned module object.
+
+  Preserve identity-backed E200 enforcement while accepting this explicit
+  importlib pattern. The Python behavioral collector should bind the literal
+  module path returned by importlib.import_module to the assigned module alias
+  so later attribute access, such as module.Migration, carries the same
+  import_source identity as a static module import.
+temptations:
+  - risk: "Do not make any bare same-name reference cover a dynamically loaded artifact."
+    instead: "Only attach identity when the module path comes from a string literal passed to importlib.import_module."
+  - risk: "Do not count the importlib call itself as behavioral coverage for the production artifact."
+    instead: "Require later attribute access or calls through the bound module alias."
+  - risk: "Do not add downstream-project-specific migration exceptions."
+    instead: "Handle the general literal importlib.import_module alias pattern in the Python behavioral collector."
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+          description: "Collect Python behavioral references with import_source identity for literal importlib.import_module aliases."
+    - path: tests/validators/test_python_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_importlib_import_module_attribute_reference_records_literal_module_identity
+          source_scenario: "A Python test binds module = importlib.import_module('pkg.migrations.0023_split') and then accesses module.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The Migration reference carries import_source pkg.migrations.0023_split instead of falling back to a name-only reference."
+        - kind: test_function
+          name: test_importlib_import_module_alias_can_shadow_imported_name
+          source_scenario: "A Python test imports django.db.migrations, then assigns migrations = importlib.import_module('pkg.migrations.0023_split') before accessing migrations.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The local dynamic module alias wins over the imported-name shadow record and records Migration with the literal module import_source."
+        - kind: test_function
+          name: test_importlib_import_module_alias_records_runtime_ordered_identity
+          source_scenario: "A Python test creates a dynamic module alias through function-local or module-level runtime expressions, including expression statements, call keywords, lambda defaults, comprehension guards, function defaults, class bases after test definitions, constant-true branches, and evaluated short-circuit operands; mixes static import aliases with dynamic rebinds in source order; honors source-ordered top-level dynamic reads even when final module shadow state changes later; honors final module-level runtime alias state even when a prior top-level binding appears before the test; keeps bare annotations from dropping dynamic aliases; reads module.Migration before same-name runtime bindings on the same module-level statement; resolves walrus-bound importlib aliases used as an attribute root; relies on lambda defaults or comprehension outer iterables being evaluated before local parameter/target shadowing; records match class pattern references through module.Migration(); confirms lazy lambda and generator bodies do not rebind already-active aliases; reuses a top-level alias for multiple dynamic modules; records class-body expressions that read class-body dynamic aliases; or defines class-body dynamic aliases that should not escape."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The collector records Migration with the literal import_source when Python evaluation order makes the dynamic alias active at the access site."
+        - kind: test_function
+          name: test_importlib_import_module_alias_rebindings_do_not_retain_literal_module_identity
+          source_scenario: "A Python test binds a dynamic module alias, then rebinds or shadows that alias through local targets, lambda/comprehension scopes, lambda-default walrus bindings, call-keyword walrus bindings, comprehension-guard walrus bindings, generator-expression body walrus bindings, later comprehension-generator targets, class-body method scopes, class-body nested methods, class-body lambda/comprehension/generator bodies, nested class bodies, constant-false branches, short-circuited expressions, parameters, expression bindings, nested definitions, with/delete/match/except targets, exception-target cleanup, module-level match captures, unpacking assignments, final top-level rebindings after earlier dynamic expressions, later module-level runtime expressions, lazy lambda bodies, unconsumed generator-expression bodies, or a future dynamic binding after a prior module-level read before accessing module.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The rebinding removes the literal dynamic module identity so stale aliases cannot satisfy E200."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_python_importlib_dynamic_module_attribute_covers_numeric_migration_class
+          source_scenario: "A manifest declares a Django-style numeric migration module and its test loads it through importlib.import_module before reading Migration.dependencies and Migration.operations."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without E200 because module.Migration is tied to the dynamically imported module identity."
+  read:
+    - maid_runner/core/identity.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/base.py
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+    - manifests/fix-python-src-root-identity-e200.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_identity.py tests/core/test_validate.py

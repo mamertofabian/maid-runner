@@ -29,6 +29,20 @@ from maid_runner.validators._python_implementation import (
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 
 
+_ImportScope = dict[str, tuple[Optional[str], Optional[str]]]
+_ModuleImportScope = dict[str, str]
+_ModuleAliasShadowScope = set[str]
+_LocalValueScope = set[str]
+_ObjectOwnerScope = dict[str, tuple[Optional[str], str]]
+_ClassScopeMarker = tuple[
+    _ImportScope,
+    _ModuleImportScope,
+    _ModuleAliasShadowScope,
+    _LocalValueScope,
+    _ObjectOwnerScope,
+]
+
+
 class PythonValidator(BaseValidator):
     @classmethod
     def supported_extensions(cls) -> tuple[str, ...]:
@@ -170,6 +184,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
+        self._class_scope_markers: list[_ClassScopeMarker] = []
         self._importer_module: Optional[str] = (
             file_to_module_path(file_path, Path(".")) if file_path else None
         ) or None
@@ -178,15 +193,20 @@ class _BehavioralCollector(ast.NodeVisitor):
         # attribute chains rooted at the bound name (e.g. ``pkg.mod.Foo``)
         # can resolve the leaf reference's import_source.
         self._module_imports: dict[str, str] = {}
+        self._dynamic_module_aliases: set[str] = set()
+        self._dynamic_module_alias_events: dict[
+            str, list[tuple[tuple[int, int], Optional[str]]]
+        ] = {}
+        self._scanning_module_bindings = False
         self._imported_names: dict[str, tuple[Optional[str], Optional[str]]] = {}
         self._known_imported_names: set[str] = set()
         self._module_shadowed_imports: set[str] = set()
-        self._local_import_scopes: list[
-            dict[str, tuple[Optional[str], Optional[str]]]
-        ] = []
-        self._local_module_import_scopes: list[dict[str, str]] = []
-        self._local_value_scopes: list[set[str]] = [set()]
-        self._object_owner_scopes: list[dict[str, tuple[Optional[str], str]]] = []
+        self._local_import_scopes: list[_ImportScope] = []
+        self._local_module_import_scopes: list[_ModuleImportScope] = []
+        self._local_module_alias_shadow_scopes: list[_ModuleAliasShadowScope] = []
+        self._expression_module_alias_shadow_scopes: list[set[str]] = []
+        self._local_value_scopes: list[_LocalValueScope] = [set()]
+        self._object_owner_scopes: list[_ObjectOwnerScope] = []
         self._argument_name_scopes: list[set[str]] = []
         self._shadowed_import_scopes: list[set[str]] = []
         self._function_import_bound_scopes: list[set[str]] = []
@@ -194,33 +214,80 @@ class _BehavioralCollector(ast.NodeVisitor):
     def scan_imports(self, tree: ast.AST) -> None:
         self._known_imported_names = _all_imported_bound_names(tree)
         self._module_imports.clear()
+        self._dynamic_module_aliases.clear()
+        self._dynamic_module_alias_events.clear()
         self._imported_names.clear()
         self._module_shadowed_imports.clear()
         self._local_value_scopes[0].clear()
 
         if not isinstance(tree, ast.Module):
             return
-        for statement in tree.body:
-            self._apply_module_statement_binding(statement)
-            self._local_value_scopes[0].update(
-                _module_statement_local_value_bindings(statement)
-            )
+        self._scanning_module_bindings = True
+        try:
+            for statement in tree.body:
+                self._apply_module_statement_binding(statement)
+                self._local_value_scopes[0].update(
+                    _module_statement_local_value_bindings(statement)
+                )
+        finally:
+            self._scanning_module_bindings = False
 
     def _apply_module_statement_binding(self, statement: ast.stmt) -> None:
         if isinstance(statement, ast.ImportFrom):
+            position = _node_end_position(statement)
             for bound, source_module, alias_of in self._import_from_entries(statement):
+                self._unbind_module_aliases({bound}, position=position)
                 self._bind_imported_name(bound, source_module, alias_of)
+                self._record_module_alias_event(
+                    bound,
+                    self._module_imports.get(bound),
+                    position,
+                )
             return
         if isinstance(statement, ast.Import):
+            position = _node_end_position(statement)
             for bound, source_module, alias_of, namespace_root in self._import_entries(
                 statement
             ):
+                self._unbind_module_aliases({bound}, position=position)
                 self._bind_imported_name(
                     bound,
                     source_module,
                     alias_of,
                     namespace_root=namespace_root,
                 )
+                self._record_module_alias_event(
+                    bound,
+                    self._module_imports.get(bound),
+                    position,
+                )
+            return
+
+        if isinstance(statement, ast.Assign):
+            self._apply_module_assignment_binding(statement.targets, statement.value)
+            return
+
+        if isinstance(statement, ast.AnnAssign):
+            if statement.value is None:
+                self._apply_module_expression_bindings(statement.annotation)
+                return
+            self._apply_module_assignment_binding([statement.target], statement.value)
+            return
+
+        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            self._apply_module_function_definition_expression_bindings(statement)
+            self._unbind_module_level_bindings(
+                {statement.name},
+                position=_node_end_position(statement),
+            )
+            return
+
+        if isinstance(statement, ast.ClassDef):
+            self._apply_module_class_definition_expression_bindings(statement)
+            self._unbind_module_level_bindings(
+                {statement.name},
+                position=_node_end_position(statement),
+            )
             return
 
         if isinstance(statement, ast.Try):
@@ -228,42 +295,227 @@ class _BehavioralCollector(ast.NodeVisitor):
                 self._apply_module_statement_binding(child)
             for handler in statement.handlers:
                 if handler.name:
-                    self._unbind_imported_name(handler.name)
+                    self._unbind_module_level_bindings(
+                        {handler.name},
+                        position=_node_start_position(handler),
+                    )
                 for child in handler.body:
                     self._apply_module_statement_binding(child)
+                if handler.name:
+                    self._unbind_module_level_bindings(
+                        {handler.name},
+                        position=_node_end_position(handler),
+                    )
             for child in statement.orelse + statement.finalbody:
                 self._apply_module_statement_binding(child)
             return
 
-        if isinstance(statement, (ast.If, ast.While)):
-            for child in statement.body + statement.orelse:
+        if isinstance(statement, ast.If):
+            self._apply_module_expression_bindings(statement.test)
+            for child in _reachable_conditional_statements(
+                statement.test,
+                statement.body,
+                statement.orelse,
+            ):
+                self._apply_module_statement_binding(child)
+            return
+
+        if isinstance(statement, ast.While):
+            self._apply_module_expression_bindings(statement.test)
+            truth = _static_truth_value(statement.test)
+            statements = (
+                statement.orelse
+                if truth is False
+                else (statement.body + statement.orelse)
+            )
+            for child in statements:
                 self._apply_module_statement_binding(child)
             return
 
         if isinstance(statement, (ast.For, ast.AsyncFor)):
-            bindings: set[str] = set()
-            _collect_target_bindings(statement.target, bindings)
-            for name in bindings:
-                self._unbind_imported_name(name)
+            self._apply_module_expression_bindings(statement.iter)
+            target_bindings: set[str] = set()
+            _collect_target_bindings(statement.target, target_bindings)
+            self._unbind_module_level_bindings(
+                target_bindings,
+                position=_node_end_position(statement.iter),
+            )
             for child in statement.body + statement.orelse:
                 self._apply_module_statement_binding(child)
             return
 
         if isinstance(statement, (ast.With, ast.AsyncWith)):
-            bindings: set[str] = set()
             for item in statement.items:
+                self._apply_module_expression_bindings(item.context_expr)
                 if item.optional_vars is not None:
+                    bindings: set[str] = set()
                     _collect_target_bindings(item.optional_vars, bindings)
-            for name in bindings:
-                self._unbind_imported_name(name)
+                    self._unbind_module_level_bindings(
+                        bindings,
+                        position=_node_end_position(item.context_expr),
+                    )
             for child in statement.body:
                 self._apply_module_statement_binding(child)
             return
 
+        if isinstance(statement, ast.Match):
+            self._apply_module_expression_bindings(statement.subject)
+            for case in statement.cases:
+                bindings: set[str] = set()
+                _collect_pattern_bindings(case.pattern, bindings)
+                self._unbind_module_level_bindings(
+                    bindings,
+                    position=_node_end_position(case.pattern),
+                )
+                self._apply_module_expression_bindings(case.guard)
+                for child in case.body:
+                    self._apply_module_statement_binding(child)
+            return
+
+        if isinstance(statement, ast.Expr):
+            self._apply_module_expression_bindings(statement.value)
+            return
+
+        if isinstance(statement, ast.Assert):
+            self._apply_module_expression_bindings(statement.test)
+            self._apply_module_expression_bindings(statement.msg)
+            return
+
         bindings: set[str] = set()
         _collect_statement_bindings(statement, bindings)
-        for name in bindings & self._known_imported_names:
+        self._unbind_module_level_bindings(
+            bindings,
+            position=_node_end_position(statement),
+        )
+
+    def _apply_module_assignment_binding(
+        self,
+        targets: list[ast.expr],
+        value: Optional[ast.AST],
+    ) -> None:
+        self._apply_module_expression_bindings(value)
+        names: set[str] = set()
+        for target in targets:
+            _collect_target_bindings(target, names)
+        dynamic_module = self._literal_importlib_import_module_path(value)
+        if dynamic_module is None:
+            self._unbind_module_level_bindings(
+                names, position=_binding_position(value, targets)
+            )
+            return
+        direct_names = _direct_name_targets(targets)
+        self._unbind_module_aliases(
+            names - direct_names, position=_binding_position(value, targets)
+        )
+        self._bind_module_aliases(
+            direct_names,
+            dynamic_module,
+            position=_binding_position(value, targets),
+        )
+
+    def _unbind_module_level_bindings(
+        self,
+        names: set[str],
+        *,
+        position: Optional[tuple[int, int]] = None,
+    ) -> None:
+        self._unbind_module_aliases(names, position=position)
+        for name in names & self._known_imported_names:
             self._unbind_imported_name(name)
+
+    def _apply_module_function_definition_expression_bindings(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self._apply_module_expression_bindings(decorator)
+        for default in list(node.args.defaults) + list(node.args.kw_defaults):
+            self._apply_module_expression_bindings(default)
+
+    def _apply_module_class_definition_expression_bindings(
+        self,
+        node: ast.ClassDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self._apply_module_expression_bindings(decorator)
+        for base in node.bases:
+            self._apply_module_expression_bindings(base)
+        for keyword in node.keywords:
+            self._apply_module_expression_bindings(keyword.value)
+
+    def _apply_module_expression_bindings(self, expr: Optional[ast.AST]) -> None:
+        if expr is None:
+            return
+        if isinstance(expr, ast.BoolOp):
+            self._apply_module_boolop_bindings(expr)
+            return
+        if isinstance(expr, ast.IfExp):
+            self._apply_module_expression_bindings(expr.test)
+            for branch in _reachable_conditional_expressions(
+                expr.test,
+                expr.body,
+                expr.orelse,
+            ):
+                self._apply_module_expression_bindings(branch)
+            return
+        if isinstance(expr, ast.NamedExpr):
+            self._apply_module_expression_bindings(expr.value)
+            names: set[str] = set()
+            _collect_target_bindings(expr.target, names)
+            dynamic_module = self._literal_importlib_import_module_path(expr.value)
+            if dynamic_module is not None and isinstance(expr.target, ast.Name):
+                self._bind_module_aliases(
+                    {expr.target.id},
+                    dynamic_module,
+                    position=_node_end_position(expr.value),
+                )
+            else:
+                self._unbind_module_level_bindings(
+                    names,
+                    position=_node_end_position(expr.value),
+                )
+            return
+        if isinstance(expr, ast.Lambda):
+            for default in expr.args.defaults:
+                self._apply_module_expression_bindings(default)
+            for default in expr.args.kw_defaults:
+                self._apply_module_expression_bindings(default)
+            return
+        if isinstance(expr, ast.DictComp):
+            self._apply_module_comprehension_bindings(expr)
+            self._apply_module_expression_bindings(expr.key)
+            self._apply_module_expression_bindings(expr.value)
+            return
+        if isinstance(expr, (ast.ListComp, ast.SetComp)):
+            self._apply_module_comprehension_bindings(expr)
+            self._apply_module_expression_bindings(expr.elt)
+            return
+        if isinstance(expr, ast.GeneratorExp):
+            generators = list(expr.generators)
+            if generators:
+                self._apply_module_expression_bindings(generators[0].iter)
+            return
+        for child in ast.iter_child_nodes(expr):
+            if isinstance(child, ast.AST):
+                self._apply_module_expression_bindings(child)
+
+    def _apply_module_boolop_bindings(self, expr: ast.BoolOp) -> None:
+        for value in expr.values:
+            self._apply_module_expression_bindings(value)
+            truth = _static_truth_value(value)
+            if isinstance(expr.op, ast.And) and truth is False:
+                return
+            if isinstance(expr.op, ast.Or) and truth is True:
+                return
+
+    def _apply_module_comprehension_bindings(
+        self,
+        expr: ast.ListComp | ast.SetComp | ast.DictComp,
+    ) -> None:
+        for generator in expr.generators:
+            self._apply_module_expression_bindings(generator.iter)
+            for guard in generator.ifs:
+                self._apply_module_expression_bindings(guard)
 
     def _bind_imported_name(
         self,
@@ -274,6 +526,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         namespace_root: Optional[str] = None,
     ) -> None:
         self._imported_names[bound] = (source_module, alias_of)
+        self._dynamic_module_aliases.discard(bound)
         if namespace_root is None:
             module_source = _module_member_import_source(
                 source_module, alias_of or bound
@@ -289,6 +542,7 @@ class _BehavioralCollector(ast.NodeVisitor):
     def _unbind_imported_name(self, name: str) -> None:
         self._imported_names.pop(name, None)
         self._module_imports.pop(name, None)
+        self._dynamic_module_aliases.discard(name)
         self._module_shadowed_imports.add(name)
 
     def _import_from_entries(
@@ -461,25 +715,196 @@ class _BehavioralCollector(ast.NodeVisitor):
         names: set[str] = set()
         for target in node.targets:
             _collect_target_bindings(target, names)
+        self.visit(node.value)
+        if self._local_module_import_scopes:
+            dynamic_module = self._literal_importlib_import_module_path(node.value)
+            if dynamic_module is None:
+                self._unbind_module_aliases(names)
+            else:
+                direct_names = _direct_name_targets(node.targets)
+                self._unbind_module_aliases(names - direct_names)
+                self._bind_module_aliases(direct_names, dynamic_module)
         if self._assignment_value_is_local_value(node.value):
             self._local_value_scopes[-1].update(names)
         self._record_assignment_owner_bindings(node.targets, node.value)
-        self.visit(node.value)
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         names: set[str] = set()
         _collect_target_bindings(node.target, names)
+        self.visit(node.target)
+        if node.value is None:
+            return
+        self.visit(node.value)
+        if self._local_module_import_scopes:
+            dynamic_module = self._literal_importlib_import_module_path(node.value)
+            if dynamic_module is None:
+                self._unbind_module_aliases(names)
+            else:
+                direct_names = (
+                    {node.target.id} if isinstance(node.target, ast.Name) else set()
+                )
+                self._unbind_module_aliases(names - direct_names)
+                self._bind_module_aliases(direct_names, dynamic_module)
         if self._assignment_value_is_local_value(node.value):
             self._local_value_scopes[-1].update(names)
         self._record_assignment_owner_bindings([node.target], node.value)
-        self.visit(node.target)
-        if node.value is not None:
-            self.visit(node.value)
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        names: set[str] = set()
+        _collect_target_bindings(node.target, names)
+        self._unbind_module_aliases(names)
+        self.visit(node.value)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        names: set[str] = set()
+        _collect_target_bindings(node.target, names)
+        self.visit(node.value)
+        dynamic_module = self._literal_importlib_import_module_path(node.value)
+        if dynamic_module is None:
+            self._unbind_module_aliases(names)
+        elif isinstance(node.target, ast.Name):
+            self._bind_module_aliases({node.target.id}, dynamic_module)
+        else:
+            self._unbind_module_aliases(names)
+
+    def visit_BoolOp(self, node: ast.BoolOp) -> None:
+        for value in node.values:
+            self.visit(value)
+            truth = _static_truth_value(value)
+            if isinstance(node.op, ast.And) and truth is False:
+                return
+            if isinstance(node.op, ast.Or) and truth is True:
+                return
+
+    def visit_IfExp(self, node: ast.IfExp) -> None:
+        self.visit(node.test)
+        for branch in _reachable_conditional_expressions(
+            node.test,
+            node.body,
+            node.orelse,
+        ):
+            self.visit(branch)
+
+    def visit_If(self, node: ast.If) -> None:
+        self.visit(node.test)
+        for statement in _reachable_conditional_statements(
+            node.test,
+            node.body,
+            node.orelse,
+        ):
+            self.visit(statement)
+
+    def visit_While(self, node: ast.While) -> None:
+        self.visit(node.test)
+        truth = _static_truth_value(node.test)
+        statements = node.orelse if truth is False else node.body + node.orelse
+        for statement in statements:
+            self.visit(statement)
+
+    def visit_For(self, node: ast.For) -> None:
+        self._visit_loop(node)
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> None:
+        self._visit_loop(node)
+
+    def _visit_loop(self, node: ast.For | ast.AsyncFor) -> None:
+        names: set[str] = set()
+        _collect_target_bindings(node.target, names)
+        self.visit(node.iter)
+        self._unbind_module_aliases(names)
+        for statement in node.body + node.orelse:
+            self.visit(statement)
+
+    def visit_With(self, node: ast.With) -> None:
+        self._visit_with(node)
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> None:
+        self._visit_with(node)
+
+    def _visit_with(self, node: ast.With | ast.AsyncWith) -> None:
+        for item in node.items:
+            self.visit(item.context_expr)
+            if item.optional_vars is not None:
+                names: set[str] = set()
+                _collect_target_bindings(item.optional_vars, names)
+                self._unbind_module_aliases(names)
+        for statement in node.body:
+            self.visit(statement)
+
+    def visit_Delete(self, node: ast.Delete) -> None:
+        names: set[str] = set()
+        for target in node.targets:
+            _collect_target_bindings(target, names)
+        self._unbind_module_aliases(names)
+
+    def visit_Match(self, node: ast.Match) -> None:
+        self.visit(node.subject)
+        for case in node.cases:
+            self._visit_match_pattern_references(case.pattern)
+            names: set[str] = set()
+            _collect_pattern_bindings(case.pattern, names)
+            self._unbind_module_aliases(names)
+            if case.guard is not None:
+                self.visit(case.guard)
+            for statement in case.body:
+                self.visit(statement)
+
+    def _visit_match_pattern_references(self, pattern: ast.pattern) -> None:
+        if isinstance(pattern, ast.MatchValue):
+            self.visit(pattern.value)
+            return
+        if isinstance(pattern, ast.MatchClass):
+            self.visit(pattern.cls)
+            for child in list(pattern.patterns) + list(pattern.kwd_patterns):
+                self._visit_match_pattern_references(child)
+            return
+        if isinstance(pattern, ast.MatchMapping):
+            for key in pattern.keys:
+                self.visit(key)
+            for child in pattern.patterns:
+                self._visit_match_pattern_references(child)
+            return
+        if isinstance(pattern, ast.MatchSequence):
+            for child in pattern.patterns:
+                self._visit_match_pattern_references(child)
+            return
+        if isinstance(pattern, ast.MatchOr):
+            for child in pattern.patterns:
+                self._visit_match_pattern_references(child)
+            return
+        if isinstance(pattern, ast.MatchAs) and pattern.pattern is not None:
+            self._visit_match_pattern_references(pattern.pattern)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
+        if node.type is not None:
+            self.visit(node.type)
+        if node.name:
+            self._unbind_module_aliases({node.name})
+        for statement in node.body:
+            self.visit(statement)
+        if node.name:
+            self._unbind_module_aliases({node.name})
 
     def visit_Lambda(self, node: ast.Lambda) -> None:
+        for default in node.args.defaults:
+            self.visit(default)
+        for default in node.args.kw_defaults:
+            if default is not None:
+                self.visit(default)
+
         bindings: set[str] = set()
         _collect_argument_names(node.args, bindings)
-        self._visit_with_expression_shadow_scope(node, bindings)
+        hidden_class_scopes = self._hide_active_class_scopes()
+        try:
+            self._push_expression_shadow_scope(bindings)
+            self._push_lazy_module_alias_scope()
+            try:
+                self.visit(node.body)
+            finally:
+                self._pop_lazy_module_alias_scope()
+                self._pop_expression_shadow_scope()
+        finally:
+            self._restore_hidden_class_scopes(hidden_class_scopes)
 
     def visit_ListComp(self, node: ast.ListComp) -> None:
         self._visit_comprehension(node)
@@ -491,28 +916,126 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._visit_comprehension(node)
 
     def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:
-        self._visit_comprehension(node)
+        generators = list(node.generators)
+        if generators:
+            self.visit(generators[0].iter)
+
+        bindings: set[str] = set()
+        for generator in generators:
+            _collect_target_bindings(generator.target, bindings)
+        hidden_class_scopes = self._hide_active_class_scopes()
+        try:
+            self._push_expression_shadow_scope(bindings)
+            self._push_lazy_module_alias_scope()
+            try:
+                for index, generator in enumerate(generators):
+                    if index > 0:
+                        self.visit(generator.iter)
+                    for guard in generator.ifs:
+                        self.visit(guard)
+                self.visit(node.elt)
+            finally:
+                self._pop_lazy_module_alias_scope()
+                self._pop_expression_shadow_scope()
+        finally:
+            self._restore_hidden_class_scopes(hidden_class_scopes)
 
     def _visit_comprehension(
         self,
         node: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp,
     ) -> None:
-        bindings: set[str] = set()
-        for generator in node.generators:
-            _collect_target_bindings(generator.target, bindings)
-        self._visit_with_expression_shadow_scope(node, bindings)
+        generators = list(node.generators)
+        if generators:
+            self.visit(generators[0].iter)
 
-    def _visit_with_expression_shadow_scope(
-        self,
-        node: ast.AST,
-        bindings: set[str],
-    ) -> None:
-        scope = bindings & self._known_imported_names
-        self._shadowed_import_scopes.append(scope)
+        bindings: set[str] = set()
+        for generator in generators:
+            _collect_target_bindings(generator.target, bindings)
+        hidden_class_scopes = self._hide_active_class_scopes()
         try:
-            self.generic_visit(node)
+            self._push_expression_shadow_scope(bindings)
+            try:
+                for index, generator in enumerate(generators):
+                    if index > 0:
+                        self.visit(generator.iter)
+                    for guard in generator.ifs:
+                        self.visit(guard)
+                if isinstance(node, ast.DictComp):
+                    self.visit(node.key)
+                    self.visit(node.value)
+                else:
+                    self.visit(node.elt)
+            finally:
+                self._pop_expression_shadow_scope()
         finally:
-            self._shadowed_import_scopes.pop()
+            self._restore_hidden_class_scopes(hidden_class_scopes)
+
+    def _push_expression_shadow_scope(self, bindings: set[str]) -> None:
+        import_scope = bindings & self._known_imported_names
+        module_scope = bindings & self._active_module_alias_names()
+        self._shadowed_import_scopes.append(import_scope)
+        self._expression_module_alias_shadow_scopes.append(module_scope)
+
+    def _pop_expression_shadow_scope(self) -> None:
+        self._expression_module_alias_shadow_scopes.pop()
+        self._shadowed_import_scopes.pop()
+
+    def _push_lazy_module_alias_scope(self) -> None:
+        self._local_module_import_scopes.append({})
+        self._local_module_alias_shadow_scopes.append(set())
+
+    def _pop_lazy_module_alias_scope(self) -> None:
+        self._local_module_alias_shadow_scopes.pop()
+        self._local_module_import_scopes.pop()
+
+    def _hide_active_class_scopes(self) -> list[_ClassScopeMarker]:
+        hidden: list[_ClassScopeMarker] = []
+        while self._class_scope_markers:
+            marker = self._class_scope_markers[-1]
+            (
+                import_scope,
+                module_scope,
+                module_shadow_scope,
+                value_scope,
+                owner_scope,
+            ) = marker
+            if not (
+                self._local_import_scopes
+                and self._local_import_scopes[-1] is import_scope
+                and self._local_module_import_scopes
+                and self._local_module_import_scopes[-1] is module_scope
+                and self._local_module_alias_shadow_scopes
+                and self._local_module_alias_shadow_scopes[-1] is module_shadow_scope
+                and self._local_value_scopes
+                and self._local_value_scopes[-1] is value_scope
+                and self._object_owner_scopes
+                and self._object_owner_scopes[-1] is owner_scope
+            ):
+                break
+            self._class_scope_markers.pop()
+            self._object_owner_scopes.pop()
+            self._local_value_scopes.pop()
+            self._local_module_alias_shadow_scopes.pop()
+            self._local_module_import_scopes.pop()
+            self._local_import_scopes.pop()
+            hidden.append(marker)
+        return hidden
+
+    def _restore_hidden_class_scopes(self, hidden: list[_ClassScopeMarker]) -> None:
+        for marker in reversed(hidden):
+            (
+                import_scope,
+                module_scope,
+                module_shadow_scope,
+                value_scope,
+                owner_scope,
+            ) = marker
+            self._local_import_scopes.append(import_scope)
+            self._local_module_import_scopes.append(module_scope)
+            self._local_module_alias_shadow_scopes.append(module_shadow_scope)
+            self._local_value_scopes.append(value_scope)
+            self._object_owner_scopes.append(owner_scope)
+            self._class_scope_markers.append(marker)
 
     def _resolve_attribute_chain(
         self, node: ast.Attribute
@@ -528,17 +1051,26 @@ class _BehavioralCollector(ast.NodeVisitor):
         while isinstance(current, ast.Attribute):
             attrs.append(current.attr)
             current = current.value
-        if not isinstance(current, ast.Name):
-            return None
-        if self._name_is_lexically_shadowed_import(current.id):
-            return None
-        namespace = self._resolve_local_module_import(current.id)
-        if namespace is None:
-            if self._name_is_function_import_bound(current.id):
+        if isinstance(current, ast.Name):
+            if self._name_is_expression_module_alias_shadowed(current.id):
                 return None
-            if current.id in self._module_shadowed_imports:
-                return None
-            namespace = self._module_imports.get(current.id)
+            namespace, shadowed = self._resolve_local_module_import(current.id)
+            if namespace is None:
+                if shadowed:
+                    return None
+                if self._name_is_lexically_shadowed_import(current.id):
+                    return None
+                if self._name_is_function_import_bound(current.id):
+                    return None
+                namespace = self._module_import_source_for_node(current.id, node)
+                if namespace is None and current.id in self._module_shadowed_imports:
+                    return None
+        elif isinstance(current, ast.Call):
+            namespace = self._literal_importlib_import_module_path(current)
+        elif isinstance(current, ast.NamedExpr):
+            namespace = self._literal_importlib_import_module_path(current.value)
+        else:
+            return None
         if namespace is None:
             return None
         attrs.reverse()  # outermost (leaf) is now last
@@ -566,26 +1098,77 @@ class _BehavioralCollector(ast.NodeVisitor):
         return import_source, alias_of or name
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self._visit_class_runtime_definition_expressions(node)
+        self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
+        hidden_class_scopes = self._hide_active_class_scopes()
         is_top_level = self._function_depth == 0 and not self._class_stack
         self._class_stack.append(
             is_top_level and _is_pytest_discoverable_test_class(node)
         )
-        self.generic_visit(node)
-        self._class_stack.pop()
+        class_import_scope: _ImportScope = {}
+        class_module_scope: _ModuleImportScope = {}
+        class_module_shadow_scope: _ModuleAliasShadowScope = set()
+        class_value_scope: _LocalValueScope = set()
+        class_owner_scope: _ObjectOwnerScope = {}
+        class_scope_marker: _ClassScopeMarker = (
+            class_import_scope,
+            class_module_scope,
+            class_module_shadow_scope,
+            class_value_scope,
+            class_owner_scope,
+        )
+        self._local_import_scopes.append(class_import_scope)
+        self._local_module_import_scopes.append(class_module_scope)
+        self._local_module_alias_shadow_scopes.append(class_module_shadow_scope)
+        self._local_value_scopes.append(class_value_scope)
+        self._object_owner_scopes.append(class_owner_scope)
+        self._class_scope_markers.append(class_scope_marker)
+        try:
+            for statement in node.body:
+                self.visit(statement)
+        finally:
+            self._class_scope_markers.pop()
+            self._object_owner_scopes.pop()
+            self._local_value_scopes.pop()
+            self._local_module_alias_shadow_scopes.pop()
+            self._local_module_import_scopes.pop()
+            self._local_import_scopes.pop()
+            self._class_stack.pop()
+            self._restore_hidden_class_scopes(hidden_class_scopes)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._visit_runtime_definition_expressions(node)
+        self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
             self._add_reference(node.name, reference_context="access")
-        self._visit_runtime_definition_expressions(node)
+        self._visit_function_body_without_class_scopes(node)
+
+    def _visit_function_body_without_class_scopes(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        hidden_class_scopes = self._hide_active_class_scopes()
+        try:
+            self._visit_function_body_scope(node)
+        finally:
+            self._restore_hidden_class_scopes(hidden_class_scopes)
+
+    def _visit_function_body_scope(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
         self._push_function_shadow_scope(node)
         self._function_import_bound_scopes.append(
             _function_import_bound_names(node, self._known_imported_names)
         )
         self._local_import_scopes.append({})
         self._local_module_import_scopes.append({})
+        self._local_module_alias_shadow_scopes.append(
+            _function_module_alias_shadows(node, self._active_module_alias_names())
+        )
         self._local_value_scopes.append(set())
         self._object_owner_scopes.append({})
         self._argument_name_scopes.append(_argument_names(node.args))
@@ -597,38 +1180,20 @@ class _BehavioralCollector(ast.NodeVisitor):
             self._argument_name_scopes.pop()
             self._object_owner_scopes.pop()
             self._local_value_scopes.pop()
+            self._local_module_alias_shadow_scopes.pop()
             self._local_module_import_scopes.pop()
             self._local_import_scopes.pop()
             self._function_import_bound_scopes.pop()
             self._shadowed_import_scopes.pop()
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._visit_runtime_definition_expressions(node)
+        self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
             self._add_test_function(node.name, node.lineno)
             self._add_reference(node.name, reference_context="access")
-        self._visit_runtime_definition_expressions(node)
-        self._push_function_shadow_scope(node)
-        self._function_import_bound_scopes.append(
-            _function_import_bound_names(node, self._known_imported_names)
-        )
-        self._local_import_scopes.append({})
-        self._local_module_import_scopes.append({})
-        self._local_value_scopes.append(set())
-        self._object_owner_scopes.append({})
-        self._argument_name_scopes.append(_argument_names(node.args))
-        self._function_depth += 1
-        try:
-            self._visit_function_body(node)
-        finally:
-            self._function_depth -= 1
-            self._argument_name_scopes.pop()
-            self._object_owner_scopes.pop()
-            self._local_value_scopes.pop()
-            self._local_module_import_scopes.pop()
-            self._local_import_scopes.pop()
-            self._function_import_bound_scopes.pop()
-            self._shadowed_import_scopes.pop()
+        self._visit_function_body_without_class_scopes(node)
 
     def _visit_runtime_definition_expressions(
         self,
@@ -641,6 +1206,14 @@ class _BehavioralCollector(ast.NodeVisitor):
         for default in node.args.kw_defaults:
             if default is not None:
                 self.visit(default)
+
+    def _visit_class_runtime_definition_expressions(self, node: ast.ClassDef) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for base in node.bases:
+            self.visit(base)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
 
     def _visit_function_body(
         self,
@@ -733,10 +1306,112 @@ class _BehavioralCollector(ast.NodeVisitor):
                 return scope[name]
         return None
 
-    def _resolve_local_module_import(self, name: str) -> Optional[str]:
-        for scope in reversed(self._local_module_import_scopes):
-            if name in scope:
-                return scope[name]
+    def _active_module_alias_names(self) -> set[str]:
+        names = set(self._dynamic_module_aliases)
+        for scope in self._local_module_import_scopes:
+            names.update(scope)
+        return names
+
+    def _resolve_local_module_import(self, name: str) -> tuple[Optional[str], bool]:
+        scopes = zip(
+            self._local_module_import_scopes,
+            self._local_module_alias_shadow_scopes,
+        )
+        for module_scope, shadow_scope in reversed(list(scopes)):
+            if name in module_scope:
+                return module_scope[name], False
+            if name in shadow_scope:
+                return None, True
+        return None, False
+
+    def _bind_module_aliases(
+        self,
+        names: set[str],
+        module_path: str,
+        *,
+        position: Optional[tuple[int, int]] = None,
+    ) -> None:
+        if not names:
+            return
+        if self._local_module_import_scopes:
+            scope = self._local_module_import_scopes[-1]
+            for name in names:
+                scope[name] = module_path
+                if self._local_module_alias_shadow_scopes:
+                    self._local_module_alias_shadow_scopes[-1].discard(name)
+            return
+        if not self._scanning_module_bindings:
+            return
+        for name in names:
+            self._imported_names.pop(name, None)
+            self._module_imports[name] = module_path
+            self._dynamic_module_aliases.add(name)
+            if position is not None:
+                self._record_module_alias_event(name, module_path, position)
+            self._module_shadowed_imports.discard(name)
+
+    def _unbind_module_aliases(
+        self,
+        names: set[str],
+        *,
+        position: Optional[tuple[int, int]] = None,
+    ) -> None:
+        if not names:
+            return
+        if self._local_module_import_scopes:
+            scope = self._local_module_import_scopes[-1]
+            for name in names:
+                scope.pop(name, None)
+                if self._local_module_alias_shadow_scopes:
+                    self._local_module_alias_shadow_scopes[-1].add(name)
+            return
+        if not self._scanning_module_bindings:
+            return
+        for name in names:
+            had_module_alias = (
+                name in self._module_imports or name in self._dynamic_module_aliases
+            )
+            self._module_imports.pop(name, None)
+            self._dynamic_module_aliases.discard(name)
+            if had_module_alias:
+                self._record_module_alias_event(name, None, position)
+
+    def _record_module_alias_event(
+        self,
+        name: str,
+        source: Optional[str],
+        position: Optional[tuple[int, int]],
+    ) -> None:
+        if position is None:
+            return
+        self._dynamic_module_alias_events.setdefault(name, []).append(
+            (position, source)
+        )
+
+    def _literal_importlib_import_module_path(
+        self,
+        node: Optional[ast.AST],
+    ) -> Optional[str]:
+        if not isinstance(node, ast.Call):
+            return None
+        if not node.args:
+            return None
+        module_arg = node.args[0]
+        if not (
+            isinstance(module_arg, ast.Constant) and isinstance(module_arg.value, str)
+        ):
+            return None
+
+        func = node.func
+        if isinstance(func, ast.Attribute) and func.attr == "import_module":
+            resolved = self._resolve_attribute_chain(func)
+            if resolved == ("import_module", "importlib"):
+                return module_arg.value
+            return None
+        if isinstance(func, ast.Name):
+            identity = self._keyword_import_identity_for_name(func.id)
+            if identity == ("importlib", "import_module"):
+                return module_arg.value
         return None
 
     def _record_assignment_owner_bindings(
@@ -837,6 +1512,29 @@ class _BehavioralCollector(ast.NodeVisitor):
     def _name_is_lexically_shadowed_import(self, name: str) -> bool:
         return any(name in scope for scope in self._shadowed_import_scopes)
 
+    def _name_is_expression_module_alias_shadowed(self, name: str) -> bool:
+        return any(
+            name in scope for scope in self._expression_module_alias_shadow_scopes
+        )
+
+    def _module_import_source_for_node(
+        self,
+        name: str,
+        node: ast.AST,
+    ) -> Optional[str]:
+        node_position = _node_start_position(node)
+        events = self._dynamic_module_alias_events.get(name, [])
+        if self._function_depth == 0 and node_position is not None and events:
+            source: Optional[str] = None
+            for event_position, event_source in sorted(
+                events, key=lambda event: event[0]
+            ):
+                if event_position > node_position:
+                    break
+                source = event_source
+            return source
+        return self._module_imports.get(name)
+
     def _name_is_function_import_bound(self, name: str) -> bool:
         return any(name in scope for scope in self._function_import_bound_scopes)
 
@@ -922,6 +1620,17 @@ def _function_shadowed_imports(
     return bindings & imported_names
 
 
+def _function_module_alias_shadows(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    module_alias_names: set[str],
+) -> set[str]:
+    bindings: set[str] = set()
+    _collect_argument_names(node.args, bindings)
+    for statement in node.body:
+        _collect_statement_bindings(statement, bindings)
+    return bindings & module_alias_names
+
+
 def _argument_names(args: ast.arguments) -> set[str]:
     names: set[str] = set()
     _collect_argument_names(args, names)
@@ -991,8 +1700,13 @@ def _collect_argument_names(args: ast.arguments, bindings: set[str]) -> None:
 
 
 def _collect_statement_bindings(statement: ast.stmt, bindings: set[str]) -> None:
-    if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+    if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
         bindings.add(statement.name)
+        _collect_function_definition_expression_bindings(statement, bindings)
+        return
+    if isinstance(statement, ast.ClassDef):
+        bindings.add(statement.name)
+        _collect_class_definition_expression_bindings(statement, bindings)
         return
     if isinstance(statement, ast.Return):
         _collect_expression_bindings(statement.value, bindings)
@@ -1012,6 +1726,10 @@ def _collect_statement_bindings(statement: ast.stmt, bindings: set[str]) -> None
     if isinstance(statement, (ast.AnnAssign, ast.AugAssign)):
         _collect_target_bindings(statement.target, bindings)
         _collect_expression_bindings(statement.value, bindings)
+        return
+    if isinstance(statement, ast.Delete):
+        for target in statement.targets:
+            _collect_target_bindings(target, bindings)
         return
     if isinstance(statement, (ast.For, ast.AsyncFor)):
         _collect_target_bindings(statement.target, bindings)
@@ -1050,6 +1768,28 @@ def _collect_statement_bindings(statement: ast.stmt, bindings: set[str]) -> None
                 _collect_statement_bindings(child, bindings)
 
 
+def _collect_function_definition_expression_bindings(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    bindings: set[str],
+) -> None:
+    for decorator in node.decorator_list:
+        _collect_expression_bindings(decorator, bindings)
+    for default in list(node.args.defaults) + list(node.args.kw_defaults):
+        _collect_expression_bindings(default, bindings)
+
+
+def _collect_class_definition_expression_bindings(
+    node: ast.ClassDef,
+    bindings: set[str],
+) -> None:
+    for decorator in node.decorator_list:
+        _collect_expression_bindings(decorator, bindings)
+    for base in node.bases:
+        _collect_expression_bindings(base, bindings)
+    for keyword in node.keywords:
+        _collect_expression_bindings(keyword.value, bindings)
+
+
 def _collect_target_bindings(target: ast.expr, bindings: set[str]) -> None:
     if isinstance(target, ast.Name):
         bindings.add(target.id)
@@ -1062,6 +1802,106 @@ def _collect_target_bindings(target: ast.expr, bindings: set[str]) -> None:
             _collect_target_bindings(element, bindings)
 
 
+def _direct_name_targets(targets: list[ast.expr]) -> set[str]:
+    return {target.id for target in targets if isinstance(target, ast.Name)}
+
+
+def _node_start_position(node: Optional[ast.AST]) -> Optional[tuple[int, int]]:
+    if node is None:
+        return None
+    line = getattr(node, "lineno", None)
+    if line is None:
+        return None
+    column = getattr(node, "col_offset", None)
+    return line, column if column is not None else 0
+
+
+def _node_end_position(node: Optional[ast.AST]) -> Optional[tuple[int, int]]:
+    if node is None:
+        return None
+    line = getattr(node, "end_lineno", None) or getattr(node, "lineno", None)
+    if line is None:
+        return None
+    column = getattr(node, "end_col_offset", None)
+    if column is None:
+        column = getattr(node, "col_offset", 0)
+    return line, column
+
+
+def _binding_position(
+    value: Optional[ast.AST],
+    targets: list[ast.expr],
+) -> Optional[tuple[int, int]]:
+    value_position = _node_end_position(value)
+    if value_position is not None:
+        return value_position
+    for target in targets:
+        target_position = _node_end_position(target)
+        if target_position is not None:
+            return target_position
+    return None
+
+
+def _reachable_conditional_statements(
+    test: ast.AST,
+    body: list[ast.stmt],
+    orelse: list[ast.stmt],
+) -> list[ast.stmt]:
+    truth = _static_truth_value(test)
+    if truth is True:
+        return body
+    if truth is False:
+        return orelse
+    return body + orelse
+
+
+def _reachable_conditional_expressions(
+    test: ast.AST,
+    body: ast.expr,
+    orelse: ast.expr,
+) -> list[ast.expr]:
+    truth = _static_truth_value(test)
+    if truth is True:
+        return [body]
+    if truth is False:
+        return [orelse]
+    return [body, orelse]
+
+
+def _static_truth_value(expr: ast.AST) -> Optional[bool]:
+    if isinstance(expr, ast.Constant):
+        return bool(expr.value)
+    if isinstance(expr, ast.UnaryOp) and isinstance(expr.op, ast.Not):
+        truth = _static_truth_value(expr.operand)
+        if truth is not None:
+            return not truth
+        return None
+    if isinstance(expr, ast.BoolOp):
+        if isinstance(expr.op, ast.And):
+            result: Optional[bool] = True
+            for value in expr.values:
+                truth = _static_truth_value(value)
+                if truth is False:
+                    return False
+                if truth is None:
+                    result = None
+            return result
+        if isinstance(expr.op, ast.Or):
+            result = False
+            for value in expr.values:
+                truth = _static_truth_value(value)
+                if truth is True:
+                    return True
+                if truth is None:
+                    result = None
+            return result
+    if isinstance(expr, (ast.Tuple, ast.List, ast.Set)):
+        return bool(expr.elts)
+    if isinstance(expr, ast.Dict):
+        return bool(expr.keys)
+    return None
+
+
 def _collect_expression_bindings(expr: Optional[ast.AST], bindings: set[str]) -> None:
     if expr is None:
         return
@@ -1070,10 +1910,37 @@ def _collect_expression_bindings(expr: Optional[ast.AST], bindings: set[str]) ->
         _collect_expression_bindings(expr.value, bindings)
         return
     if isinstance(expr, ast.Lambda):
+        for default in expr.args.defaults:
+            _collect_expression_bindings(default, bindings)
+        for default in expr.args.kw_defaults:
+            _collect_expression_bindings(default, bindings)
+        return
+    if isinstance(expr, ast.DictComp):
+        _collect_comprehension_expression_bindings(expr, bindings)
+        _collect_expression_bindings(expr.key, bindings)
+        _collect_expression_bindings(expr.value, bindings)
+        return
+    if isinstance(expr, (ast.ListComp, ast.SetComp)):
+        _collect_comprehension_expression_bindings(expr, bindings)
+        _collect_expression_bindings(expr.elt, bindings)
+        return
+    if isinstance(expr, ast.GeneratorExp):
+        _collect_comprehension_expression_bindings(expr, bindings)
+        _collect_expression_bindings(expr.elt, bindings)
         return
     for child in ast.iter_child_nodes(expr):
-        if isinstance(child, ast.expr):
+        if isinstance(child, ast.AST):
             _collect_expression_bindings(child, bindings)
+
+
+def _collect_comprehension_expression_bindings(
+    expr: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp,
+    bindings: set[str],
+) -> None:
+    for generator in expr.generators:
+        _collect_expression_bindings(generator.iter, bindings)
+        for guard in generator.ifs:
+            _collect_expression_bindings(guard, bindings)
 
 
 def _collect_pattern_bindings(pattern: ast.pattern, bindings: set[str]) -> None:
