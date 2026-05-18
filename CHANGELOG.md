@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.2] - 2026-05-18
+
+### Added
+- **Post-030 validation hardening roadmap** — Added draft manifests and backlog coverage for identity-backed behavioral validation, validate-command execution enforcement, and strict `maid verify` behavior.
+
+### Changed
+- **`maid verify` strictness** — `maid verify` now runs strict gates by default and reports that strict mode in both text and JSON output.
+
+### Fixed
+- **Identity-backed behavioral coverage** — Behavioral validation now rejects fake coverage from import-only references, shadowed/rebound names, local type-only references, assignment/delete targets, and unrelated constructor keyword usage while preserving legitimate Python and TypeScript references.
+- **Validation command integrity** — Manifest validation commands must execute real test runners, and `maid verify`/`maid test` now fail loudly for non-executing or bypassed validation commands.
+- **Coherence JSON output** — `maid validate --coherence --json` now emits a single JSON document, including failure cases, instead of mixing multiple JSON payloads.
+
 ## [2.9.1] - 2026-05-17
 
 ### Added
