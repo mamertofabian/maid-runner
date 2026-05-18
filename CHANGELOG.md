@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.3] - 2026-05-18
+
+### Fixed
+- **Python `src/` layout behavioral coverage** — Identity-backed E200 coverage checks now treat `src.foo.bar` manifest identities and `foo.bar` test imports as the same module when `src/` is used as a Python source root, while preserving strict identity checks for unrelated prefixes and import-only placeholders.
+
 ## [2.9.2] - 2026-05-18
 
 ### Added

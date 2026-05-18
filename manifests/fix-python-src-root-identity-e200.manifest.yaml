@@ -1,0 +1,87 @@
+schema: "2"
+goal: "Fix Python E200 false positives when src is a PYTHONPATH source root"
+type: fix
+created: "2026-05-18"
+metadata:
+  tags:
+    - python
+    - behavioral-coverage
+    - identity
+    - src-layout
+  priority: high
+description: |
+  Python projects commonly place importable packages under src/ and configure
+  pytest/PYTHONPATH so runtime imports omit that leading directory. MAID derives
+  declared artifact identity from manifest file paths, so
+  src/ai_analysis/services/score_payloads.py becomes
+  src.ai_analysis.services.score_payloads, while the test import identity is
+  ai_analysis.services.score_payloads.
+
+  Preserve identity-backed E200 enforcement while accepting this source-root
+  layout as the same module identity. The fix belongs in the identity matcher:
+  it should make legitimate source-root imports pass without reopening
+  name-only fallback for unrelated modules or import-only placeholders.
+temptations:
+  - risk: "Do not silence E200 whenever a same-named artifact appears in any test."
+    instead: "Keep coverage tied to identity-bearing behavioral references and only normalize the source-root module prefix."
+  - risk: "Do not make import declarations alone count as behavioral coverage."
+    instead: "Use the existing reference_context rules so a passing test still calls, accesses, or otherwise exercises the artifact."
+  - risk: "Do not add repo-specific configuration for one downstream project."
+    instead: "Handle the common src-layout identity shape generically inside Python module identity matching."
+files:
+  edit:
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+          description: "Match Python behavioral references to manifest-declared artifacts while treating src-prefixed and source-root import module identities as equivalent."
+    - path: tests/core/test_identity_matching.py
+      artifacts:
+        - kind: test_function
+          name: test_src_prefixed_artifact_matches_source_root_import
+          source_scenario: "A manifest path under src produces module identity src.ai_analysis.services.score_payloads while the test imports ai_analysis.services.score_payloads."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The identity matcher accepts the source-root import as coverage for the src-prefixed artifact."
+        - kind: test_function
+          name: test_non_source_root_prefix_does_not_match_tail_import
+          source_scenario: "A manifest path under an arbitrary leading package produces vendor.ai_analysis.services.score_payloads while the test imports ai_analysis.services.score_payloads."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The identity matcher rejects the non-src prefix so source-root handling does not become broad tail matching."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_python_src_layout_import_covers_manifest_artifact_without_src_prefix
+          source_scenario: "A manifest declares src/ai_analysis/services/score_payloads.py and a test imports build_rufus_score_payload from ai_analysis.services.score_payloads."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without E200 because the test calls the imported artifact through the source-root module identity."
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/validators/python.py
+    - manifests/add-semantic-reference-index.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_identity_matching.py tests/core/test_validate.py

@@ -18,6 +18,7 @@ from maid_runner.validators.base import FoundArtifact
 
 
 _ReexportResolver = Callable[[str, str, Path], Optional[tuple[str, str]]]
+_SOURCE_ROOT_MODULE_PREFIXES = frozenset({"src"})
 
 
 def _reference_can_cover_artifact(
@@ -47,11 +48,28 @@ def _reference_can_cover_artifact(
 def _module_identity_matches(reference_module: str, artifact_module: str) -> bool:
     if reference_module == artifact_module:
         return True
+    if _source_root_module_identity_matches(reference_module, artifact_module):
+        return True
     if "/" in reference_module or "/" not in artifact_module:
         return False
     if "." in Path(artifact_module).name:
         return False
     return reference_module.replace(".", "/") == artifact_module
+
+
+def _source_root_module_identity_matches(left: str, right: str) -> bool:
+    if "/" in left or "/" in right:
+        return False
+    return _without_source_root_prefix(left) == right or (
+        _without_source_root_prefix(right) == left
+    )
+
+
+def _without_source_root_prefix(module: str) -> Optional[str]:
+    parts = module.split(".")
+    if len(parts) < 2 or parts[0] not in _SOURCE_ROOT_MODULE_PREFIXES:
+        return None
+    return ".".join(parts[1:])
 
 
 def _reference_identity_can_represent_artifact(

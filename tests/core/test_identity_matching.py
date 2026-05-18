@@ -170,6 +170,42 @@ class TestMatchArtifactToReferences:
         references = [_ref("authenticate", import_source="src.auth")]
         assert match_artifact_to_references(artifact, references, tmp_path)
 
+    def test_src_prefixed_artifact_matches_source_root_import(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "build_rufus_score_payload",
+            module_path="src.ai_analysis.services.score_payloads",
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="build_rufus_score_payload",
+                import_source="ai_analysis.services.score_payloads",
+                reference_context="call",
+            )
+        ]
+
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_non_source_root_prefix_does_not_match_tail_import(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "build_rufus_score_payload",
+            module_path="vendor.ai_analysis.services.score_payloads",
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="build_rufus_score_payload",
+                import_source="ai_analysis.services.score_payloads",
+                reference_context="call",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
     def test_dotful_path_modules_do_not_match_slash_normalized_paths(
         self, tmp_path: Path
     ) -> None:

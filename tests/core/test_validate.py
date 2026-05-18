@@ -4485,6 +4485,52 @@ validate:
         assert len(untested) == 1
         assert "update" in untested[0].message
 
+    def test_python_src_layout_import_covers_manifest_artifact_without_src_prefix(
+        self, project
+    ):
+        """A src-layout import can cover a manifest path that includes src/."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "score-payloads.manifest.yaml",
+            """schema: "2"
+goal: "Expose score payload serializers"
+type: fix
+files:
+  edit:
+    - path: src/ai_analysis/services/score_payloads.py
+      artifacts:
+        - kind: function
+          name: build_rufus_score_payload
+  read:
+    - tests/test_score_payloads.py
+validate:
+  - pytest tests/test_score_payloads.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/ai_analysis/services/score_payloads.py",
+            "def build_rufus_score_payload(value):\n    return value\n",
+        )
+        _write_source(
+            project,
+            "tests/test_score_payloads.py",
+            "from ai_analysis.services.score_payloads import "
+            "build_rufus_score_payload\n\n"
+            "def test_build_rufus_score_payload_includes_split_scores():\n"
+            "    assert build_rufus_score_payload({'copy_score': 8})"
+            " == {'copy_score': 8}\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+        untested = [
+            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+        ]
+        assert result.success is True
+        assert untested == []
+
     @pytest.mark.parametrize(
         ("test_source", "scenario"),
         [
