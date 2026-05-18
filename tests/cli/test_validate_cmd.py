@@ -2057,6 +2057,166 @@ class TestCmdValidateCoherenceFlag:
         assert data["tests"]["total"] == 1
         assert data["coherence"]["success"] is True
 
+    def test_coherence_flag_json_preserves_failing_run_tests_result_in_single_document(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-fail-coherence-json",
+            "python -m pytest tests/test_gate.py -q",
+            test_assertion="gate() == 'nope'",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-fail-coherence-json.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--coherence",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        assert data["tests"]["success"] is False
+        assert data["tests"]["total"] == 1
+        assert data["tests"]["failed"] == 1
+        assert data["tests"]["results"][0]["exit_code"] == 1
+        assert data["coherence"]["success"] is True
+
+    def test_coherence_flag_json_preserves_failing_run_tests_and_coherence_result_in_single_document(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-and-coherence-fail-json",
+            "python -m pytest tests/test_gate.py -q",
+            test_assertion="gate() == 'nope'",
+        )
+        (tmp_path / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-gate",
+                            "description": "gate module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/gate.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-and-coherence-fail-json.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--coherence",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        assert data["tests"]["success"] is False
+        assert data["tests"]["failed"] == 1
+        assert data["coherence"]["success"] is False
+        assert data["coherence"]["errors"] == 1
+        assert data["coherence"]["issues"][0]["message"] == "gate module is blocked"
+
+    def test_coherence_flag_json_preserves_batch_failing_run_tests_result_in_single_document(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "batch-run-tests-fail-coherence-json",
+            "python -m pytest tests/test_gate.py -q",
+            test_assertion="gate() == 'nope'",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--run-tests", "--coherence", "--json"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        assert data["validation"]["total"] == 1
+        assert data["tests"]["success"] is False
+        assert data["tests"]["total"] == 1
+        assert data["tests"]["failed"] == 1
+        assert data["tests"]["results"][0]["manifest"] == (
+            "batch-run-tests-fail-coherence-json"
+        )
+        assert data["tests"]["results"][0]["exit_code"] == 1
+        assert data["coherence"]["success"] is True
+
+    def test_coherence_flag_json_preserves_batch_failing_run_tests_and_coherence_result_in_single_document(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "batch-run-tests-and-coherence-fail-json",
+            "python -m pytest tests/test_gate.py -q",
+            test_assertion="gate() == 'nope'",
+        )
+        (tmp_path / ".maid-constraints.json").write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "name": "no-gate",
+                            "description": "gate module is blocked",
+                            "pattern": {
+                                "file_pattern": "src/gate.py",
+                                "forbidden_imports": ["blocked"],
+                            },
+                            "severity": "error",
+                        }
+                    ]
+                }
+            )
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--run-tests", "--coherence", "--json"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        assert data["tests"]["success"] is False
+        assert data["tests"]["failed"] == 1
+        assert data["coherence"]["success"] is False
+        assert data["coherence"]["errors"] == 1
+        assert data["coherence"]["issues"][0]["message"] == "gate module is blocked"
+
     def test_coherence_flag_returns_2_when_coherence_cannot_run(
         self, project_dir, capsys, monkeypatch
     ):
@@ -2089,6 +2249,41 @@ class TestCmdValidateCoherenceFlag:
         assert exit_code == 2
         captured = capsys.readouterr()
         assert "cannot run coherence for manifests/" in captured.err
+
+    def test_coherence_flag_json_returns_2_when_coherence_cannot_run(
+        self, project_dir, capsys, monkeypatch
+    ):
+        from maid_runner.cli.commands import validate
+        from maid_runner.cli.commands.validate import run_coherence
+
+        assert callable(run_coherence)
+
+        def fail_coherence(manifest_dir, json_mode):
+            raise RuntimeError(f"cannot run coherence for {manifest_dir}")
+
+        monkeypatch.setattr(validate, "run_coherence", fail_coherence)
+
+        os.chdir(project_dir)
+        args = argparse.Namespace(
+            watch=False,
+            watch_all=False,
+            manifest_path="manifests/add-greet.manifest.yaml",
+            manifest_dir="manifests/",
+            mode="implementation",
+            json=True,
+            quiet=False,
+            no_chain=True,
+            coherence=True,
+            coherence_only=False,
+        )
+
+        exit_code = validate.cmd_validate(args)
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data == {"error": "cannot run coherence for manifests/"}
+        assert captured.err == ""
 
     def test_coherence_flag_appends_coherence_output(self, project_dir, capsys):
         from maid_runner.cli.commands._main import main

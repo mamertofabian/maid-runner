@@ -90,6 +90,42 @@ files:
           expected:
             behavior: "JSON output is one parseable document containing validation, tests, and coherence results, and the command exits 0."
         - kind: test_function
+          name: test_coherence_flag_json_preserves_failing_run_tests_result_in_single_document
+          source_scenario: "Structural validation and coherence pass, but a manifest validate command fails while --json output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document containing validation, failed tests, and coherence results, and the command exits 1."
+        - kind: test_function
+          name: test_coherence_flag_json_preserves_failing_run_tests_and_coherence_result_in_single_document
+          source_scenario: "Structural validation passes, but manifest validate commands and coherence both fail while --json output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document containing validation, failed tests, failed coherence details, and the command exits 1."
+        - kind: test_function
+          name: test_coherence_flag_json_preserves_batch_failing_run_tests_result_in_single_document
+          source_scenario: "Directory-wide structural validation and coherence pass, but a manifest validate command fails while --json output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document containing batch validation, failed tests, and coherence results, and the command exits 1."
+        - kind: test_function
+          name: test_coherence_flag_json_preserves_batch_failing_run_tests_and_coherence_result_in_single_document
+          source_scenario: "Directory-wide structural validation passes, but manifest validate commands and coherence both fail while --json output is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document containing batch validation, failed tests, failed coherence details, and the command exits 1."
+        - kind: test_function
           name: test_coherence_flag_returns_2_when_coherence_cannot_run
           source_scenario: "Coherence execution raises an exception after structural validation succeeds."
           actions:
@@ -98,6 +134,15 @@ files:
                 export: cmd_validate
           expected:
             behavior: "The command exits 2 and reports the coherence execution error instead of swallowing it."
+        - kind: test_function
+          name: test_coherence_flag_json_returns_2_when_coherence_cannot_run
+          source_scenario: "Coherence execution raises an exception after structural validation succeeds with --json output requested."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_validate
+          expected:
+            behavior: "The command exits 2 and reports the coherence execution error as one parseable JSON document."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - specs/v2-rewrite/09-cli.md
