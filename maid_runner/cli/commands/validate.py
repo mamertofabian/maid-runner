@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from typing import TYPE_CHECKING
 
@@ -68,11 +69,15 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 tests_requested=getattr(args, "run_tests", False),
             )
             if output:
-                print(output)
+                if not (args.coherence and result.success and args.json):
+                    print(output)
 
             if args.coherence and result.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
-                _print_coherence_result(coherence, json_mode=args.json)
+                if args.json:
+                    print(_format_validation_with_coherence_json(output, coherence))
+                else:
+                    _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
                     return 1
 
@@ -96,19 +101,22 @@ def cmd_validate(args: argparse.Namespace) -> int:
             test_result = None
             if batch.success and getattr(args, "run_tests", False):
                 test_result = _run_validate_commands_for_batch(args.manifest_dir)
-            print(
-                format_batch_result(
-                    batch,
-                    json_mode=args.json,
-                    quiet=quiet,
-                    test_result=test_result,
-                    tests_requested=getattr(args, "run_tests", False),
-                )
+            output = format_batch_result(
+                batch,
+                json_mode=args.json,
+                quiet=quiet,
+                test_result=test_result,
+                tests_requested=getattr(args, "run_tests", False),
             )
+            if not (args.coherence and batch.success and args.json):
+                print(output)
 
             if args.coherence and batch.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
-                _print_coherence_result(coherence, json_mode=args.json)
+                if args.json:
+                    print(_format_validation_with_coherence_json(output, coherence))
+                else:
+                    _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
                     return 1
 
@@ -231,6 +239,22 @@ def _print_coherence_result(result: "CoherenceResult", *, json_mode: bool) -> No
     """Print coherence output after structural validation output."""
     print()
     print(format_coherence_result(result, json_mode=json_mode))
+
+
+def _format_validation_with_coherence_json(
+    validation_json: str,
+    coherence: "CoherenceResult",
+) -> str:
+    """Combine validation and coherence results into one JSON document."""
+    payload = json.loads(validation_json)
+    if "validation" not in payload:
+        payload = {
+            "success": payload["success"],
+            "validation": payload,
+        }
+    payload["coherence"] = coherence.to_dict()
+    payload["success"] = bool(payload["success"] and coherence.success)
+    return json.dumps(payload, indent=2)
 
 
 def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:

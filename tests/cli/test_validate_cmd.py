@@ -2000,12 +2000,62 @@ class TestCmdValidateCoherenceFlag:
 
         assert exit_code == 1
         captured = capsys.readouterr()
-        decoder = json.JSONDecoder()
-        _, offset = decoder.raw_decode(captured.out)
-        coherence, _ = decoder.raw_decode(captured.out[offset:].lstrip())
+        data = json.loads(captured.out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        coherence = data["coherence"]
         assert coherence["success"] is False
         assert coherence["errors"] == 1
         assert coherence["issues"][0]["message"] == "greet module is blocked"
+
+    def test_coherence_flag_json_reports_success_in_single_document(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--coherence", "--json"])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is True
+        assert data["validation"]["success"] is True
+        assert data["validation"]["total"] == 1
+        assert data["coherence"]["success"] is True
+        assert data["coherence"]["errors"] == 0
+
+    def test_coherence_flag_json_preserves_run_tests_result_in_single_document(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-coherence-json",
+            "python -m pytest tests/test_gate.py -q",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-coherence-json.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--coherence",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is True
+        assert data["validation"]["success"] is True
+        assert data["tests"]["success"] is True
+        assert data["tests"]["total"] == 1
+        assert data["coherence"]["success"] is True
 
     def test_coherence_flag_returns_2_when_coherence_cannot_run(
         self, project_dir, capsys, monkeypatch

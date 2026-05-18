@@ -1,0 +1,111 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Emit one JSON document for `maid validate --coherence --json`"
+type: fix
+created: "2026-05-18"
+supersedes:
+  - 030-02-make-coherence-flag-fail-closed
+metadata:
+  status: draft
+  tags:
+    - validate
+    - coherence
+    - json
+    - cli
+  priority: critical
+description: |
+  Tighten the `maid validate --coherence` contract from the earlier fail-closed
+  fix. The command already makes coherence failures affect the exit code, but
+  when `--json` is also requested it currently prints validation JSON followed
+  by a second coherence JSON object. That is not one machine-readable document.
+
+  When coherence runs under `--json`, validation, optional validate-command
+  results, and coherence results must be emitted as one top-level JSON object.
+  Text output remains the existing validation block followed by the coherence
+  block because humans benefit from the separated sections.
+temptations:
+  - risk: "Do not keep the current two-object JSON stream and teach callers to raw-decode it."
+    instead: "Emit one JSON object that a normal json.loads or JSON.parse call can consume."
+  - risk: "Do not drop coherence details from JSON to preserve the old validation-only shape."
+    instead: "Include a nested coherence object with the same fields as standalone coherence JSON."
+  - risk: "Do not change text output while fixing the machine-readable contract."
+    instead: "Only combine results when both --json and --coherence are requested."
+  - risk: "Do not make coherence advisory in the combined payload."
+    instead: "Compute the top-level success from validation, optional tests, and coherence success."
+files:
+  edit:
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+        - kind: function
+          name: run_coherence
+          args:
+            - name: manifest_dir
+              type: str
+            - name: json_mode
+              type: bool
+          returns: CoherenceResult
+          description: "Public command helper that runs coherence once and returns the result used by validate output and exit status."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_coherence_flag_returns_1_when_coherence_errors
+          source_scenario: "Structural validation succeeds, but .maid-constraints.json creates a coherence error."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --coherence exits 1 and prints the coherence failure."
+        - kind: test_function
+          name: test_coherence_flag_json_reports_failure_and_exits_1
+          source_scenario: "The same coherence failure is requested with --json output."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document with nested validation and coherence failure details, and the command exits 1."
+        - kind: test_function
+          name: test_coherence_flag_json_reports_success_in_single_document
+          source_scenario: "Directory-wide structural validation and coherence both pass with --json output requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document with nested validation and coherence success details, and the command exits 0."
+        - kind: test_function
+          name: test_coherence_flag_json_preserves_run_tests_result_in_single_document
+          source_scenario: "Structural validation, manifest validate commands, and coherence all pass with --json output requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "JSON output is one parseable document containing validation, tests, and coherence results, and the command exits 0."
+        - kind: test_function
+          name: test_coherence_flag_returns_2_when_coherence_cannot_run
+          source_scenario: "Coherence execution raises an exception after structural validation succeeds."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_validate
+          expected:
+            behavior: "The command exits 2 and reports the coherence execution error instead of swallowing it."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - specs/v2-rewrite/09-cli.md
+    - maid_runner/coherence/engine.py
+    - maid_runner/coherence/result.py
+    - maid_runner/cli/commands/coherence.py
+    - maid_runner/cli/commands/_format.py
+    - tests/cli/test_coherence_cmd.py
+    - tests/cli/test_format.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/cli/test_coherence_cmd.py tests/cli/test_format.py
