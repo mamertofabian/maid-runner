@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 from typing import Union
 
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.manifest import load_manifest
+from maid_runner.core.manifest import load_manifest, validate_manifest_paths
 from maid_runner.core.result import (
     BatchTestResult,
     Severity,
@@ -976,5 +976,9 @@ def _validate_manifest_test_command_integrity(
 
     errors = []
     for manifest in manifests:
+        path_errors = validate_manifest_paths(manifest, project_root)
+        if path_errors:
+            errors.extend(path_errors)
+            continue
         errors.extend(validate_manifest_test_commands(manifest, project_root))
     return errors

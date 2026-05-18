@@ -9,7 +9,16 @@ from pathlib import Path
 from typing import Union
 
 from maid_runner.cli.commands._format import format_verify_result, print_error
-from maid_runner.core.result import VerificationResult, VerificationStageResult
+from maid_runner.core.result import (
+    ErrorCode,
+    Severity,
+    VerificationResult,
+    VerificationStageResult,
+)
+
+
+_STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
+_WARNING_ADVISORY_TASK_TYPES = frozenset({"snapshot", "system-snapshot"})
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -77,6 +86,7 @@ def _run_verify(
             engine,
             manifest_dir,
             ValidationMode.SCHEMA,
+            project_root=root,
             allow_empty=allow_empty,
             fail_on_warnings=fail_on_warnings,
         )
@@ -90,6 +100,7 @@ def _run_verify(
             engine,
             manifest_dir,
             ValidationMode.BEHAVIORAL,
+            project_root=root,
             allow_empty=allow_empty,
             check_assertions=check_assertions,
             fail_on_warnings=fail_on_warnings,
@@ -104,6 +115,7 @@ def _run_verify(
             engine,
             manifest_dir,
             ValidationMode.IMPLEMENTATION,
+            project_root=root,
             allow_empty=allow_empty,
             check_stubs=check_stubs,
             fail_on_warnings=fail_on_warnings,
@@ -149,6 +161,7 @@ def _validation_stage(
     manifest_dir: str,
     mode,
     *,
+    project_root: Path,
     allow_empty: bool,
     check_assertions: bool = False,
     check_stubs: bool = False,
@@ -162,11 +175,16 @@ def _validation_stage(
             allow_empty=allow_empty,
             check_assertions=check_assertions,
             check_stubs=check_stubs,
-            fail_on_warnings=fail_on_warnings,
+            fail_on_warnings=False,
         )
         return VerificationStageResult(
             name=name,
-            success=result.success,
+            success=result.success
+            and not _has_blocking_validation_warnings(
+                result,
+                project_root=project_root,
+                fail_on_warnings=fail_on_warnings,
+            ),
             _duration_ms=_elapsed_ms(started),
             _validation=result,
         )
@@ -272,6 +290,60 @@ def _tests_stage(
         )
     except Exception as exc:
         return _error_stage("tests", started, exc)
+
+
+def _has_blocking_validation_warnings(
+    result,
+    *,
+    project_root: Path,
+    fail_on_warnings: bool,
+) -> bool:
+    if not fail_on_warnings:
+        return False
+
+    for error in getattr(result, "chain_errors", ()):
+        if _is_blocking_chain_warning(error):
+            return True
+
+    for validation in getattr(result, "results", ()):
+        if not getattr(validation, "warnings", ()):
+            continue
+        if _manifest_warnings_are_blocking(validation.manifest_path, project_root):
+            return True
+
+    warnings = getattr(result, "warnings", ())
+    if warnings:
+        manifest_path = getattr(result, "manifest_path", "")
+        return _manifest_warnings_are_blocking(manifest_path, project_root)
+
+    return False
+
+
+def _is_blocking_chain_warning(error) -> bool:
+    if getattr(error, "severity", None) != Severity.WARNING:
+        return False
+    return getattr(error, "code", None) != ErrorCode.GRANDFATHERED_SUPERSESSION
+
+
+def _manifest_warnings_are_blocking(manifest_path: str, project_root: Path) -> bool:
+    try:
+        from maid_runner.core.manifest import load_manifest
+
+        path = Path(manifest_path)
+        if not path.is_absolute():
+            path = project_root / path
+        manifest = load_manifest(path)
+    except Exception:
+        return True
+
+    if (
+        manifest.task_type is not None
+        and manifest.task_type.value in _WARNING_ADVISORY_TASK_TYPES
+    ):
+        return False
+    if manifest.created is None:
+        return True
+    return manifest.created >= _STRICT_WARNING_FAILURE_SINCE
 
 
 def _error_stage(

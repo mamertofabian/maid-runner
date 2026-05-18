@@ -1110,6 +1110,8 @@ def _check_test_assertions(source: str, test_path: str) -> list[ValidationError]
             if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
                 if not node.name.startswith("test_"):
                     continue
+                if _python_func_is_pytest_fixture(node):
+                    continue
                 if _python_func_has_assertion(node):
                     continue
                 errors.append(
@@ -1177,6 +1179,21 @@ def _python_func_has_assertion(node) -> bool:
             if isinstance(func, _ast.Name) and func.id.startswith("assert"):
                 return True
     return False
+
+
+def _python_func_is_pytest_fixture(node) -> bool:
+    import ast as _ast
+
+    def is_fixture_decorator(decorator) -> bool:
+        if isinstance(decorator, _ast.Call):
+            decorator = decorator.func
+        if isinstance(decorator, _ast.Name):
+            return decorator.id == "fixture"
+        if isinstance(decorator, _ast.Attribute):
+            return decorator.attr == "fixture"
+        return False
+
+    return any(is_fixture_decorator(decorator) for decorator in node.decorator_list)
 
 
 def _check_required_imports(

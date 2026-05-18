@@ -77,7 +77,12 @@ def project_with_failing_tests(tmp_path):
     return tmp_path
 
 
-def _write_noop_behavioral_test_project(tmp_path, slug: str = "test-noop"):
+def _write_noop_behavioral_test_project(
+    tmp_path,
+    slug: str = "test-noop",
+    *,
+    validate_command: str = 'python -c "raise SystemExit(0)"',
+):
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir(exist_ok=True)
     src_dir = tmp_path / "src"
@@ -105,11 +110,29 @@ def _write_noop_behavioral_test_project(tmp_path, slug: str = "test-noop"):
             ],
             "read": ["tests/test_gate.py"],
         },
-        "validate": ['python -c "raise SystemExit(0)"'],
+        "validate": [validate_command],
     }
     manifest_path = manifest_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(yaml.dump(manifest))
     return manifest_path
+
+
+def _write_parent_relative_test_target_project(tmp_path, slug: str):
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    manifest_path = _write_noop_behavioral_test_project(
+        project_root,
+        slug,
+        validate_command="python -m pytest ../tests/test_gate.py -q",
+    )
+    sibling_tests = tmp_path / "tests"
+    sibling_tests.mkdir()
+    (sibling_tests / "test_gate.py").write_text(
+        "from src.gate import gate\n\n"
+        "def test_gate():\n"
+        "    assert gate() == 'ok'\n"
+    )
+    return project_root, manifest_path
 
 
 class TestCmdTestAll:
@@ -196,6 +219,24 @@ class TestCmdTestAll:
         assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
         assert "python -c" in captured.out
 
+    def test_test_rejects_parent_relative_validate_command_target(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        project_root, _ = _write_parent_relative_test_target_project(
+            tmp_path,
+            "test-parent-relative-target",
+        )
+
+        os.chdir(project_root)
+        exit_code = main(["test"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E113" in captured.out
+        assert "../tests/test_gate.py" in captured.out
+
 
 class TestCmdTestSingleManifest:
     def test_single_manifest_passing(self, project_with_tests, capsys):
@@ -226,6 +267,24 @@ class TestCmdTestSingleManifest:
         captured = capsys.readouterr()
         assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
         assert "python -c" in captured.out
+
+    def test_test_manifest_rejects_parent_relative_validate_command_target(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        project_root, manifest_path = _write_parent_relative_test_target_project(
+            tmp_path,
+            "test-manifest-parent-relative-target",
+        )
+
+        os.chdir(project_root)
+        exit_code = main(["test", "--manifest", str(manifest_path)])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "E113" in captured.out
+        assert "../tests/test_gate.py" in captured.out
 
 
 class TestCmdTestFailFast:

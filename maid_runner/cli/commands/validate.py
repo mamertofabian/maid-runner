@@ -129,12 +129,14 @@ def run_validate_commands_for_result(
     from maid_runner.core._validation_test_artifacts import (
         validate_manifest_test_commands,
     )
-    from maid_runner.core.manifest import load_manifest
+    from maid_runner.core.manifest import load_manifest, validate_manifest_paths
     from maid_runner.core.result import BatchTestResult
     from maid_runner.core.test_runner import run_manifest_tests
 
     manifest = load_manifest(manifest_path)
-    integrity_errors = validate_manifest_test_commands(manifest, Path("."))
+    integrity_errors = validate_manifest_paths(manifest, Path("."))
+    if not integrity_errors:
+        integrity_errors = validate_manifest_test_commands(manifest, Path("."))
     if integrity_errors:
         return BatchTestResult(
             results=[],
@@ -182,6 +184,7 @@ def _validate_command_integrity_for_manifest_dir(
         validate_manifest_test_commands,
     )
     from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.manifest import validate_manifest_paths
     from maid_runner.core.result import Severity
 
     chain = ManifestChain(project_root / manifest_dir, project_root)
@@ -191,6 +194,10 @@ def _validate_command_integrity_for_manifest_dir(
 
     errors = []
     for manifest in chain.active_manifests():
+        path_errors = validate_manifest_paths(manifest, project_root)
+        if path_errors:
+            errors.extend(path_errors)
+            continue
         errors.extend(validate_manifest_test_commands(manifest, project_root))
     return errors
 

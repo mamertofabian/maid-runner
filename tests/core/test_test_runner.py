@@ -13,7 +13,12 @@ from maid_runner.core.result import ErrorCode, TestRunResult
 from maid_runner.core.types import TestStream
 
 
-def _write_noop_behavioral_test_project(tmp_path, slug: str = "noop-gate"):
+def _write_noop_behavioral_test_project(
+    tmp_path,
+    slug: str = "noop-gate",
+    *,
+    validate_command: str = 'python -c "raise SystemExit(0)"',
+):
     manifests_dir = tmp_path / "manifests"
     manifests_dir.mkdir(exist_ok=True)
     src_dir = tmp_path / "src"
@@ -27,7 +32,7 @@ def _write_noop_behavioral_test_project(tmp_path, slug: str = "noop-gate"):
     )
     manifest_path = manifests_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(
-        """schema: "2"
+        f"""schema: "2"
 goal: "Reject no-op test command"
 type: fix
 files:
@@ -39,10 +44,28 @@ files:
   read:
     - tests/test_gate.py
 validate:
-  - python -c "raise SystemExit(0)"
+  - {validate_command}
 """
     )
     return manifest_path
+
+
+def _write_parent_relative_test_target_project(tmp_path, slug: str):
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    manifest_path = _write_noop_behavioral_test_project(
+        project_root,
+        slug,
+        validate_command="python -m pytest ../tests/test_gate.py -q",
+    )
+    sibling_tests = tmp_path / "tests"
+    sibling_tests.mkdir()
+    (sibling_tests / "test_gate.py").write_text(
+        "from src.gate import gate\n\n"
+        "def test_gate():\n"
+        "    assert gate() == 'ok'\n"
+    )
+    return project_root, manifest_path
 
 
 class TestRunCommand:
@@ -146,6 +169,22 @@ validate:
             ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
         ]
 
+    def test_run_manifest_tests_rejects_parent_relative_validate_command_target(
+        self, tmp_path
+    ):
+        project_root, manifest = _write_parent_relative_test_target_project(
+            tmp_path,
+            "parent-relative-gate",
+        )
+
+        result = run_manifest_tests(manifest, project_root=project_root)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        ]
+
     def test_run_manifest_tests_ignores_ambient_pytest_addopts(
         self, tmp_path, monkeypatch
     ):
@@ -219,6 +258,20 @@ validate:
         assert result.total == 0
         assert [error.code for error in result.chain_errors] == [
             ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_run_tests_rejects_parent_relative_validate_command_target(self, tmp_path):
+        project_root, _ = _write_parent_relative_test_target_project(
+            tmp_path,
+            "parent-relative-gate",
+        )
+
+        result = run_tests(manifest_dir="manifests/", project_root=project_root)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
         ]
 
 

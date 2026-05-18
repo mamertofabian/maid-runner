@@ -292,6 +292,24 @@ files:
                 export: main
           expected:
             behavior: "maid test --manifest exits 1 and reports VALIDATE_COMMAND_DOES_NOT_RUN_TESTS."
+        - kind: test_function
+          name: test_test_rejects_parent_relative_validate_command_target
+          source_scenario: "A manifest declares an in-repo behavioral test but its validate command targets a same-named test file through a parent-relative path."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid test exits 1 and reports the existing manifest path escape error instead of running the outside test file."
+        - kind: test_function
+          name: test_test_manifest_rejects_parent_relative_validate_command_target
+          source_scenario: "A single manifest declares an in-repo behavioral test but its validate command targets a same-named test file through a parent-relative path."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid test --manifest exits 1 and reports the existing manifest path escape error instead of running the outside test file."
     - path: tests/core/test_test_runner.py
       artifacts:
         - kind: test_function
@@ -321,6 +339,24 @@ files:
                 export: run_tests
           expected:
             behavior: "run_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS."
+        - kind: test_function
+          name: test_run_manifest_tests_rejects_parent_relative_validate_command_target
+          source_scenario: "A single manifest declares an in-repo behavioral test but its validate command targets a same-named sibling test file outside the project."
+          actions:
+            - type: api_call
+              subject:
+                export: run_manifest_tests
+          expected:
+            behavior: "run_manifest_tests returns an unsuccessful BatchTestResult with MANIFEST_PATH_OUTSIDE_PROJECT and does not execute the outside test."
+        - kind: test_function
+          name: test_run_tests_rejects_parent_relative_validate_command_target
+          source_scenario: "A manifest directory contains an active manifest whose validate command targets a sibling test file outside the project."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "run_tests returns an unsuccessful BatchTestResult with MANIFEST_PATH_OUTSIDE_PROJECT and does not execute the outside test."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - manifests/030-08-add-validate-run-tests-gate.manifest.yaml

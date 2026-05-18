@@ -167,5 +167,6 @@ The current findings were exercised with throwaway projects under `/tmp` using
 local `ValidationEngine` calls and the local CLI entry point via
 `maid_runner.cli.commands._main.main`.
 
-New planning inventory was added under `manifests/drafts/032-*` for the
-post-030 hardening pass. Drafts are inactive planning artifacts until promoted.
+Planning inventory started under `manifests/drafts/032-*` for the post-030
+hardening pass. The child contracts now live under `manifests/032-01` through
+`manifests/032-03`; the remaining draft epic is inactive roadmap inventory.

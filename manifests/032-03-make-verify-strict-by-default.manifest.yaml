@@ -15,12 +15,14 @@ description: |
   Close the loophole where `maid verify` exits 0 for tests that call a
   production artifact but contain no assertions. `maid verify` is the
   automation-safe done gate, so it should enable assertion checks, stub checks,
-  and warning failure by default.
+  and warning failure by default for new active implementation manifests.
 
   Preserve an explicit CLI advisory opt-out for interactive diagnostics if
   needed, but make permissive behavior visible in the command line and output.
   JSON output should preserve the structured warning/error details that caused
-  the strict failure.
+  the strict failure. Grandfathered and snapshot manifest warnings remain
+  visible but advisory so the full-repository done gate can be adopted without
+  forcing unrelated historical cleanup into this contract.
 temptations:
   - risk: "Do not leave strictness as an option agents must remember."
     instead: "Make verify strict by default and require an explicit opt-out for advisory behavior."
@@ -30,6 +32,8 @@ temptations:
     instead: "Keep the public entry point strict as the done gate, and put any advisory escape hatch on the CLI or a separately declared API."
   - risk: "Do not weaken `--strict` semantics for validate."
     instead: "Scope this change to the verify done gate unless tests prove validate should also change."
+  - risk: "Do not classify pytest fixture helpers as assertion-free tests just because their names start with `test_`."
+    instead: "Ignore fixture-decorated helper functions while still checking real test functions."
 files:
   edit:
     - path: maid_runner/cli/commands/_main.py
@@ -57,6 +61,69 @@ files:
               type: Union[str, Path]
           returns: VerificationResult
           description: "Library entry point for the verify gate with strict behavior as the default."
+        - kind: function
+          name: _validation_stage
+          args:
+            - name: name
+              type: str
+            - name: engine
+            - name: manifest_dir
+              type: str
+            - name: mode
+            - name: project_root
+              type: Path
+            - name: allow_empty
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: check_stubs
+              type: bool
+            - name: fail_on_warnings
+              type: bool
+          returns: VerificationStageResult
+          description: "Run a validation stage while keeping historical advisory warnings visible but non-blocking."
+        - kind: function
+          name: _has_blocking_validation_warnings
+          args:
+            - name: result
+            - name: project_root
+              type: Path
+            - name: fail_on_warnings
+              type: bool
+          returns: bool
+          description: "Decide whether a validation warning should make the verify stage fail."
+        - kind: function
+          name: _is_blocking_chain_warning
+          args:
+            - name: error
+          returns: bool
+          description: "Treat grandfathered supersession warnings as advisory chain diagnostics."
+        - kind: function
+          name: _manifest_warnings_are_blocking
+          args:
+            - name: manifest_path
+              type: str
+            - name: project_root
+              type: Path
+          returns: bool
+          description: "Apply warning-fatal verify behavior to new non-snapshot manifests."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _check_test_assertions
+          args:
+            - name: source
+              type: str
+            - name: test_path
+              type: str
+          returns: list[ValidationError]
+          description: "Warn when real test functions lack assertions without treating pytest fixtures as tests."
+        - kind: function
+          name: _python_func_is_pytest_fixture
+          args:
+            - name: node
+          returns: bool
+          description: "Recognize fixture-decorated Python functions so assertion checks can skip helpers."
     - path: maid_runner/cli/commands/_format.py
       artifacts:
         - kind: function
@@ -87,6 +154,24 @@ files:
           expected:
             behavior: "The command exits according to advisory semantics and makes the warning visible."
         - kind: test_function
+          name: test_verify_legacy_manifest_warning_is_advisory_by_default
+          source_scenario: "A pre-strict manifest has a visible missing-assertion warning."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 0 while preserving the warning in output for historical cleanup."
+        - kind: test_function
+          name: test_verify_ignores_pytest_fixture_helpers_named_like_tests
+          source_scenario: "A test file has a pytest fixture helper whose function name starts with `test_`."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 0 and does not emit E210 for the fixture helper."
+        - kind: test_function
           name: test_verify_json_preserves_missing_assertion_details
           source_scenario: "A caller requests JSON output for a strict missing-assertion failure."
           actions:
@@ -110,7 +195,6 @@ files:
     - docs/plans/maid-validate-hardening-backlog.md
     - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
     - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
-    - maid_runner/core/validate.py
     - tests/cli/test_format.py
 validate:
   - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/cli/test_main.py tests/cli/test_format.py

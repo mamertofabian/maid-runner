@@ -15,6 +15,7 @@ def _write_verify_project(
     slug: str = "verify-gate",
     test_source: str | None = None,
     validate_command: str | None = None,
+    created: str | None = None,
 ):
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir()
@@ -53,6 +54,8 @@ def _write_verify_project(
         },
         "validate": [validate_command or "python -m pytest tests/test_gate.py -q"],
     }
+    if created is not None:
+        manifest["created"] = created
     manifest_path = manifest_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(yaml.dump(manifest))
     return manifest_path
@@ -146,6 +149,55 @@ def test_verify_advisory_mode_allows_missing_assertion_warning(tmp_path, capsys)
     assert "PASS behavioral" in output
     assert "E210" in output
     assert "test_gate" in output
+
+
+def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-legacy-no-assertions",
+        created="2026-05-16",
+        test_source=(
+            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
+        ),
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "PASS behavioral" in output
+    assert "E210" in output
+    assert "test_gate" in output
+
+
+def test_verify_ignores_pytest_fixture_helpers_named_like_tests(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-fixture-helper",
+        test_source=(
+            "import pytest\n"
+            "from src.gate import gate\n\n"
+            "@pytest.fixture\n"
+            "def test_gate_value():\n"
+            "    return gate()\n\n"
+            "def test_gate(test_gate_value):\n"
+            "    assert test_gate_value == 'ok'\n"
+        ),
+    )
+
+    exit_code = main(["verify"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "E210" not in output
 
 
 def test_verify_json_preserves_missing_assertion_details(tmp_path, capsys):
