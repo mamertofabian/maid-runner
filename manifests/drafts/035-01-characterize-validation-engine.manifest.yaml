@@ -1,0 +1,138 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Characterize ValidationEngine orchestration so refactors preserve observable behavior"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: draft
+  tags:
+    - characterization
+    - safe-refactor
+    - validate
+    - testing
+  priority: high
+  engine: safe-refactor
+description: |
+  Add characterization tests that lock the currently observable behavior of
+  the five oversized methods in `maid_runner/core/validate.py` before any
+  refactor extracts helpers from them. Without this suite, a behavior-
+  preserving refactor cannot be proven equivalent.
+
+  The methods in scope are:
+
+  - `ValidationEngine.validate_removed_artifacts` (validate.py:701)
+  - `ValidationEngine.validate_all` (validate.py:226)
+  - `ValidationEngine.validate` (validate.py:115)
+  - `ValidationEngine._check_test_coverage` (validate.py:542)
+  - `ValidationEngine.validate_behavioral` (validate.py:362)
+
+  The characterization suite must lock the exact `ValidationResult` and
+  `BatchValidationResult` outputs for representative inputs, including:
+
+  - the success flag,
+  - the ordered list of `ValidationError` objects (code, severity, message,
+    location),
+  - warnings list shape,
+  - JSON-output schema (via `ValidationResult.to_json` /
+    `BatchValidationResult.to_dict`).
+
+  No production code in `maid_runner/core/validate.py` is modified by this
+  draft. Only the test files declared below are touched. The intent is to
+  establish a baseline that subsequent refactor drafts (035-02 and later)
+  must keep green byte-for-byte where the result is structured data.
+temptations:
+  - risk: "Do not edit `maid_runner/core/validate.py` in this draft."
+    instead: "Restrict the change to new characterization test files; refactor work happens in subsequent drafts."
+  - risk: "Do not characterize only the success path."
+    instead: "Add at least one error-path case per method (missing file, schema rejection, supersession mismatch, behavioral coverage gap, removed-artifact still present)."
+  - risk: "Do not assert on log strings or human-readable summaries."
+    instead: "Assert on structured data: error codes, severities, locations, and JSON shape, so the suite survives cosmetic message edits."
+  - risk: "Do not characterize against mocks of the validator itself."
+    instead: "Drive the suite from realistic on-disk manifests under tmp_path so the recorded behavior matches what users observe."
+  - risk: "Do not over-fit the suite to the current implementation's call order."
+    instead: "Assert on observable outputs only; the suite must survive any equivalent reordering of internal helpers."
+files:
+  create:
+    - path: tests/core/test_validate_engine_characterization.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_locks_success_result_shape_for_clean_manifests
+          source_scenario: "A tmp manifest directory with two clean manifests is validated via ValidationEngine.validate_all."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "BatchValidationResult.success is True, per-manifest ValidationResult success flags are True, and to_dict output matches a snapshot anchored on codes and severities."
+        - kind: test_function
+          name: test_validate_all_locks_error_codes_for_missing_manifest_dir
+          source_scenario: "ValidationEngine.validate_all is run against a nonexistent manifest directory with allow_empty False."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "BatchValidationResult.success is False, the empty-manifest-set error code appears exactly once, and duration_ms is a non-negative float."
+        - kind: test_function
+          name: test_validate_locks_schema_error_shape_for_bad_manifest
+          source_scenario: "A manifest missing required schema fields is validated in IMPLEMENTATION mode."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationResult.success is False and the errors list begins with ErrorCode.SCHEMA_VALIDATION_ERROR carrying the manifest path as the location."
+        - kind: test_function
+          name: test_validate_behavioral_locks_coverage_error_for_uncovered_artifact
+          source_scenario: "A manifest declares an artifact whose tests do not reference it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_behavioral returns a ValidationResult whose errors include ErrorCode.ARTIFACT_NOT_USED_IN_TESTS with the artifact name in the message."
+        - kind: test_function
+          name: test_check_test_coverage_locks_no_test_files_error
+          source_scenario: "A manifest declares an artifact and lists no test files in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "_check_test_coverage (via validate_behavioral) returns a ValidationResult whose errors include ErrorCode.NO_TEST_FILES exactly once."
+        - kind: test_function
+          name: test_validate_removed_artifacts_locks_still_present_error
+          source_scenario: "A manifest declares a removed_artifacts entry whose symbol is still defined in the source file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_removed_artifacts returns a list containing exactly one ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT entry whose location names the file and the symbol."
+        - kind: test_function
+          name: test_validate_removed_artifacts_locks_method_requires_of
+          source_scenario: "A removed_artifacts entry declares kind method without an of attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_removed_artifacts returns exactly one ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT error stating that method removals require of."
+        - kind: test_function
+          name: test_validate_all_json_output_is_stable_across_runs
+          source_scenario: "ValidationEngine.validate_all is run twice over the same tmp manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: BatchValidationResult
+          expected:
+            behavior: "to_dict output is byte-identical between the two runs apart from duration_ms fields, proving JSON shape is deterministic."
+  read:
+    - docs/plans/maid-runner-cleanup-refactor-backlog.md
+    - maid_runner/core/validate.py
+    - maid_runner/core/result.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/chain.py
+    - manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validate_engine_characterization.py

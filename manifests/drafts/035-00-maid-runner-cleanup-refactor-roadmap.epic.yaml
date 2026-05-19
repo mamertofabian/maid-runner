@@ -1,0 +1,67 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "MAID Runner cleanup and refactor roadmap for validator and engine maintainability"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: planning
+  tags:
+    - cleanup
+    - refactor
+    - safe-refactor
+    - characterization
+    - validator
+  priority: medium
+description: |
+  Epic planning inventory for behavior-preserving cleanup and refactor work
+  in maid-runner. Findings are recorded in
+  docs/plans/maid-runner-cleanup-refactor-backlog.md.
+
+  This epic must not be promoted or implemented directly. Promote one child
+  draft at a time so each refactor lands with characterization tests first
+  and an implementation review after.
+
+  Planned child order:
+  1. Characterize ValidationEngine orchestration so error codes, severities,
+     JSON output, and warning shapes are locked before any extraction.
+  2. Extract a shared parse-error wrapping helper on BaseValidator and route
+     both Python validator collection methods and both TypeScript validator
+     collection methods through it.
+
+  Future waves (not in this draft batch): per-method splits of
+  validate_removed_artifacts, validate_all, validate, _check_test_coverage,
+  and validate_behavioral; manifest evolution for any artifacts those splits
+  expose; further audits as the manifest set grows.
+
+  Refactors must satisfy the contract from the
+  `maid-runner-cleanup-and-refactor` skill: identical observable results,
+  characterization-anchored equivalence, no performance bundling, no public
+  artifact changes without an explicit maid-evolver plan.
+temptations:
+  - risk: "Do not bundle a performance optimization into a cleanup draft."
+    instead: "Route any measurable speedup through the maid-runner-performance-optimization skill in a separate draft."
+  - risk: "Do not delete or rename a public artifact in a safe-refactor draft."
+    instead: "Stop and open a maid-evolver plan; safe-refactor is for behavior-preserving private changes."
+  - risk: "Do not restructure code before characterization tests are in place."
+    instead: "Promote the characterization draft first and prove the suite passes against current behavior before touching the implementation."
+  - risk: "Do not implement this epic as one broad rewrite of validate.py or the validators package."
+    instead: "Promote and implement one child draft at a time with the characterization suite re-run after each step."
+files:
+  edit:
+    - path: docs/plans/maid-runner-cleanup-refactor-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _maid_runner_cleanup_refactor_roadmap
+          of: documentation
+          type: markdown
+          description: "Planning anchor for the cleanup and refactor backlog."
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/python.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/svelte.py
+    - .claude/skills/maid-runner-cleanup-and-refactor/SKILL.md
+validate:
+  - uv run maid validate manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml --mode schema

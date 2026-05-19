@@ -1,0 +1,134 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Cache test-file reads and parsed test-artifact tables across manifests in one CLI run"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: draft
+  tags:
+    - performance
+    - behavioral-validation
+    - test-artifacts
+    - caching
+  priority: high
+description: |
+  Close the inefficiency where `collect_test_artifacts` re-reads and re-parses
+  the same test file once per manifest. Many manifests in this repo declare the
+  same `tests/core/*.py` or `tests/cli/*.py` file in `files.read`, so behavioral
+  validation reads and parses each shared test file once per declaring manifest.
+  At the typical project scale this multiplies test-file I/O and AST parsing by
+  the number of active manifests.
+
+  Introduce a per-invocation test-artifact cache keyed by `(absolute_path,
+  mtime_ns, size)`. The first manifest that requests artifacts for a given test
+  file populates the cache with the parsed `TestArtifactsTable`. Subsequent
+  manifests reuse the cached table without re-reading the file or rebuilding
+  the artifact index. The cache is cleared at the end of each CLI invocation
+  and invalidated automatically when the test file's content signature changes.
+
+  Equivalence tests must show that the cached and uncached `ValidationResult`
+  for every active manifest are identical. A call-count test must prove that a
+  shared test file is read and parsed at most once per CLI invocation when
+  referenced by multiple manifests.
+temptations:
+  - risk: "Do not cache the parsed artifact table by test-file basename."
+    instead: "Key the cache by absolute path plus mtime_ns and size so two files with the same name in different directories stay distinct."
+  - risk: "Do not serve a cached table after a test file has been edited."
+    instead: "Recompute the content signature on every access and reparse on mismatch."
+  - risk: "Do not move test-artifact cache state into a module-level singleton across CLI invocations."
+    instead: "Scope the cache to the CLI entry point so each `maid validate`, `maid test`, or `maid verify` run starts clean."
+  - risk: "Do not silently swallow read errors to keep validation green."
+    instead: "Let `FILE_READ_ERROR` propagate through the cache layer with the same error code and severity as the uncached path."
+files:
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: get_cached_test_artifacts
+          args:
+            - name: test_file
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+          returns: TestArtifactsTable
+          description: "Return a cached TestArtifactsTable for a test file, populating it on first access and invalidating on signature change."
+        - kind: function
+          name: clear_test_artifact_cache
+          args: []
+          returns: None
+          description: "Drop all cached test-artifact tables; called at the end of each CLI invocation."
+        - kind: function
+          name: collect_test_artifacts
+          args:
+            - name: test_files
+              type: "list[str]"
+            - name: project_root
+              type: Path
+          returns: TestArtifactsTable
+          description: "Route per-file collection through the per-invocation test-artifact cache so shared test files are parsed at most once."
+    - path: tests/core/test_validation_test_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_get_cached_test_artifacts_returns_same_table_within_invocation
+          source_scenario: "Two manifests request artifacts for the same unchanged test file inside one CLI run."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_artifacts
+          expected:
+            behavior: "Both manifests receive the same TestArtifactsTable instance and the file is read exactly once."
+        - kind: test_function
+          name: test_get_cached_test_artifacts_invalidates_on_signature_change
+          source_scenario: "A test file is touched between two requests for its artifact table."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_artifacts
+          expected:
+            behavior: "The second request reparses the file and returns a refreshed TestArtifactsTable."
+        - kind: test_function
+          name: test_collect_test_artifacts_reuses_cache_across_manifests
+          source_scenario: "Behavioral validation for two manifests references the same shared test file in one CLI run."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "The shared test file is read and AST-parsed exactly once and both validations produce the same behavioral errors as the uncached baseline."
+        - kind: test_function
+          name: test_clear_test_artifact_cache_drops_all_entries
+          source_scenario: "Two test files are cached and then the cache is cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_artifact_cache
+          expected:
+            behavior: "Subsequent requests for either file re-read and re-parse from disk."
+        - kind: test_function
+          name: test_collect_test_artifacts_propagates_file_read_errors
+          source_scenario: "A declared test file does not exist when the cache is queried."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "The cache surfaces FILE_READ_ERROR or TEST_FILE_NOT_FOUND with the same severity as the uncached path instead of returning an empty table."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_behavioral_results_match_uncached_baseline
+          source_scenario: "validate_all is run twice over the live manifests/ tree, once with the test-artifact cache and once without."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "Per-manifest behavioral errors and warnings are identical between the cached and uncached runs."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/validate.py
+    - maid_runner/core/manifest.py
+    - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+    - manifests/drafts/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validation_test_artifacts.py tests/core/test_validate.py

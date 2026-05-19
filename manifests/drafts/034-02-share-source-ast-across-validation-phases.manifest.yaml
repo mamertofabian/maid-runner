@@ -1,0 +1,128 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Share parsed source ASTs between implementation and behavioral validation phases"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: draft
+  tags:
+    - performance
+    - ast
+    - python-validator
+    - caching
+  priority: high
+description: |
+  Close the inefficiency where the Python validator parses the same source file
+  more than once per CLI run. `PythonValidator.collect_implementation_artifacts`,
+  `collect_behavioral_artifacts`, and the stub-detection pass each call
+  `ast.parse` on the same file independently. With hundreds of tracked source
+  files across hundreds of manifests, this duplicates parser work that has no
+  semantic effect on the result.
+
+  Introduce a small per-invocation AST cache keyed by `(absolute_path,
+  mtime_ns, size)`. The first caller parses the file and stores the immutable
+  `ast.Module` plus the original source bytes. Subsequent callers within the
+  same CLI invocation reuse the cached tree. The cache is invalidated on
+  signature change and cleared at the end of each CLI invocation. The cache
+  must never serve a stale AST across edits in watch mode.
+
+  Equivalence tests must show that all implementation and behavioral artifact
+  collection results match the uncached baseline byte-for-byte. A call-count
+  test must observe `ast.parse` running exactly once per file per CLI run when
+  the same file is requested across multiple phases.
+temptations:
+  - risk: "Do not cache by file path alone."
+    instead: "Key the cache by `(absolute_path, mtime_ns, size)` so on-disk edits invalidate the entry."
+  - risk: "Do not store the parsed tree as a process-wide global that survives across CLI invocations."
+    instead: "Scope the cache to the CLI entry point and clear it before exit."
+  - risk: "Do not mutate cached AST nodes in collectors."
+    instead: "Treat the cached `ast.Module` as read-only and let visitors keep their own per-call state."
+  - risk: "Do not extend caching to source files outside `files.edit`, `files.create`, and `files.read`."
+    instead: "Limit caching to paths actually requested through the validator surface so we do not change discovery semantics."
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: function
+          name: get_cached_python_ast
+          args:
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: "tuple[ast.Module, str]"
+          description: "Return a cached (tree, source) pair for the given Python file, parsing only on first access or signature change."
+        - kind: function
+          name: clear_python_ast_cache
+          args: []
+          returns: None
+          description: "Drop all cached Python ASTs; called at the end of each CLI invocation."
+        - kind: method
+          name: collect_implementation_artifacts
+          of: PythonValidator
+          args:
+            - name: file_path
+              type: str
+          returns: "list[ArtifactSpec]"
+          description: "Route source parsing through the per-invocation AST cache instead of calling ast.parse directly."
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: file_path
+              type: str
+          returns: "list[BehavioralArtifact]"
+          description: "Route source parsing through the per-invocation AST cache instead of calling ast.parse directly."
+    - path: tests/validators/test_python_validator.py
+      artifacts:
+        - kind: test_function
+          name: test_get_cached_python_ast_returns_same_tree_within_invocation
+          source_scenario: "Two callers request the AST for the same unchanged source file inside one CLI run."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_python_ast
+          expected:
+            behavior: "Both callers receive the same ast.Module instance and only one ast.parse call is observed."
+        - kind: test_function
+          name: test_get_cached_python_ast_invalidates_on_mtime_change
+          source_scenario: "A source file is touched between two requests for its AST."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_python_ast
+          expected:
+            behavior: "The second request reparses the file and returns a different ast.Module instance."
+        - kind: test_function
+          name: test_collect_implementation_and_behavioral_artifacts_share_one_parse
+          source_scenario: "PythonValidator collects implementation and behavioral artifacts for the same file in one CLI run."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "ast.parse is observed exactly once for the file across both phases and the artifact lists match the uncached baseline."
+        - kind: test_function
+          name: test_collect_results_match_uncached_baseline
+          source_scenario: "Implementation and behavioral artifacts are collected with and without the AST cache."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Both result sets are equal in name, kind, signature, and ordering."
+        - kind: test_function
+          name: test_clear_python_ast_cache_drops_all_entries
+          source_scenario: "Two files are cached and then the cache is cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_python_ast_cache
+          expected:
+            behavior: "Subsequent requests for either file run ast.parse again."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/validate.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/validators/base.py
+    - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_validator.py
