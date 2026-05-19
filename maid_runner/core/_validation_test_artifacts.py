@@ -27,11 +27,60 @@ _TEST_RUNNERS = frozenset(
     }
 )
 _PYTHON_MODULE_TEST_RUNNERS = frozenset({"pytest", "py.test"})
+_DJANGO_TEST_RUNNER = "django"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
 _STRICT_TEST_COMMAND_COVERAGE_SINCE = "2026-05-17"
 _TEST_COMMAND_TASK_TYPES = frozenset({"feature", "fix", "refactor"})
 _TEST_DIRECTORY_NAMES = frozenset({"test", "tests", "__tests__", "spec", "specs"})
+_DOTTED_PYTHON_TEST_LABEL = re.compile(r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$")
+_DJANGO_TEST_RUNNER_VALUE_FLAGS = frozenset(
+    {
+        "-p",
+        "-t",
+        "-v",
+        "--exclude-tag",
+        "--pattern",
+        "--settings",
+        "--testrunner",
+        "--top-level-directory",
+        "--verbosity",
+    }
+)
+_DJANGO_TEST_RUNNER_SELECTOR_FLAGS = frozenset({"-k", "--tag", "--exclude-tag"})
+_DJANGO_TEST_RUNNER_PATH_MUTATION_FLAGS = frozenset({"--pythonpath"})
+_DJANGO_TEST_RUNNER_OPTIONAL_VALUE_FLAGS = frozenset({"--parallel", "--shuffle"})
+_DJANGO_TEST_RUNNER_STANDALONE_FLAGS = frozenset(
+    {
+        "-b",
+        "-f",
+        "--buffer",
+        "--debug-mode",
+        "--debug-sql",
+        "--enable-faulthandler",
+        "--failfast",
+        "--force-color",
+        "--keepdb",
+        "--no-color",
+        "--noinput",
+        "--pdb",
+        "--reverse",
+        "--timing",
+        "--traceback",
+    }
+)
+_DOCKER_EXEC_VALUE_FLAGS = frozenset(
+    {
+        "-e",
+        "-u",
+        "-w",
+        "--detach-keys",
+        "--env",
+        "--env-file",
+        "--user",
+        "--workdir",
+    }
+)
 _NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
     {
         "-h",
@@ -207,31 +256,45 @@ def _test_paths_from_validate_command(
                 cwd = Path(_normalize_relative_path(cwd / segment[1]))
             continue
 
+        django_runner = _runs_django_test_runner(segment)
         allow_explicit_directories = _runs_known_test_runner(segment)
+        scan_segment = _test_runner_target_scan_segment(segment)
         index = 0
-        while index < len(segment):
-            part = segment[index]
+        while index < len(scan_segment):
+            part = scan_segment[index]
             if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
-                segment
+                scan_segment
             ):
-                cwd = Path(_normalize_relative_path(cwd / segment[index + 1]))
+                cwd = Path(_normalize_relative_path(cwd / scan_segment[index + 1]))
                 index += 2
                 continue
-            if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(segment):
+            if django_runner and _is_django_test_runner_value_flag(part):
+                index += 2 if "=" not in part and index + 1 < len(scan_segment) else 1
+                continue
+            if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(scan_segment):
                 index += 2
                 continue
             if part.startswith("-"):
                 index += 1
                 continue
 
-            candidate = _normalize_relative_path(cwd / part)
-            if _looks_like_test_path(
-                candidate,
-                project_root,
-                allow_explicit_directories=allow_explicit_directories,
-            ):
-                paths.append(candidate)
+            if not django_runner:
+                candidate = _normalize_relative_path(cwd / part)
+                if _looks_like_test_path(
+                    candidate,
+                    project_root,
+                    allow_explicit_directories=allow_explicit_directories,
+                ):
+                    paths.append(candidate)
             index += 1
+
+        paths.extend(
+            _django_test_paths_from_validate_segment(
+                segment,
+                project_root,
+                cwd,
+            )
+        )
 
     return paths
 
@@ -484,32 +547,48 @@ def _test_paths_from_executing_validate_command(
     if not allow_selectors and _has_test_runner_selector(segment):
         return paths
 
+    django_runner = _runs_django_test_runner(segment)
+    scan_segment = _test_runner_target_scan_segment(segment)
     index = 0
-    while index < len(segment):
-        part = segment[index]
-        if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(segment):
-            cwd = Path(_normalize_relative_path(cwd / segment[index + 1]))
+    while index < len(scan_segment):
+        part = scan_segment[index]
+        if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
+            scan_segment
+        ):
+            cwd = Path(_normalize_relative_path(cwd / scan_segment[index + 1]))
             index += 2
             continue
-        if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(segment):
+        if django_runner and _is_django_test_runner_value_flag(part):
+            index += 2 if "=" not in part and index + 1 < len(scan_segment) else 1
+            continue
+        if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(scan_segment):
             index += 2
             continue
         if part.startswith("-"):
             index += 1
             continue
 
-        raw_candidate = _normalize_relative_path(cwd / part)
-        if "::" in raw_candidate and not allow_selectors:
-            index += 1
-            continue
-        candidate = _normalize_test_selector(cwd / part) or "."
-        if _looks_like_test_path(
-            candidate,
-            project_root,
-            allow_explicit_directories=True,
-        ):
-            paths.append(candidate)
+        if not django_runner:
+            raw_candidate = _normalize_relative_path(cwd / part)
+            if "::" in raw_candidate and not allow_selectors:
+                index += 1
+                continue
+            candidate = _normalize_test_selector(cwd / part) or "."
+            if _looks_like_test_path(
+                candidate,
+                project_root,
+                allow_explicit_directories=True,
+            ):
+                paths.append(candidate)
         index += 1
+
+    paths.extend(
+        _django_test_paths_from_validate_segment(
+            segment,
+            project_root,
+            cwd,
+        )
+    )
 
     return paths
 
@@ -537,11 +616,76 @@ def _has_test_runner_selector(segment: list[str]) -> bool:
     if invocation is None:
         return False
 
-    _, args = invocation
+    runner, args = invocation
+    if runner == _DJANGO_TEST_RUNNER:
+        return _has_django_test_runner_selector(args) or _has_pythonpath_assignment(
+            segment
+        )
+
     for part in args:
         if _is_test_runner_selector_flag(part):
             return True
     return False
+
+
+def _has_pythonpath_assignment(segment: list[str]) -> bool:
+    for index, part in enumerate(segment):
+        if (
+            _looks_like_environment_assignment(part)
+            and part.split("=", 1)[0] == "PYTHONPATH"
+        ):
+            return True
+        if _is_docker_pythonpath_env_option(segment, index):
+            return True
+        if _is_docker_env_file_option(segment, index):
+            return True
+    return False
+
+
+def _is_docker_env_file_option(segment: list[str], index: int) -> bool:
+    part = segment[index]
+    if part == "--env-file":
+        return True
+    return part.startswith("--env-file=")
+
+
+def _is_docker_pythonpath_env_option(segment: list[str], index: int) -> bool:
+    part = segment[index]
+    if part in {"-e", "--env"}:
+        return index + 1 < len(segment) and _is_pythonpath_env_value(segment[index + 1])
+    if part.startswith("--env="):
+        return _is_pythonpath_env_value(part.split("=", 1)[1])
+    if part.startswith("-e") and part != "-e":
+        value = part[2:]
+        if value.startswith("="):
+            value = value[1:]
+        return _is_pythonpath_env_value(value)
+    return False
+
+
+def _is_pythonpath_env_value(value: str) -> bool:
+    return value == "PYTHONPATH" or value.startswith("PYTHONPATH=")
+
+
+def _runs_django_test_runner(segment: list[str]) -> bool:
+    invocation = _effective_test_runner_invocation(segment)
+    return invocation is not None and invocation[0] == _DJANGO_TEST_RUNNER
+
+
+def _has_django_test_runner_selector(args: list[str]) -> bool:
+    for part in args:
+        if _is_django_test_runner_selector_flag(part):
+            return True
+        if part.split("=", 1)[0] in _DJANGO_TEST_RUNNER_PATH_MUTATION_FLAGS:
+            return True
+    return False
+
+
+def _is_django_test_runner_selector_flag(part: str) -> bool:
+    flag = part.split("=", 1)[0]
+    if flag in _DJANGO_TEST_RUNNER_SELECTOR_FLAGS:
+        return True
+    return part.startswith("-k") and part != "-k" and not part.startswith("--")
 
 
 def _is_test_runner_selector_flag(part: str) -> bool:
@@ -635,8 +779,37 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
         return _test_runner_invocation(parts[2:])
 
+    if command == "docker":
+        inner_command = _docker_exec_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_invocation(inner_command)
+
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
         return _test_runner_invocation(parts[3:])
+
+    if (
+        _is_python_command(command)
+        and len(parts) >= 3
+        and _command_name(parts[1]) == "manage.py"
+    ):
+        django_args = _django_test_args_after_subcommand(parts[2:])
+        if django_args is not None:
+            return _DJANGO_TEST_RUNNER, django_args
+
+    if command in {"django-admin", "django-admin.py"} and len(parts) >= 2:
+        django_args = _django_test_args_after_subcommand(parts[1:])
+        if django_args is not None:
+            return _DJANGO_TEST_RUNNER, django_args
+
+    if (
+        _is_python_command(command)
+        and len(parts) >= 4
+        and parts[1] == "-m"
+        and _command_name(parts[2]) == "django"
+    ):
+        django_args = _django_test_args_after_subcommand(parts[3:])
+        if django_args is not None:
+            return _DJANGO_TEST_RUNNER, django_args
 
     if (
         _is_python_command(command)
@@ -660,6 +833,206 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
         return _test_runner_invocation(parts[2:])
 
     return None
+
+
+def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
+    parts = _strip_environment_prefix(segment)
+    if not parts:
+        return parts
+
+    command = _command_name(parts[0])
+
+    if command == "uv" and len(parts) >= 3 and parts[1] == "run":
+        return _test_runner_target_scan_segment(parts[2:])
+
+    if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
+        return _test_runner_target_scan_segment(parts[2:])
+
+    if command == "docker":
+        inner_command = _docker_exec_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_target_scan_segment(inner_command)
+
+    if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
+        return _test_runner_target_scan_segment(parts[3:])
+
+    if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
+        start = 2 if len(parts) >= 3 and parts[1] == "exec" else 1
+        return _test_runner_target_scan_segment(parts[start:])
+
+    if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
+        return _test_runner_target_scan_segment(parts[2:])
+
+    return parts
+
+
+def _django_test_args_after_subcommand(parts: list[str]) -> list[str] | None:
+    index = 0
+    while index < len(parts):
+        part = parts[index]
+        if part == "test":
+            return parts[index + 1 :]
+        if not part.startswith("-"):
+            return None
+        if _is_django_test_runner_selector_flag(part):
+            return None
+
+        next_index = _next_django_argument_index(parts, index)
+        if next_index is None or next_index <= index:
+            return None
+        index = next_index
+    return None
+
+
+def _docker_exec_inner_command(parts: list[str]) -> list[str] | None:
+    if len(parts) < 4 or parts[1] != "exec":
+        return None
+
+    index = 2
+    while index < len(parts):
+        part = parts[index]
+        if not part.startswith("-"):
+            break
+
+        flag = part.split("=", 1)[0]
+        if _is_detached_docker_exec_option(part):
+            return None
+        index += 1
+        if "=" not in part and flag in _DOCKER_EXEC_VALUE_FLAGS and index < len(parts):
+            index += 1
+
+    if index >= len(parts) - 1:
+        return None
+    return parts[index + 1 :]
+
+
+def _is_detached_docker_exec_option(part: str) -> bool:
+    flag = part.split("=", 1)[0]
+    if flag == "--detach":
+        return True
+    if part.startswith("--") or not part.startswith("-"):
+        return False
+
+    short_options = flag[1:]
+    if not short_options:
+        return False
+    if short_options[0] in {"e", "u", "w"}:
+        return False
+    return "d" in short_options
+
+
+def _django_test_paths_from_validate_segment(
+    segment: list[str],
+    project_root: Path,
+    cwd: Path,
+) -> list[str]:
+    invocation = _effective_test_runner_invocation(segment)
+    if invocation is None:
+        return []
+
+    runner, args = invocation
+    if runner != _DJANGO_TEST_RUNNER:
+        return []
+    if _has_pythonpath_assignment(segment) or _has_django_test_runner_selector(args):
+        return []
+
+    return _django_test_paths_from_args(args, project_root, cwd)
+
+
+def _django_test_paths_from_args(
+    args: list[str],
+    project_root: Path,
+    cwd: Path,
+) -> list[str]:
+    paths: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        if part.startswith("-"):
+            next_index = _next_django_argument_index(args, index)
+            if next_index is None:
+                return []
+            index = next_index
+            continue
+
+        for path in _resolve_django_test_label_paths(part, project_root, cwd):
+            if path not in paths:
+                paths.append(path)
+        index += 1
+
+    return paths
+
+
+def _is_django_test_runner_value_flag(part: str) -> bool:
+    flag = part.split("=", 1)[0]
+    return flag in (
+        _DJANGO_TEST_RUNNER_VALUE_FLAGS | _DJANGO_TEST_RUNNER_OPTIONAL_VALUE_FLAGS
+    )
+
+
+def _next_django_argument_index(args: list[str], index: int) -> int | None:
+    part = args[index]
+    flag = part.split("=", 1)[0]
+
+    if _is_attached_django_short_value(part):
+        return index + 1
+    if flag in _DJANGO_TEST_RUNNER_VALUE_FLAGS | _DJANGO_TEST_RUNNER_SELECTOR_FLAGS:
+        if "=" in part:
+            return index + 1
+        if index + 1 >= len(args) or args[index + 1].startswith("-"):
+            return None
+        return index + 2
+    if flag in _DJANGO_TEST_RUNNER_PATH_MUTATION_FLAGS:
+        return None
+    if flag in _DJANGO_TEST_RUNNER_OPTIONAL_VALUE_FLAGS:
+        if "=" in part or index + 1 >= len(args) or args[index + 1].startswith("-"):
+            return index + 1
+        return index + 2
+    if flag in _DJANGO_TEST_RUNNER_STANDALONE_FLAGS:
+        return index + 1
+
+    return None
+
+
+def _is_attached_django_short_value(part: str) -> bool:
+    return any(
+        part.startswith(flag) and part != flag for flag in {"-k", "-p", "-t", "-v"}
+    )
+
+
+def _resolve_django_test_label_paths(
+    label: str,
+    project_root: Path,
+    cwd: Path,
+) -> list[str]:
+    if not _DOTTED_PYTHON_TEST_LABEL.match(label):
+        return []
+
+    paths: list[str] = []
+    parts = label.split(".")
+    for module_path in _django_module_path_variants(parts):
+        for source_root in _django_source_root_candidates(cwd):
+            candidate = _normalize_relative_path(source_root / module_path)
+            if candidate in paths:
+                continue
+            if not is_test_file(candidate):
+                continue
+            if (project_root / candidate).is_file():
+                paths.append(candidate)
+    return paths
+
+
+def _django_module_path_variants(module_parts: list[str]) -> list[Path]:
+    return [Path(*module_parts).with_suffix(".py")]
+
+
+def _django_source_root_candidates(cwd: Path) -> list[Path]:
+    roots: list[Path] = []
+    for root in (cwd, cwd / "src"):
+        normalized = Path(_normalize_relative_path(root))
+        if normalized not in roots:
+            roots.append(normalized)
+    return roots
 
 
 def _normalize_test_selector(path: Path) -> str:

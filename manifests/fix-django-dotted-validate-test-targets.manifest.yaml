@@ -1,0 +1,269 @@
+schema: "2"
+goal: "Accept Django dotted module test labels in validate-command integrity"
+type: fix
+created: "2026-05-19"
+metadata:
+  tags:
+    - validate
+    - test-runner
+    - django
+    - regression
+description: |
+  Fix the E230 regression where validate-command integrity rejects Django test
+  commands that target the declared behavioral test through the standard dotted
+  module label, such as `python manage.py test app.tests.test_module`, instead
+  of a literal file path. The command gate should keep requiring recognized
+  executing test commands, but it must resolve Django dotted module labels back
+  to existing in-project test files under the repository root or `src/`.
+
+  This is an additive evolution of the 032-02 command-integrity contract: the
+  public signatures remain unchanged, while the accepted target syntax grows to
+  cover Django's normal test runner form, including the reported
+  `docker exec ... python manage.py test <dotted.module>` wrapper.
+temptations:
+  - risk: "Do not make every dotted token count as a covered behavioral test."
+    instead: "Resolve only Django test-runner labels to existing in-project Python test files."
+  - risk: "Do not weaken E230 by accepting no-op commands or unrelated Python invocations."
+    instead: "Keep the recognized-runner gate and add Django manage.py/django-admin recognition to that gate."
+  - risk: "Do not require Django as a test dependency for this regression."
+    instead: "Use static command-integrity tests and a local manage.py stub for the maid test execution path."
+  - risk: "Do not break existing pytest path and directory coverage behavior."
+    instead: "Extend target extraction without changing pytest/Jest/Vitest/Playwright matching semantics."
+files:
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: find_test_files
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[str]
+          description: "Discover behavioral test files from Django dotted module labels in validate commands as well as existing file-path targets."
+        - kind: function
+          name: validate_manifest_test_commands
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[ValidationError]
+          description: "Accept Django manage.py/django-admin test commands when their dotted labels resolve to the manifest's declared behavioral test files."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_find_test_files_resolves_django_dotted_module_test_label
+          source_scenario: "A validate command targets a Django test module through `python manage.py test app.tests.test_module` and the manifest does not list the test file elsewhere."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "find_test_files returns the resolved src-layout Python test file."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_django_dotted_module_test_label
+          source_scenario: "A manifest declares a src-layout Django test file and validate runs `python manage.py test` with the equivalent dotted module label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns no E230 error."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_docker_exec_django_dotted_module_test_label
+          source_scenario: "A manifest declares a src-layout Django test file and validate runs the reported `docker exec ... python manage.py test <dotted module>` command."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity treats the docker-wrapped Django command as covering the declared test file."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_docker_exec_pytest_file_target
+          source_scenario: "A manifest declares a Python test file and validate runs `docker exec ... pytest tests/test_gate.py`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity scans the docker inner command and treats the pytest file target as covering the declared test file."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_docker_wrapper_path_tokens
+          source_scenario: "A manifest declares a Python test file but docker exec metadata, such as the container name or workdir value, matches a host test directory while the inner pytest command targets an unrelated path."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because docker wrapper tokens do not prove host test-file execution."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_django_top_level_directory_flag
+          source_scenario: "A manifest declares a Django test file and validate runs `python manage.py test <dotted module> -t .`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity treats Django's short top-level-directory flag as a value flag, not a test selector."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_django_admin_dotted_module_test_label
+          source_scenario: "A manifest declares a Django test file and validate runs `django-admin test <dotted module>`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity treats django-admin as a recognized Django test runner."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_django_admin_pre_test_settings
+          source_scenario: "A manifest declares a Django test file and validate runs `django-admin --settings project.settings test <dotted module>`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity recognizes django-admin when value options appear before the test subcommand."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_manage_py_pre_test_settings
+          source_scenario: "A manifest declares a Django test file and validate runs `python manage.py --settings project.settings test <dotted module>`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity recognizes manage.py when value options appear before the test subcommand."
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_python_module_django_test_label
+          source_scenario: "A manifest declares a Django test file and validate runs `python -m django test <dotted module>`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity treats python -m django test as a recognized Django test runner."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_dotted_class_selector
+          source_scenario: "A manifest declares a Django test file but validate targets a narrower Django class selector within that module."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because class or method selectors do not prove the whole declared behavioral test file ran."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_class_selector_with_top_level_directory
+          source_scenario: "A manifest declares a Django test file but validate targets a narrower Django class selector and also passes `--top-level-directory .`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 and does not let Django value-flag arguments count as generic path targets."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_label_without_tests_package
+          source_scenario: "A manifest declares `app/tests/test_module.py` but validate uses the mistyped Django label `app.test_module`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because Django dotted labels must map directly to the existing module path."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_dotted_option_value
+          source_scenario: "A manifest declares a Django test file but validate puts that dotted module in a Django option value rather than a test label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because Django option values do not prove test-file execution."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_pythonpath_shadowing
+          source_scenario: "A manifest declares a Django test file but validate mutates the Django test import path with `--pythonpath` while using the same dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because Python path mutation can shadow the in-repo test module."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_pythonpath_env_shadowing
+          source_scenario: "A manifest declares a Django test file but validate sets `PYTHONPATH` while using the same dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because environment Python path mutation can shadow the in-repo test module."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_docker_django_pythonpath_env_shadowing
+          source_scenario: "A manifest declares a Django test file but validate injects `PYTHONPATH` through docker exec env options while using the same dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 for docker --env, --env=, -e, and -ePYTHONPATH forms that can shadow the in-repo Django test module."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_detached_docker_django_command
+          source_scenario: "A manifest declares a Django test file but validate runs the docker exec command in detached mode."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because detached docker exec does not prove the test result."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_docker_django_env_file_shadowing
+          source_scenario: "A manifest declares a Django test file but validate injects an env file through docker exec while using the same dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because docker env files can shadow the in-repo Django test module through PYTHONPATH."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_missing_value_flag_value
+          source_scenario: "A manifest declares a Django test file but validate ends with a Django option that requires a missing value."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because malformed Django commands do not prove test-file execution."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_tag_selector
+          source_scenario: "A manifest declares a Django test file but validate filters that module with a Django tag selector."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because tag selectors do not prove the whole declared behavioral test file ran."
+        - kind: test_function
+          name: test_validate_command_integrity_rejects_django_pre_test_selectors
+          source_scenario: "A manifest declares a Django test file but validate passes `--tag`, `--exclude-tag`, or `-k` before the Django `test` subcommand."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "validate-command integrity returns E230 because pre-subcommand Django selector filters do not prove the whole declared behavioral test file ran."
+    - path: tests/cli/test_test_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_test_manifest_accepts_django_dotted_module_validate_command
+          source_scenario: "A single manifest's validate command uses a Django dotted module test label and a local manage.py stub executes the mapped test file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid test --manifest runs one command successfully instead of returning zero commands with E230."
+  read:
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - maid_runner/core/test_runner.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py

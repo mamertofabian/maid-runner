@@ -11,7 +11,10 @@ from pathlib import Path
 import pytest
 import yaml
 
-from maid_runner.core._validation_test_artifacts import validate_manifest_test_commands
+from maid_runner.core._validation_test_artifacts import (
+    find_test_files,
+    validate_manifest_test_commands,
+)
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
 
@@ -1156,6 +1159,605 @@ class TestCmdValidateSingleManifest:
         captured = capsys.readouterr()
         assert "PASS run-tests-project-root" in captured.out
         assert "PASS [run-tests-project-root] python -m pytest . -q" in captured.out
+
+    def test_find_test_files_resolves_django_dotted_module_test_label(self, tmp_path):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-discovery",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export --keepdb -v 2"
+            ),
+            include_files_read=False,
+            test_path=test_path,
+        )
+
+        test_files = find_test_files(load_manifest(manifest_path), tmp_path)
+
+        assert test_files == [test_path]
+
+    def test_validate_command_integrity_accepts_django_dotted_module_test_label(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-integrity",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_docker_exec_django_dotted_module_test_label(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-docker-integrity",
+            (
+                "docker exec tools-api python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_docker_exec_pytest_file_target(
+        self, tmp_path
+    ):
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "docker-pytest-file-target",
+            "docker exec app pytest tests/test_gate.py -q",
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_rejects_docker_wrapper_path_tokens(
+        self, tmp_path
+    ):
+        cases = [
+            (
+                "docker-container-name-tests",
+                "docker exec tests pytest unrelated.py",
+            ),
+            (
+                "docker-workdir-tests",
+                "docker exec -w tests app pytest unrelated.py",
+            ),
+        ]
+
+        for slug, validate_command in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                validate_command,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_command_integrity_accepts_django_top_level_directory_flag(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-top-level-directory",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "-t . --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_django_admin_dotted_module_test_label(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-admin-dotted-integrity",
+            (
+                "django-admin test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--settings adverio_tools_pj.settings --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_django_admin_pre_test_settings(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-admin-pre-test-settings",
+            (
+                "django-admin --settings adverio_tools_pj.settings test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_manage_py_pre_test_settings(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "manage-py-pre-test-settings",
+            (
+                "python manage.py --settings adverio_tools_pj.settings test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_accepts_python_module_django_test_label(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "python-module-django-dotted-integrity",
+            (
+                "python -m django test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
+    def test_validate_command_integrity_rejects_django_dotted_class_selector(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-class-selector",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export."
+                "TestOtherExportCase --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_class_selector_with_top_level_directory(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-class-selector-top-level-directory",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export."
+                "TestOtherExportCase --top-level-directory . --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_label_without_tests_package(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-missing-tests-package",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.test_keepa_cubiscan_export --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_dotted_option_value(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-option-value",
+            (
+                "python manage.py test other_app "
+                "--pythonpath seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_pythonpath_shadowing(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-pythonpath-shadowing",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--pythonpath ../outside --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_pythonpath_env_shadowing(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-pythonpath-env-shadowing",
+            (
+                "PYTHONPATH=../outside python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_docker_django_pythonpath_env_shadowing(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        cases = [
+            (
+                "docker-env-equals",
+                "docker exec --env=PYTHONPATH=../outside tools-api ",
+            ),
+            (
+                "docker-env-separate",
+                "docker exec --env PYTHONPATH=../outside tools-api ",
+            ),
+            (
+                "docker-short-env-attached",
+                "docker exec -ePYTHONPATH=../outside tools-api ",
+            ),
+            (
+                "docker-short-env-separate",
+                "docker exec -e PYTHONPATH=../outside tools-api ",
+            ),
+        ]
+
+        for slug, docker_prefix in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                (
+                    f"{docker_prefix}python manage.py test "
+                    "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                    "--keepdb -v 2"
+                ),
+                test_path=test_path,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_command_integrity_rejects_detached_docker_django_command(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        cases = [
+            (
+                "docker-detach-short",
+                "docker exec -d tools-api ",
+            ),
+            (
+                "docker-detach-long",
+                "docker exec --detach tools-api ",
+            ),
+            (
+                "docker-detach-equals",
+                "docker exec --detach=true tools-api ",
+            ),
+            (
+                "docker-detach-short-grouped",
+                "docker exec -td tools-api ",
+            ),
+            (
+                "docker-detach-short-grouped-after-tty",
+                "docker exec -itd tools-api ",
+            ),
+        ]
+
+        for slug, docker_prefix in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                (
+                    f"{docker_prefix}python manage.py test "
+                    "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                    "--keepdb -v 2"
+                ),
+                test_path=test_path,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_command_integrity_rejects_docker_django_env_file_shadowing(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        cases = [
+            (
+                "docker-env-file-separate",
+                "docker exec --env-file .env tools-api ",
+            ),
+            (
+                "docker-env-file-equals",
+                "docker exec --env-file=.env tools-api ",
+            ),
+        ]
+
+        for slug, docker_prefix in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                (
+                    f"{docker_prefix}python manage.py test "
+                    "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                    "--keepdb -v 2"
+                ),
+                test_path=test_path,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_command_integrity_rejects_django_missing_value_flag_value(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        cases = [
+            (
+                "django-missing-settings-value",
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export --settings",
+            ),
+            (
+                "django-missing-top-level-directory-value",
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--top-level-directory",
+            ),
+        ]
+
+        for slug, validate_command in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                validate_command,
+                test_path=test_path,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+    def test_validate_command_integrity_rejects_django_tag_selector(self, tmp_path):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "django-dotted-tag-selector",
+            (
+                "python manage.py test "
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                "--tag smoke --keepdb -v 2"
+            ),
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+    def test_validate_command_integrity_rejects_django_pre_test_selectors(
+        self, tmp_path
+    ):
+        test_path = "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+        cases = [
+            (
+                "django-pre-test-tag-selector",
+                "--tag smoke",
+            ),
+            (
+                "django-pre-test-exclude-tag-selector",
+                "--exclude-tag slow",
+            ),
+            (
+                "django-pre-test-k-selector",
+                "-k smoke",
+            ),
+            (
+                "django-pre-test-attached-k-selector",
+                "-ksmoke",
+            ),
+        ]
+
+        for slug, selector_args in cases:
+            project_root = tmp_path / slug
+            project_root.mkdir()
+            manifest_path = _write_run_tests_project(
+                project_root,
+                slug,
+                (
+                    f"python manage.py {selector_args} test "
+                    "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                    "--keepdb -v 2"
+                ),
+                test_path=test_path,
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path),
+                project_root,
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
 
     def test_validate_command_integrity_allows_known_legacy_pytest_node_selector(
         self,

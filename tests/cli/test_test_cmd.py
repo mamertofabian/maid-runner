@@ -135,6 +135,101 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     return project_root, manifest_path
 
 
+def _write_django_dotted_behavioral_test_project(
+    tmp_path,
+    slug: str = "test-django-dotted",
+):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir(exist_ok=True)
+    src_dir = tmp_path / "src"
+    app_tests_dir = src_dir / "seo_scraper_monitor" / "tests"
+    app_tests_dir.mkdir(parents=True, exist_ok=True)
+
+    (src_dir / "gate.py").write_text("def gate() -> str:\n    return 'ok'\n")
+    (app_tests_dir / "test_keepa_cubiscan_export.py").write_text(
+        "from src.gate import gate\n\n"
+        "def test_keepa_cubiscan_export():\n"
+        "    assert gate() == 'ok'\n"
+    )
+    (tmp_path / "manage.py").write_text(
+        textwrap.dedent(
+            """\
+            from __future__ import annotations
+
+            import subprocess
+            import sys
+
+            TEST_LABELS = {
+                "seo_scraper_monitor.tests.test_keepa_cubiscan_export": (
+                    "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+                ),
+            }
+
+
+            def main() -> int:
+                args = sys.argv[1:]
+                if not args or args[0] != "test":
+                    return 2
+
+                labels = []
+                skip_next = False
+                for arg in args[1:]:
+                    if skip_next:
+                        skip_next = False
+                        continue
+                    if arg in {"-v", "--verbosity"}:
+                        skip_next = True
+                        continue
+                    if arg.startswith("-"):
+                        continue
+                    labels.append(arg)
+
+                paths = [TEST_LABELS[label] for label in labels]
+                return subprocess.run(
+                    [sys.executable, "-m", "pytest", *paths, "-q"],
+                    check=False,
+                ).returncode
+
+
+            if __name__ == "__main__":
+                raise SystemExit(main())
+            """
+        )
+    )
+
+    manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+    manifest_path.write_text(
+        yaml.dump(
+            {
+                "schema": "2",
+                "goal": "Accept Django dotted test labels",
+                "type": "fix",
+                "files": {
+                    "edit": [
+                        {
+                            "path": "src/gate.py",
+                            "artifacts": [
+                                {"kind": "function", "name": "gate"},
+                            ],
+                        }
+                    ],
+                    "read": [
+                        "src/seo_scraper_monitor/tests/test_keepa_cubiscan_export.py"
+                    ],
+                },
+                "validate": [
+                    (
+                        "python manage.py test "
+                        "seo_scraper_monitor.tests.test_keepa_cubiscan_export "
+                        "--keepdb -v 2"
+                    )
+                ],
+            }
+        )
+    )
+    return manifest_path
+
+
 class TestCmdTestAll:
     def test_passing_tests_return_0(self, project_with_tests, capsys):
         from maid_runner.cli.commands._main import main
@@ -267,6 +362,21 @@ class TestCmdTestSingleManifest:
         captured = capsys.readouterr()
         assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
         assert "python -c" in captured.out
+
+    def test_test_manifest_accepts_django_dotted_module_validate_command(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = _write_django_dotted_behavioral_test_project(tmp_path)
+
+        os.chdir(tmp_path)
+        exit_code = main(["test", "--manifest", str(manifest_path)])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Test Results: 1 commands" in captured.out
+        assert "PASS [test-django-dotted] python manage.py test" in captured.out
 
     def test_test_manifest_rejects_parent_relative_validate_command_target(
         self, tmp_path, capsys
