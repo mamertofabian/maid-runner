@@ -30,3 +30,6 @@ maid_agents/.claude/tdd-guard/data/test.json
 
 .codex-automation/
 .claude-automation/
+
+.maid/serve.sock
+.maid/serve.pid

@@ -15,45 +15,34 @@ description: |
   manifest behavioral validate): ~0.85 s per CLI call, of which ~0.70 s is
   the validator itself and ~0.15 s is process startup. In a tight TDD loop
   the agent issues 5-10 validates per task, so eliminating startup
-  overhead per call is the load-bearing win. The daemon also keeps the
-  manifest chain cache warm across requests, which compounds the savings
-  on chained manifests once 034-01 lands.
+  overhead per call is the load-bearing win.
 
   Scope (first cut, intentionally narrow):
     - One transport: Unix domain socket. Default path `.maid/serve.sock`
       relative to cwd, overridable via `--socket`.
     - Two methods: `validate` (mirrors the existing `maid validate` JSON
       output exactly) and `ping` (liveness probe). Other subcommands
-      (audit, manifest list, snapshot) are explicitly out of scope and
-      will be added in follow-up drafts only after the protocol is
-      validated by a real client.
+      (audit, manifest list, snapshot) are explicitly out of scope.
     - Single-process, sequential request handling. No worker pool, no
-      threading. Concurrency is a follow-up if a real workload demands
-      it.
+      threading.
     - PID file at `.maid/serve.pid` to prevent double-launch and let
       clients verify the daemon is alive before connecting.
     - SIGTERM / SIGINT clean shutdown: close socket, remove pidfile,
       flush logs, exit 0.
 
   Out of scope for this manifest:
-    - TCP / HTTP transport (would invite auth questions; defer until a
-      cross-machine use case appears).
+    - TCP / HTTP transport.
     - Authentication or per-request authorization (Unix socket
-      permissions delegate this to the filesystem, which is the right
-      default for a local daemon).
-    - Hot-reload of manifests when files change on disk. The daemon
-      re-reads manifests on every `validate` request; cache reuse is
-      bounded to one request (or to whatever 034-01 caches across
-      chained manifests within a single request).
-    - A separate `maid serve --client` command. Clients open the socket
-      themselves; one less surface to maintain.
+      permissions delegate this to the filesystem).
+    - Hot-reload of manifests when files change on disk.
+    - A separate `maid serve --client` command.
 temptations:
   - risk: "Do not re-implement validation inside the daemon, and do not invent a new response shape for it."
     instead: "Call the same `validate` entry point the CLI uses and wrap its existing `--json` result object verbatim under the response `result` field, so daemon output and CLI output stay byte-identical."
   - risk: "Do not add TCP, authentication, or remote access in this manifest."
     instead: "Unix socket only. Cross-machine access is a separate design decision and belongs in a future manifest."
   - risk: "Do not silently leave a stale pidfile or socket if the daemon crashes."
-    instead: "On startup, if the pidfile points to a non-running process, remove the stale pidfile and socket and continue; if the process IS alive, exit non-zero with a clear error."
+    instead: "On startup, if the pidfile points to a non-running process, remove the stale pidfile and continue; clean the socket path only after confirming it is actually a Unix socket (refuse to unlink regular files or directories sitting at that path). If the process IS alive, exit non-zero with a clear error."
   - risk: "Do not let one malformed client request kill the daemon."
     instead: "Wrap per-request dispatch in a try/except that returns a structured error response and keeps the daemon running. Only fatal startup errors should exit the process."
   - risk: "Do not block the daemon on a slow client read."
@@ -62,31 +51,41 @@ files:
   create:
     - path: maid_runner/daemon/__init__.py
       artifacts:
-        - kind: attribute
-          name: daemon_package_marker
-          of: maid_runner.daemon
-          type: module
-          description: "Package marker exporting public daemon symbols (Server, serve, ProtocolError)"
+        - kind: class
+          name: Server
+          description: "Re-exported from maid_runner.daemon.server"
+        - kind: function
+          name: serve
+          description: "Re-exported from maid_runner.daemon.server"
+        - kind: class
+          name: ProtocolError
+          description: "Re-exported from maid_runner.daemon.protocol"
+        - kind: class
+          name: DaemonRequestError
+          description: "Re-exported from maid_runner.daemon.protocol"
+        - kind: class
+          name: Request
+          description: "Re-exported from maid_runner.daemon.protocol"
+        - kind: class
+          name: Response
+          description: "Re-exported from maid_runner.daemon.protocol"
     - path: maid_runner/daemon/protocol.py
       artifacts:
         - kind: class
           name: Request
-          description: "Parsed NDJSON client request: id, method, params"
+          description: "Parsed NDJSON client request with id, method, params"
         - kind: attribute
           name: id
           of: Request
           type: str
-          description: "Client-supplied correlation id, echoed verbatim in the response"
         - kind: attribute
           name: method
           of: Request
           type: str
-          description: "Method name, one of: validate, ping"
         - kind: attribute
           name: params
           of: Request
-          type: dict[str, Any]
-          description: "Method-specific parameters; empty dict allowed for ping"
+          type: dict
         - kind: class
           name: Response
           description: "Server response with id, ok flag, and either result or error"
@@ -94,25 +93,32 @@ files:
           name: id
           of: Response
           type: str
-          description: "Echo of the request id"
         - kind: attribute
           name: ok
           of: Response
           type: bool
-          description: "True for success, False for error"
         - kind: attribute
           name: result
           of: Response
-          type: dict[str, Any] | None
-          description: "Method result on success, None on error"
+          type: Optional[dict]
         - kind: attribute
           name: error
           of: Response
-          type: dict[str, Any] | None
-          description: "Error object with code and message on failure, None on success"
+          type: Optional[dict]
         - kind: class
           name: ProtocolError
           description: "Raised when an inbound line cannot be parsed as a valid Request"
+        - kind: class
+          name: DaemonRequestError
+          description: "Raised by handlers when the request itself is malformed; surfaced as ok=false"
+        - kind: attribute
+          name: code
+          of: DaemonRequestError
+          type: str
+        - kind: attribute
+          name: message
+          of: DaemonRequestError
+          type: str
         - kind: function
           name: parse_request
           args:
@@ -144,20 +150,26 @@ files:
           name: handle_validate
           args:
             - name: params
-              type: dict[str, Any]
-          returns: dict[str, Any]
-          description: "Dispatch a validate request to the existing CLI validate function and return its JSON-mode result dict unchanged"
+              type: dict
+          returns: dict
+          description: "Dispatch a validate request through the existing engine and return its JSON-mode result dict"
         - kind: function
           name: handle_ping
           args:
             - name: params
-              type: dict[str, Any]
-          returns: dict[str, Any]
-          description: "Return a liveness payload: {pid, version, uptime_s}"
+              type: dict
+          returns: dict
+          description: "Return a liveness payload with pid, version, and uptime_s"
+        - kind: function
+          name: configure_context
+          args:
+            - name: project_root
+              type: Union[str, Path]
+          returns: None
+          description: "Bind the daemon to a startup project_root. Client-supplied values are ignored."
         - kind: attribute
           name: HANDLERS
-          of: maid_runner.daemon.handlers
-          type: dict[str, Callable[[dict], dict]]
+          type: dict
           description: "Method name to handler function registry, used by the server dispatcher"
     - path: maid_runner/daemon/server.py
       artifacts:
@@ -168,37 +180,38 @@ files:
           name: socket_path
           of: Server
           type: Path
-          description: "Absolute path to the Unix domain socket the server binds to"
         - kind: attribute
           name: pidfile_path
           of: Server
           type: Path
-          description: "Absolute path to the pidfile used to prevent double-launch"
         - kind: attribute
           name: client_timeout_s
           of: Server
           type: float
-          description: "Per-client read timeout in seconds (default 30.0)"
-        - kind: function
+        - kind: attribute
+          name: project_root
+          of: Server
+          type: Path
+        - kind: method
           name: start
           of: Server
           args: []
           returns: None
           description: "Bind the socket, write the pidfile, install signal handlers, and enter the accept loop"
-        - kind: function
+        - kind: method
           name: shutdown
           of: Server
           args: []
           returns: None
           description: "Close the listening socket, remove the pidfile and socket file, and exit the accept loop"
-        - kind: function
+        - kind: method
           name: handle_client
           of: Server
           args:
             - name: conn
               type: socket.socket
           returns: None
-          description: "Read NDJSON lines from one client, dispatch each to the handler registry, write back NDJSON responses; one malformed request returns an error response but does not close the connection"
+          description: "Read NDJSON lines from one client, dispatch to handlers, write back NDJSON responses"
         - kind: function
           name: serve
           args:
@@ -208,6 +221,9 @@ files:
               type: Path
             - name: client_timeout_s
               type: float
+            - name: project_root
+              type: Path | str
+              default: "'.'"
           returns: int
           description: "Top-level entrypoint: construct a Server, start it, and return a process exit code"
         - kind: function
@@ -216,7 +232,7 @@ files:
             - name: pidfile_path
               type: Path
           returns: bool
-          description: "Return True (and remove the pidfile + socket) if the pidfile points to a non-running process; return False if the daemon is already alive"
+          description: "Return True (and remove the pidfile + socket) if the pidfile points to a non-running process"
     - path: maid_runner/cli/commands/serve.py
       artifacts:
         - kind: function
@@ -227,19 +243,12 @@ files:
           returns: argparse.ArgumentParser
           description: "Register the `maid serve` subcommand on the top-level parser"
         - kind: function
-          name: run_serve
+          name: cmd_serve
           args:
             - name: args
               type: argparse.Namespace
           returns: int
-          description: "CLI handler for `maid serve`: resolve socket/pidfile paths, call maid_runner.daemon.serve(), return its exit code"
-    - path: tests/daemon/__init__.py
-      artifacts:
-        - kind: attribute
-          name: daemon_tests_package_marker
-          of: tests.daemon
-          type: module
-          description: "Package marker for daemon integration and protocol tests"
+          description: "CLI handler for `maid serve`: resolve socket/pidfile paths, call maid_runner.daemon.serve()"
     - path: tests/daemon/test_protocol.py
       artifacts:
         - kind: test_function
@@ -253,7 +262,7 @@ files:
         - kind: test_function
           name: test_render_response_emits_single_ndjson_line
         - kind: test_function
-          name: test_render_response_preserves_existing_validate_json_shape_under_result_key
+          name: test_render_response_preserves_validate_json_shape_under_result_key
         - kind: test_function
           name: test_error_response_has_code_and_message_fields
     - path: tests/daemon/test_server.py
@@ -265,19 +274,25 @@ files:
         - kind: test_function
           name: test_validate_request_returns_same_json_shape_as_cli_for_single_manifest
         - kind: test_function
-          name: test_validate_request_returns_errors_array_for_invalid_manifest
+          name: test_validate_request_returns_errors_for_invalid_manifest
         - kind: test_function
           name: test_malformed_request_returns_error_response_and_connection_stays_open
         - kind: test_function
-          name: test_second_request_on_same_connection_is_faster_than_first_due_to_warm_caches
-        - kind: test_function
           name: test_sigterm_triggers_clean_shutdown_and_removes_pidfile_and_socket
         - kind: test_function
-          name: test_double_launch_with_live_daemon_exits_non_zero_with_clear_error
+          name: test_double_launch_with_live_daemon_exits_non_zero
         - kind: test_function
           name: test_stale_pidfile_from_dead_process_is_removed_and_daemon_starts
         - kind: test_function
           name: test_client_read_timeout_closes_slow_connection_but_keeps_daemon_running
+        - kind: test_function
+          name: test_handlers_registry_dispatches_ping_to_handle_ping
+        - kind: test_function
+          name: test_handlers_registry_dispatches_validate_via_handle_validate
+        - kind: test_function
+          name: test_server_shutdown_releases_socket_and_pidfile
+        - kind: test_function
+          name: test_server_handle_client_processes_ndjson_request_over_socketpair
     - path: tests/daemon/test_cli_serve.py
       artifacts:
         - kind: test_function
@@ -285,29 +300,13 @@ files:
         - kind: test_function
           name: test_maid_serve_resolves_default_socket_under_dot_maid_directory
         - kind: test_function
-          name: test_maid_serve_returns_zero_on_clean_shutdown
+          name: test_register_serve_subparser_returns_argument_parser
   edit:
     - path: maid_runner/cli/commands/_main.py
       artifacts:
-        - kind: attribute
-          name: serve_subcommand_registration
-          of: build_parser
-          type: subparser
-          description: "Register `maid serve` alongside validate, audit, etc., via register_serve_subparser"
-    - path: maid_runner/cli/commands/__init__.py
-      artifacts:
-        - kind: attribute
-          name: serve_command_export
-          of: maid_runner.cli.commands
-          type: module
-          description: "Export the serve command module so the top-level dispatcher can resolve it"
-    - path: .gitignore
-      artifacts:
-        - kind: attribute
-          name: maid_daemon_runtime_files_ignore
-          of: gitignore
-          type: string
-          description: "Ignore `.maid/serve.sock` and `.maid/serve.pid` so the daemon's runtime files never get committed"
+        - kind: function
+          name: build_parser
+          returns: argparse.ArgumentParser
   read:
     - maid_runner/cli/commands/validate.py
     - maid_runner/cli/commands/_main.py

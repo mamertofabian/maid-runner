@@ -272,6 +272,11 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
     rp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
 
+    # maid serve
+    from maid_runner.cli.commands.serve import register_serve_subparser
+
+    register_serve_subparser(sub)
+
     # maid audit
     p = sub.add_parser("audit", help="Audit MAID manifests for systemic issues")
     asub = p.add_subparsers(dest="audit_command")
@@ -315,6 +320,7 @@ def main(argv: list[str] | None = None) -> int:
         "howto": "_cmd_howto",
         "chain": "_cmd_chain",
         "audit": "_cmd_audit",
+        "serve": "_cmd_serve",
     }
 
     handler_name = dispatch.get(args.command)
@@ -338,6 +344,7 @@ def main(argv: list[str] | None = None) -> int:
         howto as howto_mod,
         chain as chain_mod,
         audit as audit_mod,
+        serve as serve_mod,
     )
 
     handlers = {
@@ -357,6 +364,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_howto": howto_mod.cmd_howto,
         "_cmd_chain": chain_mod.cmd_chain,
         "_cmd_audit": audit_mod.cmd_audit,
+        "_cmd_serve": serve_mod.cmd_serve,
     }
 
     handler = handlers[handler_name]
