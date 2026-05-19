@@ -23,6 +23,10 @@ Use Python 3.10+ with type hints for public APIs. Follow Black formatting and Ru
 
 This repository dogfoods MAID. For code changes, create or evolve the relevant manifest before implementation, add focused behavioral tests, then run behavioral and implementation validation for the touched manifest. Finish with `uv run maid validate`, `uv run maid test`, and the relevant pytest scope. Tests should assert observable behavior, include failure cases, and follow `docs/unit-testing-rules.md`.
 
+## Validator Hardening Constraints
+
+Do not build or extend custom static analyzers as the default answer to validator hardening, especially for Python control-flow or behavioral reachability. The abandoned 033 reachability hardening attempt showed that case-by-case AST interpretation causes large validator and test growth while still missing language edge cases. Prefer runtime-backed evidence, instrumentation, existing parser/compiler services, or a deliberately narrow syntactic rule with documented limits. If a hardening task starts requiring broad control-flow modeling, stop and propose a design direction before implementation.
+
 ## MAID Review-Fix-Ready Loop
 
 Every MAID-backed coding session must end with an implementation review gate before handoff. After implementation and validation, run `maid-implementation-review` or an equivalent read-only reviewer against a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
