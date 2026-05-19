@@ -347,10 +347,30 @@ uv run maid chain log [--until-seq N] [--version-tag TAG] [--active] [--json]
 # Replay preview (effective artifacts at a point in time)
 uv run maid chain replay [--until-seq N] [--version-tag TAG] [--json]
 
+# Run a long-lived validator daemon (NDJSON over Unix socket)
+uv run maid serve [--socket .maid/serve.sock] [--pidfile .maid/serve.pid] \
+                  [--project-root .] [--client-timeout 30]
+
 # Get help
 uv run maid --help
 uv run maid validate --help
 ```
+
+### Validator Daemon (`maid serve`)
+
+NDJSON-over-Unix-socket daemon that keeps the validator warm so external
+agents and editor integrations can validate manifests without paying Python
+startup per call.
+
+- Two methods: `validate` (same shape as `maid validate --json`) and `ping`.
+- `ok: false` at protocol layer surfaces request-layer failures
+  (`MISSING_PARAM`, `BAD_MODE`, `PATH_ESCAPE`, etc.). `result.success: false`
+  reports validation outcomes.
+- Daemon is repo-bound. Client-supplied `project_root` is ignored.
+- Library entry point: `from maid_runner.daemon import serve, Server`.
+
+Full protocol reference, security defaults, and example client live in
+[`docs/maid-serve.md`](docs/maid-serve.md).
 
 ## Quick Commands
 

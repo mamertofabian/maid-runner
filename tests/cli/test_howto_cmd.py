@@ -69,3 +69,15 @@ class TestCmdHowto:
 
         exit_code = main(["howto", "nonexistent"])
         assert exit_code == 2
+
+    def test_howto_serve_topic_documents_daemon(self, capsys):
+        from maid_runner.cli.commands._main import main
+
+        exit_code = main(["howto", "serve"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "maid serve" in captured.out
+        assert "NDJSON" in captured.out
+        assert "Unix socket" in captured.out
+        assert "PATH_ESCAPE" in captured.out
+        assert "docs/maid-serve.md" in captured.out

@@ -98,6 +98,7 @@ implementation review, evolution, auditing, and incident logging.
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
+| `maid serve` | Run a long-lived validator daemon over a Unix socket | `--socket`, `--pidfile`, `--project-root`, `--client-timeout` |
 
 **Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
 
@@ -327,6 +328,20 @@ validation verifies that the named symbol is absent from the referenced file and
 reports `E311 REMOVED_ARTIFACT_STILL_PRESENT` if it is still defined, the file
 cannot be parsed, the path escapes the project root, or no validator can inspect
 that file type.
+
+## Validator Daemon (`maid serve`)
+
+A long-lived local daemon that exposes the validator over a Unix socket so
+AI agents, editor integrations, and tight TDD loops can validate manifests
+without paying Python startup per call. NDJSON protocol, repo-bound project
+root, locked-down socket permissions.
+
+```bash
+maid serve --socket .maid/serve.sock --pidfile .maid/serve.pid
+```
+
+See [`docs/maid-serve.md`](docs/maid-serve.md) for protocol, methods,
+security defaults, and example client.
 
 ## Development Workflow
 
