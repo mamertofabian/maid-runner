@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-05-19
+
+### Added
+- **`maid serve` validator daemon** — Added a long-lived Unix-socket NDJSON daemon for low-latency `validate` and `ping` requests, including startup-bound project roots, path-escape rejection, bounded request frames, atomic pidfiles, locked-down socket permissions, and request-level error responses.
+- **Daemon reference documentation** — Added `docs/maid-serve.md` plus README, CLAUDE.md, and `maid howto serve` pointers covering the protocol, security model, CLI flags, and example client usage.
+- **MAID planning skills and draft queues** — Added performance-optimization and cleanup/refactor planning skills, with draft queues for manifest-chain caching, shared AST reuse, test-artifact caching, validation-engine characterization, and parse-error extraction work.
+
 ## [2.9.4] - 2026-05-18
 
 ### Fixed

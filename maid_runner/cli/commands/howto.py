@@ -114,9 +114,9 @@ _TOPICS = {
         "  maid serve --socket .maid/serve.sock --pidfile .maid/serve.pid \\\n"
         "             --project-root . --client-timeout 30\n\n"
         "NDJSON protocol. One JSON request per line, one response per line.\n\n"
-        "Request:  {\"id\": \"<id>\", \"method\": \"validate|ping\", \"params\": {...}}\n"
-        "Success:  {\"id\": \"<id>\", \"ok\": true, \"result\": {...}}\n"
-        "Failure:  {\"id\": \"<id>\", \"ok\": false, \"error\": {\"code\", \"message\"}}\n\n"
+        'Request:  {"id": "<id>", "method": "validate|ping", "params": {...}}\n'
+        'Success:  {"id": "<id>", "ok": true, "result": {...}}\n'
+        'Failure:  {"id": "<id>", "ok": false, "error": {"code", "message"}}\n\n'
         "validate params:\n"
         "  manifest_path  (required, resolved under --project-root)\n"
         "  mode           schema|behavioral|implementation\n"
