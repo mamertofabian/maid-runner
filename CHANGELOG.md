@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.1] - 2026-05-20
+
+### Changed
+- **Validator hardening guidance** — Documented the repository constraint to avoid broad custom control-flow analyzers for validator hardening, preferring runtime-backed evidence, existing parser/compiler services, or deliberately narrow syntactic checks with documented limits.
+
+### Fixed
+- **Django dotted test target validation** — `maid validate` and `maid test` now accept Django-style dotted test labels in validation commands while preserving strict rejection for non-test-runner commands and untracked test targets.
+
 ## [2.10.0] - 2026-05-19
 
 ### Added
