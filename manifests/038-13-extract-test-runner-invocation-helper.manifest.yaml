@@ -1,0 +1,152 @@
+schema: "2"
+goal: "Extract test-runner invocation detection"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - command-integrity
+  priority: high
+description: |
+  Extract test-runner invocation recognition, wrapper unwrapping, selector
+  detection, and non-executing-mode detection from
+  `maid_runner.core._validation_test_artifacts` into a focused private helper
+  module.
+
+  This is a behavior-preserving refactor for the first Priority 3 slice from
+  the professional refactor backlog. Command target extraction and Django label
+  path resolution remain in `_validation_test_artifacts` for later slices.
+temptations:
+  - risk: "Do not change validate-command integrity semantics while moving runner detection."
+    instead: "Move the current recognition logic and keep `_validation_test_artifacts` names available through imports."
+  - risk: "Do not broaden the accepted or rejected test-runner command shapes in this slice."
+    instead: "Preserve current pytest, Django, Docker, package-wrapper, selector, and non-executing-mode behavior exactly."
+  - risk: "Do not combine this with command target extraction, Django label path resolution, or artifact collection."
+    instead: "Only extract test-runner invocation and mode detection helpers."
+files:
+  create:
+    - path: maid_runner/core/_test_runner_invocation.py
+      artifacts:
+        - kind: function
+          name: _test_runner_invocation
+          source_scenario: "A validate command may wrap a known test runner through uv, coverage, Docker, package runners, or Django commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_invocation
+          expected:
+            behavior: "The helper returns the same runner name and runner arguments as before extraction."
+        - kind: function
+          name: _test_runner_target_scan_segment
+          source_scenario: "Validate-command discovery scans the effective runner command after stripping known wrappers."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_target_scan_segment
+          expected:
+            behavior: "The helper returns the same command segment used for target scanning as before extraction."
+        - kind: function
+          name: _has_non_executing_test_runner_mode
+          source_scenario: "A validate command uses collect-only, list, dry-run, cache, help, or similar non-executing test-runner mode."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_non_executing_test_runner_mode
+          expected:
+            behavior: "The helper rejects the same non-executing modes as before extraction."
+        - kind: function
+          name: _has_test_runner_selector
+          source_scenario: "A validate command uses selector flags that can skip declared tests."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_test_runner_selector
+          expected:
+            behavior: "The helper detects the same pytest, JS, Playwright, and Django selectors as before extraction."
+        - kind: function
+          name: _runs_django_test_runner
+          source_scenario: "A validate command invokes Django tests through manage.py, django-admin, python -m django, or Docker."
+          actions:
+            - type: api_call
+              subject:
+                export: _runs_django_test_runner
+          expected:
+            behavior: "The helper recognizes the same Django runner invocations as before extraction."
+    - path: tests/core/validation/test_test_runner_invocation.py
+      artifacts:
+        - kind: test_function
+          name: test_invocation_unwraps_uv_python_module_pytest
+          source_scenario: "A validate command invokes pytest through uv and python -m."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_invocation
+          expected:
+            behavior: "The invocation helper reports pytest with only pytest's arguments."
+        - kind: test_function
+          name: test_invocation_unwraps_docker_django_manage_py
+          source_scenario: "A validate command invokes Django tests through docker exec and manage.py."
+          actions:
+            - type: api_call
+              subject:
+                export: _runs_django_test_runner
+          expected:
+            behavior: "The invocation helper recognizes the command as a Django test runner."
+        - kind: test_function
+          name: test_target_scan_segment_strips_package_runner_wrapper
+          source_scenario: "A validate command invokes Vitest through pnpm."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_target_scan_segment
+          expected:
+            behavior: "The target scan helper returns the effective Vitest command segment."
+        - kind: test_function
+          name: test_non_executing_mode_detects_pytest_addopts_collect_only
+          source_scenario: "A validate command injects pytest collect-only through PYTEST_ADDOPTS."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_non_executing_test_runner_mode
+          expected:
+            behavior: "The mode helper treats the command as non-executing."
+        - kind: test_function
+          name: test_selector_detection_rejects_clustered_pytest_short_selector
+          source_scenario: "A validate command uses a clustered pytest short selector."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_test_runner_selector
+          expected:
+            behavior: "The selector helper detects the selector flag."
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: _test_runner_invocation
+          source_scenario: "Existing private imports from _validation_test_artifacts still find the runner invocation helper."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_invocation
+          expected:
+            behavior: "The imported helper preserves existing runner recognition behavior."
+        - kind: function
+          name: _has_non_executing_test_runner_mode
+          source_scenario: "Validate-command integrity still rejects non-executing runner modes."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Existing command integrity failures remain unchanged."
+  read:
+    - tests/core/test_validation_test_artifacts.py
+    - tests/cli/test_validate_cmd.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/test_runner.py
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - manifests/fix-django-dotted-validate-test-targets.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_runner_invocation.py tests/core/test_validation_test_artifacts.py tests/cli/test_validate_cmd.py
