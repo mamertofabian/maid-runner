@@ -19,6 +19,7 @@ _ReferenceKey = tuple[
 ]
 _ImportFromEntry = tuple[str, Optional[str], Optional[str]]
 _ImportEntry = tuple[str, str, Optional[str], str]
+_ImportIdentity = tuple[Optional[str], Optional[str]]
 
 
 @dataclass
@@ -102,3 +103,38 @@ class _BehavioralReferenceRecorder:
                 alias_of=alias_of,
                 reference_context="import",
             )
+
+    def add_bound_reference(
+        self,
+        name: str,
+        *,
+        reference_context: str,
+        lexically_shadowed_import: bool = False,
+        local_import: Optional[_ImportIdentity] = None,
+        local_value_without_import: bool = False,
+        function_import_bound: bool = False,
+        module_shadowed: bool = False,
+        imported_identity: _ImportIdentity = (None, None),
+    ) -> None:
+        if lexically_shadowed_import:
+            self.add_reference(name, reference_context="local")
+            return
+        if local_import is not None:
+            import_source, alias_of = local_import
+        elif local_value_without_import:
+            self.add_reference(name, reference_context="local")
+            return
+        elif function_import_bound:
+            self.add_reference(name, reference_context="local")
+            return
+        elif module_shadowed:
+            self.add_reference(name, reference_context="local")
+            return
+        else:
+            import_source, alias_of = imported_identity
+        self.add_reference(
+            name,
+            import_source=import_source,
+            alias_of=alias_of,
+            reference_context=reference_context,
+        )

@@ -1,0 +1,79 @@
+schema: "2"
+goal: "Extract Python behavioral bound-reference recording"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's bound-name reference recording
+  decision table into the behavioral reference recorder helper.
+
+  This continues Priority 5 from the professional refactor backlog: extract
+  behavioral reference collector helpers after import/scope state objects. The
+  collector still gathers all lexical-shadow, local-import, local-value,
+  function-import, module-shadow, and imported-name facts. The recorder owns
+  only the final decision of whether to emit a local reference or an
+  identity-bearing reference.
+temptations:
+  - risk: "Do not move scope or import lookup logic in this slice."
+    instead: "Keep `_resolve_local_imported_name`, shadow checks, and imported-name maps in `python.py`."
+  - risk: "Do not change bound-name precedence."
+    instead: "Preserve the existing order: lexical shadow, local import, local value, function import binding, module shadow, module import map."
+  - risk: "Do not change reference context or import identity fields."
+    instead: "Delegate to the existing recorder `add_reference` with the same arguments."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector has already resolved all bound-name facts and needs to record either a local reference or an identity-bearing reference."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder preserves the legacy bound-name precedence and emits the same reference artifacts."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: _add_bound_reference
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection records a loaded name."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for loaded names, local shadows, local imports, and imported identities are unchanged."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_records_bound_reference_precedence
+          source_scenario: "The recorder sees bound-name facts representing lexical shadowing, local imports, local values, function import bindings, module shadows, and module import identities."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits the same local or identity-bearing reference selected by the legacy precedence."
+        - kind: test_function
+          name: test_python_behavioral_bound_reference_recording_is_unchanged
+          source_scenario: "A Python test locally imports a name that shadows a module-level import and calls it."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records the call with the function-local import identity."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-29-extract-python-behavioral-import-reference-recording.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

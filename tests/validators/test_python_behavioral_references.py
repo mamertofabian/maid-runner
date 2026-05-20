@@ -204,3 +204,96 @@ def test_import_reference_recording():
         ("pkg", "pkg.mod", None),
         ("po", "pkg.other", "pkg.other"),
     ]
+
+
+def test_behavioral_reference_recorder_records_bound_reference_precedence():
+    artifacts = []
+    recorder = _BehavioralReferenceRecorder(
+        artifacts=artifacts,
+        seen=set(),
+        seen_test_funcs=set(),
+    )
+
+    recorder.add_bound_reference(
+        "Thing",
+        reference_context="access",
+        lexically_shadowed_import=True,
+        imported_identity=("pkg.module", None),
+    )
+    recorder.add_bound_reference(
+        "Other",
+        reference_context="call",
+        local_import=("pkg.local", "Original"),
+        imported_identity=("pkg.module", None),
+    )
+    recorder.add_bound_reference(
+        "Local",
+        reference_context="access",
+        local_value_without_import=True,
+        imported_identity=("pkg.module", None),
+    )
+    recorder.add_bound_reference(
+        "Bound",
+        reference_context="access",
+        function_import_bound=True,
+        imported_identity=("pkg.module", None),
+    )
+    recorder.add_bound_reference(
+        "Shadowed",
+        reference_context="access",
+        module_shadowed=True,
+        imported_identity=("pkg.module", None),
+    )
+    recorder.add_bound_reference(
+        "Imported",
+        reference_context="call",
+        imported_identity=("pkg.module", "Alias"),
+    )
+
+    references = [
+        artifact
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context in {"access", "call", "local"}
+    ]
+    assert [
+        (
+            artifact.name,
+            artifact.reference_context,
+            artifact.import_source,
+            artifact.alias_of,
+        )
+        for artifact in references
+    ] == [
+        ("Thing", "local", None, None),
+        ("Other", "call", "pkg.local", "Original"),
+        ("Local", "local", None, None),
+        ("Bound", "local", None, None),
+        ("Shadowed", "local", None, None),
+        ("Imported", "call", "pkg.module", "Alias"),
+    ]
+
+
+def test_python_behavioral_bound_reference_recording_is_unchanged():
+    source = """\
+from pkg.module import Thing
+
+def test_bound_reference_local_import():
+    from pkg.local import Thing
+    Thing()
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    call_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "Thing"
+        and artifact.reference_context == "call"
+    ]
+    assert len(call_references) == 1
+    assert call_references[0].import_source == "pkg.local"

@@ -1260,28 +1260,17 @@ class _BehavioralCollector(ast.NodeVisitor):
         *,
         reference_context: str,
     ) -> None:
-        if self._name_is_lexically_shadowed_import(name):
-            self._add_reference(name, reference_context="local")
-            return
-        local_import = self._resolve_local_imported_name(name)
-        if local_import is not None:
-            import_source, alias_of = local_import
-        elif self._name_is_local_value(name) and name not in self._imported_names:
-            self._add_reference(name, reference_context="local")
-            return
-        elif self._name_is_function_import_bound(name):
-            self._add_reference(name, reference_context="local")
-            return
-        elif name in self._module_shadowed_imports:
-            self._add_reference(name, reference_context="local")
-            return
-        else:
-            import_source, alias_of = self._imported_names.get(name, (None, None))
-        self._add_reference(
+        self._reference_recorder.add_bound_reference(
             name,
-            import_source=import_source,
-            alias_of=alias_of,
             reference_context=reference_context,
+            lexically_shadowed_import=self._name_is_lexically_shadowed_import(name),
+            local_import=self._resolve_local_imported_name(name),
+            local_value_without_import=(
+                self._name_is_local_value(name) and name not in self._imported_names
+            ),
+            function_import_bound=self._name_is_function_import_bound(name),
+            module_shadowed=name in self._module_shadowed_imports,
+            imported_identity=self._imported_names.get(name, (None, None)),
         )
 
     def _resolve_local_imported_name(
