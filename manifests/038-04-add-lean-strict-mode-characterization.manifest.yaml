@@ -1,0 +1,89 @@
+schema: "2"
+goal: "Add lean characterization tests for strict validation modes"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - characterization
+    - safe-refactor
+    - validation
+    - strict-mode
+  priority: high
+description: |
+  Add a parallel, focused characterization suite for representative strict
+  validation behavior currently embedded inside the large
+  `tests/core/test_validate.py` strict assertion, stub, and warning-policy
+  sections.
+
+  This is a test-only preparatory refactor. The old characterization tests stay
+  in place and no production behavior changes. These lean tests document how
+  assertion checking, stub checking, and fail-on-warning behavior work today
+  before later extraction work touches validation internals.
+temptations:
+  - risk: "Do not delete or move strict-mode tests from tests/core/test_validate.py in this slice."
+    instead: "Add the new lean suite in parallel and keep the legacy characterization tests green."
+  - risk: "Do not change ValidationEngine, strict CLI flags, warning severity, assertion scanning, or stub detection behavior while adding the suite."
+    instead: "Only create the new test file and run it beside the legacy validation file."
+  - risk: "Do not recreate every legacy structural-artifact, JavaScript assertion, or chain strict-mode edge case in this first lean slice."
+    instead: "Cover representative assertion checking, stub checking, warning-only success, fail-on-warning failure, and validate_all propagation behavior."
+  - risk: "Do not use selector-only validate commands that MAID command integrity rejects."
+    instead: "Run whole test files in the manifest validate command."
+files:
+  create:
+    - path: tests/core/validation/test_strict_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_assertion_check_warns_for_test_without_assertions
+          source_scenario: "A behavioral manifest reads a Python test function that calls the artifact but contains no assertion."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate with check_assertions=True succeeds with ErrorCode.MISSING_ASSERTIONS in warnings and no errors."
+        - kind: test_function
+          name: test_behavioral_assertion_check_is_quiet_without_flag
+          source_scenario: "A behavioral manifest reads the same no-assertion Python test without enabling assertion checks."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate does not report ErrorCode.MISSING_ASSERTIONS when check_assertions is omitted."
+        - kind: test_function
+          name: test_implementation_stub_check_warns_for_pass_function
+          source_scenario: "An implementation manifest declares a Python function whose body is pass and whose test imports the function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate with check_stubs=True succeeds with ErrorCode.STUB_FUNCTION_DETECTED in warnings and no errors."
+        - kind: test_function
+          name: test_implementation_fail_on_warnings_marks_warning_only_result_failed
+          source_scenario: "The same stub implementation is validated with check_stubs=True and fail_on_warnings=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate returns success=False while keeping the stub finding in warnings and leaving errors empty."
+        - kind: test_function
+          name: test_validate_all_applies_strict_warning_policy_to_each_manifest
+          source_scenario: "A manifest directory contains one active manifest with a stub implementation warning."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all with check_stubs=True and fail_on_warnings=True marks the batch failed with zero passed manifests and one failed manifest."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_strict_mode.py tests/core/test_validate.py
