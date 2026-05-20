@@ -1,0 +1,95 @@
+schema: "2"
+goal: "Extract Vitest command normalization helper"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - test-runner
+    - vitest
+  priority: high
+description: |
+  Extract Vitest command normalization from `maid_runner.core.test_runner` into
+  a focused helper module.
+
+  This is the second Priority 4 slice from the professional refactor backlog.
+  The helper owns Vitest command shape detection and target/option
+  normalization for batching. `test_runner` remains responsible for command
+  resolution, batching orchestration, pytest policy, subprocess execution, and
+  MAID validate command caching.
+temptations:
+  - risk: "Do not change which Vitest commands are considered batchable."
+    instead: "Move the existing parser behavior behind focused characterization tests."
+  - risk: "Do not add new pnpm, npm, or shell command semantics in this refactor."
+    instead: "Preserve the current narrow `npx vitest run` and `vitest run` parser."
+  - risk: "Do not fold batching decisions into the Vitest helper."
+    instead: "Keep batching policy in `test_runner.py` for the next strategy slice."
+files:
+  create:
+    - path: maid_runner/core/_vitest_command_normalization.py
+      artifacts:
+        - kind: function
+          name: _normalize_vitest_command
+          source_scenario: "A Vitest validate command uses direct `vitest run` or `npx vitest run` syntax with explicit targets and safe options."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "The helper returns a `(prefix, targets, options)` tuple matching the legacy normalization contract."
+    - path: tests/core/validation/test_vitest_command_normalization.py
+      artifacts:
+        - kind: test_function
+          name: test_normalize_vitest_command_accepts_npx_and_direct_run_forms
+          source_scenario: "Vitest commands use `npx vitest run` and direct `vitest run` with safe reporter options."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "Normalization preserves the command prefix, target, and options exactly."
+        - kind: test_function
+          name: test_normalize_vitest_command_preserves_value_and_standalone_flags
+          source_scenario: "A Vitest command combines safe value flags and safe standalone flags."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "Normalization keeps value flag pairs and standalone flags in order."
+        - kind: test_function
+          name: test_normalize_vitest_command_rejects_unbatchable_shapes
+          source_scenario: "Commands are empty, missing targets, missing option values, using unsupported wrappers, or using unknown Vitest flags."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "Normalization returns None so batching policy can fail closed."
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          source_scenario: "Multi-manifest test execution batches compatible Vitest validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "Vitest commands with the same runner prefix and options still collapse to one batch command while unsafe Vitest flags remain sequential."
+        - kind: function
+          name: _can_batch
+          source_scenario: "Batch eligibility still depends on normalized command groups."
+          actions:
+            - type: api_call
+              subject:
+                export: _can_batch
+          expected:
+            behavior: "The function returns the same boolean result for equivalent, mixed, and non-batchable commands."
+  read:
+    - tests/core/test_test_runner.py
+    - manifests/fix-typescript-validation-and-test-performance.manifest.yaml
+    - manifests/038-17-extract-pytest-command-normalization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_vitest_command_normalization.py tests/core/test_test_runner.py
