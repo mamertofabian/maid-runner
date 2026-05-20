@@ -72,9 +72,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fail validation when changed production files are outside writable manifest scope",
     )
     p.add_argument(
+        "--changed-scope",
+        action="store_true",
+        help="Fail validation when files changed since a task baseline are outside writable manifest scope",
+    )
+    p.add_argument(
+        "--since",
+        default=None,
+        help="Commit-ish to use as the explicit --changed-scope baseline",
+    )
+    p.add_argument(
+        "--base-ref",
+        default=None,
+        help="Ref whose merge-base with HEAD is used as the --changed-scope baseline",
+    )
+    p.add_argument(
         "--include-tests",
         action="store_true",
-        help="Include changed test files in --worktree-scope checks",
+        help="Include changed test files in scope checks",
     )
     p.add_argument(
         "--json", "--json-output", action="store_true"
@@ -136,10 +151,36 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Require the git worktree-scope gate",
     )
+    verify_changed_scope = p.add_mutually_exclusive_group()
+    verify_changed_scope.add_argument(
+        "--changed-scope",
+        action="store_const",
+        const=True,
+        default=True,
+        dest="changed_scope",
+        help="Require the git changed-scope gate from an explicit task baseline (default)",
+    )
+    verify_changed_scope.add_argument(
+        "--no-changed-scope",
+        action="store_const",
+        const=False,
+        dest="changed_scope",
+        help="Disable the default changed-scope handoff gate",
+    )
+    p.add_argument(
+        "--since",
+        default=None,
+        help="Commit-ish to use as the explicit --changed-scope baseline",
+    )
+    p.add_argument(
+        "--base-ref",
+        default=None,
+        help="Ref whose merge-base with HEAD is used as the --changed-scope baseline",
+    )
     p.add_argument(
         "--include-tests",
         action="store_true",
-        help="Include changed test files in the worktree-scope gate",
+        help="Include changed test files in scope gates",
     )
     p.add_argument("--json", action="store_true")
 

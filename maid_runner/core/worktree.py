@@ -2,15 +2,41 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import subprocess
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 
 _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
+
+
+@dataclass(frozen=True)
+class ChangedScopeBaseline:
+    """Resolved task baseline for changed-scope validation."""
+
+    source: str
+    commitish: str
+
+
+class _ChangedScopeBaselineError(RuntimeError):
+    def __init__(
+        self,
+        code: ErrorCode,
+        message: str,
+        *,
+        suggestion: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.error = ValidationError(
+            code=code,
+            message=message,
+            severity=Severity.ERROR,
+            suggestion=suggestion,
+        )
 
 
 def changed_files(project_root: Union[str, Path]) -> "tuple[str, ...]":
@@ -52,6 +78,88 @@ def changed_files(project_root: Union[str, Path]) -> "tuple[str, ...]":
     return _to_project_relative_paths(_parse_porcelain_z(result.stdout), prefix)
 
 
+def resolve_changed_scope_baseline(
+    chain: ManifestChain,
+    since: Optional[str] = None,
+    base_ref: Optional[str] = None,
+) -> ChangedScopeBaseline:
+    """Resolve the explicit or manifest-declared changed-scope baseline."""
+    if since and base_ref:
+        raise _ChangedScopeBaselineError(
+            ErrorCode.CHANGED_SCOPE_BASELINE_INVALID,
+            "--changed-scope accepts either --since or --base-ref, not both",
+            suggestion="Pass one baseline source for the task window.",
+        )
+    if since:
+        return ChangedScopeBaseline(source="since", commitish=since)
+    if base_ref:
+        return ChangedScopeBaseline(source="base-ref", commitish=base_ref)
+
+    bases = {
+        str(manifest.metadata.get("maid_task_base")).strip()
+        for manifest in chain.active_manifests()
+        if isinstance(manifest.metadata, dict)
+        and manifest.metadata.get("maid_task_base")
+    }
+    if len(bases) == 1:
+        return ChangedScopeBaseline(source="metadata", commitish=next(iter(bases)))
+    if len(bases) > 1:
+        raise _ChangedScopeBaselineError(
+            ErrorCode.CHANGED_SCOPE_BASELINE_INVALID,
+            "Active manifests declare conflicting metadata.maid_task_base values",
+            suggestion=(
+                "Make active manifest metadata agree, or pass --since/--base-ref "
+                "for this validation run."
+            ),
+        )
+
+    raise _ChangedScopeBaselineError(
+        ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED,
+        "--changed-scope requires --since, --base-ref, or metadata.maid_task_base",
+        suggestion=(
+            "Pass the task baseline explicitly; MAID will not guess main, dev, "
+            "or a remote branch."
+        ),
+    )
+
+
+def changed_files_since(
+    project_root: Union[str, Path],
+    baseline: ChangedScopeBaseline,
+) -> "tuple[str, ...]":
+    """Return files changed from the task baseline to the current worktree."""
+    root = Path(project_root)
+    commitish = _baseline_commitish(root, baseline)
+    tracked = _changed_tracked_paths_since(root, commitish)
+    untracked = _untracked_paths(root)
+    return tuple(dict.fromkeys((*tracked, *untracked)))
+
+
+def validate_changed_scope(
+    project_root: Union[str, Path],
+    chain: ManifestChain,
+    since: Optional[str] = None,
+    base_ref: Optional[str] = None,
+    include_tests: bool = False,
+) -> list[ValidationError]:
+    """Report baseline-changed files outside active writable manifest scope."""
+    try:
+        baseline = resolve_changed_scope_baseline(chain, since=since, base_ref=base_ref)
+        paths = changed_files_since(project_root, baseline)
+    except _ChangedScopeBaselineError as exc:
+        return [exc.error]
+    except RuntimeError as exc:
+        return [
+            ValidationError(
+                code=ErrorCode.FILE_READ_ERROR,
+                message=str(exc),
+                severity=Severity.ERROR,
+            )
+        ]
+
+    return _scope_errors_for_paths(paths, chain, include_tests=include_tests)
+
+
 def validate_worktree_scope(
     project_root: Union[str, Path],
     chain: ManifestChain,
@@ -69,6 +177,15 @@ def validate_worktree_scope(
             )
         ]
 
+    return _scope_errors_for_paths(paths, chain, include_tests=include_tests)
+
+
+def _scope_errors_for_paths(
+    paths: tuple[str, ...],
+    chain: ManifestChain,
+    *,
+    include_tests: bool,
+) -> list[ValidationError]:
     writable_paths = _active_writable_paths(chain)
     errors: list[ValidationError] = []
 
@@ -93,6 +210,131 @@ def validate_worktree_scope(
         )
 
     return errors
+
+
+def _baseline_commitish(root: Path, baseline: ChangedScopeBaseline) -> str:
+    if baseline.source != "base-ref":
+        return baseline.commitish
+
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", baseline.commitish, "HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git executable not found"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git merge-base timed out"
+        ) from exc
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        message = f"Changed-scope baseline is invalid: {baseline.commitish}"
+        if detail:
+            message = f"{message}: {detail}"
+        raise _ChangedScopeBaselineError(
+            ErrorCode.CHANGED_SCOPE_BASELINE_INVALID,
+            message,
+        )
+    return result.stdout.strip()
+
+
+def _changed_tracked_paths_since(root: Path, commitish: str) -> tuple[str, ...]:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "diff",
+                "--name-status",
+                "-z",
+                "--relative",
+                commitish,
+                "--",
+                ".",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git executable not found"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git diff timed out"
+        ) from exc
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        message = f"Changed-scope baseline is invalid: {commitish}"
+        if detail:
+            message = f"{message}: {detail}"
+        raise _ChangedScopeBaselineError(
+            ErrorCode.CHANGED_SCOPE_BASELINE_INVALID,
+            message,
+        )
+    return _parse_name_status_z(result.stdout)
+
+
+def _untracked_paths(root: Path) -> tuple[str, ...]:
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "-z", "--", "."],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git executable not found"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            "Changed-scope gate requires git metadata: git ls-files timed out"
+        ) from exc
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        message = "Changed-scope gate requires git metadata"
+        if detail:
+            message = f"{message}: {detail}"
+        raise RuntimeError(message)
+    paths = tuple(
+        _normalize_git_path(path) for path in result.stdout.split("\0") if path
+    )
+    return tuple(dict.fromkeys(paths))
+
+
+def _parse_name_status_z(output: str) -> tuple[str, ...]:
+    paths: list[str] = []
+    fields = [field for field in output.split("\0") if field]
+    index = 0
+    while index < len(fields):
+        status = fields[index]
+        index += 1
+        if index >= len(fields):
+            break
+        path = fields[index]
+        index += 1
+        if status.startswith(("R", "C")):
+            if index >= len(fields):
+                break
+            new_path = fields[index]
+            index += 1
+            paths.append(_normalize_git_path(path))
+            paths.append(_normalize_git_path(new_path))
+        else:
+            paths.append(_normalize_git_path(path))
+    return tuple(dict.fromkeys(paths))
 
 
 def _parse_porcelain_z(output: str) -> tuple[str, ...]:

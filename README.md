@@ -83,8 +83,9 @@ implementation review, evolution, auditing, and incident logging.
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
-| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--json`, `--watch`, `--watch-all` |
+| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
+| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--force` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
@@ -131,6 +132,9 @@ maid test --watch-all
 # Run all validation commands
 maid test
 
+# Branch handoff gate for humans, CI, and AI agents
+maid verify --base-ref <parent-branch>
+
 # JSON output for CI/CD
 maid validate --json
 
@@ -146,6 +150,51 @@ When validating with manifest chains (default), MAID Runner reports file complia
 - **UNDECLARED**: Files not in any manifest (no audit trail)
 - **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
 - **TRACKED**: Files with full MAID compliance
+
+### Changed-Scope Handoff Gate
+
+`maid verify` runs changed-scope by default. Use it at branch handoff, review,
+and CI boundaries to close the loophole where a file changed during the task is
+listed only under `files.read` after the edit has already been committed.
+Callers must opt out explicitly with `--no-changed-scope`.
+
+Recommended branch review command:
+
+```bash
+maid verify --base-ref <parent-branch>
+```
+
+Use `--base-ref` for stacked branches because MAID compares from
+`git merge-base <parent-branch> HEAD` to the current working tree. Use
+`--since <commit-ish>` when the exact task baseline is known:
+
+```bash
+maid validate --changed-scope --since <task-start-commit>
+maid verify --since <task-start-commit>
+```
+
+The baseline can also be recorded in active manifests:
+
+```yaml
+metadata:
+  maid_task_base: <task-start-commit>
+```
+
+When `maid verify` runs without `--since`, `--base-ref`, or an unambiguous
+`metadata.maid_task_base`, MAID fails closed with `E115` instead of guessing
+`main`, `master`, `dev`, `development`, or a remote branch. Git does not retain
+a reliable branch-origin fact after rebases and merges, and a default commit
+count can miss task changes, so the baseline must be real evidence supplied by
+the caller or manifest. `files.read` never grants write permission; changed
+source files must be declared in `files.create`, `files.edit`, or
+`files.delete`. Use `--include-tests` when the handoff should also enforce
+changed test files.
+
+Use `--worktree-scope` for fast live checks of uncommitted local changes. Use
+`maid verify` for branch handoff because changed-scope checks committed,
+staged, unstaged, and untracked files since the task baseline by default. Use
+`maid validate --changed-scope` only when you want the lower-level validate
+command to run the same gate explicitly.
 
 ## Manifest Structure (v2 YAML)
 

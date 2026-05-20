@@ -61,6 +61,40 @@ def _write_verify_project(
     return manifest_path
 
 
+def _commit_all(project_dir, message: str = "commit") -> str:
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "add", "."], cwd=project_dir, check=True, capture_output=True
+    )
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "user.name=Test User",
+            "commit",
+            "-m",
+            message,
+        ],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+    )
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
 def test_verify_returns_0_when_all_gates_pass(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
     from maid_runner.cli.commands.verify import cmd_verify, run_verify
@@ -73,7 +107,7 @@ def test_verify_returns_0_when_all_gates_pass(tmp_path, capsys):
     assert all(stage.success for stage in result.stages)
     assert callable(cmd_verify)
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 0
     output = capsys.readouterr().out
@@ -99,7 +133,7 @@ def test_verify_returns_1_when_behavioral_validation_fails(tmp_path, capsys):
         ),
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 1
     output = capsys.readouterr().out
@@ -120,7 +154,7 @@ def test_verify_default_fails_when_test_has_no_assertions(tmp_path, capsys):
         ),
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 1
     output = capsys.readouterr().out
@@ -141,7 +175,7 @@ def test_verify_advisory_mode_allows_missing_assertion_warning(tmp_path, capsys)
         ),
     )
 
-    exit_code = main(["verify", "--advisory"])
+    exit_code = main(["verify", "--advisory", "--no-changed-scope"])
 
     assert exit_code == 0
     output = capsys.readouterr().out
@@ -164,7 +198,7 @@ def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys)
         ),
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 0
     output = capsys.readouterr().out
@@ -192,7 +226,7 @@ def test_verify_ignores_pytest_fixture_helpers_named_like_tests(tmp_path, capsys
         ),
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 0
     output = capsys.readouterr().out
@@ -238,7 +272,7 @@ def test_verify_returns_1_when_manifest_validate_command_fails(tmp_path, capsys)
         validate_command="python -m pytest tests/test_gate.py -q",
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 1
     output = capsys.readouterr().out
@@ -258,7 +292,7 @@ def test_verify_rejects_noop_validate_command_for_behavioral_tests(tmp_path, cap
         validate_command='python -c "raise SystemExit(0)"',
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 1
     output = capsys.readouterr().out
@@ -277,7 +311,7 @@ def test_verify_rejects_runner_name_that_is_not_invoked(tmp_path, capsys):
         validate_command="echo pytest tests/test_gate.py",
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 1
     output = capsys.readouterr().out
@@ -296,7 +330,7 @@ def test_verify_accepts_test_runner_validate_command(tmp_path, capsys):
         validate_command="python -m pytest tests -q",
     )
 
-    exit_code = main(["verify"])
+    exit_code = main(["verify", "--no-changed-scope"])
 
     assert exit_code == 0
     output = capsys.readouterr().out
@@ -331,7 +365,9 @@ def test_verify_json_worktree_scope_reports_structured_errors(tmp_path, capsys):
     )
     subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
 
-    exit_code = main(["verify", "--json", "--keep-going", "--worktree-scope"])
+    exit_code = main(
+        ["verify", "--json", "--keep-going", "--worktree-scope", "--no-changed-scope"]
+    )
 
     assert exit_code == 1
     data = json.loads(capsys.readouterr().out)
@@ -342,13 +378,83 @@ def test_verify_json_worktree_scope_reports_structured_errors(tmp_path, capsys):
     assert "outside writable manifest scope" in worktree_errors[0]["message"]
 
 
+def test_verify_changed_scope_stage_reports_read_only_changed_file(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    manifest_path = _write_verify_project(tmp_path, slug="verify-changed-scope")
+    baseline = _commit_all(tmp_path, "baseline")
+    manifest = yaml.safe_load(manifest_path.read_text())
+    manifest["metadata"] = {"maid_task_base": baseline}
+    manifest["files"]["read"].append("src/gate.py")
+    manifest["files"]["create"][0]["path"] = "src/app.py"
+    manifest["files"]["create"][0]["artifacts"][0]["name"] = "app"
+    manifest["validate"] = ["python -m pytest tests/test_app.py -q"]
+    manifest_path.write_text(yaml.dump(manifest))
+    (tmp_path / "src" / "app.py").write_text(
+        "def app() -> str:\n    value = 'ok'\n    return value\n"
+    )
+    (tmp_path / "tests" / "test_app.py").write_text(
+        "from src.app import app\n\ndef test_app():\n    assert app() == 'ok'\n"
+    )
+    (tmp_path / "src" / "gate.py").write_text(
+        "def gate() -> str:\n    return 'changed'\n"
+    )
+
+    exit_code = main(["verify", "--keep-going", "--json"])
+
+    assert exit_code == 1
+    data = json.loads(capsys.readouterr().out)
+    stages = {stage["name"]: stage for stage in data["stages"]}
+    errors = stages["changed_scope"]["details"]["errors"]
+    assert errors[0]["code"] == "E114"
+    assert errors[0]["location"]["file"] == "src/gate.py"
+
+
+def test_verify_default_changed_scope_requires_baseline(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(tmp_path, slug="verify-changed-scope-default")
+
+    exit_code = main(["verify", "--keep-going", "--json"])
+
+    assert exit_code == 1
+    data = json.loads(capsys.readouterr().out)
+    stages = {stage["name"]: stage for stage in data["stages"]}
+    errors = stages["changed_scope"]["details"]["errors"]
+    assert errors[0]["code"] == "E115"
+    assert "origin/main" not in errors[0]["message"]
+
+
+def test_verify_changed_scope_stage_passes_with_since_for_writable_changes(
+    tmp_path,
+    capsys,
+):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(tmp_path, slug="verify-changed-scope-pass")
+    baseline = _commit_all(tmp_path, "baseline")
+    (tmp_path / "src" / "gate.py").write_text(
+        "def gate() -> str:\n    value = 'ok'\n    return value\n# changed\n"
+    )
+
+    exit_code = main(["verify", "--since", baseline, "--keep-going"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "PASS changed_scope" in output
+    assert "PASS tests" in output
+
+
 def test_verify_json_reports_all_stage_statuses(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
 
     os.chdir(tmp_path)
     _write_verify_project(tmp_path, slug="verify-json")
 
-    exit_code = main(["verify", "--json"])
+    exit_code = main(["verify", "--json", "--no-changed-scope"])
 
     assert exit_code == 0
     data = json.loads(capsys.readouterr().out)

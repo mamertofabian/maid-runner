@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 
@@ -121,6 +123,11 @@ class TestBuildParser:
                 "--fail-on-warnings",
                 "--allow-empty",
                 "--worktree-scope",
+                "--changed-scope",
+                "--since",
+                "HEAD~1",
+                "--base-ref",
+                "origin/main",
                 "--include-tests",
             ]
         )
@@ -135,7 +142,62 @@ class TestBuildParser:
         assert args.fail_on_warnings is True
         assert args.allow_empty is True
         assert args.worktree_scope is True
+        assert args.changed_scope is True
+        assert args.since == "HEAD~1"
+        assert args.base_ref == "origin/main"
         assert args.include_tests is True
+
+    def test_verify_changed_scope_defaults_on_and_can_be_disabled(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        default_args = parser.parse_args(["verify"])
+        disabled_args = parser.parse_args(["verify", "--no-changed-scope"])
+
+        assert default_args.changed_scope is True
+        assert disabled_args.changed_scope is False
+
+    def test_validate_accepts_changed_scope_flags(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            ["validate", "--changed-scope", "--since", "abc123", "--base-ref", "main"]
+        )
+
+        assert args.changed_scope is True
+        assert args.since == "abc123"
+        assert args.base_ref == "main"
+
+    def test_changed_scope_handoff_docs_are_discoverable(self):
+        root = Path(__file__).resolve().parents[2]
+        changed_scope_handoff_gate_docs = (root / "README.md").read_text(
+            encoding="utf-8"
+        )
+        changed_scope_agent_handoff_guidance = (
+            root / "docs/agent-skills.md"
+        ).read_text(encoding="utf-8")
+        changed_scope_draft_handoff_gate = (
+            root / "docs/draft-manifest-workflow.md"
+        ).read_text(encoding="utf-8")
+
+        assert "Changed-Scope Handoff Gate" in changed_scope_handoff_gate_docs
+        assert (
+            "maid verify --base-ref <parent-branch>" in changed_scope_handoff_gate_docs
+        )
+        assert "`maid verify` runs changed-scope by default" in (
+            changed_scope_handoff_gate_docs
+        )
+        assert "fails closed with `E115`" in changed_scope_handoff_gate_docs
+        assert (
+            "`maid verify` runs changed-scope by default"
+            in changed_scope_agent_handoff_guidance
+        )
+        assert "Handoff Scope Gate" in changed_scope_draft_handoff_gate
+        assert "it does not guess\n`main`, `master`, `dev`" in (
+            changed_scope_draft_handoff_gate
+        )
 
     def test_parser_exposes_verify_advisory_opt_out(self):
         from maid_runner.cli.commands._main import build_parser

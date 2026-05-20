@@ -16,7 +16,7 @@ from maid_runner.cli.commands._format import (
 
 if TYPE_CHECKING:
     from maid_runner.coherence.result import CoherenceResult
-    from maid_runner.core.result import BatchTestResult
+    from maid_runner.core.result import BatchTestResult, ValidationError
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -58,6 +58,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
             test_result = None
             if result.success and getattr(args, "worktree_scope", False):
                 _apply_worktree_scope_to_result(result, args)
+            if result.success and getattr(args, "changed_scope", False):
+                _apply_changed_scope_to_result(result, args)
             if result.success and getattr(args, "run_tests", False):
                 test_result = run_validate_commands_for_result(args.manifest_path)
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
@@ -95,6 +97,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
             )
             if batch.success and getattr(args, "worktree_scope", False):
                 _apply_worktree_scope_to_batch(batch, args)
+            if batch.success and getattr(args, "changed_scope", False):
+                _apply_changed_scope_to_batch(batch, args)
             quiet = args.quiet and not _has_warning_failure(
                 batch, fail_on_warnings=fail_on_warnings
             )
@@ -370,6 +374,8 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
             )
             if result.success and getattr(args, "worktree_scope", False):
                 _apply_worktree_scope_to_result(result, args)
+            if result.success and getattr(args, "changed_scope", False):
+                _apply_changed_scope_to_result(result, args)
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
             output = format_validation_result(result, json_mode=args.json, quiet=quiet)
             if output:
@@ -386,6 +392,8 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
             )
             if batch.success and getattr(args, "worktree_scope", False):
                 _apply_worktree_scope_to_batch(batch, args)
+            if batch.success and getattr(args, "changed_scope", False):
+                _apply_changed_scope_to_batch(batch, args)
             quiet = args.quiet and not _has_warning_failure(
                 batch, fail_on_warnings=fail_on_warnings
             )
@@ -420,6 +428,32 @@ def _apply_worktree_scope_to_batch(batch, args: argparse.Namespace) -> None:
     batch.failed += 1
 
 
+def _apply_changed_scope_to_result(result, args: argparse.Namespace) -> None:
+    errors = _run_changed_scope(args)
+    if not errors:
+        return
+    result.errors.extend(errors)
+    result.success = False
+
+
+def _apply_changed_scope_to_batch(batch, args: argparse.Namespace) -> None:
+    errors = _run_changed_scope(args)
+    if not errors:
+        return
+
+    if batch.results:
+        target = batch.results[0]
+        target.errors.extend(errors)
+        if target.success:
+            target.success = False
+            batch.passed = max(0, batch.passed - 1)
+            batch.failed += 1
+        return
+
+    batch.chain_errors.extend(errors)
+    batch.failed += 1
+
+
 def _run_worktree_scope(args: argparse.Namespace):
     from maid_runner.core.chain import ManifestChain
     from maid_runner.core.result import ErrorCode, Severity, ValidationError
@@ -437,6 +471,30 @@ def _run_worktree_scope(args: argparse.Namespace):
             ValidationError(
                 code=ErrorCode.FILE_READ_ERROR,
                 message=f"Worktree scope gate failed: {exc}",
+                severity=Severity.ERROR,
+            )
+        ]
+
+
+def _run_changed_scope(args: argparse.Namespace) -> "list[ValidationError]":
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.result import ErrorCode, Severity, ValidationError
+    from maid_runner.core.worktree import validate_changed_scope
+
+    try:
+        chain = ManifestChain(args.manifest_dir, ".")
+        return validate_changed_scope(
+            ".",
+            chain,
+            since=getattr(args, "since", None),
+            base_ref=getattr(args, "base_ref", None),
+            include_tests=getattr(args, "include_tests", False),
+        )
+    except Exception as exc:
+        return [
+            ValidationError(
+                code=ErrorCode.FILE_READ_ERROR,
+                message=f"Changed-scope gate failed: {exc}",
                 severity=Severity.ERROR,
             )
         ]

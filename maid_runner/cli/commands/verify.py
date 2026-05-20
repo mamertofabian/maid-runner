@@ -38,6 +38,9 @@ def cmd_verify(args: argparse.Namespace) -> int:
             check_stubs=True,
             fail_on_warnings=fail_on_warnings,
             require_worktree_scope=getattr(args, "worktree_scope", False),
+            require_changed_scope=getattr(args, "changed_scope", True),
+            since=getattr(args, "since", None),
+            base_ref=getattr(args, "base_ref", None),
             include_tests=getattr(args, "include_tests", False),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
@@ -70,6 +73,9 @@ def _run_verify(
     check_stubs: bool = True,
     fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
+    require_changed_scope: bool = False,
+    since: str | None = None,
+    base_ref: str | None = None,
     include_tests: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
@@ -134,6 +140,8 @@ def _run_verify(
                 return _verification_result(stages, started)
         elif _git_metadata_available(root):
             stages.append(_skipped_stage("worktree_scope", skip_message))
+        if require_changed_scope:
+            stages.append(_skipped_stage("changed_scope", skip_message))
         stages.append(_skipped_stage("tests", skip_message))
         return _verification_result(stages, started)
 
@@ -147,6 +155,13 @@ def _run_verify(
 
     if require_worktree_scope or _git_metadata_available(root):
         stages.append(_worktree_scope_stage(root, manifest_dir, include_tests))
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
+
+    if require_changed_scope:
+        stages.append(
+            _changed_scope_stage(root, manifest_dir, since, base_ref, include_tests)
+        )
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
 
@@ -251,6 +266,36 @@ def _worktree_scope_stage(
         )
     except Exception as exc:
         return _error_stage("worktree_scope", started, exc)
+
+
+def _changed_scope_stage(
+    root: Path,
+    manifest_dir: str,
+    since: str | None,
+    base_ref: str | None,
+    include_tests: bool,
+) -> VerificationStageResult:
+    started = time.monotonic()
+    try:
+        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.worktree import validate_changed_scope
+
+        chain = ManifestChain(_manifest_dir_path(root, manifest_dir), root)
+        errors = validate_changed_scope(
+            root,
+            chain,
+            since=since,
+            base_ref=base_ref,
+            include_tests=include_tests,
+        )
+        return VerificationStageResult(
+            name="changed_scope",
+            success=not errors,
+            _duration_ms=_elapsed_ms(started),
+            _errors=tuple(errors),
+        )
+    except Exception as exc:
+        return _error_stage("changed_scope", started, exc)
 
 
 def _tests_stage(

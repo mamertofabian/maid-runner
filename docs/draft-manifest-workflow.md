@@ -32,8 +32,8 @@ Normal validation and test execution should target promoted manifests in
    `manifests/drafts/<slug>.manifest.yaml` to
    `manifests/<slug>.manifest.yaml`.
 5. Implement strictly inside the promoted manifest's declared file scope.
-6. Validate the promoted path, run the declared tests, review the
-   implementation against the manifest, then commit.
+6. Validate the promoted path, run the declared tests, run the changed-scope
+   handoff gate, review the implementation against the manifest, then commit.
 7. Re-scan `manifests/drafts/` for the next child draft.
 
 Drafts may be edited freely before promotion. After promotion, do not silently
@@ -87,6 +87,32 @@ Each ready pass should include the promoted manifest, implementation changes,
 test changes, validation evidence, and an implementation review verdict. The
 loop must not treat one previous approval as permission to commit future
 passes.
+
+### Handoff Scope Gate
+
+`maid verify` runs changed-scope by default, but the task baseline must still
+be explicit. Every ready implementation pass should run it before review or
+commit so already-committed task changes cannot be hidden by moving a production
+file from `files.edit` to `files.read`.
+
+Use one of these forms:
+
+```bash
+maid verify --base-ref <parent-branch>
+maid verify --since <task-start-commit>
+```
+
+`--base-ref` compares from `git merge-base <parent-branch> HEAD` to the current
+working tree, which is the usual choice for stacked branches. `--since` compares
+from the exact commit-ish supplied by the caller. A manifest may also declare
+`metadata.maid_task_base`, but all active manifests that declare it must agree.
+
+If no baseline can be resolved, MAID fails with `E115`; it does not guess
+`main`, `master`, `dev`, `development`, or a remote branch. Git does not retain
+a reliable branch-origin fact after rebases and merges, and a default commit
+count can miss task changes. Use `--include-tests` when changed tests should be
+scope-checked too. Use `--no-changed-scope` only for intentionally non-handoff
+verification runs.
 
 ## Evolution During Implementation
 

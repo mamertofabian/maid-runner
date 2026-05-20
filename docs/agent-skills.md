@@ -94,11 +94,21 @@ generated from `.claude/skills/` by `scripts/sync_claude_files.py`.
 6. Iterate until both pass
 7. Optional refactoring (private code only, no manifest change needed)
 8. Run full integration validation: `maid validate` + `maid test`
+9. Before handoff, run the branch scope gate:
+   `maid verify --base-ref <parent-branch>` or
+   `maid verify --since <task-start-commit>`
 
 **Key rules:**
 - Only load files declared in the manifest. Never touch unlisted files.
 - If the manifest is wrong, stop — do not work around it.
 - Private implementation is free. Public API is frozen to the manifest.
+- `maid verify` runs changed-scope by default. Agents must supply a real
+  baseline for branch handoff so committed task changes cannot be hidden in
+  `files.read`.
+- Do not invent a default baseline. Use `--since`, `--base-ref`, or an
+  unambiguous `metadata.maid_task_base`; otherwise the gate must fail closed.
+- Use `--no-changed-scope` only when intentionally running a non-handoff
+  verification, and call that out in the handoff notes.
 
 **Error recovery paths:**
 - **Manifest is wrong:** Stop, flag it, suggest `maid-planner` revision

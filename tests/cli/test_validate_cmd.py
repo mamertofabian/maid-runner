@@ -167,6 +167,40 @@ def _write_run_tests_project(
     return manifest_path
 
 
+def _commit_all(project_dir, message: str = "commit") -> str:
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "add", "."], cwd=project_dir, check=True, capture_output=True
+    )
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "user.name=Test User",
+            "commit",
+            "-m",
+            message,
+        ],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+    )
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
 class TestCmdValidateSingleManifest:
     def test_cmd_validate_handler_is_directly_importable(self):
         from maid_runner.cli.commands.validate import cmd_validate
@@ -2362,8 +2396,56 @@ class TestCmdValidateAll:
         assert default_exit_code == 0
         assert "tests/test_greet.py" not in default_output
         assert include_exit_code == 1
-        assert "tests/test_greet.py" in include_output
         assert "E114" in include_output
+        assert "tests/test_greet.py" in include_output
+
+    def test_validate_changed_scope_returns_1_for_changed_read_only_file(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        baseline = _commit_all(project_dir, "baseline")
+        manifest_path = project_dir / "manifests" / "add-greet.manifest.yaml"
+        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest["metadata"] = {"maid_task_base": baseline}
+        manifest["files"]["read"].append("src/greet.py")
+        manifest["files"]["create"][0]["path"] = "src/owner.py"
+        manifest["files"]["create"][0]["artifacts"][0]["name"] = "owner"
+        manifest_path.write_text(yaml.dump(manifest))
+        (project_dir / "src" / "owner.py").write_text(
+            "def owner() -> str:\n    return 'ok'\n"
+        )
+        (project_dir / "tests" / "test_greet.py").write_text(
+            "from src.owner import owner\n\n"
+            "def test_owner():\n"
+            "    assert owner() == 'ok'\n"
+        )
+        (project_dir / "src" / "greet.py").write_text(
+            "def greet(name: str) -> str:\n    return f'Hi, {name}'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--changed-scope"])
+
+        assert exit_code == 1
+        output = capsys.readouterr().out
+        assert "E114" in output
+        assert "src/greet.py" in output
+
+    def test_validate_changed_scope_requires_explicit_or_metadata_baseline(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _commit_all(project_dir, "baseline")
+
+        os.chdir(project_dir)
+        exit_code = main(["validate", "--changed-scope"])
+
+        assert exit_code == 1
+        output = capsys.readouterr().out
+        assert "E115" in output
+        assert "origin/main" not in output
 
     def test_validate_all_returns_1_on_failure(self, failing_project, capsys):
         from maid_runner.cli.commands._main import main

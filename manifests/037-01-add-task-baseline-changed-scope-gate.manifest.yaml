@@ -22,7 +22,7 @@ description: |
   was edited in an earlier commit and a later commit rewrites the manifest to
   treat that file as read-only context.
 
-  Add an explicit task-baseline changed-scope gate. The gate compares changed
+  Add a task-baseline changed-scope gate. The gate compares changed
   files from a caller-provided task baseline to the current working tree and
   requires every changed production source file to be writable in the active
   manifest chain. files.read remains context only and does not grant write
@@ -43,9 +43,9 @@ description: |
   fails with a structured error instead of silently falling back to origin/main.
 
   The gate should be available from both `maid validate` and `maid verify`.
-  `maid verify --changed-scope` is the intended agent/CI handoff command for
-  branch review; `maid validate --worktree-scope` remains the faster live
-  dirty-worktree guard.
+  `maid verify` runs changed-scope by default as the intended agent/CI handoff
+  command for branch review, with `--no-changed-scope` as the explicit opt-out.
+  `maid validate --worktree-scope` remains the faster live dirty-worktree guard.
 temptations:
   - risk: "Do not default the changed-scope baseline to origin/main, main, or dev."
     instead: "Require --since, --base-ref, or unambiguous metadata.maid_task_base, and fail closed when none is available."
@@ -64,6 +64,16 @@ files:
         - kind: class
           name: ChangedScopeBaseline
           description: "Immutable value object describing the resolved changed-scope baseline source and commit-ish."
+        - kind: attribute
+          name: source
+          of: ChangedScopeBaseline
+          type: str
+          description: "Baseline source: since, base-ref, or metadata."
+        - kind: attribute
+          name: commitish
+          of: ChangedScopeBaseline
+          type: str
+          description: "Commit-ish or ref used to compare the task change window."
         - kind: function
           name: resolve_changed_scope_baseline
           args:
@@ -135,8 +145,8 @@ files:
           args: []
           returns: argparse.ArgumentParser
           description: >
-            Add validate and verify CLI options for --changed-scope, --since,
-            and --base-ref without changing the default validate baseline.
+            Add validate and verify CLI options for --changed-scope, --no-changed-scope,
+            --since, and --base-ref without changing the default validate baseline.
 
     - path: maid_runner/cli/commands/validate.py
       artifacts:
@@ -168,9 +178,10 @@ files:
               type: argparse.Namespace
           returns: VerificationResult
           description: >
-            Add a changed_scope stage when --changed-scope is requested, after
-            file_tracking/worktree_scope and before tests, so verify can serve
-            as the branch handoff gate.
+            Add a changed_scope stage after file_tracking/worktree_scope and
+            before tests when requested by the caller. The CLI requests it by
+            default so verify can serve as the branch handoff gate, while
+            --no-changed-scope disables the stage for intentional non-handoff runs.
         - kind: function
           name: _changed_scope_stage
           args:
@@ -269,7 +280,7 @@ files:
       artifacts:
         - kind: test_function
           name: test_verify_changed_scope_stage_reports_read_only_changed_file
-          source_scenario: "maid verify --changed-scope --keep-going runs on a repo where a changed production file is listed only in files.read."
+          source_scenario: "maid verify --keep-going runs with default changed-scope on a repo where a changed production file is listed only in files.read."
           actions:
             - type: api_call
               subject:
@@ -277,21 +288,91 @@ files:
           expected:
             behavior: "The JSON and text verify outputs include a failed changed_scope stage with the changed file path."
         - kind: test_function
+          name: test_verify_default_changed_scope_requires_baseline
+          source_scenario: "maid verify runs without --since, --base-ref, metadata.maid_task_base, or --no-changed-scope."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "The changed_scope stage fails closed with ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED and does not guess origin/main."
+        - kind: test_function
           name: test_verify_changed_scope_stage_passes_with_since_for_writable_changes
-          source_scenario: "maid verify --changed-scope --since <baseline> runs after all changed production files are declared writable."
+          source_scenario: "maid verify --since <baseline> runs after all changed production files are declared writable."
           actions:
             - type: api_call
               subject:
                 export: main
           expected:
             behavior: "The changed_scope stage passes and verify continues to the tests stage."
+
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_parser_has_verify_subcommand
+          source_scenario: "The verify parser receives --changed-scope, --since, --base-ref, and --include-tests flags."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parsed Namespace exposes changed_scope=True, since, base_ref, and include_tests values."
+        - kind: test_function
+          name: test_verify_changed_scope_defaults_on_and_can_be_disabled
+          source_scenario: "The verify parser receives no changed-scope flag and then receives --no-changed-scope."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The default parsed Namespace has changed_scope=True and --no-changed-scope sets changed_scope=False."
+        - kind: test_function
+          name: test_validate_accepts_changed_scope_flags
+          source_scenario: "The validate parser receives --changed-scope, --since, and --base-ref flags."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parsed Namespace exposes changed_scope=True plus the explicit since and base_ref values."
+        - kind: test_function
+          name: test_changed_scope_handoff_docs_are_discoverable
+          source_scenario: "The README, agent skill guide, and draft workflow docs must make the default changed-scope handoff gate discoverable."
+          actions:
+            - type: api_call
+              subject:
+                export: Path
+          expected:
+            behavior: "The docs say maid verify runs changed-scope by default, show --base-ref/--since handoff commands, and describe E115 fail-closed behavior."
+
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: changed_scope_handoff_gate_docs
+          of: CLI Reference
+          type: section
+          description: "Human-facing CLI and workflow guidance for default changed-scope branch handoff and explicit opt-out."
+
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: changed_scope_agent_handoff_guidance
+          of: maid-implementer
+          type: section
+          description: "AI-agent guidance requiring a baseline for default changed-scope validation before implementation handoff."
+
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: changed_scope_draft_handoff_gate
+          of: Automation
+          type: section
+          description: "Draft promotion workflow guidance for default changed-scope handoff validation before review or commit."
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - maid_runner/core/chain.py
     - maid_runner/core/manifest.py
     - maid_runner/core/_file_discovery.py
-    - tests/core/test_validate.py
-    - tests/cli/test_main.py
     - manifests/030-09-add-worktree-scope-gate.manifest.yaml
     - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
 validate:
