@@ -14,6 +14,7 @@ from maid_runner.core._test_function_contracts import (
     validate_test_function_behavior,
     validate_test_function_names,
 )
+from maid_runner.core._file_tracking import _run_file_tracking
 from maid_runner.core._validate_all import _run_validate_all
 from maid_runner.core._validation_test_artifacts import (
     collect_test_artifacts,
@@ -34,9 +35,7 @@ from maid_runner.core.manifest import (
 from maid_runner.core.result import (
     BatchValidationResult,
     ErrorCode,
-    FileTrackingEntry,
     FileTrackingReport,
-    FileTrackingStatus,
     Location,
     Severity,
     ValidationError,
@@ -707,72 +706,7 @@ class ValidationEngine:
         self,
         chain: ManifestChain,
     ) -> FileTrackingReport:
-        from maid_runner.core._file_discovery import discover_source_files
-
-        source_files = discover_source_files(self._project_root, respect_gitignore=True)
-        tracked_paths = chain.all_tracked_paths()
-        read_only_paths = chain.all_read_only_paths()
-
-        entries: list[FileTrackingEntry] = []
-        for path in source_files:
-            if is_test_file(path):
-                continue
-            manifests = chain.manifests_for_file(path)
-            manifest_slugs = tuple(m.slug for m in manifests)
-
-            if path not in tracked_paths and not manifests:
-                entries.append(
-                    FileTrackingEntry(
-                        path=path,
-                        status=FileTrackingStatus.UNDECLARED,
-                    )
-                )
-            elif path in read_only_paths and not manifests:
-                # File appears only in files.read — REGISTERED, not UNDECLARED
-                read_manifest_slugs = tuple(
-                    m.slug for m in chain.active_manifests() if path in m.files_read
-                )
-                entries.append(
-                    FileTrackingEntry(
-                        path=path,
-                        status=FileTrackingStatus.REGISTERED,
-                        manifests=read_manifest_slugs,
-                        issues=("Only in readonlyFiles",),
-                    )
-                )
-            elif manifests:
-                has_artifacts = any(
-                    m.file_spec_for(path) and m.file_spec_for(path).artifacts  # type: ignore[union-attr]
-                    for m in manifests
-                )
-                if has_artifacts:
-                    entries.append(
-                        FileTrackingEntry(
-                            path=path,
-                            status=FileTrackingStatus.TRACKED,
-                            manifests=manifest_slugs,
-                        )
-                    )
-                else:
-                    entries.append(
-                        FileTrackingEntry(
-                            path=path,
-                            status=FileTrackingStatus.REGISTERED,
-                            manifests=manifest_slugs,
-                            issues=("No artifacts declared",),
-                        )
-                    )
-            else:
-                entries.append(
-                    FileTrackingEntry(
-                        path=path,
-                        status=FileTrackingStatus.REGISTERED,
-                        manifests=manifest_slugs,
-                        issues=("Only in read section",),
-                    )
-                )
-
-        return FileTrackingReport(entries=tuple(entries))
+        return _run_file_tracking(self._project_root, chain)
 
 
 def _merged_test_function_behavior_requirements(

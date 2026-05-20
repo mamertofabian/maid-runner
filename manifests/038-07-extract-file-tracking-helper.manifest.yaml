@@ -1,0 +1,72 @@
+schema: "2"
+goal: "Extract validation file tracking into a helper module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - file-scope
+  priority: high
+description: |
+  Extract `ValidationEngine.run_file_tracking` implementation details into a
+  focused private helper module while preserving the public method and all file
+  tracking behavior.
+
+  This is a production-code refactor backed by the lean file-scope
+  characterization suite. `ValidationEngine.run_file_tracking` must remain the
+  public API used by CLI commands, `maid verify`, and validate-all file tracking
+  gates; only the internal data assembly moves.
+temptations:
+  - risk: "Do not change the public ValidationEngine.run_file_tracking signature or return type."
+    instead: "Keep the method as a thin delegating wrapper."
+  - risk: "Do not change file discovery, gitignore filtering, test-file exclusion, tracked/registered/undeclared classification, or issue text."
+    instead: "Move the current behavior into the helper and validate with lean plus legacy file-tracking tests."
+  - risk: "Do not combine this with CLI formatting, validate_all gate, worktree scope, or changed-scope refactors."
+    instead: "Only extract file tracking report assembly from validate.py."
+  - risk: "Do not retire or move legacy tests in this slice."
+    instead: "Run the new lean file-scope characterization beside tests/core/test_validate.py and test_file_discovery.py."
+files:
+  create:
+    - path: maid_runner/core/_file_tracking.py
+      artifacts:
+        - kind: function
+          name: _run_file_tracking
+          source_scenario: "ValidationEngine.run_file_tracking delegates report assembly to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "FileTrackingReport entries, statuses, manifests, and issue messages remain unchanged."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: run_file_tracking
+          of: ValidationEngine
+          source_scenario: "ValidationEngine.run_file_tracking remains the public file tracking entry point after extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing file tracking behavior."
+  read:
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/core/validation/test_validate_all_chain.py
+    - tests/core/test_validate.py
+    - tests/core/test_file_discovery.py
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/_validate_all.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/cli/commands/files.py
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/cli/commands/validate.py
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/fix-file-tracking-noise-filter.manifest.yaml
+    - manifests/038-03-add-lean-file-scope-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/core/validation/test_validate_all_chain.py tests/core/test_validate.py tests/core/test_file_discovery.py
