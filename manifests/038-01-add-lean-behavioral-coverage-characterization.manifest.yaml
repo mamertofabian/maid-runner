@@ -1,0 +1,96 @@
+schema: "2"
+goal: "Add lean characterization tests for behavioral coverage validation"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - characterization
+    - safe-refactor
+    - validation
+    - behavioral-coverage
+  priority: high
+description: |
+  Add a parallel, focused characterization suite for the behavioral coverage
+  cases currently embedded inside the large `tests/core/test_validate.py`
+  `TestImplementationTestCoverage` class.
+
+  This is a test-only preparatory refactor. The old characterization tests stay
+  in place and no production behavior changes. These lean tests are expected to
+  pass against the current implementation because they document existing
+  behavior before later extraction work touches `maid_runner/core/validate.py`.
+temptations:
+  - risk: "Do not delete or move tests from tests/core/test_validate.py in this slice."
+    instead: "Add the new lean suite in parallel and keep the legacy characterization tests green."
+  - risk: "Do not change ValidationEngine or behavioral coverage semantics while adding the suite."
+    instead: "Only create the new test file and run it beside the matching legacy coverage tests."
+  - risk: "Do not make broad fixtures that recreate the entire old test module."
+    instead: "Use small local helpers that build only the manifest, source file, and test file needed by each scenario."
+  - risk: "Do not hide characterization intent behind a red-phase expectation."
+    instead: "Record that these tests characterize current behavior and should pass before production refactors begin."
+files:
+  create:
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_public_artifact_without_test_file_reports_no_test_files
+          source_scenario: "A manifest declares a public function artifact and no test files."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails and reports ErrorCode.NO_TEST_FILES."
+        - kind: test_function
+          name: test_unreferenced_public_artifact_reports_e200_error
+          source_scenario: "A manifest declares render and update, but the test only imports and calls render."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with one ErrorCode.ARTIFACT_NOT_USED_IN_TESTS error for update."
+        - kind: test_function
+          name: test_import_only_reference_is_not_behavioral_coverage
+          source_scenario: "A test imports update but never calls or accesses it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for update."
+        - kind: test_function
+          name: test_local_same_name_helper_without_identity_does_not_cover_artifact
+          source_scenario: "A test defines and calls a local helper named update without importing the production artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the production update artifact."
+        - kind: test_function
+          name: test_imported_production_call_satisfies_behavioral_coverage
+          source_scenario: "A test imports update from the production module and asserts its return value."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without behavioral coverage errors."
+        - kind: test_function
+          name: test_snapshot_manifest_is_exempt_from_behavioral_coverage
+          source_scenario: "A snapshot manifest declares a public helper artifact and a smoke test that does not reference it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation and behavioral validation succeed without ErrorCode.ARTIFACT_NOT_USED_IN_TESTS."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/test_validate.py

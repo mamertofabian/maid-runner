@@ -1,0 +1,98 @@
+schema: "2"
+goal: "Add lean characterization tests for required import validation"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - characterization
+    - safe-refactor
+    - validation
+    - required-imports
+  priority: high
+description: |
+  Add a parallel, focused characterization suite for representative required
+  import behavior currently embedded inside the large
+  `tests/core/test_validate.py` `TestImportVerification` and
+  `TestRequiredImportsMissing` classes.
+
+  This is a test-only preparatory refactor. The old characterization tests stay
+  in place and no production behavior changes. These lean tests are expected to
+  pass against the current implementation because they document existing
+  E320 behavior before later extraction work touches validation internals.
+temptations:
+  - risk: "Do not delete or move required-import tests from tests/core/test_validate.py in this slice."
+    instead: "Add the new lean suite in parallel and keep the legacy characterization tests green."
+  - risk: "Do not change required-import parser, resolver, or ValidationEngine behavior while adding the suite."
+    instead: "Only create the new test file and run it beside the legacy validation file."
+  - risk: "Do not recreate every legacy import-verification edge case in this first lean slice."
+    instead: "Cover representative Python, path-style, TypeScript, CommonJS, missing, and multi-missing behaviors; later slices can add compiler-backed edge cases."
+  - risk: "Do not use selector-only validate commands that MAID command integrity rejects."
+    instead: "Run whole test files in the manifest validate command."
+files:
+  create:
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_python_required_import_present_has_no_e320
+          source_scenario: "A Python file imports the module declared in files.create.imports."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_python_missing_required_import_reports_e320
+          source_scenario: "A Python file declares a required import but does not import it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports one ErrorCode.MISSING_REQUIRED_IMPORT error naming the missing import."
+        - kind: test_function
+          name: test_multiple_missing_required_imports_report_individual_e320_errors
+          source_scenario: "A Python file declares two required imports and imports neither."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports one ErrorCode.MISSING_REQUIRED_IMPORT error per missing import."
+        - kind: test_function
+          name: test_python_path_style_required_import_matches_dotted_import
+          source_scenario: "A manifest declares a path-style Python required import and the source uses a dotted import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_relative_import_satisfies_manifest_path
+          source_scenario: "A TypeScript source file imports ../models/Budget while the manifest requires src/models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_commonjs_relative_require_satisfies_manifest_path
+          source_scenario: "A JavaScript source file requires ../models/Budget while the manifest requires src/models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_required_imports.py tests/core/test_validate.py
