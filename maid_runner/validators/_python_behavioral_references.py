@@ -17,6 +17,8 @@ _ReferenceKey = tuple[
     Optional[str],
     Optional[str],
 ]
+_ImportFromEntry = tuple[str, Optional[str], Optional[str]]
+_ImportEntry = tuple[str, str, Optional[str], str]
 
 
 @dataclass
@@ -76,3 +78,27 @@ class _BehavioralReferenceRecorder:
                     of=owner,
                     reference_context="keyword",
                 )
+
+    def add_import_from_references(
+        self,
+        entries: list[_ImportFromEntry],
+    ) -> None:
+        for bound, source_module, alias_of in entries:
+            self.add_reference(
+                bound,
+                import_source=source_module,
+                alias_of=alias_of,
+                reference_context="import",
+            )
+
+    def add_import_references(
+        self,
+        entries: list[_ImportEntry],
+    ) -> None:
+        for bound, source_module, alias_of, _namespace_root in entries:
+            self.add_reference(
+                bound,
+                import_source=source_module,
+                alias_of=alias_of,
+                reference_context="import",
+            )

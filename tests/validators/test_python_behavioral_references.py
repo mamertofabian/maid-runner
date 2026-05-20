@@ -133,3 +133,74 @@ def test_report_keyword_reference(options):
         (artifact.name, artifact.import_source, artifact.of)
         for artifact in keyword_references
     ] == [("captured", "pkg.models", "Report")]
+
+
+def test_behavioral_reference_recorder_records_import_references():
+    artifacts = []
+    recorder = _BehavioralReferenceRecorder(
+        artifacts=artifacts,
+        seen=set(),
+        seen_test_funcs=set(),
+    )
+
+    recorder.add_import_from_references(
+        [
+            ("Thing", "pkg.alpha", None),
+            ("AliasThing", "pkg.beta", "Thing"),
+        ]
+    )
+    recorder.add_import_references(
+        [
+            ("pkg", "pkg.mod", None, "pkg"),
+            ("pm", "pkg.mod", "pkg.mod", "pkg.mod"),
+        ]
+    )
+
+    import_references = [
+        artifact
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "import"
+    ]
+    assert [
+        (artifact.name, artifact.import_source, artifact.alias_of)
+        for artifact in import_references
+    ] == [
+        ("Thing", "pkg.alpha", None),
+        ("AliasThing", "pkg.beta", "Thing"),
+        ("pkg", "pkg.mod", None),
+        ("pm", "pkg.mod", "pkg.mod"),
+    ]
+
+
+def test_python_behavioral_import_reference_recording_is_unchanged():
+    source = """\
+from pkg.alpha import Thing
+from pkg.beta import Thing as AliasThing
+import pkg.mod
+import pkg.other as po
+
+def test_import_reference_recording():
+    assert Thing and AliasThing and pkg and po
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    import_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "import"
+    ]
+    assert [
+        (artifact.name, artifact.import_source, artifact.alias_of)
+        for artifact in import_references
+    ] == [
+        ("Thing", "pkg.alpha", None),
+        ("AliasThing", "pkg.beta", "Thing"),
+        ("pkg", "pkg.mod", None),
+        ("po", "pkg.other", "pkg.other"),
+    ]

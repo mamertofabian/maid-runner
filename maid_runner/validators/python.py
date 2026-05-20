@@ -614,13 +614,9 @@ class _BehavioralCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _record_import_from_reference(self, node: ast.ImportFrom) -> None:
-        for bound, source_module, alias_of in self._import_from_entries(node):
-            self._add_reference(
-                bound,
-                import_source=source_module,
-                alias_of=alias_of,
-                reference_context="import",
-            )
+        self._reference_recorder.add_import_from_references(
+            self._import_from_entries(node)
+        )
 
     def visit_Import(self, node: ast.Import) -> None:
         entries = self._import_entries(node)
@@ -632,15 +628,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _record_import_reference(self, node: ast.Import) -> None:
-        for bound, source_module, alias_of, _namespace_root in self._import_entries(
-            node
-        ):
-            self._add_reference(
-                bound,
-                import_source=source_module,
-                alias_of=alias_of,
-                reference_context="import",
-            )
+        self._reference_recorder.add_import_references(self._import_entries(node))
 
     def visit_Call(self, node: ast.Call) -> None:
         keyword_import_source: Optional[str] = None
