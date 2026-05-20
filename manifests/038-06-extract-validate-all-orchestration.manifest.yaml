@@ -1,0 +1,76 @@
+schema: "2"
+goal: "Extract validate_all orchestration from core validate module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - manifest-chain
+  priority: high
+description: |
+  Extract the batch validation orchestration from
+  `ValidationEngine.validate_all` into a focused private helper module while
+  preserving the public API and behavior of both `ValidationEngine.validate_all`
+  and the top-level `validate_all` convenience function.
+
+  This is the first production-code refactor after adding lean characterization
+  coverage. The move must be behavior-preserving: callers still invoke
+  `ValidationEngine.validate_all`, chain construction remains injectable from
+  `maid_runner.core.validate` for the existing legacy test, and full batch
+  validation semantics remain unchanged.
+temptations:
+  - risk: "Do not change public validate_all signatures, return types, or batch counting semantics."
+    instead: "Keep ValidationEngine.validate_all as the public entry point and delegate internally."
+  - risk: "Do not hide ManifestChain construction behind a new import path that breaks legacy patch-based characterization."
+    instead: "Inject the chain factory from maid_runner.core.validate into the helper."
+  - risk: "Do not combine this with unrelated validation, chain, CLI, or test rewrites."
+    instead: "Only extract validate_all orchestration and its private helper functions."
+  - risk: "Do not retire or move legacy tests in this slice."
+    instead: "Run the new lean characterization files beside tests/core/test_validate.py and tests/core/test_chain.py."
+files:
+  create:
+    - path: maid_runner/core/_validate_all.py
+      artifacts:
+        - kind: function
+          name: _run_validate_all
+          source_scenario: "ValidationEngine.validate_all delegates batch manifest validation orchestration to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Public validate_all behavior, result counts, chain diagnostics, file tracking gates, and strict warning propagation remain unchanged."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          source_scenario: "ValidationEngine.validate_all remains the public batch validation entry point after orchestration extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing validate_all behavior."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_chain.py
+    - tests/core/validation/test_validate_all_chain.py
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/core/validation/test_strict_mode.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/python.py
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/schemas/manifest.v2.schema.json
+    - manifests/snapshot-core-validate.manifest.yaml
+    - manifests/038-05-add-lean-validate-all-chain-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_all_chain.py tests/core/validation/test_file_scope_gates.py tests/core/validation/test_strict_mode.py tests/core/test_validate.py tests/core/test_chain.py
