@@ -15,6 +15,7 @@ from maid_runner.core.module_paths import (
     resolve_reexport,
 )
 from maid_runner.core.types import ArtifactKind, ArgSpec
+from maid_runner.validators._python_behavioral_scope import _BehavioralClassScope
 from maid_runner.validators._python_implementation import (
     _ImplementationCollector as _MovedImplementationCollector,
     _ast_to_default_string as _python_ast_to_default_string,
@@ -34,13 +35,6 @@ _ModuleImportScope = dict[str, str]
 _ModuleAliasShadowScope = set[str]
 _LocalValueScope = set[str]
 _ObjectOwnerScope = dict[str, tuple[Optional[str], str]]
-_ClassScopeMarker = tuple[
-    _ImportScope,
-    _ModuleImportScope,
-    _ModuleAliasShadowScope,
-    _LocalValueScope,
-    _ObjectOwnerScope,
-]
 
 
 class PythonValidator(BaseValidator):
@@ -184,7 +178,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._seen_test_funcs: set[str] = set()
         self._function_depth = 0
         self._class_stack: list[bool] = []
-        self._class_scope_markers: list[_ClassScopeMarker] = []
+        self._class_scope_markers: list[_BehavioralClassScope] = []
         self._importer_module: Optional[str] = (
             file_to_module_path(file_path, Path(".")) if file_path else None
         ) or None
@@ -988,54 +982,39 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._local_module_alias_shadow_scopes.pop()
         self._local_module_import_scopes.pop()
 
-    def _hide_active_class_scopes(self) -> list[_ClassScopeMarker]:
-        hidden: list[_ClassScopeMarker] = []
+    def _hide_active_class_scopes(self) -> list[_BehavioralClassScope]:
+        hidden: list[_BehavioralClassScope] = []
         while self._class_scope_markers:
-            marker = self._class_scope_markers[-1]
-            (
-                import_scope,
-                module_scope,
-                module_shadow_scope,
-                value_scope,
-                owner_scope,
-            ) = marker
-            if not (
-                self._local_import_scopes
-                and self._local_import_scopes[-1] is import_scope
-                and self._local_module_import_scopes
-                and self._local_module_import_scopes[-1] is module_scope
-                and self._local_module_alias_shadow_scopes
-                and self._local_module_alias_shadow_scopes[-1] is module_shadow_scope
-                and self._local_value_scopes
-                and self._local_value_scopes[-1] is value_scope
-                and self._object_owner_scopes
-                and self._object_owner_scopes[-1] is owner_scope
+            class_scope = self._class_scope_markers[-1]
+            if not class_scope.is_active_on(
+                local_import_scopes=self._local_import_scopes,
+                module_import_scopes=self._local_module_import_scopes,
+                module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+                local_value_scopes=self._local_value_scopes,
+                object_owner_scopes=self._object_owner_scopes,
             ):
                 break
             self._class_scope_markers.pop()
-            self._object_owner_scopes.pop()
-            self._local_value_scopes.pop()
-            self._local_module_alias_shadow_scopes.pop()
-            self._local_module_import_scopes.pop()
-            self._local_import_scopes.pop()
-            hidden.append(marker)
+            class_scope.pop_from(
+                local_import_scopes=self._local_import_scopes,
+                module_import_scopes=self._local_module_import_scopes,
+                module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+                local_value_scopes=self._local_value_scopes,
+                object_owner_scopes=self._object_owner_scopes,
+            )
+            hidden.append(class_scope)
         return hidden
 
-    def _restore_hidden_class_scopes(self, hidden: list[_ClassScopeMarker]) -> None:
-        for marker in reversed(hidden):
-            (
-                import_scope,
-                module_scope,
-                module_shadow_scope,
-                value_scope,
-                owner_scope,
-            ) = marker
-            self._local_import_scopes.append(import_scope)
-            self._local_module_import_scopes.append(module_scope)
-            self._local_module_alias_shadow_scopes.append(module_shadow_scope)
-            self._local_value_scopes.append(value_scope)
-            self._object_owner_scopes.append(owner_scope)
-            self._class_scope_markers.append(marker)
+    def _restore_hidden_class_scopes(self, hidden: list[_BehavioralClassScope]) -> None:
+        for class_scope in reversed(hidden):
+            class_scope.push_to(
+                local_import_scopes=self._local_import_scopes,
+                module_import_scopes=self._local_module_import_scopes,
+                module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+                local_value_scopes=self._local_value_scopes,
+                object_owner_scopes=self._object_owner_scopes,
+            )
+            self._class_scope_markers.append(class_scope)
 
     def _resolve_attribute_chain(
         self, node: ast.Attribute
@@ -1106,34 +1085,27 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._class_stack.append(
             is_top_level and _is_pytest_discoverable_test_class(node)
         )
-        class_import_scope: _ImportScope = {}
-        class_module_scope: _ModuleImportScope = {}
-        class_module_shadow_scope: _ModuleAliasShadowScope = set()
-        class_value_scope: _LocalValueScope = set()
-        class_owner_scope: _ObjectOwnerScope = {}
-        class_scope_marker: _ClassScopeMarker = (
-            class_import_scope,
-            class_module_scope,
-            class_module_shadow_scope,
-            class_value_scope,
-            class_owner_scope,
+        class_scope = _BehavioralClassScope()
+        class_scope.push_to(
+            local_import_scopes=self._local_import_scopes,
+            module_import_scopes=self._local_module_import_scopes,
+            module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+            local_value_scopes=self._local_value_scopes,
+            object_owner_scopes=self._object_owner_scopes,
         )
-        self._local_import_scopes.append(class_import_scope)
-        self._local_module_import_scopes.append(class_module_scope)
-        self._local_module_alias_shadow_scopes.append(class_module_shadow_scope)
-        self._local_value_scopes.append(class_value_scope)
-        self._object_owner_scopes.append(class_owner_scope)
-        self._class_scope_markers.append(class_scope_marker)
+        self._class_scope_markers.append(class_scope)
         try:
             for statement in node.body:
                 self.visit(statement)
         finally:
             self._class_scope_markers.pop()
-            self._object_owner_scopes.pop()
-            self._local_value_scopes.pop()
-            self._local_module_alias_shadow_scopes.pop()
-            self._local_module_import_scopes.pop()
-            self._local_import_scopes.pop()
+            class_scope.pop_from(
+                local_import_scopes=self._local_import_scopes,
+                module_import_scopes=self._local_module_import_scopes,
+                module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+                local_value_scopes=self._local_value_scopes,
+                object_owner_scopes=self._object_owner_scopes,
+            )
             self._class_stack.pop()
             self._restore_hidden_class_scopes(hidden_class_scopes)
 

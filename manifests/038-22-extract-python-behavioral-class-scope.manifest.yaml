@@ -1,0 +1,89 @@
+schema: "2"
+goal: "Extract Python behavioral class scope state"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's class-scope marker tuple into a
+  focused state object.
+
+  This is the first Priority 5 slice from the professional refactor backlog.
+  The new state object owns the five parallel class-body scope containers used
+  when class scopes are temporarily hidden while visiting nested functions,
+  lambdas, comprehensions, and nested classes. The behavioral collector keeps
+  import resolution, dynamic alias binding, traversal, and artifact recording
+  semantics unchanged.
+temptations:
+  - risk: "Do not change Python behavioral identity or dynamic import semantics while moving state."
+    instead: "Only replace the class-scope marker tuple with a named state object and keep existing collector logic intact."
+  - risk: "Do not move implementation artifact collection or test-body extraction in this slice."
+    instead: "Keep this refactor limited to behavioral class-scope state."
+  - risk: "Do not broaden Python parser behavior or introduce a new parser dependency."
+    instead: "Preserve the existing stdlib ast boundaries."
+files:
+  create:
+    - path: maid_runner/validators/_python_behavioral_scope.py
+      artifacts:
+        - kind: class
+          name: _BehavioralClassScope
+          source_scenario: "The Python behavioral collector enters a class body and needs to manage the class-local import, module alias, shadow, local value, and object-owner scopes as one unit."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralClassScope
+          expected:
+            behavior: "The state object pushes, detects, and pops the same scope containers that the legacy tuple marker represented."
+    - path: tests/validators/test_python_behavioral_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_class_scope_push_pop_and_active_check
+          source_scenario: "A class scope is pushed onto the collector's parallel scope stacks, mutated, checked, and popped."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralClassScope
+          expected:
+            behavior: "The state object manages the same container identities across all five stacks."
+        - kind: test_function
+          name: test_behavioral_class_scope_is_inactive_when_parallel_stack_tops_do_not_match
+          source_scenario: "A collector's parallel stacks no longer have the class scope containers at the top."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralClassScope
+          expected:
+            behavior: "The state object reports inactive so class-scope hiding stops before popping unrelated scopes."
+        - kind: test_function
+          name: test_python_behavioral_class_body_dynamic_alias_stays_hidden_from_methods
+          source_scenario: "A pytest class body binds a dynamic import alias and a test method reads that alias."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still does not leak class-body aliases into method scope."
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection enters, hides, restores, and exits class scopes."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for import identities, dynamic aliases, class scopes, functions, and test functions are unchanged."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - manifests/fix-python-importlib-dynamic-import-e200.manifest.yaml
+    - manifests/029-04-move-python-implementation-collector-module.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_scope.py tests/validators/test_python.py tests/validators/test_python_identity.py tests/validators/test_python_parser_replacement_boundaries.py
