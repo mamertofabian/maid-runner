@@ -21,6 +21,9 @@ from maid_runner.core._behavioral_validation import (
     _python_func_is_pytest_fixture as _behavioral_python_func_is_pytest_fixture,
     _run_behavioral_validation,
 )
+from maid_runner.core._implementation_coverage import (
+    _check_implementation_test_coverage,
+)
 from maid_runner.core._validate_all import _run_validate_all
 from maid_runner.core._validation_test_artifacts import (
     collect_test_artifacts,
@@ -29,8 +32,6 @@ from maid_runner.core._validation_test_artifacts import (
     get_validator_for_test,
 )
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.identity import match_artifact_to_references
-from maid_runner.core.module_paths import file_to_module_path
 from maid_runner.core.ts_module_paths import resolve_ts_import, resolve_ts_reexport
 from maid_runner.core.manifest import (
     ManifestLoadError,
@@ -301,111 +302,11 @@ class ValidationEngine:
         self,
         manifest: Manifest,
     ) -> list[ValidationError]:
-        """Check that manifests with public artifacts have test coverage.
-
-        Returns errors/warnings:
-        - E220 (ERROR) if manifest has public artifacts but zero test files
-        - E200 (ERROR) if a public artifact is not referenced in any test
-        """
-        errors: list[ValidationError] = []
-
-        # Snapshot manifests capture existing state — exempt from test coverage
-        if manifest.task_type and manifest.task_type.value in (
-            "snapshot",
-            "system-snapshot",
-        ):
-            return errors
-
-        # Only check production artifacts from non-test source files.
-        # test_function artifacts describe coverage and do not need meta-tests.
-        source_file_specs = [
-            fs for fs in manifest.all_file_specs if not is_test_file(fs.path)
-        ]
-
-        has_public_artifacts = any(
-            not artifact.is_private and artifact.kind != ArtifactKind.TEST_FUNCTION
-            for fs in source_file_specs
-            for artifact in fs.artifacts
+        return _check_implementation_test_coverage(
+            manifest=manifest,
+            project_root=self._project_root,
+            registry=self._registry,
         )
-
-        if not has_public_artifacts:
-            return errors
-
-        # Find test files
-        test_files = find_test_files(manifest, self._project_root)
-        test_artifacts = collect_test_artifacts(
-            test_files, self._project_root, self._registry, errors
-        )
-
-        if not test_files:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.NO_TEST_FILES,
-                    message=(
-                        f"Manifest '{manifest.slug}' declares public artifacts "
-                        f"but has no test files — add test file paths to "
-                        f"files.read or validate commands"
-                    ),
-                    suggestion=(
-                        "Add test files to the 'files.read' section or reference "
-                        "them in 'validate' commands (e.g., pytest tests/test_foo.py -v)"
-                    ),
-                )
-            )
-            return errors
-
-        # Check each public artifact is referenced in at least one test.
-        for fs in source_file_specs:
-            artifact_validator = (
-                get_validator_for_test(fs.path, self._registry) if fs.path else None
-            )
-            if artifact_validator is not None:
-                artifact_module = artifact_validator.module_path(
-                    fs.path, self._project_root
-                )
-                resolver = artifact_validator.resolve_reexport
-            else:
-                artifact_module = (
-                    file_to_module_path(fs.path, self._project_root)
-                    if fs.path
-                    else None
-                )
-                resolver = None
-            for artifact in fs.artifacts:
-                if artifact.is_private or artifact.kind == ArtifactKind.TEST_FUNCTION:
-                    continue
-                identity = FoundArtifact(
-                    kind=artifact.kind,
-                    name=artifact.name,
-                    of=artifact.of,
-                    module_path=artifact_module,
-                )
-                used = False
-                for refs in test_artifacts.values():
-                    if match_artifact_to_references(
-                        identity,
-                        refs,
-                        self._project_root,
-                        reexport_resolver=resolver,
-                    ):
-                        used = True
-                        break
-                if not used:
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
-                            message=(
-                                f"Artifact '{artifact.name}' not referenced in "
-                                f"any test file"
-                            ),
-                            location=Location(file=fs.path),
-                            suggestion=(
-                                f"Add a test that imports and exercises '{artifact.name}'"
-                            ),
-                        )
-                    )
-
-        return errors
 
     def validate_implementation(
         self,

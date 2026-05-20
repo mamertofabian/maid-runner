@@ -1,0 +1,73 @@
+schema: "2"
+goal: "Extract implementation test coverage into a helper module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - implementation
+    - coverage
+  priority: high
+description: |
+  Extract `_check_test_coverage` implementation details into a focused private
+  helper module while preserving the existing compatibility method on
+  `ValidationEngine`.
+
+  This is a production-code refactor backed by lean behavioral coverage tests
+  and the legacy `TestImplementationTestCoverage` suite. The method remains in
+  `maid_runner.core.validate` because existing manifests and tests declare or
+  import that behavior; only the implementation test coverage policy moves.
+temptations:
+  - risk: "Do not change the existing ValidationEngine._check_test_coverage method name or return behavior."
+    instead: "Keep it as a thin wrapper over the helper."
+  - risk: "Do not change snapshot exemptions, public artifact detection, test file discovery, identity matching, or error messages."
+    instead: "Move the existing coverage policy into the helper and validate with lean plus legacy coverage tests."
+  - risk: "Do not combine this with removed-artifact validation or implementation runner changes."
+    instead: "Only extract implementation test coverage policy."
+  - risk: "Do not retire or move legacy coverage tests in this slice."
+    instead: "Run the new lean behavioral coverage file beside tests/core/test_validate.py."
+files:
+  create:
+    - path: maid_runner/core/_implementation_coverage.py
+      artifacts:
+        - kind: function
+          name: _check_implementation_test_coverage
+          source_scenario: "ValidationEngine._check_test_coverage delegates implementation coverage policy to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "NO_TEST_FILES and ARTIFACT_NOT_USED_IN_TESTS behavior, snapshot exemptions, and artifact identity matching remain unchanged."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: _check_test_coverage
+          of: ValidationEngine
+          source_scenario: "Existing manifests and tests still address ValidationEngine._check_test_coverage after extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing implementation coverage behavior."
+  read:
+    - tests/core/validation/test_behavioral_coverage.py
+    - tests/core/test_validate.py
+    - tests/core/test_implementation_validation.py
+    - maid_runner/core/_implementation_runner.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/identity.py
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - manifests/enforce-test-coverage-in-implementation-mode.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/test_validate.py tests/core/test_implementation_validation.py
