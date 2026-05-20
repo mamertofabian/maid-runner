@@ -1,0 +1,94 @@
+schema: "2"
+goal: "Extract behavioral validation into a helper module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - behavioral
+  priority: high
+description: |
+  Extract `ValidationEngine.validate_behavioral` implementation details into a
+  focused private helper module while preserving the public method and existing
+  private compatibility helpers imported by legacy tests.
+
+  This is a production-code refactor backed by the lean behavioral and strict
+  characterization suites. `ValidationEngine.validate_behavioral` must remain
+  the public API used by `ValidationEngine.validate`, `validate_all`, CLI
+  commands, and daemon handlers; only the internal behavioral coverage and
+  assertion-checking implementation moves.
+temptations:
+  - risk: "Do not change the public ValidationEngine.validate_behavioral signature or return type."
+    instead: "Keep the method as a thin delegating wrapper."
+  - risk: "Do not break legacy tests that import _check_test_assertions from maid_runner.core.validate."
+    instead: "Keep compatibility wrappers in validate.py while moving the implementation."
+  - risk: "Do not change artifact coverage matching, snapshot exemptions, test_function validation, or assertion warning semantics."
+    instead: "Move the current behavior into the helper and validate with lean plus legacy behavioral/strict tests."
+  - risk: "Do not combine this with implementation validation, acceptance validation, or test file reorganization."
+    instead: "Only extract behavioral validation and assertion-checking implementation."
+files:
+  create:
+    - path: maid_runner/core/_behavioral_validation.py
+      artifacts:
+        - kind: function
+          name: _run_behavioral_validation
+          source_scenario: "ValidationEngine.validate_behavioral delegates behavioral validation to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral coverage, test function contracts, assertion warnings, and snapshot exemptions remain unchanged."
+        - kind: function
+          name: _check_test_assertions
+          source_scenario: "Strict behavioral validation checks test functions for assertions."
+          actions:
+            - type: api_call
+              subject:
+                export: _check_test_assertions
+          expected:
+            behavior: "Missing assertion warnings and fixture/test parsing behavior remain unchanged."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_behavioral
+          of: ValidationEngine
+          source_scenario: "ValidationEngine.validate_behavioral remains the public behavioral validation entry point after extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing behavioral validation behavior."
+        - kind: function
+          name: _check_test_assertions
+          source_scenario: "Legacy tests import assertion checking from maid_runner.core.validate."
+          actions:
+            - type: api_call
+              subject:
+                export: _check_test_assertions
+          expected:
+            behavior: "The compatibility wrapper preserves the existing import path and result behavior."
+  read:
+    - tests/core/validation/test_behavioral_coverage.py
+    - tests/core/validation/test_strict_mode.py
+    - tests/core/test_validate.py
+    - tests/core/test_validate_test_functions.py
+    - tests/core/test_test_function_contracts.py
+    - maid_runner/core/_test_function_contracts.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/identity.py
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - manifests/snapshot-core-validate.manifest.yaml
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/validation/test_strict_mode.py tests/core/test_validate.py tests/core/test_validate_test_functions.py tests/core/test_test_function_contracts.py

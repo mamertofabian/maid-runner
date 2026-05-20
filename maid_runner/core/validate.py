@@ -15,6 +15,12 @@ from maid_runner.core._test_function_contracts import (
     validate_test_function_names,
 )
 from maid_runner.core._file_tracking import _run_file_tracking
+from maid_runner.core._behavioral_validation import (
+    _check_test_assertions as _behavioral_check_test_assertions,
+    _python_func_has_assertion as _behavioral_python_func_has_assertion,
+    _python_func_is_pytest_fixture as _behavioral_python_func_is_pytest_fixture,
+    _run_behavioral_validation,
+)
 from maid_runner.core._validate_all import _run_validate_all
 from maid_runner.core._validation_test_artifacts import (
     collect_test_artifacts,
@@ -210,105 +216,13 @@ class ValidationEngine:
         *,
         check_assertions: bool = False,
     ) -> list[ValidationError]:
-        errors: list[ValidationError] = []
-        errors.extend(validate_manifest_paths(manifest, self._project_root))
-        if errors:
-            return errors
-
-        # Find test files
-        test_files = find_test_files(manifest, self._project_root)
-        test_artifacts = collect_test_artifacts(
-            test_files, self._project_root, self._registry, errors
+        return _run_behavioral_validation(
+            manifest=manifest,
+            project_root=self._project_root,
+            registry=self._registry,
+            chain=chain,
+            check_assertions=check_assertions,
         )
-
-        if not (
-            manifest.task_type
-            and manifest.task_type.value in ("snapshot", "system-snapshot")
-        ):
-            # Check each artifact is used in at least one test.
-            # Skip TEST_FUNCTION artifacts — they are test declarations themselves,
-            # validated separately by _validate_test_function_names.
-            for fs in manifest.all_file_specs:
-                artifact_validator = (
-                    get_validator_for_test(fs.path, self._registry) if fs.path else None
-                )
-                if artifact_validator is not None:
-                    artifact_module = artifact_validator.module_path(
-                        fs.path, self._project_root
-                    )
-                    resolver = artifact_validator.resolve_reexport
-                else:
-                    artifact_module = (
-                        file_to_module_path(fs.path, self._project_root)
-                        if fs.path
-                        else None
-                    )
-                    resolver = None
-                for artifact in fs.artifacts:
-                    if artifact.is_private:
-                        continue
-                    if artifact.kind == ArtifactKind.TEST_FUNCTION:
-                        continue
-                    identity = FoundArtifact(
-                        kind=artifact.kind,
-                        name=artifact.name,
-                        of=artifact.of,
-                        module_path=artifact_module,
-                    )
-                    used = False
-                    for refs in test_artifacts.values():
-                        if match_artifact_to_references(
-                            identity,
-                            refs,
-                            self._project_root,
-                            reexport_resolver=resolver,
-                        ):
-                            used = True
-                            break
-                    if not used:
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.ARTIFACT_NOT_USED_IN_TESTS,
-                                message=(
-                                    f"Artifact '{artifact.name}' not used in any "
-                                    f"test file"
-                                ),
-                                location=Location(file=fs.path),
-                            )
-                        )
-
-        errors.extend(
-            validate_test_function_names(
-                manifest, self._project_root, self._registry, chain
-            )
-        )
-
-        errors.extend(
-            validate_test_function_behavior(
-                manifest, self._project_root, self._registry, chain
-            )
-        )
-
-        if check_assertions:
-            for tf_path in test_files:
-                full_path = self._project_root / tf_path
-                if not full_path.exists():
-                    continue
-                try:
-                    source = full_path.read_text()
-                except OSError as exc:
-                    errors.append(
-                        ValidationError(
-                            code=ErrorCode.FILE_READ_ERROR,
-                            message=f"Failed to read test file '{tf_path}': {exc}",
-                            location=Location(file=tf_path),
-                        )
-                    )
-                    continue
-                assertion_errors = _check_test_assertions(source, tf_path)
-                errors.extend(assertion_errors)
-
-        return errors
 
     def validate_acceptance(
         self,
@@ -839,109 +753,15 @@ def _collection_errors_to_validation_errors(
 
 
 def _check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
-    """Check that test functions in a file contain at least one assertion.
-
-    For Python: checks for assert statements, pytest.raises, or assert* calls.
-    For TypeScript/JavaScript: checks for expect() calls.
-    """
-    import ast as _ast
-
-    errors: list[ValidationError] = []
-
-    if test_path.endswith(".py"):
-        try:
-            tree = _ast.parse(source, filename=test_path)
-        except SyntaxError:
-            return errors
-
-        for node in _ast.walk(tree):
-            if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
-                if not node.name.startswith("test_"):
-                    continue
-                if _python_func_is_pytest_fixture(node):
-                    continue
-                if _python_func_has_assertion(node):
-                    continue
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.MISSING_ASSERTIONS,
-                        message=(
-                            f"Test function '{node.name}' has no assertions "
-                            f"in {test_path}"
-                        ),
-                        severity=Severity.WARNING,
-                        location=Location(file=test_path, line=node.lineno),
-                        suggestion="Add assert statements to verify behavior",
-                    )
-                )
-    elif test_path.endswith((".ts", ".tsx", ".js", ".jsx")):
-        # Simple text-based check for expect() in test blocks
-        # This is approximate but catches the common case
-        import re
-
-        test_pattern = re.compile(
-            r"(?:it|test)\s*\(\s*['\"].*?['\"]\s*,\s*(?:async\s*)?"
-            r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{(.*?)\}",
-            re.DOTALL,
-        )
-        for match in test_pattern.finditer(source):
-            body = match.group(1)
-            if "expect(" not in body and "assert" not in body.lower():
-                # Extract test name from the match
-                name_match = re.search(r"['\"](.+?)['\"]", match.group(0))
-                test_name = name_match.group(1) if name_match else "unknown"
-                # Find line number
-                line = source[: match.start()].count("\n") + 1
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.MISSING_ASSERTIONS,
-                        message=(
-                            f"Test '{test_name}' has no assertions in {test_path}"
-                        ),
-                        severity=Severity.WARNING,
-                        location=Location(file=test_path, line=line),
-                        suggestion="Add expect() statements to verify behavior",
-                    )
-                )
-
-    return errors
+    return _behavioral_check_test_assertions(source, test_path)
 
 
 def _python_func_has_assertion(node) -> bool:
-    """Check if a Python function AST node contains any assertion."""
-    import ast as _ast
-
-    for child in _ast.walk(node):
-        # Direct assert statement
-        if isinstance(child, _ast.Assert):
-            return True
-        # pytest.raises or similar context managers
-        if isinstance(child, _ast.Call):
-            func = child.func
-            # pytest.raises(...)
-            if isinstance(func, _ast.Attribute) and func.attr == "raises":
-                return True
-            # assertXxx() calls (unittest style)
-            if isinstance(func, _ast.Attribute) and func.attr.startswith("assert"):
-                return True
-            if isinstance(func, _ast.Name) and func.id.startswith("assert"):
-                return True
-    return False
+    return _behavioral_python_func_has_assertion(node)
 
 
 def _python_func_is_pytest_fixture(node) -> bool:
-    import ast as _ast
-
-    def is_fixture_decorator(decorator) -> bool:
-        if isinstance(decorator, _ast.Call):
-            decorator = decorator.func
-        if isinstance(decorator, _ast.Name):
-            return decorator.id == "fixture"
-        if isinstance(decorator, _ast.Attribute):
-            return decorator.attr == "fixture"
-        return False
-
-    return any(is_fixture_decorator(decorator) for decorator in node.decorator_list)
+    return _behavioral_python_func_is_pytest_fixture(node)
 
 
 def _check_required_imports(
