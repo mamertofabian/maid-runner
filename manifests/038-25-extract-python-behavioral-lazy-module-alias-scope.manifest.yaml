@@ -1,0 +1,80 @@
+schema: "2"
+goal: "Extract Python behavioral lazy module alias scope state"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's lazy module alias scope stack state
+  into the focused behavioral scope module.
+
+  This is the next Priority 5 slice from the professional refactor backlog. The
+  new state object owns the empty local module-import and module-alias shadow
+  containers used while visiting lazy lambda and generator bodies. The
+  behavioral collector keeps traversal order, lazy body isolation, dynamic alias
+  binding, artifact recording, and identity semantics unchanged.
+temptations:
+  - risk: "Do not change which lambda or generator expressions are treated as lazy."
+    instead: "Only replace direct lazy module alias stack push/pop with a named state object."
+  - risk: "Do not combine this with broader expression, function, or class scope changes."
+    instead: "Keep this slice limited to `_push_lazy_module_alias_scope` and `_pop_lazy_module_alias_scope`."
+  - risk: "Do not move dynamic import binding helpers or traversal logic in this slice."
+    instead: "Leave alias binding policy and AST visitation in `python.py`."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_scope.py
+      artifacts:
+        - kind: class
+          name: _BehavioralLazyModuleAliasScope
+          source_scenario: "The Python behavioral collector enters a lazy lambda or generator body and needs to isolate module alias bindings from the surrounding runtime scope."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralLazyModuleAliasScope
+          expected:
+            behavior: "The state object pushes and pops the same local module-import and alias-shadow containers that the legacy lazy-scope stack manipulation represented."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection enters and exits lazy lambda or generator bodies."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for dynamic aliases in lazy lambda and generator bodies are unchanged."
+  create:
+    - path: tests/validators/test_python_behavioral_lazy_module_alias_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_lazy_module_alias_scope_push_pop
+          source_scenario: "A lazy module alias scope is pushed onto the collector's module alias stacks and popped."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralLazyModuleAliasScope
+          expected:
+            behavior: "The state object manages the same container identities across lazy module alias stacks."
+        - kind: test_function
+          name: test_python_behavioral_lazy_lambda_body_still_does_not_rebind_outer_alias
+          source_scenario: "A function-local dynamic import alias exists outside a lazy lambda body that would bind the same name if evaluated."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records the later outer alias access with the original dynamic import_source identity."
+  read:
+    - tests/validators/test_python_behavioral_expression_scope.py
+    - tests/validators/test_python_behavioral_function_scope.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - manifests/038-24-extract-python-behavioral-expression-scope.manifest.yaml
+    - manifests/fix-python-importlib-dynamic-import-e200.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_lazy_module_alias_scope.py tests/validators/test_python_behavioral_expression_scope.py tests/validators/test_python_behavioral_function_scope.py tests/validators/test_python_identity.py tests/validators/test_python_parser_replacement_boundaries.py

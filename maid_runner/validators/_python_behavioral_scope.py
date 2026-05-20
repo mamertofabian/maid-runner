@@ -150,3 +150,27 @@ class _BehavioralExpressionScope:
     ) -> None:
         module_alias_shadow_scopes.pop()
         shadowed_import_scopes.pop()
+
+
+@dataclass
+class _BehavioralLazyModuleAliasScope:
+    module_imports: _ModuleImportScope = field(default_factory=dict)
+    module_alias_shadows: _ModuleAliasShadowScope = field(default_factory=set)
+
+    def push_to(
+        self,
+        *,
+        module_import_scopes: list[_ModuleImportScope],
+        module_alias_shadow_scopes: list[_ModuleAliasShadowScope],
+    ) -> None:
+        module_import_scopes.append(self.module_imports)
+        module_alias_shadow_scopes.append(self.module_alias_shadows)
+
+    def pop_from(
+        self,
+        *,
+        module_import_scopes: list[_ModuleImportScope],
+        module_alias_shadow_scopes: list[_ModuleAliasShadowScope],
+    ) -> None:
+        module_alias_shadow_scopes.pop()
+        module_import_scopes.pop()

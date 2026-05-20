@@ -19,6 +19,7 @@ from maid_runner.validators._python_behavioral_scope import (
     _BehavioralClassScope,
     _BehavioralExpressionScope,
     _BehavioralFunctionScope,
+    _BehavioralLazyModuleAliasScope,
 )
 from maid_runner.validators._python_implementation import (
     _ImplementationCollector as _MovedImplementationCollector,
@@ -203,6 +204,9 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._local_module_import_scopes: list[_ModuleImportScope] = []
         self._local_module_alias_shadow_scopes: list[_ModuleAliasShadowScope] = []
         self._expression_scope_markers: list[_BehavioralExpressionScope] = []
+        self._lazy_module_alias_scope_markers: list[_BehavioralLazyModuleAliasScope] = (
+            []
+        )
         self._expression_module_alias_shadow_scopes: list[set[str]] = []
         self._local_value_scopes: list[_LocalValueScope] = [set()]
         self._object_owner_scopes: list[_ObjectOwnerScope] = []
@@ -988,12 +992,19 @@ class _BehavioralCollector(ast.NodeVisitor):
         )
 
     def _push_lazy_module_alias_scope(self) -> None:
-        self._local_module_import_scopes.append({})
-        self._local_module_alias_shadow_scopes.append(set())
+        lazy_scope = _BehavioralLazyModuleAliasScope()
+        lazy_scope.push_to(
+            module_import_scopes=self._local_module_import_scopes,
+            module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+        )
+        self._lazy_module_alias_scope_markers.append(lazy_scope)
 
     def _pop_lazy_module_alias_scope(self) -> None:
-        self._local_module_alias_shadow_scopes.pop()
-        self._local_module_import_scopes.pop()
+        lazy_scope = self._lazy_module_alias_scope_markers.pop()
+        lazy_scope.pop_from(
+            module_import_scopes=self._local_module_import_scopes,
+            module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+        )
 
     def _hide_active_class_scopes(self) -> list[_BehavioralClassScope]:
         hidden: list[_BehavioralClassScope] = []
