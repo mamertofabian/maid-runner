@@ -1,0 +1,98 @@
+schema: "2"
+goal: "Add lean characterization tests for validate_all chain behavior"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - characterization
+    - safe-refactor
+    - validation
+    - manifest-chain
+  priority: high
+description: |
+  Add a parallel, focused characterization suite for representative
+  `ValidationEngine.validate_all` manifest-chain orchestration behavior
+  currently embedded inside the large `tests/core/test_validate.py`
+  `TestValidateAllChainReuse` section and adjacent chain tests.
+
+  This is a test-only preparatory refactor. The old characterization tests stay
+  in place and no production behavior changes. These lean tests document active
+  versus superseded manifest accounting, chain load diagnostics, empty manifest
+  handling, and the chain-strict implementation path before later extraction
+  work touches validation orchestration internals.
+temptations:
+  - risk: "Do not delete or move validate_all or ManifestChain tests from tests/core/test_validate.py or tests/core/test_chain.py in this slice."
+    instead: "Add the new lean suite in parallel and keep the legacy characterization tests green."
+  - risk: "Do not change ValidationEngine, ManifestChain, supersession, diagnostics, or chain strictness behavior while adding the suite."
+    instead: "Only create the new test file and run it beside the legacy validation and chain files."
+  - risk: "Do not characterize validate_all by mocking ManifestChain construction details."
+    instead: "Assert public batch result behavior: passed, failed, skipped, results, and chain_errors."
+  - risk: "Do not use selector-only validate commands that MAID command integrity rejects."
+    instead: "Run whole test files in the manifest validate command."
+files:
+  create:
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_validates_active_manifests_and_skips_superseded
+          source_scenario: "A manifest directory contains one superseded manifest and one active manifest that supersedes it."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all validates only the active manifest, reports total_manifests=2, passed=1, failed=0, and skipped=1."
+        - kind: test_function
+          name: test_validate_all_reports_invalid_manifest_as_chain_error
+          source_scenario: "A manifest directory contains one valid manifest and one schema-invalid manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all returns success=False, validates the good manifest, and reports ErrorCode.SCHEMA_VALIDATION_ERROR in chain_errors."
+        - kind: test_function
+          name: test_validate_all_missing_manifest_directory_fails_by_default
+          source_scenario: "The requested manifest directory does not exist."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all returns an empty-manifest failure with ErrorCode.EMPTY_MANIFEST_SET in chain_errors."
+        - kind: test_function
+          name: test_validate_all_function_allows_empty_manifest_directory_when_requested
+          source_scenario: "The requested manifest directory exists but contains no manifests, and allow_empty=True is set through the top-level validate_all function."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all returns success=True with zero total, passed, failed, and no chain_errors."
+        - kind: test_function
+          name: test_validate_all_applies_chain_strictness_to_active_manifests
+          source_scenario: "Two active manifests declare different artifacts in the same production file, but the implementation also contains an undeclared public function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all validates active manifests with chain context and reports ErrorCode.UNEXPECTED_ARTIFACT for the undeclared function."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_chain.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/python.py
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/schemas/manifest.v2.schema.json
+    - manifests/snapshot-core-validate.manifest.yaml
+    - manifests/add-manifest-chain.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_all_chain.py tests/core/test_validate.py tests/core/test_chain.py
