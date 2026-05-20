@@ -1,0 +1,144 @@
+schema: "2"
+goal: "Extract command-integrity test file discovery"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - command-integrity
+  priority: high
+description: |
+  Extract command-integrity test-file discovery from
+  `maid_runner.core._validation_test_artifacts` into a focused private helper
+  module.
+
+  This is the final Priority 3 slice from the refactor backlog. The new helper
+  owns discovery of behavioral test files used by validate-command integrity:
+  manifest `files.read`, declared file specs, validate-command targets,
+  directory expansion, `conftest.py` exclusion, and Python behavioral-test
+  detection. Artifact collection remains in `_validation_test_artifacts`.
+temptations:
+  - risk: "Do not change validate-command integrity semantics while moving test-file discovery."
+    instead: "Move the current discovery behavior and preserve compatibility wrappers in `_validation_test_artifacts.py`."
+  - risk: "Do not move artifact collection, validator lookup, or collection-error conversion in this slice."
+    instead: "Only extract command-integrity test-file discovery."
+  - risk: "Do not make support files count as behavioral tests."
+    instead: "Preserve `conftest.py` exclusion and Python AST behavioral-test detection."
+files:
+  create:
+    - path: maid_runner/core/_command_integrity_test_discovery.py
+      artifacts:
+        - kind: function
+          name: find_command_integrity_test_files
+          source_scenario: "Validate-command integrity discovers behavioral test files from manifest file paths and validate-command targets."
+          actions:
+            - type: api_call
+              subject:
+                export: find_command_integrity_test_files
+          expected:
+            behavior: "The helper returns the same ordered, deduplicated behavioral test files as before extraction."
+        - kind: function
+          name: is_command_integrity_test_file
+          source_scenario: "Command-integrity discovery classifies individual paths as behavioral tests or support files."
+          actions:
+            - type: api_call
+              subject:
+                export: is_command_integrity_test_file
+          expected:
+            behavior: "The helper excludes conftest.py and support files while accepting JS/TS test naming conventions."
+        - kind: function
+          name: is_python_behavioral_test_file
+          source_scenario: "Python test-file detection parses top-level test functions and test classes."
+          actions:
+            - type: api_call
+              subject:
+                export: is_python_behavioral_test_file
+          expected:
+            behavior: "The helper preserves Python behavioral-test detection and fail-open unreadable/syntax-error behavior."
+    - path: tests/core/validation/test_command_integrity_test_discovery.py
+      artifacts:
+        - kind: test_function
+          name: test_command_integrity_discovery_includes_manifest_and_validate_targets
+          source_scenario: "A manifest references tests through files.read, a test directory, and validate-command targets."
+          actions:
+            - type: api_call
+              subject:
+                export: find_command_integrity_test_files
+          expected:
+            behavior: "The helper returns ordered behavioral test files without support-file entries."
+        - kind: test_function
+          name: test_command_integrity_test_file_excludes_conftest
+          source_scenario: "A path names a pytest conftest support file."
+          actions:
+            - type: api_call
+              subject:
+                export: is_command_integrity_test_file
+          expected:
+            behavior: "The helper does not count conftest.py as a behavioral test file."
+        - kind: test_function
+          name: test_python_behavioral_test_file_accepts_test_class_method
+          source_scenario: "A Python test file defines a Test class with a test method."
+          actions:
+            - type: api_call
+              subject:
+                export: is_python_behavioral_test_file
+          expected:
+            behavior: "The helper treats the file as a behavioral test file."
+        - kind: test_function
+          name: test_python_behavioral_test_file_rejects_helper_only_file
+          source_scenario: "A Python file has test naming but only helper functions."
+          actions:
+            - type: api_call
+              subject:
+                export: is_python_behavioral_test_file
+          expected:
+            behavior: "The helper does not count helper-only Python files as behavioral tests."
+        - kind: test_function
+          name: test_python_behavioral_test_file_fails_open_on_syntax_error
+          source_scenario: "A Python test file cannot be parsed."
+          actions:
+            - type: api_call
+              subject:
+                export: is_python_behavioral_test_file
+          expected:
+            behavior: "The helper returns true so command integrity can surface later validation errors."
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: _find_command_integrity_test_files
+          source_scenario: "Existing private callers still find command-integrity test discovery in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _find_command_integrity_test_files
+          expected:
+            behavior: "The compatibility wrapper returns the same discovered test files as before extraction."
+        - kind: function
+          name: _is_command_integrity_test_file
+          source_scenario: "Existing private callers still find command-integrity test-file classification in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _is_command_integrity_test_file
+          expected:
+            behavior: "The compatibility wrapper returns the same classification result as before extraction."
+        - kind: function
+          name: _is_python_behavioral_test_file
+          source_scenario: "Existing private callers still find Python behavioral-test detection in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _is_python_behavioral_test_file
+          expected:
+            behavior: "The compatibility wrapper returns the same boolean result as before extraction."
+  read:
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_django_test_targets.py
+    - tests/core/test_validation_test_artifacts.py
+    - tests/cli/test_validate_cmd.py
+    - manifests/038-14-extract-test-command-targets-helper.manifest.yaml
+    - manifests/038-15-extract-django-test-targets-helper.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_command_integrity_test_discovery.py tests/core/test_validation_test_artifacts.py tests/cli/test_validate_cmd.py
