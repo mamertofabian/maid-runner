@@ -1,0 +1,124 @@
+schema: "2"
+goal: "Extract thin test command execution helper"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - test-runner
+    - subprocess
+  priority: high
+description: |
+  Extract the subprocess execution and `TestRunResult` mapping from
+  `maid_runner.core.test_runner.run_command` into a focused helper module.
+
+  This is the fifth Priority 4 slice from the professional refactor backlog.
+  The helper owns sanitized test-command environment creation, the
+  `subprocess.run` invocation, timeout mapping, unexpected-exception mapping,
+  duration measurement, and conversion into `TestRunResult`. `test_runner`
+  remains responsible for resolving commands, exposing the public `run_command`
+  API, and orchestrating manifests, batching, and cached validation.
+temptations:
+  - risk: "Do not change command resolution or uv wrapping while extracting subprocess execution."
+    instead: "Keep `_resolve_command` in `test_runner.py` and pass the resolved command into the helper."
+  - risk: "Do not remove existing private compatibility around `_test_command_environment`."
+    instead: "Keep `test_runner._test_command_environment` as a wrapper for older manifest contracts."
+  - risk: "Do not alter timeout, exception, stdout, stderr, or stream semantics."
+    instead: "Characterize result mapping directly against the new helper and keep existing `run_command` tests green."
+files:
+  create:
+    - path: maid_runner/core/_test_command_execution.py
+      artifacts:
+        - kind: function
+          name: _test_command_environment
+          source_scenario: "Manifest test commands run with ambient pytest selectors removed."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_command_environment
+          expected:
+            behavior: "The helper returns a copy of the process environment without PYTEST_ADDOPTS."
+        - kind: function
+          name: _run_test_command
+          source_scenario: "A resolved command is executed as a manifest test command."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_test_command
+          expected:
+            behavior: "The helper invokes subprocess.run with captured text output and returns a TestRunResult with the same success, output, duration, timeout, and exception semantics as before extraction."
+    - path: tests/core/validation/test_test_command_execution.py
+      artifacts:
+        - kind: test_function
+          name: test_test_command_environment_removes_ambient_pytest_addopts
+          source_scenario: "The parent process has PYTEST_ADDOPTS and unrelated environment variables."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_command_environment
+          expected:
+            behavior: "The helper removes only PYTEST_ADDOPTS."
+        - kind: test_function
+          name: test_run_test_command_converts_completed_process
+          source_scenario: "subprocess.run returns a completed process with non-zero exit code, stdout, and stderr."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_test_command
+          expected:
+            behavior: "The helper returns a TestRunResult preserving command, stream, exit code, stdout, stderr, and duration."
+        - kind: test_function
+          name: test_run_test_command_strips_pytest_addopts_from_subprocess_env
+          source_scenario: "The parent process would otherwise inject a pytest selector through PYTEST_ADDOPTS."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_test_command
+          expected:
+            behavior: "The subprocess environment passed to subprocess.run does not contain PYTEST_ADDOPTS."
+        - kind: test_function
+          name: test_run_test_command_maps_timeout_to_exit_code_minus_one
+          source_scenario: "subprocess.run raises TimeoutExpired."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_test_command
+          expected:
+            behavior: "The helper returns a failed TestRunResult with exit_code -1 and timeout stderr text."
+        - kind: test_function
+          name: test_run_test_command_maps_unexpected_exception_to_exit_code_minus_two
+          source_scenario: "subprocess.run raises a non-timeout exception."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_test_command
+          expected:
+            behavior: "The helper returns a failed TestRunResult with exit_code -2 and the exception message."
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_command
+          source_scenario: "Existing callers execute a manifest test command through `test_runner.run_command`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_command
+          expected:
+            behavior: "`run_command` still resolves uv-managed Python commands, delegates subprocess execution, and returns the same TestRunResult shape."
+        - kind: function
+          name: _test_command_environment
+          source_scenario: "Existing private callers still import the test command environment helper from `test_runner`."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_command_environment
+          expected:
+            behavior: "`test_runner` keeps a compatibility wrapper around the extracted helper."
+  read:
+    - tests/core/test_test_runner.py
+    - manifests/snapshot-core-test-runner.manifest.yaml
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - manifests/038-20-extract-maid-validate-command-cache.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_execution.py tests/core/test_test_runner.py

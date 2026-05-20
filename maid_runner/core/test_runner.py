@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import os
-import subprocess
-import time
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Union
@@ -15,6 +12,10 @@ from maid_runner.core._pytest_command_normalization import (
 )
 from maid_runner.core._maid_validate_command_cache import (
     _run_cached_maid_validate_command,
+)
+from maid_runner.core._test_command_execution import (
+    _run_test_command,
+    _test_command_environment as _execution_test_command_environment,
 )
 from maid_runner.core._test_command_batching import (
     _batch_compatible_test_commands,
@@ -70,55 +71,17 @@ def run_command(
     stream: TestStream = TestStream.IMPLEMENTATION,
 ) -> TestRunResult:
     command = _resolve_command(command, cwd=cwd)
-    env = _test_command_environment()
-    start = time.monotonic()
-    try:
-        proc = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            cwd=str(cwd),
-            timeout=timeout,
-            env=env,
-        )
-        duration = (time.monotonic() - start) * 1000
-        return TestRunResult(
-            manifest_slug=manifest_slug,
-            command=command,
-            exit_code=proc.returncode,
-            stdout=proc.stdout,
-            stderr=proc.stderr,
-            duration_ms=duration,
-            stream=stream,
-        )
-    except subprocess.TimeoutExpired:
-        duration = (time.monotonic() - start) * 1000
-        return TestRunResult(
-            manifest_slug=manifest_slug,
-            command=command,
-            exit_code=-1,
-            stdout="",
-            stderr=f"Command timed out after {timeout}s",
-            duration_ms=duration,
-            stream=stream,
-        )
-    except Exception as e:
-        duration = (time.monotonic() - start) * 1000
-        return TestRunResult(
-            manifest_slug=manifest_slug,
-            command=command,
-            exit_code=-2,
-            stdout="",
-            stderr=str(e),
-            duration_ms=duration,
-            stream=stream,
-        )
+    return _run_test_command(
+        command,
+        cwd=cwd,
+        timeout=timeout,
+        manifest_slug=manifest_slug,
+        stream=stream,
+    )
 
 
 def _test_command_environment() -> dict[str, str]:
-    env = dict(os.environ)
-    env.pop("PYTEST_ADDOPTS", None)
-    return env
+    return _execution_test_command_environment()
 
 
 def run_manifest_tests(
