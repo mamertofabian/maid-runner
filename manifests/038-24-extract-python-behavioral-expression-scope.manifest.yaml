@@ -1,0 +1,80 @@
+schema: "2"
+goal: "Extract Python behavioral expression shadow scope state"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's expression shadow scope stack state
+  into the focused behavioral scope module.
+
+  This is the next Priority 5 slice from the professional refactor backlog. The
+  new state object owns the temporary expression-level imported-name shadow set
+  and module-alias shadow set used by lambdas and comprehensions. The behavioral
+  collector keeps traversal order, lazy body behavior, dynamic alias binding,
+  artifact recording, and identity semantics unchanged.
+temptations:
+  - risk: "Do not change lambda, generator, or comprehension evaluation semantics."
+    instead: "Only replace direct expression shadow push/pop with a named state object."
+  - risk: "Do not extract lazy module alias scopes in the same slice."
+    instead: "Leave `_push_lazy_module_alias_scope` and `_pop_lazy_module_alias_scope` for a later small refactor."
+  - risk: "Do not move helper functions that compute expression bindings in this slice."
+    instead: "Keep target and argument binding collection in `python.py`."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_scope.py
+      artifacts:
+        - kind: class
+          name: _BehavioralExpressionScope
+          source_scenario: "The Python behavioral collector enters a lambda or comprehension expression scope and needs to manage temporary import and module-alias shadow sets as one unit."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralExpressionScope
+          expected:
+            behavior: "The state object pushes and pops the same expression shadow containers that the legacy stack manipulation represented."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection enters and exits lambda or comprehension expression scopes."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for imported-name shadowing, dynamic alias shadowing, lambdas, comprehensions, and generators are unchanged."
+  create:
+    - path: tests/validators/test_python_behavioral_expression_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_expression_scope_push_pop
+          source_scenario: "An expression shadow scope is pushed onto the collector's parallel expression shadow stacks and popped."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralExpressionScope
+          expected:
+            behavior: "The state object manages the same container identities across expression shadow stacks."
+        - kind: test_function
+          name: test_python_behavioral_comprehension_target_still_shadows_module_alias
+          source_scenario: "A function-local dynamic import alias is shadowed by a comprehension target with the same name."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records the access without leaking the outer dynamic import_source identity."
+  read:
+    - tests/validators/test_python_behavioral_scope.py
+    - tests/validators/test_python_behavioral_function_scope.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - manifests/038-23-extract-python-behavioral-function-scope.manifest.yaml
+    - manifests/fix-python-importlib-dynamic-import-e200.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_expression_scope.py tests/validators/test_python_behavioral_scope.py tests/validators/test_python_behavioral_function_scope.py tests/validators/test_python_identity.py tests/validators/test_python_parser_replacement_boundaries.py

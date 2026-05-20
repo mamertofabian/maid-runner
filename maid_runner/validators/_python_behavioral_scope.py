@@ -126,3 +126,27 @@ class _BehavioralFunctionScope:
         local_import_scopes.pop()
         function_import_bound_scopes.pop()
         shadowed_import_scopes.pop()
+
+
+@dataclass
+class _BehavioralExpressionScope:
+    shadowed_imports: set[str] = field(default_factory=set)
+    module_alias_shadows: set[str] = field(default_factory=set)
+
+    def push_to(
+        self,
+        *,
+        shadowed_import_scopes: list[set[str]],
+        module_alias_shadow_scopes: list[set[str]],
+    ) -> None:
+        shadowed_import_scopes.append(self.shadowed_imports)
+        module_alias_shadow_scopes.append(self.module_alias_shadows)
+
+    def pop_from(
+        self,
+        *,
+        shadowed_import_scopes: list[set[str]],
+        module_alias_shadow_scopes: list[set[str]],
+    ) -> None:
+        module_alias_shadow_scopes.pop()
+        shadowed_import_scopes.pop()

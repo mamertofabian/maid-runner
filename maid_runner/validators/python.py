@@ -17,6 +17,7 @@ from maid_runner.core.module_paths import (
 from maid_runner.core.types import ArtifactKind, ArgSpec
 from maid_runner.validators._python_behavioral_scope import (
     _BehavioralClassScope,
+    _BehavioralExpressionScope,
     _BehavioralFunctionScope,
 )
 from maid_runner.validators._python_implementation import (
@@ -201,6 +202,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._local_import_scopes: list[_ImportScope] = []
         self._local_module_import_scopes: list[_ModuleImportScope] = []
         self._local_module_alias_shadow_scopes: list[_ModuleAliasShadowScope] = []
+        self._expression_scope_markers: list[_BehavioralExpressionScope] = []
         self._expression_module_alias_shadow_scopes: list[set[str]] = []
         self._local_value_scopes: list[_LocalValueScope] = [set()]
         self._object_owner_scopes: list[_ObjectOwnerScope] = []
@@ -968,14 +970,22 @@ class _BehavioralCollector(ast.NodeVisitor):
             self._restore_hidden_class_scopes(hidden_class_scopes)
 
     def _push_expression_shadow_scope(self, bindings: set[str]) -> None:
-        import_scope = bindings & self._known_imported_names
-        module_scope = bindings & self._active_module_alias_names()
-        self._shadowed_import_scopes.append(import_scope)
-        self._expression_module_alias_shadow_scopes.append(module_scope)
+        expression_scope = _BehavioralExpressionScope(
+            shadowed_imports=bindings & self._known_imported_names,
+            module_alias_shadows=bindings & self._active_module_alias_names(),
+        )
+        expression_scope.push_to(
+            shadowed_import_scopes=self._shadowed_import_scopes,
+            module_alias_shadow_scopes=self._expression_module_alias_shadow_scopes,
+        )
+        self._expression_scope_markers.append(expression_scope)
 
     def _pop_expression_shadow_scope(self) -> None:
-        self._expression_module_alias_shadow_scopes.pop()
-        self._shadowed_import_scopes.pop()
+        expression_scope = self._expression_scope_markers.pop()
+        expression_scope.pop_from(
+            shadowed_import_scopes=self._shadowed_import_scopes,
+            module_alias_shadow_scopes=self._expression_module_alias_shadow_scopes,
+        )
 
     def _push_lazy_module_alias_scope(self) -> None:
         self._local_module_import_scopes.append({})
