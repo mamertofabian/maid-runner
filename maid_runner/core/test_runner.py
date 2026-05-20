@@ -13,6 +13,9 @@ from maid_runner.core.chain import ManifestChain
 from maid_runner.core._pytest_command_normalization import (
     _is_python_command as _normalization_is_python_command,
 )
+from maid_runner.core._maid_validate_command_cache import (
+    _run_cached_maid_validate_command,
+)
 from maid_runner.core._test_command_batching import (
     _batch_compatible_test_commands,
     _batch_group_key,
@@ -196,160 +199,6 @@ def _batch_pytest(commands: list[tuple[str, ...]]) -> tuple[str, ...]:
     return _batching_batch_pytest(commands)
 
 
-def _run_cached_maid_validate_command(
-    command: tuple[str, ...],
-    *,
-    cwd: Union[str, Path],
-    manifest_slug: str,
-    stream: TestStream,
-    cache: dict[str, object],
-) -> TestRunResult | None:
-    parsed = _parse_maid_validate_command(command)
-    if parsed is None:
-        return None
-
-    from maid_runner.cli.commands._format import (
-        format_batch_result,
-        format_validation_result,
-    )
-    from maid_runner.core.validate import ValidationEngine
-
-    project_root = Path(cwd)
-    resolved_command = _resolve_command(command, cwd=project_root)
-    start = time.monotonic()
-
-    try:
-        engine = cache.get("engine")
-        if engine is None:
-            engine = ValidationEngine(project_root=project_root)
-            cache["engine"] = engine
-
-        mode = parsed["mode"]
-        manifest_dir = parsed["manifest_dir"]
-        json_mode = parsed["json_mode"]
-        manifest_path = parsed["manifest_path"]
-        use_chain = parsed["use_chain"]
-
-        if manifest_path is None:
-            result = engine.validate_all(manifest_dir, mode=mode)
-            stdout = format_batch_result(result, json_mode=json_mode)
-            success = result.success
-        else:
-            chain = None
-            if use_chain:
-                chain_key = f"chain:{manifest_dir}"
-                chain_dir = project_root / manifest_dir
-                if chain_dir.exists():
-                    chain = cache.get(chain_key)
-                    if chain is None:
-                        chain = ManifestChain(chain_dir, project_root)
-                        cache[chain_key] = chain
-            manifest_to_validate = Path(manifest_path)
-            if not manifest_to_validate.is_absolute():
-                manifest_to_validate = project_root / manifest_to_validate
-            result = engine.validate(
-                manifest_to_validate,
-                mode=mode,
-                use_chain=use_chain,
-                chain=chain,
-                manifest_dir=manifest_dir,
-            )
-            stdout = format_validation_result(result, json_mode=json_mode)
-            success = result.success
-
-        return TestRunResult(
-            manifest_slug=manifest_slug,
-            command=resolved_command,
-            exit_code=0 if success else 1,
-            stdout=stdout,
-            stderr="",
-            duration_ms=(time.monotonic() - start) * 1000,
-            stream=stream,
-        )
-    except Exception as exc:
-        return TestRunResult(
-            manifest_slug=manifest_slug,
-            command=resolved_command,
-            exit_code=-2,
-            stdout="",
-            stderr=str(exc),
-            duration_ms=(time.monotonic() - start) * 1000,
-            stream=stream,
-        )
-
-
-def _parse_maid_validate_command(command: tuple[str, ...]) -> dict[str, object] | None:
-    if not command:
-        return None
-
-    inner = command
-    if len(inner) >= 3 and inner[0] == "uv" and inner[1] == "run":
-        inner = inner[2:]
-    if len(inner) < 2 or inner[:2] != ("maid", "validate"):
-        return None
-
-    from maid_runner.core.types import ValidationMode
-
-    mode = ValidationMode.IMPLEMENTATION
-    manifest_dir = "manifests/"
-    json_mode = False
-    use_chain = True
-    manifest_path: str | None = None
-
-    args = inner[2:]
-    index = 0
-    while index < len(args):
-        part = args[index]
-        if part == "--mode":
-            if index + 1 >= len(args):
-                return None
-            try:
-                mode = ValidationMode(args[index + 1])
-            except ValueError:
-                return None
-            index += 2
-            continue
-        if part.startswith("--mode="):
-            try:
-                mode = ValidationMode(part.split("=", 1)[1])
-            except ValueError:
-                return None
-            index += 1
-            continue
-        if part == "--manifest-dir":
-            if index + 1 >= len(args):
-                return None
-            manifest_dir = args[index + 1]
-            index += 2
-            continue
-        if part.startswith("--manifest-dir="):
-            manifest_dir = part.split("=", 1)[1]
-            index += 1
-            continue
-        if part == "--json":
-            json_mode = True
-            index += 1
-            continue
-        if part == "--no-chain":
-            use_chain = False
-            index += 1
-            continue
-        if part.startswith("-"):
-            return None
-        if manifest_path is not None:
-            return None
-        manifest_path = part
-        index += 1
-
-    return {
-        "mode": mode,
-        "manifest_dir": manifest_dir,
-        "json_mode": json_mode,
-        "use_chain": use_chain,
-        "manifest_path": manifest_path,
-    }
-
-
 def run_tests(
     manifest_dir: Union[str, Path] = "manifests/",
     *,
@@ -494,6 +343,7 @@ def run_tests(
             manifest_slug=slug,
             stream=TestStream.IMPLEMENTATION,
             cache=maid_validate_cache,
+            resolve_command=_resolve_command,
         )
         if result is None:
             result = run_command(cmd, cwd=project_root, manifest_slug=slug)

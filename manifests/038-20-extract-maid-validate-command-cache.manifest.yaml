@@ -1,0 +1,128 @@
+schema: "2"
+goal: "Extract cached MAID validate command execution"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - test-runner
+    - validate-cache
+  priority: high
+description: |
+  Extract the cached in-process `maid validate` command execution path from
+  `maid_runner.core.test_runner` into a focused helper module.
+
+  This is the fourth Priority 4 slice from the professional refactor backlog.
+  The helper owns parsing simple `maid validate` command forms, reusing a
+  per-run `ValidationEngine`, reusing manifest chains when the selected
+  manifest directory exists, and formatting the synthetic test-run result.
+  `test_runner` remains responsible for manifest loading, batching, subprocess
+  execution, fail-fast accounting, and deciding when to fall back to
+  `run_command`.
+temptations:
+  - risk: "Do not reinterpret arbitrary MAID CLI commands as cacheable validation."
+    instead: "Preserve the existing narrow parser and return None for unsupported command shapes."
+  - risk: "Do not move generic subprocess execution in this slice."
+    instead: "Only move the in-process optimization for simple `maid validate` commands."
+  - risk: "Do not construct a ManifestChain when --manifest-dir points at a missing directory."
+    instead: "Keep the existing behavior that validates standalone manifests without caching a missing chain."
+files:
+  create:
+    - path: maid_runner/core/_maid_validate_command_cache.py
+      artifacts:
+        - kind: function
+          name: _parse_maid_validate_command
+          source_scenario: "A candidate implementation command may be a simple `maid validate` invocation."
+          actions:
+            - type: api_call
+              subject:
+                export: _parse_maid_validate_command
+          expected:
+            behavior: "The helper returns parsed mode, manifest-dir, json, chain, and manifest-path fields for supported commands and None for unsupported shapes."
+        - kind: function
+          name: _run_cached_maid_validate_command
+          source_scenario: "A multi-manifest test run encounters a simple `maid validate` implementation command."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_cached_maid_validate_command
+          expected:
+            behavior: "The helper validates in process, returns a TestRunResult, reuses the per-run engine cache, and returns None for non-validate commands."
+    - path: tests/core/validation/test_maid_validate_command_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_parse_maid_validate_command_accepts_supported_flags
+          source_scenario: "A uv-wrapped `maid validate` command uses manifest path, mode, manifest-dir, json, and no-chain flags."
+          actions:
+            - type: api_call
+              subject:
+                export: _parse_maid_validate_command
+          expected:
+            behavior: "The helper returns the same parsed fields as the legacy parser."
+        - kind: test_function
+          name: test_parse_maid_validate_command_rejects_unsupported_shapes
+          source_scenario: "Commands are empty, not validate commands, have missing values, invalid modes, unknown flags, or multiple manifest paths."
+          actions:
+            - type: api_call
+              subject:
+                export: _parse_maid_validate_command
+          expected:
+            behavior: "The helper returns None so test_runner can fall back to subprocess execution."
+        - kind: test_function
+          name: test_run_cached_maid_validate_command_returns_none_for_non_validate_command
+          source_scenario: "A candidate command is a normal test runner command."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_cached_maid_validate_command
+          expected:
+            behavior: "The helper returns None instead of synthesizing a result."
+        - kind: test_function
+          name: test_run_cached_maid_validate_command_validates_without_existing_chain_dir
+          source_scenario: "A command validates a standalone manifest with --manifest-dir pointing at a missing directory."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_cached_maid_validate_command
+          expected:
+            behavior: "The helper returns a successful TestRunResult and does not cache a missing chain."
+        - kind: test_function
+          name: test_run_cached_maid_validate_command_reuses_engine_and_chain_cache
+          source_scenario: "Two cacheable validate commands run against the same existing manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_cached_maid_validate_command
+          expected:
+            behavior: "The helper reuses the same cached engine and manifest chain objects."
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          source_scenario: "Multi-manifest test execution encounters cacheable and non-cacheable implementation commands."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The runner still uses the cached helper for simple `maid validate` commands and falls back to `run_command` otherwise."
+    - path: manifests/030-08-add-validate-run-tests-gate.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _format_formatter_test_scope
+          of: manifest data
+          type: yaml
+          source_scenario: "The cached validate-command helper moves formatter references out of `test_runner.py` while an older manifest still declares formatter artifacts."
+          actions:
+            - type: api_call
+              subject:
+                export: _format_formatter_test_scope
+          expected:
+            behavior: "The older manifest includes the existing formatter tests in its read and validate scope so its formatter artifacts remain covered."
+  read:
+    - tests/core/test_test_runner.py
+    - manifests/fix-maid-test-redundant-command-pruning.manifest.yaml
+    - manifests/038-19-extract-test-command-batching.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_maid_validate_command_cache.py tests/core/test_test_runner.py
