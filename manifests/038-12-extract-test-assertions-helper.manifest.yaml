@@ -1,0 +1,163 @@
+schema: "2"
+goal: "Extract test assertion checking into a focused helper"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - assertions
+  priority: high
+description: |
+  Extract behavioral test assertion-checking policy from
+  `maid_runner.core._behavioral_validation` into a focused private helper
+  module while preserving existing compatibility symbols.
+
+  This is a behavior-preserving production refactor. Missing-assertion warning
+  semantics, pytest fixture skipping, Python syntax-error tolerance, and
+  JavaScript/TypeScript expect/assert detection must remain unchanged.
+temptations:
+  - risk: "Do not change when check_assertions runs or how behavioral validation reports warnings."
+    instead: "Move only assertion-checking implementation and keep the behavioral validation call point unchanged."
+  - risk: "Do not remove private compatibility symbols declared by prior manifests or imported by legacy tests."
+    instead: "Keep `_behavioral_validation` and `validate.py` wrappers delegating to the new helper."
+  - risk: "Do not improve the JavaScript/TypeScript assertion scanner in this slice."
+    instead: "Preserve the current bounded syntactic behavior exactly and defer scanner improvements to a separate manifest."
+  - risk: "Do not combine this with test-file discovery, artifact coverage, or strict-mode CLI changes."
+    instead: "Only extract the assertion-checking helper."
+files:
+  create:
+    - path: maid_runner/core/_test_assertions.py
+      artifacts:
+        - kind: function
+          name: validate_test_assertions
+          source_scenario: "Behavioral validation checks all declared test files for missing assertions when check_assertions is enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "Readable test files produce the same assertion warnings and unreadable files produce the same file-read errors as before."
+        - kind: function
+          name: check_test_assertions
+          source_scenario: "A test file source is scanned for assertion-free test functions or blocks."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "Python, JavaScript, TypeScript, unsupported extension, and syntax-error cases preserve existing results."
+        - kind: function
+          name: python_func_has_assertion
+          source_scenario: "Python assertion scanning recognizes assert statements and pytest/assert helper calls."
+          actions:
+            - type: api_call
+              subject:
+                export: python_func_has_assertion
+          expected:
+            behavior: "Python function AST assertion detection remains unchanged."
+        - kind: function
+          name: python_func_is_pytest_fixture
+          source_scenario: "Fixture-decorated Python functions are skipped by assertion checking."
+          actions:
+            - type: api_call
+              subject:
+                export: python_func_is_pytest_fixture
+          expected:
+            behavior: "Pytest fixture decorator recognition remains unchanged."
+    - path: tests/core/validation/test_assertion_checking.py
+      artifacts:
+        - kind: test_function
+          name: test_check_test_assertions_warns_for_python_test_without_assertions
+          source_scenario: "A Python test function has no assertion statements or recognized assertion helper calls."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns one E210 missing-assertions warning for that test function."
+        - kind: test_function
+          name: test_check_test_assertions_skips_pytest_fixture
+          source_scenario: "A fixture function starts with test_ but is decorated with pytest.fixture."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper does not report fixture helpers as assertion-free tests."
+        - kind: test_function
+          name: test_python_func_has_assertion_recognizes_pytest_raises
+          source_scenario: "A Python test function uses pytest.raises instead of an assert statement."
+          actions:
+            - type: api_call
+              subject:
+                export: python_func_has_assertion
+          expected:
+            behavior: "The helper recognizes pytest.raises as assertion behavior."
+        - kind: test_function
+          name: test_python_func_is_pytest_fixture_recognizes_attribute_decorator
+          source_scenario: "A Python function is decorated with pytest.fixture."
+          actions:
+            - type: api_call
+              subject:
+                export: python_func_is_pytest_fixture
+          expected:
+            behavior: "The helper recognizes the function as a pytest fixture."
+        - kind: test_function
+          name: test_validate_test_assertions_reports_file_read_errors
+          source_scenario: "A declared test file path resolves to a directory that cannot be read as text."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "The helper returns the same E001 file-read error shape used by behavioral validation."
+  edit:
+    - path: maid_runner/core/_behavioral_validation.py
+      artifacts:
+        - kind: function
+          name: _validate_test_assertions
+          source_scenario: "Behavioral validation preserves its internal assertion-checking call point."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_behavioral_validation
+          expected:
+            behavior: "check_assertions=True still appends the same assertion warnings to behavioral validation results."
+        - kind: function
+          name: _check_test_assertions
+          source_scenario: "Prior private imports from _behavioral_validation continue to work."
+          actions:
+            - type: api_call
+              subject:
+                export: _check_test_assertions
+          expected:
+            behavior: "The compatibility wrapper returns the same results as the extracted helper."
+        - kind: function
+          name: _python_func_has_assertion
+          source_scenario: "Prior private imports of Python assertion detection continue to work."
+          actions:
+            - type: api_call
+              subject:
+                export: _python_func_has_assertion
+          expected:
+            behavior: "The compatibility wrapper returns the same boolean result as the extracted helper."
+        - kind: function
+          name: _python_func_is_pytest_fixture
+          source_scenario: "Prior private imports of pytest fixture detection continue to work."
+          actions:
+            - type: api_call
+              subject:
+                export: _python_func_is_pytest_fixture
+          expected:
+            behavior: "The compatibility wrapper returns the same boolean result as the extracted helper."
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/core/result.py
+    - tests/core/validation/test_strict_mode.py
+    - tests/core/test_validate.py
+    - tests/integration/test_full_workflow.py
+    - manifests/038-08-extract-behavioral-validation-helper.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_assertion_checking.py tests/core/validation/test_strict_mode.py tests/core/test_validate.py tests/integration/test_full_workflow.py
