@@ -5,6 +5,7 @@ type: fix
 created: "2026-05-20"
 metadata:
   status: draft
+  maid_task_base: main
   tags:
     - validation
     - anti-gaming
@@ -167,7 +168,22 @@ files:
             - name: args
               type: argparse.Namespace
           returns: "list[ValidationError]"
-          description: "Build the active ManifestChain and return changed-scope validation errors for validate output formatting."
+          description: "Build the selected manifest or active manifest scope and return changed-scope validation errors for validate output formatting."
+        - kind: function
+          name: _run_worktree_scope
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: "list[ValidationError]"
+          description: "Build the selected manifest or active manifest scope and return worktree-scope validation errors for validate output formatting."
+        - kind: function
+          name: _scope_chain
+          args:
+            - name: args
+              type: argparse.Namespace
+            - name: chain_type
+          returns: object
+          description: "Use only the selected manifest for single-manifest scope checks, otherwise use the active manifest chain."
 
     - path: maid_runner/cli/commands/verify.py
       artifacts:
@@ -266,6 +282,15 @@ files:
                 export: main
           expected:
             behavior: "The command exits 1 and prints ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE with the changed file path."
+        - kind: test_function
+          name: test_validate_manifest_changed_scope_uses_selected_manifest_scope
+          source_scenario: "maid validate selects one manifest whose files.read contains a changed production file while an unrelated active manifest lists that file in files.edit."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "The command exits 1 and reports the read-only changed file instead of being masked by the unrelated active manifest."
         - kind: test_function
           name: test_validate_changed_scope_requires_explicit_or_metadata_baseline
           source_scenario: "maid validate --changed-scope runs without --since, --base-ref, or metadata.maid_task_base."

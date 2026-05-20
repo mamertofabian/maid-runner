@@ -208,6 +208,50 @@ def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys)
     assert "test_gate" in output
 
 
+def test_verify_validator_unavailable_warning_is_advisory_by_default(
+    tmp_path,
+):
+    from maid_runner.cli.commands.verify import _warnings_are_blocking
+    from maid_runner.core.result import ErrorCode, Severity, ValidationError
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = {
+        "schema": "2",
+        "goal": "Document workflow",
+        "type": "feature",
+        "created": "2026-05-20",
+        "files": {
+            "edit": [
+                {
+                    "path": "README.md",
+                    "artifacts": [
+                        {
+                            "kind": "attribute",
+                            "name": "workflow_docs",
+                            "of": "docs",
+                            "type": "section",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/test_gate.py"],
+        },
+        "validate": ["python -m pytest tests/test_gate.py -q"],
+    }
+    manifest_path = manifest_dir / "document-workflow.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    warnings = [
+        ValidationError(
+            code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
+            message="No validator available for 'README.md'",
+            severity=Severity.WARNING,
+        )
+    ]
+
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is False
+
+
 def test_verify_ignores_pytest_fixture_helpers_named_like_tests(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
 

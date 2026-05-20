@@ -19,6 +19,7 @@ from maid_runner.core.result import (
 
 _STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
 _WARNING_ADVISORY_TASK_TYPES = frozenset({"snapshot", "system-snapshot"})
+_ADVISORY_WARNING_CODES = frozenset({ErrorCode.VALIDATOR_NOT_AVAILABLE})
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -353,13 +354,13 @@ def _has_blocking_validation_warnings(
     for validation in getattr(result, "results", ()):
         if not getattr(validation, "warnings", ()):
             continue
-        if _manifest_warnings_are_blocking(validation.manifest_path, project_root):
+        if _validation_warnings_are_blocking(validation, project_root):
             return True
 
     warnings = getattr(result, "warnings", ())
     if warnings:
         manifest_path = getattr(result, "manifest_path", "")
-        return _manifest_warnings_are_blocking(manifest_path, project_root)
+        return _warnings_are_blocking(warnings, manifest_path, project_root)
 
     return False
 
@@ -389,6 +390,30 @@ def _manifest_warnings_are_blocking(manifest_path: str, project_root: Path) -> b
     if manifest.created is None:
         return True
     return manifest.created >= _STRICT_WARNING_FAILURE_SINCE
+
+
+def _validation_warnings_are_blocking(validation, project_root: Path) -> bool:
+    return _warnings_are_blocking(
+        getattr(validation, "warnings", ()),
+        getattr(validation, "manifest_path", ""),
+        project_root,
+    )
+
+
+def _warnings_are_blocking(
+    warnings,
+    manifest_path: str,
+    project_root: Path,
+) -> bool:
+    blocking_warnings = [
+        warning
+        for warning in warnings
+        if getattr(warning, "code", None) not in _ADVISORY_WARNING_CODES
+    ]
+    return bool(blocking_warnings) and _manifest_warnings_are_blocking(
+        manifest_path,
+        project_root,
+    )
 
 
 def _error_stage(

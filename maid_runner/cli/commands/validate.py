@@ -454,13 +454,13 @@ def _apply_changed_scope_to_batch(batch, args: argparse.Namespace) -> None:
     batch.failed += 1
 
 
-def _run_worktree_scope(args: argparse.Namespace):
+def _run_worktree_scope(args: argparse.Namespace) -> "list[ValidationError]":
     from maid_runner.core.chain import ManifestChain
     from maid_runner.core.result import ErrorCode, Severity, ValidationError
     from maid_runner.core.worktree import validate_worktree_scope
 
     try:
-        chain = ManifestChain(args.manifest_dir, ".")
+        chain = _scope_chain(args, ManifestChain)
         return validate_worktree_scope(
             ".",
             chain,
@@ -482,7 +482,7 @@ def _run_changed_scope(args: argparse.Namespace) -> "list[ValidationError]":
     from maid_runner.core.worktree import validate_changed_scope
 
     try:
-        chain = ManifestChain(args.manifest_dir, ".")
+        chain = _scope_chain(args, ManifestChain)
         return validate_changed_scope(
             ".",
             chain,
@@ -498,3 +498,20 @@ def _run_changed_scope(args: argparse.Namespace) -> "list[ValidationError]":
                 severity=Severity.ERROR,
             )
         ]
+
+
+def _scope_chain(args: argparse.Namespace, chain_type) -> object:
+    if not getattr(args, "manifest_path", None):
+        return chain_type(args.manifest_dir, ".")
+
+    from maid_runner.core.manifest import load_manifest
+
+    return _SingleManifestScope(load_manifest(args.manifest_path))
+
+
+class _SingleManifestScope:
+    def __init__(self, manifest) -> None:
+        self._manifest = manifest
+
+    def active_manifests(self) -> list:
+        return [self._manifest]

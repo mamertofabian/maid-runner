@@ -1632,6 +1632,109 @@ validate:
             w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings
         )
 
+    def test_abstract_method_not_detected_as_stub_warning(self, project):
+        """Abstract method placeholders define contracts and are not stubs."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-base.manifest.yaml",
+            """schema: "2"
+goal: "Add base class"
+files:
+  create:
+    - path: src/base.py
+      artifacts:
+        - kind: class
+          name: Base
+        - kind: method
+          name: run
+          of: Base
+  read:
+    - tests/test_base.py
+validate:
+  - pytest tests/test_base.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/base.py",
+            "from abc import ABC, abstractmethod\n\n"
+            "class Base(ABC):\n"
+            "    @abstractmethod\n"
+            "    def run(self):\n"
+            "        pass\n",
+        )
+        _write_source(
+            project,
+            "tests/test_base.py",
+            "from src.base import Base\n\n"
+            "def test_base_declares_run_contract():\n"
+            "    assert Base.run.__name__ == 'run'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+        )
+
+        assert result.success is True
+        assert not any(
+            w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings
+        )
+
+    def test_custom_abstractmethod_attribute_detected_as_stub_warning(self, project):
+        """Only abc.abstractmethod suppresses stub warnings."""
+        manifest_path = _write_manifest(
+            project / "manifests",
+            "add-base.manifest.yaml",
+            """schema: "2"
+goal: "Add base class"
+files:
+  create:
+    - path: src/base.py
+      artifacts:
+        - kind: class
+          name: Base
+        - kind: method
+          name: run
+          of: Base
+  read:
+    - tests/test_base.py
+validate:
+  - pytest tests/test_base.py -v
+""",
+        )
+        _write_source(
+            project,
+            "src/base.py",
+            "class _Fake:\n"
+            "    def abstractmethod(self, fn):\n"
+            "        return fn\n\n"
+            "_fake = _Fake()\n\n"
+            "class Base:\n"
+            "    @_fake.abstractmethod\n"
+            "    def run(self):\n"
+            "        pass\n",
+        )
+        _write_source(
+            project,
+            "tests/test_base.py",
+            "from src.base import Base\n\n"
+            "def test_base_declares_run_contract():\n"
+            "    assert Base.run.__name__ == 'run'\n",
+        )
+
+        engine = ValidationEngine(project_root=project)
+        result = engine.validate(
+            manifest_path,
+            mode=ValidationMode.IMPLEMENTATION,
+            check_stubs=True,
+        )
+
+        assert result.success is True
+        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
+
     def test_typescript_generic_type_parameters_are_validated(self, project):
         """Manifest-declared generic parameters must match implementation artifacts."""
         manifest_path = _write_manifest(

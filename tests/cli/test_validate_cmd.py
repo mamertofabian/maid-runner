@@ -2432,6 +2432,72 @@ class TestCmdValidateAll:
         assert "E114" in output
         assert "src/greet.py" in output
 
+    def test_validate_manifest_changed_scope_uses_selected_manifest_scope(
+        self, project_dir, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        baseline = _commit_all(project_dir, "baseline")
+        selected_manifest = project_dir / "manifests" / "add-greet.manifest.yaml"
+        manifest = yaml.safe_load(selected_manifest.read_text())
+        manifest["metadata"] = {"maid_task_base": baseline}
+        manifest["files"]["read"].append("src/greet.py")
+        manifest["files"]["create"][0]["path"] = "src/owner.py"
+        manifest["files"]["create"][0]["artifacts"][0]["name"] = "owner"
+        selected_manifest.write_text(yaml.dump(manifest))
+
+        masking_manifest = {
+            "schema": "2",
+            "goal": "Mask changed scope",
+            "type": "fix",
+            "metadata": {"maid_task_base": baseline},
+            "files": {
+                "edit": [
+                    {
+                        "path": "src/greet.py",
+                        "artifacts": [
+                            {
+                                "kind": "function",
+                                "name": "greet",
+                                "returns": "str",
+                            }
+                        ],
+                    }
+                ],
+                "read": ["tests/test_greet.py"],
+            },
+            "validate": ["pytest tests/test_greet.py -v"],
+        }
+        (project_dir / "manifests" / "mask-greet.manifest.yaml").write_text(
+            yaml.dump(masking_manifest)
+        )
+        (project_dir / "src" / "owner.py").write_text(
+            "def owner() -> str:\n    return 'ok'\n"
+        )
+        (project_dir / "tests" / "test_greet.py").write_text(
+            "from src.owner import owner\n\n"
+            "def test_owner():\n"
+            "    assert owner() == 'ok'\n"
+        )
+        (project_dir / "src" / "greet.py").write_text(
+            "def greet(name: str) -> str:\n    return f'Hi, {name}'\n"
+        )
+
+        os.chdir(project_dir)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/add-greet.manifest.yaml",
+                "--no-chain",
+                "--changed-scope",
+            ]
+        )
+
+        assert exit_code == 1
+        output = capsys.readouterr().out
+        assert "E114" in output
+        assert "src/greet.py" in output
+
     def test_validate_changed_scope_requires_explicit_or_metadata_baseline(
         self, project_dir, capsys
     ):

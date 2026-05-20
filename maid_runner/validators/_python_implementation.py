@@ -244,6 +244,9 @@ def _with_module_path(artifact: FoundArtifact, module_path: str) -> FoundArtifac
 
 
 def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    if _has_abstractmethod_decorator(node):
+        return False
+
     body = node.body[:]
 
     if (
@@ -292,6 +295,20 @@ def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         if isinstance(stmt.value, ast.Tuple) and not stmt.value.elts:
             return True
 
+    return False
+
+
+def _has_abstractmethod_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    for decorator in node.decorator_list:
+        if isinstance(decorator, ast.Name) and decorator.id == "abstractmethod":
+            return True
+        if (
+            isinstance(decorator, ast.Attribute)
+            and decorator.attr == "abstractmethod"
+            and isinstance(decorator.value, ast.Name)
+            and decorator.value.id == "abc"
+        ):
+            return True
     return False
 
 
