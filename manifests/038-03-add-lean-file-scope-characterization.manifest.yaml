@@ -1,0 +1,102 @@
+schema: "2"
+goal: "Add lean characterization tests for file-scope validation gates"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - characterization
+    - safe-refactor
+    - validation
+    - file-scope
+  priority: high
+description: |
+  Add a parallel, focused characterization suite for representative file-scope
+  validation behavior currently embedded inside the large
+  `tests/core/test_validate.py` `TestFileTracking` class and the
+  `tests/core/test_changed_scope.py` task-baseline suite.
+
+  This is a test-only preparatory refactor. The old characterization tests stay
+  in place and no production behavior changes. These lean tests are expected to
+  pass against the current implementation because they document existing file
+  tracking, worktree-scope, and changed-scope behavior before later extraction
+  work touches validation internals.
+temptations:
+  - risk: "Do not delete or move file-scope tests from tests/core/test_validate.py or tests/core/test_changed_scope.py in this slice."
+    instead: "Add the new lean suite in parallel and keep the legacy characterization tests green."
+  - risk: "Do not change file discovery, file tracking, worktree-scope, changed-scope, or ValidationEngine behavior while adding the suite."
+    instead: "Only create the new test file and run it beside the legacy validation files."
+  - risk: "Do not recreate every legacy rename, nested-root, CLI, or include-tests edge case in this first lean slice."
+    instead: "Cover representative file tracking, gitignore, files.read, files.edit, worktree-scope, and changed-scope behaviors; later slices can add CLI and rename coverage."
+  - risk: "Do not use selector-only validate commands that MAID command integrity rejects."
+    instead: "Run whole test files in the manifest validate command."
+files:
+  create:
+    - path: tests/core/validation/test_file_scope_gates.py
+      artifacts:
+        - kind: test_function
+          name: test_file_tracking_reports_undeclared_source_file
+          source_scenario: "A manifest declares src/app.py but another production file src/extra.py exists outside the manifest chain."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all with file tracking fails and the file-tracking report lists src/extra.py as undeclared."
+        - kind: test_function
+          name: test_file_tracking_ignores_gitignored_source_file
+          source_scenario: "A source-like generated.py file is ignored by .gitignore."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "run_file_tracking does not include generated.py in report entries."
+        - kind: test_function
+          name: test_file_tracking_classifies_files_read_as_registered
+          source_scenario: "A production file appears only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "run_file_tracking classifies the file as FileTrackingStatus.REGISTERED, not undeclared."
+        - kind: test_function
+          name: test_worktree_scope_rejects_changed_file_in_files_read
+          source_scenario: "A dirty production file is listed only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "validate_worktree_scope reports ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE for the read-only file."
+        - kind: test_function
+          name: test_worktree_scope_allows_changed_file_in_files_edit
+          source_scenario: "A dirty production file is listed in files.edit."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "validate_worktree_scope returns no errors."
+        - kind: test_function
+          name: test_changed_scope_rejects_changed_read_only_file_since_task_base
+          source_scenario: "A production file listed only in files.read changed since metadata.maid_task_base."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_changed_scope
+          expected:
+            behavior: "validate_changed_scope reports ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE for the read-only file."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_changed_scope.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/worktree.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+    - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/core/test_validate.py tests/core/test_changed_scope.py
