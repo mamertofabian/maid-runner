@@ -1,0 +1,135 @@
+schema: "2"
+goal: "Extract Django validate-command target resolution"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - command-integrity
+    - django
+  priority: high
+description: |
+  Extract Django dotted-label validate-command target resolution from
+  `maid_runner.core._validation_test_artifacts` into a focused private helper
+  module.
+
+  This is the third Priority 3 slice from the refactor backlog. The new helper
+  owns Django-specific resolution from runner args to in-repo test file paths.
+  Generic command target parsing remains in `_test_command_targets.py`, and
+  runner invocation detection remains in `_test_runner_invocation.py`.
+temptations:
+  - risk: "Do not change which Django validate commands are accepted or rejected."
+    instead: "Move the current dotted-label resolution logic and validate against existing Django command-integrity tests."
+  - risk: "Do not move generic command target parsing or runner invocation detection in this slice."
+    instead: "Only extract Django-specific target resolution."
+  - risk: "Do not start interpreting Django class/method selectors, custom pythonpath, or arbitrary dotted values as covered tests."
+    instead: "Preserve current conservative behavior exactly."
+files:
+  create:
+    - path: maid_runner/core/_django_test_targets.py
+      artifacts:
+        - kind: function
+          name: django_test_paths_from_validate_segment
+          source_scenario: "A validate command segment invokes the Django test runner with dotted module labels."
+          actions:
+            - type: api_call
+              subject:
+                export: django_test_paths_from_validate_segment
+          expected:
+            behavior: "The helper returns the same resolved test file paths as before extraction."
+        - kind: function
+          name: django_test_paths_from_args
+          source_scenario: "Django runner args contain value flags, standalone flags, and dotted module labels."
+          actions:
+            - type: api_call
+              subject:
+                export: django_test_paths_from_args
+          expected:
+            behavior: "The helper skips Django option values and resolves only test labels."
+        - kind: function
+          name: resolve_django_test_label_paths
+          source_scenario: "A Django dotted module label may resolve under the current cwd or its src/ directory."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_django_test_label_paths
+          expected:
+            behavior: "The helper returns only existing in-project Python test files."
+    - path: tests/core/validation/test_django_test_targets.py
+      artifacts:
+        - kind: test_function
+          name: test_django_segment_resolves_src_layout_dotted_module
+          source_scenario: "A Django validate command targets a src-layout test module by dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: django_test_paths_from_validate_segment
+          expected:
+            behavior: "The helper resolves the dotted label to the existing src-layout test file."
+        - kind: test_function
+          name: test_django_args_skip_value_and_standalone_flags
+          source_scenario: "Django runner args include value flags and standalone flags around a dotted module label."
+          actions:
+            - type: api_call
+              subject:
+                export: django_test_paths_from_args
+          expected:
+            behavior: "The helper skips option values and resolves the label."
+        - kind: test_function
+          name: test_django_label_resolution_uses_cwd_and_src_candidates
+          source_scenario: "A Django dotted label may resolve below cwd/src."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_django_test_label_paths
+          expected:
+            behavior: "The helper finds the test module below the cwd src directory."
+        - kind: test_function
+          name: test_django_segment_rejects_pythonpath_shadowing
+          source_scenario: "A Django command mutates PYTHONPATH while targeting a dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: django_test_paths_from_validate_segment
+          expected:
+            behavior: "The helper returns no paths when Python path is mutated."
+        - kind: test_function
+          name: test_django_label_resolution_rejects_class_selector
+          source_scenario: "A Django dotted label includes a class selector instead of an exact module."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_django_test_label_paths
+          expected:
+            behavior: "The helper does not resolve selectors that do not correspond to real test files."
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: _django_test_paths_from_validate_segment
+          source_scenario: "Existing private callers still find Django validate-command target resolution in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _django_test_paths_from_validate_segment
+          expected:
+            behavior: "The compatibility wrapper returns the same Django target paths as before extraction."
+        - kind: function
+          name: _resolve_django_test_label_paths
+          source_scenario: "Existing private callers still find Django dotted-label path resolution in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _resolve_django_test_label_paths
+          expected:
+            behavior: "The compatibility wrapper returns the same path list as before extraction."
+  read:
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_test_runner_invocation.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_test_cmd.py
+    - manifests/fix-django-dotted-validate-test-targets.manifest.yaml
+    - manifests/038-14-extract-test-command-targets-helper.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_django_test_targets.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py tests/core/test_validation_test_artifacts.py

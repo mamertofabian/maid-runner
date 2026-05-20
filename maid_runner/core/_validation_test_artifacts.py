@@ -7,6 +7,13 @@ import re
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.core._django_test_targets import (
+    django_test_paths_from_args,
+    django_test_paths_from_validate_segment,
+    resolve_django_test_label_paths,
+    _django_module_path_variants as django_module_path_variants,
+    _django_source_root_candidates as django_source_root_candidates,
+)
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._test_command_targets import (
     command_segments,
@@ -60,7 +67,6 @@ from maid_runner.validators.registry import (
 _STRICT_TEST_COMMAND_COVERAGE_SINCE = "2026-05-17"
 _TEST_COMMAND_TASK_TYPES = frozenset({"feature", "fix", "refactor"})
 _TEST_DIRECTORY_NAMES = frozenset({"test", "tests", "__tests__", "spec", "specs"})
-_DOTTED_PYTHON_TEST_LABEL = re.compile(r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$")
 _LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
     {
         "017-04-typescript-decorator-metadata-boundary",
@@ -360,17 +366,7 @@ def _django_test_paths_from_validate_segment(
     project_root: Path,
     cwd: Path,
 ) -> list[str]:
-    invocation = _effective_test_runner_invocation(segment)
-    if invocation is None:
-        return []
-
-    runner, args = invocation
-    if runner != _DJANGO_TEST_RUNNER:
-        return []
-    if _has_pythonpath_assignment(segment) or _has_django_test_runner_selector(args):
-        return []
-
-    return _django_test_paths_from_args(args, project_root, cwd)
+    return django_test_paths_from_validate_segment(segment, project_root, cwd)
 
 
 def _django_test_paths_from_args(
@@ -378,23 +374,7 @@ def _django_test_paths_from_args(
     project_root: Path,
     cwd: Path,
 ) -> list[str]:
-    paths: list[str] = []
-    index = 0
-    while index < len(args):
-        part = args[index]
-        if part.startswith("-"):
-            next_index = _next_django_argument_index(args, index)
-            if next_index is None:
-                return []
-            index = next_index
-            continue
-
-        for path in _resolve_django_test_label_paths(part, project_root, cwd):
-            if path not in paths:
-                paths.append(path)
-        index += 1
-
-    return paths
+    return django_test_paths_from_args(args, project_root, cwd)
 
 
 def _resolve_django_test_label_paths(
@@ -402,34 +382,15 @@ def _resolve_django_test_label_paths(
     project_root: Path,
     cwd: Path,
 ) -> list[str]:
-    if not _DOTTED_PYTHON_TEST_LABEL.match(label):
-        return []
-
-    paths: list[str] = []
-    parts = label.split(".")
-    for module_path in _django_module_path_variants(parts):
-        for source_root in _django_source_root_candidates(cwd):
-            candidate = _normalize_relative_path(source_root / module_path)
-            if candidate in paths:
-                continue
-            if not is_test_file(candidate):
-                continue
-            if (project_root / candidate).is_file():
-                paths.append(candidate)
-    return paths
+    return resolve_django_test_label_paths(label, project_root, cwd)
 
 
 def _django_module_path_variants(module_parts: list[str]) -> list[Path]:
-    return [Path(*module_parts).with_suffix(".py")]
+    return django_module_path_variants(module_parts)
 
 
 def _django_source_root_candidates(cwd: Path) -> list[Path]:
-    roots: list[Path] = []
-    for root in (cwd, cwd / "src"):
-        normalized = Path(_normalize_relative_path(root))
-        if normalized not in roots:
-            roots.append(normalized)
-    return roots
+    return django_source_root_candidates(cwd)
 
 
 def _normalize_test_selector(path: Path) -> str:
