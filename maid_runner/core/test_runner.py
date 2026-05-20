@@ -10,6 +10,13 @@ from pathlib import Path, PurePosixPath
 from typing import Union
 
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core._pytest_command_normalization import (
+    _has_non_combinable_pytest_options,
+    _is_python_command as _normalization_is_python_command,
+    _looks_like_pytest_invocation,
+    _normalize_pytest_command,
+    _pytest_behavior_options,
+)
 from maid_runner.core.manifest import load_manifest, validate_manifest_paths
 from maid_runner.core.result import (
     BatchTestResult,
@@ -20,23 +27,6 @@ from maid_runner.core.result import (
 from maid_runner.core.types import Manifest, TestStream
 
 
-_PYTHON_COMMANDS = frozenset({"pytest", "python", "python3", "py.test"})
-_SAFE_PYTEST_FLAGS = frozenset(
-    {
-        "-q",
-        "-qq",
-        "-v",
-        "-vv",
-        "-vvv",
-        "-s",
-        "-x",
-        "--lf",
-        "--ff",
-        "--maxfail",
-    }
-)
-_PYTEST_VERBOSITY_FLAGS = frozenset({"-q", "-qq", "-v", "-vv", "-vvv"})
-_PYTEST_NON_COMBINABLE_FLAGS = frozenset({"-x", "--lf", "--ff", "--maxfail"})
 _SAFE_VITEST_VALUE_FLAGS = frozenset(
     {
         "--config",
@@ -58,13 +48,7 @@ _SAFE_VITEST_STANDALONE_FLAGS = frozenset(
 
 
 def _is_python_command(cmd: str) -> bool:
-    """Check if a command is a Python ecosystem command."""
-    if cmd in _PYTHON_COMMANDS:
-        return True
-    # Versioned interpreters: python3.12, python3.11, etc.
-    if cmd.startswith("python3."):
-        return True
-    return False
+    return _normalization_is_python_command(cmd)
 
 
 def _is_uv_project(cwd: Union[str, Path]) -> bool:
@@ -249,70 +233,6 @@ def _batch_pytest(commands: list[tuple[str, ...]]) -> tuple[str, ...]:
     return prefix + tuple(test_files) + options
 
 
-def _normalize_pytest_command(
-    command: tuple[str, ...],
-) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]] | None:
-    """Normalize simple pytest invocations for safe batching.
-
-    Only batches commands when we can preserve semantics exactly:
-    direct ``pytest`` or ``python -m pytest`` invocations, explicit test file
-    targets, and only simple standalone flags or ``--opt=value`` style options.
-    """
-    if not command:
-        return None
-
-    wrapper: tuple[str, ...] = ()
-    inner = command
-    if len(command) >= 3 and command[0] == "uv" and command[1] == "run":
-        wrapper = command[:2]
-        inner = command[2:]
-
-    prefix: tuple[str, ...]
-    args: tuple[str, ...]
-    if inner[0] == "pytest":
-        prefix = wrapper + ("pytest",)
-        args = inner[1:]
-    elif (
-        len(inner) >= 3
-        and _is_python_command(inner[0])
-        and inner[1] == "-m"
-        and inner[2] == "pytest"
-    ):
-        prefix = wrapper + inner[:3]
-        args = inner[3:]
-    else:
-        return None
-
-    targets: list[str] = []
-    options: list[str] = []
-    idx = 0
-    while idx < len(args):
-        part = args[idx]
-        if part.startswith("-"):
-            if "=" in part:
-                options.append(part)
-                idx += 1
-                continue
-            if part not in _SAFE_PYTEST_FLAGS:
-                return None
-            options.append(part)
-            if part == "--maxfail":
-                if idx + 1 >= len(args):
-                    return None
-                options.append(args[idx + 1])
-                idx += 2
-                continue
-            idx += 1
-            continue
-        targets.append(part)
-        idx += 1
-
-    if not targets:
-        return None
-
-    return prefix, tuple(targets), tuple(options)
-
-
 def _normalize_vitest_command(
     command: tuple[str, ...],
 ) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]] | None:
@@ -367,18 +287,6 @@ def _normalize_batchable_test_command(
     command: tuple[str, ...],
 ) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]] | None:
     return _normalize_pytest_command(command) or _normalize_vitest_command(command)
-
-
-def _pytest_behavior_options(options: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(option for option in options if option not in _PYTEST_VERBOSITY_FLAGS)
-
-
-def _has_non_combinable_pytest_options(options: tuple[str, ...]) -> bool:
-    for option in options:
-        flag = option.split("=", 1)[0]
-        if flag in _PYTEST_NON_COMBINABLE_FLAGS:
-            return True
-    return False
 
 
 def _batch_group_key(
@@ -673,21 +581,6 @@ def _can_dedupe_command(command: tuple[str, ...], *, cwd: Union[str, Path]) -> b
         return not _looks_like_pytest_invocation(resolved_command)
     _, _, options = pytest_command
     return not _has_non_combinable_pytest_options(options)
-
-
-def _looks_like_pytest_invocation(command: tuple[str, ...]) -> bool:
-    if len(command) >= 3 and command[0] == "uv" and command[1] == "run":
-        command = command[2:]
-    if not command:
-        return False
-    if command[0] in {"pytest", "py.test"}:
-        return True
-    return (
-        len(command) >= 3
-        and _is_python_command(command[0])
-        and command[1] == "-m"
-        and command[2] == "pytest"
-    )
 
 
 def _prune_covered_pytest_commands(

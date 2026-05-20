@@ -1,0 +1,178 @@
+schema: "2"
+goal: "Extract pytest command normalization helper"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - test-runner
+    - pytest
+  priority: high
+description: |
+  Extract pytest command normalization from `maid_runner.core.test_runner` into
+  a focused helper module.
+
+  This is the first Priority 4 slice from the professional refactor backlog.
+  The helper owns pytest command shape detection, target/option normalization,
+  behavior-option comparison, non-combinable option detection, and conservative
+  pytest-invocation detection used by batching and deduplication. `test_runner`
+  remains responsible for uv command resolution, batching orchestration,
+  pruning, subprocess execution, and MAID validate command caching.
+temptations:
+  - risk: "Do not change which pytest commands are considered batchable."
+    instead: "Move the existing parser behavior behind focused characterization tests."
+  - risk: "Do not fold batching or pruning policy into the parser helper."
+    instead: "Keep batching decisions in `test_runner.py` for later strategy slices."
+  - risk: "Do not add broad pytest option modeling while refactoring."
+    instead: "Preserve the existing narrow option allowlist and documented fail-closed behavior."
+files:
+  create:
+    - path: maid_runner/core/_pytest_command_normalization.py
+      artifacts:
+        - kind: function
+          name: _is_python_command
+          source_scenario: "Test runner command resolution and pytest normalization classify Python ecosystem commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _is_python_command
+          expected:
+            behavior: "The helper accepts pytest, python, python3, py.test, and versioned python3 interpreters while rejecting non-Python commands."
+        - kind: function
+          name: _normalize_pytest_command
+          source_scenario: "A pytest validate command uses direct pytest or python -m pytest syntax with explicit targets and safe options."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_pytest_command
+          expected:
+            behavior: "The helper returns a `(prefix, targets, options)` tuple matching the legacy normalization contract."
+        - kind: function
+          name: _pytest_behavior_options
+          source_scenario: "Pytest batch grouping compares behavior-affecting options while allowing verbosity-only differences."
+          actions:
+            - type: api_call
+              subject:
+                export: _pytest_behavior_options
+          expected:
+            behavior: "The helper removes only verbosity flags from the option tuple."
+        - kind: function
+          name: _has_non_combinable_pytest_options
+          source_scenario: "Pytest batching and dedupe detect fail-fast or stateful options."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_non_combinable_pytest_options
+          expected:
+            behavior: "The helper flags -x, --lf, --ff, and --maxfail forms as non-combinable."
+        - kind: function
+          name: _looks_like_pytest_invocation
+          source_scenario: "Deduplication sees a pytest-shaped command that the narrow normalizer cannot batch."
+          actions:
+            - type: api_call
+              subject:
+                export: _looks_like_pytest_invocation
+          expected:
+            behavior: "The helper identifies direct pytest aliases and python -m pytest invocations without treating unrelated commands as pytest."
+    - path: tests/core/validation/test_pytest_command_normalization.py
+      artifacts:
+        - kind: test_function
+          name: test_normalize_pytest_command_accepts_direct_and_python_module_forms
+          source_scenario: "Direct pytest and uv-wrapped python -m pytest commands include explicit targets and safe options."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_pytest_command
+          expected:
+            behavior: "Normalization preserves the command prefix, target, and options exactly."
+        - kind: test_function
+          name: test_normalize_pytest_command_preserves_maxfail_value_option_pair
+          source_scenario: "A python3.x -m pytest command uses --maxfail with a following value."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_pytest_command
+          expected:
+            behavior: "Normalization keeps --maxfail and its value together in the options tuple."
+        - kind: test_function
+          name: test_normalize_pytest_command_rejects_unbatchable_shapes
+          source_scenario: "Commands are empty, missing targets, missing option values, using py.test, or using another test runner."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_pytest_command
+          expected:
+            behavior: "Normalization returns None so batching policy can fail closed."
+        - kind: test_function
+          name: test_pytest_behavior_options_drop_only_verbosity_flags
+          source_scenario: "A pytest option tuple mixes verbosity and behavior-affecting options."
+          actions:
+            - type: api_call
+              subject:
+                export: _pytest_behavior_options
+          expected:
+            behavior: "Only verbosity flags are removed."
+        - kind: test_function
+          name: test_non_combinable_pytest_options_include_stateful_or_fail_fast_flags
+          source_scenario: "A pytest option tuple contains fail-fast, last-failed, maxfail, or ordinary reporting options."
+          actions:
+            - type: api_call
+              subject:
+                export: _has_non_combinable_pytest_options
+          expected:
+            behavior: "Stateful and fail-fast options are non-combinable while ordinary reporting options remain combinable."
+        - kind: test_function
+          name: test_looks_like_pytest_invocation_accepts_unbatchable_pytest_aliases
+          source_scenario: "A command looks like pytest even when it is not batchable by the narrow normalizer."
+          actions:
+            - type: api_call
+              subject:
+                export: _looks_like_pytest_invocation
+          expected:
+            behavior: "The helper recognizes pytest aliases and python -m pytest, and rejects unrelated commands."
+        - kind: test_function
+          name: test_python_command_detection_preserves_uv_resolution_boundary
+          source_scenario: "Command resolution needs to know which executable names belong to the Python ecosystem."
+          actions:
+            - type: api_call
+              subject:
+                export: _is_python_command
+          expected:
+            behavior: "The helper preserves the current Python command classification."
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: _is_python_command
+          source_scenario: "Existing private callers still import Python command detection from `test_runner`."
+          actions:
+            - type: api_call
+              subject:
+                export: _is_python_command
+          expected:
+            behavior: "`test_runner` keeps a compatibility wrapper around the extracted helper."
+        - kind: function
+          name: _can_batch
+          source_scenario: "Batch eligibility still depends on normalized pytest command groups."
+          actions:
+            - type: api_call
+              subject:
+                export: _can_batch
+          expected:
+            behavior: "The function returns the same boolean result for equivalent, mixed, and non-pytest commands."
+        - kind: function
+          name: _batch_pytest
+          source_scenario: "Legacy callers batch compatible pytest commands through `test_runner`."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_pytest
+          expected:
+            behavior: "The function combines and deduplicates pytest targets while preserving the normalized prefix and options."
+  read:
+    - tests/core/test_test_runner.py
+    - manifests/fix-maid-test-uv-run.manifest.yaml
+    - manifests/batch-compatible-maid-test-command-groups.manifest.yaml
+    - manifests/fix-maid-test-redundant-command-pruning.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_pytest_command_normalization.py tests/core/test_test_runner.py
