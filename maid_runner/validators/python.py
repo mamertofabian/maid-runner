@@ -15,7 +15,10 @@ from maid_runner.core.module_paths import (
     resolve_reexport,
 )
 from maid_runner.core.types import ArtifactKind, ArgSpec
-from maid_runner.validators._python_behavioral_scope import _BehavioralClassScope
+from maid_runner.validators._python_behavioral_scope import (
+    _BehavioralClassScope,
+    _BehavioralFunctionScope,
+)
 from maid_runner.validators._python_implementation import (
     _ImplementationCollector as _MovedImplementationCollector,
     _ast_to_default_string as _python_ast_to_default_string,
@@ -1132,31 +1135,46 @@ class _BehavioralCollector(ast.NodeVisitor):
         self,
         node: ast.FunctionDef | ast.AsyncFunctionDef,
     ) -> None:
-        self._push_function_shadow_scope(node)
-        self._function_import_bound_scopes.append(
-            _function_import_bound_names(node, self._known_imported_names)
+        function_scope = _BehavioralFunctionScope(
+            shadowed_imports=_function_shadowed_imports(
+                node,
+                self._known_imported_names,
+            ),
+            import_bound_names=_function_import_bound_names(
+                node,
+                self._known_imported_names,
+            ),
+            module_alias_shadows=_function_module_alias_shadows(
+                node,
+                self._active_module_alias_names(),
+            ),
+            argument_names=_argument_names(node.args),
         )
-        self._local_import_scopes.append({})
-        self._local_module_import_scopes.append({})
-        self._local_module_alias_shadow_scopes.append(
-            _function_module_alias_shadows(node, self._active_module_alias_names())
+        function_scope.push_to(
+            local_import_scopes=self._local_import_scopes,
+            module_import_scopes=self._local_module_import_scopes,
+            module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+            local_value_scopes=self._local_value_scopes,
+            object_owner_scopes=self._object_owner_scopes,
+            argument_name_scopes=self._argument_name_scopes,
+            shadowed_import_scopes=self._shadowed_import_scopes,
+            function_import_bound_scopes=self._function_import_bound_scopes,
         )
-        self._local_value_scopes.append(set())
-        self._object_owner_scopes.append({})
-        self._argument_name_scopes.append(_argument_names(node.args))
         self._function_depth += 1
         try:
             self._visit_function_body(node)
         finally:
             self._function_depth -= 1
-            self._argument_name_scopes.pop()
-            self._object_owner_scopes.pop()
-            self._local_value_scopes.pop()
-            self._local_module_alias_shadow_scopes.pop()
-            self._local_module_import_scopes.pop()
-            self._local_import_scopes.pop()
-            self._function_import_bound_scopes.pop()
-            self._shadowed_import_scopes.pop()
+            function_scope.pop_from(
+                local_import_scopes=self._local_import_scopes,
+                module_import_scopes=self._local_module_import_scopes,
+                module_alias_shadow_scopes=self._local_module_alias_shadow_scopes,
+                local_value_scopes=self._local_value_scopes,
+                object_owner_scopes=self._object_owner_scopes,
+                argument_name_scopes=self._argument_name_scopes,
+                shadowed_import_scopes=self._shadowed_import_scopes,
+                function_import_bound_scopes=self._function_import_bound_scopes,
+            )
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         self._visit_runtime_definition_expressions(node)
@@ -1464,14 +1482,6 @@ class _BehavioralCollector(ast.NodeVisitor):
             root is not None
             and _looks_like_local_constructor_owner(root)
             and self._name_is_local_value(root)
-        )
-
-    def _push_function_shadow_scope(
-        self,
-        node: ast.FunctionDef | ast.AsyncFunctionDef,
-    ) -> None:
-        self._shadowed_import_scopes.append(
-            _function_shadowed_imports(node, self._known_imported_names)
         )
 
     def _name_is_shadowed_import(self, name: str) -> bool:
