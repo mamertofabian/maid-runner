@@ -14,7 +14,10 @@ from maid_runner.core.module_paths import (
     resolve_relative_import,
     resolve_reexport,
 )
-from maid_runner.core.types import ArtifactKind, ArgSpec
+from maid_runner.core.types import ArgSpec
+from maid_runner.validators._python_behavioral_references import (
+    _BehavioralReferenceRecorder,
+)
 from maid_runner.validators._python_behavioral_scope import (
     _BehavioralClassScope,
     _BehavioralExpressionScope,
@@ -182,6 +185,11 @@ class _BehavioralCollector(ast.NodeVisitor):
             ]
         ] = set()
         self._seen_test_funcs: set[str] = set()
+        self._reference_recorder = _BehavioralReferenceRecorder(
+            artifacts=self.artifacts,
+            seen=self._seen,
+            seen_test_funcs=self._seen_test_funcs,
+        )
         self._function_depth = 0
         self._class_stack: list[bool] = []
         self._class_scope_markers: list[_BehavioralClassScope] = []
@@ -1242,16 +1250,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         return len(self._class_stack) == 1 and self._class_stack[-1]
 
     def _add_test_function(self, name: str, line: int) -> None:
-        if name in self._seen_test_funcs:
-            return
-        self._seen_test_funcs.add(name)
-        self.artifacts.append(
-            FoundArtifact(
-                kind=ArtifactKind.TEST_FUNCTION,
-                name=name,
-                line=line,
-            )
-        )
+        self._reference_recorder.add_test_function(name, line)
 
     def _add_reference(
         self,
@@ -1262,19 +1261,12 @@ class _BehavioralCollector(ast.NodeVisitor):
         alias_of: Optional[str] = None,
         reference_context: Optional[str] = None,
     ) -> None:
-        key = (name, of, import_source, alias_of, reference_context)
-        if key in self._seen:
-            return
-        self._seen.add(key)
-        self.artifacts.append(
-            FoundArtifact(
-                kind=ArtifactKind.FUNCTION,  # Kind doesn't matter for behavioral
-                name=name,
-                of=of,
-                import_source=import_source,
-                alias_of=alias_of,
-                reference_context=reference_context,
-            )
+        self._reference_recorder.add_reference(
+            name,
+            of=of,
+            import_source=import_source,
+            alias_of=alias_of,
+            reference_context=reference_context,
         )
 
     def _add_bound_reference(

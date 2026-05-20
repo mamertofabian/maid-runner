@@ -1,0 +1,80 @@
+schema: "2"
+goal: "Extract Python behavioral reference recorder helper"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's reference/test-function recording
+  helper logic into a focused module.
+
+  This is the next Priority 5 slice from the professional refactor backlog:
+  after extracting import/scope tracking state objects, begin extracting
+  behavioral reference collector helpers. The new helper owns the append and
+  deduplication mechanics for behavioral reference artifacts and test-function
+  artifacts. The behavioral collector keeps identity resolution, import/source
+  lookup, AST traversal, and public artifact behavior unchanged.
+temptations:
+  - risk: "Do not move bound-name identity resolution in this slice."
+    instead: "Keep `_add_bound_reference`, import lookup, and shadow checks in `python.py`."
+  - risk: "Do not remove existing `_BehavioralCollector` fields or methods declared by older manifests."
+    instead: "Preserve `_seen`, `_seen_test_funcs`, `_add_reference`, and `_add_test_function` as delegating compatibility points."
+  - risk: "Do not change duplicate-reference keys or test-function deduplication semantics."
+    instead: "Move the existing key shape and append behavior unchanged."
+files:
+  create:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector records behavioral reference artifacts and pytest test-function artifacts while deduplicating repeated observations."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The helper appends the same FoundArtifact objects and uses the same duplicate keys as the legacy collector methods."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_deduplicates_references_and_test_functions
+          source_scenario: "The recorder sees duplicate test-function and behavioral reference observations."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits one test-function artifact per name and one behavioral reference artifact per legacy duplicate key."
+        - kind: test_function
+          name: test_python_behavioral_reference_deduplication_is_unchanged
+          source_scenario: "A Python test calls the same imported function twice."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still emits one test-function artifact and one call reference for the duplicate call observations."
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection records references and test functions."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifact deduplication, test-function recording, import identities, and reference contexts are unchanged."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_behavioral_module_alias_events.py
+    - manifests/038-26-extract-python-behavioral-module-alias-events.manifest.yaml
+    - manifests/consolidate-validation-and-validator-contracts.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py tests/validators/test_python_behavioral_module_alias_events.py
