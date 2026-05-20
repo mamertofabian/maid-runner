@@ -1,0 +1,145 @@
+schema: "2"
+goal: "Extract validate-command test target parsing"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - command-integrity
+  priority: high
+description: |
+  Extract generic validate-command test target parsing from
+  `maid_runner.core._validation_test_artifacts` into a focused private helper
+  module.
+
+  This is the second Priority 3 slice from the refactor backlog. The generic
+  parser handles command segments, cwd changes, runner target scanning,
+  selector filtering, path normalization, and target-to-file coverage. Django
+  dotted-label path resolution intentionally remains in
+  `_validation_test_artifacts.py` and is supplied to the new helper as a
+  callback for a later Django-specific slice.
+temptations:
+  - risk: "Do not change validate-command integrity semantics while moving target parsing."
+    instead: "Move current command target behavior and preserve compatibility wrappers in `_validation_test_artifacts.py`."
+  - risk: "Do not move Django dotted-label resolution in this slice."
+    instead: "Keep `_django_test_paths_from_validate_segment` and related label helpers in `_validation_test_artifacts.py`."
+  - risk: "Do not broaden or narrow which test paths, directories, node selectors, cd segments, or multi-command segments are accepted."
+    instead: "Preserve current target extraction behavior and validate against existing command-integrity tests."
+files:
+  create:
+    - path: maid_runner/core/_test_command_targets.py
+      artifacts:
+        - kind: function
+          name: test_paths_from_validate_command
+          source_scenario: "Manifest test discovery extracts test paths from validate commands, including cd-relative package-runner commands."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_validate_command
+          expected:
+            behavior: "The helper returns the same discovered validate-command test paths as before extraction."
+        - kind: function
+          name: test_paths_from_executing_validate_command
+          source_scenario: "Command integrity checks only count executing test-runner targets that cannot silently skip declared tests."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_executing_validate_command
+          expected:
+            behavior: "The helper preserves selector, non-executing-mode, multi-command, cd, and runner checks."
+        - kind: function
+          name: test_files_covered_by_validate_command
+          source_scenario: "Command integrity maps validate-command targets to the manifest's discovered test files."
+          actions:
+            - type: api_call
+              subject:
+                export: test_files_covered_by_validate_command
+          expected:
+            behavior: "The helper reports the same covered test files as before extraction."
+        - kind: function
+          name: command_segments
+          source_scenario: "Validate commands can contain shell separators that split command segments."
+          actions:
+            - type: api_call
+              subject:
+                export: command_segments
+          expected:
+            behavior: "The helper splits command segments exactly as before extraction."
+    - path: tests/core/validation/test_test_command_targets.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_command_targets_respect_cd_and_package_runner
+          source_scenario: "A validate command changes into a frontend package and invokes Vitest through pnpm."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_validate_command
+          expected:
+            behavior: "The target helper returns the cwd-adjusted test file path."
+        - kind: test_function
+          name: test_executing_targets_reject_pytest_node_selector_by_default
+          source_scenario: "A validate command targets a pytest node selector."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_executing_validate_command
+          expected:
+            behavior: "The target helper returns no executing target unless selectors are explicitly allowed."
+        - kind: test_function
+          name: test_command_target_coverage_maps_directory_target_to_file
+          source_scenario: "A validate command runs a containing test directory."
+          actions:
+            - type: api_call
+              subject:
+                export: test_files_covered_by_validate_command
+          expected:
+            behavior: "The coverage helper marks test files under that directory as covered."
+        - kind: test_function
+          name: test_validate_command_targets_use_django_resolver_callback
+          source_scenario: "A Django validate command needs dotted-label path resolution owned by the caller."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_validate_command
+          expected:
+            behavior: "The target helper appends paths returned by the caller-provided Django resolver."
+        - kind: test_function
+          name: test_command_segments_split_shell_separators
+          source_scenario: "A validate command contains shell separators."
+          actions:
+            - type: api_call
+              subject:
+                export: command_segments
+          expected:
+            behavior: "The segment helper preserves the existing split behavior."
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: _test_paths_from_validate_command
+          source_scenario: "Existing private imports from `_validation_test_artifacts` still find validate-command target discovery."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_paths_from_validate_command
+          expected:
+            behavior: "The compatibility wrapper returns the same discovered test paths as before extraction."
+        - kind: function
+          name: _test_paths_from_executing_validate_command
+          source_scenario: "Existing command-integrity code still finds executing-target extraction in `_validation_test_artifacts`."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_paths_from_executing_validate_command
+          expected:
+            behavior: "The compatibility wrapper returns the same executing test targets as before extraction."
+  read:
+    - maid_runner/core/_test_runner_invocation.py
+    - tests/core/test_validation_test_artifacts.py
+    - tests/cli/test_validate_cmd.py
+    - manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml
+    - manifests/fix-validation-test-discovery-and-ts-import-query.manifest.yaml
+    - manifests/fix-django-dotted-validate-test-targets.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_targets.py tests/core/test_validation_test_artifacts.py tests/cli/test_validate_cmd.py
