@@ -1,0 +1,75 @@
+schema: "2"
+goal: "Extract implementation validation orchestration into a helper module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - implementation
+  priority: high
+description: |
+  Extract `ValidationEngine.validate_implementation` orchestration into a
+  focused private helper module while preserving the public method and leaving
+  removed-artifact and implementation-test-coverage policies in place.
+
+  This is a production-code refactor backed by strict-mode, required-import,
+  implementation validation, and legacy validation characterization. The public
+  `ValidationEngine.validate_implementation` method must continue to coordinate
+  delete-file checks, per-file implementation validation, test_function
+  contract validation, removed-artifact validation, and implementation test
+  coverage without behavior changes.
+temptations:
+  - risk: "Do not change the public ValidationEngine.validate_implementation signature or return type."
+    instead: "Keep the method as a thin delegating wrapper."
+  - risk: "Do not move validate_removed_artifacts or _check_test_coverage policy in this slice."
+    instead: "Pass those existing methods to the helper as callbacks."
+  - risk: "Do not change TypeScript resolver wiring, stub checks, deleted-file errors, required imports, or implementation coverage behavior."
+    instead: "Move the current orchestration into the helper and validate with lean plus legacy implementation tests."
+  - risk: "Do not combine this with acceptance validation, removed-artifact refactors, or test file reorganization."
+    instead: "Only extract implementation validation orchestration."
+files:
+  create:
+    - path: maid_runner/core/_implementation_runner.py
+      artifacts:
+        - kind: function
+          name: _run_implementation_validation
+          source_scenario: "ValidationEngine.validate_implementation delegates implementation validation orchestration to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Deleted-file checks, per-file validation, test_function contracts, removed-artifact validation, and implementation coverage remain unchanged."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+          source_scenario: "ValidationEngine.validate_implementation remains the public implementation validation entry point after extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing implementation validation behavior."
+  read:
+    - tests/core/validation/test_required_imports.py
+    - tests/core/validation/test_strict_mode.py
+    - tests/core/test_validate.py
+    - tests/core/test_implementation_validation.py
+    - tests/integration/test_full_workflow.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/_test_function_contracts.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - manifests/snapshot-core-validate.manifest.yaml
+    - manifests/038-02-add-lean-required-import-characterization.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_required_imports.py tests/core/validation/test_strict_mode.py tests/core/test_validate.py tests/core/test_implementation_validation.py tests/integration/test_full_workflow.py

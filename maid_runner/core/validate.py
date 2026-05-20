@@ -8,7 +8,7 @@ from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core import _implementation_validation
-from maid_runner.core._implementation_validation import ImplementationFileValidator
+from maid_runner.core._implementation_runner import _run_implementation_validation
 from maid_runner.core._test_function_contracts import (
     merged_test_function_behavior_requirements,
     validate_test_function_behavior,
@@ -414,47 +414,17 @@ class ValidationEngine:
         *,
         check_stubs: bool = False,
     ) -> list[ValidationError]:
-        errors: list[ValidationError] = []
-        errors.extend(validate_manifest_paths(manifest, self._project_root))
-        if errors:
-            return errors
-
-        # Check delete files
-        for ds in manifest.files_delete:
-            full_path = self._project_root / ds.path
-            if full_path.exists():
-                errors.append(
-                    ValidationError(
-                        code=ErrorCode.FILE_SHOULD_BE_ABSENT,
-                        message=f"File '{ds.path}' should be absent but still exists",
-                        location=Location(file=ds.path),
-                    )
-                )
-
-        # Check file specs
-        _implementation_validation.resolve_ts_import = resolve_ts_import
-        _implementation_validation.resolve_ts_reexport = resolve_ts_reexport
-        file_validator = ImplementationFileValidator(
-            self._project_root,
-            self._registry,
+        return _run_implementation_validation(
+            manifest=manifest,
+            project_root=self._project_root,
+            registry=self._registry,
+            chain=chain,
             check_stubs=check_stubs,
+            validate_removed_artifacts=self.validate_removed_artifacts,
+            check_test_coverage=self._check_test_coverage,
+            resolve_ts_import_fn=resolve_ts_import,
+            resolve_ts_reexport_fn=resolve_ts_reexport,
         )
-        for fs in manifest.all_file_specs:
-            errors.extend(file_validator.validate_file_spec(fs, manifest, chain))
-
-        errors.extend(
-            validate_test_function_names(
-                manifest, self._project_root, self._registry, chain
-            )
-        )
-
-        errors.extend(self.validate_removed_artifacts(manifest))
-
-        # Test coverage: verify artifacts have tests
-        test_coverage_errors = self._check_test_coverage(manifest)
-        errors.extend(test_coverage_errors)
-
-        return errors
 
     def validate_removed_artifacts(self, manifest: Manifest) -> list[ValidationError]:
         """Verify that artifacts declared in `removed_artifacts` are absent from code.
