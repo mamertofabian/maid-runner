@@ -1,0 +1,79 @@
+schema: "2"
+goal: "Extract Python behavioral keyword reference recording"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's call-keyword reference recording
+  mechanics into the behavioral reference recorder helper.
+
+  This continues Priority 5 from the professional refactor backlog: extract
+  behavioral reference collector helpers after import/scope state objects. The
+  new recorder method owns the repeated mechanics for recording concrete
+  keyword argument names, preserving the legacy behavior that skips `**kwargs`.
+  The behavioral collector keeps callable identity resolution, AST traversal,
+  shadow handling, and import/source lookup unchanged.
+temptations:
+  - risk: "Do not move call target identity resolution out of `visit_Call` in this slice."
+    instead: "Only move keyword-name recording after the callable owner/source has already been resolved."
+  - risk: "Do not change `**kwargs` behavior."
+    instead: "Keep skipping keywords whose AST `arg` is None."
+  - risk: "Do not change keyword reference context, owner, or import_source semantics."
+    instead: "Delegate to the existing recorder `add_reference` with the same arguments."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector records concrete keyword argument names from call expressions."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits keyword references with the same context, owner, import_source, and duplicate behavior while skipping `**kwargs`."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Call
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits a call with keyword arguments."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for call targets and keyword argument names are unchanged."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_records_keyword_references
+          source_scenario: "The recorder sees concrete keyword arguments and a `**kwargs` expansion."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits keyword references only for concrete keyword names and preserves callable owner/source identity."
+        - kind: test_function
+          name: test_python_behavioral_keyword_reference_owner_is_unchanged
+          source_scenario: "A Python test calls an imported constructor with a keyword argument and a `**kwargs` expansion."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records the concrete keyword as owned by the imported callable and does not record a keyword artifact for `**kwargs`."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-27-extract-python-behavioral-reference-recorder.manifest.yaml
+    - manifests/fix-behavioral-keyword-arg-collection.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

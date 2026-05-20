@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
 from typing import Optional
 
@@ -59,3 +60,19 @@ class _BehavioralReferenceRecorder:
                 reference_context=reference_context,
             )
         )
+
+    def add_keyword_references(
+        self,
+        keywords: list[ast.keyword],
+        *,
+        import_source: Optional[str],
+        owner: Optional[str],
+    ) -> None:
+        for keyword in keywords:
+            if keyword.arg is not None:
+                self.add_reference(
+                    keyword.arg,
+                    import_source=import_source,
+                    of=owner,
+                    reference_context="keyword",
+                )

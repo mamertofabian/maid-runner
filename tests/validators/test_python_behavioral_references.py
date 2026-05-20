@@ -80,3 +80,56 @@ def test_reference_deduplication():
     assert len(test_functions) == 1
     assert len(call_references) == 1
     assert call_references[0].import_source == "pkg.alpha"
+
+
+def test_behavioral_reference_recorder_records_keyword_references():
+    import ast
+
+    artifacts = []
+    recorder = _BehavioralReferenceRecorder(
+        artifacts=artifacts,
+        seen=set(),
+        seen_test_funcs=set(),
+    )
+    call = ast.parse("Factory(alpha=1, **options, beta=2)").body[0].value
+
+    recorder.add_keyword_references(
+        call.keywords,
+        import_source="pkg.models",
+        owner="Factory",
+    )
+
+    keyword_references = [
+        artifact
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "keyword"
+    ]
+    assert [artifact.name for artifact in keyword_references] == ["alpha", "beta"]
+    assert {artifact.import_source for artifact in keyword_references} == {"pkg.models"}
+    assert {artifact.of for artifact in keyword_references} == {"Factory"}
+
+
+def test_python_behavioral_keyword_reference_owner_is_unchanged():
+    source = """\
+from pkg.models import Report
+
+def test_report_keyword_reference(options):
+    Report(captured=5, **options)
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    keyword_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "keyword"
+    ]
+    assert [
+        (artifact.name, artifact.import_source, artifact.of)
+        for artifact in keyword_references
+    ] == [("captured", "pkg.models", "Report")]

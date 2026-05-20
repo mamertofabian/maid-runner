@@ -671,14 +671,11 @@ class _BehavioralCollector(ast.NodeVisitor):
                     else "call"
                 )
                 self._add_reference(node.func.attr, reference_context=context)
-        for kw in node.keywords:
-            if kw.arg is not None:  # **kwargs has arg=None
-                self._add_reference(
-                    kw.arg,
-                    import_source=keyword_import_source,
-                    of=keyword_owner,
-                    reference_context="keyword",
-                )
+        self._reference_recorder.add_keyword_references(
+            node.keywords,
+            import_source=keyword_import_source,
+            owner=keyword_owner,
+        )
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:
