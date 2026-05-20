@@ -1,0 +1,179 @@
+schema: "2"
+goal: "Extract test command batching decisions"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - test-runner
+    - batching
+  priority: high
+description: |
+  Extract test command batching decisions from `maid_runner.core.test_runner`
+  into a focused helper module.
+
+  This is the third Priority 4 slice from the professional refactor backlog.
+  The helper owns batch eligibility, group-key selection, compatible command
+  construction, duplicate pruning, and pytest target coverage pruning. The
+  runner remains responsible for manifest loading, command execution, fail-fast
+  accounting, and MAID validate command caching.
+temptations:
+  - risk: "Do not change which pytest or Vitest commands are batched."
+    instead: "Move the existing batching decisions behind focused characterization tests."
+  - risk: "Do not move subprocess execution or cached `maid validate` execution in this slice."
+    instead: "Keep `run_command` and `_run_cached_maid_validate_command` in `test_runner.py`."
+  - risk: "Do not break older private callers declared by existing manifests."
+    instead: "Keep `test_runner._can_batch` and `test_runner._batch_pytest` compatibility wrappers."
+files:
+  create:
+    - path: maid_runner/core/_test_command_batching.py
+      artifacts:
+        - kind: function
+          name: _can_batch
+          source_scenario: "Batch eligibility checks compatible test commands without executing them."
+          actions:
+            - type: api_call
+              subject:
+                export: _can_batch
+          expected:
+            behavior: "The helper returns the same boolean result for empty, compatible, mixed, and non-combinable command groups."
+        - kind: function
+          name: _batch_pytest
+          source_scenario: "Legacy pytest batching combines compatible pytest commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_pytest
+          expected:
+            behavior: "The helper combines and deduplicates pytest targets while preserving the normalized prefix and options."
+        - kind: function
+          name: _batch_group_key
+          source_scenario: "Batch orchestration groups pytest and Vitest commands by runner and options."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_group_key
+          expected:
+            behavior: "The helper returns stable grouping keys and rejects non-batchable commands."
+        - kind: function
+          name: _batch_compatible_test_commands
+          source_scenario: "Batch orchestration constructs one command for a compatible command group."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "The helper preserves target order, removes duplicate targets, and keeps behavior-affecting options."
+        - kind: function
+          name: _dedupe_commands
+          source_scenario: "Multi-manifest test execution removes duplicate safe implementation commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _dedupe_commands
+          expected:
+            behavior: "The helper removes safe duplicates while preserving stateful pytest duplicate commands."
+        - kind: function
+          name: _prune_covered_pytest_commands
+          source_scenario: "Multi-manifest test execution removes pytest targets covered by more focused targets."
+          actions:
+            - type: api_call
+              subject:
+                export: _prune_covered_pytest_commands
+          expected:
+            behavior: "The helper keeps focused pytest targets, preserves command order for retained commands, and leaves non-pytest commands intact."
+    - path: tests/core/validation/test_test_command_batching.py
+      artifacts:
+        - kind: test_function
+          name: test_batch_group_key_normalizes_uv_pytest_runner_aliases_in_uv_project
+          source_scenario: "A uv-managed project uses both `uv run pytest` and `uv run python -m pytest`."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_group_key
+          expected:
+            behavior: "Both command forms produce the same pytest group key."
+        - kind: test_function
+          name: test_can_batch_rejects_empty_mixed_and_non_combinable_commands
+          source_scenario: "Command groups are empty, mixed with non-test commands, or use stateful pytest options."
+          actions:
+            - type: api_call
+              subject:
+                export: _can_batch
+          expected:
+            behavior: "The helper rejects those groups as non-batchable."
+        - kind: test_function
+          name: test_batch_compatible_test_commands_combines_pytest_verbosity_differences
+          source_scenario: "Compatible pytest commands differ only by verbosity flags."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "The helper combines targets into one pytest command and drops verbosity-only options."
+        - kind: test_function
+          name: test_batch_compatible_test_commands_combines_vitest_targets_with_same_options
+          source_scenario: "Compatible Vitest commands use the same runner prefix and options."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "The helper combines Vitest targets into one command while preserving options."
+        - kind: test_function
+          name: test_dedupe_commands_keeps_stateful_pytest_duplicates
+          source_scenario: "Duplicate implementation commands include safe pytest commands, stateful pytest commands, and safe non-pytest commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _dedupe_commands
+          expected:
+            behavior: "The helper deduplicates safe commands and preserves repeated stateful pytest commands."
+        - kind: test_function
+          name: test_prune_covered_pytest_commands_keeps_focused_targets_over_directory_target
+          source_scenario: "A broad pytest directory target and focused file target appear in the same command group."
+          actions:
+            - type: api_call
+              subject:
+                export: _prune_covered_pytest_commands
+          expected:
+            behavior: "The helper drops the broad covered target and keeps the focused target plus unrelated commands."
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: _can_batch
+          source_scenario: "Existing private callers still import batch eligibility from `test_runner`."
+          actions:
+            - type: api_call
+              subject:
+                export: _can_batch
+          expected:
+            behavior: "`test_runner` keeps a compatibility wrapper around the extracted helper."
+        - kind: function
+          name: _batch_pytest
+          source_scenario: "Existing private callers still import pytest command batching from `test_runner`."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_pytest
+          expected:
+            behavior: "`test_runner` keeps a compatibility wrapper around the extracted helper."
+        - kind: function
+          name: run_tests
+          source_scenario: "Multi-manifest test execution batches and prunes implementation validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The runner preserves batching, dedupe, pruning, fail-fast, and sequential fallback behavior."
+  read:
+    - tests/core/test_test_runner.py
+    - manifests/fix-maid-test-uv-run.manifest.yaml
+    - manifests/batch-compatible-maid-test-command-groups.manifest.yaml
+    - manifests/fix-maid-test-redundant-command-pruning.manifest.yaml
+    - manifests/038-17-extract-pytest-command-normalization.manifest.yaml
+    - manifests/038-18-extract-vitest-command-normalization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py
