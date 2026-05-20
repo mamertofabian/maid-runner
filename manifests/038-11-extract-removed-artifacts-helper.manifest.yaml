@@ -1,0 +1,88 @@
+schema: "2"
+goal: "Extract removed artifact validation into a helper module"
+type: refactor
+created: "2026-05-20"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - removed-artifacts
+  priority: high
+description: |
+  Extract `validate_removed_artifacts` implementation details into a focused
+  private helper module while preserving the existing public method on
+  `ValidationEngine`.
+
+  This is a production-code refactor backed by the removed-artifact
+  characterization tests and supersession audit coverage. The method remains in
+  `maid_runner.core.validate` because CLI audit code and existing tests call it
+  directly; only the fail-closed verification policy moves.
+temptations:
+  - risk: "Do not change the existing ValidationEngine.validate_removed_artifacts method name, signature, or return behavior."
+    instead: "Keep it as a thin wrapper over the helper."
+  - risk: "Do not change fail-closed behavior for missing files, path escapes, unsupported validators, unreadable files, parse errors, collector errors, ownerless method/attribute entries, or symbols still present."
+    instead: "Move the current removed-artifact policy into the helper and validate with removed-artifact and supersession tests."
+  - risk: "Do not combine this with supersession audit, manifest parsing, or implementation runner changes."
+    instead: "Only extract removed-artifact validation policy."
+  - risk: "Do not retire or move legacy removed-artifact tests in this slice."
+    instead: "Run tests/core/test_removed_artifacts.py beside related validation and audit tests."
+files:
+  create:
+    - path: maid_runner/core/_removed_artifacts.py
+      artifacts:
+        - kind: function
+          name: _validate_removed_artifacts
+          source_scenario: "ValidationEngine.validate_removed_artifacts delegates removed-artifact verification policy to a focused helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "E311 fail-closed behavior, messages, severity, locations, and suggestions remain unchanged."
+        - kind: function
+          name: _removed_artifact_merge_key
+          source_scenario: "Removed artifacts need stable merge keys for functions, methods, and attributes."
+          actions:
+            - type: api_call
+              subject:
+                export: _removed_artifact_merge_key
+          expected:
+            behavior: "Function merge keys use kind:name and owned methods/attributes use kind:Owner.name."
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_removed_artifacts
+          of: ValidationEngine
+          source_scenario: "Existing callers still address ValidationEngine.validate_removed_artifacts after extraction."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The method delegates to the helper and preserves existing removed-artifact validation behavior."
+        - kind: function
+          name: _removed_artifact_merge_key
+          source_scenario: "Existing private compatibility helper remains available from maid_runner.core.validate."
+          actions:
+            - type: api_call
+              subject:
+                export: _removed_artifact_merge_key
+          expected:
+            behavior: "The helper delegates to the moved merge-key implementation."
+  read:
+    - tests/core/test_removed_artifacts.py
+    - tests/core/test_supersession_audit.py
+    - tests/core/test_validate.py
+    - tests/cli/test_audit_cmd.py
+    - maid_runner/core/_implementation_runner.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - maid_runner/cli/commands/audit.py
+    - manifests/add-supersession-artifact-preservation.manifest.yaml
+    - manifests/030-03-reject-manifest-path-escapes.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_removed_artifacts.py tests/core/test_supersession_audit.py tests/core/test_validate.py tests/cli/test_audit_cmd.py
