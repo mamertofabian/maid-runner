@@ -174,3 +174,39 @@ class _BehavioralLazyModuleAliasScope:
     ) -> None:
         module_alias_shadow_scopes.pop()
         module_import_scopes.pop()
+
+
+@dataclass
+class _BehavioralModuleAliasEvents:
+    events: dict[str, list[tuple[tuple[int, int], Optional[str]]]] = field(
+        default_factory=dict
+    )
+
+    def clear(self) -> None:
+        self.events.clear()
+
+    def record(
+        self,
+        name: str,
+        source: Optional[str],
+        position: Optional[tuple[int, int]],
+    ) -> None:
+        if position is None:
+            return
+        self.events.setdefault(name, []).append((position, source))
+
+    def source_at(
+        self,
+        name: str,
+        position: tuple[int, int],
+    ) -> tuple[bool, Optional[str]]:
+        events = self.events.get(name, [])
+        if not events:
+            return False, None
+
+        source: Optional[str] = None
+        for event_position, event_source in sorted(events, key=lambda event: event[0]):
+            if event_position > position:
+                break
+            source = event_source
+        return True, source

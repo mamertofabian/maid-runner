@@ -1,0 +1,80 @@
+schema: "2"
+goal: "Extract Python behavioral module alias event state"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's source-ordered module alias event
+  history into the focused behavioral scope module.
+
+  This is the next Priority 5 slice from the professional refactor backlog. The
+  new state object owns the dynamic module alias event log used when resolving
+  top-level references against the alias state that existed at the reference's
+  source position. The behavioral collector keeps module binding policy,
+  traversal, dynamic alias detection, artifact recording, and identity semantics
+  unchanged.
+temptations:
+  - risk: "Do not extract all module binding maps in this slice."
+    instead: "Only replace the raw dynamic alias event dictionary with a named event-log state object."
+  - risk: "Do not change source-order lookup semantics for top-level reads."
+    instead: "Preserve sorted event lookup and the distinction between no events and an event whose source is None."
+  - risk: "Do not move dynamic import detection or module binding policy."
+    instead: "Leave `_literal_importlib_import_module_path`, `_bind_module_aliases`, and `_unbind_module_aliases` behavior in `python.py`."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_scope.py
+      artifacts:
+        - kind: class
+          name: _BehavioralModuleAliasEvents
+          source_scenario: "The Python behavioral collector tracks dynamic module alias bindings and unbindings by source position."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralModuleAliasEvents
+          expected:
+            behavior: "The state object records events, clears them between scans, and resolves the source active at a requested source position."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection resolves top-level module alias reads using source-ordered dynamic alias events."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for top-level dynamic alias reads and later alias rebindings are unchanged."
+  create:
+    - path: tests/validators/test_python_behavioral_module_alias_events.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_module_alias_events_record_source_ordered_lookup
+          source_scenario: "Dynamic module alias events are recorded out of order and queried at different source positions."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralModuleAliasEvents
+          expected:
+            behavior: "The event log resolves by source position, preserves unbind events as None, and reports when no event history exists."
+        - kind: test_function
+          name: test_python_behavioral_top_level_dynamic_alias_read_still_uses_source_order
+          source_scenario: "A top-level dynamic module alias is read before the same name is rebound to a different dynamic module."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records the read with the import_source that was active at the read position."
+  read:
+    - tests/validators/test_python_behavioral_lazy_module_alias_scope.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - manifests/038-25-extract-python-behavioral-lazy-module-alias-scope.manifest.yaml
+    - manifests/fix-python-importlib-dynamic-import-e200.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_module_alias_events.py tests/validators/test_python_behavioral_lazy_module_alias_scope.py tests/validators/test_python_identity.py tests/validators/test_python_parser_replacement_boundaries.py

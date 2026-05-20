@@ -20,6 +20,7 @@ from maid_runner.validators._python_behavioral_scope import (
     _BehavioralExpressionScope,
     _BehavioralFunctionScope,
     _BehavioralLazyModuleAliasScope,
+    _BehavioralModuleAliasEvents,
 )
 from maid_runner.validators._python_implementation import (
     _ImplementationCollector as _MovedImplementationCollector,
@@ -193,9 +194,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         # can resolve the leaf reference's import_source.
         self._module_imports: dict[str, str] = {}
         self._dynamic_module_aliases: set[str] = set()
-        self._dynamic_module_alias_events: dict[
-            str, list[tuple[tuple[int, int], Optional[str]]]
-        ] = {}
+        self._dynamic_module_alias_events = _BehavioralModuleAliasEvents()
         self._scanning_module_bindings = False
         self._imported_names: dict[str, tuple[Optional[str], Optional[str]]] = {}
         self._known_imported_names: set[str] = set()
@@ -1393,11 +1392,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         source: Optional[str],
         position: Optional[tuple[int, int]],
     ) -> None:
-        if position is None:
-            return
-        self._dynamic_module_alias_events.setdefault(name, []).append(
-            (position, source)
-        )
+        self._dynamic_module_alias_events.record(name, source, position)
 
     def _literal_importlib_import_module_path(
         self,
@@ -1526,16 +1521,13 @@ class _BehavioralCollector(ast.NodeVisitor):
         node: ast.AST,
     ) -> Optional[str]:
         node_position = _node_start_position(node)
-        events = self._dynamic_module_alias_events.get(name, [])
-        if self._function_depth == 0 and node_position is not None and events:
-            source: Optional[str] = None
-            for event_position, event_source in sorted(
-                events, key=lambda event: event[0]
-            ):
-                if event_position > node_position:
-                    break
-                source = event_source
-            return source
+        if self._function_depth == 0 and node_position is not None:
+            has_events, source = self._dynamic_module_alias_events.source_at(
+                name,
+                node_position,
+            )
+            if has_events:
+                return source
         return self._module_imports.get(name)
 
     def _name_is_function_import_bound(self, name: str) -> bool:
