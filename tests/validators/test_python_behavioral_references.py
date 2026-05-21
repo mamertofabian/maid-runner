@@ -389,3 +389,98 @@ def test_attribute_reference_recording():
     assert len(migration_references) == 1
     assert migration_references[0].import_source == "pkg.migrations.0023_split"
     assert len(local_references) == 1
+
+
+def test_behavioral_reference_recorder_records_call_attribute_reference_precedence():
+    artifacts = []
+    recorder = _BehavioralReferenceRecorder(
+        artifacts=artifacts,
+        seen=set(),
+        seen_test_funcs=set(),
+    )
+
+    resolved_keyword_identity = recorder.add_call_attribute_reference(
+        "Migration",
+        resolved_attribute=("Migration", "pkg.migrations.0023_split"),
+        root_is_local_context=False,
+    )
+    local_keyword_identity = recorder.add_call_attribute_reference(
+        "run",
+        resolved_attribute=None,
+        root_is_local_context=True,
+    )
+    call_keyword_identity = recorder.add_call_attribute_reference(
+        "build",
+        resolved_attribute=None,
+        root_is_local_context=False,
+    )
+
+    references = [
+        artifact
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context in {"call", "local"}
+    ]
+    assert resolved_keyword_identity == ("pkg.migrations.0023_split", "Migration")
+    assert local_keyword_identity is None
+    assert call_keyword_identity is None
+    assert [
+        (
+            artifact.name,
+            artifact.import_source,
+            artifact.reference_context,
+        )
+        for artifact in references
+    ] == [
+        ("Migration", "pkg.migrations.0023_split", "call"),
+        ("run", None, "local"),
+        ("build", None, "call"),
+    ]
+
+
+def test_python_behavioral_call_attribute_reference_recording_is_unchanged():
+    source = """\
+import importlib
+
+class Local:
+    def run(self):
+        return True
+
+def test_call_attribute_reference_recording():
+    module = importlib.import_module("pkg.migrations.0023_split")
+    local = Local()
+    assert module.Migration(option=1) and local.run()
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    migration_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "Migration"
+        and artifact.reference_context == "call"
+    ]
+    keyword_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "option"
+        and artifact.reference_context == "keyword"
+    ]
+    local_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "run"
+        and artifact.reference_context == "local"
+    ]
+    assert len(migration_references) == 1
+    assert migration_references[0].import_source == "pkg.migrations.0023_split"
+    assert [
+        (artifact.import_source, artifact.of) for artifact in keyword_references
+    ] == [("pkg.migrations.0023_split", "Migration")]
+    assert len(local_references) == 1

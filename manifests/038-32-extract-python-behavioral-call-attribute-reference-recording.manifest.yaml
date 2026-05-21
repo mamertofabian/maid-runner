@@ -1,0 +1,79 @@
+schema: "2"
+goal: "Extract Python behavioral call-attribute reference recording"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's call-target attribute reference
+  recording decision into the behavioral reference recorder helper.
+
+  This continues Priority 5 from the professional refactor backlog: extract
+  behavioral reference collector helpers after import/scope state objects. The
+  collector still computes callable attribute-chain identity and root
+  shadow/local-value facts. The recorder owns only the final decision of which
+  reference artifact to record for an attribute used as a call target, and
+  returns keyword owner/source identity when the call target is resolved.
+temptations:
+  - risk: "Do not move callable attribute-chain resolution in this slice."
+    instead: "Keep `_resolve_attribute_chain` in `python.py`."
+  - risk: "Do not change keyword reference owner/source propagation for resolved attribute call targets."
+    instead: "Return the same `(import_source, owner)` identity from the recorder when a resolved call attribute is recorded."
+  - risk: "Do not change call-target local-vs-call context semantics."
+    instead: "Preserve the existing branch: resolved attributes record `call`; local roots record `local`; otherwise record `call`."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector has resolved facts for an attribute used as a call target and needs to record the corresponding reference artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder preserves legacy call-attribute reference context and returns keyword identity for resolved imported attributes."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Call
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection records an attribute used as a call target."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for imported-module call attributes, local-object call attributes, and call keyword owner/source are unchanged."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_records_call_attribute_reference_precedence
+          source_scenario: "The recorder sees call-attribute facts representing resolved imported attributes, local roots, and normal call context."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits the same call reference selected by legacy precedence and returns keyword identity for resolved imported attributes."
+        - kind: test_function
+          name: test_python_behavioral_call_attribute_reference_recording_is_unchanged
+          source_scenario: "A Python test calls an imported module attribute and a local-object attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records imported module attribute calls with identity and local-object attribute calls as local references."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-31-extract-python-behavioral-attribute-reference-recording.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

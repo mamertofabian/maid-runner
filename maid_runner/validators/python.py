@@ -639,26 +639,16 @@ class _BehavioralCollector(ast.NodeVisitor):
                 keyword_import_source, keyword_owner = keyword_identity
             self._add_bound_reference(node.func.id, reference_context="call")
         elif isinstance(node.func, ast.Attribute):
-            resolved = self._resolve_attribute_chain(node.func)
-            if resolved is not None:
-                leaf, source = resolved
-                keyword_import_source = source
-                keyword_owner = leaf
-                self._add_reference(
-                    leaf,
-                    import_source=source,
-                    reference_context="call",
-                )
-            else:
-                context = (
-                    "local"
-                    if (
-                        self._attribute_root_is_shadowed(node.func)
-                        or self._attribute_root_is_local_value(node.func)
-                    )
-                    else "call"
-                )
-                self._add_reference(node.func.attr, reference_context=context)
+            keyword_identity = self._reference_recorder.add_call_attribute_reference(
+                node.func.attr,
+                resolved_attribute=self._resolve_attribute_chain(node.func),
+                root_is_local_context=(
+                    self._attribute_root_is_shadowed(node.func)
+                    or self._attribute_root_is_local_value(node.func)
+                ),
+            )
+            if keyword_identity is not None:
+                keyword_import_source, keyword_owner = keyword_identity
         self._reference_recorder.add_keyword_references(
             node.keywords,
             import_source=keyword_import_source,

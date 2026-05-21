@@ -168,3 +168,22 @@ class _BehavioralReferenceRecorder:
             return
         context = "local" if root_is_local_context else "access"
         self.add_reference(name, reference_context=context)
+
+    def add_call_attribute_reference(
+        self,
+        name: str,
+        *,
+        resolved_attribute: Optional[_ResolvedAttribute],
+        root_is_local_context: bool,
+    ) -> Optional[tuple[Optional[str], str]]:
+        if resolved_attribute is not None:
+            leaf, source = resolved_attribute
+            self.add_reference(
+                leaf,
+                import_source=source,
+                reference_context="call",
+            )
+            return source, leaf
+        context = "local" if root_is_local_context else "call"
+        self.add_reference(name, reference_context=context)
+        return None
