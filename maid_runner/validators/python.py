@@ -1099,6 +1099,12 @@ class _BehavioralCollector(ast.NodeVisitor):
             self._restore_hidden_class_scopes(hidden_class_scopes)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._visit_function_definition(node)
+
+    def _visit_function_definition(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
         self._visit_runtime_definition_expressions(node)
         self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
@@ -1165,15 +1171,7 @@ class _BehavioralCollector(ast.NodeVisitor):
             )
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        self._visit_runtime_definition_expressions(node)
-        self._unbind_module_aliases({node.name})
-        self._local_value_scopes[-1].add(node.name)
-        if self._is_pytest_discoverable_test_function(node.name):
-            self._reference_recorder.add_test_function_reference(
-                node.name,
-                node.lineno,
-            )
-        self._visit_function_body_without_class_scopes(node)
+        self._visit_function_definition(node)
 
     def _visit_runtime_definition_expressions(
         self,

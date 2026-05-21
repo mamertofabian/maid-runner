@@ -146,6 +146,74 @@ async def test_async_reference_recording():
     ]
 
 
+def test_python_behavioral_function_definition_flow_is_unchanged():
+    source = """\
+from pkg.decorators import async_marker, sync_marker
+from pkg.defaults import async_default, sync_default
+
+@sync_marker(option=sync_default)
+def test_sync_definition_flow(arg=sync_default, *, kw=sync_default):
+    assert sync_default
+
+@async_marker(option=async_default)
+async def test_async_definition_flow(arg=async_default, *, kw=async_default):
+    return async_default
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    test_functions = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.TEST_FUNCTION
+    ]
+    marker_calls = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "call"
+        and artifact.name in {"async_marker", "sync_marker"}
+    ]
+    default_accesses = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "access"
+        and artifact.name in {"async_default", "sync_default"}
+    ]
+    keyword_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "keyword"
+        and artifact.name == "option"
+    ]
+
+    assert [artifact.name for artifact in test_functions] == [
+        "test_sync_definition_flow",
+        "test_async_definition_flow",
+    ]
+    assert [(artifact.name, artifact.import_source) for artifact in marker_calls] == [
+        ("sync_marker", "pkg.decorators"),
+        ("async_marker", "pkg.decorators"),
+    ]
+    assert [
+        (artifact.name, artifact.import_source) for artifact in default_accesses
+    ] == [
+        ("sync_default", "pkg.defaults"),
+        ("async_default", "pkg.defaults"),
+    ]
+    assert [
+        (artifact.import_source, artifact.of) for artifact in keyword_references
+    ] == [
+        ("pkg.decorators", "sync_marker"),
+        ("pkg.decorators", "async_marker"),
+    ]
+
+
 def test_behavioral_reference_recorder_records_keyword_references():
     import ast
 

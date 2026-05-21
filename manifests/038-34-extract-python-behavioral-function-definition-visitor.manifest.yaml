@@ -1,0 +1,79 @@
+schema: "2"
+goal: "Extract Python behavioral function definition visitor flow"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the duplicated Python behavioral collector flow shared by sync and
+  async function definitions into one internal visitor helper.
+
+  This continues Priority 5 from the professional refactor backlog. The
+  previous slice moved paired test-function artifact recording into the
+  behavioral reference recorder. This slice keeps pytest discoverability,
+  runtime definition expression traversal, scope setup, local-value binding,
+  and function body traversal behavior in `python.py`, but removes the duplicated
+  orchestration between `visit_FunctionDef` and `visit_AsyncFunctionDef`.
+temptations:
+  - risk: "Do not change pytest discoverability rules."
+    instead: "Keep `_is_pytest_discoverable_test_function` unchanged and call it from the extracted helper."
+  - risk: "Do not move function scope or import-shadow identity behavior."
+    instead: "Keep `_visit_function_body_without_class_scopes`, `_visit_function_body_scope`, and identity helpers unchanged."
+  - risk: "Do not change decorator, default, keyword-default, or body traversal ordering."
+    instead: "Extract the existing statement sequence exactly and delegate both sync and async visitors to it."
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_FunctionDef
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits a sync function definition."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Sync function definition traversal, runtime expression references, test-function recording, and function body scope behavior are unchanged."
+        - kind: method
+          name: visit_AsyncFunctionDef
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits an async function definition."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Async function definition traversal, runtime expression references, test-function recording, and function body scope behavior are unchanged."
+        - kind: method
+          name: _visit_function_definition
+          of: _BehavioralCollector
+          source_scenario: "The behavioral collector handles the common function-definition visitor flow for sync and async nodes."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The helper preserves the existing ordered flow shared by sync and async function definitions."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_python_behavioral_function_definition_flow_is_unchanged
+          source_scenario: "A Python file defines sync and async pytest functions with decorators, defaults, keyword defaults, and body references."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral collection still records discoverable tests and references from function definition runtime expressions and bodies."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-33-extract-python-behavioral-test-function-reference-recording.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py
