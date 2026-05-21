@@ -42,6 +42,10 @@ class _BehavioralReferenceRecorder:
             )
         )
 
+    def add_test_function_reference(self, name: str, line: int) -> None:
+        self.add_test_function(name, line)
+        self.add_reference(name, reference_context="access")
+
     def add_reference(
         self,
         name: str,

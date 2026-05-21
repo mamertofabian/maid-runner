@@ -1103,8 +1103,10 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
-            self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name, reference_context="access")
+            self._reference_recorder.add_test_function_reference(
+                node.name,
+                node.lineno,
+            )
         self._visit_function_body_without_class_scopes(node)
 
     def _visit_function_body_without_class_scopes(
@@ -1167,8 +1169,10 @@ class _BehavioralCollector(ast.NodeVisitor):
         self._unbind_module_aliases({node.name})
         self._local_value_scopes[-1].add(node.name)
         if self._is_pytest_discoverable_test_function(node.name):
-            self._add_test_function(node.name, node.lineno)
-            self._add_reference(node.name, reference_context="access")
+            self._reference_recorder.add_test_function_reference(
+                node.name,
+                node.lineno,
+            )
         self._visit_function_body_without_class_scopes(node)
 
     def _visit_runtime_definition_expressions(

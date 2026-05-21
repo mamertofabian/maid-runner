@@ -1,0 +1,88 @@
+schema: "2"
+goal: "Extract Python behavioral test function reference recording"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's discoverable test-function reference
+  recording into the behavioral reference recorder helper.
+
+  This continues Priority 5 from the professional refactor backlog: extract
+  behavioral reference collector helpers after import/scope state objects. The
+  collector still decides whether a function definition is pytest-discoverable.
+  The recorder owns only the paired artifact recording: a TEST_FUNCTION artifact
+  and the matching access reference for the discoverable test function name.
+temptations:
+  - risk: "Do not move pytest discoverability logic in this slice."
+    instead: "Keep `_is_pytest_discoverable_test_function` and class/function-depth checks in `python.py`."
+  - risk: "Do not change sync vs async test function handling."
+    instead: "Delegate the same paired recording from both `visit_FunctionDef` and `visit_AsyncFunctionDef`."
+  - risk: "Do not change duplicate suppression semantics."
+    instead: "Use the existing recorder `add_test_function` and `add_reference` behavior."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector has identified a pytest-discoverable test function and needs to record the paired behavioral artifacts."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits one TEST_FUNCTION artifact and the matching access reference without changing deduplication semantics."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_FunctionDef
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits a discoverable sync test function."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Discoverable sync test functions still record both the test function artifact and matching access reference."
+        - kind: method
+          name: visit_AsyncFunctionDef
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits a discoverable async test function."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Discoverable async test functions still record both the test function artifact and matching access reference."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_records_discoverable_test_function_reference
+          source_scenario: "The recorder sees a discoverable test function name and source line."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits the paired TEST_FUNCTION and access reference artifacts."
+        - kind: test_function
+          name: test_python_behavioral_test_function_reference_recording_is_unchanged
+          source_scenario: "A Python file defines sync, async, nested, and helper functions."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Only discoverable test functions record TEST_FUNCTION artifacts and matching access references."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-32-extract-python-behavioral-call-attribute-reference-recording.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

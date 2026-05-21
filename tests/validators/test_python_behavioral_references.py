@@ -82,6 +82,70 @@ def test_reference_deduplication():
     assert call_references[0].import_source == "pkg.alpha"
 
 
+def test_behavioral_reference_recorder_records_discoverable_test_function_reference():
+    artifacts = []
+    recorder = _BehavioralReferenceRecorder(
+        artifacts=artifacts,
+        seen=set(),
+        seen_test_funcs=set(),
+    )
+
+    recorder.add_test_function_reference("test_example", 12)
+    recorder.add_test_function_reference("test_example", 18)
+
+    assert [
+        (artifact.name, artifact.line)
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.TEST_FUNCTION
+    ] == [("test_example", 12)]
+    assert [
+        (artifact.name, artifact.reference_context)
+        for artifact in artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+    ] == [("test_example", "access")]
+
+
+def test_python_behavioral_test_function_reference_recording_is_unchanged():
+    source = """\
+def helper():
+    return True
+
+def test_sync_reference_recording():
+    def test_nested_reference_recording():
+        return helper()
+    return test_nested_reference_recording()
+
+async def test_async_reference_recording():
+    return helper()
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    test_functions = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.TEST_FUNCTION
+    ]
+    access_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.reference_context == "access"
+        and artifact.name.startswith("test_")
+    ]
+    assert [(artifact.name, artifact.line) for artifact in test_functions] == [
+        ("test_sync_reference_recording", 4),
+        ("test_async_reference_recording", 9),
+    ]
+    assert [artifact.name for artifact in access_references] == [
+        "test_sync_reference_recording",
+        "test_async_reference_recording",
+    ]
+
+
 def test_behavioral_reference_recorder_records_keyword_references():
     import ast
 
