@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-05-21
+
+### Changed
+- **Lean validation refactor** — Extracted focused helpers from core validation, test-runner orchestration, command integrity, command batching, and Python behavioral reference collection while preserving existing CLI behavior.
+
+### Added
+- **Validation characterization coverage** — Added coverage for behavioral validation, required imports, file-scope gates, strict mode, validate-all chaining, command normalization, command execution, and Python behavioral scope/reference handling.
+
 ## [2.10.1] - 2026-05-20
 
 ### Changed
