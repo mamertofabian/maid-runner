@@ -1,0 +1,78 @@
+schema: "2"
+goal: "Extract Python behavioral attribute reference recording"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the Python behavioral collector's attribute-reference recording
+  decision table into the behavioral reference recorder helper.
+
+  This continues Priority 5 from the professional refactor backlog: extract
+  behavioral reference collector helpers after import/scope state objects. The
+  collector still computes object-owner identity, attribute-chain identity, and
+  root shadow/local-value facts. The recorder owns only the final decision of
+  which reference artifact to record for a loaded attribute.
+temptations:
+  - risk: "Do not move attribute-chain or object-owner resolution in this slice."
+    instead: "Keep `_resolve_attribute_chain` and `_object_owner_identity_for_member_access` in `python.py`."
+  - risk: "Do not change attribute reference precedence."
+    instead: "Preserve the existing order: object owner identity, resolved attribute chain, local context, access context."
+  - risk: "Do not change reference context, owner, or import_source semantics."
+    instead: "Delegate to the existing recorder `add_reference` with the same arguments."
+files:
+  edit:
+    - path: maid_runner/validators/_python_behavioral_references.py
+      artifacts:
+        - kind: class
+          name: _BehavioralReferenceRecorder
+          source_scenario: "The Python behavioral collector has already resolved all loaded-attribute facts and needs to record the corresponding reference artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder preserves the legacy loaded-attribute precedence and emits the same reference artifacts."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Attribute
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection records a loaded attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral artifacts for loaded attributes, object owners, resolved attribute chains, and local roots are unchanged."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_reference_recorder_records_attribute_reference_precedence
+          source_scenario: "The recorder sees loaded-attribute facts representing object owner identity, resolved attribute chains, local roots, and normal access."
+          actions:
+            - type: api_call
+              subject:
+                export: _BehavioralReferenceRecorder
+          expected:
+            behavior: "The recorder emits the same attribute reference selected by the legacy precedence."
+        - kind: test_function
+          name: test_python_behavioral_attribute_reference_recording_is_unchanged
+          source_scenario: "A Python test accesses an imported module attribute and a local-object attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collector still records imported module attributes with identity and local-object attributes as local references."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-30-extract-python-behavioral-bound-reference-recording.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

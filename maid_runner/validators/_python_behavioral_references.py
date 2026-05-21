@@ -20,6 +20,8 @@ _ReferenceKey = tuple[
 _ImportFromEntry = tuple[str, Optional[str], Optional[str]]
 _ImportEntry = tuple[str, str, Optional[str], str]
 _ImportIdentity = tuple[Optional[str], Optional[str]]
+_ObjectOwnerIdentity = tuple[Optional[str], str]
+_ResolvedAttribute = tuple[str, str]
 
 
 @dataclass
@@ -138,3 +140,31 @@ class _BehavioralReferenceRecorder:
             alias_of=alias_of,
             reference_context=reference_context,
         )
+
+    def add_attribute_reference(
+        self,
+        name: str,
+        *,
+        object_owner_identity: Optional[_ObjectOwnerIdentity],
+        resolved_attribute: Optional[_ResolvedAttribute],
+        root_is_local_context: bool,
+    ) -> None:
+        if object_owner_identity is not None:
+            source, owner = object_owner_identity
+            self.add_reference(
+                name,
+                import_source=source,
+                of=owner,
+                reference_context="access",
+            )
+            return
+        if resolved_attribute is not None:
+            leaf, source = resolved_attribute
+            self.add_reference(
+                leaf,
+                import_source=source,
+                reference_context="access",
+            )
+            return
+        context = "local" if root_is_local_context else "access"
+        self.add_reference(name, reference_context=context)

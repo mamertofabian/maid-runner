@@ -675,32 +675,15 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_Attribute(self, node: ast.Attribute) -> None:
         if not isinstance(node.ctx, ast.Load):
             return None
-        owner_identity = self._object_owner_identity_for_member_access(node)
-        if owner_identity is not None:
-            source, owner = owner_identity
-            self._add_reference(
-                node.attr,
-                import_source=source,
-                of=owner,
-                reference_context="access",
-            )
-        elif (resolved := self._resolve_attribute_chain(node)) is not None:
-            leaf, source = resolved
-            self._add_reference(
-                leaf,
-                import_source=source,
-                reference_context="access",
-            )
-        else:
-            context = (
-                "local"
-                if (
-                    self._attribute_root_is_shadowed(node)
-                    or self._attribute_root_is_local_value(node)
-                )
-                else "access"
-            )
-            self._add_reference(node.attr, reference_context=context)
+        self._reference_recorder.add_attribute_reference(
+            node.attr,
+            object_owner_identity=self._object_owner_identity_for_member_access(node),
+            resolved_attribute=self._resolve_attribute_chain(node),
+            root_is_local_context=(
+                self._attribute_root_is_shadowed(node)
+                or self._attribute_root_is_local_value(node)
+            ),
+        )
         self.generic_visit(node)
 
     def visit_arg(self, node: ast.arg) -> None:
