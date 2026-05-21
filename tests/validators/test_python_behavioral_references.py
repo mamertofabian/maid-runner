@@ -214,6 +214,70 @@ async def test_async_definition_flow(arg=async_default, *, kw=async_default):
     ]
 
 
+def test_python_behavioral_assignment_value_effects_are_unchanged():
+    source = """\
+import importlib
+from pkg.models import Report
+
+class Local:
+    value = object()
+
+def test_assignment_value_effects():
+    module = importlib.import_module("pkg.migrations.0023_split")
+    annotated: object = importlib.import_module("pkg.migrations.0024_other")
+    report = Report()
+    annotated_report: object = Report()
+    annotated_local: object = Local()
+    assert (
+        module.Migration
+        and annotated.Migration
+        and report.field
+        and annotated_report.annotated_field
+        and annotated_local.value
+    )
+"""
+
+    result = PythonValidator().collect_behavioral_artifacts(
+        source,
+        "tests/test_references.py",
+    )
+
+    migration_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "Migration"
+        and artifact.reference_context == "access"
+    ]
+    owner_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name in {"annotated_field", "field"}
+        and artifact.reference_context == "access"
+    ]
+    local_value_references = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.kind == ArtifactKind.FUNCTION
+        and artifact.name == "value"
+        and artifact.reference_context == "local"
+    ]
+
+    assert [artifact.import_source for artifact in migration_references] == [
+        "pkg.migrations.0023_split",
+        "pkg.migrations.0024_other",
+    ]
+    assert [
+        (artifact.name, artifact.import_source, artifact.of)
+        for artifact in owner_references
+    ] == [
+        ("field", "pkg.models", "Report"),
+        ("annotated_field", "pkg.models", "Report"),
+    ]
+    assert len(local_value_references) == 1
+
+
 def test_behavioral_reference_recorder_records_keyword_references():
     import ast
 

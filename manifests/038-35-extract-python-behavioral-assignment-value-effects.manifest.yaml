@@ -1,0 +1,78 @@
+schema: "2"
+goal: "Extract Python behavioral assignment value effects"
+type: refactor
+created: "2026-05-21"
+metadata:
+  tags:
+    - safe-refactor
+    - python
+    - behavioral-collector
+  priority: high
+description: |
+  Extract the shared Python behavioral collector effects applied after visiting
+  assignment values.
+
+  This continues Priority 5 from the professional refactor backlog. Regular
+  assignments and annotated assignments both update dynamic module aliases,
+  local-value bindings, and object-owner bindings after visiting the assigned
+  value. This slice extracts that duplicated post-value flow into one helper
+  while leaving target binding collection and traversal order in each visitor.
+temptations:
+  - risk: "Do not change assignment traversal order."
+    instead: "Keep regular assignments visiting only the value before effects, and annotated assignments visiting the target before the optional value."
+  - risk: "Do not change dynamic import-module alias identity behavior."
+    instead: "Move the existing module alias bind/unbind branch unchanged into the helper."
+  - risk: "Do not change object-owner or local-value semantics."
+    instead: "Keep `_assignment_value_is_local_value` and `_record_assignment_owner_bindings` unchanged and call them from the helper."
+files:
+  edit:
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: visit_Assign
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits a regular assignment."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Regular assignment dynamic module aliases, local-value bindings, and object-owner bindings are unchanged."
+        - kind: method
+          name: visit_AnnAssign
+          of: _BehavioralCollector
+          source_scenario: "Python behavioral artifact collection visits an annotated assignment with a value."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Annotated assignment dynamic module aliases, local-value bindings, and object-owner bindings are unchanged."
+        - kind: method
+          name: _record_assignment_value_effects
+          of: _BehavioralCollector
+          source_scenario: "The behavioral collector has visited an assignment value and needs to update value-derived identity state."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The helper preserves the existing post-value assignment effects for module aliases, local values, and object owners."
+    - path: tests/validators/test_python_behavioral_references.py
+      artifacts:
+        - kind: test_function
+          name: test_python_behavioral_assignment_value_effects_are_unchanged
+          source_scenario: "A Python test uses regular and annotated assignments for dynamic modules and an imported constructor-owned object."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Behavioral collection still records dynamic module attribute identities and object-owner member references from assignment value effects."
+  read:
+    - tests/validators/test_python.py
+    - tests/validators/test_python_identity.py
+    - manifests/038-34-extract-python-behavioral-function-definition-visitor.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_behavioral_references.py tests/validators/test_python.py tests/validators/test_python_identity.py

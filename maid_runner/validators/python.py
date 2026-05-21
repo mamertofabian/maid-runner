@@ -684,17 +684,12 @@ class _BehavioralCollector(ast.NodeVisitor):
         for target in node.targets:
             _collect_target_bindings(target, names)
         self.visit(node.value)
-        if self._local_module_import_scopes:
-            dynamic_module = self._literal_importlib_import_module_path(node.value)
-            if dynamic_module is None:
-                self._unbind_module_aliases(names)
-            else:
-                direct_names = _direct_name_targets(node.targets)
-                self._unbind_module_aliases(names - direct_names)
-                self._bind_module_aliases(direct_names, dynamic_module)
-        if self._assignment_value_is_local_value(node.value):
-            self._local_value_scopes[-1].update(names)
-        self._record_assignment_owner_bindings(node.targets, node.value)
+        self._record_assignment_value_effects(
+            targets=node.targets,
+            value=node.value,
+            names=names,
+            direct_names=_direct_name_targets(node.targets),
+        )
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         names: set[str] = set()
@@ -703,19 +698,32 @@ class _BehavioralCollector(ast.NodeVisitor):
         if node.value is None:
             return
         self.visit(node.value)
+        direct_names = {node.target.id} if isinstance(node.target, ast.Name) else set()
+        self._record_assignment_value_effects(
+            targets=[node.target],
+            value=node.value,
+            names=names,
+            direct_names=direct_names,
+        )
+
+    def _record_assignment_value_effects(
+        self,
+        *,
+        targets: list[ast.expr],
+        value: ast.expr,
+        names: set[str],
+        direct_names: set[str],
+    ) -> None:
         if self._local_module_import_scopes:
-            dynamic_module = self._literal_importlib_import_module_path(node.value)
+            dynamic_module = self._literal_importlib_import_module_path(value)
             if dynamic_module is None:
                 self._unbind_module_aliases(names)
             else:
-                direct_names = (
-                    {node.target.id} if isinstance(node.target, ast.Name) else set()
-                )
                 self._unbind_module_aliases(names - direct_names)
                 self._bind_module_aliases(direct_names, dynamic_module)
-        if self._assignment_value_is_local_value(node.value):
+        if self._assignment_value_is_local_value(value):
             self._local_value_scopes[-1].update(names)
-        self._record_assignment_owner_bindings([node.target], node.value)
+        self._record_assignment_owner_bindings(targets, value)
 
     def visit_AugAssign(self, node: ast.AugAssign) -> None:
         names: set[str] = set()
