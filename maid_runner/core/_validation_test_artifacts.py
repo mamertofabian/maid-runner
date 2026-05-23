@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._command_integrity_test_discovery import (
     find_command_integrity_test_files,
     is_command_integrity_test_file,
@@ -417,7 +418,9 @@ def collect_test_artifacts(
         if validator is None:
             continue
 
-        result = validator.collect_behavioral_artifacts(source, tf_path)
+        result = artifact_cache.collect_cached_behavioral_artifacts(
+            validator, source, tf_path
+        )
         if result.errors:
             errors.extend(
                 collection_errors_to_validation_errors(result.errors, tf_path)

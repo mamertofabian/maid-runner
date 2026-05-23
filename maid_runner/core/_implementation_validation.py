@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._js_ts_imports import (
     collect_import_module_bindings,
@@ -86,7 +87,9 @@ class ImplementationFileValidator:
                 )
             ]
 
-        collection = validator.collect_implementation_artifacts(source, fs.path)
+        collection = artifact_cache.collect_cached_implementation_artifacts(
+            validator, source, fs.path
+        )
         if collection.errors:
             return collection_errors_to_validation_errors(collection.errors, fs.path)
 

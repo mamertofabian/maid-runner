@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._validation_test_artifacts import (
     collection_errors_to_validation_errors,
 )
@@ -58,7 +59,9 @@ def validate_test_function_names(
         except UnsupportedLanguageError:
             continue
 
-        collection = validator.collect_behavioral_artifacts(source, path)
+        collection = artifact_cache.collect_cached_behavioral_artifacts(
+            validator, source, path
+        )
         if collection.errors:
             errors.extend(
                 collection_errors_to_validation_errors(collection.errors, path)
@@ -114,7 +117,7 @@ def validate_test_function_behavior(
         except UnsupportedLanguageError:
             continue
 
-        bodies = validator.get_test_function_bodies(source, path)
+        bodies = artifact_cache.get_cached_test_function_bodies(validator, source, path)
 
         for name, details in details_by_name.items():
             if details is None:

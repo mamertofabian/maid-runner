@@ -23,6 +23,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
+from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.types import ArtifactKind, RemovedArtifactSpec
 
@@ -239,8 +240,9 @@ class SupersessionAuditor:
         except OSError:
             return False
         try:
-            collection = self._registry.get(spec.file).collect_implementation_artifacts(
-                source, spec.file
+            validator = self._registry.get(spec.file)
+            collection = artifact_cache.collect_cached_implementation_artifacts(
+                validator, source, spec.file
             )
         except Exception:
             return False

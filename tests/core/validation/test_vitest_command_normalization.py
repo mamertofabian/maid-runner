@@ -48,8 +48,9 @@ def test_normalize_vitest_command_rejects_unbatchable_shapes():
     assert _normalize_vitest_command(()) is None
     assert _normalize_vitest_command(("vitest", "run", "--silent")) is None
     assert _normalize_vitest_command(("npx", "vitest", "tests/a.test.ts")) is None
+    assert _normalize_vitest_command(("pnpm", "vitest", "tests/a.test.ts")) is None
     assert (
-        _normalize_vitest_command(("pnpm", "vitest", "run", "tests/a.test.ts")) is None
+        _normalize_vitest_command(("pnpm", "exec", "vitest", "tests/a.test.ts")) is None
     )
     assert (
         _normalize_vitest_command(

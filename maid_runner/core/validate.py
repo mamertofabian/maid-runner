@@ -8,6 +8,7 @@ from typing import Optional, Union
 
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core import _implementation_validation
+from maid_runner.core._artifact_collection_cache import clear_artifact_collection_cache
 from maid_runner.core._implementation_runner import _run_implementation_validation
 from maid_runner.core._test_function_contracts import (
     merged_test_function_behavior_requirements,
@@ -36,7 +37,11 @@ from maid_runner.core._validation_test_artifacts import (
     get_validator_for_test,
 )
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.ts_module_paths import resolve_ts_import, resolve_ts_reexport
+from maid_runner.core.ts_module_paths import (
+    clear_ts_resolution_cache,
+    resolve_ts_import,
+    resolve_ts_reexport,
+)
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
@@ -76,6 +81,7 @@ class ValidationEngine:
     ):
         self._project_root = Path(project_root)
         self._registry = registry or ValidatorRegistry.with_builtin_validators()
+        self._validation_cache_depth = 0
 
     def validate(
         self,
@@ -90,8 +96,38 @@ class ValidationEngine:
         fail_on_warnings: bool = False,
         include_chain_diagnostics: bool = True,
     ) -> ValidationResult:
+        outermost = self._enter_validation_cache_scope()
         start = time.monotonic()
+        try:
+            return self._validate(
+                manifest,
+                mode=mode,
+                use_chain=use_chain,
+                chain=chain,
+                manifest_dir=manifest_dir,
+                check_stubs=check_stubs,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
+                include_chain_diagnostics=include_chain_diagnostics,
+                start=start,
+            )
+        finally:
+            self._exit_validation_cache_scope(outermost)
 
+    def _validate(
+        self,
+        manifest: Union[Manifest, str, Path],
+        *,
+        mode: ValidationMode,
+        use_chain: bool,
+        chain: Optional[ManifestChain],
+        manifest_dir: Union[str, Path],
+        check_stubs: bool,
+        check_assertions: bool,
+        fail_on_warnings: bool,
+        include_chain_diagnostics: bool,
+        start: float,
+    ) -> ValidationResult:
         # Load manifest if path
         if isinstance(manifest, (str, Path)):
             try:
@@ -199,19 +235,37 @@ class ValidationEngine:
         check_assertions: bool = False,
         fail_on_warnings: bool = False,
     ) -> BatchValidationResult:
-        return _run_validate_all(
-            project_root=self._project_root,
-            manifest_dir=manifest_dir,
-            mode=mode,
-            check_file_tracking=check_file_tracking,
-            allow_empty=allow_empty,
-            check_stubs=check_stubs,
-            check_assertions=check_assertions,
-            fail_on_warnings=fail_on_warnings,
-            validate_manifest=self.validate,
-            run_file_tracking=self.run_file_tracking,
-            chain_factory=ManifestChain,
-        )
+        outermost = self._enter_validation_cache_scope()
+        try:
+            return _run_validate_all(
+                project_root=self._project_root,
+                manifest_dir=manifest_dir,
+                mode=mode,
+                check_file_tracking=check_file_tracking,
+                allow_empty=allow_empty,
+                check_stubs=check_stubs,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
+                validate_manifest=self.validate,
+                run_file_tracking=self.run_file_tracking,
+                chain_factory=ManifestChain,
+            )
+        finally:
+            self._exit_validation_cache_scope(outermost)
+
+    def _enter_validation_cache_scope(self) -> bool:
+        outermost = self._validation_cache_depth == 0
+        if outermost:
+            clear_artifact_collection_cache()
+            clear_ts_resolution_cache()
+        self._validation_cache_depth += 1
+        return outermost
+
+    def _exit_validation_cache_scope(self, outermost: bool) -> None:
+        self._validation_cache_depth -= 1
+        if outermost:
+            clear_artifact_collection_cache()
+            clear_ts_resolution_cache()
 
     def validate_behavioral(
         self,

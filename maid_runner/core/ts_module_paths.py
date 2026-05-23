@@ -84,6 +84,9 @@ _NODE_BUILTIN_MODULES = frozenset(
     }
 )
 
+_TS_IMPORT_CACHE: dict[tuple[object, ...], str] = {}
+_TS_REEXPORT_CACHE: dict[tuple[object, ...], Optional[tuple[str, str]]] = {}
+
 
 def ts_file_to_module_path(
     file_path: Union[str, Path],
@@ -164,9 +167,21 @@ def resolve_ts_import(
     ``baseUrl``. Unmatched specifiers pass through unchanged.
     """
     root = Path(project_root)
+    cache_key = (
+        _root_cache_key(root),
+        specifier,
+        importer_module,
+        _project_config_signature(root),
+        _module_entry_signature(root, importer_module),
+    )
+    cached = _TS_IMPORT_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
 
     if specifier.startswith("./") or specifier.startswith("../"):
-        return resolve_relative_ts_import(specifier, importer_module)
+        resolved = resolve_relative_ts_import(specifier, importer_module)
+        _TS_IMPORT_CACHE[cache_key] = resolved
+        return resolved
 
     local_resolved = _resolve_ts_import_from_config(
         specifier,
@@ -174,17 +189,21 @@ def resolve_ts_import(
         allow_speculative_missing=not _module_exists(root, importer_module),
     )
     if local_resolved is not None:
+        _TS_IMPORT_CACHE[cache_key] = local_resolved
         return local_resolved
 
     if _is_node_builtin_specifier(specifier) or _is_installed_external_package(
         specifier, root
     ):
+        _TS_IMPORT_CACHE[cache_key] = specifier
         return specifier
 
     compiler_resolved = resolve_import_with_compiler(specifier, importer_module, root)
     if compiler_resolved is not None:
+        _TS_IMPORT_CACHE[cache_key] = compiler_resolved
         return compiler_resolved
 
+    _TS_IMPORT_CACHE[cache_key] = specifier
     return specifier
 
 
@@ -209,6 +228,15 @@ def resolve_ts_reexport(
     dependencies are unavailable, or ``name`` is not re-exported.
     """
     root = Path(project_root)
+    cache_key = (
+        _root_cache_key(root),
+        module,
+        name,
+        _project_config_signature(root),
+        _module_entry_signature(root, module),
+    )
+    if cache_key in _TS_REEXPORT_CACHE:
+        return _TS_REEXPORT_CACHE[cache_key]
 
     entry = _module_entry_file(root, module)
     local_resolved = None
@@ -218,16 +246,25 @@ def resolve_ts_reexport(
             module_file, name, root, seen=set()
         )
         if local_resolved is not _EXPORT_SCANNER_FALLBACK_REQUIRED:
+            _TS_REEXPORT_CACHE[cache_key] = local_resolved
             return local_resolved
 
     if _is_external_module_id(module, root):
+        _TS_REEXPORT_CACHE[cache_key] = None
         return None
 
     compiler_resolved = resolve_reexport_with_compiler(module, name, root)
     if compiler_resolved is not None:
+        _TS_REEXPORT_CACHE[cache_key] = compiler_resolved
         return compiler_resolved
 
+    _TS_REEXPORT_CACHE[cache_key] = None
     return None
+
+
+def clear_ts_resolution_cache() -> None:
+    _TS_IMPORT_CACHE.clear()
+    _TS_REEXPORT_CACHE.clear()
 
 
 def _is_node_builtin_specifier(specifier: str) -> bool:
@@ -274,6 +311,37 @@ def _is_external_module_id(module: str, project_root: Path) -> bool:
         return False
     first_segment = package_name.split("/", 1)[0]
     return not (project_root / first_segment).exists()
+
+
+def _root_cache_key(project_root: Path) -> str:
+    try:
+        return str(Path(project_root).resolve())
+    except OSError:
+        return str(project_root)
+
+
+def _project_config_signature(project_root: Path) -> tuple[tuple[str, int, int], ...]:
+    signatures: list[tuple[str, int, int]] = []
+    for name in ("tsconfig.json", "jsconfig.json", "package.json"):
+        path = project_root / name
+        signatures.append(_path_signature(path))
+    return tuple(signatures)
+
+
+def _module_entry_signature(project_root: Path, module: str) -> tuple[str, int, int]:
+    entry = _module_entry_file(project_root, module)
+    if entry is None:
+        return ("", -1, -1)
+    path, _ = entry
+    return _path_signature(path)
+
+
+def _path_signature(path: Path) -> tuple[str, int, int]:
+    try:
+        stat = path.stat()
+    except OSError:
+        return (path.as_posix(), -1, -1)
+    return (path.as_posix(), stat.st_mtime_ns, stat.st_size)
 
 
 def _existing_module_file(project_root: Path, module: str) -> Optional[Path]:

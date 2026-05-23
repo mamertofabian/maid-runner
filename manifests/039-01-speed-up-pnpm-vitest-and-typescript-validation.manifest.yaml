@@ -1,0 +1,596 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Speed up pnpm Vitest test runs and TypeScript-heavy MAID validation"
+type: fix
+created: "2026-05-23"
+metadata:
+  status: draft
+  tags:
+    - performance
+    - test-runner
+    - vitest
+    - typescript
+    - svelte
+    - caching
+  priority: high
+description: |
+  Close the performance gap reproduced in the Tower Recall repository.
+  `maid test` can batch direct `vitest run ...` and `npx vitest run ...`
+  commands, but Tower Recall declares validation commands as
+  `pnpm exec vitest run ...`. Those commands are currently treated as
+  non-Vitest commands, so MAID launches many separate Vitest subprocesses
+  instead of one combined run.
+
+  Directory-wide `maid validate --mode behavioral` and
+  `maid validate --mode implementation` are also slow in TypeScript/Svelte-heavy
+  projects because the same source and test files are read and parsed across
+  many active manifests. The Tower Recall run showed repeated
+  `ts_compiler_resolver.cjs` subprocesses and repeated artifact collection for
+  overlapping `.ts` and `.svelte` files. Add per-validation-run caches for
+  artifact collection and TypeScript identity resolution so repeated work is
+  reused within one command without serving stale results across watch-mode
+  reruns or separate CLI invocations.
+
+  The implementation must preserve validation semantics. The cache is an
+  optimization layer only: cached and uncached validation results must expose
+  the same success flags, error codes, severities, locations, and test command
+  execution results.
+temptations:
+  - risk: "Do not special-case Tower Recall paths, manifest names, or package scripts."
+    instead: "Recognize generic pnpm Vitest command forms and add tmp-project tests that simulate the same command shape."
+  - risk: "Do not batch unknown pnpm commands just because they contain the word vitest."
+    instead: "Normalize only explicit `pnpm exec vitest run ...` and `pnpm vitest run ...` forms with the same safe Vitest flags already supported."
+  - risk: "Do not cache artifact collection by file path alone."
+    instead: "Include the collector kind, validator type, normalized path, and source fingerprint so edited content invalidates the entry immediately."
+  - risk: "Do not make TypeScript compiler identity resolution stale in watch mode."
+    instead: "Scope TS import/re-export caches to a validation or CLI run and clear them between watch iterations and test cases."
+  - risk: "Do not hide changed validation behavior behind performance assertions."
+    instead: "Pair call-count/performance tests with equivalence tests that compare cached and uncached structured validation results."
+files:
+  create:
+    - path: maid_runner/core/_artifact_collection_cache.py
+      artifacts:
+        - kind: function
+          name: collect_cached_implementation_artifacts
+          args:
+            - name: validator
+              type: BaseValidator
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: CollectionResult
+          source_scenario: "Implementation validation asks for the same TypeScript or Svelte file through overlapping manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_cached_implementation_artifacts
+          expected:
+            behavior: "The first request delegates to the validator and later requests for the same source return the cached CollectionResult."
+        - kind: function
+          name: collect_cached_behavioral_artifacts
+          args:
+            - name: validator
+              type: BaseValidator
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: CollectionResult
+          source_scenario: "Behavioral validation asks for the same test file through multiple active manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_cached_behavioral_artifacts
+          expected:
+            behavior: "The first request delegates to the validator and later requests for the same source return the cached CollectionResult."
+        - kind: function
+          name: get_cached_test_function_bodies
+          args:
+            - name: validator
+              type: BaseValidator
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: "dict[str, str]"
+          source_scenario: "Test-function behavior validation asks for test bodies after the same test file has already been parsed."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_function_bodies
+          expected:
+            behavior: "The helper returns stable test bodies while avoiding another parser pass for the same source."
+        - kind: function
+          name: clear_artifact_collection_cache
+          args: []
+          returns: None
+          source_scenario: "A CLI command finishes or a watch-mode iteration starts over after file edits."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "All cached implementation, behavioral, and test-body entries are removed."
+    - path: tests/core/validation/test_artifact_collection_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_cached_implementation_collection_reuses_same_typescript_source
+          source_scenario: "Two implementation validation steps collect artifacts from the same TypeScript source string."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_cached_implementation_artifacts
+          expected:
+            behavior: "The wrapped validator is called once and both callers receive equivalent artifacts."
+        - kind: test_function
+          name: test_cached_behavioral_collection_reuses_same_svelte_test_source
+          source_scenario: "Two behavioral validation steps collect references from the same Svelte test source string."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_cached_behavioral_artifacts
+          expected:
+            behavior: "The wrapped validator is called once and both callers receive equivalent references."
+        - kind: test_function
+          name: test_cached_collection_invalidates_when_source_changes
+          source_scenario: "A file path is reused with different source content in the same Python process."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_cached_implementation_artifacts
+          expected:
+            behavior: "The changed source produces a cache miss and the validator is called again."
+        - kind: test_function
+          name: test_cached_test_function_bodies_reuse_same_source
+          source_scenario: "Behavioral test-function validation asks for bodies twice for the same test file."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_function_bodies
+          expected:
+            behavior: "The wrapped validator is called once and both callers receive the same body mapping."
+        - kind: test_function
+          name: test_clear_artifact_collection_cache_drops_all_cached_entries
+          source_scenario: "Implementation artifacts, behavioral artifacts, and test bodies are cached before a clear operation."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "Subsequent requests recompute all three categories."
+        - kind: test_function
+          name: test_validate_all_results_match_with_artifact_collection_cache_enabled
+          source_scenario: "Two overlapping TypeScript manifests validate with the cache enabled and disabled."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "The structured BatchValidationResult output is identical apart from duration fields."
+        - kind: test_function
+          name: test_validate_all_reuses_overlapping_typescript_file_collections
+          source_scenario: "A tmp manifest directory contains several active manifests that reference the same TypeScript source and test files."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "Counting validators observe one implementation collection and one behavioral collection per unchanged file during the validation run."
+    - path: tests/core/validation/test_pnpm_vitest_batching.py
+      artifacts:
+        - kind: test_function
+          name: test_normalize_vitest_command_accepts_pnpm_exec_and_pnpm_direct_forms
+          source_scenario: "Frontend manifests declare `pnpm exec vitest run` and `pnpm vitest run` validation commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "Both pnpm command forms normalize to a Vitest prefix, target tuple, and safe options tuple."
+        - kind: test_function
+          name: test_normalize_vitest_command_rejects_non_run_pnpm_vitest_forms
+          source_scenario: "A pnpm command invokes Vitest watch mode or an unsupported Vitest flag."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "Normalization returns None so batching fails closed."
+        - kind: test_function
+          name: test_batch_compatible_test_commands_combines_pnpm_exec_vitest_targets
+          source_scenario: "Several manifests declare compatible `pnpm exec vitest run` commands with overlapping targets."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "The batch helper emits one `pnpm exec vitest run` command with deduplicated targets and preserved safe options."
+        - kind: test_function
+          name: test_run_tests_batches_pnpm_vitest_commands_from_active_manifests
+          source_scenario: "A tmp project has multiple active manifests whose validate commands use `pnpm exec vitest run`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "run_tests executes one batched Vitest command instead of one command per manifest."
+  edit:
+    - path: maid_runner/core/_vitest_command_normalization.py
+      artifacts:
+        - kind: function
+          name: _normalize_vitest_command
+          args:
+            - name: command
+              type: "tuple[str, Ellipsis]"
+          returns: "Optional[tuple[tuple[str, Ellipsis], tuple[str, Ellipsis], tuple[str, Ellipsis]]]"
+          source_scenario: "A command uses direct, npx, or pnpm-wrapped Vitest run syntax."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "The helper normalizes supported run forms and rejects unsafe or non-running forms."
+    - path: maid_runner/core/_test_command_batching.py
+      artifacts:
+        - kind: function
+          name: _batch_group_key
+          args:
+            - name: command
+              type: "tuple[str, Ellipsis]"
+            - name: cwd
+              type: "Union[str, Path]"
+              default: '"."'
+            - name: resolve_command
+              type: _CommandResolver
+              default: _identity_resolve_command
+            - name: is_uv_project
+              type: _UvProjectPredicate
+              default: _not_uv_project
+          returns: "Optional[tuple[str, tuple[str, Ellipsis], tuple[str, Ellipsis]]]"
+          source_scenario: "Batch orchestration groups pnpm-wrapped Vitest commands."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_group_key
+          expected:
+            behavior: "Compatible pnpm Vitest commands share the same Vitest group key."
+        - kind: function
+          name: _batch_compatible_test_commands
+          args:
+            - name: commands
+              type: "list[tuple[str, Ellipsis]]"
+            - name: cwd
+              type: "Union[str, Path]"
+              default: '"."'
+            - name: resolve_command
+              type: _CommandResolver
+              default: _identity_resolve_command
+            - name: is_uv_project
+              type: _UvProjectPredicate
+              default: _not_uv_project
+          returns: "tuple[str, Ellipsis]"
+          source_scenario: "Batch orchestration constructs a single pnpm Vitest command."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "The helper preserves the pnpm runner prefix, deduplicates targets, and preserves safe options."
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: "Union[str, Path]"
+              default: '"manifests/"'
+            - name: fail_fast
+              type: bool
+              default: "False"
+            - name: project_root
+              type: "Union[str, Path]"
+              default: '"."'
+            - name: batch
+              type: "Optional[bool]"
+              default: None
+          returns: BatchTestResult
+          source_scenario: "Multi-manifest test execution sees compatible pnpm Vitest validate commands."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "The runner batches pnpm Vitest implementation commands while preserving acceptance-first, fail-fast, and sequential fallback behavior."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: "Union[Manifest, str, Path]"
+          returns: ValidationResult
+          source_scenario: "A single-manifest validation run starts after a previous TypeScript resolution was cached."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The outer validation run clears artifact and TypeScript resolution caches at entry and exit without changing validation results."
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: "Union[str, Path]"
+              default: '"manifests/"'
+          returns: BatchValidationResult
+          source_scenario: "Directory-wide validation reuses caches inside the run but starts and finishes with clean caches."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The outer validate_all run preserves within-run cache reuse and clears artifact and TypeScript resolution caches between separate runs."
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: method
+          name: validate_file_spec
+          of: ImplementationFileValidator
+          args:
+            - name: fs
+              type: FileSpec
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: "Optional[ManifestChain]"
+          returns: "list[ValidationError]"
+          source_scenario: "Implementation validation collects artifacts from source files that appear in several active manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ImplementationFileValidator
+          expected:
+            behavior: "Artifact collection is routed through the cache while comparison, strict-mode, stub, and import checks remain unchanged."
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: collect_test_artifacts
+          args:
+            - name: test_files
+              type: "list[str]"
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: errors
+              type: "list[ValidationError]"
+          returns: "dict[str, list[FoundArtifact]]"
+          source_scenario: "Behavioral and implementation coverage checks collect references from the same test file repeatedly."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "Test-reference collection uses the cache and preserves existing parse-error propagation."
+    - path: maid_runner/core/_test_function_contracts.py
+      artifacts:
+        - kind: function
+          name: validate_test_function_names
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: chain
+              type: "Optional[ManifestChain]"
+              default: None
+          returns: "list[ValidationError]"
+          source_scenario: "Implementation validation checks test-function declarations after behavioral validation has already parsed the same tests."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_function_names
+          expected:
+            behavior: "Test-function name validation reuses cached behavioral artifact collection."
+        - kind: function
+          name: validate_test_function_behavior
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: chain
+              type: "Optional[ManifestChain]"
+              default: None
+          returns: "list[ValidationError]"
+          source_scenario: "Behavioral validation checks test-function body details after the same tests have been parsed."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_function_behavior
+          expected:
+            behavior: "Test-function body validation reuses cached body extraction."
+    - path: maid_runner/core/_removed_artifacts.py
+      artifacts:
+        - kind: function
+          name: _validate_removed_artifacts
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+          returns: "list[ValidationError]"
+          source_scenario: "Implementation validation verifies removed artifacts in a file already collected for normal artifact comparison."
+          actions:
+            - type: api_call
+              subject:
+                export: _validate_removed_artifacts
+          expected:
+            behavior: "Removed-artifact validation uses cached implementation collection and keeps fail-closed error behavior."
+    - path: maid_runner/core/supersession_audit.py
+      artifacts:
+        - kind: method
+          name: _removal_is_verified_absent
+          of: SupersessionAuditor
+          args:
+            - name: spec
+              type: RemovedArtifactSpec
+          returns: bool
+          source_scenario: "Supersession diagnostics verify removed artifacts in files already inspected by validation."
+          actions:
+            - type: api_call
+              subject:
+                export: SupersessionAuditor
+          expected:
+            behavior: "The absence check uses cached implementation collection and still fails closed on unsupported or unparsable files."
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+          source_scenario: "Many TypeScript behavioral references resolve the same package or path alias during one validation run."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_import
+          expected:
+            behavior: "Repeated identical import-resolution requests reuse the in-run cache and return the same module identity."
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: "Optional[tuple[str, str]]"
+          source_scenario: "Identity matching asks whether the same barrel module re-exports the same artifact for many manifest artifacts."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "Repeated identical re-export requests reuse the in-run cache and return the same source module/name pair."
+        - kind: function
+          name: clear_ts_resolution_cache
+          args: []
+          returns: None
+          source_scenario: "A CLI command finishes or a watch-mode iteration starts over after TypeScript project files change."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_ts_resolution_cache
+          expected:
+            behavior: "All cached TypeScript import and re-export resolutions are removed."
+    - path: tests/core/validation/test_vitest_command_normalization.py
+      artifacts:
+        - kind: test_function
+          name: test_normalize_vitest_command_rejects_unbatchable_shapes
+          source_scenario: "Unsupported pnpm and Vitest forms must remain non-batchable."
+          actions:
+            - type: api_call
+              subject:
+                export: _normalize_vitest_command
+          expected:
+            behavior: "The existing rejection coverage is revised so unsupported pnpm forms still fail closed while supported run forms pass."
+    - path: tests/core/validation/test_test_command_batching.py
+      artifacts:
+        - kind: test_function
+          name: test_batch_compatible_test_commands_combines_vitest_targets_with_same_options
+          source_scenario: "Existing direct/npx Vitest batching behavior must remain stable while pnpm support is added."
+          actions:
+            - type: api_call
+              subject:
+                export: _batch_compatible_test_commands
+          expected:
+            behavior: "Direct and npx Vitest commands still batch exactly as before."
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_resolve_ts_reexport_reuses_cached_compiler_resolution_within_validation_run
+          source_scenario: "The same compiler-backed barrel re-export is resolved repeatedly in one validation run."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "The compiler bridge is invoked once and later calls reuse the cached result."
+        - kind: test_function
+          name: test_clear_ts_resolution_cache_allows_changed_project_resolution
+          source_scenario: "Project TypeScript config or source changes after a cached resolution."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_ts_resolution_cache
+          expected:
+            behavior: "Clearing the cache causes the next resolution call to observe the changed project state."
+    - path: tests/core/test_validation_test_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_collect_test_artifacts_uses_cached_behavioral_collection
+          source_scenario: "A shared test file is collected through collect_test_artifacts more than once."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "The second call reuses cached behavioral artifacts while preserving the returned mapping shape."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_reuses_artifact_collection_for_overlapping_typescript_manifests
+          source_scenario: "Several manifests declare overlapping TypeScript source and test files."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all performs one artifact collection per unchanged file and produces the same structured result as the uncached baseline."
+        - kind: test_function
+          name: test_validation_engine_validate_clears_ts_resolution_cache_between_runs
+          source_scenario: "A cached TypeScript compiler resolution exists before a single-manifest validation run starts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate clears the stale cache so the next resolution observes the changed project state."
+        - kind: test_function
+          name: test_validation_engine_validate_all_clears_ts_resolution_cache_between_runs
+          source_scenario: "A cached TypeScript compiler resolution exists before a directory-wide validation run starts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all clears the stale cache while preserving successful schema validation."
+  read:
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/svelte.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/_behavioral_validation.py
+    - maid_runner/core/_implementation_coverage.py
+    - manifests/038-18-extract-vitest-command-normalization.manifest.yaml
+    - manifests/038-19-extract-test-command-batching.manifest.yaml
+    - manifests/fix-typescript-compiler-resolution-cache.manifest.yaml
+    - manifests/drafts/034-02-share-source-ast-across-validation-phases.manifest.yaml
+    - manifests/drafts/034-03-cache-test-artifact-tables-across-manifests.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_pnpm_vitest_batching.py tests/core/validation/test_artifact_collection_cache.py tests/core/validation/test_vitest_command_normalization.py tests/core/validation/test_test_command_batching.py tests/core/test_validation_test_artifacts.py tests/core/test_ts_module_paths.py tests/core/test_validate.py

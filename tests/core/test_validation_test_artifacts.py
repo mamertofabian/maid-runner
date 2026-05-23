@@ -2,12 +2,14 @@
 
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
+from maid_runner.core.types import ArtifactKind
 from maid_runner.core._validation_test_artifacts import (
     collect_test_artifacts,
     collection_errors_to_validation_errors,
     find_test_files,
     get_validator_for_test,
 )
+from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 from maid_runner.validators.registry import ValidatorRegistry
 
 
@@ -160,3 +162,45 @@ def test_collect_test_artifacts_converts_parse_errors_to_validation_errors(tmp_p
     assert [error.code for error in converted] == [ErrorCode.SOURCE_PARSE_ERROR]
     assert converted[0].location.file == "tests/test_broken.py"
     assert converted[0].location.line == 9
+
+
+def test_collect_test_artifacts_uses_cached_behavioral_collection(tmp_path):
+    class CountingValidator(BaseValidator):
+        calls = 0
+
+        @classmethod
+        def supported_extensions(cls) -> tuple[str, ...]:
+            return (".ts",)
+
+        def collect_implementation_artifacts(self, source, file_path):
+            return CollectionResult([], "typescript", str(file_path))
+
+        def collect_behavioral_artifacts(self, source, file_path):
+            type(self).calls += 1
+            return CollectionResult(
+                [FoundArtifact(kind=ArtifactKind.FUNCTION, name="example")],
+                "typescript",
+                str(file_path),
+            )
+
+    _write(tmp_path / "tests" / "example.test.ts", "example")
+    registry = ValidatorRegistry()
+    registry.register(CountingValidator)
+    errors = []
+
+    first = collect_test_artifacts(
+        ["tests/example.test.ts"],
+        tmp_path,
+        registry,
+        errors,
+    )
+    second = collect_test_artifacts(
+        ["tests/example.test.ts"],
+        tmp_path,
+        registry,
+        errors,
+    )
+
+    assert errors == []
+    assert CountingValidator.calls == 1
+    assert first == second

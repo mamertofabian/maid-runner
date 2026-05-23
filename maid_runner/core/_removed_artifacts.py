@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.supersession_audit import _path_is_within_project
 from maid_runner.core.types import ArtifactKind, Manifest, RemovedArtifactSpec
@@ -106,7 +107,9 @@ def _validate_removed_artifacts(
             continue
         validator = registry.get(spec.file)
         try:
-            collection = validator.collect_implementation_artifacts(source, spec.file)
+            collection = artifact_cache.collect_cached_implementation_artifacts(
+                validator, source, spec.file
+            )
         except Exception as exc:
             errors.append(
                 ValidationError(

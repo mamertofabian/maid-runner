@@ -19,6 +19,7 @@ from maid_runner.core._ts_export_scanner import (
     resolve_reexport_source_or_fallback,
 )
 from maid_runner.core.ts_module_paths import (
+    clear_ts_resolution_cache,
     resolve_relative_ts_import,
     resolve_ts_reexport,
     ts_file_to_module_path,
@@ -1094,3 +1095,74 @@ class TestResolveTsReexport:
             "src/models/user",
             "Foo",
         )
+
+
+def test_resolve_ts_reexport_reuses_cached_compiler_resolution_within_validation_run(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    (tmp_path / "src").mkdir()
+    calls: list[tuple[str, str, Path]] = []
+
+    def compiler_resolver(module: str, name: str, root: Path):
+        calls.append((module, name, root))
+        return ("src/button", "Button")
+
+    clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+
+    first = ts_module_paths.resolve_ts_reexport("src/components", "Button", tmp_path)
+    second = ts_module_paths.resolve_ts_reexport("src/components", "Button", tmp_path)
+
+    assert first == ("src/button", "Button")
+    assert second == first
+    assert calls == [("src/components", "Button", tmp_path)]
+
+
+def test_clear_ts_resolution_cache_allows_changed_project_resolution(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    (tmp_path / "src").mkdir()
+    state = {"target": ("src/old-button", "Button")}
+
+    def compiler_resolver(module: str, name: str, root: Path):
+        return state["target"]
+
+    clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/old-button",
+        "Button",
+    )
+    state["target"] = ("src/new-button", "Button")
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/old-button",
+        "Button",
+    )
+
+    clear_ts_resolution_cache()
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/new-button",
+        "Button",
+    )

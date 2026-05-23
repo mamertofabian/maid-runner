@@ -59,6 +59,12 @@ def test_batch_compatible_test_commands_combines_vitest_targets_with_same_option
     )
 
 
+def test_batch_group_key_groups_pnpm_vitest_commands_by_runner_and_options():
+    assert _batch_group_key(
+        ("pnpm", "exec", "vitest", "run", "tests/a.test.ts", "--reporter=verbose")
+    ) == ("vitest", ("pnpm", "exec", "vitest", "run"), ("--reporter=verbose",))
+
+
 def test_dedupe_commands_keeps_stateful_pytest_duplicates():
     commands = [
         (("pytest", "tests/test_a.py"), "a"),

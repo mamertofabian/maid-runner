@@ -30,7 +30,13 @@ def _normalize_vitest_command(
     if not command:
         return None
 
-    if len(command) >= 3 and command[:3] == ("npx", "vitest", "run"):
+    if len(command) >= 4 and command[:4] == ("pnpm", "exec", "vitest", "run"):
+        prefix = command[:4]
+        args = command[4:]
+    elif len(command) >= 3 and command[:3] == ("pnpm", "vitest", "run"):
+        prefix = command[:3]
+        args = command[3:]
+    elif len(command) >= 3 and command[:3] == ("npx", "vitest", "run"):
         prefix = command[:3]
         args = command[3:]
     elif len(command) >= 2 and command[:2] == ("vitest", "run"):
