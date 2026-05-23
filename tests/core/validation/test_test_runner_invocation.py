@@ -42,6 +42,38 @@ def test_target_scan_segment_strips_package_runner_wrapper():
     assert segment == ["vitest", "run", "src/current.test.ts"]
 
 
+def test_invocation_unwraps_package_runner_options_before_exec():
+    invocation = _test_runner_invocation(
+        [
+            "pnpm",
+            "--dir",
+            "frontend",
+            "exec",
+            "vitest",
+            "run",
+            "tests/current.test.ts",
+        ]
+    )
+
+    assert invocation == ("vitest", ["run", "tests/current.test.ts"])
+
+
+def test_target_scan_preserves_package_runner_cwd_option_before_exec():
+    segment = _test_runner_target_scan_segment(
+        [
+            "pnpm",
+            "--dir",
+            "frontend",
+            "exec",
+            "vitest",
+            "run",
+            "tests/current.test.ts",
+        ]
+    )
+
+    assert segment == ["--dir", "frontend", "vitest", "run", "tests/current.test.ts"]
+
+
 def test_non_executing_mode_detects_pytest_addopts_collect_only():
     assert (
         _has_non_executing_test_runner_mode(

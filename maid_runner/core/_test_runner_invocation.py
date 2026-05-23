@@ -19,6 +19,7 @@ _PYTHON_MODULE_TEST_RUNNERS = frozenset({"pytest", "py.test"})
 _DJANGO_TEST_RUNNER = "django"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
+_PACKAGE_RUNNER_CWD_VALUE_FLAGS = frozenset({"-C", "--cwd", "--dir", "--prefix"})
 _DJANGO_TEST_RUNNER_VALUE_FLAGS = frozenset(
     {
         "-p",
@@ -424,8 +425,9 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
         return command, parts[2:]
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
-        start = 2 if len(parts) >= 3 and parts[1] == "exec" else 1
-        return _test_runner_invocation(parts[start:])
+        inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
+        if inner_command is not None:
+            return _test_runner_invocation(inner_command)
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
         return _test_runner_invocation(parts[2:])
@@ -455,13 +457,43 @@ def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
         return _test_runner_target_scan_segment(parts[3:])
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
-        start = 2 if len(parts) >= 3 and parts[1] == "exec" else 1
-        return _test_runner_target_scan_segment(parts[start:])
+        inner_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
+        if inner_command is not None:
+            return _test_runner_target_scan_segment(inner_command)
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
         return _test_runner_target_scan_segment(parts[2:])
 
     return parts
+
+
+def _package_runner_inner_command(
+    parts: list[str], *, preserve_cwd_options: bool
+) -> list[str] | None:
+    index = 1
+    preserved_cwd_options: list[str] = []
+
+    while index < len(parts):
+        part = parts[index]
+        if part == "exec":
+            return [*preserved_cwd_options, *parts[index + 1 :]]
+        if part in _PACKAGE_RUNNER_CWD_VALUE_FLAGS and index + 1 < len(parts):
+            if preserve_cwd_options:
+                preserved_cwd_options.extend([part, parts[index + 1]])
+            index += 2
+            continue
+        if any(part.startswith(f"{flag}=") for flag in _PACKAGE_RUNNER_CWD_VALUE_FLAGS):
+            flag, value = part.split("=", 1)
+            if preserve_cwd_options:
+                preserved_cwd_options.extend([flag, value])
+            index += 1
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+        return [*preserved_cwd_options, *parts[index:]]
+
+    return None
 
 
 def _django_test_args_after_subcommand(parts: list[str]) -> list[str] | None:

@@ -1,0 +1,36 @@
+schema: "2"
+goal: "Recognize package runner cwd options before exec when validating manifest test commands"
+type: fix
+created: "2026-05-23"
+
+files:
+  edit:
+    - path: maid_runner/core/_test_runner_invocation.py
+      artifacts:
+        - kind: function
+          name: _test_runner_invocation
+        - kind: function
+          name: _test_runner_target_scan_segment
+    - path: tests/core/validation/test_test_runner_invocation.py
+      artifacts:
+        - kind: test_function
+          name: test_invocation_unwraps_package_runner_options_before_exec
+          source_scenario: "A validate command invokes Vitest through pnpm with --dir before exec."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_invocation
+          expected:
+            behavior: "The invocation helper unwraps the package runner and recognizes the Vitest runner."
+        - kind: test_function
+          name: test_target_scan_preserves_package_runner_cwd_option_before_exec
+          source_scenario: "A validate command invokes Vitest through pnpm with --dir before exec."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_target_scan_segment
+          expected:
+            behavior: "The target scanner preserves the cwd option so test paths resolve under the frontend directory."
+
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_runner_invocation.py
