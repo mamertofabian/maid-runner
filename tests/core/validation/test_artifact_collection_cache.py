@@ -16,6 +16,7 @@ from maid_runner.core._test_function_contracts import (
     validate_test_function_behavior,
     validate_test_function_names,
 )
+from maid_runner.core import ts_module_paths
 from maid_runner.core.types import (
     ArtifactKind,
     ArtifactSpec,
@@ -25,7 +26,7 @@ from maid_runner.core.types import (
     TestFunctionDetails,
     ValidationMode,
 )
-from maid_runner.core.validate import validate_all
+from maid_runner.core.validate import ValidationEngine, validate_all
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 from maid_runner.validators.python import get_cached_python_ast
 from maid_runner.validators.registry import ValidatorRegistry
@@ -406,6 +407,108 @@ def test_validate_all_reuses_overlapping_typescript_file_collections(tmp_path):
     assert result.success is True
     assert CountingValidator.implementation_calls == 1
     assert CountingValidator.behavioral_calls == 1
+
+
+def test_validation_engine_validate_clears_ts_resolution_cache_between_runs(
+    monkeypatch,
+    tmp_path,
+):
+    _write(tmp_path / "src" / "example.ts", "export function example() {}\n")
+    manifest_path = _write(
+        tmp_path / "manifests" / "schema-only.manifest.yaml",
+        """schema: "2"
+goal: "Schema validation clears caches"
+type: snapshot
+files:
+  snapshot:
+    - path: src/example.ts
+      artifacts:
+        - kind: function
+          name: example
+validate:
+  - pytest tests/example.test.ts
+""",
+    )
+    state = {"target": ("src/old-button", "Button")}
+
+    def compiler_resolver(module, name, root):
+        return state["target"]
+
+    ts_module_paths.clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/old-button",
+        "Button",
+    )
+
+    state["target"] = ("src/new-button", "Button")
+    engine = ValidationEngine(project_root=tmp_path)
+    result = engine.validate(manifest_path, mode=ValidationMode.SCHEMA)
+
+    assert result.success is True
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/new-button",
+        "Button",
+    )
+
+
+def test_validation_engine_validate_all_clears_ts_resolution_cache_between_runs(
+    monkeypatch,
+    tmp_path,
+):
+    _write(tmp_path / "src" / "example.ts", "export function example() {}\n")
+    _write(
+        tmp_path / "manifests" / "schema-only.manifest.yaml",
+        """schema: "2"
+goal: "Schema validation clears caches"
+type: snapshot
+files:
+  snapshot:
+    - path: src/example.ts
+      artifacts:
+        - kind: function
+          name: example
+validate:
+  - pytest tests/example.test.ts
+""",
+    )
+    state = {"target": ("src/old-button", "Button")}
+
+    def compiler_resolver(module, name, root):
+        return state["target"]
+
+    ts_module_paths.clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/old-button",
+        "Button",
+    )
+
+    state["target"] = ("src/new-button", "Button")
+    engine = ValidationEngine(project_root=tmp_path)
+    result = engine.validate_all("manifests", mode=ValidationMode.SCHEMA)
+
+    assert result.success is True
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/new-button",
+        "Button",
+    )
 
 
 def test_validate_all_behavioral_results_match_uncached_test_artifact_tables(

@@ -177,6 +177,24 @@ files:
                 export: validate_all
           expected:
             behavior: "Counting validators observe one implementation collection and one behavioral collection per unchanged file during the validation run."
+        - kind: test_function
+          name: test_validation_engine_validate_clears_ts_resolution_cache_between_runs
+          source_scenario: "A cached TypeScript compiler resolution exists before a single-manifest validation run starts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate clears the stale cache so the next resolution observes the changed project state."
+        - kind: test_function
+          name: test_validation_engine_validate_all_clears_ts_resolution_cache_between_runs
+          source_scenario: "A cached TypeScript compiler resolution exists before a directory-wide validation run starts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all clears the stale cache while preserving successful schema validation."
     - path: tests/core/validation/test_pnpm_vitest_batching.py
       artifacts:
         - kind: test_function
@@ -551,35 +569,6 @@ files:
                 export: collect_test_artifacts
           expected:
             behavior: "The second call reuses cached behavioral artifacts while preserving the returned mapping shape."
-    - path: tests/core/test_validate.py
-      artifacts:
-        - kind: test_function
-          name: test_validate_all_reuses_artifact_collection_for_overlapping_typescript_manifests
-          source_scenario: "Several manifests declare overlapping TypeScript source and test files."
-          actions:
-            - type: api_call
-              subject:
-                export: validate_all
-          expected:
-            behavior: "validate_all performs one artifact collection per unchanged file and produces the same structured result as the uncached baseline."
-        - kind: test_function
-          name: test_validation_engine_validate_clears_ts_resolution_cache_between_runs
-          source_scenario: "A cached TypeScript compiler resolution exists before a single-manifest validation run starts."
-          actions:
-            - type: api_call
-              subject:
-                export: ValidationEngine
-          expected:
-            behavior: "ValidationEngine.validate clears the stale cache so the next resolution observes the changed project state."
-        - kind: test_function
-          name: test_validation_engine_validate_all_clears_ts_resolution_cache_between_runs
-          source_scenario: "A cached TypeScript compiler resolution exists before a directory-wide validation run starts."
-          actions:
-            - type: api_call
-              subject:
-                export: ValidationEngine
-          expected:
-            behavior: "ValidationEngine.validate_all clears the stale cache while preserving successful schema validation."
   read:
     - maid_runner/validators/base.py
     - maid_runner/validators/typescript.py
@@ -593,4 +582,4 @@ files:
     - manifests/034-02-share-source-ast-across-validation-phases.manifest.yaml
     - manifests/034-03-cache-test-artifact-tables-across-manifests.manifest.yaml
 validate:
-  - uv run python -m pytest -q tests/core/validation/test_pnpm_vitest_batching.py tests/core/validation/test_artifact_collection_cache.py tests/core/validation/test_vitest_command_normalization.py tests/core/validation/test_test_command_batching.py tests/core/test_validation_test_artifacts.py tests/core/test_ts_module_paths.py tests/core/test_validate.py
+  - uv run python -m pytest -q tests/core/validation/test_pnpm_vitest_batching.py tests/core/validation/test_artifact_collection_cache.py tests/core/validation/test_vitest_command_normalization.py tests/core/validation/test_test_command_batching.py tests/core/test_validation_test_artifacts.py tests/core/test_ts_module_paths.py
