@@ -62,6 +62,32 @@ validate:
     assert any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
 
 
+def test_snapshot_manifest_without_test_file_does_not_report_no_test_files(project):
+    manifest_path = write_manifest(
+        project,
+        "snapshot-utils.manifest.yaml",
+        """schema: "2"
+goal: "Snapshot utils"
+type: snapshot
+files:
+  create:
+    - path: src/utils.py
+      artifacts:
+        - kind: function
+          name: helper
+validate:
+  - make check
+""",
+    )
+    write_source(project, "src/utils.py", "def helper():\n    pass\n")
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert not any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
+
+
 def test_unreferenced_public_artifact_reports_e200_error(project):
     manifest_path = write_manifest(
         project,

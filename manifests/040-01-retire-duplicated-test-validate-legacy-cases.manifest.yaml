@@ -1,0 +1,109 @@
+schema: "2"
+goal: "Retire duplicated legacy validation tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Start Priority 6 from the professional refactor backlog by pruning a first
+  batch of duplicated legacy characterization tests from
+  tests/core/test_validate.py.
+
+  Priority 5 is complete in the current manifest chain: 038-22 through 038-35
+  cover the Python behavioral collector refactor slices. The lean validation
+  suites from 038-01 through 038-05 and the subsequent extraction manifests now
+  cover the representative behavioral coverage, required-import, file-scope,
+  strict-mode, and validate_all-chain risks.
+
+  This slice intentionally removes only legacy test functions that are not
+  active test_function requirements in the current MAID chain. The enforced
+  legacy test_function names remain present. The old test file keeps broad
+  smoke coverage per concern while the focused suites carry the detailed
+  scenarios.
+temptations:
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only names absent from the active merged chain, or create a separate evolver manifest if an enforced test_function must disappear."
+  - risk: "Do not delete a legacy scenario unless a focused lean suite now covers the same observable behavior."
+    instead: "Map every removed test to tests/core/validation coverage and run the lean suites beside the remaining legacy file."
+  - risk: "Do not turn retained legacy tests into placeholders just to shrink runtime."
+    instead: "Keep retained tests as executable smoke coverage with their original assertions."
+  - risk: "Do not combine this with production validation refactors."
+    instead: "Limit this slice to tests/core/test_validate.py and validation commands."
+files:
+  edit:
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_fails_when_public_artifact_not_referenced_in_tests
+          source_scenario: "A manifest declares a public artifact that the test file does not exercise."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained legacy coverage smoke test still reports ErrorCode.ARTIFACT_NOT_USED_IN_TESTS."
+        - kind: test_function
+          name: test_ts_relative_import_resolves_to_manifest_path
+          source_scenario: "A TypeScript source imports a manifest-required module through a relative path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained required-import smoke test still validates relative TypeScript import resolution."
+        - kind: test_function
+          name: test_validate_all_file_tracking_gate_fails_on_undeclared_source
+          source_scenario: "validate_all runs file tracking against an undeclared production source file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained file-scope smoke test still reports undeclared source files."
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained strict-mode smoke test still marks warning-only validation as unsuccessful."
+        - kind: test_function
+          name: test_validate_all_fails_when_manifest_dir_is_missing_by_default
+          source_scenario: "validate_all receives a missing manifest directory without allow_empty."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained validate_all smoke test still reports ErrorCode.EMPTY_MANIFEST_SET."
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_manifest_without_test_file_does_not_report_no_test_files
+          source_scenario: "A snapshot manifest declares a public artifact and has no test file path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Snapshot implementation validation succeeds without ErrorCode.NO_TEST_FILES."
+  read:
+    - tests/core/validation/test_required_imports.py
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/core/validation/test_strict_mode.py
+    - tests/core/validation/test_assertion_checking.py
+    - tests/core/validation/test_validate_all_chain.py
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+    - manifests/038-02-add-lean-required-import-characterization.manifest.yaml
+    - manifests/038-03-add-lean-file-scope-characterization.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+    - manifests/038-05-add-lean-validate-all-chain-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/validation/test_required_imports.py tests/core/validation/test_file_scope_gates.py tests/core/validation/test_strict_mode.py tests/core/validation/test_assertion_checking.py tests/core/validation/test_validate_all_chain.py tests/core/test_validate.py

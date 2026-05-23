@@ -1803,101 +1803,6 @@ validate:
         )
         assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
 
-    def test_test_without_assertions_warned(self, project):
-        """Test function with no assert -> E210 WARNING."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_greet.py",
-            "from src.greet import greet\n\ndef test_greet():\n    greet()\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(
-            manifest_path,
-            mode=ValidationMode.BEHAVIORAL,
-            check_assertions=True,
-        )
-        assert any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
-
-    def test_assertions_not_checked_without_flag(self, project):
-        """No E210 when check_assertions=False (default)."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_greet.py",
-            "from src.greet import greet\n\ndef test_greet():\n    greet()\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
-        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
-
-    def test_pytest_raises_counts_as_assertion(self, project):
-        """pytest.raises is recognized as an assertion."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-calc.manifest.yaml",
-            """schema: "2"
-goal: "Add calc"
-files:
-  create:
-    - path: src/calc.py
-      artifacts:
-        - kind: function
-          name: divide
-  read:
-    - tests/test_calc.py
-validate:
-  - pytest tests/test_calc.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_calc.py",
-            "import pytest\nfrom src.calc import divide\n\ndef test_divide_zero():\n    with pytest.raises(ZeroDivisionError):\n        divide(1, 0)\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(
-            manifest_path,
-            mode=ValidationMode.BEHAVIORAL,
-            check_assertions=True,
-        )
-        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
-
 
 class TestStrictWarningPolicy:
     def test_validate_fail_on_warnings_marks_result_unsuccessful(self, project):
@@ -2014,74 +1919,6 @@ validate:
 
 class TestImportVerification:
     """Tests for required imports field on FileSpec."""
-
-    def test_required_import_present_passes(self, project):
-        """File has required import -> no E320."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-page.manifest.yaml",
-            """schema: "2"
-goal: "Add page"
-files:
-  create:
-    - path: src/pages/budget.py
-      artifacts:
-        - kind: function
-          name: BudgetPage
-      imports:
-        - src.api.budgets
-  read:
-    - tests/test_budget.py
-validate:
-  - pytest tests/test_budget.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/pages/budget.py",
-            "from src.api.budgets import list_budgets\n\ndef BudgetPage():\n    data = list_budgets()\n    return data\n",
-        )
-        _add_test_file(
-            project, "tests/test_budget.py", "src.pages.budget", ["BudgetPage"]
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is True
-        assert not any(
-            e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-            for e in result.errors + result.warnings
-        )
-
-    def test_required_import_missing_fails(self, project):
-        """File missing required import -> E320."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-page.manifest.yaml",
-            """schema: "2"
-goal: "Add page"
-files:
-  create:
-    - path: src/pages/budget.py
-      artifacts:
-        - kind: function
-          name: BudgetPage
-      imports:
-        - src.api.budgets
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/pages/budget.py",
-            "def BudgetPage():\n    return 'placeholder'\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Import check is always active when imports are declared
-        assert any(e.code == ErrorCode.MISSING_REQUIRED_IMPORT for e in result.errors)
 
     def test_no_imports_field_no_check(self, project):
         """Manifest without imports field -> no import checking."""
@@ -2336,38 +2173,6 @@ validate:
             project,
             "src/utils/helper.js",
             'const _ = require("lodash");\n\nfunction helper() { return _.get({}, "a"); }\nmodule.exports = { helper };\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        assert len(import_errors) == 0
-
-    def test_js_require_relative_resolves(self, project):
-        """CommonJS require() with relative path resolves correctly."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-svc.manifest.yaml",
-            """schema: "2"
-goal: "Add service"
-files:
-  create:
-    - path: src/services/api.js
-      artifacts:
-        - kind: function
-          name: callApi
-      imports:
-        - src/models/Budget
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/services/api.js",
-            'const Budget = require("../models/Budget");\n\nfunction callApi() { return new Budget(); }\nmodule.exports = { callApi };\n',
         )
 
         engine = ValidationEngine(project_root=project)
@@ -3239,38 +3044,6 @@ validate:
         assert (
             len(compiler_calls) == 0
         ), "compiler must not be invoked for external packages"
-
-    def test_python_path_style_import_matches_dotted(self, project):
-        """Path-style required_import 'src/models/user.py' matches dotted 'src.models.user'."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-user.manifest.yaml",
-            """schema: "2"
-goal: "Add user model"
-files:
-  create:
-    - path: src/routes/users.py
-      artifacts:
-        - kind: function
-          name: get_users
-      imports:
-        - src/models/user.py
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/routes/users.py",
-            "from src.models.user import User\n\ndef get_users():\n    return User.all()\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        assert len(import_errors) == 0
 
     def test_python_path_style_without_extension_matches(self, project):
         """Path-style required_import 'src/models/user' (no .py) matches dotted import."""
@@ -4380,30 +4153,6 @@ class TestImplementationTestCoverage:
     Manifests with public artifacts MUST have test files.
     Artifacts not referenced in tests produce warnings.
     """
-
-    def test_no_test_files_with_public_artifacts_fails(self, project):
-        """Manifest with public artifacts but zero test files -> E220 error."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-widget.manifest.yaml",
-            """schema: "2"
-goal: "Add widget"
-files:
-  edit:
-    - path: src/widget.py
-      artifacts:
-        - kind: function
-          name: render
-validate:
-  - make check
-""",
-        )
-        _write_source(project, "src/widget.py", "def render():\n    pass\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is False
-        assert any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
 
     def test_test_file_in_read_section_passes(self, project):
         """Manifest with test file in files.read -> no E220."""
@@ -6880,30 +6629,6 @@ function toggleCollapsed() {}
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert result.success is False
         assert any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
-
-    def test_snapshot_manifest_exempt_from_test_coverage(self, project):
-        """Snapshot manifests capture existing state — they don't require new tests."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "snapshot-utils.manifest.yaml",
-            """schema: "2"
-goal: "Snapshot utils"
-type: snapshot
-files:
-  create:
-    - path: src/utils.py
-      artifacts:
-        - kind: function
-          name: helper
-validate:
-  - make check
-""",
-        )
-        _write_source(project, "src/utils.py", "def helper():\n    pass\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
 
     def test_snapshot_manifest_still_exempt_from_behavioral_coverage_error(
         self, project
