@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._command_integrity_test_discovery import (
@@ -118,6 +119,27 @@ _LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
         "replace-ts-required-import-regex-scanner",
     }
 )
+
+_TestArtifactCacheKey = tuple[str, str, str]
+_TestArtifactFileSignature = tuple[int, int]
+
+
+@dataclass(frozen=True)
+class TestArtifactsTable:
+    """Filtered behavioral artifact table for one test file."""
+
+    artifacts: tuple[FoundArtifact, ...] = ()
+    errors: tuple[ValidationError, ...] = ()
+
+
+@dataclass(frozen=True)
+class _TestArtifactCacheEntry:
+    signature: _TestArtifactFileSignature
+    table: TestArtifactsTable
+    collection_errors: tuple[str, ...] = ()
+
+
+_TEST_ARTIFACT_CACHE: dict[_TestArtifactCacheKey, _TestArtifactCacheEntry] = {}
 
 
 def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
@@ -398,43 +420,128 @@ def collect_test_artifacts(
     collected: dict[str, list[FoundArtifact]] = {}
 
     for tf_path in test_files:
-        full_path = project_root / tf_path
-        if not full_path.exists():
+        table = get_cached_test_artifacts(tf_path, project_root, registry)
+        if table is None:
             continue
-
-        try:
-            source = full_path.read_text()
-        except OSError as exc:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.FILE_READ_ERROR,
-                    message=f"Failed to read test file '{tf_path}': {exc}",
-                    location=Location(file=tf_path),
-                )
-            )
+        if table.errors:
+            errors.extend(table.errors)
             continue
-
-        validator = get_validator_for_test(tf_path, registry)
-        if validator is None:
-            continue
-
-        result = artifact_cache.collect_cached_behavioral_artifacts(
-            validator, source, tf_path
-        )
-        if result.errors:
-            errors.extend(
-                collection_errors_to_validation_errors(result.errors, tf_path)
-            )
-            continue
-
-        # TEST_FUNCTION declarations are test definitions, not source usage.
-        collected[tf_path] = [
-            artifact
-            for artifact in result.artifacts
-            if artifact.kind != ArtifactKind.TEST_FUNCTION
-        ]
+        collected[tf_path] = list(table.artifacts)
 
     return collected
+
+
+def get_cached_test_artifacts(
+    test_file: Union[str, Path],
+    project_root: Path,
+    registry: ValidatorRegistry,
+) -> Optional[TestArtifactsTable]:
+    test_path = _normalize_test_file_path(test_file)
+    full_path = _resolve_test_file(test_file, project_root)
+    if not full_path.exists():
+        return None
+
+    validator = get_validator_for_test(test_path, registry)
+    if validator is None:
+        return None
+
+    try:
+        signature = _test_artifact_file_signature(full_path)
+    except OSError as exc:
+        return _test_file_read_error_table(test_path, exc)
+
+    key = _test_artifact_cache_key(full_path, validator)
+    cached = _TEST_ARTIFACT_CACHE.get(key)
+    if cached is not None and cached.signature == signature:
+        return _test_artifact_table_for_request(cached, test_path)
+
+    try:
+        source = full_path.read_text()
+    except OSError as exc:
+        return _test_file_read_error_table(test_path, exc)
+
+    result = artifact_cache.collect_cached_behavioral_artifacts(
+        validator, source, test_path
+    )
+    if result.errors:
+        entry = _TestArtifactCacheEntry(
+            signature,
+            TestArtifactsTable(),
+            tuple(result.errors),
+        )
+    else:
+        # TEST_FUNCTION declarations are test definitions, not source usage.
+        table = TestArtifactsTable(
+            artifacts=tuple(
+                artifact
+                for artifact in result.artifacts
+                if artifact.kind != ArtifactKind.TEST_FUNCTION
+            )
+        )
+        entry = _TestArtifactCacheEntry(signature, table)
+
+    _TEST_ARTIFACT_CACHE[key] = entry
+    return _test_artifact_table_for_request(entry, test_path)
+
+
+def clear_test_artifact_cache() -> None:
+    _TEST_ARTIFACT_CACHE.clear()
+
+
+def _normalize_test_file_path(test_file: Union[str, Path]) -> str:
+    return str(test_file).replace("\\", "/")
+
+
+def _resolve_test_file(test_file: Union[str, Path], project_root: Path) -> Path:
+    return (project_root / Path(test_file)).resolve()
+
+
+def _test_artifact_file_signature(path: Path) -> _TestArtifactFileSignature:
+    stat = path.stat()
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _test_artifact_cache_key(
+    path: Path,
+    validator: BaseValidator,
+) -> _TestArtifactCacheKey:
+    validator_type = type(validator)
+    return (
+        str(path),
+        validator_type.__module__,
+        validator_type.__qualname__,
+    )
+
+
+def _test_artifact_table_for_request(
+    entry: _TestArtifactCacheEntry,
+    test_path: str,
+) -> TestArtifactsTable:
+    if not entry.collection_errors:
+        return entry.table
+    return TestArtifactsTable(
+        errors=tuple(
+            collection_errors_to_validation_errors(
+                list(entry.collection_errors),
+                test_path,
+            )
+        )
+    )
+
+
+def _test_file_read_error_table(
+    test_path: str,
+    exc: OSError,
+) -> TestArtifactsTable:
+    return TestArtifactsTable(
+        errors=(
+            ValidationError(
+                code=ErrorCode.FILE_READ_ERROR,
+                message=f"Failed to read test file '{test_path}': {exc}",
+                location=Location(file=test_path),
+            ),
+        )
+    )
 
 
 def collection_errors_to_validation_errors(

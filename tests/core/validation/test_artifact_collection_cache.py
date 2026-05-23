@@ -406,3 +406,67 @@ def test_validate_all_reuses_overlapping_typescript_file_collections(tmp_path):
     assert result.success is True
     assert CountingValidator.implementation_calls == 1
     assert CountingValidator.behavioral_calls == 1
+
+
+def test_validate_all_behavioral_results_match_uncached_test_artifact_tables(
+    monkeypatch,
+    tmp_path,
+):
+    _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
+    _write(
+        tmp_path / "tests" / "test_shared.py",
+        "from src.shared import shared\n\n"
+        "def test_shared():\n"
+        "    assert shared() == 1\n",
+    )
+    manifests = tmp_path / "manifests"
+    manifests.mkdir()
+    for slug, goal in (
+        ("first", "Validate shared behavior"),
+        ("second", "Validate the same shared behavior"),
+    ):
+        _write(
+            manifests / f"{slug}.manifest.yaml",
+            f"""schema: "2"
+goal: "{goal}"
+type: fix
+files:
+  edit:
+    - path: src/shared.py
+      artifacts:
+        - kind: function
+          name: shared
+  read:
+    - tests/test_shared.py
+validate:
+  - pytest tests/test_shared.py
+""",
+        )
+
+    cached = validate_all(
+        "manifests",
+        mode=ValidationMode.BEHAVIORAL,
+        project_root=tmp_path,
+    )
+
+    from maid_runner.core import _validation_test_artifacts as test_artifacts
+
+    get_cached = test_artifacts.get_cached_test_artifacts
+
+    def uncached_get_test_artifacts(*args, **kwargs):
+        test_artifacts.clear_test_artifact_cache()
+        return get_cached(*args, **kwargs)
+
+    monkeypatch.setattr(
+        test_artifacts,
+        "get_cached_test_artifacts",
+        uncached_get_test_artifacts,
+    )
+    uncached = validate_all(
+        "manifests",
+        mode=ValidationMode.BEHAVIORAL,
+        project_root=tmp_path,
+    )
+
+    assert cached.success is True
+    assert _batch_signature(cached) == _batch_signature(uncached)

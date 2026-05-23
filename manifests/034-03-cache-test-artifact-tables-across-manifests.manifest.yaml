@@ -1,0 +1,188 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Cache test-file reads and collected test-artifact tables across manifests in one validation run"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: draft
+  tags:
+    - performance
+    - behavioral-validation
+    - test-artifacts
+    - caching
+  priority: high
+description: |
+  Close the remaining inefficiency where `collect_test_artifacts` re-reads the
+  same test file once per manifest. A later cache already reuses parsed
+  `CollectionResult` objects by validator, path, and source fingerprint, but
+  behavioral validation still stats and reads each shared test file for every
+  manifest that references it.
+
+  Introduce a per-validation-run test-artifact table cache in
+  `_validation_test_artifacts.py`. The cache stores the filtered behavioral
+  reference table returned for a single test file, keyed by resolved test path,
+  validator type, and the file's `(mtime_ns, size)` content signature. The
+  first manifest that requests a test file reads and parses it normally.
+  Subsequent manifests in the same validation run reuse the same
+  `TestArtifactsTable` without another file read or artifact collection call.
+
+  Cache clearing remains tied to the existing validation-run artifact cache:
+  `clear_artifact_collection_cache()` must also clear test-artifact tables, so
+  each `ValidationEngine.validate()` and `ValidationEngine.validate_all()` run
+  starts and finishes with clean cache state. A changed test-file signature
+  invalidates the entry before reuse.
+
+  Equivalence tests compare cached and uncached behavioral validation results
+  for overlapping manifests. Call-count tests prove that a shared test file is
+  read and behaviorally collected once per validation run while preserving the
+  existing file-read and parse-error reporting behavior.
+temptations:
+  - risk: "Do not cache the parsed artifact table by test-file basename."
+    instead: "Key the cache by resolved absolute path, validator type, and the file signature so same-named tests in different directories stay distinct."
+  - risk: "Do not serve a cached table after a test file has been edited."
+    instead: "Recompute the file signature on every access and replace the entry when mtime_ns or size changes."
+  - risk: "Do not move test-artifact cache state into a singleton that survives validation runs."
+    instead: "Clear test-artifact tables through the existing validation-run cache clear at the start and end of each outer validation call."
+  - risk: "Do not silently swallow read or parse errors to keep validation green."
+    instead: "Return the same FILE_READ_ERROR and SOURCE_PARSE_ERROR validation errors that the uncached path reports."
+  - risk: "Do not bypass the existing source-fingerprint artifact collection cache."
+    instead: "Use the current `collect_cached_behavioral_artifacts` helper for the first table build and cache only the resulting per-test-file table."
+files:
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: class
+          name: TestArtifactsTable
+          description: "Immutable table of filtered behavioral artifacts and collection errors for one test file."
+        - kind: attribute
+          name: artifacts
+          of: TestArtifactsTable
+          type: "tuple[FoundArtifact, ...]"
+          description: "Filtered non-test-function behavioral references for the test file."
+        - kind: attribute
+          name: errors
+          of: TestArtifactsTable
+          type: "tuple[ValidationError, ...]"
+          description: "Read or parse errors produced while building the test-artifact table."
+        - kind: function
+          name: get_cached_test_artifacts
+          args:
+            - name: test_file
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+          returns: "Optional[TestArtifactsTable]"
+          description: "Return a cached TestArtifactsTable for a test file, populating it on first access and invalidating on signature change."
+        - kind: function
+          name: clear_test_artifact_cache
+          args: []
+          returns: None
+          description: "Drop all cached test-artifact tables."
+        - kind: function
+          name: collect_test_artifacts
+          args:
+            - name: test_files
+              type: "list[str]"
+            - name: project_root
+              type: Path
+            - name: registry
+              type: ValidatorRegistry
+            - name: errors
+              type: "list[ValidationError]"
+          returns: "dict[str, list[FoundArtifact]]"
+          description: "Route per-file collection through the per-validation-run test-artifact table cache so shared test files are read and parsed at most once."
+    - path: maid_runner/core/_artifact_collection_cache.py
+      artifacts:
+        - kind: function
+          name: clear_artifact_collection_cache
+          args: []
+          returns: None
+          description: "Also clear cached test-artifact tables when the validation-run artifact cache is cleared."
+    - path: tests/core/test_validation_test_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_get_cached_test_artifacts_returns_same_table_within_invocation
+          source_scenario: "Two manifests request artifacts for the same unchanged test file inside one validation run."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_artifacts
+          expected:
+            behavior: "Both requests receive the same TestArtifactsTable instance and the file is read exactly once."
+        - kind: test_function
+          name: test_get_cached_test_artifacts_invalidates_on_signature_change
+          source_scenario: "A test file changes between two requests for its artifact table."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_artifacts
+          expected:
+            behavior: "The second request rebuilds the table and returns artifacts from the changed file."
+        - kind: test_function
+          name: test_collect_test_artifacts_reuses_cache_across_manifests
+          source_scenario: "Behavioral validation for two manifests references the same shared test file in one validation run."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "The shared test file is read and behaviorally collected exactly once while both callers receive the same artifact names."
+        - kind: test_function
+          name: test_clear_test_artifact_cache_drops_all_entries
+          source_scenario: "Two test files are cached and then the test-artifact cache is cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_artifact_cache
+          expected:
+            behavior: "Subsequent requests for either file re-read and rebuild tables from disk."
+        - kind: test_function
+          name: test_clear_artifact_collection_cache_drops_test_artifact_tables
+          source_scenario: "A validation-run cache clear occurs after a test-artifact table has been cached."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "A later test-artifact request rebuilds the table instead of reusing the cleared entry."
+        - kind: test_function
+          name: test_collect_test_artifacts_propagates_file_read_errors
+          source_scenario: "A declared test file exists but cannot be read when the cache is queried."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_test_artifacts
+          expected:
+            behavior: "The cache surfaces FILE_READ_ERROR with the same severity as the uncached path instead of returning an empty table."
+        - kind: test_function
+          name: test_get_cached_test_artifacts_rewrites_parse_error_locations_per_request
+          source_scenario: "The same malformed test file is requested through two different relative path spellings."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_artifacts
+          expected:
+            behavior: "The cached parse failure is converted to SOURCE_PARSE_ERROR with the current request path in the reported location."
+    - path: tests/core/validation/test_artifact_collection_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_behavioral_results_match_uncached_test_artifact_tables
+          source_scenario: "validate_all runs over overlapping manifests once with the test-artifact table cache and once with test-artifact table hits disabled."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "Per-manifest behavioral errors and warnings are identical between the cached and uncached runs."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/validate.py
+    - maid_runner/core/manifest.py
+    - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+    - manifests/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+    - manifests/034-02-share-source-ast-across-validation-phases.manifest.yaml
+    - manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_validation_test_artifacts.py tests/core/validation/test_artifact_collection_cache.py
