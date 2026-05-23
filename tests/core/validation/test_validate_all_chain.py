@@ -42,6 +42,14 @@ def write_test(project_dir, rel_path, module, artifact_names):
     )
 
 
+def batch_result_without_durations(result):
+    data = result.to_dict()
+    data["duration_ms"] = None
+    for manifest_result in data["results"]:
+        manifest_result["duration_ms"] = None
+    return data
+
+
 def test_validate_all_validates_active_manifests_and_skips_superseded(project):
     write_manifest(
         project,
@@ -233,3 +241,194 @@ validate:
         for manifest_result in result.results
         for error in manifest_result.errors
     )
+
+
+def test_validate_all_results_match_uncached_manifest_chain_run(project, monkeypatch):
+    import importlib
+
+    from maid_runner.core.chain import ManifestChain, clear_manifest_chain_cache
+
+    validate_module = importlib.import_module("maid_runner.core.validate")
+
+    write_manifest(
+        project,
+        "cache-equivalence.manifest.yaml",
+        """schema: "2"
+goal: "Cache equivalence"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/cache_equivalence.py
+      artifacts:
+        - kind: function
+          name: cache_equivalence
+  read:
+    - tests/test_cache_equivalence.py
+validate:
+  - pytest tests/test_cache_equivalence.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/cache_equivalence.py",
+        "def cache_equivalence():\n    return 'ok'\n",
+    )
+    write_test(
+        project,
+        "tests/test_cache_equivalence.py",
+        "src.cache_equivalence",
+        ["cache_equivalence"],
+    )
+
+    clear_manifest_chain_cache()
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(
+                validate_module,
+                "_get_cached_manifest_chain_for_validate_all",
+                ManifestChain,
+            )
+            uncached = validate_all(
+                "manifests",
+                project_root=project,
+                mode=ValidationMode.IMPLEMENTATION,
+            )
+
+        clear_manifest_chain_cache()
+        cached = validate_all(
+            "manifests",
+            project_root=project,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+    finally:
+        clear_manifest_chain_cache()
+
+    assert batch_result_without_durations(cached) == batch_result_without_durations(
+        uncached
+    )
+
+
+def test_validate_all_loads_manifest_chain_once_per_invocation(project, monkeypatch):
+    import importlib
+
+    from maid_runner.core.chain import clear_manifest_chain_cache
+
+    chain_module = importlib.import_module("maid_runner.core.chain")
+
+    for name in ("one", "two"):
+        write_manifest(
+            project,
+            f"{name}.manifest.yaml",
+            f"""schema: "2"
+goal: "{name}"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/{name}.py
+      artifacts:
+        - kind: function
+          name: {name}
+  read:
+    - tests/test_{name}.py
+validate:
+  - pytest tests/test_{name}.py -v
+""",
+        )
+        write_source(project, f"src/{name}.py", f"def {name}():\n    return '{name}'\n")
+        write_test(project, f"tests/test_{name}.py", f"src.{name}", [name])
+
+    constructed = 0
+    original_chain = chain_module.ManifestChain
+
+    class CountingManifestChain(original_chain):
+        def __init__(self, *args, **kwargs):
+            nonlocal constructed
+            constructed += 1
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(chain_module, "ManifestChain", CountingManifestChain)
+    clear_manifest_chain_cache()
+    try:
+        validate_module = importlib.import_module("maid_runner.core.validate")
+        monkeypatch.setattr(validate_module, "ManifestChain", CountingManifestChain)
+        result = validate_all(
+            "manifests",
+            project_root=project,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+    finally:
+        clear_manifest_chain_cache()
+
+    assert result.success is True
+    assert constructed == 1
+
+
+def test_validate_all_clears_manifest_chain_cache_between_invocations(
+    project, monkeypatch
+):
+    import importlib
+
+    from maid_runner.core.chain import clear_manifest_chain_cache
+
+    write_manifest(
+        project,
+        "cache-boundary.manifest.yaml",
+        """schema: "2"
+goal: "Cache boundary"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/cache_boundary.py
+      artifacts:
+        - kind: function
+          name: cache_boundary
+  read:
+    - tests/test_cache_boundary.py
+validate:
+  - pytest tests/test_cache_boundary.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/cache_boundary.py",
+        "def cache_boundary():\n    return 'ok'\n",
+    )
+    write_test(
+        project,
+        "tests/test_cache_boundary.py",
+        "src.cache_boundary",
+        ["cache_boundary"],
+    )
+
+    validate_module = importlib.import_module("maid_runner.core.validate")
+    constructed = 0
+    original_chain = validate_module.ManifestChain
+
+    class CountingManifestChain(original_chain):
+        def __init__(self, *args, **kwargs):
+            nonlocal constructed
+            constructed += 1
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(validate_module, "ManifestChain", CountingManifestChain)
+    clear_manifest_chain_cache()
+    try:
+        first = validate_all(
+            "manifests",
+            project_root=project,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+        second = validate_all(
+            "manifests",
+            project_root=project,
+            mode=ValidationMode.IMPLEMENTATION,
+        )
+    finally:
+        clear_manifest_chain_cache()
+
+    assert first.success is True
+    assert second.success is True
+    assert constructed == 2

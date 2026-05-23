@@ -1085,6 +1085,78 @@ validate:
             "contracts/target.manifest.yaml",
         )
 
+    def test_run_tests_clears_manifest_chain_cache_between_invocations(
+        self, tmp_path, monkeypatch
+    ):
+        import importlib
+
+        manifests_dir = tmp_path / "manifests"
+        contracts_dir = tmp_path / "contracts"
+        src_dir = tmp_path / "src"
+        manifests_dir.mkdir()
+        contracts_dir.mkdir()
+        src_dir.mkdir()
+        (src_dir / "target.py").write_text("def target():\n    return None\n")
+        (src_dir / "driver.py").write_text("def driver():\n    return None\n")
+        (contracts_dir / "target.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  snapshot:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+          args: []
+          returns: "None"
+validate:
+  - echo target
+"""
+        )
+        (manifests_dir / "driver.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Driver"
+type: snapshot
+files:
+  snapshot:
+    - path: src/driver.py
+      artifacts:
+        - kind: function
+          name: driver
+          args: []
+          returns: "None"
+validate:
+  - uv run maid validate contracts/target.manifest.yaml
+"""
+        )
+
+        def fail_if_subprocess_runner_is_used(command, **kwargs):
+            raise AssertionError(f"unexpected subprocess command: {command}")
+
+        monkeypatch.setattr(
+            "maid_runner.core.test_runner.run_command",
+            fail_if_subprocess_runner_is_used,
+        )
+        chain_module = importlib.import_module("maid_runner.core.chain")
+        constructed = 0
+        original_chain = chain_module.ManifestChain
+
+        class CountingManifestChain(original_chain):
+            def __init__(self, *args, **kwargs):
+                nonlocal constructed
+                constructed += 1
+                super().__init__(*args, **kwargs)
+
+        monkeypatch.setattr(chain_module, "ManifestChain", CountingManifestChain)
+
+        first = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+        second = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert first.success is True
+        assert second.success is True
+        assert constructed == 2
+
     def test_default_executes_simple_maid_validate_without_existing_chain_dir(
         self, tmp_path, monkeypatch
     ):

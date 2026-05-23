@@ -129,6 +129,6 @@ files:
     - maid_runner/core/validate.py
     - maid_runner/core/manifest.py
     - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
-    - manifests/drafts/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+    - manifests/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
 validate:
   - uv run python -m pytest -q tests/core/test_validation_test_artifacts.py tests/core/test_validate.py

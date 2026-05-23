@@ -7,7 +7,11 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Union
 
-from maid_runner.core.chain import ManifestChain
+from maid_runner.core.chain import (
+    _enter_manifest_chain_cache_scope,
+    _exit_manifest_chain_cache_scope,
+    get_cached_manifest_chain,
+)
 from maid_runner.core.result import TestRunResult
 from maid_runner.core.types import TestStream, ValidationMode
 
@@ -33,6 +37,32 @@ def _run_cached_maid_validate_command(
     parsed = _parse_maid_validate_command(command)
     if parsed is None:
         return None
+
+    chain_outermost = _enter_manifest_chain_cache_scope()
+    try:
+        return _run_cached_maid_validate_command_in_scope(
+            command,
+            cwd=cwd,
+            manifest_slug=manifest_slug,
+            stream=stream,
+            cache=cache,
+            resolve_command=resolve_command,
+            parsed=parsed,
+        )
+    finally:
+        _exit_manifest_chain_cache_scope(chain_outermost)
+
+
+def _run_cached_maid_validate_command_in_scope(
+    command: tuple[str, ...],
+    *,
+    cwd: Union[str, Path],
+    manifest_slug: str,
+    stream: TestStream,
+    cache: dict[str, object],
+    resolve_command: _CommandResolver,
+    parsed: dict[str, object],
+) -> TestRunResult:
 
     from maid_runner.cli.commands._format import (
         format_batch_result,
@@ -63,13 +93,9 @@ def _run_cached_maid_validate_command(
         else:
             chain = None
             if use_chain:
-                chain_key = f"chain:{manifest_dir}"
                 chain_dir = project_root / manifest_dir
                 if chain_dir.exists():
-                    chain = cache.get(chain_key)
-                    if chain is None:
-                        chain = ManifestChain(chain_dir, project_root)
-                        cache[chain_key] = chain
+                    chain = get_cached_manifest_chain(chain_dir, project_root)
             manifest_to_validate = Path(manifest_path)
             if not manifest_to_validate.is_absolute():
                 manifest_to_validate = project_root / manifest_to_validate

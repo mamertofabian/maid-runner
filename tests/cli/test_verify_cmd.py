@@ -492,6 +492,78 @@ def test_verify_changed_scope_stage_passes_with_since_for_writable_changes(
     assert "PASS tests" in output
 
 
+def test_verify_shares_one_manifest_chain_across_stages(tmp_path, monkeypatch):
+    import importlib
+    import subprocess
+
+    from maid_runner.cli.commands import validate as validate_command
+    from maid_runner.cli.commands.verify import _run_verify
+    from maid_runner.core import chain as chain_module
+    from maid_runner.core import test_runner
+
+    validate_module = importlib.import_module("maid_runner.core.validate")
+
+    os.chdir(tmp_path)
+    manifest_path = _write_verify_project(tmp_path, slug="verify-shared-chain")
+    manifest = yaml.safe_load(manifest_path.read_text())
+    manifest["type"] = "snapshot"
+    manifest["validate"] = [
+        "uv run maid validate manifests/verify-shared-chain.manifest.yaml --mode schema"
+    ]
+    manifest_path.write_text(yaml.dump(manifest))
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+
+    constructed = 0
+    integrity_calls = 0
+    test_runner_calls = 0
+    original_chain = chain_module.ManifestChain
+    original_integrity = validate_command._validate_command_integrity_for_manifest_dir
+    original_run_tests = test_runner.run_tests
+
+    class CountingManifestChain(original_chain):
+        def __init__(self, *args, **kwargs):
+            nonlocal constructed
+            constructed += 1
+            super().__init__(*args, **kwargs)
+
+    def counting_integrity(*args, **kwargs):
+        nonlocal integrity_calls
+        integrity_calls += 1
+        return original_integrity(*args, **kwargs)
+
+    def counting_run_tests(*args, **kwargs):
+        nonlocal test_runner_calls
+        test_runner_calls += 1
+        return original_run_tests(*args, **kwargs)
+
+    monkeypatch.setattr(chain_module, "ManifestChain", CountingManifestChain)
+    monkeypatch.setattr(validate_module, "ManifestChain", CountingManifestChain)
+    monkeypatch.setattr(
+        validate_command,
+        "_validate_command_integrity_for_manifest_dir",
+        counting_integrity,
+    )
+    monkeypatch.setattr(test_runner, "run_tests", counting_run_tests)
+    chain_module.clear_manifest_chain_cache()
+    try:
+        result = _run_verify(
+            manifest_dir="manifests",
+            project_root=tmp_path,
+            check_assertions=True,
+            check_stubs=True,
+            fail_on_warnings=True,
+            require_worktree_scope=True,
+            require_changed_scope=False,
+        )
+    finally:
+        chain_module.clear_manifest_chain_cache()
+
+    assert all(stage.success for stage in result.stages)
+    assert integrity_calls == 1
+    assert test_runner_calls == 1
+    assert constructed == 1
+
+
 def test_verify_json_reports_all_stage_statuses(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
 

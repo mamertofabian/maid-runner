@@ -1,5 +1,7 @@
 """Tests for maid_runner.core.chain - ManifestChain resolution and merge."""
 
+import os
+
 import pytest
 
 from maid_runner.core.chain import ManifestChain
@@ -597,6 +599,152 @@ validate:
         )
         chain.reload()
         assert len(chain.active_manifests()) == 2
+
+
+class TestManifestChainInvocationCache:
+    def test_get_cached_manifest_chain_returns_same_instance_within_invocation(
+        self, chain_dir, monkeypatch
+    ):
+        from maid_runner.core.chain import (
+            clear_manifest_chain_cache,
+            get_cached_manifest_chain,
+        )
+
+        _write_manifest(
+            chain_dir / "cached.manifest.yaml",
+            """schema: "2"
+goal: "Cached"
+files:
+  create:
+    - path: src/cached.py
+      artifacts:
+        - kind: function
+          name: cached
+validate:
+  - pytest
+""",
+        )
+        load_count = 0
+        original_load = ManifestChain._load
+
+        def counting_load(chain):
+            nonlocal load_count
+            load_count += 1
+            return original_load(chain)
+
+        monkeypatch.setattr(ManifestChain, "_load", counting_load)
+        clear_manifest_chain_cache()
+        try:
+            first = get_cached_manifest_chain(chain_dir)
+            assert [manifest.slug for manifest in first.active_manifests()] == [
+                "cached"
+            ]
+
+            second = get_cached_manifest_chain(chain_dir)
+            assert second is first
+            assert [manifest.slug for manifest in second.active_manifests()] == [
+                "cached"
+            ]
+            assert load_count == 1
+        finally:
+            clear_manifest_chain_cache()
+
+    def test_get_cached_manifest_chain_invalidates_when_signature_changes(
+        self, chain_dir
+    ):
+        from maid_runner.core.chain import (
+            clear_manifest_chain_cache,
+            get_cached_manifest_chain,
+        )
+
+        manifest_path = chain_dir / "cached.manifest.yaml"
+        _write_manifest(
+            manifest_path,
+            """schema: "2"
+goal: "Cached"
+files:
+  create:
+    - path: src/cached.py
+      artifacts:
+        - kind: function
+          name: cached
+validate:
+  - pytest
+""",
+        )
+        clear_manifest_chain_cache()
+        try:
+            first = get_cached_manifest_chain(chain_dir)
+            first.active_manifests()
+
+            with manifest_path.open("a") as handle:
+                handle.write("# touched\n")
+            stat = manifest_path.stat()
+            os.utime(
+                manifest_path,
+                ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000),
+            )
+
+            second = get_cached_manifest_chain(chain_dir)
+            assert second is not first
+            assert [manifest.slug for manifest in second.active_manifests()] == [
+                "cached"
+            ]
+        finally:
+            clear_manifest_chain_cache()
+
+    def test_clear_manifest_chain_cache_drops_all_entries(self, tmp_path):
+        from maid_runner.core.chain import (
+            clear_manifest_chain_cache,
+            get_cached_manifest_chain,
+        )
+
+        first_dir = tmp_path / "first" / "manifests"
+        second_dir = tmp_path / "second" / "manifests"
+        first_dir.mkdir(parents=True)
+        second_dir.mkdir(parents=True)
+        _write_manifest(
+            first_dir / "first.manifest.yaml",
+            """schema: "2"
+goal: "First"
+files:
+  create:
+    - path: src/first.py
+      artifacts:
+        - kind: function
+          name: first
+validate:
+  - pytest
+""",
+        )
+        _write_manifest(
+            second_dir / "second.manifest.yaml",
+            """schema: "2"
+goal: "Second"
+files:
+  create:
+    - path: src/second.py
+      artifacts:
+        - kind: function
+          name: second
+validate:
+  - pytest
+""",
+        )
+
+        clear_manifest_chain_cache()
+        try:
+            first_before = get_cached_manifest_chain(first_dir)
+            second_before = get_cached_manifest_chain(second_dir)
+
+            clear_manifest_chain_cache()
+
+            first_after = get_cached_manifest_chain(first_dir)
+            second_after = get_cached_manifest_chain(second_dir)
+            assert first_after is not first_before
+            assert second_after is not second_before
+        finally:
+            clear_manifest_chain_cache()
 
 
 class TestReload:

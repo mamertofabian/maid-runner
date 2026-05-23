@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
 from maid_runner.compat.v1_loader import is_v1_manifest
 
@@ -23,6 +23,7 @@ _MANIFEST_FILE_PATTERNS = ("*.manifest.yaml", "*.manifest.yml", "*.manifest.json
 _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
 )
+_ManifestDirSignature = tuple[tuple[str, int, int], ...]
 
 
 class ManifestChain:
@@ -516,6 +517,83 @@ class ManifestChain:
         self._superseded_by_map = None
         self._active_cache = None
         self._load_errors = None
+
+
+_MANIFEST_CHAIN_CACHE: dict[
+    tuple[str, str], tuple[_ManifestDirSignature, ManifestChain]
+] = {}
+_MANIFEST_CHAIN_CACHE_SCOPE_DEPTH = 0
+
+
+def get_cached_manifest_chain(
+    manifest_dir: Union[str, Path],
+    project_root: Optional[Path] = None,
+) -> ManifestChain:
+    """Return a cached ManifestChain while the manifest directory is unchanged."""
+    return _get_cached_manifest_chain_with_factory(
+        manifest_dir,
+        project_root,
+        ManifestChain,
+    )
+
+
+def _get_cached_manifest_chain_with_factory(
+    manifest_dir: Union[str, Path],
+    project_root: Optional[Path],
+    chain_factory: Callable[[Path, Path], ManifestChain],
+) -> ManifestChain:
+    manifest_path = Path(manifest_dir)
+    root = Path("." if project_root is None else project_root)
+    cache_key = (str(manifest_path.resolve()), str(root.resolve()))
+    signature = _manifest_dir_signature(manifest_path)
+
+    cached = _MANIFEST_CHAIN_CACHE.get(cache_key)
+    if cached is not None:
+        cached_signature, cached_chain = cached
+        if cached_signature == signature:
+            return cached_chain
+
+    chain = chain_factory(manifest_path, root)
+    _MANIFEST_CHAIN_CACHE[cache_key] = (signature, chain)
+    return chain
+
+
+def clear_manifest_chain_cache() -> None:
+    """Drop every cached ManifestChain instance."""
+    _MANIFEST_CHAIN_CACHE.clear()
+
+
+def _enter_manifest_chain_cache_scope() -> bool:
+    global _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH
+    outermost = _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH == 0
+    if outermost:
+        clear_manifest_chain_cache()
+    _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH += 1
+    return outermost
+
+
+def _exit_manifest_chain_cache_scope(outermost: bool) -> None:
+    global _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH
+    _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH -= 1
+    if _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH < 0:
+        _MANIFEST_CHAIN_CACHE_SCOPE_DEPTH = 0
+    if outermost:
+        clear_manifest_chain_cache()
+
+
+def _manifest_dir_signature(manifest_dir: Path) -> tuple[tuple[str, int, int], ...]:
+    signature: list[tuple[str, int, int]] = []
+    for path in _iter_manifest_files(manifest_dir):
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            continue
+        try:
+            relative_path = path.relative_to(manifest_dir)
+        except ValueError:
+            relative_path = path
+        signature.append((relative_path.as_posix(), stat.st_mtime_ns, stat.st_size))
+    return tuple(sorted(signature))
 
 
 def _discover_manifest_files(manifest_dir: Path) -> list[Path]:

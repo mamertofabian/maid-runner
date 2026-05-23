@@ -1,0 +1,290 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Cache ManifestChain per CLI invocation so validate, coherence, file tracking, and verify reuse one load"
+type: refactor
+created: "2026-05-19"
+metadata:
+  status: draft
+  tags:
+    - performance
+    - chain
+    - verify
+    - file-tracking
+  priority: high
+description: |
+  Close the inefficiency where one CLI command instantiates ManifestChain
+  multiple times for the same manifest directory. Current validate-all
+  orchestration already passes one chain through active-manifest validation and
+  file tracking, but `maid verify` still runs three validate_all stages plus
+  coherence, file tracking, worktree-scope, changed-scope, validate-command
+  integrity, and test execution with separate ManifestChain instances. Each
+  instance walks `manifests/**.manifest.yaml` from disk and resolves
+  supersession again.
+
+  Introduce a per-invocation chain cache keyed by `(absolute_manifest_dir,
+  manifest_set_signature)` where the signature is built from the sorted list of
+  `(path, mtime_ns, size)` tuples for every discovered manifest file plus the
+  inactive-marker set. The first call inside a CLI invocation loads the chain
+  normally; subsequent callers receive the same cached instance. The cache is
+  invalidated automatically when the on-disk signature changes (so watch mode
+  and tests stay correct) and is cleared at the end of each CLI invocation.
+
+  This optimization must preserve every validation result. Equivalence tests
+  compare cached and uncached `BatchValidationResult` objects for the same
+  temporary manifest directory while ignoring timing fields.
+temptations:
+  - risk: "Do not make the cache a module-level singleton that survives across CLI invocations."
+    instead: "Scope the cache to a single CLI entry point and clear it before the process exits."
+  - risk: "Do not key the cache by manifest directory path alone."
+    instead: "Include a content signature (mtime_ns, size, and inactive-marker set) so edits invalidate the cache."
+  - risk: "Do not skip rebuilding diagnostics when returning a cached chain."
+    instead: "Cache the chain object only; let callers continue requesting `diagnostics()` so error reporting stays identical."
+  - risk: "Do not bypass `ManifestChain.reload()` semantics for watch mode."
+    instead: "Treat `reload()` as a cache-invalidation signal and re-run signature collection on the next access."
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: function
+          name: get_cached_manifest_chain
+          args:
+            - name: manifest_dir
+              type: "Union[str, Path]"
+            - name: project_root
+              type: "Optional[Path]"
+              default: None
+          returns: ManifestChain
+          description: "Return a per-invocation cached ManifestChain for the given manifest directory, rebuilding when the on-disk signature changes."
+        - kind: function
+          name: clear_manifest_chain_cache
+          args: []
+          returns: None
+          description: "Drop all cached ManifestChain instances; called at the end of each CLI invocation."
+        - kind: function
+          name: _manifest_dir_signature
+          args:
+            - name: manifest_dir
+              type: Path
+          returns: "tuple[tuple[str, int, int], Ellipsis]"
+          description: "Build a content-anchored signature of the manifest directory used as the cache invalidation key."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: "Union[str, Path]"
+              default: '"manifests/"'
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_file_tracking
+              type: bool
+              default: "False"
+            - name: allow_empty
+              type: bool
+              default: "False"
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+          description: "Route validate_all chain construction through the per-invocation chain cache while preserving the public method signature and result shape."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: _validate_command_integrity_for_manifest_dir
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Any
+          returns: "list[ValidationError]"
+          description: "Use the per-invocation chain cache for validate-command integrity checks so verify tests-stage integrity does not reload the manifest chain."
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: "Union[str, Path]"
+              default: '"manifests/"'
+            - name: fail_fast
+              type: bool
+              default: "False"
+            - name: project_root
+              type: "Union[str, Path]"
+              default: '"."'
+            - name: batch
+              type: "Optional[bool]"
+              default: None
+          returns: BatchTestResult
+          description: "Route directory-wide test runner chain construction through the per-invocation chain cache so verify's tests stage reuses the same ManifestChain."
+    - path: maid_runner/core/_maid_validate_command_cache.py
+      artifacts:
+        - kind: function
+          name: _run_cached_maid_validate_command
+          args:
+            - name: command
+              type: "tuple[str, ...]"
+            - name: cwd
+              type: "Union[str, Path]"
+            - name: manifest_slug
+              type: str
+            - name: stream
+              type: TestStream
+            - name: cache
+              type: "dict[str, object]"
+            - name: resolve_command
+              type: _CommandResolver
+              default: _identity_resolve_command
+          returns: "TestRunResult | None"
+          description: "Reuse the per-invocation ManifestChain cache when an in-process `maid validate <manifest>` command needs chain context."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _run_verify
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: "Union[str, Path]"
+            - name: allow_empty
+              type: bool
+              default: "False"
+            - name: fail_fast
+              type: bool
+              default: "True"
+            - name: check_assertions
+              type: bool
+              default: "True"
+            - name: check_stubs
+              type: bool
+              default: "True"
+            - name: fail_on_warnings
+              type: bool
+              default: "True"
+            - name: require_worktree_scope
+              type: bool
+              default: "False"
+            - name: require_changed_scope
+              type: bool
+              default: "False"
+            - name: since
+              type: "str | None"
+              default: None
+            - name: base_ref
+              type: "str | None"
+              default: None
+            - name: include_tests
+              type: bool
+              default: "False"
+          returns: VerificationResult
+          description: "Share one cached ManifestChain across the validation, coherence, file-tracking, worktree-scope, changed-scope, and tests-stage integrity checks of verify."
+    - path: tests/core/test_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_get_cached_manifest_chain_returns_same_instance_within_invocation
+          source_scenario: "Two callers request a chain for the same manifest directory inside one CLI run with no on-disk changes."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_manifest_chain
+          expected:
+            behavior: "Both callers receive the same ManifestChain instance and no second disk scan happens."
+        - kind: test_function
+          name: test_get_cached_manifest_chain_invalidates_when_signature_changes
+          source_scenario: "A manifest file is touched (mtime change) between two requests for the chain."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_manifest_chain
+          expected:
+            behavior: "The second request returns a freshly loaded ManifestChain, not the stale cached instance."
+        - kind: test_function
+          name: test_clear_manifest_chain_cache_drops_all_entries
+          source_scenario: "Two manifest directories are cached and then the cache is cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_manifest_chain_cache
+          expected:
+            behavior: "Subsequent requests for either directory perform a full reload from disk."
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_results_match_uncached_manifest_chain_run
+          source_scenario: "validate_all is run with and without the chain cache against the same temporary manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "Both BatchValidationResult objects expose the same per-manifest success flags, errors, and warnings."
+        - kind: test_function
+          name: test_validate_all_loads_manifest_chain_once_per_invocation
+          source_scenario: "validate_all is invoked once over a manifest directory containing multiple manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "ManifestChain construction is observed exactly once via a counting hook even though many manifests are validated."
+        - kind: test_function
+          name: test_validate_all_clears_manifest_chain_cache_between_invocations
+          source_scenario: "validate_all is invoked twice in one Python process over an unchanged manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "Each validate_all invocation starts with an empty chain cache."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_shares_one_manifest_chain_across_stages
+          source_scenario: "maid verify runs validation, coherence, file tracking, worktree-scope, tests-stage integrity, and an in-process `maid validate <manifest>` test command on the same manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_verify
+          expected:
+            behavior: "ManifestChain construction is observed exactly once across all verify stages and every stage still succeeds."
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_run_tests_clears_manifest_chain_cache_between_invocations
+          source_scenario: "run_tests is invoked twice in one Python process over an unchanged manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "Each run_tests invocation starts with an empty chain cache while still sharing one chain inside the individual run."
+    - path: tests/core/validation/test_maid_validate_command_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_run_cached_maid_validate_command_clears_manifest_chain_between_direct_calls
+          source_scenario: "_run_cached_maid_validate_command is called directly twice in one Python process with unchanged manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_cached_maid_validate_command
+          expected:
+            behavior: "The command-level cache reuses the ValidationEngine but does not leak a ManifestChain across separate direct calls."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/_validate_all.py
+    - maid_runner/coherence/engine.py
+    - maid_runner/graph/builder.py
+    - maid_runner/core/worktree.py
+    - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain.py tests/core/validation/test_validate_all_chain.py tests/core/test_test_runner.py tests/core/validation/test_maid_validate_command_cache.py tests/cli/test_verify_cmd.py

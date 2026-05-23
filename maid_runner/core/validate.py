@@ -36,7 +36,12 @@ from maid_runner.core._validation_test_artifacts import (
     find_test_files,
     get_validator_for_test,
 )
-from maid_runner.core.chain import ManifestChain
+from maid_runner.core.chain import (
+    ManifestChain,
+    _enter_manifest_chain_cache_scope,
+    _exit_manifest_chain_cache_scope,
+    _get_cached_manifest_chain_with_factory,
+)
 from maid_runner.core.ts_module_paths import (
     clear_ts_resolution_cache,
     resolve_ts_import,
@@ -70,6 +75,17 @@ from maid_runner.validators.registry import (
 )
 
 _STRUCTURAL_KINDS = _implementation_validation._STRUCTURAL_KINDS
+
+
+def _get_cached_manifest_chain_for_validate_all(
+    manifest_dir: Union[str, Path],
+    project_root: Path,
+) -> ManifestChain:
+    return _get_cached_manifest_chain_with_factory(
+        manifest_dir,
+        project_root,
+        ManifestChain,
+    )
 
 
 class ValidationEngine:
@@ -235,6 +251,7 @@ class ValidationEngine:
         check_assertions: bool = False,
         fail_on_warnings: bool = False,
     ) -> BatchValidationResult:
+        chain_outermost = _enter_manifest_chain_cache_scope()
         outermost = self._enter_validation_cache_scope()
         try:
             return _run_validate_all(
@@ -248,10 +265,11 @@ class ValidationEngine:
                 fail_on_warnings=fail_on_warnings,
                 validate_manifest=self.validate,
                 run_file_tracking=self.run_file_tracking,
-                chain_factory=ManifestChain,
+                chain_factory=_get_cached_manifest_chain_for_validate_all,
             )
         finally:
             self._exit_validation_cache_scope(outermost)
+            _exit_manifest_chain_cache_scope(chain_outermost)
 
     def _enter_validation_cache_scope(self) -> bool:
         outermost = self._validation_cache_depth == 0

@@ -6,7 +6,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Union
 
-from maid_runner.core.chain import ManifestChain
+from maid_runner.core.chain import (
+    _enter_manifest_chain_cache_scope,
+    _exit_manifest_chain_cache_scope,
+    get_cached_manifest_chain,
+)
 from maid_runner.core._pytest_command_normalization import (
     _is_python_command as _normalization_is_python_command,
 )
@@ -169,13 +173,32 @@ def run_tests(
     project_root: Union[str, Path] = ".",
     batch: bool | None = None,
 ) -> BatchTestResult:
+    chain_outermost = _enter_manifest_chain_cache_scope()
+    try:
+        return _run_tests_cached(
+            manifest_dir=manifest_dir,
+            fail_fast=fail_fast,
+            project_root=project_root,
+            batch=batch,
+        )
+    finally:
+        _exit_manifest_chain_cache_scope(chain_outermost)
+
+
+def _run_tests_cached(
+    manifest_dir: Union[str, Path] = "manifests/",
+    *,
+    fail_fast: bool = False,
+    project_root: Union[str, Path] = ".",
+    batch: bool | None = None,
+) -> BatchTestResult:
     project_root = Path(project_root)
     chain_dir = project_root / manifest_dir
 
     if not chain_dir.exists():
         return BatchTestResult(results=[], total=0, passed=0, failed=0)
 
-    chain = ManifestChain(chain_dir, project_root)
+    chain = get_cached_manifest_chain(chain_dir, project_root)
     chain_errors = chain.diagnostics()
     if any(error.severity == Severity.ERROR for error in chain_errors):
         return BatchTestResult(

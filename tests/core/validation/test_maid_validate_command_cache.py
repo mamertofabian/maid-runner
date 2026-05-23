@@ -115,7 +115,11 @@ validate:
     assert "chain:missing-manifests" not in cache
 
 
-def test_run_cached_maid_validate_command_reuses_engine_and_chain_cache(tmp_path):
+def test_run_cached_maid_validate_command_reuses_engine_and_chain_cache(
+    tmp_path, monkeypatch
+):
+    from maid_runner.core import chain as chain_module
+
     manifests_dir = tmp_path / "manifests"
     src_dir = tmp_path / "src"
     manifests_dir.mkdir()
@@ -139,6 +143,16 @@ validate:
     )
 
     cache: dict[str, object] = {}
+    constructed = 0
+    original_chain = chain_module.ManifestChain
+
+    class CountingManifestChain(original_chain):
+        def __init__(self, *args, **kwargs):
+            nonlocal constructed
+            constructed += 1
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(chain_module, "ManifestChain", CountingManifestChain)
 
     first = _run_cached_maid_validate_command(
         ("uv", "run", "maid", "validate", "manifests/target.manifest.yaml"),
@@ -148,7 +162,6 @@ validate:
         cache=cache,
     )
     engine = cache.get("engine")
-    chain = cache.get("chain:manifests/")
     second = _run_cached_maid_validate_command(
         ("uv", "run", "maid", "validate", "manifests/target.manifest.yaml"),
         cwd=tmp_path,
@@ -162,4 +175,60 @@ validate:
     assert first.success is True
     assert second.success is True
     assert cache.get("engine") is engine
-    assert cache.get("chain:manifests/") is chain
+    assert "chain:manifests/" not in cache
+    assert constructed == 2
+
+
+def test_run_cached_maid_validate_command_clears_manifest_chain_between_direct_calls(
+    tmp_path, monkeypatch
+):
+    from maid_runner.core import chain as chain_module
+
+    manifests_dir = tmp_path / "manifests"
+    src_dir = tmp_path / "src"
+    manifests_dir.mkdir()
+    src_dir.mkdir()
+    (src_dir / "target.py").write_text("def target():\n    return None\n")
+    (manifests_dir / "target.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  snapshot:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+          args: []
+          returns: "None"
+validate:
+  - echo target
+"""
+    )
+
+    cache: dict[str, object] = {}
+    constructed = 0
+    original_chain = chain_module.ManifestChain
+
+    class CountingManifestChain(original_chain):
+        def __init__(self, *args, **kwargs):
+            nonlocal constructed
+            constructed += 1
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(chain_module, "ManifestChain", CountingManifestChain)
+
+    for slug in ("first", "second"):
+        result = _run_cached_maid_validate_command(
+            ("uv", "run", "maid", "validate", "manifests/target.manifest.yaml"),
+            cwd=tmp_path,
+            manifest_slug=slug,
+            stream=TestStream.IMPLEMENTATION,
+            cache=cache,
+        )
+        assert result is not None
+        assert result.success is True
+
+    assert "engine" in cache
+    assert "chain:manifests/" not in cache
+    assert constructed == 2

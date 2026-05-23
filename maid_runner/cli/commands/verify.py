@@ -79,6 +79,46 @@ def _run_verify(
     base_ref: str | None = None,
     include_tests: bool = False,
 ) -> VerificationResult:
+    from maid_runner.core.chain import (
+        _enter_manifest_chain_cache_scope,
+        _exit_manifest_chain_cache_scope,
+    )
+
+    chain_outermost = _enter_manifest_chain_cache_scope()
+    try:
+        return _run_verify_cached(
+            manifest_dir=manifest_dir,
+            project_root=project_root,
+            allow_empty=allow_empty,
+            fail_fast=fail_fast,
+            check_assertions=check_assertions,
+            check_stubs=check_stubs,
+            fail_on_warnings=fail_on_warnings,
+            require_worktree_scope=require_worktree_scope,
+            require_changed_scope=require_changed_scope,
+            since=since,
+            base_ref=base_ref,
+            include_tests=include_tests,
+        )
+    finally:
+        _exit_manifest_chain_cache_scope(chain_outermost)
+
+
+def _run_verify_cached(
+    *,
+    manifest_dir: str,
+    project_root: Union[str, Path],
+    allow_empty: bool = False,
+    fail_fast: bool = True,
+    check_assertions: bool = True,
+    check_stubs: bool = True,
+    fail_on_warnings: bool = True,
+    require_worktree_scope: bool = False,
+    require_changed_scope: bool = False,
+    since: str | None = None,
+    base_ref: str | None = None,
+    include_tests: bool = False,
+) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
 
@@ -212,9 +252,9 @@ def _coherence_stage(root: Path, manifest_dir: str) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.coherence.engine import CoherenceEngine
-        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.chain import get_cached_manifest_chain
 
-        chain = ManifestChain(_manifest_dir_path(root, manifest_dir), root)
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         result = CoherenceEngine().validate(chain, project_root=root)
         return VerificationStageResult(
             name="coherence",
@@ -233,9 +273,9 @@ def _file_tracking_stage(
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
-        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.chain import get_cached_manifest_chain
 
-        chain = ManifestChain(_manifest_dir_path(root, manifest_dir), root)
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         report = engine.run_file_tracking(chain)
         return VerificationStageResult(
             name="file_tracking",
@@ -254,10 +294,10 @@ def _worktree_scope_stage(
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
-        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.chain import get_cached_manifest_chain
         from maid_runner.core.worktree import validate_worktree_scope
 
-        chain = ManifestChain(_manifest_dir_path(root, manifest_dir), root)
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         errors = validate_worktree_scope(root, chain, include_tests=include_tests)
         return VerificationStageResult(
             name="worktree_scope",
@@ -278,10 +318,10 @@ def _changed_scope_stage(
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
-        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.chain import get_cached_manifest_chain
         from maid_runner.core.worktree import validate_changed_scope
 
-        chain = ManifestChain(_manifest_dir_path(root, manifest_dir), root)
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         errors = validate_changed_scope(
             root,
             chain,
@@ -446,9 +486,9 @@ def _allow_empty_without_active_manifests(
         return True
 
     try:
-        from maid_runner.core.chain import ManifestChain
+        from maid_runner.core.chain import get_cached_manifest_chain
 
-        chain = ManifestChain(manifest_path, root)
+        chain = get_cached_manifest_chain(manifest_path, root)
         return not chain.active_manifests() and not chain.load_errors
     except Exception:
         return False

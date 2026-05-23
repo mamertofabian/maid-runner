@@ -191,15 +191,15 @@ def _validate_command_integrity_for_manifest_dir(
     manifest_dir: str,
     *,
     project_root,
-):
+) -> list[ValidationError]:
     from maid_runner.core._validation_test_artifacts import (
         validate_manifest_test_commands,
     )
-    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.chain import get_cached_manifest_chain
     from maid_runner.core.manifest import validate_manifest_paths
     from maid_runner.core.result import Severity
 
-    chain = ManifestChain(project_root / manifest_dir, project_root)
+    chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
     chain_errors = chain.diagnostics()
     if any(error.severity == Severity.ERROR for error in chain_errors):
         return chain_errors
