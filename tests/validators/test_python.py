@@ -3,15 +3,33 @@
 Golden test cases from 15-golden-tests.md section 4.
 """
 
+import ast
+import os
+
 import pytest
 
 from maid_runner.core.types import ArtifactKind
-from maid_runner.validators.python import PythonValidator
+from maid_runner.validators._python_implementation import (
+    collect_implementation_artifacts as collect_python_implementation_artifacts,
+)
+from maid_runner.validators.python import (
+    PythonValidator,
+    _BehavioralCollector,
+    clear_python_ast_cache,
+    get_cached_python_ast,
+)
 
 
 @pytest.fixture()
 def validator():
     return PythonValidator()
+
+
+@pytest.fixture(autouse=True)
+def clear_python_ast_cache_between_tests():
+    clear_python_ast_cache()
+    yield
+    clear_python_ast_cache()
 
 
 def _find(artifacts, name, kind=None, of=None):
@@ -24,6 +42,189 @@ def _find(artifacts, name, kind=None, of=None):
                 continue
             return a
     return None
+
+
+def _count_ast_parse_calls(monkeypatch):
+    real_parse = ast.parse
+    calls = []
+
+    def counting_parse(source, filename="<unknown>", mode="exec", *args, **kwargs):
+        calls.append((source, filename, mode))
+        return real_parse(
+            source,
+            filename=filename,
+            mode=mode,
+            *args,
+            **kwargs,
+        )
+
+    monkeypatch.setattr(ast, "parse", counting_parse)
+    return calls
+
+
+def _artifact_signature(artifacts):
+    return [
+        (
+            artifact.kind.value,
+            artifact.name,
+            artifact.of,
+            tuple((arg.name, arg.type, arg.default) for arg in artifact.args),
+            artifact.returns,
+            artifact.is_async,
+            artifact.bases,
+            artifact.type_annotation,
+            artifact.is_stub,
+            artifact.module_path,
+            artifact.import_source,
+            artifact.alias_of,
+            artifact.reference_context,
+        )
+        for artifact in artifacts
+    ]
+
+
+def _direct_python_artifact_baseline(source, file_path):
+    tree = ast.parse(source, filename=str(file_path))
+    implementation = collect_python_implementation_artifacts(tree, str(file_path))
+    behavioral_collector = _BehavioralCollector(file_path=str(file_path))
+    behavioral_collector.scan_imports(tree)
+    behavioral_collector.visit(tree)
+    return (
+        _artifact_signature(implementation),
+        _artifact_signature(behavioral_collector.artifacts),
+    )
+
+
+def test_get_cached_python_ast_returns_same_tree_within_invocation(
+    tmp_path, monkeypatch
+):
+    source_path = tmp_path / "shared.py"
+    source_path.write_text("def shared() -> int:\n    return 1\n")
+    calls = _count_ast_parse_calls(monkeypatch)
+
+    first_tree, first_source = get_cached_python_ast(source_path)
+    second_tree, second_source = get_cached_python_ast(source_path)
+
+    assert second_tree is first_tree
+    assert first_source == second_source == source_path.read_text()
+    assert len(calls) == 1
+
+
+def test_get_cached_python_ast_invalidates_on_mtime_change(tmp_path, monkeypatch):
+    source_path = tmp_path / "shared.py"
+    source_path.write_text("def shared() -> int:\n    return 1\n")
+    calls = _count_ast_parse_calls(monkeypatch)
+
+    first_tree, _ = get_cached_python_ast(source_path)
+    source_path.write_text("def shared() -> int:\n    return 2\n")
+    stat = source_path.stat()
+    os.utime(
+        source_path,
+        ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000),
+    )
+    second_tree, _ = get_cached_python_ast(source_path)
+
+    assert second_tree is not first_tree
+    assert len(calls) == 2
+
+
+def test_collect_implementation_and_behavioral_artifacts_share_one_parse(
+    tmp_path, monkeypatch, validator
+):
+    assert isinstance(validator, PythonValidator)
+    source_path = tmp_path / "shared.py"
+    source = """from package.service import Service
+
+def build_user(name: str) -> str:
+    return Service().normalize(name)
+
+def test_build_user():
+    assert build_user("Ada") == "Ada"
+"""
+    source_path.write_text(source)
+    baseline_implementation, baseline_behavioral = _direct_python_artifact_baseline(
+        source,
+        source_path,
+    )
+    clear_python_ast_cache()
+    calls = _count_ast_parse_calls(monkeypatch)
+
+    implementation = validator.collect_implementation_artifacts(source, source_path)
+    behavioral = validator.collect_behavioral_artifacts(source, source_path)
+
+    assert len(calls) == 1
+    assert _artifact_signature(implementation.artifacts) == baseline_implementation
+    assert _artifact_signature(behavioral.artifacts) == baseline_behavioral
+
+
+def test_get_test_function_bodies_reuses_cached_python_ast(
+    tmp_path, monkeypatch, validator
+):
+    assert isinstance(validator, PythonValidator)
+    source_path = tmp_path / "test_shared.py"
+    source = """from package.service import build_user
+
+def test_build_user():
+    result = build_user("Ada")
+    assert result == "Ada"
+"""
+    source_path.write_text(source)
+    calls = _count_ast_parse_calls(monkeypatch)
+
+    behavioral = validator.collect_behavioral_artifacts(source, source_path)
+    bodies = validator.get_test_function_bodies(source, source_path)
+
+    assert len(calls) == 1
+    assert "build_user" in [artifact.name for artifact in behavioral.artifacts]
+    assert bodies == {
+        "test_build_user": (
+            'def test_build_user():\n    result = build_user("Ada")\n'
+            '    assert result == "Ada"\n'
+        )
+    }
+
+
+def test_collect_results_match_uncached_baseline(tmp_path, validator):
+    assert isinstance(validator, PythonValidator)
+    source_path = tmp_path / "shared.py"
+    source = """from package.service import Service
+
+class UserService:
+    def build_user(self, name: str) -> str:
+        return Service().normalize(name)
+
+def test_build_user():
+    service = UserService()
+    assert service.build_user("Ada") == "Ada"
+"""
+    source_path.write_text(source)
+    baseline_implementation, baseline_behavioral = _direct_python_artifact_baseline(
+        source,
+        source_path,
+    )
+    clear_python_ast_cache()
+
+    implementation = validator.collect_implementation_artifacts(source, source_path)
+    behavioral = validator.collect_behavioral_artifacts(source, source_path)
+
+    assert _artifact_signature(implementation.artifacts) == baseline_implementation
+    assert _artifact_signature(behavioral.artifacts) == baseline_behavioral
+
+
+def test_clear_python_ast_cache_drops_all_entries(tmp_path, monkeypatch):
+    first_path = tmp_path / "first.py"
+    second_path = tmp_path / "second.py"
+    first_path.write_text("def first() -> int:\n    return 1\n")
+    second_path.write_text("def second() -> int:\n    return 2\n")
+    calls = _count_ast_parse_calls(monkeypatch)
+
+    get_cached_python_ast(first_path)
+    get_cached_python_ast(second_path)
+    clear_python_ast_cache()
+    get_cached_python_ast(first_path)
+    get_cached_python_ast(second_path)
+
+    assert len(calls) == 4
 
 
 class TestBasicClass:

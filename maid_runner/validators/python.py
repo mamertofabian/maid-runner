@@ -44,6 +44,70 @@ _ModuleImportScope = dict[str, str]
 _ModuleAliasShadowScope = set[str]
 _LocalValueScope = set[str]
 _ObjectOwnerScope = dict[str, tuple[Optional[str], str]]
+_PythonAstCacheKey = tuple[str, int, int]
+_PythonAstCacheEntry = tuple[ast.Module, str]
+
+_PYTHON_AST_CACHE: dict[_PythonAstCacheKey, _PythonAstCacheEntry] = {}
+
+
+def get_cached_python_ast(file_path: Union[str, Path]) -> tuple[ast.Module, str]:
+    path = Path(file_path)
+    key = _python_ast_cache_key(path)
+    cached = _PYTHON_AST_CACHE.get(key)
+    if cached is not None:
+        return cached
+
+    source = path.read_text()
+    return _cache_python_ast(path, key, source)
+
+
+def clear_python_ast_cache() -> None:
+    _PYTHON_AST_CACHE.clear()
+
+
+def _get_python_ast_for_source(
+    source: str,
+    file_path: Union[str, Path],
+) -> ast.Module:
+    path = Path(file_path)
+    if path.is_file():
+        try:
+            key = _python_ast_cache_key(path)
+        except OSError:
+            pass
+        else:
+            cached = _PYTHON_AST_CACHE.get(key)
+            if cached is not None:
+                tree, cached_source = cached
+                if cached_source == source:
+                    return tree
+            else:
+                try:
+                    file_source = path.read_text()
+                except (OSError, UnicodeDecodeError):
+                    pass
+                else:
+                    if file_source == source:
+                        return _cache_python_ast(path, key, source)[0]
+
+    return ast.parse(source, filename=str(file_path))
+
+
+def _python_ast_cache_key(file_path: Path) -> _PythonAstCacheKey:
+    resolved = file_path.resolve()
+    stat = resolved.stat()
+    return (str(resolved), stat.st_mtime_ns, stat.st_size)
+
+
+def _cache_python_ast(
+    file_path: Path,
+    key: _PythonAstCacheKey,
+    source: str,
+) -> _PythonAstCacheEntry:
+    tree = ast.parse(source, filename=str(file_path))
+    entry = (tree, source)
+    _PYTHON_AST_CACHE[key] = entry
+    return entry
 
 
 class PythonValidator(BaseValidator):
@@ -57,7 +121,7 @@ class PythonValidator(BaseValidator):
         file_path: Union[str, Path],
     ) -> CollectionResult:
         try:
-            tree = ast.parse(source, filename=str(file_path))
+            tree = _get_python_ast_for_source(source, file_path)
         except SyntaxError as e:
             return CollectionResult(
                 artifacts=[],
@@ -78,7 +142,7 @@ class PythonValidator(BaseValidator):
         file_path: Union[str, Path],
     ) -> CollectionResult:
         try:
-            tree = ast.parse(source, filename=str(file_path))
+            tree = _get_python_ast_for_source(source, file_path)
         except SyntaxError as e:
             return CollectionResult(
                 artifacts=[],
@@ -103,7 +167,7 @@ class PythonValidator(BaseValidator):
         file_path: Union[str, Path],
     ) -> dict[str, str]:
         try:
-            tree = ast.parse(source, filename=str(file_path))
+            tree = _get_python_ast_for_source(source, file_path)
         except SyntaxError:
             return {}
 

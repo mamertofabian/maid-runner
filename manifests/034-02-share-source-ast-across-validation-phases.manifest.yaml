@@ -14,10 +14,10 @@ metadata:
 description: |
   Close the inefficiency where the Python validator parses the same source file
   more than once per CLI run. `PythonValidator.collect_implementation_artifacts`,
-  `collect_behavioral_artifacts`, and the stub-detection pass each call
-  `ast.parse` on the same file independently. With hundreds of tracked source
-  files across hundreds of manifests, this duplicates parser work that has no
-  semantic effect on the result.
+  `collect_behavioral_artifacts`, and `get_test_function_bodies` can each call
+  `ast.parse` on the same Python source independently. With hundreds of tracked
+  source files across hundreds of manifests, this duplicates parser work that
+  has no semantic effect on the result.
 
   Introduce a small per-invocation AST cache keyed by `(absolute_path,
   mtime_ns, size)`. The first caller parses the file and stores the immutable
@@ -59,19 +59,40 @@ files:
           name: collect_implementation_artifacts
           of: PythonValidator
           args:
-            - name: file_path
+            - name: source
               type: str
-          returns: "list[ArtifactSpec]"
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: CollectionResult
           description: "Route source parsing through the per-invocation AST cache instead of calling ast.parse directly."
         - kind: method
           name: collect_behavioral_artifacts
           of: PythonValidator
           args:
-            - name: file_path
+            - name: source
               type: str
-          returns: "list[BehavioralArtifact]"
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: CollectionResult
           description: "Route source parsing through the per-invocation AST cache instead of calling ast.parse directly."
-    - path: tests/validators/test_python_validator.py
+        - kind: method
+          name: get_test_function_bodies
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: "dict[str, str]"
+          description: "Route test-function body extraction through the per-invocation AST cache instead of calling ast.parse directly."
+    - path: maid_runner/core/_artifact_collection_cache.py
+      artifacts:
+        - kind: function
+          name: clear_artifact_collection_cache
+          args: []
+          returns: None
+          description: "Also clear cached Python ASTs when the validation-run artifact cache is cleared."
+    - path: tests/validators/test_python.py
       artifacts:
         - kind: test_function
           name: test_get_cached_python_ast_returns_same_tree_within_invocation
@@ -101,6 +122,15 @@ files:
           expected:
             behavior: "ast.parse is observed exactly once for the file across both phases and the artifact lists match the uncached baseline."
         - kind: test_function
+          name: test_get_test_function_bodies_reuses_cached_python_ast
+          source_scenario: "A Python test file has behavioral artifacts collected before test function bodies are extracted."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "The behavioral collection and test-body extraction share one ast.parse call for the unchanged file."
+        - kind: test_function
           name: test_collect_results_match_uncached_baseline
           source_scenario: "Implementation and behavioral artifacts are collected with and without the AST cache."
           actions:
@@ -118,11 +148,28 @@ files:
                 export: clear_python_ast_cache
           expected:
             behavior: "Subsequent requests for either file run ast.parse again."
+    - path: tests/core/validation/test_artifact_collection_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_clear_artifact_collection_cache_drops_python_ast_cache
+          source_scenario: "A validation cache clear occurs after a Python AST has been cached."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "A later Python AST request reparses the file instead of reusing the cleared tree."
+    - path: manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _share_source_ast_promoted_reference
+          of: manifest data
+          type: yaml
+          description: "Downstream read reference points at the promoted 034-02 manifest path instead of the deleted draft path."
   read:
     - docs/plans/maid-runner-performance-backlog.md
     - maid_runner/core/validate.py
-    - maid_runner/core/_validation_test_artifacts.py
     - maid_runner/validators/base.py
     - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
 validate:
-  - uv run python -m pytest -q tests/validators/test_python_validator.py
+  - uv run python -m pytest -q tests/validators/test_python.py tests/core/validation/test_artifact_collection_cache.py

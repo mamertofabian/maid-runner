@@ -61,6 +61,9 @@ def clear_artifact_collection_cache() -> None:
     _IMPLEMENTATION_CACHE.clear()
     _BEHAVIORAL_CACHE.clear()
     _TEST_BODY_CACHE.clear()
+    from maid_runner.validators.python import clear_python_ast_cache
+
+    clear_python_ast_cache()
 
 
 def _cache_key(

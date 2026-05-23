@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,7 @@ from maid_runner.core.types import (
 )
 from maid_runner.core.validate import validate_all
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
+from maid_runner.validators.python import get_cached_python_ast
 from maid_runner.validators.registry import ValidatorRegistry
 
 
@@ -273,6 +275,32 @@ def test_clear_artifact_collection_cache_drops_all_cached_entries():
     assert CountingValidator.implementation_calls == 2
     assert CountingValidator.behavioral_calls == 2
     assert CountingValidator.body_calls == 2
+
+
+def test_clear_artifact_collection_cache_drops_python_ast_cache(tmp_path, monkeypatch):
+    source_path = tmp_path / "shared.py"
+    source_path.write_text("def shared() -> int:\n    return 1\n")
+    real_parse = ast.parse
+    calls = []
+
+    def counting_parse(source, filename="<unknown>", mode="exec", *args, **kwargs):
+        calls.append((source, filename, mode))
+        return real_parse(
+            source,
+            filename=filename,
+            mode=mode,
+            *args,
+            **kwargs,
+        )
+
+    monkeypatch.setattr(ast, "parse", counting_parse)
+
+    get_cached_python_ast(source_path)
+    get_cached_python_ast(source_path)
+    clear_artifact_collection_cache()
+    get_cached_python_ast(source_path)
+
+    assert len(calls) == 2
 
 
 def test_validate_file_spec_routes_collection_through_cache(tmp_path):
