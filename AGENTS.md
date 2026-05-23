@@ -39,6 +39,16 @@ Fix valid review findings, rerun the focused validation commands, and re-review 
 
 Recent history uses Conventional Commits, including `fix:`, `feat:`, `docs:`, and `release:`. Keep commits scoped to one logical change and do not mix generated artifacts with unrelated edits. Pull requests should explain the behavior change, link issues when applicable, list the exact validation commands run, and call out any intentionally skipped checks.
 
+## Git Branch Workflow
+
+Keep `main` release-only and stable. It should point at tagged or release-ready states such as `release: 2.11.0`; do not leave routine fix, feature, or refactor commits on `main` unless the user explicitly asks for release preparation.
+
+Use `dev/v2.next` as the standing integration branch for the next v2 batch. When work is a general fix batch or next-release stabilization item, put it on `dev/v2.next` rather than creating broad catch-all branches such as `fix/general-fix-batch`.
+
+Use short-lived scoped branches only when a change needs isolated review or handoff before joining the batch. Prefer slash-based names that match the existing history, for example `fix/package-runner-dir-exec-detection`, `feat/<short-slug>`, `refactor/<short-slug>`, or `docs/<short-slug>`. Merge or cherry-pick validated scoped work into `dev/v2.next` before release promotion.
+
+If a non-release commit lands on `main` by mistake before it is pushed, preserve the commit on the intended branch first, then move local `main` back to the release base. Do not rewrite published history, push branches, or delete remote branches without explicit user approval.
+
 ## Agent-Specific Instructions
 
 Pure markdown-only documentation edits may skip the full MAID workflow, but verify accuracy against current files. Do not commit or push without explicit approval.
