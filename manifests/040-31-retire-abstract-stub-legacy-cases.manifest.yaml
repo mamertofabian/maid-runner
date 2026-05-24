@@ -1,0 +1,161 @@
+schema: "2"
+goal: "Retire abstract stub-detection legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 037-02-make-verify-repo-warning-policy-adoptable
+  - 040-12-retire-stub-detection-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - verify
+    - warning-policy
+    - stub-detection
+  priority: medium
+description: |
+  Continue Priority 6 by moving abstract-method stub-detection coverage out of
+  tests/core/test_validate.py and into the focused strict-mode suite.
+
+  This supersedes the verify warning policy adoption manifest and the interim
+  stub-retirement anchor. It preserves advisory verify warning classification,
+  Python abstractmethod stub-detection helpers, existing focused stub-detection
+  tests, and adds focused coverage for both accepted ABC abstract methods and
+  rejected fake `.abstractmethod` decorators before deleting the legacy methods.
+temptations:
+  - risk: "Do not weaken verify's warning policy while retiring validation-file tests."
+    instead: "Redeclare the verify warning-classification helpers and the CLI advisory-warning test."
+  - risk: "Do not weaken abstractmethod handling in Python stub detection."
+    instead: "Keep _is_stub_body and _has_abstractmethod_decorator artifacts and move both abstractmethod scenarios to tests/core/validation/test_strict_mode.py."
+  - risk: "Do not broaden abstractmethod suppression to arbitrary attribute decorators."
+    instead: "Keep focused coverage that a fake .abstractmethod decorator still reports ErrorCode.STUB_FUNCTION_DETECTED."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_abstract_method_not_detected_as_stub_warning
+    of: TestStubDetection
+    file: tests/core/test_validate.py
+    reason: "Focused strict-mode tests now carry ABC abstractmethod stub-suppression behavior."
+  - kind: method
+    name: test_custom_abstractmethod_attribute_detected_as_stub_warning
+    of: TestStubDetection
+    file: tests/core/test_validate.py
+    reason: "Focused strict-mode tests now carry fake abstractmethod decorator stub-warning behavior."
+files:
+  edit:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _has_blocking_validation_warnings
+          args:
+            - name: result
+            - name: project_root
+              type: Path
+            - name: fail_on_warnings
+              type: bool
+          returns: bool
+          description: "Treat advisory warning codes as visible but non-blocking while preserving strict failure for blocking warnings."
+        - kind: function
+          name: _validation_warnings_are_blocking
+          args:
+            - name: validation
+            - name: project_root
+              type: Path
+          returns: bool
+          description: "Determine whether a validation result contains warnings that should fail a verify stage."
+        - kind: function
+          name: _warnings_are_blocking
+          args:
+            - name: warnings
+            - name: manifest_path
+              type: str
+            - name: project_root
+              type: Path
+          returns: bool
+          description: "Filter advisory warning codes before applying manifest warning-fatal policy."
+    - path: maid_runner/validators/_python_implementation.py
+      artifacts:
+        - kind: function
+          name: _is_stub_body
+          args:
+            - name: node
+              type: ast.FunctionDef | ast.AsyncFunctionDef
+          returns: bool
+          description: "Detect placeholder bodies while treating abstract methods as declared contracts rather than implementation stubs."
+        - kind: function
+          name: _has_abstractmethod_decorator
+          args:
+            - name: node
+              type: ast.FunctionDef | ast.AsyncFunctionDef
+          returns: bool
+          description: "Recognize @abstractmethod and abc.abstractmethod decorators on Python functions."
+    - path: tests/core/validation/test_strict_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_stub_check_warns_for_pass_function
+          source_scenario: "Implementation validation checks a pass-only Python function with check_stubs=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no errors and reports ErrorCode.STUB_FUNCTION_DETECTED as a warning."
+        - kind: test_function
+          name: test_implementation_stub_check_is_quiet_without_flag
+          source_scenario: "Implementation validation checks a pass-only Python function without check_stubs."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.STUB_FUNCTION_DETECTED warning."
+        - kind: test_function
+          name: test_implementation_stub_check_is_quiet_for_real_function
+          source_scenario: "Implementation validation checks a non-placeholder Python function with check_stubs=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.STUB_FUNCTION_DETECTED warning."
+        - kind: test_function
+          name: test_implementation_stub_check_is_quiet_for_abstract_method
+          source_scenario: "Implementation validation checks an ABC @abstractmethod whose body is pass with check_stubs=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.STUB_FUNCTION_DETECTED warning."
+        - kind: test_function
+          name: test_implementation_stub_check_warns_for_custom_abstractmethod_attribute
+          source_scenario: "Implementation validation checks a pass-only method decorated with a fake .abstractmethod attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds and reports ErrorCode.STUB_FUNCTION_DETECTED as a warning."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_validator_unavailable_warning_is_advisory_by_default
+          source_scenario: "A new manifest has an E307 no-validator warning for README.md."
+          actions:
+            - type: api_call
+              subject:
+                export: _warnings_are_blocking
+          expected:
+            behavior: "The E307 warning is classified as advisory even for a new manifest so verify can keep it visible without failing the gate."
+  read:
+    - tests/core/test_validate.py
+    - manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml
+    - manifests/040-12-retire-stub-detection-legacy-cases.manifest.yaml
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
+    - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_strict_mode.py tests/cli/test_verify_cmd.py tests/core/test_validate.py

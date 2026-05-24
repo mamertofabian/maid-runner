@@ -179,6 +179,109 @@ def test_implementation_stub_check_is_quiet_for_real_function(project):
     assert ErrorCode.STUB_FUNCTION_DETECTED not in warning_codes(result)
 
 
+def test_implementation_stub_check_is_quiet_for_abstract_method(project):
+    manifest_path = write_manifest(
+        project,
+        "add-base.manifest.yaml",
+        """schema: "2"
+goal: "Add base class"
+files:
+  create:
+    - path: src/base.py
+      artifacts:
+        - kind: class
+          name: Base
+        - kind: method
+          name: run
+          of: Base
+  read:
+    - tests/test_base.py
+validate:
+  - pytest tests/test_base.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/base.py",
+        "from abc import ABC, abstractmethod\n\n"
+        "class Base(ABC):\n"
+        "    @abstractmethod\n"
+        "    def run(self):\n"
+        "        pass\n",
+    )
+    write_source(
+        project,
+        "tests/test_base.py",
+        "from src.base import Base\n\n"
+        "def test_base_declares_run_contract():\n"
+        "    assert Base.run.__name__ == 'run'\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+        check_stubs=True,
+    )
+
+    assert result.success is True
+    assert result.errors == []
+    assert ErrorCode.STUB_FUNCTION_DETECTED not in warning_codes(result)
+
+
+def test_implementation_stub_check_warns_for_custom_abstractmethod_attribute(project):
+    manifest_path = write_manifest(
+        project,
+        "add-base.manifest.yaml",
+        """schema: "2"
+goal: "Add base class"
+files:
+  create:
+    - path: src/base.py
+      artifacts:
+        - kind: class
+          name: Base
+        - kind: method
+          name: run
+          of: Base
+  read:
+    - tests/test_base.py
+validate:
+  - pytest tests/test_base.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/base.py",
+        "class _Fake:\n"
+        "    def abstractmethod(self, fn):\n"
+        "        return fn\n\n"
+        "_fake = _Fake()\n\n"
+        "class Base:\n"
+        "    @_fake.abstractmethod\n"
+        "    def run(self):\n"
+        "        pass\n",
+    )
+    write_source(
+        project,
+        "tests/test_base.py",
+        "from src.base import Base\n\n"
+        "def test_base_declares_run_contract():\n"
+        "    assert Base.run.__name__ == 'run'\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+        check_stubs=True,
+    )
+
+    assert result.success is True
+    assert result.errors == []
+    assert ErrorCode.STUB_FUNCTION_DETECTED in warning_codes(result)
+
+
 def test_implementation_fail_on_warnings_marks_warning_only_result_failed(project):
     manifest_path = add_greet_manifest(project)
     write_source(project, "src/greet.py", "def greet():\n    pass\n")
