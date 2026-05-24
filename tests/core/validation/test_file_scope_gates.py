@@ -7,7 +7,11 @@ import pytest
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, FileTrackingStatus
 from maid_runner.core.validate import ValidationEngine
-from maid_runner.core.worktree import validate_changed_scope, validate_worktree_scope
+from maid_runner.core.worktree import (
+    changed_files,
+    validate_changed_scope,
+    validate_worktree_scope,
+)
 
 
 @pytest.fixture()
@@ -210,6 +214,32 @@ validate:
     assert "src/dep.py" in scope_error_files(errors)
 
 
+def test_worktree_scope_reports_changed_production_file_outside_manifest_scope(project):
+    write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest tests/test_app.py -v
+""",
+    )
+    write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+    write_source(project, "src/drift.py", "def drift():\n    return 'drift'\n")
+    subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+    errors = validate_worktree_scope(project, manifest_chain(project))
+
+    assert "src/drift.py" in changed_files(project)
+    assert "src/drift.py" in scope_error_files(errors)
+
+
 def test_worktree_scope_allows_changed_file_in_files_edit(project):
     write_manifest(
         project,
@@ -230,6 +260,85 @@ validate:
     subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
 
     assert validate_worktree_scope(project, manifest_chain(project)) == []
+
+
+def test_worktree_scope_reports_rename_source_outside_writable_scope(project):
+    write_manifest(
+        project,
+        "add-new.manifest.yaml",
+        """schema: "2"
+goal: "Add renamed module"
+files:
+  create:
+    - path: src/new.py
+      artifacts:
+        - kind: function
+          name: old
+validate:
+  - pytest tests/test_new.py -v
+""",
+    )
+    write_source(project, "src/old.py", "def old():\n    return 'old'\n")
+    commit_all(project)
+    subprocess.run(
+        ["git", "mv", "src/old.py", "src/new.py"],
+        cwd=project,
+        check=True,
+        capture_output=True,
+    )
+
+    paths = changed_files(project)
+    errors = validate_worktree_scope(project, manifest_chain(project))
+
+    assert "src/new.py" in paths
+    assert "src/old.py" in paths
+    assert "src/old.py" in scope_error_files(errors)
+    assert "src/new.py" not in scope_error_files(errors)
+
+
+def test_worktree_scope_includes_test_files_only_when_requested(project):
+    write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  read:
+    - tests/test_app.py
+validate:
+  - pytest tests/test_app.py -v
+""",
+    )
+    write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+    write_source(project, "tests/test_app.py", "from src.app import run\n")
+    subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+    assert validate_worktree_scope(project, manifest_chain(project)) == []
+    errors = validate_worktree_scope(
+        project, manifest_chain(project), include_tests=True
+    )
+
+    assert "tests/test_app.py" in scope_error_files(errors)
+
+
+def test_changed_files_returns_paths_relative_to_nested_project_root(tmp_path):
+    repo = tmp_path / "repo"
+    project_root = repo / "project"
+    (project_root / "src").mkdir(parents=True)
+    (repo / "outside").mkdir(parents=True)
+    (project_root / "src" / "app.py").write_text("def run():\n    return 'before'\n")
+    (repo / "outside" / "other.py").write_text("def other():\n    return 'before'\n")
+    commit_all(repo)
+
+    (project_root / "src" / "app.py").write_text("def run():\n    return 'after'\n")
+    (repo / "outside" / "other.py").write_text("def other():\n    return 'after'\n")
+
+    assert changed_files(project_root) == ("src/app.py",)
 
 
 def test_changed_scope_rejects_changed_read_only_file_since_task_base(project):

@@ -1,0 +1,196 @@
+schema: "2"
+goal: "Retire worktree-scope legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-09-add-worktree-scope-gate
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - worktree
+    - manifest-scope
+  priority: medium
+description: |
+  Continue Priority 6 by moving the original worktree-scope gate
+  characterization out of tests/core/test_validate.py and into the focused
+  file-scope suite.
+
+  The focused tests now preserve out-of-scope production changes, files.edit
+  permission, files.read rejection, rename source checking, include-tests
+  behavior, and nested project-root path normalization before the legacy
+  TestFileTracking methods are removed.
+temptations:
+  - risk: "Do not weaken worktree-scope enforcement for changed production files."
+    instead: "Keep focused validate_worktree_scope tests for undeclared, files.edit, files.read, and rename-source scenarios."
+  - risk: "Do not start policing changed test files by default."
+    instead: "Keep focused coverage that changed tests are ignored by default and reported only when include_tests is true."
+  - risk: "Do not regress nested git worktree path normalization."
+    instead: "Keep a focused changed_files test for a project root inside a larger repository."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry out-of-scope production change behavior."
+  - kind: method
+    name: test_worktree_scope_gate_allows_changed_file_in_files_edit
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry files.edit writable-scope behavior."
+  - kind: method
+    name: test_worktree_scope_gate_treats_files_read_as_not_writable
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry files.read non-writable behavior."
+  - kind: method
+    name: test_worktree_scope_gate_reports_rename_source_outside_writable_scope
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry rename-source enforcement behavior."
+  - kind: method
+    name: test_worktree_scope_gate_includes_test_files_only_when_requested
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry include-tests behavior."
+  - kind: method
+    name: test_changed_files_returns_paths_relative_to_nested_project_root
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry nested project-root path normalization behavior."
+files:
+  edit:
+    - path: maid_runner/core/worktree.py
+      artifacts:
+        - kind: function
+          name: changed_files
+          args:
+            - name: project_root
+              type: Union[str, Path]
+          returns: tuple[str, ...]
+          description: "Return git-reported changed file paths relative to the project root."
+        - kind: function
+          name: validate_worktree_scope
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: chain
+              type: ManifestChain
+            - name: include_tests
+              type: bool
+              default: "False"
+          returns: list[ValidationError]
+          description: "Report changed files that are outside active writable manifest scope."
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+          of: ErrorCode
+          type: str
+          description: "Structured error code for a changed file outside writable manifest scope."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/validation/test_file_scope_gates.py
+      artifacts:
+        - kind: test_function
+          name: test_worktree_scope_reports_changed_production_file_outside_manifest_scope
+          source_scenario: "A git repo has a changed production file that is not writable in the active manifest chain."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE for the changed file."
+        - kind: test_function
+          name: test_worktree_scope_allows_changed_file_in_files_edit
+          source_scenario: "A git repo has a changed production file listed in files.edit by an active manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate returns no scope error for the writable file."
+        - kind: test_function
+          name: test_worktree_scope_rejects_changed_file_in_files_read
+          source_scenario: "A git repo has a changed production file listed only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports the file because read context is not edit permission."
+        - kind: test_function
+          name: test_worktree_scope_reports_rename_source_outside_writable_scope
+          source_scenario: "A staged git rename moves an undeclared production file to a writable destination."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate reports the renamed source path because the deletion is not declared in files.delete."
+        - kind: test_function
+          name: test_worktree_scope_includes_test_files_only_when_requested
+          source_scenario: "A git repo has a changed test file listed only in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_worktree_scope
+          expected:
+            behavior: "The gate ignores the test file by default and reports it when include_tests is true."
+        - kind: test_function
+          name: test_changed_files_returns_paths_relative_to_nested_project_root
+          source_scenario: "The project root is a subdirectory inside a larger git worktree."
+          actions:
+            - type: api_call
+              subject:
+                export: changed_files
+          expected:
+            behavior: "changed_files returns project-root-relative paths and ignores changes outside the project root."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_worktree_scope_returns_1_for_out_of_scope_change
+          source_scenario: "The CLI validates a structurally green manifest chain while git reports an out-of-scope production change."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --worktree-scope exits 1 and names the changed file."
+        - kind: test_function
+          name: test_validate_worktree_scope_include_tests_reports_changed_test_file
+          source_scenario: "The CLI validates a structurally green manifest chain while git reports a changed test file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --worktree-scope ignores the test by default, while --include-tests exits 1 and names it."
+  read:
+    - tests/core/test_validate.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/chain.py
+    - maid_runner/core/_file_discovery.py
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+    - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
+    - manifests/038-03-add-lean-file-scope-characterization.manifest.yaml
+    - tests/ci/test_codex_maid_loop.py
+    - tests/ci/test_claude_maid_loop.py
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/cli/test_validate_cmd.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py tests/core/test_validate.py
