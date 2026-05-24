@@ -4,7 +4,6 @@ goal: "Extract shared parse-error wrapping from Python and TypeScript validators
 type: refactor
 created: "2026-05-19"
 metadata:
-  status: draft
   tags:
     - safe-refactor
     - validators
@@ -19,10 +18,10 @@ description: |
 
   Current shape:
 
-  - `maid_runner/validators/python.py:51-95` parses with `ast.parse`, catches
+  - `maid_runner/validators/python.py:119-151` parses with `ast.parse`, catches
     `SyntaxError`, and returns a `CollectionResult` with the error string;
     otherwise returns a `CollectionResult` with collected artifacts.
-  - `maid_runner/validators/typescript.py:51-112` parses with
+  - `maid_runner/validators/typescript.py:45-84` parses with
     `parse_typescript_source`, checks `session.parse_errors`, and returns the
     same `CollectionResult` shape with errors; otherwise returns artifacts.
 
@@ -115,7 +114,7 @@ files:
               type: "Union[str, Path]"
           returns: CollectionResult
           description: "Delegate parsing and error wrapping to BaseValidator._collect_with_parse_guard; keep return shape identical."
-    - path: tests/validators/test_base_validator.py
+    - path: tests/validators/test_base.py
       artifacts:
         - kind: test_function
           name: test_collect_with_parse_guard_returns_artifacts_on_success
@@ -144,7 +143,7 @@ files:
                 export: BaseValidator
           expected:
             behavior: "The returned CollectionResult has an empty artifacts list and the two error strings, and collect_fn is never invoked."
-    - path: tests/validators/test_python_validator.py
+    - path: tests/validators/test_python.py
       artifacts:
         - kind: test_function
           name: test_python_validator_collection_results_match_pre_refactor_shape
@@ -155,7 +154,7 @@ files:
                 export: PythonValidator
           expected:
             behavior: "Both methods return CollectionResult instances whose language, file_path, artifacts, and errors fields match the pre-refactor characterization snapshot byte-for-byte."
-    - path: tests/validators/test_typescript_validator.py
+    - path: tests/validators/test_typescript.py
       artifacts:
         - kind: test_function
           name: test_typescript_validator_collection_results_match_pre_refactor_shape
@@ -173,4 +172,4 @@ files:
     - maid_runner/validators/svelte.py
     - tests/core/test_validate_engine_characterization.py
 validate:
-  - uv run python -m pytest -q tests/validators/test_base_validator.py tests/validators/test_python_validator.py tests/validators/test_typescript_validator.py
+  - uv run python -m pytest -q tests/core/test_validate_engine_characterization.py tests/validators/test_base.py tests/validators/test_python.py tests/validators/test_typescript.py

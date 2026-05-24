@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from maid_runner.core.types import ArtifactKind, ArgSpec
 
@@ -87,6 +87,43 @@ class BaseValidator(ABC):
         file_path: Union[str, Path],
     ) -> CollectionResult:
         """Collect artifact REFERENCES from source code (test files)."""
+
+    def _collect_with_parse_guard(
+        self,
+        language: str,
+        file_path: Union[str, Path],
+        parse_fn: Callable[[], object],
+        collect_fn: Callable[[object], list[FoundArtifact]],
+        errors_from_session: Optional[Callable[[object], list[str]]] = None,
+        exception_to_error: Optional[Callable[[Exception], list[str]]] = None,
+    ) -> CollectionResult:
+        try:
+            parsed = parse_fn()
+        except Exception as exc:
+            if exception_to_error is None:
+                raise
+            return CollectionResult(
+                artifacts=[],
+                language=language,
+                file_path=str(file_path),
+                errors=exception_to_error(exc),
+            )
+
+        if errors_from_session is not None:
+            errors = errors_from_session(parsed)
+            if errors:
+                return CollectionResult(
+                    artifacts=[],
+                    language=language,
+                    file_path=str(file_path),
+                    errors=errors,
+                )
+
+        return CollectionResult(
+            artifacts=collect_fn(parsed),
+            language=language,
+            file_path=str(file_path),
+        )
 
     def module_path(
         self,

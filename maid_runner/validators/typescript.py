@@ -53,34 +53,32 @@ class TypeScriptValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        session = parse_typescript_source(
-            source, file_path, self._ts_parser, self._tsx_parser
-        )
-        if session.parse_errors:
-            return CollectionResult(
-                artifacts=[],
-                language="typescript",
-                file_path=str(file_path),
-                errors=session.parse_errors,
+        def _collect_implementation(session):
+            artifacts = collect_ts_implementation_artifacts(
+                session.tree.root_node, session.source_bytes
             )
+            if session.module_id:
+                artifacts = [
+                    (
+                        replace(a, module_path=session.module_id)
+                        if a.module_path is None
+                        else a
+                    )
+                    for a in artifacts
+                ]
+            return artifacts
 
-        artifacts = collect_ts_implementation_artifacts(
-            session.tree.root_node, session.source_bytes
-        )
-        if session.module_id:
-            artifacts = [
-                (
-                    replace(a, module_path=session.module_id)
-                    if a.module_path is None
-                    else a
-                )
-                for a in artifacts
-            ]
-
-        return CollectionResult(
-            artifacts=artifacts,
+        return self._collect_with_parse_guard(
             language="typescript",
-            file_path=str(file_path),
+            file_path=file_path,
+            parse_fn=lambda: parse_typescript_source(
+                source,
+                file_path,
+                self._ts_parser,
+                self._tsx_parser,
+            ),
+            collect_fn=_collect_implementation,
+            errors_from_session=lambda session: session.parse_errors,
         )
 
     def collect_behavioral_artifacts(
@@ -88,27 +86,21 @@ class TypeScriptValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        session = parse_typescript_source(
-            source, file_path, self._ts_parser, self._tsx_parser
-        )
-        if session.parse_errors:
-            return CollectionResult(
-                artifacts=[],
-                language="typescript",
-                file_path=str(file_path),
-                errors=session.parse_errors,
-            )
-
-        artifacts = collect_ts_behavioral_artifacts(
-            session.tree.root_node,
-            session.source_bytes,
-            file_path,
-        )
-
-        return CollectionResult(
-            artifacts=artifacts,
+        return self._collect_with_parse_guard(
             language="typescript",
-            file_path=str(file_path),
+            file_path=file_path,
+            parse_fn=lambda: parse_typescript_source(
+                source,
+                file_path,
+                self._ts_parser,
+                self._tsx_parser,
+            ),
+            collect_fn=lambda session: collect_ts_behavioral_artifacts(
+                session.tree.root_node,
+                session.source_bytes,
+                file_path,
+            ),
+            errors_from_session=lambda session: session.parse_errors,
         )
 
     def module_path(

@@ -10,6 +10,18 @@ from maid_runner.validators.base import (
 from maid_runner.core.types import ArtifactKind
 
 
+class _ConcreteValidator(BaseValidator):
+    @classmethod
+    def supported_extensions(cls) -> tuple[str, ...]:
+        return (".mock",)
+
+    def collect_implementation_artifacts(self, source, file_path):
+        return CollectionResult(artifacts=[], language="mock", file_path=str(file_path))
+
+    def collect_behavioral_artifacts(self, source, file_path):
+        return CollectionResult(artifacts=[], language="mock", file_path=str(file_path))
+
+
 class TestFoundArtifact:
     def test_basic(self):
         fa = FoundArtifact(kind=ArtifactKind.FUNCTION, name="greet")
@@ -148,6 +160,75 @@ class TestBaseValidator:
 
         v = MockValidator()
         assert v.generate_test_stub([], "test.mock") == ""
+
+    def test_collect_with_parse_guard_returns_artifacts_on_success(self):
+        validator = _ConcreteValidator()
+        assert isinstance(validator, BaseValidator)
+        parsed = object()
+        artifacts = [
+            FoundArtifact(kind=ArtifactKind.FUNCTION, name="build"),
+            FoundArtifact(kind=ArtifactKind.CLASS, name="Service"),
+        ]
+        seen_sessions = []
+
+        result = validator._collect_with_parse_guard(
+            language="mock",
+            file_path="src/service.mock",
+            parse_fn=lambda: parsed,
+            collect_fn=lambda session: seen_sessions.append(session) or artifacts,
+        )
+
+        assert result.artifacts == artifacts
+        assert result.language == "mock"
+        assert result.file_path == "src/service.mock"
+        assert result.errors == []
+        assert seen_sessions == [parsed]
+
+    def test_collect_with_parse_guard_short_circuits_on_exception(self):
+        validator = _ConcreteValidator()
+        assert isinstance(validator, BaseValidator)
+
+        def parse_fn():
+            raise SyntaxError("broken")
+
+        def collect_fn(_session):
+            raise AssertionError("collect_fn should not run after a parse error")
+
+        result = validator._collect_with_parse_guard(
+            language="mock",
+            file_path="src/broken.mock",
+            parse_fn=parse_fn,
+            collect_fn=collect_fn,
+            exception_to_error=lambda exc: [f"Syntax error: {exc}"],
+        )
+
+        assert result.artifacts == []
+        assert result.language == "mock"
+        assert result.file_path == "src/broken.mock"
+        assert result.errors == ["Syntax error: broken"]
+
+    def test_collect_with_parse_guard_short_circuits_on_session_errors(self):
+        validator = _ConcreteValidator()
+        assert isinstance(validator, BaseValidator)
+        parsed = object()
+        collect_calls = []
+
+        result = validator._collect_with_parse_guard(
+            language="mock",
+            file_path="src/broken.mock",
+            parse_fn=lambda: parsed,
+            collect_fn=lambda session: collect_calls.append(session),
+            errors_from_session=lambda session: [
+                "first parse error",
+                "second parse error",
+            ],
+        )
+
+        assert result.artifacts == []
+        assert result.language == "mock"
+        assert result.file_path == "src/broken.mock"
+        assert result.errors == ["first parse error", "second parse error"]
+        assert collect_calls == []
 
 
 class TestGenerateSnapshot:

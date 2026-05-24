@@ -110,6 +110,12 @@ def _cache_python_ast(
     return entry
 
 
+def _python_syntax_error_to_error(exc: Exception) -> list[str]:
+    if not isinstance(exc, SyntaxError):
+        raise exc
+    return [f"Syntax error: {exc}"]
+
+
 class PythonValidator(BaseValidator):
     @classmethod
     def supported_extensions(cls) -> tuple[str, ...]:
@@ -120,20 +126,15 @@ class PythonValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        try:
-            tree = _get_python_ast_for_source(source, file_path)
-        except SyntaxError as e:
-            return CollectionResult(
-                artifacts=[],
-                language="python",
-                file_path=str(file_path),
-                errors=[f"Syntax error: {e}"],
-            )
-
-        return CollectionResult(
-            artifacts=collect_implementation_artifacts(tree, str(file_path)),
+        return self._collect_with_parse_guard(
             language="python",
-            file_path=str(file_path),
+            file_path=file_path,
+            parse_fn=lambda: _get_python_ast_for_source(source, file_path),
+            collect_fn=lambda tree: collect_implementation_artifacts(
+                tree,
+                str(file_path),
+            ),
+            exception_to_error=_python_syntax_error_to_error,
         )
 
     def collect_behavioral_artifacts(
@@ -141,24 +142,18 @@ class PythonValidator(BaseValidator):
         source: str,
         file_path: Union[str, Path],
     ) -> CollectionResult:
-        try:
-            tree = _get_python_ast_for_source(source, file_path)
-        except SyntaxError as e:
-            return CollectionResult(
-                artifacts=[],
-                language="python",
-                file_path=str(file_path),
-                errors=[f"Syntax error: {e}"],
-            )
+        def _collect_behavioral(tree: ast.Module) -> list[FoundArtifact]:
+            collector = _BehavioralCollector(file_path=str(file_path))
+            collector.scan_imports(tree)
+            collector.visit(tree)
+            return collector.artifacts
 
-        collector = _BehavioralCollector(file_path=str(file_path))
-        collector.scan_imports(tree)
-        collector.visit(tree)
-
-        return CollectionResult(
-            artifacts=collector.artifacts,
+        return self._collect_with_parse_guard(
             language="python",
-            file_path=str(file_path),
+            file_path=file_path,
+            parse_fn=lambda: _get_python_ast_for_source(source, file_path),
+            collect_fn=_collect_behavioral,
+            exception_to_error=_python_syntax_error_to_error,
         )
 
     def get_test_function_bodies(

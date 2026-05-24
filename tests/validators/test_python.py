@@ -72,8 +72,11 @@ def _artifact_signature(artifacts):
             artifact.returns,
             artifact.is_async,
             artifact.bases,
+            artifact.type_parameters,
             artifact.type_annotation,
             artifact.is_stub,
+            artifact.line,
+            artifact.column,
             artifact.module_path,
             artifact.import_source,
             artifact.alias_of,
@@ -81,6 +84,15 @@ def _artifact_signature(artifacts):
         )
         for artifact in artifacts
     ]
+
+
+def _collection_result_signature(result):
+    return (
+        result.language,
+        result.file_path,
+        _artifact_signature(result.artifacts),
+        result.errors,
+    )
 
 
 def _direct_python_artifact_baseline(source, file_path):
@@ -209,6 +221,75 @@ def test_build_user():
 
     assert _artifact_signature(implementation.artifacts) == baseline_implementation
     assert _artifact_signature(behavioral.artifacts) == baseline_behavioral
+
+
+def test_python_validator_collection_results_match_pre_refactor_shape(
+    tmp_path, validator
+):
+    assert isinstance(validator, PythonValidator)
+    source_path = tmp_path / "service.py"
+    source = """from package.service import normalize
+
+class UserService:
+    def build_user(self, name: str) -> str:
+        return normalize(name)
+
+def test_build_user():
+    service = UserService()
+    assert service.build_user("Ada") == "Ada"
+"""
+    source_path.write_text(source)
+    baseline_implementation, baseline_behavioral = _direct_python_artifact_baseline(
+        source,
+        source_path,
+    )
+
+    implementation = validator.collect_implementation_artifacts(source, source_path)
+    behavioral = validator.collect_behavioral_artifacts(source, source_path)
+
+    assert _collection_result_signature(implementation) == (
+        "python",
+        str(source_path),
+        baseline_implementation,
+        [],
+    )
+    assert _collection_result_signature(behavioral) == (
+        "python",
+        str(source_path),
+        baseline_behavioral,
+        [],
+    )
+
+    broken_path = tmp_path / "broken.py"
+    broken_source = "def broken(:\n    pass\n"
+    try:
+        ast.parse(broken_source, filename=str(broken_path))
+    except SyntaxError as exc:
+        expected_errors = [f"Syntax error: {exc}"]
+    else:
+        raise AssertionError("broken_source must stay syntactically invalid")
+
+    broken_implementation = validator.collect_implementation_artifacts(
+        broken_source,
+        broken_path,
+    )
+    broken_behavioral = validator.collect_behavioral_artifacts(
+        broken_source,
+        broken_path,
+    )
+
+    assert _collection_result_signature(broken_implementation) == (
+        "python",
+        str(broken_path),
+        [],
+        expected_errors,
+    )
+    assert _collection_result_signature(broken_behavioral) == (
+        "python",
+        str(broken_path),
+        [],
+        expected_errors,
+    )
 
 
 def test_clear_python_ast_cache_drops_all_entries(tmp_path, monkeypatch):

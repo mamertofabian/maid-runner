@@ -4,9 +4,18 @@ Golden test cases from 15-golden-tests.md section 8 plus edge cases
 from tasks 053, 076-078, 153-159.
 """
 
+from dataclasses import replace
+
 import pytest
 
 from maid_runner.core.types import ArtifactKind
+from maid_runner.validators._typescript_behavioral import (
+    collect_behavioral_artifacts as collect_ts_behavioral_artifacts,
+)
+from maid_runner.validators._typescript_implementation import (
+    collect_implementation_artifacts as collect_ts_implementation_artifacts,
+)
+from maid_runner.validators._typescript_parse import parse_typescript_source
 
 try:
     from maid_runner.validators.typescript import TypeScriptValidator
@@ -112,6 +121,144 @@ def _names(artifacts, kind=None, of=None):
             continue
         result.add(a.name)
     return result
+
+
+def _artifact_signature(artifacts):
+    return [
+        (
+            artifact.kind.value,
+            artifact.name,
+            artifact.of,
+            tuple((arg.name, arg.type, arg.default) for arg in artifact.args),
+            artifact.returns,
+            artifact.is_async,
+            artifact.bases,
+            artifact.type_parameters,
+            artifact.type_annotation,
+            artifact.is_stub,
+            artifact.line,
+            artifact.column,
+            artifact.module_path,
+            artifact.import_source,
+            artifact.alias_of,
+            artifact.reference_context,
+        )
+        for artifact in artifacts
+    ]
+
+
+def _collection_result_signature(result):
+    return (
+        result.language,
+        result.file_path,
+        _artifact_signature(result.artifacts),
+        result.errors,
+    )
+
+
+def _direct_typescript_artifact_baseline(validator, source, file_path):
+    session = parse_typescript_source(
+        source,
+        file_path,
+        validator._ts_parser,
+        validator._tsx_parser,
+    )
+    assert session.parse_errors == []
+    implementation = collect_ts_implementation_artifacts(
+        session.tree.root_node,
+        session.source_bytes,
+    )
+    if session.module_id:
+        implementation = [
+            (
+                replace(artifact, module_path=session.module_id)
+                if artifact.module_path is None
+                else artifact
+            )
+            for artifact in implementation
+        ]
+    behavioral = collect_ts_behavioral_artifacts(
+        session.tree.root_node,
+        session.source_bytes,
+        file_path,
+    )
+    return (
+        _artifact_signature(implementation),
+        _artifact_signature(behavioral),
+    )
+
+
+def test_typescript_validator_collection_results_match_pre_refactor_shape(
+    validator,
+):
+    assert isinstance(validator, TypeScriptValidator)
+    source = """import { normalize } from "./service";
+
+export class UserService {
+  buildUser(name: string): string {
+    return normalize(name);
+  }
+}
+
+test("build user", () => {
+  const service = new UserService();
+  expect(service.buildUser("Ada")).toBe("Ada");
+});
+"""
+    file_path = "src/service.test.ts"
+    baseline_implementation, baseline_behavioral = _direct_typescript_artifact_baseline(
+        validator,
+        source,
+        file_path,
+    )
+
+    implementation = validator.collect_implementation_artifacts(source, file_path)
+    behavioral = validator.collect_behavioral_artifacts(source, file_path)
+
+    assert _collection_result_signature(implementation) == (
+        "typescript",
+        file_path,
+        baseline_implementation,
+        [],
+    )
+    assert _collection_result_signature(behavioral) == (
+        "typescript",
+        file_path,
+        baseline_behavioral,
+        [],
+    )
+
+    broken_source = "function broken("
+    broken_path = "src/broken.ts"
+    broken_session = parse_typescript_source(
+        broken_source,
+        broken_path,
+        validator._ts_parser,
+        validator._tsx_parser,
+    )
+    assert broken_session.parse_errors
+
+    broken_implementation = validator.collect_implementation_artifacts(
+        broken_source,
+        broken_path,
+    )
+    broken_behavioral = validator.collect_behavioral_artifacts(
+        broken_source,
+        broken_path,
+    )
+
+    assert _collection_result_signature(broken_implementation) == (
+        "typescript",
+        broken_path,
+        [],
+        broken_session.parse_errors,
+    )
+    assert _collection_result_signature(broken_behavioral) == (
+        "typescript",
+        broken_path,
+        [],
+        broken_session.parse_errors,
+    )
 
 
 # ── Golden Tests (15-golden-tests.md section 8) ──
