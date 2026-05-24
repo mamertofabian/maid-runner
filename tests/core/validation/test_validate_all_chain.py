@@ -243,6 +243,49 @@ def test_validate_all_missing_manifest_directory_fails_by_default(tmp_path):
     )
 
 
+def test_validate_all_empty_active_manifest_directory_fails_by_default(tmp_path):
+    manifest_dir = tmp_path / "manifests"
+    (manifest_dir / "drafts").mkdir(parents=True)
+    (manifest_dir / "drafts" / "future.manifest.yaml").write_text(
+        """# draft-kind: implementation
+schema: "2"
+goal: "Future draft"
+files:
+  create:
+    - path: src/future.py
+      artifacts:
+        - kind: function
+          name: future
+validate:
+  - pytest
+"""
+    )
+    engine = ValidationEngine(project_root=tmp_path)
+
+    result = engine.validate_all("manifests")
+
+    assert result.success is False
+    assert result.total_manifests == 0
+    assert result.failed == 1
+    assert any(
+        error.code == ErrorCode.EMPTY_MANIFEST_SET for error in result.chain_errors
+    )
+    assert "No active manifests discovered" in result.chain_errors[0].message
+
+
+def test_validate_all_method_allows_empty_manifest_directory_when_requested(tmp_path):
+    (tmp_path / "manifests").mkdir()
+    engine = ValidationEngine(project_root=tmp_path)
+
+    result = engine.validate_all("manifests", allow_empty=True)
+
+    assert result.success is True
+    assert result.total_manifests == 0
+    assert result.passed == 0
+    assert result.failed == 0
+    assert result.chain_errors == []
+
+
 def test_validate_all_function_allows_empty_manifest_directory_when_requested(tmp_path):
     (tmp_path / "manifests").mkdir()
 

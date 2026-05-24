@@ -1,0 +1,229 @@
+schema: "2"
+goal: "Retire empty-manifest discovery legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-01-fail-empty-manifest-discovery
+  - 040-17-retire-validate-all-chain-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - manifest-discovery
+  priority: medium
+description: |
+  Continue Priority 6 by moving the original empty-manifest validate_all API
+  tests out of tests/core/test_validate.py and into the focused validate_all
+  chain suite.
+
+  This manifest supersedes the original 030-01 empty-manifest discovery
+  contract and the 040-17 retirement manifest that kept one empty-manifest
+  anchor alive. It preserves the original production and CLI artifacts, keeps
+  the focused chain tests from 040-17 active, and records the intentional
+  removal of the old legacy test_validate.py methods.
+temptations:
+  - risk: "Do not weaken fail-closed empty manifest discovery."
+    instead: "Keep focused API and CLI coverage for missing directories, empty active directories, and explicit allow_empty."
+  - risk: "Do not drop focused validate_all chain behavior while superseding 040-17."
+    instead: "Redeclare the focused validate_all chain tests introduced by 040-17."
+  - risk: "Do not keep placeholder legacy tests in tests/core/test_validate.py."
+    instead: "Move executable coverage to focused suites and declare the removed methods under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_validate_all_fails_when_manifest_dir_is_missing_by_default
+    of: TestValidateAllChainReuse
+    file: tests/core/test_validate.py
+    reason: "Focused validate_all chain tests now cover missing manifest directory failure."
+  - kind: method
+    name: test_validate_all_fails_when_manifest_dir_contains_no_active_manifests
+    of: TestValidateAllChainReuse
+    file: tests/core/test_validate.py
+    reason: "Focused validate_all chain tests now cover empty active-manifest discovery failure."
+  - kind: method
+    name: test_validate_all_allows_empty_manifest_set_only_when_explicit
+    of: TestValidateAllChainReuse
+    file: tests/core/test_validate.py
+    reason: "Focused validate_all chain tests now cover engine allow_empty behavior."
+  - kind: method
+    name: test_validate_all_function_allows_empty_manifest_set_only_when_explicit
+    of: TestValidateAllChainReuse
+    file: tests/core/test_validate.py
+    reason: "Focused validate_all chain tests now cover top-level allow_empty behavior."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: EMPTY_MANIFEST_SET
+          of: ErrorCode
+          type: str
+          description: "Structured error code for missing or empty active manifest discovery."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: allow_empty
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+        - kind: function
+          name: validate_all
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: allow_empty
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_missing_manifest_directory_fails_by_default
+          source_scenario: "A caller validates a missing manifest directory without opting into empty validation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns success false with EMPTY_MANIFEST_SET in chain_errors."
+        - kind: test_function
+          name: test_validate_all_empty_active_manifest_directory_fails_by_default
+          source_scenario: "A manifest directory exists but contains no active manifest files."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns success false and reports that no active manifests were discovered."
+        - kind: test_function
+          name: test_validate_all_method_allows_empty_manifest_directory_when_requested
+          source_scenario: "A bootstrap caller intentionally validates an empty manifest directory through ValidationEngine."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all(..., allow_empty=True) returns success true with zero manifests."
+        - kind: test_function
+          name: test_validate_all_function_allows_empty_manifest_directory_when_requested
+          source_scenario: "A bootstrap caller uses the public validate_all helper for an intentionally empty manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., allow_empty=True) returns success true with zero total, passed, failed, and no chain_errors."
+        - kind: test_function
+          name: test_validate_all_reports_invalid_manifest_as_chain_error
+          source_scenario: "validate_all sees one valid manifest and one invalid manifest in the same manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns one manifest result and reports ErrorCode.SCHEMA_VALIDATION_ERROR in chain_errors."
+        - kind: test_function
+          name: test_validate_uses_supplied_manifest_chain_diagnostics
+          source_scenario: "ValidationEngine.validate receives an active Manifest plus use_chain=True and a prebuilt chain with diagnostics from a non-default manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation uses the supplied manifest chain and reports ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND as a chain warning."
+        - kind: test_function
+          name: test_validate_ignores_supplied_manifest_chain_diagnostics_when_use_chain_is_false
+          source_scenario: "ValidationEngine.validate receives an active Manifest plus a diagnostic-bearing chain but use_chain=False."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds without reporting the supplied chain diagnostics and without attaching a file-tracking report."
+        - kind: test_function
+          name: test_validate_all_loads_manifest_chain_once_per_invocation
+          source_scenario: "validate_all validates multiple manifests while ManifestChain construction is counted."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all succeeds and constructs one ManifestChain for the invocation."
+        - kind: test_function
+          name: test_validate_all_handles_many_manifests_quickly
+          source_scenario: "validate_all validates 20 small manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all passes all 20 manifests in under five seconds."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_nonexistent_dir_returns_1_by_default
+          source_scenario: "The CLI validates a nonexistent manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate exits 1 and prints EMPTY_MANIFEST_SET."
+        - kind: test_function
+          name: test_validate_empty_manifest_dir_returns_1_by_default
+          source_scenario: "The CLI validates an existing manifest directory with no active manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate exits 1 rather than treating the empty set as success."
+        - kind: test_function
+          name: test_validate_allow_empty_returns_0_for_empty_manifest_dir
+          source_scenario: "The CLI validates an empty manifest directory with --allow-empty."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --allow-empty exits 0 and makes the empty-set choice explicit."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_result.py
+    - tests/cli/test_format.py
+    - tests/core/test_manifest_chain_discovery.py
+    - manifests/030-01-fail-empty-manifest-discovery.manifest.yaml
+    - manifests/038-05-add-lean-validate-all-chain-characterization.manifest.yaml
+    - manifests/040-17-retire-validate-all-chain-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_all_chain.py tests/cli/test_validate_cmd.py tests/core/test_result.py tests/cli/test_format.py tests/core/test_manifest_chain_discovery.py tests/core/test_validate.py
