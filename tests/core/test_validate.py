@@ -1241,38 +1241,6 @@ validate:
 class TestImportVerification:
     """Tests for required imports field on FileSpec."""
 
-    def test_ts_relative_import_resolves_to_manifest_path(self, project):
-        """TS relative import ../../src/models/Budget resolves to match manifest declaration."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-budget-page.manifest.yaml",
-            """schema: "2"
-goal: "Add budget page"
-files:
-  create:
-    - path: src/pages/BudgetPage.ts
-      artifacts:
-        - kind: function
-          name: BudgetPage
-      imports:
-        - src/models/Budget
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/pages/BudgetPage.ts",
-            'import { Budget } from "../models/Budget";\n\nexport function BudgetPage() { return new Budget(); }\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        assert len(import_errors) == 0
-
     def test_ts_import_type_detected(self, project):
         """Type-only imports count as required imports."""
         manifest_path = _write_manifest(

@@ -1,0 +1,210 @@
+schema: "2"
+goal: "Retire interim required-import anchor from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 040-01-retire-duplicated-test-validate-legacy-cases
+  - 040-03-retire-required-import-missing-legacy-cases
+  - 040-04-retire-python-required-import-positive-legacy-cases
+  - 040-05-retire-js-ts-required-import-positive-legacy-cases
+  - 040-06-retire-required-import-edge-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - required-imports
+  priority: medium
+description: |
+  Continue Priority 6 by removing the final test_validate.py method pinned only
+  by interim 040 retirement manifests:
+  TestImportVerification.test_ts_relative_import_resolves_to_manifest_path.
+
+  The exact TypeScript relative-import behavior remains covered by the focused
+  required-import suite as test_typescript_relative_import_satisfies_manifest_path.
+  This manifest supersedes the interim retirement manifests that retained the
+  legacy anchor, preserves the focused tests they introduced as the active
+  contract, and records the intentional legacy method removal.
+temptations:
+  - risk: "Do not supersede original required-import behavior manifests in this cleanup slice."
+    instead: "Supersede only interim 040 retirement manifests and leave original parser/compiler behavior contracts active."
+  - risk: "Do not drop focused required-import behavior introduced by the superseded manifests."
+    instead: "Declare the focused required-import tests here and run the focused suite."
+  - risk: "Do not keep an executable placeholder in tests/core/test_validate.py."
+    instead: "Remove the legacy method and declare it under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_ts_relative_import_resolves_to_manifest_path
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry the TypeScript relative-import behavior."
+files:
+  edit:
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_manifest_without_test_file_does_not_report_no_test_files
+          source_scenario: "A snapshot manifest declares a public artifact and has no test file path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Snapshot implementation validation succeeds without ErrorCode.NO_TEST_FILES."
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_relative_import_satisfies_manifest_path
+          source_scenario: "A TypeScript source file imports ../models/Budget while the manifest requires src/models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_partial_required_imports_report_only_missing_entries
+          source_scenario: "A source imports one required module but omits another required module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports one ErrorCode.MISSING_REQUIRED_IMPORT for only the missing module."
+        - kind: test_function
+          name: test_missing_imports_field_skips_required_import_check
+          source_scenario: "A manifest-created Python file declares no imports field."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_python_required_import_can_match_imported_symbol_name
+          source_scenario: "A manifest requires an imported Python symbol name instead of the full module path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation accepts the imported symbol and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_python_path_style_without_extension_matches_dotted_import
+          source_scenario: "A manifest requires a path-style Python import without .py and the source uses a dotted import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation accepts the dotted import and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_python_dotted_required_import_matches_dotted_import
+          source_scenario: "A manifest requires a dotted Python module path and the source imports that module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation accepts the dotted import and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_deep_relative_import_satisfies_manifest_path
+          source_scenario: "A TypeScript test file imports ../../src/models/Budget while the manifest requires src/models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_dot_slash_import_satisfies_sibling_manifest_path
+          source_scenario: "A TypeScript source imports ./utils while the manifest requires src/pages/utils."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_package_import_matches_exact_required_import
+          source_scenario: "A TypeScript source imports a bare package name that exactly matches the manifest import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_relative_import_with_extension_matches_extensionless_manifest_path
+          source_scenario: "A TypeScript source imports ../models/Budget.ts while the manifest requires src/models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_commonjs_package_require_matches_exact_required_import
+          source_scenario: "A JavaScript source requires a bare package name that exactly matches the manifest import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_reexport_from_satisfies_manifest_path
+          source_scenario: "A TypeScript source re-exports from ./utils while the manifest requires src/utils."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_namespace_import_matches_local_binding_name
+          source_scenario: "A TypeScript source imports * as Models and the manifest requires Models."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_multiline_named_import_text_fallback_satisfies_manifest_path
+          source_scenario: "Tree-sitter import collection is unavailable and a multiline TypeScript named import references ../models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation falls back to text import collection and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_root_relative_escape_does_not_satisfy_project_local_import
+          source_scenario: "A root-level TypeScript file imports ../outside/module while the manifest requires outside/module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_REQUIRED_IMPORT because escaped relative imports are not treated as project-local matches."
+        - kind: test_function
+          name: test_typescript_bare_tsconfig_alias_satisfies_manifest_path
+          source_scenario: "A tsconfig bare path alias maps models to src/models/index and the source imports models."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+  read:
+    - tests/core/test_validate.py
+    - manifests/038-02-add-lean-required-import-characterization.manifest.yaml
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+    - manifests/040-03-retire-required-import-missing-legacy-cases.manifest.yaml
+    - manifests/040-04-retire-python-required-import-positive-legacy-cases.manifest.yaml
+    - manifests/040-05-retire-js-ts-required-import-positive-legacy-cases.manifest.yaml
+    - manifests/040-06-retire-required-import-edge-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/validation/test_required_imports.py tests/core/test_validate.py
