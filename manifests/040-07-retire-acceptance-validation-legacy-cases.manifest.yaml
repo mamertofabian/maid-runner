@@ -1,0 +1,84 @@
+schema: "2"
+goal: "Retire duplicated acceptance validation legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving acceptance-test file existence
+  characterization out of tests/core/test_validate.py and into a focused
+  validation suite.
+
+  The legacy TestAcceptanceValidation class covers acceptance test files that
+  exist, acceptance files that are missing, manifests without acceptance blocks,
+  and behavioral-mode acceptance validation. These names are not active
+  test_function requirements in the merged manifest chain, so this slice can
+  retire them without a manifest evolver.
+temptations:
+  - risk: "Do not weaken acceptance validation coverage while shrinking the legacy file."
+    instead: "Add focused tests for existing, missing, absent acceptance sections, and behavioral-mode validation before deleting the legacy class."
+  - risk: "Do not alter ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND semantics."
+    instead: "Only move characterization coverage and leave ValidationEngine behavior untouched."
+  - risk: "Do not combine this with required-import or production validation refactors."
+    instead: "Limit this slice to acceptance validation tests and the focused retirement manifest."
+files:
+  create:
+    - path: tests/core/validation/test_acceptance_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_existing_acceptance_test_file_does_not_report_e500
+          source_scenario: "A manifest declares an acceptance test command and that test file exists."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND errors."
+        - kind: test_function
+          name: test_missing_acceptance_test_file_reports_e500
+          source_scenario: "A manifest declares an acceptance test command but the referenced file is missing."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND."
+        - kind: test_function
+          name: test_manifest_without_acceptance_section_does_not_report_e500
+          source_scenario: "A manifest has no acceptance section."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND errors."
+        - kind: test_function
+          name: test_behavioral_mode_reports_missing_acceptance_test_file
+          source_scenario: "Behavioral validation sees a manifest with a missing acceptance test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation reports ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND."
+  edit:
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_acceptance_validation.py tests/core/test_validate.py
