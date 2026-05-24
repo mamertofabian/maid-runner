@@ -1315,40 +1315,6 @@ validate:
         assert changed_files(project_root) == ("src/app.py",)
 
 
-class TestConvenienceFunction:
-    def test_validate_function(self, project):
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/greet.py",
-            'def greet(name):\n    return f"Hello, {name}!"\n',
-        )
-        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
-
-        result = validate(
-            manifest_path,
-            mode=ValidationMode.IMPLEMENTATION,
-            project_root=project,
-        )
-        assert result.success is True
-
-
 class TestStubDetection:
     """Tests for check_stubs=True detecting hollow implementations."""
 
@@ -2686,40 +2652,6 @@ validate:
         elapsed = time.monotonic() - start
         assert result.passed == 20
         assert elapsed < 5.0, f"validate_all took {elapsed:.1f}s, expected < 5s"
-
-
-class TestConvenienceFunctionWithDepthFlags:
-    """Test that top-level validate() threads check_stubs and check_assertions."""
-
-    def test_validate_with_check_stubs(self, project):
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(project, "src/greet.py", "def greet():\n    pass\n")
-        _add_test_file(project, "tests/test_greet.py", "src.greet", ["greet"])
-
-        result = validate(
-            manifest_path,
-            mode=ValidationMode.IMPLEMENTATION,
-            project_root=project,
-            check_stubs=True,
-        )
-        assert result.success is True  # stubs are warnings, not errors
-        assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
 
 
 class TestStrictModeStructuralArtifacts:

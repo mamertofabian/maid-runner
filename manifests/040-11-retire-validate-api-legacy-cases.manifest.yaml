@@ -1,0 +1,66 @@
+schema: "2"
+goal: "Retire top-level validate API legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving top-level validate(...) API characterization
+  out of tests/core/test_validate.py and into a focused validation API suite.
+
+  The legacy TestConvenienceFunction and TestConvenienceFunctionWithDepthFlags
+  classes verify that the module-level validate(...) helper runs
+  implementation validation with a project root and threads the check_stubs
+  flag. These test_function names are not active requirements in the merged
+  manifest chain.
+temptations:
+  - risk: "Do not weaken top-level validate(...) API coverage while shrinking the legacy file."
+    instead: "Add focused tests for implementation validation and check_stubs flag threading before deleting the legacy classes."
+  - risk: "Do not change ValidationEngine or validate(...) behavior."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+  - risk: "Do not combine this with validate_all, chain-reuse, or strict-mode refactors."
+    instead: "Limit this slice to the two top-level validate(...) legacy cases."
+files:
+  create:
+    - path: tests/core/validation/test_validate_api.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_function_runs_implementation_validation
+          source_scenario: "The top-level validate(...) helper receives a manifest path, project root, and implementation mode for a valid Python artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: validate
+          expected:
+            behavior: "validate(...) returns a successful implementation ValidationResult with no errors."
+        - kind: test_function
+          name: test_validate_function_threads_check_stubs_flag
+          source_scenario: "The top-level validate(...) helper receives check_stubs=True for a pass-only Python function."
+          actions:
+            - type: api_call
+              subject:
+                export: validate
+          expected:
+            behavior: "validate(...) preserves warning-only success and reports ErrorCode.STUB_FUNCTION_DETECTED."
+  edit:
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+    - manifests/040-10-retire-annotation-warning-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_api.py tests/core/test_validate.py
