@@ -1,0 +1,231 @@
+schema: "2"
+goal: "Retire implementation-mode basic legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 028-04-extract-implementation-file-validation-step
+  - 040-14-retire-implementation-basics-legacy-cases
+  - 040-22-retire-validation-method-reference-smoke
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - implementation-mode
+  priority: medium
+description: |
+  Continue Priority 6 by removing the remaining implementation-mode basic
+  validation anchors from tests/core/test_validate.py. Strict create-mode
+  unexpected-public behavior is already covered by the focused implementation
+  basics suite, and this slice adds focused edit-mode permissive coverage before
+  retiring the legacy method.
+
+  This manifest supersedes the extraction contract and the interim retirement
+  anchors that kept the legacy strict-mode method alive. It preserves the
+  ImplementationFileValidator contract, focused implementation basics, file
+  status coverage, public ValidationEngine API smoke coverage, and the
+  snapshot-core implementation validation command.
+temptations:
+  - risk: "Do not weaken strict create-mode unexpected public artifact failures."
+    instead: "Keep focused ValidationEngine coverage that asserts an undeclared Python function reports ErrorCode.UNEXPECTED_ARTIFACT."
+  - risk: "Do not weaken permissive edit-mode handling for undeclared public artifacts."
+    instead: "Add focused ValidationEngine coverage that files.edit accepts extra public Python artifacts."
+  - risk: "Do not drop the ImplementationFileValidator extraction contract while superseding the original manifest."
+    instead: "Redeclare the extracted class, validate_file_spec method, compare_artifacts helper, and focused implementation-validation tests."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_strict_mode_unexpected_public_fail
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry strict create-mode unexpected-public behavior."
+  - kind: method
+    name: test_permissive_mode_extra_public_allowed
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry permissive edit-mode extra-public behavior."
+files:
+  edit:
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: class
+          name: ImplementationFileValidator
+        - kind: method
+          name: validate_file_spec
+          of: ImplementationFileValidator
+          args:
+            - name: fs
+              type: FileSpec
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+        - kind: function
+          name: compare_artifacts
+          args:
+            - name: expected
+              type: list[ArtifactSpec]
+            - name: found
+              type: list[FoundArtifact]
+            - name: file_path
+              type: str
+            - name: is_strict
+              type: bool
+          returns: list[ValidationError]
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate_implementation
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+    - path: tests/core/test_implementation_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_file_spec_preserves_missing_file_error
+        - kind: test_function
+          name: test_validate_file_spec_preserves_stub_warning
+        - kind: test_function
+          name: test_validate_file_spec_preserves_required_import_error
+        - kind: test_function
+          name: test_compare_artifacts_preserves_strict_mode_extra_public_artifact_error
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_matching_python_function_signature_passes_implementation_validation
+          source_scenario: "A Python function matches the manifest-declared name, argument type, return type, and has a readable test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds with no errors."
+        - kind: test_function
+          name: test_missing_declared_python_function_reports_artifact_not_defined
+          source_scenario: "A manifest declares a Python function but the source file contains no function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED."
+        - kind: test_function
+          name: test_same_named_wrong_kind_reports_artifact_not_defined
+          source_scenario: "A manifest declares a Python class but the source file defines a same-named attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED."
+        - kind: test_function
+          name: test_private_helper_is_allowed_in_strict_create_mode
+          source_scenario: "A manifest-created Python file contains a declared public function plus an undeclared private helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds with no unexpected-artifact errors."
+        - kind: test_function
+          name: test_python_signature_type_mismatch_reports_type_mismatch
+          source_scenario: "A manifest declares int argument and return types but the Python implementation annotates str types."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.TYPE_MISMATCH."
+        - kind: test_function
+          name: test_created_file_missing_reports_file_should_be_present
+          source_scenario: "A manifest-created Python file is absent from disk."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_PRESENT."
+        - kind: test_function
+          name: test_strict_create_flags_undeclared_python_function
+          source_scenario: "A manifest-created Python file declares one public function but also defines an undeclared public helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_edit_mode_allows_undeclared_python_function
+          source_scenario: "A manifest-edited Python file declares one public function but also retains another undeclared public function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT because direct edit-mode validation is permissive."
+    - path: tests/core/validation/test_file_status_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_delete_file_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry with a reason targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+    - path: tests/core/test_result.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_errors
+          source_scenario: "The ErrorCode enum exposes public implementation validation error and warning codes."
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: "The test asserts ErrorCode.FILE_SHOULD_BE_PRESENT has public value E306."
+    - path: tests/core/validation/test_validate_api.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_engine_exposes_public_validation_methods
+          source_scenario: "Downstream callers import ValidationEngine as the public validation API class."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate, validate_behavioral, validate_acceptance, and validate_implementation remain callable public methods."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/_js_ts_imports.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - manifests/028-04-extract-implementation-file-validation-step.manifest.yaml
+    - manifests/040-14-retire-implementation-basics-legacy-cases.manifest.yaml
+    - manifests/040-22-retire-validation-method-reference-smoke.manifest.yaml
+    - manifests/snapshot-core-validate.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_implementation_validation.py tests/core/validation/test_implementation_basics.py tests/core/validation/test_file_status_validation.py tests/core/test_result.py tests/core/validation/test_validate_api.py tests/core/test_validate.py
+  - uv run maid validate manifests/snapshot-core-validate.manifest.yaml --mode implementation

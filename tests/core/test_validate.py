@@ -103,34 +103,6 @@ def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
 
 
 class TestImplementationValidation:
-    def test_strict_mode_unexpected_public_fail(self, project):
-        """Golden test 6.3: Unexpected public artifact -> E301."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/greet.py",
-            'def greet(name):\n    return f"Hello, {name}!"\n\ndef farewell(name):\n    return f"Goodbye, {name}!"\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is False
-        assert any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
-
     def test_typescript_strict_mode_allows_private_keyword_methods(self, project):
         manifest_path = _write_manifest(
             project / "manifests",
@@ -413,36 +385,6 @@ test('config can be created', () => {
 
         assert result.success is True
         assert not any(e.code == ErrorCode.UNEXPECTED_ARTIFACT for e in result.errors)
-
-    def test_permissive_mode_extra_public_allowed(self, project):
-        """Golden test 6.5: Edit mode allows extra public."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "edit-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add farewell"
-files:
-  edit:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: farewell
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/greet.py",
-            'def greet(name):\n    return f"Hello, {name}!"\n\ndef farewell(name):\n    return f"Goodbye, {name}!"\n',
-        )
-        _add_test_file(project, "tests/test_greet.py", "src.greet", ["farewell"])
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is True
 
 
 class TestManifestPathContainment:

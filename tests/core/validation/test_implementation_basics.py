@@ -300,6 +300,39 @@ validate:
     assert ErrorCode.UNEXPECTED_ARTIFACT in error_codes(result)
 
 
+def test_edit_mode_allows_undeclared_python_function(project):
+    manifest_path = write_manifest(
+        project,
+        "edit-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add farewell"
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: farewell
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/greet.py",
+        'def greet(name):\n    return f"Hello, {name}!"\n\n'
+        'def farewell(name):\n    return f"Goodbye, {name}!"\n',
+    )
+    write_test(project, "tests/test_greet.py", "src.greet", ["farewell"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
 def test_strict_create_flags_undeclared_python_class(project):
     manifest_path = write_manifest(
         project,
