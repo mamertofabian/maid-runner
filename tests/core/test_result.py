@@ -38,6 +38,7 @@ class TestErrorCode:
         assert ErrorCode.ARTIFACT_NOT_USED_IN_TESTS == "E200"
         assert ErrorCode.TEST_FILE_NOT_FOUND == "E201"
         assert ErrorCode.TEST_FILE_NOT_IN_READONLY == "E202"
+        assert ErrorCode.MISSING_ASSERTIONS == "E210"
 
     def test_implementation_errors(self):
         assert ErrorCode.ARTIFACT_NOT_DEFINED == "E300"

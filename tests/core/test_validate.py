@@ -1453,43 +1453,6 @@ validate:
         assert any("type parameters" in e.message for e in result.errors)
 
 
-class TestAssertionChecking:
-    """Tests for check_assertions=True in behavioral mode."""
-
-    def test_test_with_assertions_passes(self, project):
-        """Test function with assert -> no E210."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_greet.py",
-            'from src.greet import greet\n\ndef test_greet():\n    assert greet("World") == "Hello, World!"\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(
-            manifest_path,
-            mode=ValidationMode.BEHAVIORAL,
-            check_assertions=True,
-        )
-        assert not any(w.code == ErrorCode.MISSING_ASSERTIONS for w in result.warnings)
-
-
 class TestStrictWarningPolicy:
     def test_validate_fail_on_warnings_marks_result_unsuccessful(self, project):
         manifest_path = _write_manifest(

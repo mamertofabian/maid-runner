@@ -88,6 +88,28 @@ def test_behavioral_assertion_check_is_quiet_without_flag(project):
     assert ErrorCode.MISSING_ASSERTIONS not in warning_codes(result)
 
 
+def test_behavioral_assertion_check_allows_test_with_assertion(project):
+    manifest_path = add_greet_manifest(project)
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet():\n"
+        '    assert greet("World") == "Hello, World!"\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.BEHAVIORAL,
+        check_assertions=True,
+    )
+
+    assert result.success is True
+    assert result.errors == []
+    assert ErrorCode.MISSING_ASSERTIONS not in warning_codes(result)
+
+
 def test_implementation_stub_check_warns_for_pass_function(project):
     manifest_path = add_greet_manifest(project)
     write_source(project, "src/greet.py", "def greet():\n    pass\n")

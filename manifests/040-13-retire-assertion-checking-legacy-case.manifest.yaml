@@ -1,0 +1,74 @@
+schema: "2"
+goal: "Retire assertion-checking legacy test from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving the remaining non-active assertion-checking
+  behavior out of tests/core/test_validate.py and into the focused strict-mode
+  warning-policy suite.
+
+  The legacy TestAssertionChecking class verifies that behavioral validation
+  with check_assertions=True does not warn when a test function contains an
+  assertion. The behavior complements the existing focused missing-assertion
+  warning and no-flag quiet-path cases.
+
+  Older active manifests still require ErrorCode.MISSING_ASSERTIONS to be
+  referenced from the validation/result test surface. This slice records the
+  enum value in tests/core/test_result.py while keeping behavioral warning
+  coverage in tests/core/validation/test_strict_mode.py.
+temptations:
+  - risk: "Do not weaken check_assertions=True coverage while shrinking the legacy file."
+    instead: "Add a focused positive assertion case before deleting the legacy class."
+  - risk: "Do not replace the MISSING_ASSERTIONS reference with a placeholder."
+    instead: "Assert its public enum value in tests/core/test_result.py and keep behavioral warning coverage in the focused validation suite."
+  - risk: "Do not change behavioral validation or assertion scanning semantics."
+    instead: "Only move characterization coverage and leave validation code untouched."
+  - risk: "Do not combine this with strict warning policy or stub-detection retirement."
+    instead: "Limit this slice to the single assertion-checking positive case."
+files:
+  edit:
+    - path: tests/core/validation/test_strict_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_assertion_check_allows_test_with_assertion
+          source_scenario: "Behavioral validation runs with check_assertions=True against a Python test function containing an assert statement."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.MISSING_ASSERTIONS warning."
+    - path: tests/core/test_result.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_errors
+          source_scenario: "The ErrorCode enum exposes public behavioral validation error and warning codes."
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: "The test asserts ErrorCode.MISSING_ASSERTIONS has public value E210."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+    - manifests/038-12-extract-test-assertions-helper.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_strict_mode.py tests/core/test_result.py tests/core/test_validate.py
