@@ -1,0 +1,256 @@
+schema: "2"
+goal: "Retire TypeScript private/module-local legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - fix-typescript-private-and-module-local-artifacts
+  - 040-18-retire-strict-structural-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - typescript
+    - implementation-validation
+  priority: medium
+description: |
+  Continue Priority 6 by moving TypeScript private/member visibility and
+  module-local strict-mode characterization out of tests/core/test_validate.py
+  and into the focused implementation-basics suite.
+
+  The focused tests now preserve ValidationEngine behavior for private methods,
+  public getters with private setters, ES-module local declarations, exported
+  undeclared constants, CommonJS export assignment targets, and strict declared
+  interface-member validation before the broad legacy methods are removed. This
+  also supersedes the earlier strict-structural retirement anchor that kept the
+  declared-interface legacy method alive until the TypeScript privacy contract
+  could be retired.
+temptations:
+  - risk: "Do not weaken TypeScript private/protected member filtering."
+    instead: "Keep focused ValidationEngine tests plus TypeScriptValidator collector tests for private/protected members."
+  - risk: "Do not hide exported module attributes while ignoring module-local declarations."
+    instead: "Keep focused positive and negative strict-mode tests for module-local and exported constants."
+  - risk: "Do not drop CommonJS export-assignment behavior."
+    instead: "Keep focused ValidationEngine and collector tests for export = targets."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_typescript_strict_mode_allows_private_keyword_methods
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry private/protected strict-mode behavior."
+  - kind: method
+    name: test_typescript_strict_mode_allows_public_getter_with_private_setter
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry public getter/private setter behavior."
+  - kind: method
+    name: test_typescript_strict_mode_allows_module_local_constants
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry ES-module local declaration behavior."
+  - kind: method
+    name: test_typescript_strict_mode_still_flags_exported_undeclared_constants
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry exported undeclared constant behavior."
+  - kind: method
+    name: test_typescript_strict_mode_allows_export_assignment_target
+    of: TestImplementationValidation
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry CommonJS export-assignment behavior."
+  - kind: method
+    name: test_strict_mode_validates_declared_interface_members
+    of: TestStrictModeStructuralArtifacts
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry declared interface member strict validation behavior."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: class
+          name: TypeScriptValidator
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: maid_runner/validators/_typescript_implementation.py
+      artifacts:
+        - kind: function
+          name: collect_implementation_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+          returns: list[FoundArtifact]
+    - path: tests/validators/test_typescript.py
+      artifacts:
+        - kind: test_function
+          name: test_privacy_detection
+        - kind: test_function
+          name: test_private_and_protected_keyword_methods_are_not_public_artifacts
+        - kind: test_function
+          name: test_public_accessor_survives_private_accessor_with_same_name
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_module_local_declarations_in_es_modules_are_not_public_artifacts
+        - kind: test_function
+          name: test_named_export_clause_keeps_local_declarations_public
+        - kind: test_function
+          name: test_export_assignment_keeps_local_declaration_public
+        - kind: test_function
+          name: test_script_style_top_level_declarations_remain_public_artifacts
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_exported_typescript_type_alias_is_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create TypeScript source declares an exported type alias and a manifest-declared function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_undeclared_typescript_interface_members_are_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create TypeScript source declares an exported interface with members plus a manifest-declared function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT for the undeclared interface or its members."
+        - kind: test_function
+          name: test_strict_create_flags_undeclared_python_function
+          source_scenario: "A strict files.create Python source contains a declared function and an undeclared public helper function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_strict_create_flags_undeclared_python_class
+          source_scenario: "A strict files.create Python source contains a declared function and an undeclared public class."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_private_parent_members_are_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create Python source contains a manifest-declared function and an undeclared _-prefixed class with a public-looking member."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_test_file_create_mode_allows_undeclared_test_helpers
+          source_scenario: "A files.create test file declares one test function but also contains helper and additional test functions."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT because test files remain permissive."
+        - kind: test_function
+          name: test_test_file_create_mode_still_requires_declared_test_artifacts
+          source_scenario: "A files.create test file declares two test functions but implements only one."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED for the missing declared test artifact."
+        - kind: test_function
+          name: test_declared_typescript_interface_members_are_strictly_validated
+          source_scenario: "A manifest declares AuthConfig.host while the TypeScript interface also exposes undeclared AuthConfig.port."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.UNEXPECTED_ARTIFACT for AuthConfig.port."
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_private_keyword_methods
+          source_scenario: "A TypeScript class exposes a declared public method and also defines private/protected methods."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_public_getter_with_private_setter
+          source_scenario: "A TypeScript class exposes a declared public getter while hiding a private setter with the same name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_module_local_constants
+          source_scenario: "An ES-module TypeScript file contains local constants/functions plus an exported declared class."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and ignores module-local declarations."
+        - kind: test_function
+          name: test_typescript_strict_mode_still_flags_exported_undeclared_constants
+          source_scenario: "An ES-module TypeScript file exports a constant that is not declared by the manifest while also using a local constant."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.UNEXPECTED_ARTIFACT for the exported constant and not for the local constant."
+        - kind: test_function
+          name: test_typescript_strict_mode_allows_export_assignment_target
+          source_scenario: "A CommonJS .cts file declares a local function and exports the manifest-declared createConfig function via export =."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+    - path: tests/validators/test_typescript_react.py
+      artifacts:
+        - kind: test_function
+          name: test_default_exported_memo_local_reference_is_collected_as_component
+        - kind: test_function
+          name: test_default_exported_memo_named_inline_component_is_collected_as_component
+        - kind: test_function
+          name: test_default_exported_memo_anonymous_arrow_is_collected_as_default_function
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/validators/base.py
+    - tests/validators/test_typescript_implementation_collector_refactor.py
+    - tests/validators/test_typescript_angular.py
+    - tests/core/test_validate_angular.py
+    - tests/core/test_validate_react.py
+    - manifests/fix-typescript-private-and-module-local-artifacts.manifest.yaml
+    - manifests/040-18-retire-strict-structural-legacy-cases.manifest.yaml
+    - manifests/fix-private-type-members-and-strict-structural.manifest.yaml
+    - manifests/040-14-retire-implementation-basics-legacy-cases.manifest.yaml
+    - manifests/029-02-move-typescript-implementation-collector-module.manifest.yaml
+    - manifests/028-06-split-typescript-implementation-artifact-collector.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/validators/test_typescript_implementation_collector_refactor.py tests/core/validation/test_implementation_basics.py tests/core/test_validate.py
+  - uv run python -m pytest -q tests/validators/test_typescript_react.py tests/validators/test_typescript_angular.py tests/core/test_validate_react.py tests/core/test_validate_angular.py
+  - uv run maid validate manifests/snapshot-validators-typescript.manifest.yaml --mode implementation

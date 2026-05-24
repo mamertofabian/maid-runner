@@ -46,6 +46,14 @@ def error_codes(result):
     return {error.code for error in result.errors}
 
 
+def unexpected_artifact_messages(result):
+    return [
+        error.message
+        for error in result.errors
+        if error.code == ErrorCode.UNEXPECTED_ARTIFACT
+    ]
+
+
 def test_matching_python_function_signature_passes_implementation_validation(project):
     manifest_path = write_manifest(
         project,
@@ -238,6 +246,325 @@ validate:
 
     assert result.success is True
     assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
+def test_declared_typescript_interface_members_are_strictly_validated(project):
+    manifest_path = write_manifest(
+        project,
+        "add-service.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: interface
+          name: AuthConfig
+        - kind: attribute
+          name: host
+          of: AuthConfig
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.ts",
+        "export interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+        "export function authenticate(): boolean { return true; }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert any(
+        "AuthConfig.port" in message for message in unexpected_artifact_messages(result)
+    )
+
+
+def test_typescript_strict_mode_allows_private_keyword_methods(project):
+    manifest_path = write_manifest(
+        project,
+        "add-worker.manifest.yaml",
+        """schema: "2"
+goal: "Add worker"
+files:
+  create:
+    - path: src/worker.ts
+      artifacts:
+        - kind: class
+          name: Worker
+        - kind: method
+          name: run
+          of: Worker
+          args: []
+          returns: string
+  read:
+    - tests/worker.test.ts
+validate:
+  - vitest run tests/worker.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/worker.ts",
+        """export class Worker {
+  run(): string {
+    return this.format();
+  }
+
+  private format(): string {
+    return 'ok';
+  }
+
+  protected audit(): void {}
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/worker.test.ts",
+        """import { Worker } from '../src/worker';
+
+test('worker runs', () => {
+  expect(new Worker().run()).toBe('ok');
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert unexpected_artifact_messages(result) == []
+
+
+def test_typescript_strict_mode_allows_public_getter_with_private_setter(project):
+    manifest_path = write_manifest(
+        project,
+        "add-meter.manifest.yaml",
+        """schema: "2"
+goal: "Add meter"
+files:
+  create:
+    - path: src/meter.ts
+      artifacts:
+        - kind: class
+          name: Meter
+        - kind: method
+          name: size
+          of: Meter
+          args: []
+          returns: number
+  read:
+    - tests/meter.test.ts
+validate:
+  - vitest run tests/meter.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/meter.ts",
+        """export class Meter {
+  private value = 0;
+
+  public get size(): number {
+    return this.value;
+  }
+
+  private set size(value: number) {
+    this.value = value;
+  }
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/meter.test.ts",
+        """import { Meter } from '../src/meter';
+
+test('meter exposes size', () => {
+  expect(new Meter().size).toBe(0);
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert unexpected_artifact_messages(result) == []
+
+
+def test_typescript_strict_mode_allows_module_local_constants(project):
+    manifest_path = write_manifest(
+        project,
+        "add-listing-component.manifest.yaml",
+        """schema: "2"
+goal: "Add listing component"
+files:
+  create:
+    - path: src/listing.component.ts
+      artifacts:
+        - kind: class
+          name: ListingComponent
+        - kind: method
+          name: render
+          of: ListingComponent
+          args: []
+          returns: string
+  read:
+    - tests/listing.component.test.ts
+validate:
+  - vitest run tests/listing.component.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/listing.component.ts",
+        """import { Component } from '@angular/core';
+
+const LCS_DEFAULT_POINTS: Record<string, number> = {};
+function localHelper(): number {
+  return 1;
+}
+
+export class ListingComponent {
+  render(): string {
+    return String(localHelper() + Object.keys(LCS_DEFAULT_POINTS).length);
+  }
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/listing.component.test.ts",
+        """import { ListingComponent } from '../src/listing.component';
+
+test('listing component renders', () => {
+  expect(new ListingComponent().render()).toBe('1');
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert unexpected_artifact_messages(result) == []
+
+
+def test_typescript_strict_mode_still_flags_exported_undeclared_constants(project):
+    manifest_path = write_manifest(
+        project,
+        "add-listing-component.manifest.yaml",
+        """schema: "2"
+goal: "Add listing component"
+files:
+  create:
+    - path: src/listing.component.ts
+      artifacts:
+        - kind: class
+          name: ListingComponent
+        - kind: method
+          name: render
+          of: ListingComponent
+          args: []
+          returns: string
+  read:
+    - tests/listing.component.test.ts
+validate:
+  - vitest run tests/listing.component.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/listing.component.ts",
+        """import { Component } from '@angular/core';
+
+const LOCAL_POINTS: Record<string, number> = {};
+export const PUBLIC_POINTS: Record<string, number> = {};
+
+export class ListingComponent {
+  render(): string {
+    return String(Object.keys(LOCAL_POINTS).length);
+  }
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/listing.component.test.ts",
+        """import { ListingComponent } from '../src/listing.component';
+
+test('listing component renders', () => {
+  expect(new ListingComponent().render()).toBe('0');
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    messages = unexpected_artifact_messages(result)
+
+    assert result.success is False
+    assert any("PUBLIC_POINTS" in message for message in messages)
+    assert not any("LOCAL_POINTS" in message for message in messages)
+
+
+def test_typescript_strict_mode_allows_export_assignment_target(project):
+    manifest_path = write_manifest(
+        project,
+        "add-create-config.manifest.yaml",
+        """schema: "2"
+goal: "Add CommonJS config factory"
+files:
+  create:
+    - path: src/create-config.cts
+      artifacts:
+        - kind: function
+          name: createConfig
+          args: []
+          returns: Config
+  read:
+    - tests/create-config.test.ts
+validate:
+  - vitest run tests/create-config.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/create-config.cts",
+        """function createConfig(): Config {
+  return { ready: true };
+}
+
+function localHelper(): Config {
+  return createConfig();
+}
+
+export = createConfig;
+""",
+    )
+    write_source(
+        project,
+        "tests/create-config.test.ts",
+        """import createConfig = require('../src/create-config');
+
+test('config can be created', () => {
+  expect(createConfig()).toEqual({ ready: true });
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert unexpected_artifact_messages(result) == []
 
 
 def test_typescript_generic_type_parameter_mismatch_reports_type_mismatch(project):
