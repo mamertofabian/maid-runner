@@ -1014,62 +1014,6 @@ validate:
         )
 
 
-class TestMissingAnnotationWarning:
-    def test_missing_return_type_is_warning_not_error(self, project):
-        """Golden test 5.2: manifest says returns: str, code has no annotation -> WARNING E304."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-func.manifest.yaml",
-            """schema: "2"
-goal: "Add func"
-files:
-  create:
-    - path: src/func.py
-      artifacts:
-        - kind: function
-          name: foo
-          returns: str
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(project, "src/func.py", 'def foo():\n    return "hello"\n')
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Should NOT have E302 TYPE_MISMATCH error
-        assert not any(e.code == ErrorCode.TYPE_MISMATCH for e in result.errors)
-        # Should have E304 MISSING_RETURN_TYPE warning
-        assert any(w.code == ErrorCode.MISSING_RETURN_TYPE for w in result.warnings)
-
-    def test_missing_arg_type_is_warning_not_error(self, project):
-        """Manifest says arg type: str, code has no annotation -> WARNING E304."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-func.manifest.yaml",
-            """schema: "2"
-goal: "Add func"
-files:
-  create:
-    - path: src/func.py
-      artifacts:
-        - kind: function
-          name: foo
-          args:
-            - name: x
-              type: str
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(project, "src/func.py", "def foo(x):\n    return x\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not any(e.code == ErrorCode.TYPE_MISMATCH for e in result.errors)
-        assert any(w.code == ErrorCode.MISSING_RETURN_TYPE for w in result.warnings)
-
-
 class TestFileTracking:
     def test_validate_all_file_tracking_gate_fails_on_undeclared_source(self, project):
         """validate_all can fail on undeclared production source files."""

@@ -1,0 +1,83 @@
+schema: "2"
+goal: "Retire missing-annotation warning legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving the missing return/argument annotation
+  characterization out of tests/core/test_validate.py and into a focused
+  validation suite.
+
+  The legacy TestMissingAnnotationWarning class verifies that declared
+  manifest types with missing Python annotations produce
+  ErrorCode.MISSING_RETURN_TYPE warnings instead of ErrorCode.TYPE_MISMATCH
+  errors. These test_function names are not active requirements in the merged
+  manifest chain.
+
+  Older active manifests still require ErrorCode.MISSING_RETURN_TYPE to be
+  referenced from the validation/result test surface. This slice records the
+  enum value in tests/core/test_result.py so tests/core/test_validate.py can
+  retire the legacy behavior cases without keeping a placeholder smoke.
+temptations:
+  - risk: "Do not weaken missing-annotation warning behavior while shrinking the legacy file."
+    instead: "Add focused tests for missing return and argument annotations before deleting the legacy class."
+  - risk: "Do not replace the MISSING_RETURN_TYPE reference with a placeholder."
+    instead: "Assert its public enum value in tests/core/test_result.py and keep behavioral warning coverage in the focused validation suite."
+  - risk: "Do not change implementation validation semantics."
+    instead: "Only move characterization coverage and add the missing enum assertion."
+files:
+  create:
+    - path: tests/core/validation/test_annotation_warnings.py
+      artifacts:
+        - kind: test_function
+          name: test_missing_return_annotation_reports_warning_without_type_mismatch
+          source_scenario: "A manifest declares a Python function return type but the implementation omits the return annotation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_RETURN_TYPE as a warning and does not report ErrorCode.TYPE_MISMATCH."
+        - kind: test_function
+          name: test_missing_argument_annotation_reports_warning_without_type_mismatch
+          source_scenario: "A manifest declares a Python function argument type but the implementation omits the argument annotation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_RETURN_TYPE as a warning and does not report ErrorCode.TYPE_MISMATCH."
+  edit:
+    - path: tests/core/test_result.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_errors
+          source_scenario: "The ErrorCode enum exposes public implementation validation error and warning codes."
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: "The test asserts ErrorCode.MISSING_RETURN_TYPE has public value E304."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/consolidate-validation-and-validator-contracts.manifest.yaml
+    - manifests/040-09-retire-file-status-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_annotation_warnings.py tests/core/test_result.py tests/core/test_validate.py
