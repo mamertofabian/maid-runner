@@ -240,6 +240,37 @@ validate:
     assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
 
 
+def test_typescript_generic_type_parameter_mismatch_reports_type_mismatch(project):
+    manifest_path = write_manifest(
+        project,
+        "add-store.manifest.yaml",
+        """schema: "2"
+goal: "Add generic store"
+files:
+  create:
+    - path: src/store.ts
+      artifacts:
+        - kind: class
+          name: Store
+          type_parameters:
+            - T extends Item = Item
+validate:
+  - pytest tests/test_store.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/store.ts",
+        "export class Store<T extends Other = Other> {}\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert ErrorCode.TYPE_MISMATCH in error_codes(result)
+    assert any("type parameters" in error.message for error in result.errors)
+
+
 def test_strict_create_flags_undeclared_python_function(project):
     manifest_path = write_manifest(
         project,

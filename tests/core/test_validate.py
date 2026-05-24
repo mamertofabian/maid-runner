@@ -1024,37 +1024,6 @@ validate:
         assert result.success is True
         assert any(w.code == ErrorCode.STUB_FUNCTION_DETECTED for w in result.warnings)
 
-    def test_typescript_generic_type_parameters_are_validated(self, project):
-        """Manifest-declared generic parameters must match implementation artifacts."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-store.manifest.yaml",
-            """schema: "2"
-goal: "Add generic store"
-files:
-  create:
-    - path: src/store.ts
-      artifacts:
-        - kind: class
-          name: Store
-          type_parameters:
-            - T extends Item = Item
-validate:
-  - pytest tests/test_store.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/store.ts",
-            "export class Store<T extends Other = Other> {}\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        assert any(e.code == ErrorCode.TYPE_MISMATCH for e in result.errors)
-        assert any("type parameters" in e.message for e in result.errors)
-
 
 class TestStrictWarningPolicy:
     def test_validate_fail_on_warnings_marks_result_unsuccessful(self, project):

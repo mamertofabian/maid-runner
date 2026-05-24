@@ -1,0 +1,177 @@
+schema: "2"
+goal: "Retire TypeScript generic type-parameter legacy test from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - add-typescript-generic-type-parameter-storage
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - typescript
+  priority: medium
+description: |
+  Continue Priority 6 by moving the implementation-validation generic
+  type-parameter mismatch test out of tests/core/test_validate.py and into the
+  focused implementation-basics suite.
+
+  This manifest supersedes the original generic type-parameter storage
+  contract, preserves its production artifacts and focused collector/schema
+  tests, and records the intentional removal of the legacy test_validate.py
+  method.
+temptations:
+  - risk: "Do not weaken type_parameters storage, snapshot, parsing, or comparison contracts."
+    instead: "Redeclare the original production and focused test artifacts while moving only the legacy validation test."
+  - risk: "Do not replace the mismatch check with collector-only coverage."
+    instead: "Add a focused ValidationEngine implementation test that reports TYPE_MISMATCH for generic type-parameter differences."
+  - risk: "Do not keep an executable placeholder in tests/core/test_validate.py."
+    instead: "Remove the legacy method and declare it under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_typescript_generic_type_parameters_are_validated
+    of: TestStubDetection
+    file: tests/core/test_validate.py
+    reason: "Focused implementation-basics tests now carry generic type-parameter mismatch validation behavior."
+files:
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: attribute
+          name: type_parameters
+          of: ArtifactSpec
+          type: tuple[str, ...]
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: attribute
+          name: type_parameters
+          of: FoundArtifact
+          type: tuple[str, ...]
+        - kind: method
+          name: generate_snapshot
+          of: BaseValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[dict]
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: load_manifest
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: Manifest
+        - kind: function
+          name: save_manifest
+          args:
+            - name: manifest
+              type: Manifest
+            - name: path
+              type: Union[str, Path]
+          returns: None
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      artifacts:
+        - kind: attribute
+          name: type_parameters
+          of: ArtifactSpec schema
+          type: array[string]
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: function
+          name: generate_snapshot
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Union[str, Path]
+            - name: include_private
+              type: bool
+            - name: registry
+              type: ValidatorRegistry | None
+          returns: Manifest
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+            - name: use_chain
+              type: bool
+            - name: chain
+              type: Optional[ManifestChain]
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: check_stubs
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: include_chain_diagnostics
+              type: bool
+          returns: ValidationResult
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/core/test_manifest.py
+      artifacts:
+        - kind: test_function
+          name: test_load_save_artifact_type_parameters_round_trip
+        - kind: test_function
+          name: test_schema_accepts_artifact_type_parameters
+    - path: tests/validators/test_base.py
+      artifacts:
+        - kind: test_function
+          name: test_artifact_to_dict_includes_type_parameters
+    - path: tests/core/test_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_snapshot_preserves_generic_type_parameters
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_generic_type_parameter_mismatch_reports_type_mismatch
+          source_scenario: "A manifest declares generic type parameters for a TypeScript class but the implementation uses different parameters."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.TYPE_MISMATCH with a type-parameters diagnostic."
+    - path: tests/validators/test_typescript_artifact_edge_cases.py
+      artifacts:
+        - kind: test_function
+          name: test_generic_class_interface_function_and_type_parameters_are_collected
+        - kind: test_function
+          name: test_typed_const_generic_function_parameters_are_collected_from_annotation
+        - kind: test_function
+          name: test_typed_class_field_generic_method_parameters_are_collected_from_annotation
+        - kind: test_function
+          name: test_parenthesized_typed_const_generic_function_parameters_are_collected
+    - path: docs/spikes/spike-parser-library-replacement-options.md
+      artifacts:
+        - kind: attribute
+          name: type_parameters
+          of: parser library replacement spike
+          type: section
+  read:
+    - tests/core/test_validate.py
+    - tests/validators/test_typescript.py
+    - maid_runner/core/type_compare.py
+    - manifests/add-typescript-generic-type-parameter-storage.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest.py tests/validators/test_base.py tests/core/test_snapshot.py tests/core/validation/test_implementation_basics.py tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_validate.py
