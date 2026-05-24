@@ -15,6 +15,8 @@ import pytest
 from maid_runner.core.identity import match_artifact_to_references
 from maid_runner.core.types import ArtifactKind
 from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
+from maid_runner.validators._typescript_behavioral import collect_behavioral_artifacts
+from maid_runner.validators._typescript_parse import parse_typescript_source
 from maid_runner.validators.typescript import TypeScriptValidator
 
 
@@ -125,6 +127,68 @@ class TestNamedImportRecordsSource:
         assert bar is not None
         assert bar.import_source == "src/models/user"
         assert bar.alias_of == "Foo"
+
+    @pytest.mark.parametrize(
+        ("source", "expected_reference_context", "scenario"),
+        [
+            (
+                "function update() {\n"
+                "  return 'local';\n"
+                "}\n\n"
+                "it('uses local update', () => {\n"
+                "  expect(update()).toBe('local');\n"
+                "});\n",
+                "local",
+                "local function declaration",
+            ),
+            (
+                "import { noop } from '../src/other';\n\n"
+                "it('uses unrelated import before bare update', () => {\n"
+                "  expect(noop()).toBe('noop');\n"
+                "  update();\n"
+                "});\n",
+                "access",
+                "bare same-name call with unrelated import",
+            ),
+            (
+                "class Local {\n"
+                "  update() {\n"
+                "    return 'local';\n"
+                "  }\n"
+                "}\n\n"
+                "it('uses local update method', () => {\n"
+                "  expect(new Local().update()).toBe('local');\n"
+                "});\n",
+                "local",
+                "local method call",
+            ),
+        ],
+    )
+    def test_local_same_name_helpers_keep_non_import_reference_context(
+        self,
+        validator: TypeScriptValidator,
+        tmp_path: Path,
+        source: str,
+        expected_reference_context: str,
+        scenario: str,
+    ) -> None:
+        test_path = tmp_path / "tests" / "widget.test.ts"
+        session = parse_typescript_source(
+            source,
+            test_path,
+            validator._ts_parser,
+            validator._tsx_parser,
+        )
+        collected_references = collect_behavioral_artifacts(
+            session.tree.root_node,
+            session.source_bytes,
+            test_path,
+        )
+
+        assert any(
+            ref.name == "update" and ref.reference_context == expected_reference_context
+            for ref in collected_references
+        ), scenario
 
     def test_tsconfig_paths_alias_records_source_module(
         self, validator: TypeScriptValidator, tmp_path: Path

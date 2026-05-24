@@ -1,0 +1,158 @@
+schema: "2"
+goal: "Retire identity-backed coverage legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 032-01-require-identity-backed-behavioral-coverage
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - behavioral-coverage
+    - identity
+  priority: medium
+description: |
+  Continue Priority 6 by moving the remaining identity-backed behavioral
+  coverage characterization from tests/core/test_validate.py into the focused
+  behavioral coverage suite.
+
+  The new focused tests preserve the old Python and TypeScript local same-name
+  bypass cases, local owner-attribute rejection, and imported class member
+  positive coverage before the broad legacy methods are removed.
+temptations:
+  - risk: "Do not weaken the local same-name helper bypass checks."
+    instead: "Keep focused Python and TypeScript ValidationEngine tests that reject local same-name helpers without production import identity."
+  - risk: "Do not drop attribute owner identity checks."
+    instead: "Keep focused negative tests for local attribute access and a positive test for imported Settings().timeout access."
+  - risk: "Do not change production identity matching or behavioral collectors in this retirement slice."
+    instead: "Redeclare the original production artifacts from 032-01 without editing production code."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_python_local_function_without_identity_import_does_not_cover_artifact
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused behavioral coverage tests now carry Python local same-name helper rejection behavior."
+  - kind: method
+    name: test_typescript_local_function_without_identity_import_does_not_cover_artifact
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused behavioral coverage tests now carry TypeScript local same-name helper rejection behavior."
+  - kind: method
+    name: test_python_local_attribute_without_owner_identity_does_not_cover_declared_attribute
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused behavioral coverage tests now carry local owner-attribute rejection behavior."
+  - kind: method
+    name: test_python_imported_class_member_access_covers_owned_attribute
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused behavioral coverage tests now carry imported class member access positive behavior."
+files:
+  edit:
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+          description: "Match behavioral references to declared artifacts without accepting local name-only coverage for module-identified production artifacts."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+          description: "Collect Python behavioral references with enough import and owner identity to distinguish real production member access from local member access."
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+          description: "Collect TypeScript behavioral references without letting local same-name functions cover production artifacts."
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_local_same_name_helper_without_identity_does_not_cover_artifact
+          source_scenario: "A manifest declares src.widget.update while Python tests define, assign, or call local same-name helpers without importing src.widget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns ErrorCode.ARTIFACT_NOT_USED_IN_TESTS because local same-name code is not production artifact coverage."
+        - kind: test_function
+          name: test_typescript_local_same_name_helper_variants_without_identity_do_not_cover_artifact
+          source_scenario: "A manifest declares src/widget.ts update while TypeScript tests define local same-name functions, call a bare same-name helper after unrelated imports, or call a local method."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns ErrorCode.ARTIFACT_NOT_USED_IN_TESTS because local same-name TypeScript code is not production artifact coverage."
+        - kind: test_function
+          name: test_python_local_attribute_member_variants_without_owner_identity_do_not_cover_declared_attribute
+          source_scenario: "A manifest declares Settings.timeout while Python tests access Local().timeout or a local variable's timeout after importing Settings only as an unused identity."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation returns ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the production timeout attribute."
+        - kind: test_function
+          name: test_python_imported_class_member_access_satisfies_owned_attribute_coverage
+          source_scenario: "A Python test imports Settings from src.settings, constructs Settings, and reads Settings().timeout."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds because the member access is tied to the imported production owner."
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_local_same_name_helpers_keep_non_import_reference_context
+          of: TestNamedImportRecordsSource
+          source_scenario: "TypeScript test code defines or calls local same-name update helpers, including a bare same-name call after an unrelated import."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_behavioral_artifacts
+          expected:
+            behavior: "The behavioral collector records update with local or access context rather than import identity for the production module."
+  read:
+    - tests/core/test_validate.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+    - maid_runner/core/validate.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - tests/core/test_identity_matching.py
+    - tests/validators/test_python_identity.py
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/test_identity_matching.py tests/validators/test_python_identity.py tests/validators/test_typescript_identity.py tests/core/test_validate.py

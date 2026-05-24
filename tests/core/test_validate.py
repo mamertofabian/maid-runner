@@ -13,12 +13,6 @@ from maid_runner.core.validate import (
     validate,
     validate_all,
 )
-from maid_runner.validators._typescript_behavioral import (
-    collect_behavioral_artifacts as collect_ts_behavioral_artifacts,
-)
-from maid_runner.validators._typescript_parse import parse_typescript_source
-from maid_runner.validators.typescript import TypeScriptValidator
-
 
 # Historical active manifests still read this legacy file for these method
 # references. Executable assertions live in tests/core/validation/test_validate_api.py.
@@ -1196,87 +1190,6 @@ validate:
         assert len(untested) == 1
         assert "update" in untested[0].message
 
-    @pytest.mark.parametrize(
-        ("test_source", "scenario"),
-        [
-            (
-                "def update():\n"
-                "    return 'local'\n\n"
-                "def test_widget_local_update():\n"
-                "    assert update() == 'local'\n",
-                "local helper before test",
-            ),
-            (
-                "def test_widget_bare_update_call():\n"
-                "    update()\n"
-                "    assert True\n",
-                "bare same-name call with no import",
-            ),
-            (
-                "from src.other import noop\n\n"
-                "def test_widget_bare_update_call_with_unrelated_import():\n"
-                "    assert noop() == 'noop'\n"
-                "    update()\n",
-                "bare same-name call with unrelated import",
-            ),
-            (
-                "def test_widget_late_local_update():\n"
-                "    assert update() == 'local'\n\n"
-                "def update():\n"
-                "    return 'local'\n",
-                "local helper after test",
-            ),
-            (
-                "update = lambda: 'local'\n\n"
-                "def test_widget_assigned_update():\n"
-                "    assert update() == 'local'\n",
-                "local callable assignment",
-            ),
-            (
-                "class Local:\n"
-                "    def update(self):\n"
-                "        return 'local'\n\n"
-                "def test_widget_local_method_update():\n"
-                "    assert Local().update() == 'local'\n",
-                "local method call",
-            ),
-        ],
-    )
-    def test_python_local_function_without_identity_import_does_not_cover_artifact(
-        self, project, test_source, scenario
-    ):
-        """A local same-name helper without an import is not production coverage."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-widget.manifest.yaml",
-            """schema: "2"
-goal: "Add widget"
-files:
-  edit:
-    - path: src/widget.py
-      artifacts:
-        - kind: function
-          name: update
-  read:
-    - tests/test_widget.py
-validate:
-  - pytest tests/test_widget.py -v
-""",
-        )
-        _write_source(project, "src/widget.py", "def update():\n    return 'updated'\n")
-        _write_source(project, "src/other.py", "def noop():\n    return 'noop'\n")
-        _write_source(project, "tests/test_widget.py", test_source)
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        untested = [
-            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert result.success is False, scenario
-        assert len(untested) == 1
-        assert "update" in untested[0].message
-
     def test_python_shadowed_import_reference_does_not_satisfy_coverage(self, project):
         """A local test helper with the same name as an import is not coverage."""
         manifest_path = _write_manifest(
@@ -1916,73 +1829,6 @@ validate:
         assert len(untested) == 1
         assert "timeout" in untested[0].message
 
-    @pytest.mark.parametrize(
-        ("test_source", "scenario"),
-        [
-            (
-                "from src.settings import Settings as RealSettings\n\n"
-                "class Local:\n"
-                "    timeout = 5\n\n"
-                "def test_settings_local_timeout():\n"
-                "    assert RealSettings is not None\n"
-                "    assert Local().timeout == 5\n",
-                "local constructor member access",
-            ),
-            (
-                "from src.settings import Settings as RealSettings\n\n"
-                "class Local:\n"
-                "    timeout = 5\n\n"
-                "def test_settings_local_instance_timeout():\n"
-                "    assert RealSettings is not None\n"
-                "    local = Local()\n"
-                "    assert local.timeout == 5\n",
-                "assigned local object member access",
-            ),
-        ],
-    )
-    def test_python_local_attribute_without_owner_identity_does_not_cover_declared_attribute(
-        self, project, test_source, scenario
-    ):
-        """A local object's member does not cover a production owned attribute."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-settings.manifest.yaml",
-            """schema: "2"
-goal: "Add settings"
-files:
-  edit:
-    - path: src/settings.py
-      artifacts:
-        - kind: class
-          name: Settings
-        - kind: attribute
-          name: timeout
-          of: Settings
-  read:
-    - tests/test_settings.py
-validate:
-  - pytest tests/test_settings.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/settings.py",
-            "class Settings:\n"
-            "    def __init__(self, timeout):\n"
-            "        self.timeout = timeout\n",
-        )
-        _write_source(project, "tests/test_settings.py", test_source)
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        untested = [
-            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert result.success is False, scenario
-        assert len(untested) == 1
-        assert "timeout" in untested[0].message
-
     def test_python_constructor_keyword_covers_owned_attribute(self, project):
         """A keyword on an imported constructor covers that class's attribute."""
         manifest_path = _write_manifest(
@@ -2018,53 +1864,6 @@ validate:
             "from src.settings import Settings\n\n"
             "def test_settings_timeout_keyword():\n"
             "    settings = Settings(timeout=5)\n"
-            "    assert settings.timeout == 5\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        untested = [
-            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert result.success is True
-        assert untested == []
-
-    def test_python_imported_class_member_access_covers_owned_attribute(self, project):
-        """Member access on an imported constructor instance covers its attribute."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-settings.manifest.yaml",
-            """schema: "2"
-goal: "Add settings"
-files:
-  edit:
-    - path: src/settings.py
-      artifacts:
-        - kind: class
-          name: Settings
-        - kind: attribute
-          name: timeout
-          of: Settings
-  read:
-    - tests/test_settings.py
-validate:
-  - pytest tests/test_settings.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/settings.py",
-            "class Settings:\n"
-            "    def __init__(self, timeout):\n"
-            "        self.timeout = timeout\n",
-        )
-        _write_source(
-            project,
-            "tests/test_settings.py",
-            "from src.settings import Settings\n\n"
-            "def test_settings_timeout_member_access():\n"
-            "    settings = Settings(5)\n"
             "    assert settings.timeout == 5\n",
         )
 
@@ -2267,101 +2066,6 @@ validate:
             e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert result.success is False
-        assert len(untested) == 1
-        assert "update" in untested[0].message
-
-    @pytest.mark.parametrize(
-        ("test_source", "expected_reference_context", "scenario"),
-        [
-            (
-                "function update() {\n"
-                "  return 'local';\n"
-                "}\n\n"
-                "it('uses local update', () => {\n"
-                "  expect(update()).toBe('local');\n"
-                "});\n",
-                "local",
-                "local function declaration",
-            ),
-            (
-                "import { noop } from '../src/other';\n\n"
-                "it('uses unrelated import before bare update', () => {\n"
-                "  expect(noop()).toBe('noop');\n"
-                "  update();\n"
-                "});\n",
-                "access",
-                "bare same-name call with unrelated import",
-            ),
-            (
-                "class Local {\n"
-                "  update() {\n"
-                "    return 'local';\n"
-                "  }\n"
-                "}\n\n"
-                "it('uses local update method', () => {\n"
-                "  expect(new Local().update()).toBe('local');\n"
-                "});\n",
-                "local",
-                "local method call",
-            ),
-        ],
-    )
-    def test_typescript_local_function_without_identity_import_does_not_cover_artifact(
-        self, project, test_source, expected_reference_context, scenario
-    ):
-        """A local same-name TypeScript helper is not production coverage."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-widget.manifest.yaml",
-            """schema: "2"
-goal: "Add widget"
-files:
-  edit:
-    - path: src/widget.ts
-      artifacts:
-        - kind: function
-          name: update
-  read:
-    - tests/widget.test.ts
-validate:
-  - pytest tests/widget.test.ts -v
-""",
-        )
-        _write_source(
-            project,
-            "src/widget.ts",
-            "export function update() {\n  return 'updated';\n}\n",
-        )
-        _write_source(
-            project,
-            "src/other.ts",
-            "export function noop() {\n  return 'noop';\n}\n",
-        )
-        _write_source(project, "tests/widget.test.ts", test_source)
-        validator = TypeScriptValidator()
-        session = parse_typescript_source(
-            (project / "tests/widget.test.ts").read_text(),
-            project / "tests/widget.test.ts",
-            validator._ts_parser,
-            validator._tsx_parser,
-        )
-        collected_references = collect_ts_behavioral_artifacts(
-            session.tree.root_node,
-            session.source_bytes,
-            project / "tests/widget.test.ts",
-        )
-        assert any(
-            ref.name == "update" and ref.reference_context == expected_reference_context
-            for ref in collected_references
-        ), scenario
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        untested = [
-            e for e in result.errors if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert result.success is False, scenario
         assert len(untested) == 1
         assert "update" in untested[0].message
 
