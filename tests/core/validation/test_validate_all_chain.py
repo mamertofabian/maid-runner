@@ -319,6 +319,253 @@ validate:
     )
 
 
+def test_direct_edit_validation_with_chain_rejects_undeclared_public_artifact(project):
+    write_manifest(
+        project,
+        "create-service.manifest.yaml",
+        """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    edit_manifest = write_manifest(
+        project,
+        "add-func-b.manifest.yaml",
+        """schema: "2"
+goal: "Add func_b"
+type: feature
+created: "2026-01-02"
+files:
+  edit:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_b
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/service.py",
+        "def func_a():\n    return 'a'\n\n"
+        "def func_b():\n    return 'b'\n\n"
+        "def func_c():\n    return 'c'\n",
+    )
+    write_test(project, "tests/test_service.py", "src.service", ["func_a", "func_b"])
+
+    chain = ManifestChain(project / "manifests", project_root=project)
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        edit_manifest,
+        mode=ValidationMode.IMPLEMENTATION,
+        use_chain=True,
+        chain=chain,
+    )
+
+    assert result.success is False
+    assert any(
+        error.code == ErrorCode.UNEXPECTED_ARTIFACT and "func_c" in error.message
+        for error in result.errors
+    )
+
+
+def test_direct_create_validation_with_multiple_chain_manifests_stays_strict(project):
+    create_manifest = write_manifest(
+        project,
+        "create-service.manifest.yaml",
+        """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    write_manifest(
+        project,
+        "add-func-b.manifest.yaml",
+        """schema: "2"
+goal: "Add func_b"
+type: feature
+created: "2026-01-02"
+files:
+  edit:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: func_b
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/service.py",
+        "def func_a():\n    return 'a'\n\n"
+        "def func_b():\n    return 'b'\n\n"
+        "def func_c():\n    return 'c'\n",
+    )
+    write_test(project, "tests/test_service.py", "src.service", ["func_a", "func_b"])
+
+    chain = ManifestChain(project / "manifests", project_root=project)
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        create_manifest,
+        mode=ValidationMode.IMPLEMENTATION,
+        use_chain=True,
+        chain=chain,
+    )
+
+    assert result.success is False
+    assert any(
+        error.code == ErrorCode.UNEXPECTED_ARTIFACT and "func_c" in error.message
+        for error in result.errors
+    )
+
+
+def test_direct_edit_validation_without_chain_remains_permissive(project):
+    manifest_path = write_manifest(
+        project,
+        "add-farewell.manifest.yaml",
+        """schema: "2"
+goal: "Add farewell"
+type: feature
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: farewell
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/greet.py",
+        "def greet(name):\n"
+        '    return f"Hello, {name}!"\n\n'
+        "def farewell(name):\n"
+        '    return f"Goodbye, {name}!"\n',
+    )
+    write_test(project, "tests/test_greet.py", "src.greet", ["farewell"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+
+
+def test_direct_chain_strict_validation_still_allows_private_artifacts(project):
+    manifest_path = write_manifest(
+        project,
+        "create-service.manifest.yaml",
+        """schema: "2"
+goal: "Create service"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: do_work
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/service.py",
+        "def do_work():\n    return _helper()\n\n" "def _helper():\n    return 42\n",
+    )
+    write_test(project, "tests/test_service.py", "src.service", ["do_work"])
+
+    chain = ManifestChain(project / "manifests", project_root=project)
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+        use_chain=True,
+        chain=chain,
+    )
+
+    assert result.success is True
+
+
+def test_direct_chain_strict_validation_keeps_test_files_permissive(project):
+    manifest_path = write_manifest(
+        project,
+        "create-with-tests.manifest.yaml",
+        """schema: "2"
+goal: "Create module with tests"
+type: feature
+created: "2026-01-01"
+files:
+  create:
+    - path: src/calc.py
+      artifacts:
+        - kind: function
+          name: add
+    - path: tests/test_calc.py
+      artifacts:
+        - kind: function
+          name: test_add
+validate:
+  - pytest tests/test_calc.py -v
+""",
+    )
+    write_source(project, "src/calc.py", "def add(a, b):\n    return a + b\n")
+    write_source(
+        project,
+        "tests/test_calc.py",
+        "from src.calc import add\n\n"
+        "def test_add():\n"
+        "    assert add(1, 2) == 3\n\n"
+        "def test_add_negative():\n"
+        "    assert add(-1, -2) == -3\n",
+    )
+
+    chain = ManifestChain(project / "manifests", project_root=project)
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+        use_chain=True,
+        chain=chain,
+    )
+
+    assert result.success is True
+
+
 def test_validate_all_results_match_uncached_manifest_chain_run(project, monkeypatch):
     import importlib
 

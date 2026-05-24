@@ -1,0 +1,103 @@
+schema: "2"
+goal: "Retire chain strictness legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned direct chain-strictness tests out of
+  tests/core/test_validate.py and into the focused validate_all chain suite.
+
+  The historical strict-mode-chain-enforcement manifest targeted the legacy
+  TestStrictModeChainEnforcement class with a selector-only validate command,
+  but it is already superseded by consolidate-validation-and-validator-contracts.
+  This slice leaves that immutable historical manifest untouched and carries
+  active direct-chain coverage in the focused validate_all chain suite.
+temptations:
+  - risk: "Do not weaken chain strictness while removing the legacy class."
+    instead: "Move direct ValidationEngine.validate(..., use_chain=True) coverage for edit, create, private, and test-file cases."
+  - risk: "Do not leave active manifests pointing at deleted legacy names."
+    instead: "Confirm the old selector manifest is superseded and rely on active focused validation commands."
+  - risk: "Do not change validation semantics."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_applies_chain_strictness_to_active_manifests
+          source_scenario: "validate_all validates two active manifests that share a production file containing an undeclared public function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all reports ErrorCode.UNEXPECTED_ARTIFACT for the undeclared function."
+        - kind: test_function
+          name: test_direct_edit_validation_with_chain_rejects_undeclared_public_artifact
+          source_scenario: "Direct implementation validation runs an edit manifest with a supplied chain and an undeclared public function in the merged file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with ErrorCode.UNEXPECTED_ARTIFACT for the undeclared function."
+        - kind: test_function
+          name: test_direct_create_validation_with_multiple_chain_manifests_stays_strict
+          source_scenario: "Direct implementation validation runs a create manifest while a second active manifest edits the same file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation remains strict under the supplied chain and reports the undeclared public function."
+        - kind: test_function
+          name: test_direct_edit_validation_without_chain_remains_permissive
+          source_scenario: "Direct implementation validation runs an edit manifest without chain context while the file contains pre-existing public API."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds because edit mode without chain context is permissive."
+        - kind: test_function
+          name: test_direct_chain_strict_validation_still_allows_private_artifacts
+          source_scenario: "Direct chain-backed validation sees a declared public function plus an undeclared private helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds because private artifacts remain allowed."
+        - kind: test_function
+          name: test_direct_chain_strict_validation_keeps_test_files_permissive
+          source_scenario: "Direct chain-backed validation includes a test file with an undeclared extra test helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds because test files remain permissive even under chain strictness."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_manifest_still_exempt_from_behavioral_coverage_error
+          source_scenario: "A snapshot manifest declares a public artifact that is not referenced by its smoke test."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy snapshot coverage exemption test remains present and executable after deleting the adjacent unpinned chain-strictness class."
+  read:
+    - manifests/strict-mode-chain-enforcement.manifest.yaml
+    - manifests/consolidate-validation-and-validator-contracts.manifest.yaml
+    - manifests/038-05-add-lean-validate-all-chain-characterization.manifest.yaml
+    - manifests/040-17-retire-validate-all-chain-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_all_chain.py tests/core/test_validate.py
