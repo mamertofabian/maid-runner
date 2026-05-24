@@ -78,6 +78,38 @@ validate:
     assert coverage_issues(result) == []
 
 
+def test_validate_command_directory_discovers_nested_test_files(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(project, "src/greet.py", "def greet():\n    return 'hello'\n")
+    write_source(
+        project,
+        "tests/unit/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet():\n"
+        "    assert greet() == 'hello'\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+
+    assert result.success is True
+    assert coverage_issues(result) == []
+
+
 def test_behavioral_validation_fails_when_artifact_is_not_used_in_test(project):
     manifest_path = write_manifest(
         project,

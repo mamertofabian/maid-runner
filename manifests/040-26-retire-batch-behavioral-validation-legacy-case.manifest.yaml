@@ -1,0 +1,142 @@
+schema: "2"
+goal: "Retire batch behavioral validation legacy test from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 025-01-restore-batch-behavioral-validation
+  - 040-15-retire-behavioral-validation-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - behavioral-coverage
+  priority: medium
+description: |
+  Continue Priority 6 by moving the 025-01 directory validate-command
+  behavioral validation test out of tests/core/test_validate.py and into the
+  focused behavioral coverage suite.
+
+  This manifest supersedes the original 025-01 contract and the 040-15
+  retirement manifest that kept the directory-discovery legacy anchor alive.
+  It preserves 025-01's production, CLI, graph, and Python behavioral collector
+  artifacts, redeclares the focused behavioral tests from 040-15, and records
+  the intentional removal of the legacy test_validate.py method.
+temptations:
+  - risk: "Do not weaken strict behavioral E200 handling for directory validate commands."
+    instead: "Keep an API-level focused ValidationEngine behavioral test that expands pytest tests/ to a nested test file."
+  - risk: "Do not drop unrelated 025-01 smoke contracts while superseding it."
+    instead: "Redeclare the Python validator, CLI handler, and graph smoke tests from 025-01."
+  - risk: "Do not drop focused behavioral coverage introduced by 040-15."
+    instead: "Redeclare the focused behavioral pass and fail tests from 040-15."
+  - risk: "Do not leave a placeholder legacy test in tests/core/test_validate.py."
+    instead: "Remove the legacy method and declare it under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_validate_command_directory_discovers_nested_test_files
+    of: TestBehavioralValidation
+    file: tests/core/test_validate.py
+    reason: "Focused behavioral coverage tests now carry validate-command directory discovery behavior."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchValidationResult
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: class
+          name: PythonValidator
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_validation_passes_when_artifact_is_used_in_test
+          source_scenario: "Behavioral validation checks a manifest artifact that is imported and asserted in the declared test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation succeeds with no ErrorCode.ARTIFACT_NOT_USED_IN_TESTS errors."
+        - kind: test_function
+          name: test_validate_command_directory_discovers_nested_test_files
+          source_scenario: "A manifest uses `pytest tests/ -v` instead of naming every test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation expands the directory to discover nested pytest files and accepts the artifact reference."
+        - kind: test_function
+          name: test_behavioral_validation_fails_when_artifact_is_not_used_in_test
+          source_scenario: "Behavioral validation checks a manifest artifact that is not referenced in the declared test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation fails with one ErrorCode.ARTIFACT_NOT_USED_IN_TESTS error."
+    - path: tests/validators/test_python.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_references_preserve_same_name_from_different_import_sources
+          source_scenario: "A test imports the same symbol name from an implementation module and a package barrel."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator
+          expected:
+            behavior: "Both references are retained with their import_source values so barrel manifests can match exact module identity."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_validate_handler_is_directly_importable
+    - path: tests/cli/test_files_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_files_command_handlers_are_directly_importable
+    - path: tests/cli/test_schema_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_schema_handler_is_directly_importable
+    - path: tests/cli/test_snapshot_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_command_handlers_are_directly_importable
+    - path: tests/graph/test_graph_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_graph_model_snapshot_fields_and_edge_constants_are_referenced
+  read:
+    - tests/core/test_validate.py
+    - manifests/025-01-restore-batch-behavioral-validation.manifest.yaml
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+    - manifests/040-15-retire-behavioral-validation-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest tests/core/validation/test_behavioral_coverage.py tests/validators/test_python.py tests/cli/test_validate_cmd.py tests/cli/test_files_cmd.py tests/cli/test_schema_cmd.py tests/cli/test_snapshot_cmd.py tests/graph/test_graph_v2.py tests/core/test_validate.py -q
+  - uv run maid validate --mode behavioral --json

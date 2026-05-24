@@ -445,40 +445,6 @@ validate:
         assert result.success is True
 
 
-class TestBehavioralValidation:
-    def test_validate_command_directory_discovers_nested_test_files(self, project):
-        """A validate command may point at a test directory, not one file."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(project, "src/greet.py", "def greet():\n    return 'hello'\n")
-        _write_source(
-            project,
-            "tests/unit/test_greet.py",
-            "from src.greet import greet\n\n"
-            "def test_greet():\n"
-            "    assert greet() == 'hello'\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        assert callable(ValidationEngine.validate_all)
-        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
-
-        assert result.success is True
-
-
 class TestManifestPathContainment:
     def test_validate_rejects_file_spec_path_that_escapes_project_root(self, project):
         outside = project.parent / "outside.py"
