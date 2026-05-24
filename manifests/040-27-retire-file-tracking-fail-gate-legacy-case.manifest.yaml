@@ -1,0 +1,162 @@
+schema: "2"
+goal: "Retire file-tracking fail-gate legacy test from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-07-add-file-tracking-fail-gates
+  - 040-16-retire-file-tracking-misc-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - file-tracking
+  priority: medium
+description: |
+  Continue Priority 6 by removing the validate_all file-tracking fail-gate
+  legacy test from tests/core/test_validate.py. The same behavior is already
+  covered by tests/core/validation/test_file_scope_gates.py.
+
+  This manifest supersedes the original 030-07 file-tracking fail-gate
+  contract and the 040-16 retirement manifest that kept this legacy anchor
+  alive. It preserves production, CLI, formatting, and focused file-scope test
+  contracts while recording the intentional legacy method removal.
+temptations:
+  - risk: "Do not weaken validate_all --file-tracking failure behavior."
+    instead: "Keep focused API and CLI tests that assert undeclared production files fail validation."
+  - risk: "Do not drop file-tracking CLI or formatting contracts while superseding 030-07."
+    instead: "Redeclare cmd_files, cmd_validate, build_parser, format_file_tracking, and the CLI test functions."
+  - risk: "Do not drop focused file-scope coverage introduced by 040-16."
+    instead: "Redeclare the focused gitignore and files.read classification tests from 040-16."
+removed_artifacts:
+  - kind: method
+    name: test_validate_all_file_tracking_gate_fails_on_undeclared_source
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry validate_all file-tracking fail-gate behavior."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: run_file_tracking
+          of: ValidationEngine
+          args:
+            - name: chain
+              type: ManifestChain
+          returns: FileTrackingReport
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_file_tracking
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/files.py
+      artifacts:
+        - kind: function
+          name: cmd_files
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_file_tracking
+          args:
+            - name: report
+              type: FileTrackingReport
+          returns: str
+    - path: tests/core/validation/test_file_scope_gates.py
+      artifacts:
+        - kind: test_function
+          name: test_file_tracking_reports_undeclared_source_file
+          source_scenario: "A project has a valid manifest and an extra production source file outside all manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all(..., check_file_tracking=True) returns success false and includes the undeclared file in the result."
+        - kind: test_function
+          name: test_file_tracking_ignores_gitignored_source_file
+          source_scenario: "File tracking runs in a git repository with a source-like file excluded by .gitignore."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The ignored source file is absent from file-tracking entries."
+        - kind: test_function
+          name: test_file_tracking_classifies_files_read_as_registered
+          source_scenario: "A manifest lists a dependency under files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "File tracking marks the file as REGISTERED, not UNDECLARED, and records a read-context issue."
+    - path: tests/cli/test_files_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_files_fail_on_undeclared_returns_1
+          source_scenario: "The files command sees an undeclared production file and --fail-on undeclared is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid files exits 1 and prints the undeclared path."
+        - kind: test_function
+          name: test_files_fail_on_registered_returns_1_for_read_only_production_file
+          source_scenario: "A production file appears only in files.read and --fail-on registered is requested."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid files exits 1 and reports the registered/read-only file."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_file_tracking_gate_returns_1_for_undeclared_source
+          source_scenario: "Structural validation succeeds but file tracking finds an undeclared production file."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --file-tracking exits 1 and reports the undeclared path."
+  read:
+    - tests/core/test_validate.py
+    - tests/cli/test_format.py
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/result.py
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/038-03-add-lean-file-scope-characterization.manifest.yaml
+    - manifests/040-16-retire-file-tracking-misc-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_validate_cmd.py tests/cli/test_format.py tests/core/test_validate.py

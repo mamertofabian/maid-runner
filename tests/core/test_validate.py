@@ -705,41 +705,6 @@ validate:
 
 
 class TestFileTracking:
-    def test_validate_all_file_tracking_gate_fails_on_undeclared_source(self, project):
-        """validate_all can fail on undeclared production source files."""
-        _write_manifest(
-            project / "manifests",
-            "add-app.manifest.yaml",
-            """schema: "2"
-goal: "Add app"
-files:
-  create:
-    - path: src/app.py
-      artifacts:
-        - kind: function
-          name: run
-  read:
-    - tests/test_app.py
-validate:
-  - pytest tests/test_app.py -v
-""",
-        )
-        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
-        _write_source(project, "src/extra.py", "def extra():\n    return 'drift'\n")
-        _add_test_file(project, "tests/test_app.py", "src.app", ["run"])
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate_all(project / "manifests", check_file_tracking=True)
-
-        assert result.success is False
-        reports = [r.file_tracking for r in result.results if r.file_tracking]
-        assert reports
-        assert any(
-            entry.path == "src/extra.py"
-            for report in reports
-            for entry in report.undeclared
-        )
-
     def test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope(
         self, project
     ):
