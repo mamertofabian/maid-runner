@@ -1,0 +1,272 @@
+schema: "2"
+goal: "Retire compiler-backed required-import legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 017-06-compiler-backed-required-import-resolution
+  - 024-02-review-readiness-required-import-and-doc-fixes
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - required-imports
+    - typescript
+  priority: medium
+description: |
+  Continue Priority 6 by moving compiler-backed and review-readiness
+  TypeScript required-import characterization out of tests/core/test_validate.py
+  and into the focused required-import suite.
+
+  This preserves end-to-end ValidationEngine behavior for tsconfig alias
+  imports, workspace package export imports, relative-import fast paths, and
+  external package boundaries while retiring the broad legacy methods. It also
+  supersedes the follow-up review-readiness manifest so active `maid test`
+  commands no longer validate the superseded 017-06 manifest directly.
+temptations:
+  - risk: "Do not weaken compiler-backed E320 required-import resolution."
+    instead: "Keep focused ValidationEngine tests for tsconfig alias and workspace package export imports."
+  - risk: "Do not start invoking the compiler for fast-path imports."
+    instead: "Keep focused tests that fail if relative imports or external package imports call the compiler bridge."
+  - risk: "Do not make compiler resolution mandatory."
+    instead: "Continue relying on existing ts_module_paths and ts_compiler_resolver fallback tests."
+  - risk: "Do not drop draft-workflow documentation contracts while superseding the review-readiness manifest."
+    instead: "Redeclare the existing docs and CI artifacts from 024-02 while updating only the stale validate command dependency."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_ts_required_import_accepts_tsconfig_alias_when_compiler_resolution_is_needed
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry tsconfig alias E320 behavior."
+  - kind: method
+    name: test_ts_required_import_accepts_workspace_package_export_when_compiler_resolution_is_needed
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry workspace package export E320 behavior."
+  - kind: method
+    name: test_ts_required_import_does_not_invoke_compiler_for_relative_imports
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry relative-import fast-path behavior."
+  - kind: method
+    name: test_ts_required_import_keeps_third_party_package_boundary_with_compiler_available
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry external package boundary behavior."
+  - kind: method
+    name: test_ts_required_import_does_not_resolve_unrelated_bare_imports
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry already-satisfied bare import fast-path behavior."
+  - kind: method
+    name: test_ts_required_import_resolves_only_relevant_unresolved_bare_imports
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry relevant unresolved bare-import resolution behavior."
+  - kind: method
+    name: test_ts_required_import_accepts_package_barrel_reexport_target
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry package barrel re-export target behavior."
+  - kind: method
+    name: test_ts_required_import_rejects_unimported_package_barrel_reexport_target
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry unimported barrel re-export rejection behavior."
+  - kind: method
+    name: test_ts_required_import_rejects_aliased_different_barrel_binding
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry aliased different barrel binding rejection behavior."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+            - name: use_chain
+              type: bool
+            - name: chain
+              type: Optional[ManifestChain]
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: check_stubs
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: include_chain_diagnostics
+              type: bool
+          returns: ValidationResult
+        - kind: function
+          name: _check_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+            - name: required_imports
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Optional[Path]
+          returns: list[ValidationError]
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_tsconfig_path_alias_satisfies_manifest_path
+          source_scenario: "A TypeScript implementation imports a required project module through a tsconfig paths alias."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_required_import_skips_compiler_when_bare_import_already_matches
+          source_scenario: "A TypeScript implementation imports several bare packages and the required import already matches one collected bare import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors and does not invoke compiler-backed resolution."
+        - kind: test_function
+          name: test_typescript_required_import_resolves_only_relevant_unresolved_bare_import
+          source_scenario: "A TypeScript implementation imports unrelated bare packages plus one unresolved alias needed by a required import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation invokes compiler-backed resolution only for the relevant unresolved alias and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_required_import_accepts_package_barrel_reexport_target
+          source_scenario: "A TypeScript implementation imports a binding from a package-style barrel whose re-export target is the required import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_required_import_rejects_unimported_package_barrel_reexport_target
+          source_scenario: "A TypeScript implementation imports a different binding from a package barrel while the required target binding is imported from an unrelated package."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_REQUIRED_IMPORT for the unimported barrel target."
+        - kind: test_function
+          name: test_typescript_required_import_rejects_aliased_different_barrel_binding
+          source_scenario: "A TypeScript implementation aliases a different package barrel export to the required target's local name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_REQUIRED_IMPORT for the required barrel target."
+        - kind: test_function
+          name: test_typescript_workspace_package_export_satisfies_manifest_path
+          source_scenario: "A TypeScript implementation imports a required project module through a workspace package export resolved by the compiler bridge."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_relative_required_import_skips_compiler_bridge
+          source_scenario: "A TypeScript implementation satisfies a required import with a relative import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors and does not invoke the compiler bridge."
+        - kind: test_function
+          name: test_typescript_external_package_required_import_skips_compiler_bridge
+          source_scenario: "A TypeScript implementation imports an installed external package listed as a required import."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors and does not invoke the compiler bridge."
+        - kind: test_function
+          name: test_typescript_bare_tsconfig_alias_satisfies_manifest_path
+          source_scenario: "A TypeScript implementation imports a required manifest path through a bare tsconfig alias."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_relative_import_uses_path_resolver_without_compiler
+        - kind: test_function
+          name: test_paths_alias_resolves_without_compiler
+        - kind: test_function
+          name: test_workspace_package_exports_resolve_to_workspace_source
+        - kind: test_function
+          name: test_direct_dependency_import_remains_package_specifier_with_compiler_available
+    - path: tests/core/test_ts_compiler_resolver.py
+      artifacts:
+        - kind: test_function
+          name: test_resolve_import_with_compiler_resolves_workspace_package_exports
+        - kind: test_function
+          name: test_compiler_helpers_return_none_when_node_is_unavailable
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_parser_keeps_commit_approval_explicit
+        - kind: test_function
+          name: test_draft_manifest_workflow_docs_preserve_lifecycle_contract
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_directory_pointer
+          of: documentation
+          type: markdown
+          description: "Directory-local pointer that describes draft manifests as planning inventory before promotion."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_manifest_workflow_links
+          of: documentation
+          type: markdown
+          description: "Development workflow text that describes draft manifests as planning inventory before promotion."
+    - path: docs/spikes/spike-parser-library-replacement-options.md
+      artifacts:
+        - kind: attribute
+          name: _parser_replacement_required_import_status
+          of: documentation
+          type: markdown
+          description: "Spike status text describing current compiler-assisted required-import behavior and preserving fast-path guidance."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/types.py
+    - manifests/017-06-compiler-backed-required-import-resolution.manifest.yaml
+    - manifests/024-02-review-readiness-required-import-and-doc-fixes.manifest.yaml
+    - manifests/document-draft-manifest-workflow.manifest.yaml
+    - manifests/024-01-maid-loop-commit-packet-completeness.manifest.yaml
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/fix-typescript-validation-and-test-performance.manifest.yaml
+    - manifests/fix-typescript-compiler-resolution-cache.manifest.yaml
+    - docs/draft-manifest-workflow.md
+    - CONTRIBUTING.md
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_required_imports.py tests/core/test_ts_module_paths.py tests/core/test_ts_compiler_resolver.py tests/core/test_validate.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py
+  - uv run maid validate manifests/024-01-maid-loop-commit-packet-completeness.manifest.yaml

@@ -812,3 +812,462 @@ validate:
     result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
 
     assert missing_import_errors(result) == []
+
+
+def test_typescript_tsconfig_path_alias_satisfies_manifest_path(project):
+    write_source(
+        project,
+        "tsconfig.json",
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "baseUrl": ".",
+                    "paths": {"@app/*": ["./src/*"]},
+                }
+            }
+        ),
+    )
+    write_source(project, "src/models/Budget.ts", "export class Budget {}\n")
+    manifest_path = write_manifest(
+        project,
+        "add-budget-page.manifest.yaml",
+        """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import { Budget } from "@app/models/Budget";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_workspace_package_export_satisfies_manifest_path(
+    project,
+    monkeypatch,
+):
+    from maid_runner.core.ts_module_paths import resolve_ts_import as real_resolve
+
+    validate_module = sys.modules["maid_runner.core.validate"]
+
+    def fake_resolve_ts_import(specifier, importer_module, root):
+        if specifier == "@workspace/budget":
+            return "src/packages/budget"
+        return real_resolve(specifier, importer_module, root)
+
+    monkeypatch.setattr(
+        validate_module,
+        "resolve_ts_import",
+        fake_resolve_ts_import,
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add workspace consumer"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - src/packages/budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.ts",
+        'import { Budget } from "@workspace/budget";\n\n'
+        "export function App() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_required_import_skips_compiler_when_bare_import_already_matches(
+    project,
+    monkeypatch,
+):
+    validate_module = sys.modules["maid_runner.core.validate"]
+    compiler_calls: list[str] = []
+
+    def track_resolve_ts_import(specifier, importer_module, root):
+        compiler_calls.append(specifier)
+        return specifier
+
+    monkeypatch.setattr(
+        validate_module,
+        "resolve_ts_import",
+        track_resolve_ts_import,
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - pkg0
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.ts",
+        "\n".join(
+            [f'import {{ value{i} }} from "pkg{i}";' for i in range(5)]
+            + ["export function App() { return value0; }"]
+        ),
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+    assert compiler_calls == []
+
+
+def test_typescript_required_import_resolves_only_relevant_unresolved_bare_import(
+    project,
+    monkeypatch,
+):
+    validate_module = sys.modules["maid_runner.core.validate"]
+    compiler_calls: list[str] = []
+
+    def fake_resolve_ts_import(specifier, importer_module, root):
+        compiler_calls.append(specifier)
+        if specifier == "@design/system":
+            return "src/models/Budget"
+        return specifier
+
+    monkeypatch.setattr(
+        validate_module,
+        "resolve_ts_import",
+        fake_resolve_ts_import,
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-budget-page.manifest.yaml",
+        """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import { left } from "unrelated-left";\n'
+        'import { Budget } from "@design/system";\n'
+        'import { right } from "unrelated-right";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+    assert compiler_calls == ["@design/system"]
+
+
+def test_typescript_required_import_accepts_package_barrel_reexport_target(project):
+    write_source(
+        project,
+        "tsconfig.json",
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "baseUrl": ".",
+                    "paths": {"@design/system": ["packages/ui/src"]},
+                }
+            }
+        ),
+    )
+    write_source(
+        project,
+        "packages/ui/src/index.ts",
+        'export { Button } from "./Button";\n',
+    )
+    write_source(
+        project,
+        "packages/ui/src/Button.ts",
+        "export function Button() { return null; }\n",
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.ts",
+        'import { Button } from "@design/system";\n\n'
+        "export function App() { return Button(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_required_import_rejects_unimported_package_barrel_reexport_target(
+    project,
+):
+    write_source(
+        project,
+        "tsconfig.json",
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "baseUrl": ".",
+                    "paths": {"@design/system": ["packages/ui/src"]},
+                }
+            }
+        ),
+    )
+    write_source(
+        project,
+        "packages/ui/src/index.ts",
+        'export { Button } from "./Button";\n' 'export { Theme } from "./Theme";\n',
+    )
+    write_source(
+        project,
+        "packages/ui/src/Button.ts",
+        "export function Button() { return null; }\n",
+    )
+    write_source(
+        project,
+        "packages/ui/src/Theme.ts",
+        "export function Theme() { return null; }\n",
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.ts",
+        'import { Button } from "unrelated-kit";\n'
+        'import { Theme } from "@design/system";\n\n'
+        "export function App() { return Theme() || Button(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert len(missing_import_errors(result)) == 1
+
+
+def test_typescript_required_import_rejects_aliased_different_barrel_binding(
+    project,
+):
+    write_source(
+        project,
+        "tsconfig.json",
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "baseUrl": ".",
+                    "paths": {"@design/system": ["packages/ui/src"]},
+                }
+            }
+        ),
+    )
+    write_source(
+        project,
+        "packages/ui/src/index.ts",
+        'export { Button } from "./Button";\n' 'export { Theme } from "./Theme";\n',
+    )
+    write_source(
+        project,
+        "packages/ui/src/Button.ts",
+        "export function Button() { return null; }\n",
+    )
+    write_source(
+        project,
+        "packages/ui/src/Theme.ts",
+        "export function Theme() { return null; }\n",
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/App.ts
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - packages/ui/src/Button
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.ts",
+        'import { Theme as Button } from "@design/system";\n\n'
+        "export function App() { return Button(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert len(missing_import_errors(result)) == 1
+
+
+def test_typescript_relative_required_import_skips_compiler_bridge(
+    project,
+    monkeypatch,
+):
+    from maid_runner.core import ts_compiler_resolver
+
+    def fail_if_compiler_called(*args, **kwargs):
+        raise AssertionError("compiler bridge must not run for relative imports")
+
+    monkeypatch.setattr(
+        ts_compiler_resolver,
+        "_run_compiler_request",
+        fail_if_compiler_called,
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-budget-page.manifest.yaml",
+        """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import { Budget } from "../models/Budget";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_external_package_required_import_skips_compiler_bridge(
+    project,
+    monkeypatch,
+):
+    from maid_runner.core import ts_compiler_resolver
+
+    compiler_calls: list[tuple] = []
+
+    def track_compiler_calls(*args, **kwargs):
+        compiler_calls.append(args)
+        return None
+
+    monkeypatch.setattr(
+        ts_compiler_resolver,
+        "_run_compiler_request",
+        track_compiler_calls,
+    )
+    write_source(project, "node_modules/react/package.json", '{"name": "react"}\n')
+    manifest_path = write_manifest(
+        project,
+        "add-component.manifest.yaml",
+        """schema: "2"
+goal: "Add React component"
+files:
+  create:
+    - path: src/App.tsx
+      artifacts:
+        - kind: function
+          name: App
+      imports:
+        - react
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/App.tsx",
+        'import React from "react";\n\n'
+        'export function App() { return React.createElement("div"); }\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+    assert compiler_calls == []
