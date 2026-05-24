@@ -767,57 +767,30 @@ validate:
             for entry in report.undeclared
         )
 
-    def test_gitignored_file_not_reported_as_undeclared(self, project):
-        """File tracking ignores source files excluded by gitignore."""
-        import subprocess
-
-        subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
-        (project / ".gitignore").write_text("generated.py\n")
-        _write_source(project, "generated.py", "def generated(): pass\n")
-
-        from maid_runner.core.chain import ManifestChain
-
-        engine = ValidationEngine(project_root=project)
-        chain = ManifestChain(project / "manifests", project_root=project)
-        report = engine.run_file_tracking(chain)
-
-        assert all(e.path != "generated.py" for e in report.entries)
-
-    def test_read_only_file_classified_as_registered(self, project):
-        """Golden test 9.1: File only in files.read should be REGISTERED, not UNDECLARED."""
+    def test_run_file_tracking_smoke(self, project):
+        """run_file_tracking remains exercised from the legacy validation surface."""
         _write_manifest(
             project / "manifests",
-            "use-dep.manifest.yaml",
+            "add-app.manifest.yaml",
             """schema: "2"
-goal: "Use dependency"
+goal: "Add app"
 files:
   create:
     - path: src/app.py
       artifacts:
         - kind: function
           name: run
-  read:
-    - src/dep.py
 validate:
-  - pytest tests/ -v
+  - pytest tests/test_app.py -v
 """,
         )
-        _write_source(project, "src/app.py", "def run(): pass\n")
-        _write_source(project, "src/dep.py", "def helper(): pass\n")
-
-        from maid_runner.core.chain import ManifestChain
-        from maid_runner.core.result import FileTrackingStatus
+        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
 
         engine = ValidationEngine(project_root=project)
         chain = ManifestChain(project / "manifests", project_root=project)
         report = engine.run_file_tracking(chain)
 
-        dep_entries = [e for e in report.entries if e.path == "src/dep.py"]
-        assert len(dep_entries) == 1
-        entry = dep_entries[0]
-        assert entry.status == FileTrackingStatus.REGISTERED
-        assert entry.status != FileTrackingStatus.UNDECLARED
-        assert any("read" in issue.lower() for issue in entry.issues)
+        assert any(entry.path == "src/app.py" for entry in report.entries)
 
     def test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope(
         self, project

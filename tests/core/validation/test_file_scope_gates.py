@@ -154,6 +154,7 @@ validate:
     assert len(dep_entries) == 1
     assert dep_entries[0].status == FileTrackingStatus.REGISTERED
     assert dep_entries[0].status != FileTrackingStatus.UNDECLARED
+    assert any("read" in issue.lower() for issue in dep_entries[0].issues)
 
 
 def test_worktree_scope_rejects_changed_file_in_files_read(project):
