@@ -1,0 +1,224 @@
+schema: "2"
+goal: "Retire JS/TS import scanner legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - replace-ts-required-import-regex-scanner
+  - 028-01-extract-js-ts-import-scanner
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - required-imports
+    - typescript
+    - javascript
+  priority: medium
+description: |
+  Continue Priority 6 by moving the parser-backed JavaScript and TypeScript
+  required-import scanner characterization out of tests/core/test_validate.py.
+
+  The focused scanner suite already covers the helper-level syntactic import
+  collection contract. This slice adds focused ValidationEngine E320 tests for
+  type-only imports, dynamic import(), require.resolve(), multiline named
+  imports, commented-out import rejection, and alias bindings before removing
+  the broad legacy TestImportVerification methods.
+temptations:
+  - risk: "Do not weaken parser-backed E320 behavior while retiring the legacy tests."
+    instead: "Keep focused ValidationEngine tests for each retired JS/TS syntax case."
+  - risk: "Do not collapse helper-level scanner coverage into implementation-only tests."
+    instead: "Redeclare the _js_ts_imports helper tests from 028-01 alongside the focused ValidationEngine tests."
+  - risk: "Do not change required-import production code in this retirement slice."
+    instead: "Redeclare _check_required_imports and collect_required_imports contracts without editing production code."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_ts_import_type_detected
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry type-only import E320 behavior."
+  - kind: method
+    name: test_ts_dynamic_import_detected
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry dynamic import E320 behavior."
+  - kind: method
+    name: test_ts_require_resolve_detected
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry require.resolve E320 behavior."
+  - kind: method
+    name: test_ts_multiline_named_import_detected
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry multiline named import E320 behavior."
+  - kind: method
+    name: test_ts_commented_out_import_does_not_satisfy_required_import
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry commented-out import rejection behavior."
+  - kind: method
+    name: test_ts_import_alias_binding_detected
+    of: TestImportVerification
+    file: tests/core/test_validate.py
+    reason: "Focused required-import tests now carry alias binding E320 behavior."
+files:
+  edit:
+    - path: maid_runner/core/_js_ts_imports.py
+      artifacts:
+        - kind: function
+          name: collect_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: set[str]
+        - kind: function
+          name: collect_import_modules
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: set[str]
+        - kind: function
+          name: collect_import_module_bindings
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+          returns: dict[str, set[str]]
+        - kind: function
+          name: import_may_satisfy_required
+          args:
+            - name: specifier
+              type: str
+            - name: unresolved_required_imports
+              type: set[str]
+            - name: bindings
+              type: set[str]
+          returns: bool
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: function
+          name: _check_required_imports
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: str
+            - name: required_imports
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Optional[Path]
+          returns: list[ValidationError]
+    - path: tests/core/test_js_ts_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_collect_required_imports_ignores_commented_out_imports
+          source_scenario: "TypeScript source contains a commented-out import plus a type-only import."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_required_imports
+          expected:
+            behavior: "The scanner ignores commented-out imports while keeping type-only import names and modules."
+        - kind: test_function
+          name: test_collect_import_modules_keeps_dynamic_import_and_require_resolve
+          source_scenario: "TypeScript source uses dynamic import() and require.resolve()."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_import_modules
+          expected:
+            behavior: "The scanner returns both dynamic import and require.resolve module specifiers."
+        - kind: test_function
+          name: test_collect_import_module_bindings_records_source_names
+          source_scenario: "TypeScript source imports defaults, aliases, type-only names, namespaces, and re-exports."
+          actions:
+            - type: api_call
+              subject:
+                export: collect_import_module_bindings
+          expected:
+            behavior: "The scanner records original source binding names by imported module."
+        - kind: test_function
+          name: test_import_may_satisfy_required_uses_specifier_parts_and_bindings
+          source_scenario: "A candidate import specifier and binding set are compared to unresolved required imports."
+          actions:
+            - type: api_call
+              subject:
+                export: import_may_satisfy_required
+          expected:
+            behavior: "The helper accepts matches by specifier path parts or binding names and rejects unrelated bindings."
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_type_only_import_satisfies_manifest_path
+          source_scenario: "A TypeScript implementation satisfies a required import through import type."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_dynamic_import_satisfies_manifest_path
+          source_scenario: "A TypeScript implementation satisfies a required import through dynamic import()."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_javascript_require_resolve_satisfies_manifest_path
+          source_scenario: "A JavaScript implementation satisfies a required import through require.resolve()."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_multiline_named_import_satisfies_manifest_path_and_binding
+          source_scenario: "A TypeScript implementation imports a required module with a multiline named import and also requires the local binding name."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_commented_out_import_does_not_satisfy_manifest_path
+          source_scenario: "A TypeScript implementation contains only a commented-out import for a required manifest path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_REQUIRED_IMPORT for the commented-out import."
+        - kind: test_function
+          name: test_typescript_named_import_alias_satisfies_manifest_binding
+          source_scenario: "A TypeScript implementation imports a named export under the manifest-required local alias."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/ts_module_paths.py
+    - tests/core/test_ts_module_paths.py
+    - docs/spikes/spike-parser-library-replacement-options.md
+    - pyproject.toml
+    - manifests/replace-ts-required-import-regex-scanner.manifest.yaml
+    - manifests/028-01-extract-js-ts-import-scanner.manifest.yaml
+    - manifests/fix-e320-import-path-normalization.manifest.yaml
+    - manifests/024-02-review-readiness-required-import-and-doc-fixes.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_js_ts_imports.py tests/core/validation/test_required_imports.py tests/core/test_ts_module_paths.py tests/core/test_validate.py

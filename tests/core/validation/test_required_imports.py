@@ -691,6 +691,192 @@ validate:
     assert missing_import_errors(result) == []
 
 
+def test_typescript_type_only_import_satisfies_manifest_path(project):
+    manifest_path = write_manifest(
+        project,
+        "add-types.manifest.yaml",
+        """schema: "2"
+goal: "Add type consumer"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import type { Budget } from "../models/Budget";\n\n'
+        "export function BudgetPage(model: Budget) { return model; }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_dynamic_import_satisfies_manifest_path(project):
+    manifest_path = write_manifest(
+        project,
+        "add-loader.manifest.yaml",
+        """schema: "2"
+goal: "Add dynamic loader"
+files:
+  create:
+    - path: src/loaders/loadBudget.ts
+      artifacts:
+        - kind: function
+          name: loadBudget
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/loaders/loadBudget.ts",
+        'export async function loadBudget() { return import("../models/Budget"); }\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_javascript_require_resolve_satisfies_manifest_path(project):
+    manifest_path = write_manifest(
+        project,
+        "add-resolver.manifest.yaml",
+        """schema: "2"
+goal: "Add resolver"
+files:
+  create:
+    - path: src/loaders/resolveBudget.js
+      artifacts:
+        - kind: function
+          name: resolveBudget
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/loaders/resolveBudget.js",
+        'function resolveBudget() { return require.resolve("../models/Budget"); }\n'
+        "module.exports = { resolveBudget };\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_multiline_named_import_satisfies_manifest_path_and_binding(project):
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - Budget
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import {\n  Budget,\n} from "../models/Budget";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_commented_out_import_does_not_satisfy_manifest_path(project):
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        '// import { Budget } from "../models/Budget";\n\n'
+        "export function BudgetPage() { return null; }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert len(missing_import_errors(result)) == 1
+
+
+def test_typescript_named_import_alias_satisfies_manifest_binding(project):
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - BudgetModel
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import { Budget as BudgetModel } from "../models/Budget";\n\n'
+        "export function BudgetPage() { return new BudgetModel(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
 def test_typescript_multiline_named_import_text_fallback_satisfies_manifest_path(
     project, monkeypatch
 ):
