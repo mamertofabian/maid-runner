@@ -1,0 +1,54 @@
+schema: "2"
+goal: "Retire duplicated required-import missing legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by retiring the duplicated
+  `TestRequiredImportsMissing` legacy class from tests/core/test_validate.py.
+
+  The focused required-import suite already covers all-missing required import
+  behavior. This slice adds the remaining partial-missing scenario to the
+  focused suite before deleting the legacy duplicate tests.
+temptations:
+  - risk: "Do not remove required-import missing scenarios that are not present in the focused suite."
+    instead: "Add the partial-missing case to tests/core/validation/test_required_imports.py before deleting TestRequiredImportsMissing."
+  - risk: "Do not alter E320 required-import semantics while retiring tests."
+    instead: "Only move characterization coverage and keep ValidationEngine behavior untouched."
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only names absent from the active merged chain and keep active required-import smoke tests present."
+files:
+  edit:
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_partial_required_imports_report_only_missing_entries
+          source_scenario: "A source imports one required module but omits another required module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports one ErrorCode.MISSING_REQUIRED_IMPORT for only the missing module."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_relative_import_resolves_to_manifest_path
+          source_scenario: "A TypeScript source imports a manifest-required module through a relative path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy required-import smoke test remains present and executable."
+  read:
+    - manifests/038-02-add-lean-required-import-characterization.manifest.yaml
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_required_imports.py tests/core/test_validate.py

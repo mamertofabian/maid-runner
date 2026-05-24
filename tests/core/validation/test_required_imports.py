@@ -160,6 +160,49 @@ validate:
     }
 
 
+def test_partial_required_imports_report_only_missing_entries(project):
+    manifest_path = write_manifest(
+        project,
+        "add-service.manifest.yaml",
+        """schema: "2"
+goal: "Add service"
+files:
+  create:
+    - path: src/service.py
+      artifacts:
+        - kind: function
+          name: run_service
+      imports:
+        - os
+        - missing_module
+  read:
+    - tests/test_service.py
+validate:
+  - pytest tests/test_service.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/service.py",
+        "import os\n\n" "def run_service():\n" "    return os.getcwd()\n",
+    )
+    write_source(
+        project,
+        "tests/test_service.py",
+        "from src.service import run_service\n\n"
+        "def test_run_service():\n"
+        "    assert run_service is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    import_errors = missing_import_errors(result)
+
+    assert len(import_errors) == 1
+    assert "missing_module" in import_errors[0].message
+    assert "os" not in import_errors[0].message
+
+
 def test_python_path_style_required_import_matches_dotted_import(project):
     manifest_path = write_manifest(
         project,
