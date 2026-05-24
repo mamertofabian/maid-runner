@@ -1,0 +1,128 @@
+schema: "2"
+goal: "Retire duplicated file status validation legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving file-deletion/absence and most
+  unsupported-language characterization out of tests/core/test_validate.py and
+  into a focused validation suite.
+
+  The legacy TestFileAbsentValidation, TestFileDeletionValidation,
+  TestUnsupportedLanguage, and TestUnsupportedLanguageValidation classes cover
+  delete-section absence checks and unsupported validator warnings. These names
+  are not active test_function requirements in the merged manifest chain.
+
+  An older active snapshot still requires ErrorCode.VALIDATOR_NOT_AVAILABLE to
+  be behaviorally referenced from the legacy validation test surface. This slice
+  therefore keeps one real unsupported-language smoke test in
+  tests/core/test_validate.py while moving the detailed variants to the focused
+  suite.
+temptations:
+  - risk: "Do not weaken FILE_SHOULD_BE_ABSENT or VALIDATOR_NOT_AVAILABLE coverage while shrinking the legacy file."
+    instead: "Add focused tests for present/missing delete targets and supported/unsupported language validation before deleting the legacy classes."
+  - risk: "Do not alter implementation validation semantics."
+    instead: "Only move characterization coverage and leave ValidationEngine behavior untouched."
+  - risk: "Do not combine this with behavioral-coverage or production validation refactors."
+    instead: "Limit this slice to file-status validation tests and the focused retirement manifest."
+  - risk: "Do not replace the legacy VALIDATOR_NOT_AVAILABLE reference with a placeholder just to satisfy an older active snapshot."
+    instead: "Keep one executable unsupported-language smoke test in tests/core/test_validate.py."
+files:
+  create:
+    - path: tests/core/validation/test_file_status_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_delete_file_that_still_exists_reports_file_should_be_absent
+          source_scenario: "A manifest delete entry targets a file that still exists."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_ABSENT."
+        - kind: test_function
+          name: test_delete_file_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_still_exists_reports_file_should_be_absent
+          source_scenario: "A manifest delete entry with a reason targets a file that still exists."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_ABSENT."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry with a reason targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_unsupported_language_file_reports_validator_not_available_warning
+          source_scenario: "A manifest-created Ruby file has no registered validator and includes a test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports ErrorCode.VALIDATOR_NOT_AVAILABLE as a warning."
+        - kind: test_function
+          name: test_supported_python_file_reports_no_validator_not_available_warning
+          source_scenario: "A manifest-created Python file has a registered validator."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.VALIDATOR_NOT_AVAILABLE warnings."
+        - kind: test_function
+          name: test_unsupported_language_file_reports_validator_not_available_issue_without_test_file
+          source_scenario: "A manifest-created Ruby file has no registered validator and no explicit test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation includes ErrorCode.VALIDATOR_NOT_AVAILABLE among errors or warnings."
+  edit:
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_unsupported_language_warning_smoke
+          source_scenario: "A manifest-created Ruby file has no registered validator."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The retained legacy smoke test reports ErrorCode.VALIDATOR_NOT_AVAILABLE as a warning."
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+    - manifests/040-08-retire-error-handling-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_status_validation.py tests/core/test_validate.py

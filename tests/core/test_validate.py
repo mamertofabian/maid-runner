@@ -3065,58 +3065,10 @@ validate:
         assert any(e.code == ErrorCode.ARTIFACT_NOT_DEFINED for e in result.errors)
 
 
-class TestFileAbsentValidation:
-    """FileSpec with is_absent=True should fail when the file exists."""
+class TestUnsupportedLanguageSmoke:
+    """Legacy smoke coverage for unsupported-language validator warnings."""
 
-    def test_is_absent_file_still_present_fails(self, project):
-        """File marked absent in a create spec with status='absent' triggers E305."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "remove-mod.manifest.yaml",
-            """schema: "2"
-goal: "Remove module"
-type: refactor
-files:
-  delete:
-    - path: src/old.py
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(project, "src/old.py", "# should be deleted\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not result.success
-        assert any(e.code == ErrorCode.FILE_SHOULD_BE_ABSENT for e in result.errors)
-
-    def test_is_absent_file_actually_absent_passes(self, project):
-        """File marked absent that does not exist passes validation."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "remove-mod.manifest.yaml",
-            """schema: "2"
-goal: "Remove module"
-type: refactor
-files:
-  delete:
-    - path: src/old.py
-validate:
-  - pytest tests/ -v
-""",
-        )
-        # Don't create src/old.py
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success
-
-
-class TestUnsupportedLanguage:
-    """Files with unsupported extensions should produce VALIDATOR_NOT_AVAILABLE warning."""
-
-    def test_unsupported_extension_warns(self, project):
-        """A .rb file triggers VALIDATOR_NOT_AVAILABLE warning."""
+    def test_unsupported_language_warning_smoke(self, project):
         manifest_path = _write_manifest(
             project / "manifests",
             "add-ruby.manifest.yaml",
@@ -3139,131 +3091,12 @@ validate:
 
         engine = ValidationEngine(project_root=project)
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Unsupported language is a warning, not an error, so validation passes
-        assert result.success
-        assert any(w.code == ErrorCode.VALIDATOR_NOT_AVAILABLE for w in result.warnings)
 
-    def test_supported_extension_no_warning(self, project):
-        """A .py file should NOT trigger VALIDATOR_NOT_AVAILABLE."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-py.manifest.yaml",
-            """schema: "2"
-goal: "Add python module"
-files:
-  create:
-    - path: src/mod.py
-      artifacts:
-        - kind: function
-          name: helper
-validate:
-  - pytest tests/ -v
-""",
+        assert result.success is True
+        assert any(
+            warning.code == ErrorCode.VALIDATOR_NOT_AVAILABLE
+            for warning in result.warnings
         )
-        _write_source(project, "src/mod.py", "def helper():\n    pass\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not any(
-            w.code == ErrorCode.VALIDATOR_NOT_AVAILABLE for w in result.warnings
-        )
-
-
-# ---------------------------------------------------------------------------
-# File deletion validation (is_absent)
-# ---------------------------------------------------------------------------
-
-
-class TestFileDeletionValidation:
-    def test_absent_file_that_exists_fails(self, project):
-        """File marked as absent but still exists should fail with E307."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "delete-old.manifest.yaml",
-            """schema: "2"
-goal: "Remove old module"
-type: refactor
-files:
-  delete:
-    - path: src/old_module.py
-      reason: "Migrated to new architecture"
-validate:
-  - echo ok
-""",
-        )
-        # Create the file that should be deleted
-        _write_source(project, "src/old_module.py", "# should be deleted\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not result.success
-        error_codes = {e.code for e in result.errors}
-        assert ErrorCode.FILE_SHOULD_BE_ABSENT in error_codes
-
-    def test_absent_file_that_is_missing_passes(self, project):
-        """File marked as absent that doesn't exist passes."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "delete-old.manifest.yaml",
-            """schema: "2"
-goal: "Remove old module"
-type: refactor
-files:
-  delete:
-    - path: src/old_module.py
-      reason: "Migrated to new architecture"
-validate:
-  - echo ok
-""",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Should not have E307 since file correctly doesn't exist
-        absent_errors = [
-            e for e in result.errors if e.code == ErrorCode.FILE_SHOULD_BE_ABSENT
-        ]
-        assert len(absent_errors) == 0
-
-
-# ---------------------------------------------------------------------------
-# Unsupported language validation
-# ---------------------------------------------------------------------------
-
-
-class TestUnsupportedLanguageValidation:
-    def test_unsupported_file_extension_warns(self, project):
-        """File with unsupported extension gets VALIDATOR_NOT_AVAILABLE warning."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-config.manifest.yaml",
-            """schema: "2"
-goal: "Add config"
-type: feature
-files:
-  create:
-    - path: src/config.rb
-      artifacts:
-        - kind: function
-          name: load_config
-validate:
-  - echo ok
-""",
-        )
-        # Create a Ruby file (no validator for Ruby)
-        _write_source(project, "src/config.rb", "def load_config\n  nil\nend\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        # Should have a warning about no validator
-        all_issues = list(result.errors) + list(result.warnings)
-        warn_codes = {e.code for e in all_issues}
-        assert ErrorCode.VALIDATOR_NOT_AVAILABLE in warn_codes
-
-
-# ---------------------------------------------------------------------------
-# Test assertion checking
-# ---------------------------------------------------------------------------
 
 
 class TestImplementationTestCoverage:
