@@ -439,35 +439,6 @@ validate:
 
 
 class TestBehavioralValidation:
-    def test_artifact_used_in_test_pass(self, project):
-        """Golden test 7.1: Artifact used in test -> PASS."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_greet.py",
-            'from src.greet import greet\n\ndef test_greet():\n    assert greet("World") == "Hello, World!"\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
-        assert result.success is True
-
     def test_validate_command_directory_discovers_nested_test_files(self, project):
         """A validate command may point at a test directory, not one file."""
         manifest_path = _write_manifest(
@@ -499,38 +470,6 @@ validate:
         result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
 
         assert result.success is True
-
-    def test_artifact_not_used_fail(self, project):
-        """Golden test 7.2: Artifact not used -> E200."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-greet.manifest.yaml",
-            """schema: "2"
-goal: "Add greet"
-files:
-  create:
-    - path: src/greet.py
-      artifacts:
-        - kind: function
-          name: greet
-  read:
-    - tests/test_greet.py
-validate:
-  - pytest tests/test_greet.py -v
-""",
-        )
-        _write_source(
-            project,
-            "tests/test_greet.py",
-            "def test_something():\n    assert True\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
-        assert result.success is False
-        assert any(
-            e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for e in result.errors
-        )
 
 
 class TestManifestPathContainment:

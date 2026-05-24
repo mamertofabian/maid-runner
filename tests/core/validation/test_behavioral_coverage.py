@@ -37,6 +37,70 @@ def coverage_errors(result):
     ]
 
 
+def test_behavioral_validation_passes_when_artifact_is_used_in_test(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet():\n"
+        '    assert greet("World") == "Hello, World!"\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+
+    assert result.success is True
+    assert coverage_errors(result) == []
+
+
+def test_behavioral_validation_fails_when_artifact_is_not_used_in_test(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "def test_something():\n    assert True\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+
+    assert result.success is False
+    assert len(coverage_errors(result)) == 1
+
+
 def test_public_artifact_without_test_file_reports_no_test_files(project):
     manifest_path = write_manifest(
         project,

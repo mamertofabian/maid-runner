@@ -1,0 +1,64 @@
+schema: "2"
+goal: "Retire behavioral-validation legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving the unpinned behavioral-mode artifact coverage
+  pass/fail cases out of tests/core/test_validate.py and into the focused
+  behavioral coverage suite.
+
+  The pinned validate-command directory discovery case remains in
+  tests/core/test_validate.py because an active manifest still requires that
+  test_function name.
+temptations:
+  - risk: "Do not remove active test_validate_command_directory_discovers_nested_test_files from tests/core/test_validate.py."
+    instead: "Retire only the unpinned artifact-used pass and artifact-not-used fail cases."
+  - risk: "Do not confuse implementation-mode coverage tests with behavioral-mode validation coverage."
+    instead: "Add focused behavioral-mode ValidationEngine.validate tests before deleting the legacy methods."
+  - risk: "Do not change behavioral validation semantics."
+    instead: "Only move characterization coverage and leave validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_validation_passes_when_artifact_is_used_in_test
+          source_scenario: "Behavioral validation checks a manifest artifact that is imported and asserted in the declared test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation succeeds with no ErrorCode.ARTIFACT_NOT_USED_IN_TESTS errors."
+        - kind: test_function
+          name: test_behavioral_validation_fails_when_artifact_is_not_used_in_test
+          source_scenario: "Behavioral validation checks a manifest artifact that is not referenced in the declared test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation fails with one ErrorCode.ARTIFACT_NOT_USED_IN_TESTS error."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_command_directory_discovers_nested_test_files
+          source_scenario: "A validate command points at a test directory containing nested test files."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy directory-discovery behavioral test remains present and executable."
+  read:
+    - manifests/025-01-restore-batch-behavioral-validation.manifest.yaml
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/test_validate.py
