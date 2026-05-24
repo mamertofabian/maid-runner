@@ -37,6 +37,14 @@ def coverage_errors(result):
     ]
 
 
+def coverage_issues(result):
+    return [
+        issue
+        for issue in result.errors + result.warnings
+        if issue.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
+    ]
+
+
 def test_behavioral_validation_passes_when_artifact_is_used_in_test(project):
     manifest_path = write_manifest(
         project,
@@ -67,7 +75,7 @@ validate:
     result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
 
     assert result.success is True
-    assert coverage_errors(result) == []
+    assert coverage_issues(result) == []
 
 
 def test_behavioral_validation_fails_when_artifact_is_not_used_in_test(project):
@@ -124,6 +132,32 @@ validate:
 
     assert result.success is False
     assert any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
+
+
+def test_private_only_manifest_does_not_require_test_files(project):
+    manifest_path = write_manifest(
+        project,
+        "add-helper.manifest.yaml",
+        """schema: "2"
+goal: "Add helper"
+files:
+  create:
+    - path: src/helper.py
+      artifacts:
+        - kind: function
+          name: _internal_helper
+validate:
+  - make check
+""",
+    )
+    write_source(project, "src/helper.py", "def _internal_helper():\n    pass\n")
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert not any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
+    assert coverage_issues(result) == []
 
 
 def test_snapshot_manifest_without_test_file_does_not_report_no_test_files(project):
@@ -194,6 +228,93 @@ validate:
     assert len(untested) == 1
     assert "update" in untested[0].message
     assert untested[0].severity.value == "error"
+
+
+def test_all_declared_public_artifacts_used_in_tests_reports_no_coverage_errors(
+    project,
+):
+    manifest_path = write_manifest(
+        project,
+        "add-widget.manifest.yaml",
+        """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: update
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/widget.py",
+        "def render():\n    pass\n\n" "def update():\n    pass\n",
+    )
+    write_source(
+        project,
+        "tests/test_widget.py",
+        "from src.widget import render, update\n\n"
+        "def test_render():\n"
+        "    render()\n"
+        "    assert True\n\n"
+        "def test_update():\n"
+        "    update()\n"
+        "    assert True\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert coverage_issues(result) == []
+
+
+def test_private_artifact_without_test_reference_reports_no_coverage_errors(project):
+    manifest_path = write_manifest(
+        project,
+        "add-widget.manifest.yaml",
+        """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+        - kind: function
+          name: _helper
+  read:
+    - tests/test_widget.py
+validate:
+  - pytest tests/test_widget.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/widget.py",
+        "def render():\n    pass\n\n" "def _helper():\n    pass\n",
+    )
+    write_source(
+        project,
+        "tests/test_widget.py",
+        "from src.widget import render\n\n"
+        "def test_render():\n"
+        "    render()\n"
+        "    assert True\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert coverage_issues(result) == []
 
 
 def test_import_only_reference_is_not_behavioral_coverage(project):
@@ -300,7 +421,7 @@ validate:
     result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
 
     assert result.success is True
-    assert coverage_errors(result) == []
+    assert coverage_issues(result) == []
 
 
 def test_snapshot_manifest_is_exempt_from_behavioral_coverage(project):
@@ -334,5 +455,5 @@ validate:
 
     assert implementation.success is True
     assert behavioral.success is True
-    assert coverage_errors(implementation) == []
-    assert coverage_errors(behavioral) == []
+    assert coverage_issues(implementation) == []
+    assert coverage_issues(behavioral) == []

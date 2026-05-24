@@ -2175,29 +2175,6 @@ validate:
         result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
         assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
 
-    def test_only_private_artifacts_no_test_required(self, project):
-        """Manifest with only private artifacts -> no E220 (private doesn't need tests)."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-helper.manifest.yaml",
-            """schema: "2"
-goal: "Add helper"
-files:
-  create:
-    - path: src/helper.py
-      artifacts:
-        - kind: function
-          name: _internal_helper
-validate:
-  - make check
-""",
-        )
-        _write_source(project, "src/helper.py", "def _internal_helper():\n    pass\n")
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert not any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
-
     def test_no_artifacts_no_test_required(self, project):
         """Manifest with no artifacts (read-only files) -> no E220."""
         manifest_path = _write_manifest(
@@ -4128,47 +4105,6 @@ validate:
         assert len(untested) == 1
         assert "update" in untested[0].message
 
-    def test_all_artifacts_in_tests_no_warnings(self, project):
-        """All public artifacts referenced in tests -> no E200 warnings."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-widget.manifest.yaml",
-            """schema: "2"
-goal: "Add widget"
-files:
-  edit:
-    - path: src/widget.py
-      artifacts:
-        - kind: function
-          name: render
-        - kind: function
-          name: update
-  read:
-    - tests/test_widget.py
-validate:
-  - pytest tests/test_widget.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/widget.py",
-            "def render():\n    pass\n\ndef update():\n    pass\n",
-        )
-        _write_source(
-            project,
-            "tests/test_widget.py",
-            "from src.widget import render, update\n\ndef test_render():\n    render()\n    assert True\n\ndef test_update():\n    update()\n    assert True\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        untested = [
-            e
-            for e in result.errors + result.warnings
-            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert untested == []
-
     def test_typescript_attribute_member_access_counts_as_coverage(self, project):
         """TS property access in tests should cover declared attribute artifacts."""
         manifest_path = _write_manifest(
@@ -4510,88 +4446,6 @@ it("uses literal computed completion flags", () => {
             if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
         ]
         assert not any('["audit-details"]' in w.message for w in untested)
-
-    def test_private_artifact_not_in_test_no_warning(self, project):
-        """Private artifacts not in tests -> no warning (private is optional)."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-widget.manifest.yaml",
-            """schema: "2"
-goal: "Add widget"
-files:
-  edit:
-    - path: src/widget.py
-      artifacts:
-        - kind: function
-          name: render
-        - kind: function
-          name: _helper
-  read:
-    - tests/test_widget.py
-validate:
-  - pytest tests/test_widget.py -v
-""",
-        )
-        _write_source(
-            project,
-            "src/widget.py",
-            "def render():\n    pass\n\ndef _helper():\n    pass\n",
-        )
-        _write_source(
-            project,
-            "tests/test_widget.py",
-            "from src.widget import render\n\ndef test_render():\n    render()\n    assert True\n",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is True
-        untested = [
-            e
-            for e in result.errors + result.warnings
-            if e.code == ErrorCode.ARTIFACT_NOT_USED_IN_TESTS
-        ]
-        assert untested == []
-
-    def test_make_check_validate_no_test_files_fails(self, project):
-        """Real-world case: validate has 'make check' only, no test paths -> E220."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "enhance-widget.manifest.yaml",
-            """schema: "2"
-goal: "Enhance widget"
-type: feature
-files:
-  edit:
-    - path: src/components/Widget.svelte
-      artifacts:
-        - kind: attribute
-          name: STORAGE_KEY
-        - kind: interface
-          name: Props
-        - kind: function
-          name: toggleCollapsed
-validate:
-  - make check
-""",
-        )
-        # Don't need the source file for this test - E220 fires before artifact checks
-        # But we need it to avoid E306 (file not found)
-        _write_source(
-            project,
-            "src/components/Widget.svelte",
-            """<script>
-const STORAGE_KEY = 'widget';
-interface Props { title: string }
-function toggleCollapsed() {}
-</script>
-""",
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        assert result.success is False
-        assert any(e.code == ErrorCode.NO_TEST_FILES for e in result.errors)
 
     def test_snapshot_manifest_still_exempt_from_behavioral_coverage_error(
         self, project

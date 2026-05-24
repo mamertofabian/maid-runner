@@ -1,0 +1,95 @@
+schema: "2"
+goal: "Retire behavioral coverage smoke legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned behavioral-coverage smoke cases out
+  of tests/core/test_validate.py and into the focused behavioral coverage
+  suite.
+
+  This slice retires duplicate coverage smokes for private-only manifests,
+  all-declared-public-artifacts coverage, private artifacts that do not need
+  test references, and validate commands with no explicit test target. The
+  pinned no-artifacts and public-artifact-missing-coverage legacy tests remain
+  in tests/core/test_validate.py because active manifests still require those
+  exact test_function names.
+temptations:
+  - risk: "Do not remove active behavioral-coverage test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only unpinned smoke duplicates and leave pinned legacy coverage tests in place."
+  - risk: "Do not weaken private-artifact or no-test-file coverage while shrinking the legacy file."
+    instead: "Add focused behavioral-coverage tests for private-only manifests, all-public-artifacts-covered, and private artifacts that are intentionally unreferenced."
+  - risk: "Do not change coverage validation semantics."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_public_artifact_without_test_file_reports_no_test_files
+          source_scenario: "A non-snapshot manifest declares a public artifact and has no explicit test file target."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.NO_TEST_FILES."
+        - kind: test_function
+          name: test_private_only_manifest_does_not_require_test_files
+          source_scenario: "A non-snapshot manifest declares only a private Python function and no explicit test target."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.NO_TEST_FILES or ErrorCode.ARTIFACT_NOT_USED_IN_TESTS in errors or warnings."
+        - kind: test_function
+          name: test_all_declared_public_artifacts_used_in_tests_reports_no_coverage_errors
+          source_scenario: "A manifest declares two public Python functions and the test imports and calls both."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.ARTIFACT_NOT_USED_IN_TESTS in errors or warnings."
+        - kind: test_function
+          name: test_private_artifact_without_test_reference_reports_no_coverage_errors
+          source_scenario: "A manifest declares one public Python function and one private helper, while the test references only the public function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the private helper in errors or warnings."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_no_artifacts_no_test_required
+          source_scenario: "A manifest contains only files.read entries and no declared artifacts."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy no-artifacts coverage smoke remains present and executable."
+        - kind: test_function
+          name: test_implementation_fails_when_public_artifact_not_referenced_in_tests
+          source_scenario: "A manifest declares a public artifact that the test file does not exercise."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy missing-coverage test remains present and executable."
+  read:
+    - manifests/038-01-add-lean-behavioral-coverage-characterization.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/028-02-extract-validation-test-discovery-and-artifact-collection.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/core/test_validate.py
