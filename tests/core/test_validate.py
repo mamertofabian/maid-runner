@@ -2080,54 +2080,6 @@ validate:
         ]
         assert len(import_errors) == 0
 
-    def test_ts_multiline_named_import_text_fallback_normalizes_module(
-        self, project, monkeypatch
-    ):
-        """Text fallback normalizes multiline named import module paths."""
-        import sys
-
-        _imports_module = sys.modules["maid_runner.core._js_ts_imports"]
-        monkeypatch.setattr(
-            _imports_module,
-            "_collect_required_imports_with_tree_sitter",
-            lambda source, file_path: None,
-        )
-        monkeypatch.setattr(
-            _imports_module,
-            "_collect_import_modules_with_tree_sitter",
-            lambda source, file_path: None,
-        )
-
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-page.manifest.yaml",
-            """schema: "2"
-goal: "Add page"
-files:
-  create:
-    - path: src/pages/BudgetPage.ts
-      artifacts:
-        - kind: function
-          name: BudgetPage
-      imports:
-        - src/models/Budget
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/pages/BudgetPage.ts",
-            'import {\n  Budget,\n} from "../models/Budget";\n\nexport function BudgetPage() { return new Budget(); }\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        assert len(import_errors) == 0
-
     def test_ts_commented_out_import_does_not_satisfy_required_import(self, project):
         """Commented-out import text does not satisfy required imports."""
         manifest_path = _write_manifest(
@@ -2192,40 +2144,6 @@ validate:
         ]
         assert len(import_errors) == 0
 
-    def test_ts_root_file_escape_not_resolved(self, project):
-        """Import from root-level file that escapes project with .. is not falsely matched."""
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-app.manifest.yaml",
-            """schema: "2"
-goal: "Add app"
-files:
-  create:
-    - path: app.ts
-      artifacts:
-        - kind: function
-          name: app
-      imports:
-        - outside/module
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "app.ts",
-            'import { X } from "../outside/module";\n\nexport function app() { return X; }\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        # ../outside/module from root resolves to ../outside/module which escapes
-        # project root — filtered out. So "outside/module" won't match.
-        assert len(import_errors) == 1
-
     def test_ts_required_import_accepts_tsconfig_alias_when_compiler_resolution_is_needed(
         self, project
     ):
@@ -2268,54 +2186,6 @@ validate:
             project,
             "src/pages/BudgetPage.ts",
             'import { Budget } from "@app/models/Budget";\n\nexport function BudgetPage() { return new Budget(); }\n',
-        )
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-        import_errors = [
-            e for e in result.errors if e.code == ErrorCode.MISSING_REQUIRED_IMPORT
-        ]
-        assert len(import_errors) == 0
-
-    def test_ts_required_import_accepts_bare_tsconfig_alias(self, project):
-        """Bare tsconfig path alias resolves to project-local module for E320."""
-        import json
-
-        (project / "tsconfig.json").write_text(
-            json.dumps(
-                {
-                    "compilerOptions": {
-                        "baseUrl": ".",
-                        "paths": {"models": ["src/models/index"]},
-                    }
-                }
-            )
-        )
-        models_dir = project / "src" / "models"
-        models_dir.mkdir(parents=True, exist_ok=True)
-        (models_dir / "index.ts").write_text("export class Budget {}\n")
-
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-budget-page.manifest.yaml",
-            """schema: "2"
-goal: "Add budget page"
-files:
-  create:
-    - path: src/pages/BudgetPage.ts
-      artifacts:
-        - kind: function
-          name: BudgetPage
-      imports:
-        - src/models
-validate:
-  - pytest tests/ -v
-""",
-        )
-        _write_source(
-            project,
-            "src/pages/BudgetPage.ts",
-            'import { Budget } from "models";\n\nexport function BudgetPage() { return new Budget(); }\n',
         )
 
         engine = ValidationEngine(project_root=project)

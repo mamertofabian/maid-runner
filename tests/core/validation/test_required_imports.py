@@ -1,5 +1,8 @@
 """Focused characterization tests for required import validation."""
 
+import json
+import sys
+
 import pytest
 
 from maid_runner.core.result import ErrorCode
@@ -680,6 +683,129 @@ validate:
         "src/pages/BudgetPage.ts",
         'import * as Models from "../models";\n\n'
         "export function BudgetPage() { return Models; }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_multiline_named_import_text_fallback_satisfies_manifest_path(
+    project, monkeypatch
+):
+    imports_module = sys.modules["maid_runner.core._js_ts_imports"]
+    monkeypatch.setattr(
+        imports_module,
+        "_collect_required_imports_with_tree_sitter",
+        lambda source, file_path: None,
+    )
+    monkeypatch.setattr(
+        imports_module,
+        "_collect_import_modules_with_tree_sitter",
+        lambda source, file_path: None,
+    )
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models/Budget
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import {\n  Budget,\n} from "../models/Budget";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_typescript_root_relative_escape_does_not_satisfy_project_local_import(
+    project,
+):
+    manifest_path = write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: app.ts
+      artifacts:
+        - kind: function
+          name: app
+      imports:
+        - outside/module
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "app.ts",
+        'import { X } from "../outside/module";\n\n'
+        "export function app() { return X; }\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    import_errors = missing_import_errors(result)
+
+    assert len(import_errors) == 1
+    assert "outside/module" in import_errors[0].message
+
+
+def test_typescript_bare_tsconfig_alias_satisfies_manifest_path(project):
+    write_source(
+        project,
+        "tsconfig.json",
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "baseUrl": ".",
+                    "paths": {"models": ["src/models/index"]},
+                }
+            }
+        ),
+    )
+    write_source(project, "src/models/index.ts", "export class Budget {}\n")
+    manifest_path = write_manifest(
+        project,
+        "add-budget-page.manifest.yaml",
+        """schema: "2"
+goal: "Add budget page"
+files:
+  create:
+    - path: src/pages/BudgetPage.ts
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - src/models
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/BudgetPage.ts",
+        'import { Budget } from "models";\n\n'
+        "export function BudgetPage() { return new Budget(); }\n",
     )
 
     engine = ValidationEngine(project_root=project)

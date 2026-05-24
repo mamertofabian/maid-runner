@@ -1,0 +1,77 @@
+schema: "2"
+goal: "Retire duplicated required-import edge legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by retiring a narrow batch of duplicated required-import
+  edge cases from tests/core/test_validate.py.
+
+  This slice targets only edge cases that are not active test_function
+  requirements in the merged manifest chain: text fallback normalization for
+  multiline TypeScript named imports, root-relative escape rejection, and bare
+  tsconfig alias acceptance. Active parser-replacement and compiler-backed
+  legacy test_function names remain in tests/core/test_validate.py.
+temptations:
+  - risk: "Do not remove active parser-replacement or compiler-backed required-import test_function artifacts."
+    instead: "Retire only the three non-active edge tests named by this manifest and keep all active required-import tests present."
+  - risk: "Do not alter E320 required-import semantics while retiring tests."
+    instead: "Only move characterization coverage into tests/core/validation/test_required_imports.py and leave ValidationEngine behavior untouched."
+  - risk: "Do not broaden this slice into an evolver for active legacy test names."
+    instead: "Handle active test_function retirement separately with an explicit evolution plan."
+files:
+  edit:
+    - path: tests/core/validation/test_required_imports.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_multiline_named_import_text_fallback_satisfies_manifest_path
+          source_scenario: "Tree-sitter import collection is unavailable and a multiline TypeScript named import references ../models/Budget."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation falls back to text import collection and reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+        - kind: test_function
+          name: test_typescript_root_relative_escape_does_not_satisfy_project_local_import
+          source_scenario: "A root-level TypeScript file imports ../outside/module while the manifest requires outside/module."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.MISSING_REQUIRED_IMPORT because escaped relative imports are not treated as project-local matches."
+        - kind: test_function
+          name: test_typescript_bare_tsconfig_alias_satisfies_manifest_path
+          source_scenario: "A tsconfig bare path alias maps models to src/models/index and the source imports models."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.MISSING_REQUIRED_IMPORT errors."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_relative_import_resolves_to_manifest_path
+          source_scenario: "A TypeScript source imports a manifest-required module through a relative path."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy required-import smoke test remains present and executable."
+  read:
+    - manifests/038-02-add-lean-required-import-characterization.manifest.yaml
+    - manifests/040-05-retire-js-ts-required-import-positive-legacy-cases.manifest.yaml
+    - manifests/017-06-compiler-backed-required-import-resolution.manifest.yaml
+    - manifests/024-02-review-readiness-required-import-and-doc-fixes.manifest.yaml
+    - manifests/028-01-extract-js-ts-import-scanner.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_required_imports.py tests/core/test_validate.py
