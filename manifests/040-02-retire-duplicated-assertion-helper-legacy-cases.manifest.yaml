@@ -1,0 +1,131 @@
+schema: "2"
+goal: "Retire duplicated assertion-helper legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by retiring duplicated direct assertion-helper tests from
+  tests/core/test_validate.py after moving their remaining risk coverage into
+  the focused assertion-checking suite.
+
+  The previous Priority 6 slice established the retirement pattern: keep active
+  test_function requirements in the legacy file, add or verify focused coverage
+  before deleting duplicates, and run the focused suite beside the remaining
+  legacy test file. This slice targets only direct `_check_test_assertions`
+  legacy cases that are not active test_function requirements.
+temptations:
+  - risk: "Do not remove assertion-helper scenarios that only exist in tests/core/test_validate.py."
+    instead: "Add explicit focused tests for Python assert/no-assert, non-test functions, multiple tests, JavaScript/TypeScript expect detection, unsupported files, and syntax-error tolerance before deleting the legacy cases."
+  - risk: "Do not use the private compatibility wrapper as the focused suite's primary contract."
+    instead: "Exercise the extracted check_test_assertions helper from maid_runner.core._test_assertions."
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only names absent from the active merged chain and keep already-active smoke tests present."
+  - risk: "Do not combine this with production assertion-scanner changes."
+    instead: "Only add focused characterization tests and delete duplicated legacy tests."
+files:
+  edit:
+    - path: tests/core/validation/test_assertion_checking.py
+      artifacts:
+        - kind: test_function
+          name: test_check_test_assertions_allows_python_assert_statement
+          source_scenario: "A Python test function contains a plain assert statement."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns no missing-assertion warnings."
+        - kind: test_function
+          name: test_check_test_assertions_allows_python_pytest_raises
+          source_scenario: "A Python test function uses pytest.raises as assertion behavior."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns no missing-assertion warnings."
+        - kind: test_function
+          name: test_check_test_assertions_ignores_non_test_python_functions
+          source_scenario: "A Python helper function does not start with test_."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper ignores the function and returns no warnings."
+        - kind: test_function
+          name: test_check_test_assertions_reports_only_assertion_free_python_tests
+          source_scenario: "A Python test file has multiple test functions, only one without assertions."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper reports only the assertion-free test function."
+        - kind: test_function
+          name: test_check_test_assertions_reports_javascript_test_without_expect
+          source_scenario: "A JavaScript test block contains no expect/assert call."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns one missing-assertion warning."
+        - kind: test_function
+          name: test_check_test_assertions_allows_javascript_expect
+          source_scenario: "A JavaScript test block contains an expect assertion."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns no missing-assertion warnings."
+        - kind: test_function
+          name: test_check_test_assertions_reports_typescript_it_without_expect
+          source_scenario: "A TypeScript it block contains no expect/assert call."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns one missing-assertion warning."
+        - kind: test_function
+          name: test_check_test_assertions_ignores_non_test_files
+          source_scenario: "A non-test source file is passed to assertion checking."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns no warnings."
+        - kind: test_function
+          name: test_check_test_assertions_tolerates_python_syntax_errors
+          source_scenario: "A Python test file has invalid syntax."
+          actions:
+            - type: api_call
+              subject:
+                export: check_test_assertions
+          expected:
+            behavior: "The helper returns no assertion warnings and does not crash."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/038-12-extract-test-assertions-helper.manifest.yaml
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_assertion_checking.py tests/core/test_validate.py

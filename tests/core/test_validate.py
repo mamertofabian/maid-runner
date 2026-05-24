@@ -12,7 +12,6 @@ from maid_runner.core.validate import (
     ValidationEngine,
     validate,
     validate_all,
-    _check_test_assertions,
 )
 from maid_runner.validators._typescript_behavioral import (
     collect_behavioral_artifacts as collect_ts_behavioral_artifacts,
@@ -3867,80 +3866,6 @@ validate:
         )
 
 
-class TestCheckTestAssertionsUnit:
-    """Direct unit tests for _check_test_assertions function."""
-
-    def test_python_test_no_assertions(self):
-        """Python test function without any assertion triggers MISSING_ASSERTIONS."""
-        source = "def test_example():\n    x = 1 + 1\n    print(x)\n"
-        errors = _check_test_assertions(source, "test_example.py")
-        assert len(errors) == 1
-        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
-        assert "test_example" in errors[0].message
-
-    def test_python_test_with_assert(self):
-        """Python test function with assert statement should not trigger warning."""
-        source = "def test_example():\n    assert 1 + 1 == 2\n"
-        errors = _check_test_assertions(source, "test_example.py")
-        assert len(errors) == 0
-
-    def test_python_non_test_function_ignored(self):
-        """Functions not starting with test_ should be ignored."""
-        source = "def helper():\n    x = 1\n"
-        errors = _check_test_assertions(source, "test_helpers.py")
-        assert len(errors) == 0
-
-    def test_python_multiple_test_functions(self):
-        """Multiple test functions: only assertion-less ones are flagged."""
-        source = (
-            "def test_good():\n    assert True\n\n"
-            "def test_bad():\n    x = 1\n\n"
-            "def test_also_good():\n    assert 1 == 1\n"
-        )
-        errors = _check_test_assertions(source, "test_multi.py")
-        assert len(errors) == 1
-        assert "test_bad" in errors[0].message
-
-    def test_js_test_no_expect(self):
-        """JS test without expect() triggers MISSING_ASSERTIONS."""
-        source = (
-            "test('does something', () => {\n  const x = 1;\n  console.log(x);\n});\n"
-        )
-        errors = _check_test_assertions(source, "example.test.js")
-        assert len(errors) == 1
-        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
-
-    def test_js_test_with_expect(self):
-        """JS test with expect() should not trigger warning."""
-        source = "test('does something', () => {\n  expect(1 + 1).toBe(2);\n});\n"
-        errors = _check_test_assertions(source, "example.test.js")
-        assert len(errors) == 0
-
-    def test_ts_it_block_no_expect(self):
-        """TS it() block without expect() triggers MISSING_ASSERTIONS."""
-        source = (
-            "it('should work', () => {\n"
-            "  const val = calculate();\n"
-            "  console.log(val);\n"
-            "});\n"
-        )
-        errors = _check_test_assertions(source, "example.test.ts")
-        assert len(errors) == 1
-        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
-
-    def test_non_test_file_returns_empty(self):
-        """Non-test file (e.g. .go) returns no errors."""
-        source = "package main\nfunc main() {}\n"
-        errors = _check_test_assertions(source, "main.go")
-        assert len(errors) == 0
-
-    def test_python_syntax_error_returns_empty(self):
-        """Python file with syntax error returns no assertion errors."""
-        source = "def test_broken(:\n    assert True\n"
-        errors = _check_test_assertions(source, "test_broken.py")
-        assert len(errors) == 0
-
-
 class TestRequiredImportsMissing:
     """Edge cases for required imports checking."""
 
@@ -4107,44 +4032,6 @@ validate:
 # ---------------------------------------------------------------------------
 # Test assertion checking
 # ---------------------------------------------------------------------------
-
-
-class TestAssertionCheckingFunction:
-    def test_python_test_with_no_assertions(self):
-        """Python test function with no assertions is flagged."""
-        source = "def test_something():\n    x = 1 + 1\n"
-        errors = _check_test_assertions(source, "tests/test_foo.py")
-        assert len(errors) >= 1
-        assert errors[0].code == ErrorCode.MISSING_ASSERTIONS
-
-    def test_python_test_with_assert(self):
-        """Python test function with assert statement is OK."""
-        source = "def test_something():\n    assert 1 + 1 == 2\n"
-        errors = _check_test_assertions(source, "tests/test_foo.py")
-        assert len(errors) == 0
-
-    def test_python_test_with_pytest_raises(self):
-        """Python test using pytest.raises is OK."""
-        source = (
-            "import pytest\n"
-            "def test_error():\n"
-            "    with pytest.raises(ValueError):\n"
-            "        raise ValueError('boom')\n"
-        )
-        errors = _check_test_assertions(source, "tests/test_foo.py")
-        assert len(errors) == 0
-
-    def test_python_non_test_function_ignored(self):
-        """Non-test functions (no test_ prefix) are not checked."""
-        source = "def helper():\n    x = 1\n"
-        errors = _check_test_assertions(source, "tests/test_foo.py")
-        assert len(errors) == 0
-
-    def test_python_syntax_error_returns_empty(self):
-        """Syntax error in test file returns empty list (no crash)."""
-        source = "def test_broken(:\n    pass\n"
-        errors = _check_test_assertions(source, "tests/test_foo.py")
-        assert errors == []
 
 
 class TestImplementationTestCoverage:
