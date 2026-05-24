@@ -1,0 +1,218 @@
+schema: "2"
+goal: "Retire manifest path-containment legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-03-reject-manifest-path-escapes
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - path-safety
+  priority: medium
+description: |
+  Continue Priority 6 by moving manifest project-boundary path validation
+  characterization out of tests/core/test_validate.py and into the focused file
+  status validation suite.
+
+  The focused tests preserve ValidationEngine behavior for escaped file specs,
+  files.read paths, files.delete paths, validate command paths, option-style
+  validate command paths, acceptance test paths, and removed_artifacts paths.
+  The original path-safety production contract remains active through this
+  superseding manifest while the broad legacy methods are removed.
+temptations:
+  - risk: "Do not weaken project-root path containment."
+    instead: "Keep focused behavioral and implementation-mode tests for every escaped path source covered by the original manifest."
+  - risk: "Do not normalize escaped paths into in-repo paths."
+    instead: "Assert MANIFEST_PATH_OUTSIDE_PROJECT is emitted with the original escaped path location."
+  - risk: "Do not drop the 018 loop manifest compatibility checks."
+    instead: "Continue validating the affected loop manifests directly."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_validate_rejects_file_spec_path_that_escapes_project_root
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped FileSpec path behavior."
+  - kind: method
+    name: test_behavioral_validate_rejects_escaped_test_path_from_files_read
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped files.read behavior."
+  - kind: method
+    name: test_validate_rejects_delete_path_that_escapes_project_root
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped files.delete behavior."
+  - kind: method
+    name: test_behavioral_validate_rejects_escaped_test_path_from_validate_command
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped validate command behavior."
+  - kind: method
+    name: test_behavioral_validate_rejects_escaped_equal_option_path_from_validate_command
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped validate command option behavior."
+  - kind: method
+    name: test_validate_rejects_escaped_acceptance_test_path
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped acceptance test behavior."
+  - kind: method
+    name: test_validate_rejects_removed_artifact_path_that_escapes_project_root
+    of: TestManifestPathContainment
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry escaped removed_artifacts behavior."
+files:
+  edit:
+    - path: manifests/018-01-codex-maid-loop-automation.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _files_read_project_boundary_compatibility
+          of: manifest data
+          type: yaml
+          description: "Historical sibling-repo files.read references remain absent so direct validation no longer consumes paths outside the project root."
+    - path: manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _files_read_project_boundary_compatibility
+          of: manifest data
+          type: yaml
+          description: "Active sibling-repo files.read references remain absent so full chain validation obeys the project-root path boundary."
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: MANIFEST_PATH_OUTSIDE_PROJECT
+          of: ErrorCode
+          type: str
+          description: "Structured error code for any manifest-declared path that resolves outside the project root."
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_paths
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Union[str, Path]
+          returns: list[ValidationError]
+          description: "Validate every project-relative path declared by a parsed manifest."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+        - kind: method
+          name: validate_acceptance
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+    - path: tests/core/test_manifest.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_parent_relative_file_spec
+          source_scenario: "A parsed manifest declares files.create and files.snapshot paths outside the project root."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation returns MANIFEST_PATH_OUTSIDE_PROJECT before source parsing."
+        - kind: test_function
+          name: test_validate_manifest_paths_rejects_absolute_files_read
+          source_scenario: "A parsed manifest declares an absolute test or dependency path in files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_paths
+          expected:
+            behavior: "Path validation rejects the absolute path with a project-boundary error."
+    - path: tests/core/validation/test_file_status_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_rejects_file_spec_path_that_escapes_project_root
+          source_scenario: "Implementation validation sees a manifest whose FileSpec path points outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT and does not read the outside file."
+        - kind: test_function
+          name: test_behavioral_validate_rejects_escaped_test_path_from_files_read
+          source_scenario: "Behavioral validation sees a files.read test path outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails before collecting behavioral artifacts from the outside file."
+        - kind: test_function
+          name: test_validate_rejects_delete_path_that_escapes_project_root
+          source_scenario: "A files.delete entry uses ../old.py."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT instead of checking absence outside the repo."
+        - kind: test_function
+          name: test_behavioral_validate_rejects_escaped_test_path_from_validate_command
+          source_scenario: "A validate command references ../outside/test_contract.py."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation fails with MANIFEST_PATH_OUTSIDE_PROJECT before command test discovery reads the outside test file."
+        - kind: test_function
+          name: test_behavioral_validate_rejects_escaped_equal_option_path_from_validate_command
+          source_scenario: "A validate command passes an escaped path through --rootdir=../outside-suite."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Behavioral validation fails with MANIFEST_PATH_OUTSIDE_PROJECT before option-style command paths can redirect test discovery outside the repo."
+        - kind: test_function
+          name: test_validate_rejects_escaped_acceptance_test_path
+          source_scenario: "An acceptance test command references ../outside/test_acceptance.py."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT instead of checking acceptance file existence outside the repo."
+        - kind: test_function
+          name: test_validate_rejects_removed_artifact_path_that_escapes_project_root
+          source_scenario: "A removed_artifacts entry points at ../outside.py."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with MANIFEST_PATH_OUTSIDE_PROJECT before removed_artifacts parsing reads the outside source file."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/supersession_audit.py
+    - tests/core/test_removed_artifacts.py
+    - tests/core/test_validation_test_artifacts.py
+    - tests/core/test_validate.py
+    - manifests/030-03-reject-manifest-path-escapes.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest.py tests/core/validation/test_file_status_validation.py tests/core/test_validate.py tests/core/test_removed_artifacts.py tests/core/test_validation_test_artifacts.py
+  - uv run maid validate manifests/018-01-codex-maid-loop-automation.manifest.yaml
+  - uv run maid validate manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
