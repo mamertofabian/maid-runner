@@ -2,6 +2,7 @@
 
 import pytest
 
+from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
 from maid_runner.core.validate import ValidationEngine, validate_all
@@ -152,6 +153,81 @@ validate:
     assert any(
         error.code == ErrorCode.SCHEMA_VALIDATION_ERROR for error in result.chain_errors
     )
+
+
+def test_validate_uses_supplied_manifest_chain_diagnostics(project):
+    custom_manifest_dir = project / "custom-manifests"
+    custom_manifest_dir.mkdir()
+    manifest_path = custom_manifest_dir / "a.manifest.yaml"
+    manifest_path.write_text(
+        """schema: "2"
+goal: "A"
+supersedes:
+  - missing-base
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_a.py
+validate:
+  - pytest tests/test_a.py
+""",
+    )
+    write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+    write_test(project, "tests/test_a.py", "src.a", ["func_a"])
+
+    chain = ManifestChain(custom_manifest_dir, project_root=project)
+    engine = ValidationEngine(project_root=project)
+    manifest = chain.active_manifests()[0]
+    result = engine.validate(manifest, use_chain=True, chain=chain)
+
+    assert result.success is True
+    assert any(
+        error.code == ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND
+        for error in result.warnings
+    )
+
+
+def test_validate_ignores_supplied_manifest_chain_diagnostics_when_use_chain_is_false(
+    project,
+):
+    custom_manifest_dir = project / "custom-manifests"
+    custom_manifest_dir.mkdir()
+    manifest_path = custom_manifest_dir / "a.manifest.yaml"
+    manifest_path.write_text(
+        """schema: "2"
+goal: "A"
+supersedes:
+  - missing-base
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: func_a
+  read:
+    - tests/test_a.py
+validate:
+  - pytest tests/test_a.py
+""",
+    )
+    write_source(project, "src/a.py", "def func_a():\n    return 1\n")
+    write_test(project, "tests/test_a.py", "src.a", ["func_a"])
+
+    chain = ManifestChain(custom_manifest_dir, project_root=project)
+    engine = ValidationEngine(project_root=project)
+    manifest = chain.active_manifests()[0]
+    result = engine.validate(manifest, use_chain=False, chain=chain)
+
+    assert result.success is True
+    assert not any(
+        error.code == ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND
+        for error in result.errors + result.warnings
+    )
+    assert result.file_tracking is None
 
 
 def test_validate_all_missing_manifest_directory_fails_by_default(tmp_path):
@@ -363,6 +439,48 @@ validate:
 
     assert result.success is True
     assert constructed == 1
+
+
+def test_validate_all_handles_many_manifests_quickly(project):
+    import time
+
+    for index in range(20):
+        write_manifest(
+            project,
+            f"perf{index}.manifest.yaml",
+            f"""schema: "2"
+goal: "Perf{index}"
+files:
+  create:
+    - path: src/perf{index}.py
+      artifacts:
+        - kind: function
+          name: perf_func_{index}
+  read:
+    - tests/test_perf{index}.py
+validate:
+  - pytest tests/test_perf{index}.py
+""",
+        )
+        write_source(
+            project,
+            f"src/perf{index}.py",
+            f"def perf_func_{index}():\n    return {index}\n",
+        )
+        write_test(
+            project,
+            f"tests/test_perf{index}.py",
+            f"src.perf{index}",
+            [f"perf_func_{index}"],
+        )
+
+    engine = ValidationEngine(project_root=project)
+    start = time.monotonic()
+    result = engine.validate_all()
+    elapsed = time.monotonic() - start
+
+    assert result.passed == 20
+    assert elapsed < 5.0, f"validate_all took {elapsed:.1f}s, expected < 5s"
 
 
 def test_validate_all_clears_manifest_chain_cache_between_invocations(

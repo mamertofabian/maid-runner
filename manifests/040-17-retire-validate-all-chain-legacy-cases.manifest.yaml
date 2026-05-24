@@ -1,0 +1,102 @@
+schema: "2"
+goal: "Retire validate_all chain legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned validate_all and manifest-chain
+  characterization out of tests/core/test_validate.py and into the focused
+  validate_all chain suite.
+
+  The active empty-manifest discovery tests remain in tests/core/test_validate.py
+  because active manifests still require those test_function names. Existing
+  focused tests already cover invalid-manifest chain errors and single chain
+  construction; this slice adds focused coverage for direct validate(chain=...)
+  behavior and many-manifest performance before deleting the corresponding
+  legacy methods.
+
+  The historical fix-chain-validation-performance manifest still contains a
+  selector-only validate command, but it is already superseded by
+  consolidate-validation-and-validator-contracts. This slice does not mutate
+  that immutable historical manifest; active validation coverage is carried by
+  the focused validate_all chain suite and this current retirement manifest.
+temptations:
+  - risk: "Do not remove active empty-manifest test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only unpinned chain reuse, chain parameter, invalid manifest, and performance legacy cases."
+  - risk: "Do not weaken validate(chain=...) or use_chain=False semantics."
+    instead: "Add focused tests for supplied-chain reuse and explicit chain ignoring before deleting the legacy methods."
+  - risk: "Do not change validate_all implementation or cache behavior."
+    instead: "Only move characterization coverage and leave production code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_reports_invalid_manifest_as_chain_error
+          source_scenario: "validate_all sees one valid manifest and one invalid manifest in the same manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all returns one manifest result and reports ErrorCode.SCHEMA_VALIDATION_ERROR in chain_errors."
+        - kind: test_function
+          name: test_validate_uses_supplied_manifest_chain_diagnostics
+          source_scenario: "ValidationEngine.validate receives an active Manifest plus use_chain=True and a prebuilt chain with diagnostics from a non-default manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation uses the supplied manifest chain and reports ErrorCode.SUPERSEDED_MANIFEST_NOT_FOUND as a chain warning."
+        - kind: test_function
+          name: test_validate_ignores_supplied_manifest_chain_diagnostics_when_use_chain_is_false
+          source_scenario: "ValidationEngine.validate receives an active Manifest plus a diagnostic-bearing chain but use_chain=False."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds without reporting the supplied chain diagnostics and without attaching a file-tracking report."
+        - kind: test_function
+          name: test_validate_all_loads_manifest_chain_once_per_invocation
+          source_scenario: "validate_all validates multiple manifests while ManifestChain construction is counted."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all succeeds and constructs one ManifestChain for the invocation."
+        - kind: test_function
+          name: test_validate_all_handles_many_manifests_quickly
+          source_scenario: "validate_all validates 20 small manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "validate_all passes all 20 manifests in under five seconds."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_fails_when_manifest_dir_is_missing_by_default
+          source_scenario: "validate_all receives a missing manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy empty-manifest test remains present and executable."
+  read:
+    - manifests/030-01-fail-empty-manifest-discovery.manifest.yaml
+    - manifests/038-05-add-lean-validate-all-chain-characterization.manifest.yaml
+    - manifests/consolidate-validation-and-validator-contracts.manifest.yaml
+    - manifests/fix-chain-validation-performance.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_all_chain.py tests/core/test_validate.py
