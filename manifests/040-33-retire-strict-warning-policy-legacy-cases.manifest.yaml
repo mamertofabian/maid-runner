@@ -1,0 +1,279 @@
+schema: "2"
+goal: "Retire strict warning policy legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-06-add-strict-validation-cli-flags
+  - 040-02-retire-duplicated-assertion-helper-legacy-cases
+  - 040-07-retire-acceptance-validation-legacy-cases
+  - 040-08-retire-error-handling-legacy-cases
+  - 040-10-retire-annotation-warning-legacy-cases
+  - 040-11-retire-validate-api-legacy-cases
+  - 040-13-retire-assertion-checking-legacy-case
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - strict-mode
+    - warning-policy
+  priority: medium
+description: |
+  Continue Priority 6 by removing the strict warning-policy legacy tests from
+  tests/core/test_validate.py. Focused strict-mode tests already cover
+  fail-on-warning behavior for single-manifest validation and the top-level
+  validate_all helper; this slice adds focused ValidationEngine.validate_all
+  coverage before deleting the legacy engine-method case.
+
+  This manifest also supersedes interim 040 retirement manifests that kept the
+  old fail-on-warnings smoke alive while other duplicate legacy tests were
+  retired. It preserves their focused assertion, acceptance, error-handling,
+  annotation-warning, validation API, CLI flag, and strict-mode contracts.
+temptations:
+  - risk: "Do not weaken fail_on_warnings behavior for warning-only implementation results."
+    instead: "Keep focused strict-mode tests for ValidationEngine.validate and both validate_all entry points."
+  - risk: "Do not drop CLI strict flag contracts while superseding the original strict CLI manifest."
+    instead: "Redeclare parser and cmd_validate artifacts plus the focused CLI tests."
+  - risk: "Do not drop focused tests introduced by interim retirement manifests."
+    instead: "Redeclare the assertion, acceptance, error-handling, annotation-warning, and validation API focused tests."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_validate_fail_on_warnings_marks_result_unsuccessful
+    of: TestStrictWarningPolicy
+    file: tests/core/test_validate.py
+    reason: "Focused strict-mode tests now carry warning-only fail_on_warnings behavior."
+  - kind: method
+    name: test_validate_all_threads_strict_warning_policy_to_each_manifest
+    of: TestStrictWarningPolicy
+    file: tests/core/test_validate.py
+    reason: "Focused strict-mode tests now carry ValidationEngine.validate_all warning-policy behavior."
+  - kind: method
+    name: test_validate_all_function_threads_strict_warning_policy_to_each_manifest
+    of: TestStrictWarningPolicy
+    file: tests/core/test_validate.py
+    reason: "Focused strict-mode tests now carry top-level validate_all warning-policy behavior."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: ValidationResult
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: mode
+              type: ValidationMode
+              default: ValidationMode.IMPLEMENTATION
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: BatchValidationResult
+        - kind: function
+          name: validate
+          args:
+            - name: manifest_path
+              type: Union[str, Path]
+          returns: ValidationResult
+        - kind: function
+          name: validate_all
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+          returns: BatchValidationResult
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: tests/core/validation/test_strict_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_assertion_check_warns_for_test_without_assertions
+        - kind: test_function
+          name: test_behavioral_assertion_check_is_quiet_without_flag
+        - kind: test_function
+          name: test_behavioral_assertion_check_allows_test_with_assertion
+        - kind: test_function
+          name: test_implementation_stub_check_warns_for_pass_function
+        - kind: test_function
+          name: test_implementation_fail_on_warnings_marks_warning_only_result_failed
+          source_scenario: "An implementation manifest emits only a stub warning while fail_on_warnings=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate returns success false, keeps the warning in result.warnings, and leaves errors empty."
+        - kind: test_function
+          name: test_validate_all_applies_strict_warning_policy_to_each_manifest
+          source_scenario: "The top-level validate_all helper validates a manifest directory where one manifest emits only a stub warning."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_all
+          expected:
+            behavior: "validate_all(..., fail_on_warnings=True) marks the warning-only manifest as failed."
+        - kind: test_function
+          name: test_validation_engine_validate_all_applies_strict_warning_policy_to_each_manifest
+          source_scenario: "ValidationEngine.validate_all validates a manifest directory where one manifest emits only a stub warning."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate_all(..., fail_on_warnings=True) marks the warning-only manifest as failed."
+    - path: tests/core/validation/test_assertion_checking.py
+      artifacts:
+        - kind: test_function
+          name: test_check_test_assertions_allows_python_assert_statement
+        - kind: test_function
+          name: test_check_test_assertions_allows_python_pytest_raises
+        - kind: test_function
+          name: test_check_test_assertions_ignores_non_test_python_functions
+        - kind: test_function
+          name: test_check_test_assertions_reports_only_assertion_free_python_tests
+        - kind: test_function
+          name: test_check_test_assertions_reports_javascript_test_without_expect
+        - kind: test_function
+          name: test_check_test_assertions_allows_javascript_expect
+        - kind: test_function
+          name: test_check_test_assertions_reports_typescript_it_without_expect
+        - kind: test_function
+          name: test_check_test_assertions_ignores_non_test_files
+        - kind: test_function
+          name: test_check_test_assertions_tolerates_python_syntax_errors
+    - path: tests/core/validation/test_acceptance_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_existing_acceptance_test_file_does_not_report_e500
+        - kind: test_function
+          name: test_missing_acceptance_test_file_reports_e500
+        - kind: test_function
+          name: test_manifest_without_acceptance_section_does_not_report_e500
+        - kind: test_function
+          name: test_behavioral_mode_reports_missing_acceptance_test_file
+    - path: tests/core/validation/test_error_handling.py
+      artifacts:
+        - kind: test_function
+          name: test_invalid_manifest_schema_reports_schema_validation_error
+        - kind: test_function
+          name: test_missing_manifest_path_reports_file_not_found
+        - kind: test_function
+          name: test_python_source_syntax_error_reports_source_parse_error
+        - kind: test_function
+          name: test_python_test_file_syntax_error_reports_source_parse_error
+    - path: tests/core/validation/test_annotation_warnings.py
+      artifacts:
+        - kind: test_function
+          name: test_missing_return_annotation_reports_warning_without_type_mismatch
+        - kind: test_function
+          name: test_missing_argument_annotation_reports_warning_without_type_mismatch
+    - path: tests/core/validation/test_validate_api.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_function_runs_implementation_validation
+        - kind: test_function
+          name: test_validate_function_threads_check_stubs_flag
+    - path: tests/core/test_result.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_errors
+        - kind: test_function
+          name: test_behavioral_errors
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_accepts_strict_assertion_stub_warning_flags
+          source_scenario: "The CLI parser receives validate strictness flags."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "The parser accepts --strict, --check-assertions, --check-stubs, and --fail-on-warnings."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_behavioral_validate_check_assertions_returns_1_for_no_assertions
+          source_scenario: "A behavioral test imports and calls the artifact but has no assertion."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --mode behavioral --check-assertions --fail-on-warnings exits 1 with E210."
+        - kind: test_function
+          name: test_implementation_validate_check_stubs_returns_1_for_stub_function
+          source_scenario: "A manifest declares a function whose body is a pass/ellipsis stub."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --check-stubs --fail-on-warnings exits 1 with E310."
+        - kind: test_function
+          name: test_validate_strict_enables_assertion_stub_and_warning_failure
+          source_scenario: "The CLI strict preset is used instead of individual flags."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --strict fails on the same assertion or stub warning that otherwise exits green."
+  read:
+    - tests/core/test_validate.py
+    - tests/core/test_implementation_validation.py
+    - tests/core/test_validate_test_functions.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_implementation_validation.py
+    - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+    - manifests/038-12-extract-test-assertions-helper.manifest.yaml
+    - manifests/040-02-retire-duplicated-assertion-helper-legacy-cases.manifest.yaml
+    - manifests/040-07-retire-acceptance-validation-legacy-cases.manifest.yaml
+    - manifests/040-08-retire-error-handling-legacy-cases.manifest.yaml
+    - manifests/040-10-retire-annotation-warning-legacy-cases.manifest.yaml
+    - manifests/040-11-retire-validate-api-legacy-cases.manifest.yaml
+    - manifests/040-13-retire-assertion-checking-legacy-case.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_strict_mode.py tests/core/validation/test_assertion_checking.py tests/core/validation/test_acceptance_validation.py tests/core/validation/test_error_handling.py tests/core/validation/test_annotation_warnings.py tests/core/validation/test_validate_api.py tests/core/test_result.py tests/core/test_implementation_validation.py tests/core/test_validate_test_functions.py tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/core/test_validate.py

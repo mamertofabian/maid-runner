@@ -332,3 +332,33 @@ def test_validate_all_applies_strict_warning_policy_to_each_manifest(project):
         ErrorCode.STUB_FUNCTION_DETECTED in warning_codes(result)
         for result in batch.results
     )
+
+
+def test_validation_engine_validate_all_applies_strict_warning_policy_to_each_manifest(
+    project,
+):
+    add_greet_manifest(project)
+    write_source(project, "src/greet.py", "def greet():\n    pass\n")
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet_exists():\n"
+        "    assert greet is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    batch = engine.validate_all(
+        project / "manifests",
+        mode=ValidationMode.IMPLEMENTATION,
+        check_stubs=True,
+        fail_on_warnings=True,
+    )
+
+    assert batch.success is False
+    assert batch.passed == 0
+    assert batch.failed == 1
+    assert any(
+        ErrorCode.STUB_FUNCTION_DETECTED in warning_codes(result)
+        for result in batch.results
+    )
