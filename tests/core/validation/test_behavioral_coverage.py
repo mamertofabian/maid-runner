@@ -166,6 +166,40 @@ validate:
     assert any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
 
 
+def test_validate_command_test_file_satisfies_implementation_test_requirement(project):
+    manifest_path = write_manifest(
+        project,
+        "add-widget.manifest.yaml",
+        """schema: "2"
+goal: "Add widget"
+files:
+  edit:
+    - path: src/widget.py
+      artifacts:
+        - kind: function
+          name: render
+validate:
+  - pytest tests/test_widget.py -v
+""",
+    )
+    write_source(project, "src/widget.py", "def render():\n    pass\n")
+    write_source(
+        project,
+        "tests/test_widget.py",
+        "from src.widget import render\n\n"
+        "def test_render():\n"
+        "    render()\n"
+        "    assert True\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert not any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
+    assert coverage_issues(result) == []
+
+
 def test_private_only_manifest_does_not_require_test_files(project):
     manifest_path = write_manifest(
         project,
@@ -190,6 +224,31 @@ validate:
     assert result.success is True
     assert not any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
     assert coverage_issues(result) == []
+
+
+def test_read_only_manifest_schema_error_does_not_also_require_test_files(project):
+    manifest_path = write_manifest(
+        project,
+        "read-only.manifest.yaml",
+        """schema: "2"
+goal: "Read-only task"
+files:
+  read:
+    - src/config.py
+validate:
+  - make check
+""",
+    )
+    write_source(project, "src/config.py", "DEBUG = True\n")
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert any(
+        error.code == ErrorCode.SCHEMA_VALIDATION_ERROR for error in result.errors
+    )
+    assert not any(error.code == ErrorCode.NO_TEST_FILES for error in result.errors)
 
 
 def test_snapshot_manifest_without_test_file_does_not_report_no_test_files(project):
