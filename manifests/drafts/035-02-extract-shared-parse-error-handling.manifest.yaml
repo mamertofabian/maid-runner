@@ -169,7 +169,7 @@ files:
   read:
     - docs/plans/maid-runner-cleanup-refactor-backlog.md
     - manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml
-    - manifests/drafts/035-01-characterize-validation-engine.manifest.yaml
+    - manifests/035-01-characterize-validation-engine.manifest.yaml
     - maid_runner/validators/svelte.py
     - tests/core/test_validate_engine_characterization.py
 validate:
