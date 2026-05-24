@@ -172,6 +172,225 @@ validate:
     assert result.errors == []
 
 
+def test_exported_typescript_type_alias_is_allowed_in_strict_create_mode(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: function
+          name: authenticate
+  read:
+    - tests/test_auth.py
+validate:
+  - pytest tests/test_auth.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.ts",
+        "export type AuthConfig = { host: string; port: number };\n\n"
+        "export function authenticate(): boolean { return true; }\n",
+    )
+    write_test(project, "tests/test_auth.py", "src.auth", ["authenticate"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
+def test_undeclared_typescript_interface_members_are_allowed_in_strict_create_mode(
+    project,
+):
+    manifest_path = write_manifest(
+        project,
+        "add-auth.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.ts
+      artifacts:
+        - kind: function
+          name: authenticate
+  read:
+    - tests/test_auth.py
+validate:
+  - pytest tests/test_auth.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.ts",
+        "export interface AuthConfig {\n  host: string;\n  port: number;\n}\n\n"
+        "export function authenticate(): boolean { return true; }\n",
+    )
+    write_test(project, "tests/test_auth.py", "src.auth", ["authenticate"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
+def test_strict_create_flags_undeclared_python_function(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.py",
+        "def authenticate():\n    pass\n\n" "def helper():\n    pass\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert ErrorCode.UNEXPECTED_ARTIFACT in error_codes(result)
+
+
+def test_strict_create_flags_undeclared_python_class(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.py",
+        "def authenticate():\n    pass\n\n" "class Helper:\n    pass\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert ErrorCode.UNEXPECTED_ARTIFACT in error_codes(result)
+
+
+def test_private_parent_members_are_allowed_in_strict_create_mode(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth.manifest.yaml",
+        """schema: "2"
+goal: "Add auth service"
+files:
+  create:
+    - path: src/auth.py
+      artifacts:
+        - kind: function
+          name: authenticate
+  read:
+    - tests/test_auth.py
+validate:
+  - pytest tests/test_auth.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/auth.py",
+        "class _Internal:\n    def helper(self):\n        pass\n\n"
+        "def authenticate():\n    pass\n",
+    )
+    write_test(project, "tests/test_auth.py", "src.auth", ["authenticate"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
+def test_test_file_create_mode_allows_undeclared_test_helpers(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth-tests.manifest.yaml",
+        """schema: "2"
+goal: "Add auth tests"
+files:
+  create:
+    - path: tests/test_auth.py
+      artifacts:
+        - kind: function
+          name: test_authenticate
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project,
+        "tests/test_auth.py",
+        "def _make_user():\n    return {'name': 'test'}\n\n"
+        "def test_authenticate():\n    user = _make_user()\n    assert user\n\n"
+        "def test_login():\n    assert True\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.UNEXPECTED_ARTIFACT not in error_codes(result)
+
+
+def test_test_file_create_mode_still_requires_declared_test_artifacts(project):
+    manifest_path = write_manifest(
+        project,
+        "add-auth-tests.manifest.yaml",
+        """schema: "2"
+goal: "Add auth tests"
+files:
+  create:
+    - path: tests/test_auth.py
+      artifacts:
+        - kind: function
+          name: test_authenticate
+        - kind: function
+          name: test_logout
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(
+        project, "tests/test_auth.py", "def test_authenticate():\n    assert True\n"
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert ErrorCode.ARTIFACT_NOT_DEFINED in error_codes(result)
+
+
 def test_python_signature_type_mismatch_reports_type_mismatch(project):
     manifest_path = write_manifest(
         project,

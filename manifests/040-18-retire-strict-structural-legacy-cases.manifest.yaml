@@ -1,0 +1,113 @@
+schema: "2"
+goal: "Retire strict structural legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned strict implementation-validation
+  structural-artifact and test-file permissiveness cases out of
+  tests/core/test_validate.py and into focused implementation-basics coverage.
+
+  The active legacy test_strict_mode_validates_declared_interface_members
+  remains in tests/core/test_validate.py because the TypeScript privacy and
+  module-local artifact manifest still requires that exact test_function name.
+  This slice retires only unpinned duplicate methods while preserving behavior
+  coverage for exported TypeScript structural artifacts, undeclared Python
+  public artifacts, private parent members, and permissive test-file strictness.
+temptations:
+  - risk: "Do not remove active TypeScript strict-mode legacy artifacts from tests/core/test_validate.py."
+    instead: "Keep test_strict_mode_validates_declared_interface_members and the earlier pinned TypeScript privacy/module-local tests."
+  - risk: "Do not weaken strict create-mode behavior while removing legacy duplicates."
+    instead: "Add focused implementation-basics tests that assert both allowed structural/private/test-file cases and forbidden undeclared public artifacts."
+  - risk: "Do not change implementation validation semantics."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_exported_typescript_type_alias_is_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create TypeScript source declares an exported type alias and a manifest-declared function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_undeclared_typescript_interface_members_are_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create TypeScript source declares an exported interface with members plus a manifest-declared function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT for the undeclared interface or its members."
+        - kind: test_function
+          name: test_strict_create_flags_undeclared_python_function
+          source_scenario: "A strict files.create Python source contains a declared function and an undeclared public helper function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_strict_create_flags_undeclared_python_class
+          source_scenario: "A strict files.create Python source contains a declared function and an undeclared public class."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_private_parent_members_are_allowed_in_strict_create_mode
+          source_scenario: "A strict files.create Python source contains a manifest-declared function and an undeclared _-prefixed class with a public-looking member."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT."
+        - kind: test_function
+          name: test_test_file_create_mode_allows_undeclared_test_helpers
+          source_scenario: "A files.create test file declares one test function but also contains helper and additional test functions."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.UNEXPECTED_ARTIFACT because test files remain permissive."
+        - kind: test_function
+          name: test_test_file_create_mode_still_requires_declared_test_artifacts
+          source_scenario: "A files.create test file declares two test functions but implements only one."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED for the missing declared test artifact."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_mode_validates_declared_interface_members
+          source_scenario: "A strict TypeScript source declares an interface and only one of its members in the manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy interface-member test remains present and executable."
+  read:
+    - manifests/fix-private-type-members-and-strict-structural.manifest.yaml
+    - manifests/fix-typescript-private-and-module-local-artifacts.manifest.yaml
+    - manifests/040-14-retire-implementation-basics-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_validate.py
