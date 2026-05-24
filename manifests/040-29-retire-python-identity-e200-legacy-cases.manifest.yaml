@@ -1,0 +1,143 @@
+schema: "2"
+goal: "Retire Python identity E200 legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - fix-python-src-root-identity-e200
+  - fix-python-importlib-dynamic-import-e200
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - python
+    - behavioral-coverage
+    - identity
+  priority: medium
+description: |
+  Continue Priority 6 by removing two Python E200 identity regression tests from
+  tests/core/test_validate.py. The src-layout identity behavior is covered by
+  tests/core/test_identity_matching.py, and literal importlib.import_module
+  alias behavior is covered by tests/validators/test_python_identity.py.
+
+  This manifest supersedes the original Python src-root and importlib E200
+  contracts, preserves their production and focused behavioral-test artifacts,
+  and records the intentional removal of the broad legacy validation methods.
+temptations:
+  - risk: "Do not weaken source-root identity matching for src-prefixed manifest paths."
+    instead: "Keep the focused match_artifact_to_references source-root tests as the behavioral contract."
+  - risk: "Do not weaken literal importlib.import_module alias identity collection."
+    instead: "Keep focused PythonValidator tests that assert module.Migration carries the literal module import_source."
+  - risk: "Do not keep executable placeholders in tests/core/test_validate.py."
+    instead: "Remove the retired legacy methods and declare them under removed_artifacts."
+removed_artifacts:
+  - kind: method
+    name: test_python_src_layout_import_covers_manifest_artifact_without_src_prefix
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused identity-matching tests now carry src-layout source-root coverage behavior."
+  - kind: method
+    name: test_python_importlib_dynamic_module_attribute_covers_numeric_migration_class
+    of: TestImplementationTestCoverage
+    file: tests/core/test_validate.py
+    reason: "Focused Python identity tests now carry literal importlib module alias coverage behavior."
+files:
+  edit:
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+          description: "Match Python behavioral references to manifest-declared artifacts while treating src-prefixed and source-root import module identities as equivalent."
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+          description: "Collect Python behavioral references with import_source identity for literal importlib.import_module aliases."
+    - path: tests/core/test_identity_matching.py
+      artifacts:
+        - kind: test_function
+          name: test_src_prefixed_artifact_matches_source_root_import
+          source_scenario: "A manifest path under src produces module identity src.ai_analysis.services.score_payloads while the test imports ai_analysis.services.score_payloads."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The identity matcher accepts the source-root import as coverage for the src-prefixed artifact."
+        - kind: test_function
+          name: test_non_source_root_prefix_does_not_match_tail_import
+          source_scenario: "A manifest path under an arbitrary leading package produces vendor.ai_analysis.services.score_payloads while the test imports ai_analysis.services.score_payloads."
+          actions:
+            - type: api_call
+              subject:
+                export: match_artifact_to_references
+          expected:
+            behavior: "The identity matcher rejects the non-src prefix so source-root handling does not become broad tail matching."
+    - path: tests/validators/test_python_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_importlib_import_module_attribute_reference_records_literal_module_identity
+          source_scenario: "A Python test binds module = importlib.import_module('pkg.migrations.0023_split') and then accesses module.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The Migration reference carries import_source pkg.migrations.0023_split instead of falling back to a name-only reference."
+        - kind: test_function
+          name: test_importlib_import_module_alias_can_shadow_imported_name
+          source_scenario: "A Python test imports django.db.migrations, then assigns migrations = importlib.import_module('pkg.migrations.0023_split') before accessing migrations.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The local dynamic module alias wins over the imported-name shadow record and records Migration with the literal module import_source."
+        - kind: test_function
+          name: test_importlib_import_module_alias_records_runtime_ordered_identity
+          source_scenario: "A Python test creates a dynamic module alias through function-local or module-level runtime expressions, including expression statements, call keywords, lambda defaults, comprehension guards, function defaults, class bases after test definitions, constant-true branches, and evaluated short-circuit operands; mixes static import aliases with dynamic rebinds in source order; honors source-ordered top-level dynamic reads even when final module shadow state changes later; honors final module-level runtime alias state even when a prior top-level binding appears before the test; keeps bare annotations from dropping dynamic aliases; reads module.Migration before same-name runtime bindings on the same module-level statement; resolves walrus-bound importlib aliases used as an attribute root; relies on lambda defaults or comprehension outer iterables being evaluated before local parameter/target shadowing; records match class pattern references through module.Migration(); confirms lazy lambda and generator bodies do not rebind already-active aliases; reuses a top-level alias for multiple dynamic modules; records class-body expressions that read class-body dynamic aliases; or defines class-body dynamic aliases that should not escape."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The collector records Migration with the literal import_source when Python evaluation order makes the dynamic alias active at the access site."
+        - kind: test_function
+          name: test_importlib_import_module_alias_rebindings_do_not_retain_literal_module_identity
+          source_scenario: "A Python test binds a dynamic module alias, then rebinds or shadows that alias through local targets, lambda/comprehension scopes, lambda-default walrus bindings, call-keyword walrus bindings, comprehension-guard walrus bindings, generator-expression body walrus bindings, later comprehension-generator targets, class-body method scopes, class-body nested methods, class-body lambda/comprehension/generator bodies, nested class bodies, constant-false branches, short-circuited expressions, parameters, expression bindings, nested definitions, with/delete/match/except targets, exception-target cleanup, module-level match captures, unpacking assignments, final top-level rebindings after earlier dynamic expressions, later module-level runtime expressions, lazy lambda bodies, unconsumed generator-expression bodies, or a future dynamic binding after a prior module-level read before accessing module.Migration."
+          actions:
+            - type: api_call
+              subject:
+                export: PythonValidator.collect_behavioral_artifacts
+          expected:
+            behavior: "The rebinding removes the literal dynamic module identity so stale aliases cannot satisfy E200."
+  read:
+    - tests/core/test_validate.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/base.py
+    - manifests/add-semantic-reference-index.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+    - manifests/fix-python-src-root-identity-e200.manifest.yaml
+    - manifests/fix-python-importlib-dynamic-import-e200.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_identity_matching.py tests/validators/test_python_identity.py tests/core/test_validate.py
