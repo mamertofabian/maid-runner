@@ -47,6 +47,7 @@ class TestErrorCode:
         assert ErrorCode.SIGNATURE_MISMATCH == "E303"
         assert ErrorCode.MISSING_RETURN_TYPE == "E304"
         assert ErrorCode.FILE_SHOULD_BE_ABSENT == "E305"
+        assert ErrorCode.FILE_SHOULD_BE_PRESENT == "E306"
         assert ErrorCode.SOURCE_PARSE_ERROR == "E308"
         assert ErrorCode.TEST_FUNCTION_MISSING_IN_CODE == "E600"
         assert ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH == "E610"

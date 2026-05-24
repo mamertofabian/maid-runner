@@ -87,6 +87,7 @@ def test_delete_file_that_is_missing_reports_no_file_should_be_absent_error(proj
     engine = ValidationEngine(project_root=project)
     result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
 
+    assert result.success is True
     assert file_should_be_absent_errors(result) == []
 
 
@@ -115,6 +116,7 @@ def test_delete_file_with_reason_that_is_missing_reports_no_file_should_be_absen
     engine = ValidationEngine(project_root=project)
     result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
 
+    assert result.success is True
     assert file_should_be_absent_errors(result) == []
 
 

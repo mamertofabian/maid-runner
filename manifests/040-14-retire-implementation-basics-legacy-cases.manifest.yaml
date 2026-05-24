@@ -1,0 +1,141 @@
+schema: "2"
+goal: "Retire implementation-basics legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned Python implementation-validation
+  basics out of tests/core/test_validate.py and into focused validation suites.
+
+  This slice retires matching artifact success, missing artifact, wrong-kind
+  same-name failure, private helper allowance, delete-file absence duplicates,
+  signature type mismatch, and missing-created-file checks. The delete-file
+  behavior is already covered by tests/core/validation/test_file_status_validation.py;
+  the other implementation basics move into
+  tests/core/validation/test_implementation_basics.py.
+
+  Older active manifests still require ErrorCode.FILE_SHOULD_BE_PRESENT to be
+  referenced from the validation/result test surface. This slice records the
+  enum value in tests/core/test_result.py while keeping behavior coverage in
+  the focused implementation basics suite.
+temptations:
+  - risk: "Do not remove active TypeScript strict-mode or edit-mode legacy tests from tests/core/test_validate.py."
+    instead: "Keep the currently pinned TypeScript, unexpected-public, and permissive edit-mode cases in the legacy file."
+  - risk: "Do not weaken core implementation validation behavior while shrinking the legacy file."
+    instead: "Add focused tests for success, missing artifact, wrong kind, private helper allowance, type mismatch, and missing created file before deleting the legacy cases."
+  - risk: "Do not replace the FILE_SHOULD_BE_PRESENT reference with a placeholder."
+    instead: "Assert its public enum value in tests/core/test_result.py and keep behavioral coverage in the focused validation suite."
+  - risk: "Do not change ValidationEngine implementation semantics."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+files:
+  create:
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_matching_python_function_signature_passes_implementation_validation
+          source_scenario: "A Python function matches the manifest-declared name, argument type, return type, and has a readable test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds with no errors."
+        - kind: test_function
+          name: test_missing_declared_python_function_reports_artifact_not_defined
+          source_scenario: "A manifest declares a Python function but the source file contains no function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED."
+        - kind: test_function
+          name: test_same_named_wrong_kind_reports_artifact_not_defined
+          source_scenario: "A manifest declares a Python class but the source file defines a same-named attribute."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.ARTIFACT_NOT_DEFINED."
+        - kind: test_function
+          name: test_private_helper_is_allowed_in_strict_create_mode
+          source_scenario: "A manifest-created Python file contains a declared public function plus an undeclared private helper."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds with no unexpected-artifact errors."
+        - kind: test_function
+          name: test_python_signature_type_mismatch_reports_type_mismatch
+          source_scenario: "A manifest declares int argument and return types but the Python implementation annotates str types."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.TYPE_MISMATCH."
+        - kind: test_function
+          name: test_created_file_missing_reports_file_should_be_present
+          source_scenario: "A manifest-created Python file is absent from disk."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_PRESENT."
+  edit:
+    - path: tests/core/validation/test_file_status_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_delete_file_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry with a reason targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+    - path: tests/core/test_result.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_errors
+          source_scenario: "The ErrorCode enum exposes public implementation validation error and warning codes."
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: "The test asserts ErrorCode.FILE_SHOULD_BE_PRESENT has public value E306."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_mode_unexpected_public_fail
+          source_scenario: "Strict create-mode validation sees an undeclared public Python artifact."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy unexpected-public test remains present and executable."
+  read:
+    - manifests/028-04-extract-implementation-file-validation-step.manifest.yaml
+    - manifests/040-09-retire-file-status-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/validation/test_file_status_validation.py tests/core/test_result.py tests/core/test_validate.py
