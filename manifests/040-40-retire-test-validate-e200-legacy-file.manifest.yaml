@@ -1,0 +1,213 @@
+schema: "2"
+goal: "Retire executable tests/core/test_validate.py coverage after moving E200 cases"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 030-05-promote-coverage-misses-to-errors
+  - 040-20-retire-typescript-attribute-coverage-legacy-cases
+  - 040-21-retire-chain-strictness-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - behavioral-coverage
+  priority: medium
+description: |
+  Finish Priority 6 by retiring executable coverage from tests/core/test_validate.py
+  after moving the final implementation coverage E200 contract into focused
+  validation suites.
+
+  The remaining legacy file contained only TestImplementationTestCoverage plus
+  inert compatibility anchors. This manifest supersedes the last active
+  manifests that pinned tests/core/test_validate.py, preserves their production
+  contracts and focused tests, and leaves tests/core/test_validate.py as a
+  non-executable compatibility shell for older retirement manifests that still
+  verify removed_artifacts against that path.
+temptations:
+  - risk: "Do not weaken missing behavioral coverage from error back to warning."
+    instead: "Keep focused ValidationEngine and CLI tests that assert E200 is an implementation error."
+  - risk: "Do not let local same-name, shadowed, type-only, or import-only references satisfy production coverage."
+    instead: "Keep focused Python and TypeScript identity/shadowing tests for those edge cases."
+  - risk: "Do not drop snapshot and test-file artifact exemptions."
+    instead: "Keep focused tests for snapshot/system-style exemption and test_function meta-test exemption."
+  - risk: "Do not leave executable placeholder tests in tests/core/test_validate.py."
+    instead: "Keep only compatibility anchors and an empty TestStubDetection class; all executable assertions live in focused suites."
+files:
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: class
+          name: FoundArtifact
+        - kind: attribute
+          name: reference_context
+          of: FoundArtifact
+          type: Optional[str]
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: class
+          name: ValidationEngine
+        - kind: method
+          name: _check_test_coverage
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_behavioral_artifacts
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_unreferenced_public_artifact_reports_e200_error
+        - kind: test_function
+          name: test_import_only_reference_is_not_behavioral_coverage
+        - kind: test_function
+          name: test_python_shadowed_import_variants_do_not_satisfy_coverage
+        - kind: test_function
+          name: test_python_function_local_import_still_covers_after_module_shadow
+        - kind: test_function
+          name: test_python_expression_and_binding_shadows_do_not_cover_artifact
+        - kind: test_function
+          name: test_python_non_runtime_or_rebound_references_do_not_cover_artifact
+        - kind: test_function
+          name: test_python_keyword_argument_does_not_cover_same_module_artifact
+        - kind: test_function
+          name: test_python_constructor_keyword_coverage_requires_imported_owner_identity
+        - kind: test_function
+          name: test_python_runtime_definition_references_cover_artifact
+        - kind: test_function
+          name: test_typescript_attribute_member_access_counts_as_coverage
+        - kind: test_function
+          name: test_typescript_object_literal_props_count_as_attribute_coverage
+        - kind: test_function
+          name: test_typescript_jsx_props_count_as_attribute_coverage
+        - kind: test_function
+          name: test_typescript_computed_keys_count_as_attribute_coverage
+        - kind: test_function
+          name: test_typescript_literal_computed_keys_count_as_attribute_coverage
+        - kind: test_function
+          name: test_typescript_import_and_placeholder_references_do_not_satisfy_coverage
+        - kind: test_function
+          name: test_typescript_control_flow_and_function_scope_shadows_do_not_cover_artifact
+        - kind: test_function
+          name: test_typescript_destructuring_shadowed_import_does_not_satisfy_coverage
+        - kind: test_function
+          name: test_typescript_type_only_reference_does_not_satisfy_coverage
+        - kind: test_function
+          name: test_typescript_local_type_bindings_do_not_cover_imported_interface
+        - kind: test_function
+          name: test_typescript_type_declarations_do_not_shadow_runtime_import_coverage
+        - kind: test_function
+          name: test_snapshot_manifest_still_exempt_from_behavioral_coverage_error
+        - kind: test_function
+          name: test_test_file_artifacts_do_not_require_meta_test_coverage
+    - path: tests/core/validation/test_validate_all_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_all_applies_chain_strictness_to_active_manifests
+        - kind: test_function
+          name: test_direct_edit_validation_with_chain_rejects_undeclared_public_artifact
+        - kind: test_function
+          name: test_direct_create_validation_with_multiple_chain_manifests_stays_strict
+        - kind: test_function
+          name: test_direct_edit_validation_without_chain_remains_permissive
+        - kind: test_function
+          name: test_direct_chain_strict_validation_still_allows_private_artifacts
+        - kind: test_function
+          name: test_direct_chain_strict_validation_keeps_test_files_permissive
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_returns_1_for_unreferenced_public_artifact
+    - path: tests/core/test_validate_angular.py
+      artifacts:
+        - kind: test_function
+          name: test_angular_standalone_component_static_import_satisfies_required_import
+    - path: tests/core/test_identity_matching.py
+      artifacts:
+        - kind: test_function
+          name: test_import_context_does_not_satisfy_artifact_coverage
+        - kind: test_function
+          name: test_identity_import_blocks_name_only_fallback_for_same_artifact
+        - kind: test_function
+          name: test_module_identity_import_blocks_name_only_fallback
+        - kind: test_function
+          name: test_noncovering_keyword_reference_does_not_block_method_name_fallback
+        - kind: test_function
+          name: test_dotted_reference_matches_path_module_identity
+        - kind: test_function
+          name: test_dotful_path_modules_do_not_match_slash_normalized_paths
+    - path: tests/validators/test_python_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_import_and_call_references_carry_distinct_contexts
+        - kind: test_function
+          name: test_from_import_call_rejects_wrong_module_artifact
+        - kind: test_function
+          name: test_from_import_alias_call_matches_original_artifact_name
+    - path: tests/validators/test_typescript_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_base_validator_module_path_defaults_to_none
+        - kind: test_function
+          name: test_import_and_access_references_carry_distinct_contexts
+        - kind: test_function
+          name: test_local_same_name_helpers_keep_non_import_reference_context
+    - path: tests/coherence/test_coherence_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_coherence_package_facades_are_exercised_by_behavioral_references
+          of: TestCoherenceResult
+    - path: tests/graph/test_query_refactor_boundaries.py
+      artifacts:
+        - kind: test_function
+          name: test_traversal_module_public_functions_are_exercised_directly
+  read:
+    - tests/core/test_validate.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/validators/test_behavioral_test_functions.py
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/040-20-retire-typescript-attribute-coverage-legacy-cases.manifest.yaml
+    - manifests/040-21-retire-chain-strictness-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/cli/test_validate_cmd.py tests/core/test_identity_matching.py tests/validators/test_python_identity.py tests/validators/test_typescript_identity.py tests/validators/test_behavioral_test_functions.py tests/core/test_validate_angular.py
+  - uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/graph/test_query_refactor_boundaries.py tests/core/validation/test_validate_all_chain.py
