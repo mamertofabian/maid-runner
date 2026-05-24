@@ -126,6 +126,32 @@ def test_file_tracking_ignores_gitignored_source_file(project):
     assert all(entry.path != "generated.py" for entry in report.entries)
 
 
+def test_file_tracking_reports_manifest_created_source_file_as_tracked(project):
+    write_manifest(
+        project,
+        "add-app.manifest.yaml",
+        """schema: "2"
+goal: "Add app"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+validate:
+  - pytest tests/test_app.py -v
+""",
+    )
+    write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+
+    engine = ValidationEngine(project_root=project)
+    report = engine.run_file_tracking(manifest_chain(project))
+    entries = [entry for entry in report.entries if entry.path == "src/app.py"]
+
+    assert len(entries) == 1
+    assert entries[0].status == FileTrackingStatus.TRACKED
+
+
 def test_file_tracking_classifies_files_read_as_registered(project):
     write_manifest(
         project,

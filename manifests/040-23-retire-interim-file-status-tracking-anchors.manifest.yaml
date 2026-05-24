@@ -1,0 +1,149 @@
+schema: "2"
+goal: "Retire interim file-status and file-tracking anchors from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - 040-09-retire-file-status-legacy-cases
+  - 040-16-retire-file-tracking-misc-legacy-cases
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by removing two legacy smoke tests that were pinned only
+  by interim retirement manifests, not by original feature contracts:
+  TestFileTracking.test_run_file_tracking_smoke and
+  TestUnsupportedLanguageSmoke.test_unsupported_language_warning_smoke.
+
+  The detailed file-tracking and unsupported-language behavior remains covered
+  by focused validation suites. This manifest supersedes the interim manifests
+  that kept those anchors alive and records the intentional method removals.
+  Older immutable manifests still read tests/core/test_validate.py for
+  run_file_tracking and VALIDATOR_NOT_AVAILABLE E200 references, so the legacy
+  file keeps private non-test compatibility anchors while executable assertions
+  live in the focused suites.
+temptations:
+  - risk: "Do not supersede original behavior manifests in this cleanup slice."
+    instead: "Supersede only the interim 040 retirement manifests that introduced these anchors."
+  - risk: "Do not drop file-tracking or unsupported-language behavior coverage."
+    instead: "Keep the focused file-scope and file-status validation suites as the executable coverage."
+  - risk: "Do not keep executable placeholder legacy tests to satisfy MAID coverage."
+    instead: "Declare the removed legacy test methods under removed_artifacts and keep only private compatibility references for immutable active manifests."
+removed_artifacts:
+  - kind: method
+    name: test_run_file_tracking_smoke
+    of: TestFileTracking
+    file: tests/core/test_validate.py
+    reason: "Focused file-scope tests now carry the file-tracking behavior."
+  - kind: method
+    name: test_unsupported_language_warning_smoke
+    of: TestUnsupportedLanguageSmoke
+    file: tests/core/test_validate.py
+    reason: "Focused file-status tests now carry unsupported-language warning behavior."
+files:
+  edit:
+    - path: tests/core/validation/test_file_scope_gates.py
+      artifacts:
+        - kind: test_function
+          name: test_file_tracking_ignores_gitignored_source_file
+          source_scenario: "File tracking runs in a git repository with a source-like file excluded by .gitignore."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The ignored source file is absent from file-tracking entries."
+        - kind: test_function
+          name: test_file_tracking_reports_manifest_created_source_file_as_tracked
+          source_scenario: "File tracking runs against a manifest that creates a Python source file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.run_file_tracking reports the manifest-created source file with FileTrackingStatus.TRACKED."
+        - kind: test_function
+          name: test_file_tracking_classifies_files_read_as_registered
+          source_scenario: "A manifest lists a dependency under files.read."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "File tracking marks the file as REGISTERED, not UNDECLARED, and records a read-context issue."
+    - path: tests/core/validation/test_file_status_validation.py
+      artifacts:
+        - kind: test_function
+          name: test_delete_file_that_still_exists_reports_file_should_be_absent
+          source_scenario: "A manifest delete entry targets a file that still exists."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_ABSENT."
+        - kind: test_function
+          name: test_delete_file_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_still_exists_reports_file_should_be_absent
+          source_scenario: "A manifest delete entry with a reason targets a file that still exists."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.FILE_SHOULD_BE_ABSENT."
+        - kind: test_function
+          name: test_delete_file_with_reason_that_is_missing_reports_no_file_should_be_absent_error
+          source_scenario: "A manifest delete entry with a reason targets a file that is already absent."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.FILE_SHOULD_BE_ABSENT errors."
+        - kind: test_function
+          name: test_unsupported_language_file_reports_validator_not_available_warning
+          source_scenario: "A manifest-created Ruby file has no registered validator and includes a test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds and reports ErrorCode.VALIDATOR_NOT_AVAILABLE as a warning."
+        - kind: test_function
+          name: test_supported_python_file_reports_no_validator_not_available_warning
+          source_scenario: "A manifest-created Python file has a registered validator."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports no ErrorCode.VALIDATOR_NOT_AVAILABLE warnings."
+        - kind: test_function
+          name: test_unsupported_language_file_reports_validator_not_available_issue_without_test_file
+          source_scenario: "A manifest-created Ruby file has no registered validator and no explicit test file."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation includes ErrorCode.VALIDATOR_NOT_AVAILABLE among errors or warnings."
+  read:
+    - tests/core/test_validate.py
+    - manifests/040-09-retire-file-status-legacy-cases.manifest.yaml
+    - manifests/040-16-retire-file-tracking-misc-legacy-cases.manifest.yaml
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/fix-file-tracking-noise-filter.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/core/validation/test_file_status_validation.py tests/core/test_validate.py

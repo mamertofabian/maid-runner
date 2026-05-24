@@ -28,6 +28,10 @@ _VALIDATION_ENGINE_PUBLIC_METHODS = (
     ValidationEngine.validate_acceptance,
     ValidationEngine.validate_implementation,
 )
+_LEGACY_MANIFEST_REFERENCE_ANCHORS = (
+    ValidationEngine.run_file_tracking,
+    ErrorCode.VALIDATOR_NOT_AVAILABLE,
+)
 
 
 @pytest.fixture()
@@ -769,31 +773,6 @@ validate:
             for report in reports
             for entry in report.undeclared
         )
-
-    def test_run_file_tracking_smoke(self, project):
-        """run_file_tracking remains exercised from the legacy validation surface."""
-        _write_manifest(
-            project / "manifests",
-            "add-app.manifest.yaml",
-            """schema: "2"
-goal: "Add app"
-files:
-  create:
-    - path: src/app.py
-      artifacts:
-        - kind: function
-          name: run
-validate:
-  - pytest tests/test_app.py -v
-""",
-        )
-        _write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
-
-        engine = ValidationEngine(project_root=project)
-        chain = ManifestChain(project / "manifests", project_root=project)
-        report = engine.run_file_tracking(chain)
-
-        assert any(entry.path == "src/app.py" for entry in report.entries)
 
     def test_worktree_scope_gate_reports_changed_production_file_outside_manifest_scope(
         self, project
@@ -2077,40 +2056,6 @@ validate:
             e.message for e in result.errors if e.code == ErrorCode.UNEXPECTED_ARTIFACT
         ]
         assert any("AuthConfig.port" in m for m in e301_messages)
-
-
-class TestUnsupportedLanguageSmoke:
-    """Legacy smoke coverage for unsupported-language validator warnings."""
-
-    def test_unsupported_language_warning_smoke(self, project):
-        manifest_path = _write_manifest(
-            project / "manifests",
-            "add-ruby.manifest.yaml",
-            """schema: "2"
-goal: "Add ruby module"
-files:
-  create:
-    - path: src/helper.rb
-      artifacts:
-        - kind: function
-          name: helper
-  read:
-    - tests/test_helper.py
-validate:
-  - pytest tests/test_helper.py -v
-""",
-        )
-        _write_source(project, "src/helper.rb", "def helper\n  'hello'\nend\n")
-        _add_test_file(project, "tests/test_helper.py", "src.helper", ["helper"])
-
-        engine = ValidationEngine(project_root=project)
-        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
-
-        assert result.success is True
-        assert any(
-            warning.code == ErrorCode.VALIDATOR_NOT_AVAILABLE
-            for warning in result.warnings
-        )
 
 
 class TestImplementationTestCoverage:
