@@ -1,0 +1,116 @@
+schema: "2"
+goal: "Retire TypeScript attribute coverage legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+supersedes:
+  - fix-typescript-computed-key-behavioral-coverage
+  - fix-typescript-literal-computed-subscript-coverage
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+    - typescript
+  priority: medium
+description: |
+  Continue Priority 6 by moving unpinned TypeScript attribute behavioral
+  coverage cases out of tests/core/test_validate.py and into the focused
+  behavioral coverage suite.
+
+  This slice also supersedes the two active computed-key manifests whose
+  validate commands targeted the legacy test_validate.py test names directly.
+  The production artifact contract for _typescript_behavioral.collect_behavioral_artifacts
+  is preserved here, while validation now runs the focused behavioral coverage
+  suite and TypeScript identity tests. The older prop-attribute manifest uses a
+  broad test file command, so it remains active and is supplemented by this
+  focused retirement coverage.
+temptations:
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only unpinned TypeScript attribute coverage duplicates."
+  - risk: "Do not leave active manifests pointing at deleted legacy test names."
+    instead: "Supersede the targeted computed-key manifests and validate the new focused test locations."
+  - risk: "Do not weaken TypeScript attribute coverage behavior while shrinking the legacy file."
+    instead: "Move full ValidationEngine-level coverage for property access, object props, JSX props, enum computed keys, and literal computed keys."
+  - risk: "Do not change TypeScript behavioral collector semantics."
+    instead: "Only move characterization coverage and preserve the existing production artifact contract."
+files:
+  edit:
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: Union[str, Path]
+          returns: list[FoundArtifact]
+    - path: tests/core/validation/test_behavioral_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_typescript_attribute_member_access_counts_as_coverage
+          source_scenario: "A TypeScript test reads a declared interface attribute through normal member access."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation does not report ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the declared attribute."
+        - kind: test_function
+          name: test_typescript_object_literal_props_count_as_attribute_coverage
+          source_scenario: "A TSX test builds an object literal containing declared prop names before passing it to the component."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation does not report ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the declared prop attributes."
+        - kind: test_function
+          name: test_typescript_jsx_props_count_as_attribute_coverage
+          source_scenario: "A TSX test passes declared prop names directly as JSX attributes."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation does not report ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the declared JSX prop attributes."
+        - kind: test_function
+          name: test_typescript_computed_keys_count_as_attribute_coverage
+          source_scenario: "A TypeScript test reads enum-backed computed attributes with bracket notation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the declared enum computed attributes."
+        - kind: test_function
+          name: test_typescript_literal_computed_keys_count_as_attribute_coverage
+          source_scenario: "A TypeScript test reads a string-literal computed attribute with bracket notation."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation succeeds without ErrorCode.ARTIFACT_NOT_USED_IN_TESTS for the declared literal computed attribute."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_manifest_still_exempt_from_behavioral_coverage_error
+          source_scenario: "A snapshot manifest declares a public artifact that is not referenced by its smoke test."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy snapshot coverage exemption test remains present and executable."
+  read:
+    - tests/validators/test_typescript_identity.py
+    - manifests/fix-typescript-prop-attribute-coverage.manifest.yaml
+    - manifests/fix-typescript-computed-key-behavioral-coverage.manifest.yaml
+    - manifests/fix-typescript-literal-computed-subscript-coverage.manifest.yaml
+    - manifests/040-19-retire-behavioral-coverage-smoke-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_behavioral_coverage.py tests/validators/test_typescript_identity.py tests/core/test_validate.py

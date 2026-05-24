@@ -317,6 +317,333 @@ validate:
     assert coverage_issues(result) == []
 
 
+def test_typescript_attribute_member_access_counts_as_coverage(project):
+    manifest_path = write_manifest(
+        project,
+        "add-vehicle-input.manifest.yaml",
+        """schema: "2"
+goal: "Add vehicle input"
+files:
+  edit:
+    - path: src/vehicle.ts
+      artifacts:
+        - kind: interface
+          name: VehicleInput
+        - kind: attribute
+          name: make
+          of: VehicleInput
+          type: string
+        - kind: function
+          name: buildVehicleInput
+          args: []
+          returns: VehicleInput
+  read:
+    - tests/vehicle.test.ts
+validate:
+  - vitest tests/vehicle.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/vehicle.ts",
+        """export interface VehicleInput {
+  make: string;
+}
+
+export function buildVehicleInput(): VehicleInput {
+  return { make: "Toyota" };
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/vehicle.test.ts",
+        """import { buildVehicleInput } from "../src/vehicle";
+
+it("uses make", () => {
+  const input = buildVehicleInput();
+  expect(input.make).toBe("Toyota");
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert not any("make" in issue.message for issue in coverage_issues(result))
+
+
+def test_typescript_object_literal_props_count_as_attribute_coverage(project):
+    manifest_path = write_manifest(
+        project,
+        "add-rider-dashboard.manifest.yaml",
+        """schema: "2"
+goal: "Add rider dashboard"
+files:
+  edit:
+    - path: src/RiderDashboard.tsx
+      artifacts:
+        - kind: interface
+          name: RiderDashboardProps
+        - kind: attribute
+          name: currentUserName
+          of: RiderDashboardProps
+          type: string
+        - kind: attribute
+          name: communityStatus
+          of: RiderDashboardProps
+          type: string
+        - kind: function
+          name: RiderDashboard
+          args:
+            - name: props
+              type: RiderDashboardProps
+          returns: JSX.Element
+  read:
+    - tests/RiderDashboard.test.tsx
+validate:
+  - vitest tests/RiderDashboard.test.tsx
+""",
+    )
+    write_source(
+        project,
+        "src/RiderDashboard.tsx",
+        """export interface RiderDashboardProps {
+  currentUserName: string;
+  communityStatus: string;
+}
+
+export function RiderDashboard(props: RiderDashboardProps): JSX.Element {
+  return <section>{props.currentUserName} {props.communityStatus}</section>;
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/RiderDashboard.test.tsx",
+        """import { RiderDashboard } from "../src/RiderDashboard";
+
+it("renders rider details from props", () => {
+  const props = {
+    currentUserName: "Ari",
+    communityStatus: "active",
+  };
+
+  RiderDashboard(props);
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    issues = coverage_issues(result)
+
+    assert not any("currentUserName" in issue.message for issue in issues)
+    assert not any("communityStatus" in issue.message for issue in issues)
+
+
+def test_typescript_jsx_props_count_as_attribute_coverage(project):
+    manifest_path = write_manifest(
+        project,
+        "add-rider-dashboard-jsx.manifest.yaml",
+        """schema: "2"
+goal: "Add rider dashboard"
+files:
+  edit:
+    - path: src/RiderDashboard.tsx
+      artifacts:
+        - kind: interface
+          name: RiderDashboardProps
+        - kind: attribute
+          name: currentUserName
+          of: RiderDashboardProps
+          type: string
+        - kind: attribute
+          name: communityStatus
+          of: RiderDashboardProps
+          type: string
+        - kind: function
+          name: RiderDashboard
+          args:
+            - name: props
+              type: RiderDashboardProps
+          returns: JSX.Element
+  read:
+    - tests/RiderDashboard.test.tsx
+validate:
+  - vitest tests/RiderDashboard.test.tsx
+""",
+    )
+    write_source(
+        project,
+        "src/RiderDashboard.tsx",
+        """export interface RiderDashboardProps {
+  currentUserName: string;
+  communityStatus: string;
+}
+
+export function RiderDashboard(props: RiderDashboardProps): JSX.Element {
+  return <section>{props.currentUserName} {props.communityStatus}</section>;
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/RiderDashboard.test.tsx",
+        """import { RiderDashboard } from "../src/RiderDashboard";
+
+it("renders rider details from direct JSX props", () => {
+  <RiderDashboard currentUserName="Ari" communityStatus="active" />;
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    issues = coverage_issues(result)
+
+    assert not any("currentUserName" in issue.message for issue in issues)
+    assert not any("communityStatus" in issue.message for issue in issues)
+
+
+def test_typescript_computed_keys_count_as_attribute_coverage(project):
+    manifest_path = write_manifest(
+        project,
+        "add-step-completion.manifest.yaml",
+        """schema: "2"
+goal: "Add step completion"
+files:
+  edit:
+    - path: src/audit.ts
+      artifacts:
+        - kind: enum
+          name: ManualAuditStep
+        - kind: interface
+          name: StepCompletion
+        - kind: attribute
+          name: "[ManualAuditStep.AUDIT_DETAILS]"
+          of: StepCompletion
+          type: boolean
+        - kind: attribute
+          name: "[ManualAuditStep.CONTENT_CREATION]"
+          of: StepCompletion
+          type: boolean
+        - kind: function
+          name: buildStepCompletion
+          args: []
+          returns: StepCompletion
+  read:
+    - tests/audit.test.ts
+validate:
+  - vitest tests/audit.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/audit.ts",
+        """export enum ManualAuditStep {
+  AUDIT_DETAILS = "audit-details",
+  CONTENT_CREATION = "content-creation",
+}
+
+export interface StepCompletion {
+  [ManualAuditStep.AUDIT_DETAILS]: boolean;
+  [ManualAuditStep.CONTENT_CREATION]: boolean;
+}
+
+export function buildStepCompletion(): StepCompletion {
+  return {
+    [ManualAuditStep.AUDIT_DETAILS]: true,
+    [ManualAuditStep.CONTENT_CREATION]: false,
+  };
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/audit.test.ts",
+        """import { buildStepCompletion, ManualAuditStep, type StepCompletion } from "../src/audit";
+
+it("uses computed step completion flags", () => {
+  const completion: StepCompletion = buildStepCompletion();
+  expect(completion[ManualAuditStep.AUDIT_DETAILS]).toBe(true);
+  expect(completion[ManualAuditStep.CONTENT_CREATION]).toBe(false);
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+    issues = coverage_issues(result)
+
+    assert result.success is True
+    assert not any(
+        "[ManualAuditStep.AUDIT_DETAILS]" in issue.message for issue in issues
+    )
+    assert not any(
+        "[ManualAuditStep.CONTENT_CREATION]" in issue.message for issue in issues
+    )
+
+
+def test_typescript_literal_computed_keys_count_as_attribute_coverage(project):
+    manifest_path = write_manifest(
+        project,
+        "add-audit-completion.manifest.yaml",
+        """schema: "2"
+goal: "Add audit completion"
+files:
+  edit:
+    - path: src/audit.ts
+      artifacts:
+        - kind: interface
+          name: AuditCompletion
+        - kind: attribute
+          name: "[\\"audit-details\\"]"
+          of: AuditCompletion
+          type: boolean
+        - kind: function
+          name: buildAuditCompletion
+          args: []
+          returns: AuditCompletion
+  read:
+    - tests/audit.test.ts
+validate:
+  - vitest tests/audit.test.ts
+""",
+    )
+    write_source(
+        project,
+        "src/audit.ts",
+        """export interface AuditCompletion {
+  ["audit-details"]: boolean;
+}
+
+export function buildAuditCompletion(): AuditCompletion {
+  return { ["audit-details"]: true };
+}
+""",
+    )
+    write_source(
+        project,
+        "tests/audit.test.ts",
+        """import { buildAuditCompletion, type AuditCompletion } from "../src/audit";
+
+it("uses literal computed completion flags", () => {
+  const completion: AuditCompletion = buildAuditCompletion();
+  expect(completion["audit-details"]).toBe(true);
+});
+""",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert not any(
+        '["audit-details"]' in issue.message for issue in coverage_issues(result)
+    )
+
+
 def test_import_only_reference_is_not_behavioral_coverage(project):
     manifest_path = write_manifest(
         project,
