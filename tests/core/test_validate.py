@@ -20,6 +20,16 @@ from maid_runner.validators._typescript_parse import parse_typescript_source
 from maid_runner.validators.typescript import TypeScriptValidator
 
 
+# Historical active manifests still read this legacy file for these method
+# references. Executable assertions live in tests/core/validation/test_validate_api.py.
+_VALIDATION_ENGINE_PUBLIC_METHODS = (
+    ValidationEngine.validate,
+    ValidationEngine.validate_behavioral,
+    ValidationEngine.validate_acceptance,
+    ValidationEngine.validate_implementation,
+)
+
+
 @pytest.fixture()
 def project(tmp_path):
     """Create a temporary project directory."""
@@ -89,13 +99,6 @@ def _add_test_file(project_dir, test_rel_path, source_module, artifact_names):
 
 
 class TestImplementationValidation:
-    def test_consolidated_validation_methods_are_referenced(self):
-        """Smoke references for ValidationEngine public validation methods."""
-        assert callable(ValidationEngine.validate)
-        assert callable(ValidationEngine.validate_behavioral)
-        assert callable(ValidationEngine.validate_acceptance)
-        assert callable(ValidationEngine.validate_implementation)
-
     def test_strict_mode_unexpected_public_fail(self, project):
         """Golden test 6.3: Unexpected public artifact -> E301."""
         manifest_path = _write_manifest(

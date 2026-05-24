@@ -4,7 +4,7 @@ import pytest
 
 from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ValidationMode
-from maid_runner.core.validate import validate
+from maid_runner.core.validate import ValidationEngine, validate
 
 
 @pytest.fixture()
@@ -61,6 +61,17 @@ def add_greet_test(project_dir):
 
 def warning_codes(result):
     return {warning.code for warning in result.warnings}
+
+
+def test_validation_engine_exposes_public_validation_methods():
+    methods = [
+        ValidationEngine.validate,
+        ValidationEngine.validate_behavioral,
+        ValidationEngine.validate_acceptance,
+        ValidationEngine.validate_implementation,
+    ]
+
+    assert all(callable(method) for method in methods)
 
 
 def test_validate_function_runs_implementation_validation(project):

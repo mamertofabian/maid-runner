@@ -1,0 +1,60 @@
+schema: "2"
+goal: "Retire validation method reference smoke test from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Finish the unpinned Priority 6 retirement pass by moving the remaining
+  ValidationEngine public-method smoke reference out of tests/core/test_validate.py
+  and into the focused validation API suite.
+
+  This slice preserves the original public API availability check while leaving
+  the still-pinned legacy tests in tests/core/test_validate.py untouched. Because
+  older active manifests still use tests/core/test_validate.py as their immutable
+  declared test-reference source for these methods, the legacy file keeps private
+  non-test compatibility references while the executable assertion moves to the
+  focused suite.
+temptations:
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Retire only the final unpinned public-method smoke test and keep the pinned legacy anchors present."
+  - risk: "Do not weaken the public ValidationEngine API contract while moving the smoke test."
+    instead: "Assert the same public validation methods remain callable from the focused API suite and keep immutable-manifest reference anchors in the legacy file."
+  - risk: "Do not change validation behavior while shrinking the legacy file."
+    instead: "Only move characterization coverage and leave production validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_validate_api.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_engine_exposes_public_validation_methods
+          source_scenario: "Downstream callers import ValidationEngine as the public validation API class."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "ValidationEngine.validate, validate_behavioral, validate_acceptance, and validate_implementation remain callable public methods."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_mode_unexpected_public_fail
+          source_scenario: "A manifest declares one public function while the implementation also exposes an undeclared public function."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy strict-mode test remains present and reports ErrorCode.UNEXPECTED_ARTIFACT."
+  read:
+    - manifests/consolidate-validation-and-validator-contracts.manifest.yaml
+    - manifests/028-04-extract-implementation-file-validation-step.manifest.yaml
+    - manifests/038-08-extract-behavioral-validation-helper.manifest.yaml
+    - manifests/038-09-extract-implementation-validation-runner.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_validate_api.py tests/core/test_validate.py
