@@ -1,0 +1,85 @@
+schema: "2"
+goal: "Retire duplicated validation error-handling legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving manifest schema/load and source-parse error
+  characterization out of tests/core/test_validate.py and into a focused
+  validation suite.
+
+  The legacy TestSchemaErrorHandling and TestParseErrorHandling classes cover
+  schema validation errors, missing manifest load errors, Python source parse
+  errors, and test-file parse errors. These names are not active test_function
+  requirements in the merged manifest chain, so this slice can retire them
+  without a manifest evolver.
+temptations:
+  - risk: "Do not weaken validation error-handling coverage while shrinking the legacy file."
+    instead: "Add focused tests for schema, missing-manifest, source parse, and test-file parse errors before deleting the legacy classes."
+  - risk: "Do not alter manifest loading, schema validation, or source parsing semantics."
+    instead: "Only move characterization coverage and leave ValidationEngine behavior untouched."
+  - risk: "Do not combine this with file-absence, unsupported-language, or production validation refactors."
+    instead: "Limit this slice to schema/load/parse error tests and the focused retirement manifest."
+files:
+  create:
+    - path: tests/core/validation/test_error_handling.py
+      artifacts:
+        - kind: test_function
+          name: test_invalid_manifest_schema_reports_schema_validation_error
+          source_scenario: "A manifest file parses as YAML but violates the manifest schema."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with ErrorCode.SCHEMA_VALIDATION_ERROR."
+        - kind: test_function
+          name: test_missing_manifest_path_reports_file_not_found
+          source_scenario: "Validation is requested for a manifest path that does not exist."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation fails with ErrorCode.FILE_NOT_FOUND."
+        - kind: test_function
+          name: test_python_source_syntax_error_reports_source_parse_error
+          source_scenario: "A manifest-created Python source file contains invalid syntax."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.SOURCE_PARSE_ERROR."
+        - kind: test_function
+          name: test_python_test_file_syntax_error_reports_source_parse_error
+          source_scenario: "A manifest-declared Python test file contains invalid syntax."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Implementation validation reports ErrorCode.SOURCE_PARSE_ERROR as an error or warning."
+  edit:
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_fail_on_warnings_marks_result_unsuccessful
+          source_scenario: "Strict warning policy validates an implementation warning with fail_on_warnings enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy smoke test remains present and executable."
+  read:
+    - manifests/040-01-retire-duplicated-test-validate-legacy-cases.manifest.yaml
+    - manifests/040-07-retire-acceptance-validation-legacy-cases.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_error_handling.py tests/core/test_validate.py
