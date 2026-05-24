@@ -111,6 +111,52 @@ def test_implementation_stub_check_warns_for_pass_function(project):
     assert ErrorCode.STUB_FUNCTION_DETECTED in warning_codes(result)
 
 
+def test_implementation_stub_check_is_quiet_without_flag(project):
+    manifest_path = add_greet_manifest(project)
+    write_source(project, "src/greet.py", "def greet():\n    pass\n")
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet_exists():\n"
+        "    assert greet is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert result.errors == []
+    assert ErrorCode.STUB_FUNCTION_DETECTED not in warning_codes(result)
+
+
+def test_implementation_stub_check_is_quiet_for_real_function(project):
+    manifest_path = add_greet_manifest(project)
+    write_source(
+        project,
+        "src/greet.py",
+        'def greet(name):\n    return f"Hello, {name}!"\n',
+    )
+    write_source(
+        project,
+        "tests/test_greet.py",
+        "from src.greet import greet\n\n"
+        "def test_greet_exists():\n"
+        "    assert greet is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+        check_stubs=True,
+    )
+
+    assert result.success is True
+    assert result.errors == []
+    assert ErrorCode.STUB_FUNCTION_DETECTED not in warning_codes(result)
+
+
 def test_implementation_fail_on_warnings_marks_warning_only_result_failed(project):
     manifest_path = add_greet_manifest(project)
     write_source(project, "src/greet.py", "def greet():\n    pass\n")

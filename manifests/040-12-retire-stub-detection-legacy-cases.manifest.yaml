@@ -1,0 +1,75 @@
+schema: "2"
+goal: "Retire duplicated stub-detection legacy tests from tests/core/test_validate.py"
+type: refactor
+created: "2026-05-24"
+metadata:
+  tags:
+    - safe-refactor
+    - validation
+    - test-retirement
+    - priority-6
+  priority: medium
+description: |
+  Continue Priority 6 by moving non-active stub-detection characterization
+  out of tests/core/test_validate.py and into the focused strict-mode suite.
+
+  The legacy TestStubDetection class contains a mix of duplicated checks and
+  active manifest artifacts. This slice retires only the non-active duplicate
+  cases for pass-only functions, default check_stubs behavior, and real
+  functions. Active tests for abstract methods and TypeScript generic type
+  parameter validation remain in tests/core/test_validate.py.
+temptations:
+  - risk: "Do not remove active test_function artifacts from tests/core/test_validate.py."
+    instead: "Keep test_abstract_method_not_detected_as_stub_warning, test_custom_abstractmethod_attribute_detected_as_stub_warning, and test_typescript_generic_type_parameters_are_validated in the legacy file."
+  - risk: "Do not weaken STUB_FUNCTION_DETECTED behavior coverage while shrinking the legacy file."
+    instead: "Keep the existing focused positive stub-warning test and add focused quiet-path tests for default behavior and real functions."
+  - risk: "Do not change stub detection implementation semantics."
+    instead: "Only move characterization coverage and leave validation code untouched."
+files:
+  edit:
+    - path: tests/core/validation/test_strict_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_stub_check_warns_for_pass_function
+          source_scenario: "Implementation validation checks a pass-only Python function with check_stubs=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no errors and reports ErrorCode.STUB_FUNCTION_DETECTED as a warning."
+        - kind: test_function
+          name: test_implementation_stub_check_is_quiet_without_flag
+          source_scenario: "Implementation validation checks a pass-only Python function without check_stubs."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.STUB_FUNCTION_DETECTED warning."
+        - kind: test_function
+          name: test_implementation_stub_check_is_quiet_for_real_function
+          source_scenario: "Implementation validation checks a non-placeholder Python function with check_stubs=True."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Validation succeeds with no ErrorCode.STUB_FUNCTION_DETECTED warning."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_abstract_method_not_detected_as_stub_warning
+          source_scenario: "A class has an @abstractmethod whose body is pass."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The already-active legacy abstract-method stub-detection test remains present and executable."
+  read:
+    - manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml
+    - manifests/add-typescript-generic-type-parameter-storage.manifest.yaml
+    - manifests/038-04-add-lean-strict-mode-characterization.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_strict_mode.py tests/core/test_validate.py
