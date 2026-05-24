@@ -203,6 +203,86 @@ validate:
     assert "os" not in import_errors[0].message
 
 
+def test_missing_imports_field_skips_required_import_check(project):
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+  read:
+    - tests/test_budget.py
+validate:
+  - pytest tests/test_budget.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/budget.py",
+        "def BudgetPage():\n" "    return 'placeholder'\n",
+    )
+    write_source(
+        project,
+        "tests/test_budget.py",
+        "from src.pages.budget import BudgetPage\n\n"
+        "def test_budget_page():\n"
+        "    assert BudgetPage() == 'placeholder'\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert missing_import_errors(result) == []
+
+
+def test_python_required_import_can_match_imported_symbol_name(project):
+    manifest_path = write_manifest(
+        project,
+        "add-page.manifest.yaml",
+        """schema: "2"
+goal: "Add page"
+files:
+  create:
+    - path: src/pages/budget.py
+      artifacts:
+        - kind: function
+          name: BudgetPage
+      imports:
+        - list_budgets
+  read:
+    - tests/test_budget.py
+validate:
+  - pytest tests/test_budget.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/pages/budget.py",
+        "from src.api.budgets import list_budgets\n\n"
+        "def BudgetPage():\n"
+        "    return list_budgets()\n",
+    )
+    write_source(
+        project,
+        "tests/test_budget.py",
+        "from src.pages.budget import BudgetPage\n\n"
+        "def test_budget_page():\n"
+        "    assert BudgetPage is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert missing_import_errors(result) == []
+
+
 def test_python_path_style_required_import_matches_dotted_import(project):
     manifest_path = write_manifest(
         project,
@@ -236,6 +316,88 @@ validate:
         "from src.routes.users import list_users\n\n"
         "def test_list_users():\n"
         "    assert list_users is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_python_path_style_without_extension_matches_dotted_import(project):
+    manifest_path = write_manifest(
+        project,
+        "add-user-routes.manifest.yaml",
+        """schema: "2"
+goal: "Add user routes"
+files:
+  create:
+    - path: src/routes/users.py
+      artifacts:
+        - kind: function
+          name: list_users
+      imports:
+        - src/models/user
+  read:
+    - tests/test_users.py
+validate:
+  - pytest tests/test_users.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/routes/users.py",
+        "from src.models.user import User\n\n"
+        "def list_users():\n"
+        "    return User.all()\n",
+    )
+    write_source(
+        project,
+        "tests/test_users.py",
+        "from src.routes.users import list_users\n\n"
+        "def test_list_users():\n"
+        "    assert list_users is not None\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert missing_import_errors(result) == []
+
+
+def test_python_dotted_required_import_matches_dotted_import(project):
+    manifest_path = write_manifest(
+        project,
+        "add-user-views.manifest.yaml",
+        """schema: "2"
+goal: "Add user views"
+files:
+  create:
+    - path: src/views/users.py
+      artifacts:
+        - kind: function
+          name: show_users
+      imports:
+        - src.models.user
+  read:
+    - tests/test_users.py
+validate:
+  - pytest tests/test_users.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/views/users.py",
+        "from src.models.user import User\n\n"
+        "def show_users():\n"
+        "    return User.all()\n",
+    )
+    write_source(
+        project,
+        "tests/test_users.py",
+        "from src.views.users import show_users\n\n"
+        "def test_show_users():\n"
+        "    assert show_users is not None\n",
     )
 
     engine = ValidationEngine(project_root=project)
