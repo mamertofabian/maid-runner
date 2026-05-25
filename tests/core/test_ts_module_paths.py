@@ -1174,7 +1174,87 @@ def test_clear_ts_resolution_cache_allows_changed_project_resolution(
     )
 
 
-def test_ts_resolution_context_reuses_project_and_module_signatures(
+def test_resolve_ts_reexport_invalidates_when_barrel_file_changes(
+    tmp_path: Path,
+) -> None:
+    components = tmp_path / "src" / "components"
+    components.mkdir(parents=True)
+    index = components / "index.ts"
+    index.write_text("export { Button } from './OldButton';\n")
+    (components / "OldButton.ts").write_text("export function Button() {}\n")
+    (components / "NewWideButton.ts").write_text("export function Button() {}\n")
+
+    clear_ts_resolution_cache()
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/components/OldButton",
+        "Button",
+    )
+
+    index.write_text("export { Button } from './NewWideButton';\n")
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/components/NewWideButton",
+        "Button",
+    )
+
+
+def test_resolve_ts_reexport_invalidates_when_module_entry_selection_changes(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    components = src / "components"
+    components.mkdir(parents=True)
+    index = components / "index.ts"
+    index.write_text("export { Button } from './OldButton';\n")
+    (components / "OldButton.ts").write_text("export function Button() {}\n")
+    (src / "NewWideButton.ts").write_text("export function Button() {}\n")
+
+    clear_ts_resolution_cache()
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/components/OldButton",
+        "Button",
+    )
+
+    (src / "components.ts").write_text("export { Button } from './NewWideButton';\n")
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/NewWideButton",
+        "Button",
+    )
+
+
+def test_resolve_ts_reexport_invalidates_when_nested_barrel_changes(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    components = src / "components"
+    shared = src / "shared"
+    components.mkdir(parents=True)
+    shared.mkdir(parents=True)
+    (components / "index.ts").write_text("export { Button } from '../shared';\n")
+    shared_index = shared / "index.ts"
+    shared_index.write_text("export { Button } from './OldButton';\n")
+    (shared / "OldButton.ts").write_text("export function Button() {}\n")
+    (shared / "NewWideButton.ts").write_text("export function Button() {}\n")
+
+    clear_ts_resolution_cache()
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/shared/OldButton",
+        "Button",
+    )
+
+    shared_index.write_text("export { Button } from './NewWideButton';\n")
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/shared/NewWideButton",
+        "Button",
+    )
+
+
+def test_ts_resolution_context_reuses_module_entry_lookup_without_stale_signatures(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -1190,17 +1270,20 @@ def test_ts_resolution_context_reuses_project_and_module_signatures(
     (tmp_path / "tsconfig.json").write_text('{"compilerOptions": {"baseUrl": "."}}')
 
     clear_ts_resolution_cache()
-    calls: list[str] = []
-    real_path_signature = ts_module_paths._path_signature
+    module_entry_calls: list[str] = []
+    real_module_entry_file = ts_module_paths._module_entry_file
 
-    def tracking_path_signature(path: Path) -> tuple[str, int, int]:
-        calls.append(path.name)
-        return real_path_signature(path)
+    def tracking_module_entry_file(
+        project_root: Path,
+        module: str,
+    ) -> tuple[Path, str] | None:
+        module_entry_calls.append(module)
+        return real_module_entry_file(project_root, module)
 
     monkeypatch.setattr(
         ts_module_paths,
-        "_path_signature",
-        tracking_path_signature,
+        "_module_entry_file",
+        tracking_module_entry_file,
     )
 
     assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
@@ -1212,10 +1295,7 @@ def test_ts_resolution_context_reuses_project_and_module_signatures(
         "Link",
     )
 
-    assert calls.count("tsconfig.json") == 2
-    assert calls.count("jsconfig.json") == 2
-    assert calls.count("package.json") == 2
-    assert calls.count("index.ts") == 1
+    assert module_entry_calls == ["src/components"]
 
 
 def test_validate_all_typescript_results_match_with_resolver_session(

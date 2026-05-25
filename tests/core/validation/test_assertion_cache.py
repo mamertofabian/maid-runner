@@ -75,16 +75,16 @@ def _count_ast_parses(monkeypatch, test_path: Path) -> list[str]:
     return parsed
 
 
-def _count_rglob(monkeypatch, target_path: Path) -> list[Path]:
+def _count_iterdir(monkeypatch, target_path: Path) -> list[Path]:
     walks: list[Path] = []
-    real_rglob = Path.rglob
+    real_iterdir = Path.iterdir
 
-    def counting_rglob(self, pattern):
-        if self == target_path:
+    def counting_iterdir(self):
+        if self == target_path or self.is_relative_to(target_path):
             walks.append(self)
-        return real_rglob(self, pattern)
+        return real_iterdir(self)
 
-    monkeypatch.setattr(Path, "rglob", counting_rglob)
+    monkeypatch.setattr(Path, "iterdir", counting_iterdir)
     return walks
 
 
@@ -129,15 +129,16 @@ def test_validate_test_assertions_invalidates_when_file_signature_changes(
 def test_find_test_files_reuses_broad_directory_expansion(monkeypatch, tmp_path):
     _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
     _write(tmp_path / "tests" / "test_shared.py")
+    _write(tmp_path / "tests" / "unit" / "test_nested.py")
     manifest_path = _write_manifest(tmp_path, "first", "pytest tests/ -v")
-    walks = _count_rglob(monkeypatch, tmp_path / "tests")
+    walks = _count_iterdir(monkeypatch, tmp_path / "tests")
     manifest = load_manifest(manifest_path)
 
     first = find_test_files(manifest, tmp_path)
     second = find_test_files(manifest, tmp_path)
 
-    assert walks == [tmp_path / "tests"]
-    assert second == first == ["tests/test_shared.py"]
+    assert walks == [tmp_path / "tests", tmp_path / "tests" / "unit"]
+    assert second == first == ["tests/test_shared.py", "tests/unit/test_nested.py"]
 
 
 def test_validate_all_with_assertion_cache_matches_uncached_result(
@@ -287,7 +288,7 @@ def test_clear_test_discovery_cache_forces_directory_walk(monkeypatch, tmp_path)
     _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
     _write(tmp_path / "tests" / "test_shared.py")
     manifest = load_manifest(_write_manifest(tmp_path, "first", "pytest tests/ -v"))
-    walks = _count_rglob(monkeypatch, tmp_path / "tests")
+    walks = _count_iterdir(monkeypatch, tmp_path / "tests")
 
     find_test_files(manifest, tmp_path)
     clear_test_discovery_cache()
@@ -307,7 +308,7 @@ def test_clear_artifact_collection_cache_drops_assertion_and_discovery_caches(
     )
     manifest = load_manifest(_write_manifest(tmp_path, "first", "pytest tests/ -v"))
     parsed = _count_ast_parses(monkeypatch, test_file)
-    walks = _count_rglob(monkeypatch, tmp_path / "tests")
+    walks = _count_iterdir(monkeypatch, tmp_path / "tests")
 
     find_test_files(manifest, tmp_path)
     validate_test_assertions(tmp_path, ["tests/test_shared.py"])

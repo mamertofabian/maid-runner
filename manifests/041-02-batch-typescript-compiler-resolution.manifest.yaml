@@ -274,7 +274,7 @@ files:
               subject:
                 export: resolve_ts_reexport
           expected:
-            behavior: "The function reuses project and module signatures inside one resolver context and returns the same cached results."
+            behavior: "The function reuses module-entry lookups only while the candidate set is unchanged, recomputes local barrel scans against current files, and caches no-entry compiler-backed results for unchanged inputs."
         - kind: function
           name: clear_ts_resolution_cache
           args: []
@@ -289,14 +289,41 @@ files:
     - path: tests/core/test_ts_module_paths.py
       artifacts:
         - kind: test_function
-          name: test_ts_resolution_context_reuses_project_and_module_signatures
+          name: test_ts_resolution_context_reuses_module_entry_lookup_without_stale_signatures
           source_scenario: "Many import and re-export lookups touch the same tsconfig and module entry files."
           actions:
             - type: api_call
               subject:
                 export: resolve_ts_reexport
           expected:
-            behavior: "Module entry signatures are deduplicated inside one validation run while project config signatures still reflect same-process edits."
+            behavior: "Module entry lookup is deduplicated inside one validation run while module entry signatures and candidate selection still reflect same-process edits."
+        - kind: test_function
+          name: test_resolve_ts_reexport_invalidates_when_barrel_file_changes
+          source_scenario: "A barrel file changes after a re-export result was cached in the same Python process."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "The changed module-entry signature causes re-export resolution to recompute instead of returning the stale cached target."
+        - kind: test_function
+          name: test_resolve_ts_reexport_invalidates_when_module_entry_selection_changes
+          source_scenario: "A higher-priority module entry file appears after an index barrel was cached in the same Python process."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "The changed module-entry candidate signature causes re-export resolution to use the new higher-priority entry file."
+        - kind: test_function
+          name: test_resolve_ts_reexport_invalidates_when_nested_barrel_changes
+          source_scenario: "A nested barrel changes after a top-level barrel re-export result was cached in the same Python process."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "Local re-export resolution recomputes nested barrel scans instead of returning a stale cached target from the unchanged top-level entry."
         - kind: test_function
           name: test_validate_all_typescript_results_match_with_resolver_session
           source_scenario: "A tmp TypeScript project validates with the resolver session enabled and disabled."

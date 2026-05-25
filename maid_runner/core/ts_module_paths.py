@@ -85,9 +85,14 @@ _NODE_BUILTIN_MODULES = frozenset(
     }
 )
 
+_ModuleEntrySelectionSignature = tuple[tuple[str, int, int], ...]
+
 _TS_IMPORT_CACHE: dict[tuple[object, ...], str] = {}
 _TS_REEXPORT_CACHE: dict[tuple[object, ...], Optional[tuple[str, str]]] = {}
-_MODULE_ENTRY_SIGNATURE_CACHE: dict[tuple[str, str], tuple[str, int, int]] = {}
+_MODULE_ENTRY_FILE_CACHE: dict[
+    tuple[str, str],
+    tuple[_ModuleEntrySelectionSignature, Optional[tuple[Path, str]]],
+] = {}
 
 
 def ts_file_to_module_path(
@@ -230,17 +235,7 @@ def resolve_ts_reexport(
     dependencies are unavailable, or ``name`` is not re-exported.
     """
     root = Path(project_root)
-    cache_key = (
-        _root_cache_key(root),
-        module,
-        name,
-        _project_config_signature(root),
-        _module_entry_signature(root, module),
-    )
-    if cache_key in _TS_REEXPORT_CACHE:
-        return _TS_REEXPORT_CACHE[cache_key]
-
-    entry = _module_entry_file(root, module)
+    entry = _cached_module_entry_file(root, module)
     local_resolved = None
     if entry is not None:
         module_file, _ = entry
@@ -248,8 +243,22 @@ def resolve_ts_reexport(
             module_file, name, root, seen=set()
         )
         if local_resolved is not _EXPORT_SCANNER_FALLBACK_REQUIRED:
-            _TS_REEXPORT_CACHE[cache_key] = local_resolved
             return local_resolved
+
+        compiler_resolved = resolve_reexport_with_compiler(module, name, root)
+        if compiler_resolved is not None:
+            return compiler_resolved
+        return None
+
+    cache_key = (
+        _root_cache_key(root),
+        module,
+        name,
+        _project_config_signature(root),
+        _module_entry_selection_signature(root, module),
+    )
+    if cache_key in _TS_REEXPORT_CACHE:
+        return _TS_REEXPORT_CACHE[cache_key]
 
     if _is_external_module_id(module, root):
         _TS_REEXPORT_CACHE[cache_key] = None
@@ -267,7 +276,7 @@ def resolve_ts_reexport(
 def clear_ts_resolution_cache() -> None:
     _TS_IMPORT_CACHE.clear()
     _TS_REEXPORT_CACHE.clear()
-    _MODULE_ENTRY_SIGNATURE_CACHE.clear()
+    _MODULE_ENTRY_FILE_CACHE.clear()
     clear_ts_compiler_resolver_session()
 
 
@@ -333,20 +342,47 @@ def _project_config_signature(project_root: Path) -> tuple[tuple[str, int, int],
 
 
 def _module_entry_signature(project_root: Path, module: str) -> tuple[str, int, int]:
+    entry = _cached_module_entry_file(project_root, module)
+    if entry is None:
+        return ("", -1, -1)
+    path, _ = entry
+    return _path_signature(path)
+
+
+def _cached_module_entry_file(
+    project_root: Path,
+    module: str,
+) -> Optional[tuple[Path, str]]:
     cache_key = (_root_cache_key(project_root), module)
-    cached = _MODULE_ENTRY_SIGNATURE_CACHE.get(cache_key)
-    if cached is not None:
-        return cached
+    signature = _module_entry_selection_signature(project_root, module)
+    cached = _MODULE_ENTRY_FILE_CACHE.get(cache_key)
+    if cached is not None and cached[0] == signature:
+        return cached[1]
 
     entry = _module_entry_file(project_root, module)
-    if entry is None:
-        result = ("", -1, -1)
-        _MODULE_ENTRY_SIGNATURE_CACHE[cache_key] = result
-        return result
-    path, _ = entry
-    result = _path_signature(path)
-    _MODULE_ENTRY_SIGNATURE_CACHE[cache_key] = result
-    return result
+    _MODULE_ENTRY_FILE_CACHE[cache_key] = (signature, entry)
+    return entry
+
+
+def _module_entry_selection_signature(
+    project_root: Path,
+    module: str,
+) -> _ModuleEntrySelectionSignature:
+    return tuple(
+        _path_signature(path)
+        for path in _module_entry_candidate_paths(project_root, module)
+    )
+
+
+def _module_entry_candidate_paths(project_root: Path, module: str) -> tuple[Path, ...]:
+    base = project_root / module
+    source_candidates = tuple(
+        Path(f"{base}{extension}") for extension in _TS_EXTENSIONS
+    )
+    index_candidates = tuple(
+        project_root / module / candidate for candidate in _INDEX_CANDIDATES
+    )
+    return source_candidates + index_candidates
 
 
 def _path_signature(path: Path) -> tuple[str, int, int]:
