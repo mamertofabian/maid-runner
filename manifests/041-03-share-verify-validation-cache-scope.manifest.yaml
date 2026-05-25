@@ -168,4 +168,4 @@ files:
             behavior: "The outer exit clears cached entries so a later validation observes changed inputs."
 validate:
   - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/validation/test_artifact_collection_cache.py
-  - uv run maid validate manifests/drafts/041-03-share-verify-validation-cache-scope.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/041-03-share-verify-validation-cache-scope.manifest.yaml --mode schema --quiet

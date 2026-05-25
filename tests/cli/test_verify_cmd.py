@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 import json
 import os
 import textwrap
@@ -93,6 +94,18 @@ def _commit_all(project_dir, message: str = "commit") -> str:
         text=True,
     )
     return result.stdout.strip()
+
+
+def _without_durations(value):
+    if isinstance(value, dict):
+        return {
+            key: _without_durations(item)
+            for key, item in value.items()
+            if key != "duration_ms"
+        }
+    if isinstance(value, list):
+        return [_without_durations(item) for item in value]
+    return value
 
 
 def test_verify_returns_0_when_all_gates_pass(tmp_path, capsys):
@@ -742,6 +755,172 @@ def test_verify_shares_one_manifest_chain_across_stages(tmp_path, monkeypatch):
     assert integrity_calls == 1
     assert test_runner_calls == 1
     assert constructed == 1
+
+
+def test_verify_reuses_validation_cache_across_behavioral_and_implementation_stages(
+    tmp_path,
+    monkeypatch,
+):
+    from maid_runner.cli.commands.verify import _run_verify
+    from maid_runner.core import ts_module_paths
+    from maid_runner.core.result import BatchValidationResult
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    (tmp_path / "manifests").mkdir()
+    (tmp_path / "src").mkdir()
+    compiler_calls = []
+
+    def compiler_resolver(module, name, root):
+        compiler_calls.append((module, name, root))
+        return ("src/button", "Button")
+
+    def validating_stage(self, manifest_dir, *, mode, **kwargs):
+        if mode in (ValidationMode.BEHAVIORAL, ValidationMode.IMPLEMENTATION):
+            assert ts_module_paths.resolve_ts_reexport(
+                "src/components", "Button", tmp_path
+            ) == (
+                "src/button",
+                "Button",
+            )
+        return BatchValidationResult(
+            results=[],
+            total_manifests=0,
+            passed=0,
+            failed=0,
+            skipped=0,
+            duration_ms=0,
+        )
+
+    ts_module_paths.clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+    monkeypatch.setattr(ValidationEngine, "validate_all", validating_stage)
+
+    result = _run_verify(
+        manifest_dir="manifests",
+        project_root=tmp_path,
+        allow_empty=True,
+        check_assertions=True,
+        check_stubs=True,
+        fail_on_warnings=True,
+        require_worktree_scope=False,
+        require_changed_scope=False,
+    )
+
+    assert all(stage.success for stage in result.stages)
+    assert [(module, name) for module, name, _ in compiler_calls] == [
+        ("src/components", "Button")
+    ]
+
+
+def test_verify_json_output_matches_without_shared_cache_except_durations(
+    tmp_path,
+    monkeypatch,
+):
+    from maid_runner.cli.commands._format import format_verify_result
+    from maid_runner.cli.commands.verify import _run_verify
+    from maid_runner.core.validate import ValidationEngine
+
+    os.chdir(tmp_path)
+    _write_verify_project(tmp_path, slug="verify-cache-equivalence")
+
+    shared = _run_verify(
+        manifest_dir="manifests",
+        project_root=tmp_path,
+        check_assertions=True,
+        check_stubs=True,
+        fail_on_warnings=True,
+        require_worktree_scope=False,
+        require_changed_scope=False,
+    )
+    monkeypatch.setattr(
+        ValidationEngine,
+        "validation_cache_scope",
+        lambda self: nullcontext(),
+    )
+    legacy = _run_verify(
+        manifest_dir="manifests",
+        project_root=tmp_path,
+        check_assertions=True,
+        check_stubs=True,
+        fail_on_warnings=True,
+        require_worktree_scope=False,
+        require_changed_scope=False,
+    )
+
+    shared_payload = json.loads(format_verify_result(shared, json_mode=True))
+    legacy_payload = json.loads(format_verify_result(legacy, json_mode=True))
+    assert _without_durations(shared_payload) == _without_durations(legacy_payload)
+
+
+def test_verify_cache_scope_clears_after_command(tmp_path, monkeypatch):
+    from maid_runner.cli.commands.verify import _run_verify
+    from maid_runner.core import ts_module_paths
+    from maid_runner.core.result import BatchValidationResult
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    (tmp_path / "manifests").mkdir()
+    (tmp_path / "src").mkdir()
+    state = {"target": ("src/old-button", "Button")}
+    compiler_calls = []
+
+    def compiler_resolver(module, name, root):
+        compiler_calls.append((module, name, state["target"]))
+        return state["target"]
+
+    def validating_stage(self, manifest_dir, *, mode, **kwargs):
+        if mode == ValidationMode.BEHAVIORAL:
+            assert ts_module_paths.resolve_ts_reexport(
+                "src/components", "Button", tmp_path
+            ) == (
+                "src/old-button",
+                "Button",
+            )
+        return BatchValidationResult(
+            results=[],
+            total_manifests=0,
+            passed=0,
+            failed=0,
+            skipped=0,
+            duration_ms=0,
+        )
+
+    ts_module_paths.clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+    monkeypatch.setattr(ValidationEngine, "validate_all", validating_stage)
+
+    result = _run_verify(
+        manifest_dir="manifests",
+        project_root=tmp_path,
+        allow_empty=True,
+        check_assertions=True,
+        check_stubs=True,
+        fail_on_warnings=True,
+        require_worktree_scope=False,
+        require_changed_scope=False,
+    )
+    state["target"] = ("src/new-button", "Button")
+
+    assert all(stage.success for stage in result.stages)
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/new-button",
+        "Button",
+    )
+    assert [target for _, _, target in compiler_calls] == [
+        ("src/old-button", "Button"),
+        ("src/new-button", "Button"),
+    ]
 
 
 def test_verify_json_reports_all_stage_statuses(tmp_path, capsys):

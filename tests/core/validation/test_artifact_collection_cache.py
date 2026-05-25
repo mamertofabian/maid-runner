@@ -511,6 +511,124 @@ validate:
     )
 
 
+def test_validation_cache_scope_keeps_nested_validate_all_caches_until_outer_exit(
+    monkeypatch,
+    tmp_path,
+):
+    import importlib
+
+    validate_module = importlib.import_module("maid_runner.core.validate")
+
+    _write(tmp_path / "src" / "example.py", "def example():\n    return 1\n")
+    _write(
+        tmp_path / "tests" / "test_example.py",
+        "from src.example import example\n\n"
+        "def test_example():\n"
+        "    assert example() == 1\n",
+    )
+    _write(
+        tmp_path / "manifests" / "example.manifest.yaml",
+        """schema: "2"
+goal: "Validate example"
+type: feature
+files:
+  edit:
+    - path: src/example.py
+      artifacts:
+        - kind: function
+          name: example
+  read:
+    - tests/test_example.py
+validate:
+  - pytest tests/test_example.py
+""",
+    )
+    clear_calls = []
+
+    def clear_artifacts():
+        clear_calls.append("artifacts")
+
+    def clear_ts():
+        clear_calls.append("ts")
+
+    monkeypatch.setattr(
+        validate_module,
+        "clear_artifact_collection_cache",
+        clear_artifacts,
+    )
+    monkeypatch.setattr(validate_module, "clear_ts_resolution_cache", clear_ts)
+
+    engine = ValidationEngine(project_root=tmp_path)
+    with engine.validation_cache_scope():
+        assert clear_calls == ["artifacts", "ts"]
+
+        first = engine.validate_all("manifests", mode=ValidationMode.SCHEMA)
+        second = engine.validate_all("manifests", mode=ValidationMode.SCHEMA)
+
+        assert first.success is True
+        assert second.success is True
+        assert clear_calls == ["artifacts", "ts"]
+
+    assert clear_calls == ["artifacts", "ts", "artifacts", "ts"]
+
+
+def test_validation_cache_scope_clears_on_outer_exit(monkeypatch, tmp_path):
+    _write(tmp_path / "src" / "example.ts", "export function example() {}\n")
+    _write(
+        tmp_path / "manifests" / "schema-only.manifest.yaml",
+        """schema: "2"
+goal: "Schema validation keeps command cache alive"
+type: snapshot
+files:
+  snapshot:
+    - path: src/example.ts
+      artifacts:
+        - kind: function
+          name: example
+validate:
+  - pytest tests/example.test.ts
+""",
+    )
+    state = {"target": ("src/old-button", "Button")}
+
+    def compiler_resolver(module, name, root):
+        return state["target"]
+
+    ts_module_paths.clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+    engine = ValidationEngine(project_root=tmp_path)
+
+    with engine.validation_cache_scope():
+        assert ts_module_paths.resolve_ts_reexport(
+            "src/components", "Button", tmp_path
+        ) == (
+            "src/old-button",
+            "Button",
+        )
+        state["target"] = ("src/new-button", "Button")
+
+        result = engine.validate_all("manifests", mode=ValidationMode.SCHEMA)
+
+        assert result.success is True
+        assert ts_module_paths.resolve_ts_reexport(
+            "src/components", "Button", tmp_path
+        ) == (
+            "src/old-button",
+            "Button",
+        )
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == (
+        "src/new-button",
+        "Button",
+    )
+
+
 def test_validate_all_behavioral_results_match_uncached_test_artifact_tables(
     monkeypatch,
     tmp_path,

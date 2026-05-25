@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import AbstractContextManager, contextmanager
 import time
 from pathlib import Path
 from typing import Optional, Union
@@ -270,6 +272,17 @@ class ValidationEngine:
         finally:
             self._exit_validation_cache_scope(outermost)
             _exit_manifest_chain_cache_scope(chain_outermost)
+
+    def validation_cache_scope(self) -> AbstractContextManager[None]:
+        @contextmanager
+        def _scope() -> Iterator[None]:
+            outermost = self._enter_validation_cache_scope()
+            try:
+                yield
+            finally:
+                self._exit_validation_cache_scope(outermost)
+
+        return _scope()
 
     def _enter_validation_cache_scope(self) -> bool:
         outermost = self._validation_cache_depth == 0

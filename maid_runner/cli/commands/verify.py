@@ -137,88 +137,89 @@ def _run_verify_cached(
     engine = ValidationEngine(project_root=root)
     stages: list[VerificationStageResult] = []
 
-    stages.append(
-        _validation_stage(
-            "schema",
-            engine,
-            manifest_dir,
-            ValidationMode.SCHEMA,
-            project_root=root,
-            allow_empty=allow_empty,
-            fail_on_warnings=fail_on_warnings,
+    with engine.validation_cache_scope():
+        stages.append(
+            _validation_stage(
+                "schema",
+                engine,
+                manifest_dir,
+                ValidationMode.SCHEMA,
+                project_root=root,
+                allow_empty=allow_empty,
+                fail_on_warnings=fail_on_warnings,
+            )
         )
-    )
-    if not _should_continue(stages[-1], fail_fast):
-        return _verification_result(stages, started)
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
 
-    stages.append(
-        _validation_stage(
-            "behavioral",
-            engine,
-            manifest_dir,
-            ValidationMode.BEHAVIORAL,
-            project_root=root,
-            allow_empty=allow_empty,
-            check_assertions=check_assertions,
-            fail_on_warnings=fail_on_warnings,
+        stages.append(
+            _validation_stage(
+                "behavioral",
+                engine,
+                manifest_dir,
+                ValidationMode.BEHAVIORAL,
+                project_root=root,
+                allow_empty=allow_empty,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
+            )
         )
-    )
-    if not _should_continue(stages[-1], fail_fast):
-        return _verification_result(stages, started)
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
 
-    stages.append(
-        _validation_stage(
-            "implementation",
-            engine,
-            manifest_dir,
-            ValidationMode.IMPLEMENTATION,
-            project_root=root,
-            allow_empty=allow_empty,
-            check_stubs=check_stubs,
-            fail_on_warnings=fail_on_warnings,
+        stages.append(
+            _validation_stage(
+                "implementation",
+                engine,
+                manifest_dir,
+                ValidationMode.IMPLEMENTATION,
+                project_root=root,
+                allow_empty=allow_empty,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
+            )
         )
-    )
-    if not _should_continue(stages[-1], fail_fast):
-        return _verification_result(stages, started)
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
 
-    if _allow_empty_without_active_manifests(root, manifest_dir, allow_empty):
-        skip_message = "Skipped because --allow-empty found no active manifests"
-        stages.append(_skipped_stage("coherence", skip_message))
-        stages.append(_skipped_stage("file_tracking", skip_message))
-        if require_worktree_scope:
+        if _allow_empty_without_active_manifests(root, manifest_dir, allow_empty):
+            skip_message = "Skipped because --allow-empty found no active manifests"
+            stages.append(_skipped_stage("coherence", skip_message))
+            stages.append(_skipped_stage("file_tracking", skip_message))
+            if require_worktree_scope:
+                stages.append(_worktree_scope_stage(root, manifest_dir, include_tests))
+                if not _should_continue(stages[-1], fail_fast):
+                    return _verification_result(stages, started)
+            elif _git_metadata_available(root):
+                stages.append(_skipped_stage("worktree_scope", skip_message))
+            if require_changed_scope:
+                stages.append(_skipped_stage("changed_scope", skip_message))
+            stages.append(_skipped_stage("tests", skip_message))
+            return _verification_result(stages, started)
+
+        stages.append(_coherence_stage(root, manifest_dir))
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
+
+        stages.append(_file_tracking_stage(root, manifest_dir, engine))
+        if not _should_continue(stages[-1], fail_fast):
+            return _verification_result(stages, started)
+
+        if require_worktree_scope or _git_metadata_available(root):
             stages.append(_worktree_scope_stage(root, manifest_dir, include_tests))
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
-        elif _git_metadata_available(root):
-            stages.append(_skipped_stage("worktree_scope", skip_message))
+
         if require_changed_scope:
-            stages.append(_skipped_stage("changed_scope", skip_message))
-        stages.append(_skipped_stage("tests", skip_message))
+            stages.append(
+                _changed_scope_stage(root, manifest_dir, since, base_ref, include_tests)
+            )
+            if not _should_continue(stages[-1], fail_fast):
+                return _verification_result(stages, started)
+
+        stages.append(_tests_stage(root, manifest_dir, fail_fast))
+
         return _verification_result(stages, started)
-
-    stages.append(_coherence_stage(root, manifest_dir))
-    if not _should_continue(stages[-1], fail_fast):
-        return _verification_result(stages, started)
-
-    stages.append(_file_tracking_stage(root, manifest_dir, engine))
-    if not _should_continue(stages[-1], fail_fast):
-        return _verification_result(stages, started)
-
-    if require_worktree_scope or _git_metadata_available(root):
-        stages.append(_worktree_scope_stage(root, manifest_dir, include_tests))
-        if not _should_continue(stages[-1], fail_fast):
-            return _verification_result(stages, started)
-
-    if require_changed_scope:
-        stages.append(
-            _changed_scope_stage(root, manifest_dir, since, base_ref, include_tests)
-        )
-        if not _should_continue(stages[-1], fail_fast):
-            return _verification_result(stages, started)
-
-    stages.append(_tests_stage(root, manifest_dir, fail_fast))
-
-    return _verification_result(stages, started)
 
 
 def _validation_stage(
