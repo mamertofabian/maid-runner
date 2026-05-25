@@ -4,7 +4,6 @@ goal: "Cache test assertion checks and broad test-target discovery within one va
 type: refactor
 created: "2026-05-25"
 metadata:
-  status: planning
   tags:
     - performance
     - assertions
@@ -109,6 +108,33 @@ files:
                 export: find_test_files
           expected:
             behavior: "The discovery cache misses after the directory signature changes and the new test path appears."
+        - kind: test_function
+          name: test_find_test_files_invalidates_when_nested_directory_signature_changes
+          source_scenario: "A broad test directory gains a new nested test file after discovery was cached."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "The discovery cache misses after the nested directory signature changes and the new nested test path appears."
+        - kind: test_function
+          name: test_find_test_files_signature_does_not_recurse_symlinked_directory
+          source_scenario: "A broad test directory contains a symlinked directory pointing outside the test tree."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "The discovery signature does not recurse into the symlinked directory or include external tests."
+        - kind: test_function
+          name: test_find_test_files_falls_back_when_directory_signature_cannot_read
+          source_scenario: "A nested test directory cannot be read while the discovery signature is being built."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "Discovery still returns the same test files as the uncached directory walk instead of failing during signature collection."
         - kind: test_function
           name: test_clear_test_discovery_cache_forces_directory_walk
           source_scenario: "A broad test directory expansion is cached and then the discovery cache is explicitly cleared."
@@ -233,5 +259,5 @@ files:
           expected:
             behavior: "Assertion and test-discovery caches are cleared with existing artifact and Python AST caches."
 validate:
-  - uv run python -m pytest -q tests/core/validation/test_assertion_cache.py
-  - uv run maid validate manifests/drafts/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/validation/test_assertion_cache.py tests/core/validation/test_artifact_collection_cache.py
+  - uv run maid validate manifests/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml --mode schema --quiet

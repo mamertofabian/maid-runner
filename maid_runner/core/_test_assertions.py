@@ -3,10 +3,31 @@
 from __future__ import annotations
 
 import ast
+from dataclasses import dataclass
 import re
 from pathlib import Path
+from typing import Union
 
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+
+_TestAssertionCacheKey = tuple[str, int, int, str]
+_TestAssertionFileSignature = tuple[int, int]
+
+
+@dataclass(frozen=True)
+class TestAssertionTable:
+    """Assertion-check results for one test file."""
+
+    errors: tuple[ValidationError, ...] = ()
+
+
+@dataclass(frozen=True)
+class _TestAssertionCacheEntry:
+    table: TestAssertionTable
+    request_path: str
+
+
+_TEST_ASSERTION_CACHE: dict[_TestAssertionCacheKey, _TestAssertionCacheEntry] = {}
 
 
 def validate_test_assertions(
@@ -15,22 +36,45 @@ def validate_test_assertions(
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     for tf_path in test_files:
-        full_path = project_root / tf_path
-        if not full_path.exists():
-            continue
-        try:
-            source = full_path.read_text()
-        except OSError as exc:
-            errors.append(
-                ValidationError(
-                    code=ErrorCode.FILE_READ_ERROR,
-                    message=f"Failed to read test file '{tf_path}': {exc}",
-                    location=Location(file=tf_path),
-                )
-            )
-            continue
-        errors.extend(check_test_assertions(source, tf_path))
+        table = get_cached_test_assertions(tf_path, project_root)
+        errors.extend(table.errors)
     return errors
+
+
+def get_cached_test_assertions(
+    test_file: Union[str, Path],
+    project_root: Path,
+) -> TestAssertionTable:
+    test_path = _normalize_test_file_path(test_file)
+    full_path = _resolve_test_file(test_file, project_root)
+    if not full_path.exists():
+        return TestAssertionTable()
+
+    try:
+        signature = _test_assertion_file_signature(full_path)
+    except OSError as exc:
+        return _test_file_read_error_table(test_path, exc)
+
+    key = _test_assertion_cache_key(full_path, signature, test_path)
+    cached = _TEST_ASSERTION_CACHE.get(key)
+    if cached is not None:
+        return _test_assertion_table_for_request(cached, test_path)
+
+    try:
+        source = full_path.read_text()
+    except OSError as exc:
+        table = _test_file_read_error_table(test_path, exc)
+    else:
+        table = TestAssertionTable(
+            errors=tuple(check_test_assertions(source, test_path))
+        )
+
+    _TEST_ASSERTION_CACHE[key] = _TestAssertionCacheEntry(table, test_path)
+    return table
+
+
+def clear_test_assertion_cache() -> None:
+    _TEST_ASSERTION_CACHE.clear()
 
 
 def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
@@ -117,3 +161,90 @@ def python_func_is_pytest_fixture(node) -> bool:
         return False
 
     return any(is_fixture_decorator(decorator) for decorator in node.decorator_list)
+
+
+def _normalize_test_file_path(test_file: Union[str, Path]) -> str:
+    return str(test_file).replace("\\", "/")
+
+
+def _resolve_test_file(test_file: Union[str, Path], project_root: Path) -> Path:
+    return (project_root / Path(test_file)).resolve()
+
+
+def _test_assertion_file_signature(path: Path) -> _TestAssertionFileSignature:
+    stat = path.stat()
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _test_assertion_cache_key(
+    path: Path,
+    signature: _TestAssertionFileSignature,
+    test_path: str,
+) -> _TestAssertionCacheKey:
+    mtime_ns, size = signature
+    return (
+        str(path),
+        mtime_ns,
+        size,
+        _assertion_checker_identity(test_path),
+    )
+
+
+def _assertion_checker_identity(test_path: str) -> str:
+    suffix = Path(test_path).suffix.lower()
+    return f"{suffix}:{check_test_assertions.__module__}.{check_test_assertions.__qualname__}"
+
+
+def _test_assertion_table_for_request(
+    entry: _TestAssertionCacheEntry,
+    test_path: str,
+) -> TestAssertionTable:
+    if entry.request_path == test_path:
+        return entry.table
+    return TestAssertionTable(
+        errors=tuple(
+            _rewrite_assertion_error_path(error, entry.request_path, test_path)
+            for error in entry.table.errors
+        )
+    )
+
+
+def _rewrite_assertion_error_path(
+    error: ValidationError,
+    cached_path: str,
+    requested_path: str,
+) -> ValidationError:
+    location = error.location
+    if location is None:
+        new_location = None
+    else:
+        new_location = Location(
+            file=requested_path,
+            line=location.line,
+            column=location.column,
+            end_line=location.end_line,
+            end_column=location.end_column,
+        )
+
+    return ValidationError(
+        code=error.code,
+        message=error.message.replace(cached_path, requested_path),
+        severity=error.severity,
+        location=new_location,
+        suggestion=error.suggestion,
+    )
+
+
+def _test_file_read_error_table(
+    test_path: str,
+    exc: OSError,
+) -> TestAssertionTable:
+    return TestAssertionTable(
+        errors=(
+            ValidationError(
+                code=ErrorCode.FILE_READ_ERROR,
+                message=f"Failed to read test file '{test_path}': {exc}",
+                location=Location(file=test_path),
+            ),
+        )
+    )

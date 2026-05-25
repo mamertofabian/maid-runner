@@ -122,6 +122,9 @@ _LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
 
 _TestArtifactCacheKey = tuple[str, str, str]
 _TestArtifactFileSignature = tuple[int, int]
+_TestDiscoveryDirectoryEntrySignature = tuple[str, bool, bool]
+_TestDiscoveryDirectorySignature = tuple[_TestDiscoveryDirectoryEntrySignature, ...]
+_TestDiscoveryCacheKey = tuple[str, str, _TestDiscoveryDirectorySignature]
 
 
 @dataclass(frozen=True)
@@ -140,6 +143,7 @@ class _TestArtifactCacheEntry:
 
 
 _TEST_ARTIFACT_CACHE: dict[_TestArtifactCacheKey, _TestArtifactCacheEntry] = {}
+_TEST_DISCOVERY_CACHE: dict[_TestDiscoveryCacheKey, tuple[str, ...]] = {}
 
 
 def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
@@ -150,17 +154,8 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
             test_files.append(path)
 
     def add_test_path(path: str) -> None:
-        add_test_file(path)
-
-        full_path = project_root / path
-        if not full_path.is_dir():
-            return
-
-        for child in sorted(full_path.rglob("*")):
-            if not child.is_file():
-                continue
-            rel_path = str(child.relative_to(project_root))
-            add_test_file(rel_path)
+        for test_path in _get_cached_test_discovery(path, project_root):
+            add_test_file(test_path)
 
     for path in manifest.files_read:
         add_test_path(path)
@@ -173,6 +168,43 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
             add_test_path(path)
 
     return test_files
+
+
+def _get_cached_test_discovery(path: str, project_root: Path) -> tuple[str, ...]:
+    if is_test_file(path):
+        return (path,)
+
+    full_path = project_root / path
+    if not full_path.is_dir():
+        return ()
+
+    try:
+        signature = _test_discovery_directory_signature(full_path)
+    except OSError:
+        return _discover_test_files(full_path, project_root)
+    key = _test_discovery_cache_key(project_root, path, signature)
+    cached = _TEST_DISCOVERY_CACHE.get(key)
+    if cached is not None:
+        return cached
+
+    result = _discover_test_files(full_path, project_root)
+    _TEST_DISCOVERY_CACHE[key] = result
+    return result
+
+
+def _discover_test_files(full_path: Path, project_root: Path) -> tuple[str, ...]:
+    discovered: list[str] = []
+    for child in sorted(full_path.rglob("*")):
+        if not child.is_file():
+            continue
+        rel_path = str(child.relative_to(project_root))
+        if is_test_file(rel_path):
+            discovered.append(rel_path)
+    return tuple(discovered)
+
+
+def clear_test_discovery_cache() -> None:
+    _TEST_DISCOVERY_CACHE.clear()
 
 
 def _test_paths_from_validate_command(
@@ -486,6 +518,37 @@ def get_cached_test_artifacts(
 
 def clear_test_artifact_cache() -> None:
     _TEST_ARTIFACT_CACHE.clear()
+
+
+def _test_discovery_directory_signature(
+    path: Path,
+) -> _TestDiscoveryDirectorySignature:
+    entries: list[_TestDiscoveryDirectoryEntrySignature] = []
+
+    def add_directory_entries(directory: Path) -> None:
+        for child in directory.iterdir():
+            is_symlink = child.is_symlink()
+            is_dir = False if is_symlink else child.is_dir()
+            is_file = child.is_file()
+            rel_path = str(child.relative_to(path)).replace("\\", "/")
+            entries.append((rel_path, is_dir, is_file))
+            if is_dir:
+                add_directory_entries(child)
+
+    add_directory_entries(path)
+    return tuple(sorted(entries))
+
+
+def _test_discovery_cache_key(
+    project_root: Path,
+    path: str,
+    signature: _TestDiscoveryDirectorySignature,
+) -> _TestDiscoveryCacheKey:
+    return (
+        str(project_root.resolve()),
+        _normalize_relative_path(Path(path)),
+        signature,
+    )
 
 
 def _normalize_test_file_path(test_file: Union[str, Path]) -> str:
