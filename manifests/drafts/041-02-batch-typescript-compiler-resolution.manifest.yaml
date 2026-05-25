@@ -1,0 +1,362 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Batch TypeScript compiler-backed import and re-export resolution inside validation runs"
+type: refactor
+created: "2026-05-25"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - typescript
+    - svelte
+    - compiler
+    - caching
+  priority: high
+description: |
+  Tower Recall profiling showed 40.538s cumulative in
+  `ts_compiler_resolver._run_compiler_request` during one behavioral validation
+  run, driven by 101 Node subprocess requests. The existing result caches help
+  after each unique request, but the remaining unique requests still pay one
+  Node startup per import or re-export fallback.
+
+  Add a validation-run TypeScript resolver context that can batch or session
+  compiler requests through one Node bridge process where possible. Keep the
+  current local resolver and cache behavior as the semantic baseline. If the
+  batched/session bridge is unavailable or returns malformed data, validation
+  must expose the same result as the current fail-closed path. The Node bridge
+  is in scope because the current `ts_compiler_resolver.cjs` reads one JSON
+  payload from stdin and exits.
+temptations:
+  - risk: "Do not treat compiler bridge failures as successful resolution."
+    instead: "Fall back to the same None/pass-through behavior the current request path returns."
+  - risk: "Do not keep a Node worker alive beyond one validation or verify invocation."
+    instead: "Scope the resolver session to the existing validation cache lifetime and close it in the cache clear path."
+  - risk: "Do not batch requests in a way that changes deterministic JSON output or error ordering."
+    instead: "Preserve request order when applying batched results and keep structured validation output equivalent apart from duration."
+  - risk: "Do not assume a TypeScript project has node_modules or a working compiler."
+    instead: "Test missing-node, timeout, and malformed-response paths against the current fail-closed semantics."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/_ts_export_scanner.py
+    - maid_runner/core/_tsconfig_paths.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/svelte.py
+    - tests/core/test_ts_compiler_resolver.py
+    - tests/core/test_ts_module_paths.py
+    - tests/validators/test_typescript_identity.py
+  create:
+    - path: tests/core/test_ts_compiler_resolver_session.py
+      artifacts:
+        - kind: test_function
+          name: test_compiler_resolver_session_batches_import_requests_without_changing_results
+          source_scenario: "Several unresolved imports are resolved through the compiler bridge in one validation run."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The fake bridge receives one batched/session interaction and returns the same per-request results as individual calls."
+        - kind: test_function
+          name: test_compiler_resolver_session_batches_reexport_requests_without_changing_results
+          source_scenario: "Identity matching asks for multiple re-export resolutions from the same project."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_reexport_with_compiler
+          expected:
+            behavior: "The fake bridge is not started once per request and each resolved tuple is applied to the original request."
+        - kind: test_function
+          name: test_compiler_resolver_session_falls_back_on_timeout_or_malformed_response
+          source_scenario: "The Node bridge times out or returns invalid JSON."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_import_with_compiler
+          expected:
+            behavior: "The resolver returns None or pass-through-equivalent results matching the current fail-closed path."
+        - kind: test_function
+          name: test_clear_ts_resolution_cache_closes_compiler_session
+          source_scenario: "A validation run finishes after opening a compiler resolver session."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_ts_resolution_cache
+          expected:
+            behavior: "The session close hook runs and later validation opens a fresh session."
+        - kind: test_function
+          name: test_compiler_resolver_bridge_main_dispatches_single_and_many_requests
+          source_scenario: "The CJS bridge receives legacy single requests and a new batched request payload."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "Single-request output remains unchanged and batched output returns an ordered result array."
+        - kind: test_function
+          name: test_compiler_resolver_bridge_resolve_many_preserves_request_order
+          source_scenario: "A batch contains import and re-export fallback requests in a mixed order."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveMany
+          expected:
+            behavior: "Each response slot corresponds to the same input request index."
+        - kind: test_function
+          name: test_compiler_resolver_bridge_preserves_single_import_and_reexport_results
+          source_scenario: "The bridge handles direct import and re-export requests after batch support is added."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveImport
+            - type: api_call
+              subject:
+                export: resolveReexport
+          expected:
+            behavior: "Direct bridge results match the pre-batch resolver behavior for import and re-export requests."
+  edit:
+    - path: maid_runner/core/ts_compiler_resolver.py
+      artifacts:
+        - kind: class
+          name: TypeScriptCompilerResolverSession
+          source_scenario: "A validation run has many compiler-backed import and re-export resolution requests."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The session sends compatible requests through a single bridge lifecycle and returns the same results as individual requests."
+        - kind: attribute
+          name: project_root
+          of: TypeScriptCompilerResolverSession
+          type: Path
+          source_scenario: "A resolver session is created for a TypeScript project."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The session retains the project root used to key compiler requests."
+        - kind: method
+          name: resolve_import
+          of: TypeScriptCompilerResolverSession
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+          returns: "Optional[str]"
+          source_scenario: "A session resolves an import request that needs compiler fallback."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The method returns the same value as the individual compiler import resolver."
+        - kind: method
+          name: resolve_reexport
+          of: TypeScriptCompilerResolverSession
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+          returns: "Optional[tuple[str, str]]"
+          source_scenario: "A session resolves a re-export request that needs compiler fallback."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The method returns the same tuple as the individual compiler re-export resolver."
+        - kind: method
+          name: close
+          of: TypeScriptCompilerResolverSession
+          args: []
+          returns: None
+          source_scenario: "A validation run finishes after opening a resolver session."
+          actions:
+            - type: api_call
+              subject:
+                export: TypeScriptCompilerResolverSession
+          expected:
+            behavior: "The method releases any bridge process or session resources and is safe to call more than once."
+        - kind: function
+          name: resolve_import_with_compiler
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: "Optional[str]"
+          source_scenario: "A TypeScript import cannot be resolved by local path or tsconfig rules."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_import_with_compiler
+          expected:
+            behavior: "The resolver returns the same module identity as the existing compiler bridge while avoiding repeated Node startup in a session."
+        - kind: function
+          name: resolve_reexport_with_compiler
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: "Optional[tuple[str, str]]"
+          source_scenario: "Identity matching asks whether a symbol is re-exported through a TypeScript barrel."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_reexport_with_compiler
+          expected:
+            behavior: "The resolver returns the same re-export tuple as the existing compiler bridge and caches negative results safely."
+        - kind: function
+          name: clear_ts_compiler_resolver_session
+          args: []
+          returns: None
+          source_scenario: "A validation run ends after compiler resolver requests were batched."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_ts_compiler_resolver_session
+          expected:
+            behavior: "The session is closed and no request state survives into the next validation invocation."
+    - path: maid_runner/core/ts_compiler_resolver.cjs
+      artifacts:
+        - kind: function
+          name: main
+          args: []
+          returns: "string | object | Array<object | string | null> | null"
+          source_scenario: "The compiler bridge receives either one resolver request or a batch/session resolver request."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "The bridge preserves existing single-request behavior and dispatches batch requests without changing per-request results."
+        - kind: function
+          name: resolveMany
+          args:
+            - name: ts
+              type: object
+            - name: projectRoot
+              type: string
+            - name: request
+              type: object
+          returns: "Array<object | string | null>"
+          source_scenario: "Python sends several import and re-export compiler fallback requests in one bridge payload."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveMany
+          expected:
+            behavior: "The bridge processes requests in order and returns each result in the corresponding response slot."
+        - kind: function
+          name: resolveImport
+          args:
+            - name: ts
+              type: object
+            - name: projectRoot
+              type: string
+            - name: request
+              type: object
+          returns: "string | null"
+          source_scenario: "A single import request is handled directly or as one entry in a batch."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveImport
+          expected:
+            behavior: "Existing import resolution behavior is preserved for both direct and batched dispatch."
+        - kind: function
+          name: resolveReexport
+          args:
+            - name: ts
+              type: object
+            - name: projectRoot
+              type: string
+            - name: request
+              type: object
+          returns: "object | null"
+          source_scenario: "A single re-export request is handled directly or as one entry in a batch."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveReexport
+          expected:
+            behavior: "Existing re-export resolution behavior is preserved for both direct and batched dispatch."
+    - path: maid_runner/core/ts_module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_ts_import
+          args:
+            - name: specifier
+              type: str
+            - name: importer_module
+              type: str
+            - name: project_root
+              type: Path
+          returns: str
+          source_scenario: "Behavioral TS collection resolves many import specifiers in one project."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_import
+          expected:
+            behavior: "The function uses the resolver context without changing pass-through behavior for external or unresolved imports."
+        - kind: function
+          name: resolve_ts_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: "Optional[tuple[str, str]]"
+          source_scenario: "Artifact reference matching repeatedly asks about the same module/name pairs."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "The function reuses project and module signatures inside one resolver context and returns the same cached results."
+        - kind: function
+          name: clear_ts_resolution_cache
+          args: []
+          returns: None
+          source_scenario: "ValidationEngine clears TypeScript resolution state between invocations."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_ts_resolution_cache
+          expected:
+            behavior: "Import, re-export, signature, and compiler-session caches are cleared together."
+    - path: tests/core/test_ts_module_paths.py
+      artifacts:
+        - kind: test_function
+          name: test_ts_resolution_context_reuses_project_and_module_signatures
+          source_scenario: "Many import and re-export lookups touch the same tsconfig and module entry files."
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_ts_reexport
+          expected:
+            behavior: "Stat calls for project config and module entry signatures are deduplicated inside one validation run."
+        - kind: test_function
+          name: test_validate_all_typescript_results_match_with_resolver_session
+          source_scenario: "A tmp TypeScript project validates with the resolver session enabled and disabled."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "BatchValidationResult payloads match apart from duration fields while compiler bridge calls decrease."
+validate:
+  - uv run python -m pytest -q tests/core/test_ts_compiler_resolver_session.py tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
+  - uv run maid validate manifests/drafts/041-02-batch-typescript-compiler-resolution.manifest.yaml --mode schema --quiet

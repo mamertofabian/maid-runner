@@ -1,0 +1,237 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Cache test assertion checks and broad test-target discovery within one validation run"
+type: refactor
+created: "2026-05-25"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - assertions
+    - behavioral-validation
+    - python
+    - caching
+  priority: high
+description: |
+  Life Dashboard showed a confirmed strict behavioral validation hot path:
+  93.856s with assertion checks versus 11.718s without them. The profile
+  showed `validate_test_assertions` repeatedly reading and parsing the same
+  Python test files because many manifests target `pytest tests/ -v`.
+
+  Add invocation-scoped assertion-check and test-discovery caches so each
+  unchanged test file and broad test directory is processed once per validation
+  run. Preserve warning ordering and per-request locations. Cache keys must
+  include the resolved path, file mtime/size, language/checker identity, and the
+  normalized command or directory signature that changes discovery results.
+  Preserve current assertion-check semantics: unreadable files still report
+  `FILE_READ_ERROR`, and Python syntax errors remain tolerated by returning no
+  assertion warnings.
+temptations:
+  - risk: "Do not skip assertion checks for files that were discovered through broad test-directory commands."
+    instead: "Cache the result of checking each discovered file and reuse the same warnings for later manifests."
+  - risk: "Do not cache by path alone."
+    instead: "Key assertion results by resolved path, mtime, size, and checker identity; key discovery by normalized command plus directory signature."
+  - risk: "Do not reorder warnings differently between cached and uncached runs."
+    instead: "Return cached warnings in the same order produced by the uncached file scan."
+  - risk: "Do not turn this performance refactor into stricter assertion semantics."
+    instead: "Preserve existing behavior exactly: cache read failures as `FILE_READ_ERROR`, and cache the current empty result for Python syntax errors."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/_behavioral_validation.py
+    - maid_runner/core/_artifact_collection_cache.py
+    - maid_runner/core/_test_command_targets.py
+    - tests/core/test_validate.py
+    - tests/core/validation/test_artifact_collection_cache.py
+  create:
+    - path: tests/core/validation/test_assertion_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_test_assertions_reuses_unchanged_python_test_file
+          source_scenario: "Two manifests discover the same Python test file."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "The test file is parsed once and both callers receive equivalent warnings."
+        - kind: test_function
+          name: test_validate_test_assertions_invalidates_when_file_signature_changes
+          source_scenario: "A cached test file changes content during the same Python process."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_assertions
+          expected:
+            behavior: "The changed signature causes a recompute and new warnings are returned."
+        - kind: test_function
+          name: test_find_test_files_reuses_broad_directory_expansion
+          source_scenario: "Several manifests run `pytest tests/ -v` against the same project root."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "The directory tree is walked once while every manifest receives the same ordered test-file list."
+        - kind: test_function
+          name: test_validate_all_with_assertion_cache_matches_uncached_result
+          source_scenario: "A tmp project has broad test commands across many active manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Cached and uncached BatchValidationResult payloads match apart from duration fields."
+        - kind: test_function
+          name: test_validate_test_assertions_preserves_python_syntax_error_tolerance
+          source_scenario: "A Python test file has a syntax error while assertion checks are enabled."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "The cached path returns the same empty assertion-warning result as the current uncached checker."
+        - kind: test_function
+          name: test_clear_test_assertion_cache_forces_recheck
+          source_scenario: "An assertion result is cached and then the assertion cache is explicitly cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_assertion_cache
+          expected:
+            behavior: "The next assertion request recomputes the file instead of using the old table."
+        - kind: test_function
+          name: test_find_test_files_invalidates_when_directory_signature_changes
+          source_scenario: "A broad test directory gains a new test file after discovery was cached."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "The discovery cache misses after the directory signature changes and the new test path appears."
+        - kind: test_function
+          name: test_clear_test_discovery_cache_forces_directory_walk
+          source_scenario: "A broad test directory expansion is cached and then the discovery cache is explicitly cleared."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_discovery_cache
+          expected:
+            behavior: "The next discovery request walks the directory again instead of using the old list."
+        - kind: test_function
+          name: test_clear_artifact_collection_cache_drops_assertion_and_discovery_caches
+          source_scenario: "Assertion and discovery caches are populated before the global validation cache clear runs."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "The global clear helper drops both new caches so later assertion and discovery requests recompute."
+  edit:
+    - path: maid_runner/core/_test_assertions.py
+      artifacts:
+        - kind: class
+          name: TestAssertionTable
+          source_scenario: "A validation run checks the same unchanged test file through many manifests."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "The table stores file-specific assertion warnings or read errors that can be replayed for later manifests."
+        - kind: attribute
+          name: errors
+          of: TestAssertionTable
+          type: "tuple[ValidationError, ...]"
+          source_scenario: "A cached assertion table is returned for a test file."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_assertions
+          expected:
+            behavior: "The attribute contains the exact assertion warnings or file-read errors for that test file."
+        - kind: function
+          name: validate_test_assertions
+          args:
+            - name: project_root
+              type: Path
+            - name: test_files
+              type: "list[str]"
+          returns: "list[ValidationError]"
+          source_scenario: "Several active manifests all discover the same Python test directory."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_test_assertions
+          expected:
+            behavior: "Each unchanged test file is read and assertion-checked once per validation run while each caller receives equivalent warnings."
+        - kind: function
+          name: get_cached_test_assertions
+          args:
+            - name: test_file
+              type: "str | Path"
+            - name: project_root
+              type: Path
+          returns: TestAssertionTable
+          source_scenario: "Assertion validation requests the same test file after its result was already computed."
+          actions:
+            - type: api_call
+              subject:
+                export: get_cached_test_assertions
+          expected:
+            behavior: "The helper returns the cached table when the file signature is unchanged and recomputes after mtime or size changes."
+        - kind: function
+          name: clear_test_assertion_cache
+          args: []
+          returns: None
+          source_scenario: "A validation run ends or watch mode starts a new iteration."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_assertion_cache
+          expected:
+            behavior: "All assertion-check cache entries are dropped."
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: find_test_files
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: "list[str]"
+          source_scenario: "Many manifests reference the same validate command or test directory."
+          actions:
+            - type: api_call
+              subject:
+                export: find_test_files
+          expected:
+            behavior: "Repeated command and directory expansions reuse cached discovery results while preserving returned path order."
+        - kind: function
+          name: clear_test_discovery_cache
+          args: []
+          returns: None
+          source_scenario: "A validation run ends after directory scans were cached."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_test_discovery_cache
+          expected:
+            behavior: "Cached broad test-target discovery results are removed."
+    - path: maid_runner/core/_artifact_collection_cache.py
+      artifacts:
+        - kind: function
+          name: clear_artifact_collection_cache
+          args: []
+          returns: None
+          source_scenario: "ValidationEngine clears all per-run validation caches."
+          actions:
+            - type: api_call
+              subject:
+                export: clear_artifact_collection_cache
+          expected:
+            behavior: "Assertion and test-discovery caches are cleared with existing artifact and Python AST caches."
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_assertion_cache.py
+  - uv run maid validate manifests/drafts/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml --mode schema --quiet

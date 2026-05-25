@@ -1,0 +1,67 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan the next MAID Runner performance optimization wave from measured diagnostics"
+type: refactor
+created: "2026-05-25"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - diagnostics
+    - validation
+    - typescript
+    - assertions
+  priority: high
+description: |
+  Coordinate implementation-sized drafts from the 2026-05-25 performance
+  diagnostic pass across maid-runner, adverio-tools-api, adverio-tools-app,
+  tower-recall, atomic-carpool, and life-dashboard.
+
+  Planned child order:
+
+  1. Cache assertion-check and test-discovery results inside one validation run.
+  2. Batch or session TypeScript compiler-backed module resolution.
+  3. Share validation caches across `maid verify` validation stages.
+
+  The queue targets confirmed hot paths only. Life Dashboard showed strict
+  behavioral validation dominated by repeated assertion parsing across 161
+  active manifests. Tower Recall showed TypeScript compiler-backed identity
+  resolution dominated by Node subprocess startup and request overhead. Verify
+  showed validation caches are currently cleared between schema, behavioral,
+  and implementation stages even though the command is one invocation.
+temptations:
+  - risk: "Do not make validation faster by skipping assertion, coherence, file-tracking, worktree, or validate-command integrity checks."
+    instead: "Remove redundant work while preserving the same structured success flags, errors, warnings, and JSON-visible output."
+  - risk: "Do not add broad parallelism before removing repeated parsing and compiler subprocess work."
+    instead: "Finish the cache and resolver-session drafts first, then reassess remaining serial cost with fresh timings."
+  - risk: "Do not introduce cross-invocation disk caches in this wave."
+    instead: "Keep caches scoped to one CLI/API invocation unless a later draft defines explicit content-hash invalidation."
+  - risk: "Do not special-case the benchmark repositories."
+    instead: "Use temporary project fixtures that reproduce their command shapes and manifest amplification factors."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/_behavioral_validation.py
+    - maid_runner/core/_test_assertions.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/validate.py
+    - maid_runner/cli/commands/verify.py
+  edit:
+    - path: docs/plans/maid-runner-performance-backlog.md
+      artifacts:
+        - kind: function
+          name: performance_diagnostic_backlog
+          args: []
+          returns: Markdown
+          source_scenario: "A maintainer needs the measured optimization queue and benchmark evidence before promoting implementation drafts."
+          actions:
+            - type: api_call
+              subject:
+                export: performance_diagnostic_backlog
+          expected:
+            behavior: "The document records benchmark commands, hot paths, and ordered implementation drafts without claiming code changes."
+validate:
+  - uv run maid validate manifests/drafts/041-00-maid-runner-performance-diagnostics.epic.yaml --mode schema --quiet

@@ -1,0 +1,171 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Share validation caches across `maid verify` validation stages"
+type: refactor
+created: "2026-05-25"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - verify
+    - validation
+    - caching
+  priority: medium
+description: |
+  `maid verify` runs schema, behavioral, and implementation stages through the
+  same `ValidationEngine`, but each stage calls `validate_all()` separately.
+  `validate_all()` currently enters and exits the validation cache scope for
+  each stage, clearing artifact collection and TypeScript resolution caches at
+  the end of behavioral validation before implementation validation starts.
+
+  Add an explicit command-wide validation cache scope for verify so repeated
+  source fingerprints, parsed ASTs, test artifact tables, assertion tables, and
+  TypeScript resolution results can be reused across validation stages in the
+  same CLI/API invocation. The cache must still be cleared before verify starts
+  and after verify finishes.
+temptations:
+  - risk: "Do not make cache state survive across separate `maid verify` invocations or watch iterations."
+    instead: "Expose a scoped context manager/helper and use it only around one verify run."
+  - risk: "Do not change verify stage ordering, fail-fast behavior, or JSON stage structure."
+    instead: "Wrap the existing stage sequence without reordering or merging stages."
+  - risk: "Do not hide stale TypeScript or artifact results after files change."
+    instead: "Keep content/signature keyed caches and clear the whole validation cache scope at verify exit."
+  - risk: "Do not claim speedup using duration-only assertions."
+    instead: "Add equivalence tests for structured verify output and call-count tests for deduplicated cache usage."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/_artifact_collection_cache.py
+    - maid_runner/core/ts_module_paths.py
+    - tests/cli/test_verify_cmd.py
+    - tests/core/test_validate.py
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validation_cache_scope
+          of: ValidationEngine
+          args: []
+          returns: "AbstractContextManager[None]"
+          source_scenario: "A command needs several validation stages to share per-invocation caches."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The context clears caches on outer entry, keeps them alive for nested validate calls, and clears them on outer exit."
+        - kind: method
+          name: _enter_validation_cache_scope
+          of: ValidationEngine
+          args: []
+          returns: bool
+          source_scenario: "Nested validation calls run under an existing command-wide cache scope."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Nested calls do not clear caches that belong to the outer verify invocation."
+        - kind: method
+          name: _exit_validation_cache_scope
+          of: ValidationEngine
+          args:
+            - name: outermost
+              type: bool
+          returns: None
+          source_scenario: "A nested validation stage finishes before verify is done."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Nested stage exit does not clear invocation-wide caches; outer exit still clears them."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _run_verify_cached
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: "Union[str, Path]"
+            - name: allow_empty
+              type: bool
+            - name: fail_fast
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: check_stubs
+              type: bool
+            - name: fail_on_warnings
+              type: bool
+            - name: require_worktree_scope
+              type: bool
+            - name: require_changed_scope
+              type: bool
+            - name: since
+              type: "str | None"
+            - name: base_ref
+              type: "str | None"
+            - name: include_tests
+              type: bool
+          returns: VerificationResult
+          source_scenario: "Verify runs schema, behavioral, and implementation stages for a TypeScript-heavy project."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_verify_cached
+          expected:
+            behavior: "The stage sequence and JSON output stay equivalent while caches are reused across validation stages."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_reuses_validation_cache_across_behavioral_and_implementation_stages
+          source_scenario: "A verify run validates overlapping TypeScript source and test files in both stages."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_verify
+          expected:
+            behavior: "Counting validators or resolver hooks show fewer duplicate collections/resolutions across stages."
+        - kind: test_function
+          name: test_verify_json_output_matches_without_shared_cache_except_durations
+          source_scenario: "The same tmp project runs verify with shared cache enabled and with the legacy cache behavior."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_verify
+          expected:
+            behavior: "The structured VerificationResult payloads match apart from duration fields."
+        - kind: test_function
+          name: test_verify_cache_scope_clears_after_command
+          source_scenario: "A verify run populates validation caches and then a second run observes changed files."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_verify
+          expected:
+            behavior: "The second run recomputes changed content and does not return stale cache entries."
+    - path: tests/core/test_validate.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_cache_scope_keeps_nested_validate_all_caches_until_outer_exit
+          source_scenario: "A command-wide cache scope wraps multiple validate_all calls."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Nested validation calls do not clear caches until the outer scope exits."
+        - kind: test_function
+          name: test_validation_cache_scope_clears_on_outer_exit
+          source_scenario: "A command-wide cache scope exits after populating artifact and TypeScript caches."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "The outer exit clears cached entries so a later validation observes changed inputs."
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/test_validate.py
+  - uv run maid validate manifests/drafts/041-03-share-verify-validation-cache-scope.manifest.yaml --mode schema --quiet
