@@ -146,7 +146,7 @@ files:
                 export: _run_verify
           expected:
             behavior: "The second run recomputes changed content and does not return stale cache entries."
-    - path: tests/core/test_validate.py
+    - path: tests/core/validation/test_artifact_collection_cache.py
       artifacts:
         - kind: test_function
           name: test_validation_cache_scope_keeps_nested_validate_all_caches_until_outer_exit
@@ -167,5 +167,5 @@ files:
           expected:
             behavior: "The outer exit clears cached entries so a later validation observes changed inputs."
 validate:
-  - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/test_validate.py
+  - uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/validation/test_artifact_collection_cache.py
   - uv run maid validate manifests/drafts/041-03-share-verify-validation-cache-scope.manifest.yaml --mode schema --quiet

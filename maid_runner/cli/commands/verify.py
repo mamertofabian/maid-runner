@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -20,6 +21,15 @@ from maid_runner.core.result import (
 _STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
 _WARNING_ADVISORY_TASK_TYPES = frozenset({"snapshot", "system-snapshot"})
 _ADVISORY_WARNING_CODES = frozenset({ErrorCode.VALIDATOR_NOT_AVAILABLE})
+_BASE_VALIDATOR_DEFAULT_HOOK_STUBS = frozenset(
+    {
+        "generate_test_stub",
+        "get_test_function_bodies",
+        "module_path",
+        "resolve_reexport",
+    }
+)
+_STUB_WARNING_FUNCTION_RE = re.compile(r"Function '([^']+)' appears to be a stub")
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -446,14 +456,38 @@ def _warnings_are_blocking(
     project_root: Path,
 ) -> bool:
     blocking_warnings = [
-        warning
-        for warning in warnings
-        if getattr(warning, "code", None) not in _ADVISORY_WARNING_CODES
+        warning for warning in warnings if not _warning_is_advisory(warning)
     ]
     return bool(blocking_warnings) and _manifest_warnings_are_blocking(
         manifest_path,
         project_root,
     )
+
+
+def _warning_is_advisory(warning) -> bool:
+    code = getattr(warning, "code", None)
+    if code in _ADVISORY_WARNING_CODES:
+        return True
+    if code == ErrorCode.STUB_FUNCTION_DETECTED:
+        return _is_base_validator_default_hook_stub_warning(warning)
+    return False
+
+
+def _is_base_validator_default_hook_stub_warning(warning) -> bool:
+    location = getattr(warning, "location", None)
+    location_file = str(getattr(location, "file", "") or "").replace("\\", "/")
+    if location_file != "maid_runner/validators/base.py":
+        return False
+
+    message = str(getattr(warning, "message", ""))
+    match = _STUB_WARNING_FUNCTION_RE.search(message)
+    if match is None:
+        return False
+
+    default_hook_names = {
+        f"BaseValidator.{hook_name}" for hook_name in _BASE_VALIDATOR_DEFAULT_HOOK_STUBS
+    }
+    return match.group(1) in default_hook_names
 
 
 def _error_stage(

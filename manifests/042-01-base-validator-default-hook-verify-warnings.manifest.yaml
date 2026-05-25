@@ -1,0 +1,102 @@
+schema: "2"
+goal: "Keep BaseValidator default hook stub warnings advisory in maid verify"
+type: fix
+created: "2026-05-25"
+metadata:
+  tags:
+    - verify
+    - warning-policy
+    - release-hardening
+    - stub-detection
+  priority: high
+description: |
+  `maid verify` is strict by default, but the repository's own BaseValidator
+  declares concrete default extension hooks that intentionally return neutral
+  values. Implementation validation can report those methods as E310 stub
+  warnings, which made the full repository verify gate fail even though these
+  hooks are stable default behavior rather than incomplete implementation.
+
+  Keep these warnings visible in verify output, but classify only the known
+  BaseValidator default-hook E310 diagnostics as advisory. Real E310 stub
+  warnings for ordinary production code must remain blocking for new manifests.
+temptations:
+  - risk: "Do not make all E310 stub warnings advisory."
+    instead: "Special-case only BaseValidator default hook warnings from maid_runner/validators/base.py."
+  - risk: "Do not hide the warning payload."
+    instead: "Leave validation output unchanged and only adjust verify's stage-blocking classification."
+  - risk: "Do not weaken missing assertion or real stub enforcement."
+    instead: "Add a negative test proving non-default E310 warnings still block."
+files:
+  edit:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: attribute
+          name: _BASE_VALIDATOR_DEFAULT_HOOK_STUBS
+        - kind: attribute
+          name: _STUB_WARNING_FUNCTION_RE
+        - kind: function
+          name: _warning_is_advisory
+          args:
+            - name: warning
+          returns: bool
+          description: "Classify no-validator warnings and known BaseValidator default-hook stub warnings as visible but non-blocking for verify."
+        - kind: function
+          name: _is_base_validator_default_hook_stub_warning
+          args:
+            - name: warning
+          returns: bool
+          description: "Recognize E310 warnings for BaseValidator default extension hooks in maid_runner/validators/base.py."
+        - kind: function
+          name: _warnings_are_blocking
+          args:
+            - name: warnings
+            - name: manifest_path
+              type: str
+            - name: project_root
+              type: Path
+          returns: bool
+          description: "Filter advisory warnings before applying manifest warning-fatal policy."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_base_validator_default_hook_stub_warning_is_advisory_by_default
+          source_scenario: "A new manifest receives an E310 warning for BaseValidator.module_path in maid_runner/validators/base.py."
+          actions:
+            - type: api_call
+              subject:
+                export: _warnings_are_blocking
+          expected:
+            behavior: "The warning is classified as advisory so verify keeps it visible without failing the stage."
+        - kind: test_function
+          name: test_verify_non_default_stub_warning_remains_blocking
+          source_scenario: "A new manifest receives an E310 warning for an ordinary stub function."
+          actions:
+            - type: api_call
+              subject:
+                export: _warnings_are_blocking
+          expected:
+            behavior: "The warning remains blocking so strict verify still fails on real stub implementations."
+        - kind: test_function
+          name: test_verify_base_validator_default_hook_prefix_stub_warning_remains_blocking
+          source_scenario: "A new manifest receives an E310 warning for BaseValidator.module_path_extra in maid_runner/validators/base.py."
+          actions:
+            - type: api_call
+              subject:
+                export: _warnings_are_blocking
+          expected:
+            behavior: "The warning remains blocking because only exact BaseValidator default hook names are advisory."
+        - kind: test_function
+          name: test_verify_base_validator_default_hook_wrong_path_remains_blocking
+          source_scenario: "A new manifest receives an E310 warning for BaseValidator.module_path in vendor/maid_runner/validators/base.py."
+          actions:
+            - type: api_call
+              subject:
+                export: _warnings_are_blocking
+          expected:
+            behavior: "The warning remains blocking because only the exact repo BaseValidator file path is advisory."
+  read:
+    - maid_runner/validators/base.py
+    - manifests/040-31-retire-abstract-stub-legacy-cases.manifest.yaml
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_cmd.py

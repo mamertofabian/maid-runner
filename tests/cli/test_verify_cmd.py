@@ -252,6 +252,186 @@ def test_verify_validator_unavailable_warning_is_advisory_by_default(
     assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is False
 
 
+def test_verify_base_validator_default_hook_stub_warning_is_advisory_by_default(
+    tmp_path,
+):
+    from maid_runner.cli.commands.verify import _warnings_are_blocking
+    from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = {
+        "schema": "2",
+        "goal": "Keep BaseValidator default hook warnings advisory",
+        "type": "fix",
+        "created": "2026-05-25",
+        "files": {
+            "edit": [
+                {
+                    "path": "maid_runner/validators/base.py",
+                    "artifacts": [
+                        {
+                            "kind": "method",
+                            "name": "module_path",
+                            "of": "BaseValidator",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/cli/test_verify_cmd.py"],
+        },
+        "validate": ["python -m pytest tests/cli/test_verify_cmd.py -q"],
+    }
+    manifest_path = manifest_dir / "base-validator-default-hooks.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    warnings = [
+        ValidationError(
+            code=ErrorCode.STUB_FUNCTION_DETECTED,
+            message=(
+                "Function 'BaseValidator.module_path' appears to be a stub "
+                "in maid_runner/validators/base.py"
+            ),
+            severity=Severity.WARNING,
+            location=Location(file="maid_runner/validators/base.py", line=128),
+        )
+    ]
+
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is False
+
+
+def test_verify_non_default_stub_warning_remains_blocking(tmp_path):
+    from maid_runner.cli.commands.verify import _warnings_are_blocking
+    from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = {
+        "schema": "2",
+        "goal": "Keep real stub warnings blocking",
+        "type": "fix",
+        "created": "2026-05-25",
+        "files": {
+            "create": [
+                {
+                    "path": "src/worker.py",
+                    "artifacts": [
+                        {
+                            "kind": "function",
+                            "name": "run",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/test_worker.py"],
+        },
+        "validate": ["python -m pytest tests/test_worker.py -q"],
+    }
+    manifest_path = manifest_dir / "real-stub.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    warnings = [
+        ValidationError(
+            code=ErrorCode.STUB_FUNCTION_DETECTED,
+            message="Function 'run' appears to be a stub in src/worker.py",
+            severity=Severity.WARNING,
+            location=Location(file="src/worker.py", line=1),
+        )
+    ]
+
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is True
+
+
+def test_verify_base_validator_default_hook_prefix_stub_warning_remains_blocking(
+    tmp_path,
+):
+    from maid_runner.cli.commands.verify import _warnings_are_blocking
+    from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = {
+        "schema": "2",
+        "goal": "Keep only exact BaseValidator default hooks advisory",
+        "type": "fix",
+        "created": "2026-05-25",
+        "files": {
+            "edit": [
+                {
+                    "path": "maid_runner/validators/base.py",
+                    "artifacts": [
+                        {
+                            "kind": "method",
+                            "name": "module_path_extra",
+                            "of": "BaseValidator",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/cli/test_verify_cmd.py"],
+        },
+        "validate": ["python -m pytest tests/cli/test_verify_cmd.py -q"],
+    }
+    manifest_path = manifest_dir / "base-validator-prefix-stub.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    warnings = [
+        ValidationError(
+            code=ErrorCode.STUB_FUNCTION_DETECTED,
+            message=(
+                "Function 'BaseValidator.module_path_extra' appears to be a stub "
+                "in maid_runner/validators/base.py"
+            ),
+            severity=Severity.WARNING,
+            location=Location(file="maid_runner/validators/base.py", line=128),
+        )
+    ]
+
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is True
+
+
+def test_verify_base_validator_default_hook_wrong_path_remains_blocking(tmp_path):
+    from maid_runner.cli.commands.verify import _warnings_are_blocking
+    from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = {
+        "schema": "2",
+        "goal": "Keep wrong-path BaseValidator hooks blocking",
+        "type": "fix",
+        "created": "2026-05-25",
+        "files": {
+            "create": [
+                {
+                    "path": "vendor/maid_runner/validators/base.py",
+                    "artifacts": [
+                        {
+                            "kind": "method",
+                            "name": "module_path",
+                            "of": "BaseValidator",
+                        }
+                    ],
+                }
+            ],
+            "read": ["tests/cli/test_verify_cmd.py"],
+        },
+        "validate": ["python -m pytest tests/cli/test_verify_cmd.py -q"],
+    }
+    manifest_path = manifest_dir / "vendored-base-validator.manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest))
+    warnings = [
+        ValidationError(
+            code=ErrorCode.STUB_FUNCTION_DETECTED,
+            message=(
+                "Function 'BaseValidator.module_path' appears to be a stub "
+                "in vendor/maid_runner/validators/base.py"
+            ),
+            severity=Severity.WARNING,
+            location=Location(file="vendor/maid_runner/validators/base.py", line=128),
+        )
+    ]
+
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is True
+
+
 def test_verify_ignores_pytest_fixture_helpers_named_like_tests(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
 

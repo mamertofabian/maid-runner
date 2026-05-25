@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-05-25
+
+### Added
+- **Validation coverage migration** — Added domain-focused characterization manifests and tests for validation behavior while retiring the legacy `tests/core/test_validate.py` coverage surface.
+- **Performance diagnostics backlog** — Added the next diagnostics draft queue for assertion/test discovery caching, TypeScript compiler batching, and shared `maid verify` validation cache scope.
+
+### Changed
+- **Validation performance** — Cached manifest chains per invocation, shared Python AST parsing across validation phases, cached test artifact tables across manifests, and batched compatible package-runner validation commands.
+- **Validation internals** — Extracted shared validator parse-error handling and focused validation-engine orchestration coverage while preserving public CLI behavior.
+
+### Fixed
+- **Package-runner command discovery** — Validation command handling now detects package runner working directories before executable resolution, improving `pnpm`/`vitest` command validation.
+- **Verify warning policy** — `maid verify` now keeps `BaseValidator` default-hook E310 diagnostics visible but advisory while preserving blocking behavior for real stub warnings.
+
 ## [2.11.0] - 2026-05-21
 
 ### Changed
