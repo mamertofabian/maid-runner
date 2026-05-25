@@ -3,6 +3,7 @@
 const fs = require("fs");
 const moduleApi = require("module");
 const path = require("path");
+const readline = require("readline");
 
 const SOURCE_EXTENSIONS = [
   ".tsx",
@@ -22,6 +23,55 @@ function main() {
   const ts = loadTypescript(projectRoot);
 
   if (ts === null) {
+    if (request.command === "resolveMany") {
+      return Array.isArray(request.requests)
+        ? request.requests.map(() => null)
+        : [];
+    }
+    return null;
+  }
+
+  if (request.command === "resolveMany") {
+    return resolveMany(ts, projectRoot, request);
+  }
+  const results = resolveMany(ts, projectRoot, { requests: [request] });
+  return results.length > 0 ? results[0] : null;
+}
+
+function resolveMany(ts, projectRoot, request) {
+  const requests = Array.isArray(request.requests) ? request.requests : [];
+  return requests.map((item) => {
+    if (!item || typeof item !== "object") {
+      return null;
+    }
+
+    const itemProjectRoot = path.resolve(String(item.projectRoot || projectRoot));
+    const itemTs = itemProjectRoot === projectRoot ? ts : loadTypescript(itemProjectRoot);
+    if (itemTs === null) {
+      return null;
+    }
+
+    if (item.command === "resolveImport") {
+      return resolveImport(itemTs, itemProjectRoot, item);
+    }
+    if (item.command === "resolveReexport") {
+      return resolveReexport(itemTs, itemProjectRoot, item);
+    }
+    return null;
+  });
+}
+
+function respondToSessionLine(line) {
+  const request = JSON.parse(line);
+  const projectRoot = path.resolve(String(request.projectRoot || "."));
+  const ts = loadTypescript(projectRoot);
+
+  if (ts === null) {
+    if (request.command === "resolveMany") {
+      return Array.isArray(request.requests)
+        ? request.requests.map(() => null)
+        : [];
+    }
     return null;
   }
 
@@ -30,6 +80,9 @@ function main() {
   }
   if (request.command === "resolveReexport") {
     return resolveReexport(ts, projectRoot, request);
+  }
+  if (request.command === "resolveMany") {
+    return resolveMany(ts, projectRoot, request);
   }
   return null;
 }
@@ -320,14 +373,43 @@ function toPosix(value) {
   return value.split(path.sep).join("/");
 }
 
-try {
-  const result = main();
-  process.stdout.write(JSON.stringify({ ok: true, result }));
-} catch (error) {
-  process.stdout.write(
-    JSON.stringify({
-      ok: false,
-      error: error && error.message ? error.message : String(error),
-    })
-  );
+if (require.main === module) {
+  if (process.argv.includes("--session")) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      crlfDelay: Infinity,
+    });
+    rl.on("line", (line) => {
+      try {
+        const result = respondToSessionLine(line);
+        process.stdout.write(`${JSON.stringify({ ok: true, result })}\n`);
+      } catch (error) {
+        process.stdout.write(
+          `${JSON.stringify({
+            ok: false,
+            error: error && error.message ? error.message : String(error),
+          })}\n`
+        );
+      }
+    });
+  } else {
+    try {
+      const result = main();
+      process.stdout.write(JSON.stringify({ ok: true, result }));
+    } catch (error) {
+      process.stdout.write(
+        JSON.stringify({
+          ok: false,
+          error: error && error.message ? error.message : String(error),
+        })
+      );
+    }
+  }
 }
+
+module.exports = {
+  main,
+  resolveMany,
+  resolveImport,
+  resolveReexport,
+};

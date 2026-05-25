@@ -23,6 +23,7 @@ from maid_runner.core._ts_export_scanner import (
 )
 from maid_runner.core._tsconfig_paths import _resolve_ts_import_from_config
 from maid_runner.core.ts_compiler_resolver import (
+    clear_ts_compiler_resolver_session,
     resolve_import_with_compiler,
     resolve_reexport_with_compiler,
 )
@@ -86,6 +87,7 @@ _NODE_BUILTIN_MODULES = frozenset(
 
 _TS_IMPORT_CACHE: dict[tuple[object, ...], str] = {}
 _TS_REEXPORT_CACHE: dict[tuple[object, ...], Optional[tuple[str, str]]] = {}
+_MODULE_ENTRY_SIGNATURE_CACHE: dict[tuple[str, str], tuple[str, int, int]] = {}
 
 
 def ts_file_to_module_path(
@@ -265,6 +267,8 @@ def resolve_ts_reexport(
 def clear_ts_resolution_cache() -> None:
     _TS_IMPORT_CACHE.clear()
     _TS_REEXPORT_CACHE.clear()
+    _MODULE_ENTRY_SIGNATURE_CACHE.clear()
+    clear_ts_compiler_resolver_session()
 
 
 def _is_node_builtin_specifier(specifier: str) -> bool:
@@ -329,11 +333,20 @@ def _project_config_signature(project_root: Path) -> tuple[tuple[str, int, int],
 
 
 def _module_entry_signature(project_root: Path, module: str) -> tuple[str, int, int]:
+    cache_key = (_root_cache_key(project_root), module)
+    cached = _MODULE_ENTRY_SIGNATURE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     entry = _module_entry_file(project_root, module)
     if entry is None:
-        return ("", -1, -1)
+        result = ("", -1, -1)
+        _MODULE_ENTRY_SIGNATURE_CACHE[cache_key] = result
+        return result
     path, _ = entry
-    return _path_signature(path)
+    result = _path_signature(path)
+    _MODULE_ENTRY_SIGNATURE_CACHE[cache_key] = result
+    return result
 
 
 def _path_signature(path: Path) -> tuple[str, int, int]:

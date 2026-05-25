@@ -9,8 +9,14 @@ Covers maid_runner.core.ts_module_paths:
 
 from __future__ import annotations
 
+import json
+import subprocess
 from pathlib import Path
 
+import pytest
+
+from maid_runner.core.types import ValidationMode
+from maid_runner.core.validate import ValidationEngine
 from maid_runner.core._ts_export_scanner import (
     _COMPILER_FALLBACK_REQUIRED,
     export_specifier_names,
@@ -1166,3 +1172,178 @@ def test_clear_ts_resolution_cache_allows_changed_project_resolution(
         "src/new-button",
         "Button",
     )
+
+
+def test_ts_resolution_context_reuses_project_and_module_signatures(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    components = tmp_path / "src" / "components"
+    components.mkdir(parents=True)
+    (components / "index.ts").write_text(
+        "export { Button } from './Button';\nexport { Link } from './Link';\n"
+    )
+    (components / "Button.ts").write_text("export function Button() {}\n")
+    (components / "Link.ts").write_text("export function Link() {}\n")
+    (tmp_path / "tsconfig.json").write_text('{"compilerOptions": {"baseUrl": "."}}')
+
+    clear_ts_resolution_cache()
+    calls: list[str] = []
+    real_path_signature = ts_module_paths._path_signature
+
+    def tracking_path_signature(path: Path) -> tuple[str, int, int]:
+        calls.append(path.name)
+        return real_path_signature(path)
+
+    monkeypatch.setattr(
+        ts_module_paths,
+        "_path_signature",
+        tracking_path_signature,
+    )
+
+    assert resolve_ts_reexport("src/components", "Button", tmp_path) == (
+        "src/components/Button",
+        "Button",
+    )
+    assert resolve_ts_reexport("src/components", "Link", tmp_path) == (
+        "src/components/Link",
+        "Link",
+    )
+
+    assert calls.count("tsconfig.json") == 2
+    assert calls.count("jsconfig.json") == 2
+    assert calls.count("package.json") == 2
+    assert calls.count("index.ts") == 1
+
+
+def test_validate_all_typescript_results_match_with_resolver_session(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_compiler_resolver, ts_module_paths
+
+    _require_typescript()
+    _write_validation_project(tmp_path)
+
+    engine = ValidationEngine(tmp_path)
+    clear_ts_resolution_cache()
+    with_session = engine.validate_all(
+        manifest_dir=tmp_path / "manifests",
+        mode=ValidationMode.BEHAVIORAL,
+    )
+
+    class LegacyCompilerResolver:
+        def __init__(self, project_root: Path):
+            self.project_root = project_root
+
+        def resolve_import(self, specifier: str, importer_module: str) -> str | None:
+            legacy_calls.append(("import", specifier))
+            return ts_compiler_resolver._resolve_import(
+                specifier,
+                importer_module,
+                str(self.project_root),
+            )
+
+        def resolve_reexport(
+            self,
+            module: str,
+            name: str,
+        ) -> tuple[str, str] | None:
+            legacy_calls.append(("reexport", module))
+            return ts_compiler_resolver._resolve_reexport(
+                module,
+                name,
+                str(self.project_root),
+            )
+
+    legacy_calls: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        ts_compiler_resolver,
+        "_session_for_project",
+        lambda root: LegacyCompilerResolver(root),
+    )
+    ts_module_paths.clear_ts_resolution_cache()
+
+    legacy = ValidationEngine(tmp_path).validate_all(
+        manifest_dir=tmp_path / "manifests",
+        mode=ValidationMode.BEHAVIORAL,
+    )
+
+    assert _batch_result_payload(with_session) == _batch_result_payload(legacy)
+    assert legacy_calls
+
+
+def _require_typescript() -> None:
+    try:
+        completed = subprocess.run(
+            ["node", "-e", "require.resolve('typescript')"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        pytest.skip("Node.js is unavailable")
+    if completed.returncode != 0:
+        pytest.skip("TypeScript npm dependency is unavailable")
+
+
+def _write_validation_project(project_root: Path) -> None:
+    (project_root / "package.json").write_text('{"workspaces": ["packages/*"]}')
+    (project_root / "tsconfig.json").write_text(
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "moduleResolution": "Bundler",
+                    "module": "ESNext",
+                    "baseUrl": ".",
+                },
+                "include": ["src/**/*", "packages/**/*"],
+            }
+        )
+    )
+    src = project_root / "src"
+    src.mkdir()
+    (src / "Button.test.ts").write_text(
+        "import { Button } from '@scope/ui/Button';\n"
+        "it('uses Button', () => { Button(); });\n"
+    )
+    package_dir = project_root / "packages" / "ui"
+    package_dir.mkdir(parents=True)
+    (package_dir / "package.json").write_text(
+        '{"name": "@scope/ui", "exports": {"./Button": "./src/Button.ts"}}'
+    )
+    button = package_dir / "src" / "Button.ts"
+    button.parent.mkdir()
+    button.write_text("export function Button() {}\n")
+    scope_dir = project_root / "node_modules" / "@scope"
+    scope_dir.mkdir(parents=True)
+    (scope_dir / "ui").symlink_to(package_dir, target_is_directory=True)
+
+    manifest_dir = project_root / "manifests"
+    manifest_dir.mkdir()
+    (manifest_dir / "typescript-session.manifest.yaml").write_text(
+        """
+schema: "2"
+goal: "Validate TypeScript session equivalence"
+type: refactor
+created: "2026-05-25"
+files:
+  edit:
+    - path: packages/ui/src/Button.ts
+      artifacts:
+        - kind: function
+          name: Button
+validate:
+  - vitest run src/Button.test.ts
+"""
+    )
+
+
+def _batch_result_payload(result) -> dict:
+    payload = result.to_dict()
+    payload.pop("duration_ms", None)
+    for validation_result in payload["results"]:
+        validation_result.pop("duration_ms", None)
+    return payload

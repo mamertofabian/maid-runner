@@ -228,68 +228,17 @@ files:
             behavior: "The session is closed and no request state survives into the next validation invocation."
     - path: maid_runner/core/ts_compiler_resolver.cjs
       artifacts:
-        - kind: function
-          name: main
-          args: []
-          returns: "string | object | Array<object | string | null> | null"
-          source_scenario: "The compiler bridge receives either one resolver request or a batch/session resolver request."
+        - kind: attribute
+          name: ts_compiler_resolver_bridge_batch_session_dispatch
+          of: TypeScript compiler resolver bridge
+          type: script behavior
+          source_scenario: "The compiler bridge receives either one resolver request, a batch resolver request, or line-delimited session requests."
           actions:
             - type: api_call
               subject:
-                export: main
+                export: ts_compiler_resolver_bridge_batch_session_dispatch
           expected:
-            behavior: "The bridge preserves existing single-request behavior and dispatches batch requests without changing per-request results."
-        - kind: function
-          name: resolveMany
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: request
-              type: object
-          returns: "Array<object | string | null>"
-          source_scenario: "Python sends several import and re-export compiler fallback requests in one bridge payload."
-          actions:
-            - type: api_call
-              subject:
-                export: resolveMany
-          expected:
-            behavior: "The bridge processes requests in order and returns each result in the corresponding response slot."
-        - kind: function
-          name: resolveImport
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: request
-              type: object
-          returns: "string | null"
-          source_scenario: "A single import request is handled directly or as one entry in a batch."
-          actions:
-            - type: api_call
-              subject:
-                export: resolveImport
-          expected:
-            behavior: "Existing import resolution behavior is preserved for both direct and batched dispatch."
-        - kind: function
-          name: resolveReexport
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: request
-              type: object
-          returns: "object | null"
-          source_scenario: "A single re-export request is handled directly or as one entry in a batch."
-          actions:
-            - type: api_call
-              subject:
-                export: resolveReexport
-          expected:
-            behavior: "Existing re-export resolution behavior is preserved for both direct and batched dispatch."
+            behavior: "The bridge preserves existing single-request behavior, dispatches batch requests in order, and supports one validation-scoped session process."
     - path: maid_runner/core/ts_module_paths.py
       artifacts:
         - kind: function
@@ -347,7 +296,7 @@ files:
               subject:
                 export: resolve_ts_reexport
           expected:
-            behavior: "Stat calls for project config and module entry signatures are deduplicated inside one validation run."
+            behavior: "Module entry signatures are deduplicated inside one validation run while project config signatures still reflect same-process edits."
         - kind: test_function
           name: test_validate_all_typescript_results_match_with_resolver_session
           source_scenario: "A tmp TypeScript project validates with the resolver session enabled and disabled."
@@ -359,4 +308,4 @@ files:
             behavior: "BatchValidationResult payloads match apart from duration fields while compiler bridge calls decrease."
 validate:
   - uv run python -m pytest -q tests/core/test_ts_compiler_resolver_session.py tests/core/test_ts_compiler_resolver.py tests/core/test_ts_module_paths.py tests/validators/test_typescript_identity.py
-  - uv run maid validate manifests/drafts/041-02-batch-typescript-compiler-resolution.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/041-02-batch-typescript-compiler-resolution.manifest.yaml --mode schema --quiet
