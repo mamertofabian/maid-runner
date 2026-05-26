@@ -1131,6 +1131,119 @@ def test_resolve_ts_reexport_reuses_cached_compiler_resolution_within_validation
     assert calls == [("src/components", "Button", tmp_path)]
 
 
+def test_resolve_ts_reexport_caches_compiler_fallback_for_existing_module_entry(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    components = tmp_path / "src" / "components"
+    components.mkdir(parents=True)
+    (components / "index.ts").write_text("export { Button } from './missing';\n")
+    calls: list[tuple[str, str, Path]] = []
+
+    def compiler_resolver(module: str, name: str, root: Path):
+        calls.append((module, name, root))
+        return ("src/generated/Button", "Button")
+
+    clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+
+    first = ts_module_paths.resolve_ts_reexport("src/components", "Button", tmp_path)
+    second = ts_module_paths.resolve_ts_reexport("src/components", "Button", tmp_path)
+
+    assert first == ("src/generated/Button", "Button")
+    assert second == first
+    assert calls == [("src/components", "Button", tmp_path)]
+
+
+def test_resolve_ts_reexport_invalidates_compiler_fallback_when_entry_file_changes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    components = tmp_path / "src" / "components"
+    components.mkdir(parents=True)
+    index = components / "index.ts"
+    index.write_text("export { Button } from './missing';\n")
+    calls: list[tuple[str, str, Path]] = []
+    state = {"target": ("src/generated/OldButton", "Button")}
+
+    def compiler_resolver(module: str, name: str, root: Path):
+        calls.append((module, name, root))
+        return state["target"]
+
+    clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == ("src/generated/OldButton", "Button")
+
+    state["target"] = ("src/generated/NewButton", "Button")
+    index.write_text("export { Button } from './still-missing';\n")
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == ("src/generated/NewButton", "Button")
+    assert calls == [
+        ("src/components", "Button", tmp_path),
+        ("src/components", "Button", tmp_path),
+    ]
+
+
+def test_resolve_ts_reexport_invalidates_compiler_fallback_when_project_config_changes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import ts_module_paths
+
+    components = tmp_path / "src" / "components"
+    components.mkdir(parents=True)
+    (components / "index.ts").write_text("export { Button } from './missing';\n")
+    tsconfig = tmp_path / "tsconfig.json"
+    tsconfig.write_text('{"compilerOptions": {"baseUrl": "."}}\n')
+    calls: list[tuple[str, str, Path]] = []
+    state = {"target": ("src/generated/OldButton", "Button")}
+
+    def compiler_resolver(module: str, name: str, root: Path):
+        calls.append((module, name, root))
+        return state["target"]
+
+    clear_ts_resolution_cache()
+    monkeypatch.setattr(
+        ts_module_paths,
+        "resolve_reexport_with_compiler",
+        compiler_resolver,
+    )
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == ("src/generated/OldButton", "Button")
+
+    state["target"] = ("src/generated/NewButton", "Button")
+    tsconfig.write_text(
+        '{"compilerOptions": {"baseUrl": ".", "paths": {"@/*": ["src/*"]}}}\n'
+    )
+
+    assert ts_module_paths.resolve_ts_reexport(
+        "src/components", "Button", tmp_path
+    ) == ("src/generated/NewButton", "Button")
+    assert calls == [
+        ("src/components", "Button", tmp_path),
+        ("src/components", "Button", tmp_path),
+    ]
+
+
 def test_clear_ts_resolution_cache_allows_changed_project_resolution(
     monkeypatch,
     tmp_path: Path,

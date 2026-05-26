@@ -245,9 +245,21 @@ def resolve_ts_reexport(
         if local_resolved is not _EXPORT_SCANNER_FALLBACK_REQUIRED:
             return local_resolved
 
+        cache_key = (
+            _root_cache_key(root),
+            module,
+            name,
+            _project_config_signature(root),
+            _path_signature(module_file),
+        )
+        if cache_key in _TS_REEXPORT_CACHE:
+            return _TS_REEXPORT_CACHE[cache_key]
+
         compiler_resolved = resolve_reexport_with_compiler(module, name, root)
         if compiler_resolved is not None:
+            _TS_REEXPORT_CACHE[cache_key] = compiler_resolved
             return compiler_resolved
+        _TS_REEXPORT_CACHE[cache_key] = None
         return None
 
     cache_key = (
