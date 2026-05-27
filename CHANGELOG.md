@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-05-27
+
+### Added
+- **Batched TypeScript compiler resolution** — TypeScript import and re-export resolution can now reuse a compiler resolver session for compatible validation work, reducing repeated Node process startup while preserving single-request fallback behavior.
+- **TypeScript resolver session coverage** — Added behavioral coverage for batched import/re-export requests, timeout fallback, malformed response fallback, cache clearing, and package/export resolution parity.
+
+### Changed
+- **Validation cache reuse** — `maid verify` now shares validation caches across compatible validation stages within one command, reducing duplicate artifact collection and parse work.
+- **Assertion and test discovery caching** — Assertion checks and validation test artifact discovery now reuse cached results during a validation invocation.
+
+### Fixed
+- **Cache invalidation hardening** — TypeScript re-export and validation-test caches now account for relevant source/config changes so stale cache entries do not survive edits.
+- **Compiler fallback caching** — TypeScript barrel re-export resolution now caches compiler fallback decisions for unresolved local entry cases without hiding later source changes.
+
 ## [2.12.0] - 2026-05-25
 
 ### Added
@@ -952,6 +966,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.13.0]: https://github.com/mamertofabian/maid-runner/compare/v2.12.0...v2.13.0
+[2.12.0]: https://github.com/mamertofabian/maid-runner/compare/v2.11.0...v2.12.0
 [2.8.3]: https://github.com/mamertofabian/maid-runner/compare/v2.8.2...v2.8.3
 [2.8.2]: https://github.com/mamertofabian/maid-runner/compare/v2.8.1...v2.8.2
 [2.8.1]: https://github.com/mamertofabian/maid-runner/compare/v2.8.0...v2.8.1
