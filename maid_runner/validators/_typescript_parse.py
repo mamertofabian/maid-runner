@@ -16,6 +16,11 @@ _TYPEOF_IMPORT_TYPE_ARGUMENT = re.compile(
     rb"""<\s*typeof\s+import\s*\(\s*(["'])(?:\\.|(?!\1).)*\1\s*\)\s*>""",
     re.DOTALL,
 )
+_IMPORT_TYPE_ARGUMENT = re.compile(
+    rb"""<\s*import\s*\(\s*(["'])(?:\\.|(?!\1).)*\1\s*\)"""
+    rb"""(?:\s*\.\s*[A-Za-z_$][A-Za-z0-9_$]*)+\s*>""",
+    re.DOTALL,
+)
 
 
 class TypeScriptParseSession:
@@ -67,9 +72,10 @@ def _sanitize_type_query_imports_for_tree_sitter(source_bytes: bytes) -> bytes:
 
     Vitest mocks commonly use ``importOriginal<typeof import("module")>()``.
     The grammar version used by tree-sitter-typescript currently reports that
-    valid type-query import as an ERROR node. Replace only the generic type
-    argument with equal-length whitespace so parser byte offsets still map back
-    to the original source used by collectors.
+    valid type-query import as an ERROR node. Frontend service modules also use
+    valid ``fetchJson<import("module").Type>()`` generic arguments. Replace only
+    those generic type arguments with equal-length whitespace so parser byte
+    offsets still map back to the original source used by collectors.
     """
 
     def placeholder(match: re.Match[bytes]) -> bytes:
@@ -82,7 +88,8 @@ def _sanitize_type_query_imports_for_tree_sitter(source_bytes: bytes) -> bytes:
                 output.append(ord(" "))
         return bytes(output)
 
-    return _TYPEOF_IMPORT_TYPE_ARGUMENT.sub(placeholder, source_bytes)
+    sanitized = _TYPEOF_IMPORT_TYPE_ARGUMENT.sub(placeholder, source_bytes)
+    return _IMPORT_TYPE_ARGUMENT.sub(placeholder, sanitized)
 
 
 def collect_parse_errors(node: Any) -> list[str]:

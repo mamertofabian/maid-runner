@@ -113,6 +113,8 @@ def _filter_public_implementation_artifacts(
 
     visible: list[FoundArtifact] = []
     for artifact in artifacts:
+        if not is_es_module and _exported_object_member_owner(artifact) is not None:
+            continue
         if is_es_module and not _artifact_is_export_visible(artifact, exported_names):
             continue
         visible.append(artifact)
@@ -122,9 +124,20 @@ def _filter_public_implementation_artifacts(
 def _artifact_is_export_visible(
     artifact: FoundArtifact, exported_names: set[str]
 ) -> bool:
+    exported_object = _exported_object_member_owner(artifact)
+    if exported_object is not None:
+        return exported_object in exported_names
     if artifact.of:
         return artifact.of in exported_names
     return artifact.name in exported_names
+
+
+def _exported_object_member_owner(artifact: FoundArtifact) -> Optional[str]:
+    context = artifact.reference_context
+    if context is None or not context.startswith("object:"):
+        return None
+    owner = context.removeprefix("object:")
+    return owner or None
 
 
 def _is_es_module(root) -> bool:
@@ -567,11 +580,26 @@ def _collect_module_scope_variable_declaration(
         return False
     if current_class is not None:
         return False
+    if not _is_module_scope_declaration(node):
+        return False
 
     for child in node.children:
         if child.type == "variable_declarator":
             _handle_variable_declarator(child, source, artifacts)
     return True
+
+
+def _is_module_scope_declaration(node) -> bool:
+    parent = node.parent
+    if parent is None:
+        return False
+    if parent.type == "program":
+        return True
+    return (
+        parent.type == "export_statement"
+        and parent.parent is not None
+        and (parent.parent.type == "program")
+    )
 
 
 def _collect_export_statement(
@@ -659,6 +687,15 @@ def _handle_variable_declarator(
                 line=node.start_point[0] + 1,
             )
         )
+    elif object_value := _child_by_type(node, "object"):
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.ATTRIBUTE,
+                name=name,
+                line=node.start_point[0] + 1,
+            )
+        )
+        _collect_object_literal_function_members(name, object_value, source, artifacts)
     elif wrapped_value := _react_wrapped_component_value(node, source):
         args, returns = _extract_func_signature(wrapped_value, source)
         type_parameters = _extract_type_parameters(wrapped_value, source)
@@ -689,6 +726,47 @@ def _handle_variable_declarator(
                 kind=ArtifactKind.ATTRIBUTE,
                 name=name,
                 line=node.start_point[0] + 1,
+            )
+        )
+
+
+def _collect_object_literal_function_members(
+    owner: str,
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+) -> None:
+    for child in node.children:
+        if child.type == "pair":
+            name = _member_name_text(child, source)
+            value = next(
+                (
+                    grandchild
+                    for grandchild in child.children
+                    if grandchild.type
+                    in ("arrow_function", "function_expression", "generator_function")
+                ),
+                None,
+            )
+        elif child.type == "method_definition":
+            name = _method_definition_name(child, source)
+            value = child
+        else:
+            continue
+        if not name or value is None:
+            continue
+        args, returns = _extract_func_signature(value, source)
+        artifacts.append(
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name=name,
+                args=args,
+                returns=returns,
+                type_parameters=_extract_type_parameters(value, source),
+                is_async=any(c.type == "async" for c in value.children),
+                is_stub=_is_stub_body_ts(value, source),
+                line=child.start_point[0] + 1,
+                reference_context=f"object:{owner}",
             )
         )
 

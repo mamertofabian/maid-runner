@@ -431,6 +431,17 @@ def _member_property_name(node, source: bytes) -> Optional[str]:
     return None
 
 
+def _direct_member_object_name(node, source: bytes) -> Optional[str]:
+    if node.type != "member_expression":
+        return None
+    for child in node.children:
+        if child.type == "identifier":
+            return _text(child, source)
+        if child.type not in (".", "?.", "?"):
+            return None
+    return None
+
+
 def _member_root_name(node, source: bytes) -> Optional[str]:
     current = _member_root_node(node)
     if current is not None:
@@ -824,6 +835,31 @@ class BehavioralReferenceCollector:
             if property_name:
                 self._record_local_reference(property_name)
             return
+
+        direct_object_name = _direct_member_object_name(node, self._source)
+        if direct_object_name:
+            import_info = self._import_map.get(direct_object_name)
+            property_name = _member_property_name(node, self._source)
+            if (
+                import_info is not None
+                and property_name
+                and not import_info.get("type_only")
+                and direct_object_name not in self._namespace_imports
+            ):
+                seen_key = (
+                    f"access:{property_name}:{import_info['source']}:"
+                    f"{direct_object_name}:{import_info['alias_of'] or ''}"
+                )
+                if seen_key not in self._seen:
+                    self._seen.add(seen_key)
+                    self._artifacts.append(
+                        FoundArtifact(
+                            kind=ArtifactKind.FUNCTION,
+                            name=property_name,
+                            import_source=import_info["source"] or None,
+                            reference_context="access",
+                        )
+                    )
 
         resolved = _resolve_member_chain(node, self._source, self._namespace_imports)
         if resolved is not None:
