@@ -8,6 +8,69 @@ import pytest
 
 
 class TestBuildParser:
+    def test_parser_help_lists_all_top_level_commands(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        help_text = parser.format_help()
+
+        for command in (
+            "validate",
+            "test",
+            "verify",
+            "snapshot",
+            "snapshot-system",
+            "bootstrap",
+            "manifest",
+            "manifests",
+            "files",
+            "init",
+            "graph",
+            "coherence",
+            "schema",
+            "howto",
+            "chain",
+            "serve",
+            "audit",
+        ):
+            assert command in help_text
+
+    def test_validate_compatibility_aliases_survive_parser_extraction(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        args = parser.parse_args(["validate", "--use-manifest-chain", "--json-output"])
+
+        assert args.use_manifest_chain is True
+        assert args.json is True
+
+    def test_nested_command_parsers_survive_parser_extraction(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        manifest_args = parser.parse_args(
+            ["manifest", "create", "src/app.py", "--goal", "Add app"]
+        )
+        graph_args = parser.parse_args(["graph", "query", "what imports validate"])
+        chain_args = parser.parse_args(["chain", "log"])
+        audit_args = parser.parse_args(["audit", "supersessions"])
+
+        assert manifest_args.command == "manifest"
+        assert manifest_args.manifest_command == "create"
+        assert manifest_args.output_dir == "manifests/"
+        assert graph_args.command == "graph"
+        assert graph_args.graph_command == "query"
+        assert graph_args.manifest_dir == "manifests/"
+        assert chain_args.command == "chain"
+        assert chain_args.chain_command == "log"
+        assert chain_args.manifest_dir == "manifests/"
+        assert audit_args.command == "audit"
+        assert audit_args.audit_command == "supersessions"
+        assert audit_args.manifest_dir == "manifests/"
+
     def test_parser_has_validate_subcommand(self):
         from maid_runner.cli.commands._main import build_parser
 

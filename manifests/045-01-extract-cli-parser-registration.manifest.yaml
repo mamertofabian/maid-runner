@@ -4,7 +4,6 @@ goal: "Extract CLI parser command registration helpers"
 type: refactor
 created: "2026-05-29"
 metadata:
-  status: planning
   engine: safe-refactor
   tags:
     - cli

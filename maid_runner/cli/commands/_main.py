@@ -16,7 +16,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command")
 
-    # maid validate
+    _register_validate_parser(sub)
+    _register_test_parser(sub)
+    _register_verify_parser(sub)
+    _register_snapshot_parser(sub)
+    _register_snapshot_system_parser(sub)
+    _register_bootstrap_parser(sub)
+    _register_manifest_graph_chain_audit_parsers(sub)
+
+    return parser
+
+
+def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("validate", help="Validate manifests against code")
     p.add_argument("manifest_path", nargs="?", default=None)
     p.add_argument(
@@ -98,7 +109,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--watch", action="store_true")
     p.add_argument("--watch-all", action="store_true")
 
-    # maid test
+
+def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("test", help="Run validation commands from manifests")
     p.add_argument("--manifest", default=None)
     p.add_argument("--manifest-dir", default="manifests/")
@@ -115,7 +127,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-batch", action="store_const", const=False, dest="batch"
     )
 
-    # maid verify
+
+def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--allow-empty", action="store_true")
@@ -184,7 +197,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--json", action="store_true")
 
-    # maid snapshot
+
+def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("snapshot", help="Generate manifest from existing code")
     p.add_argument("file_path")
     p.add_argument("--output-dir", default="manifests/")
@@ -194,14 +208,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.add_argument("--dry-run", action="store_true")
 
-    # maid snapshot-system
+
+def _register_snapshot_system_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("snapshot-system", help="Generate system-wide manifest")
     p.add_argument("--output", default=None)
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--json", action="store_true")
 
-    # maid bootstrap
+
+def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("bootstrap", help="Bootstrap MAID for an existing project")
     p.add_argument("directory", nargs="?", default=".")
     p.add_argument("--output-dir", default="manifests/")
@@ -213,7 +229,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--verbose", action="store_true")
 
-    # maid manifest create
+
+def _register_manifest_graph_chain_audit_parsers(
+    sub: argparse._SubParsersAction,
+) -> None:
+    _register_manifest_parser(sub)
+    _register_manifests_parser(sub)
+    _register_files_parser(sub)
+    _register_init_parser(sub)
+    _register_graph_parser(sub)
+    _register_coherence_parser(sub)
+    _register_schema_parser(sub)
+    _register_howto_parser(sub)
+    _register_chain_parser(sub)
+    _register_serve_parser(sub)
+    _register_audit_parser(sub)
+
+
+def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("manifest", help="Manifest operations")
     msub = p.add_subparsers(dest="manifest_command")
     cp = msub.add_parser("create", help="Create a new manifest")
@@ -234,14 +267,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Add task-specific anti-gaming guidance as 'risk::instead'.",
     )
 
-    # maid manifests (list manifests for a file)
+
+def _register_manifests_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("manifests", help="List manifests referencing a file")
     p.add_argument("file_path")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--json", action="store_true")
     p.add_argument("--quiet", action="store_true")
 
-    # maid files
+
+def _register_files_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("files", help="Show file tracking status")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--hide-private", action="store_true")
@@ -255,7 +290,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.add_argument("--quiet", action="store_true")
 
-    # maid init
+
+def _register_init_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("init", help="Initialize MAID in a project")
     p.add_argument(
         "--tool",
@@ -265,7 +301,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--force", action="store_true")
 
-    # maid graph
+
+def _register_graph_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("graph", help="Knowledge graph operations")
     gsub = p.add_subparsers(dest="graph_command")
     gq = gsub.add_parser("query", help="Query the knowledge graph")
@@ -279,23 +316,27 @@ def build_parser() -> argparse.ArgumentParser:
     ga.add_argument("--json", action="store_true")
     p.add_argument("--manifest-dir", default="manifests/")
 
-    # maid coherence
+
+def _register_coherence_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("coherence", help="Run coherence checks")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--checks", default=None)
     p.add_argument("--exclude", default=None)
     p.add_argument("--json", action="store_true")
 
-    # maid schema
+
+def _register_schema_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("schema", help="Display manifest JSON Schema")
     p.add_argument("--version", default="2", dest="version")
 
-    # maid howto
+
+def _register_howto_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("howto", help="Show MAID workflow guidance")
     p.add_argument("--section", dest="topic")
     p.add_argument("topic", nargs="?", default=argparse.SUPPRESS)
 
-    # maid chain
+
+def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("chain", help="Manifest chain operations")
     csub = p.add_subparsers(dest="chain_command")
     clp = csub.add_parser("log", help="Show manifest event log")
@@ -313,12 +354,14 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
     rp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
 
-    # maid serve
+
+def _register_serve_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.cli.commands.serve import register_serve_subparser
 
     register_serve_subparser(sub)
 
-    # maid audit
+
+def _register_audit_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("audit", help="Audit MAID manifests for systemic issues")
     asub = p.add_subparsers(dest="audit_command")
     aup = asub.add_parser(
@@ -332,8 +375,6 @@ def build_parser() -> argparse.ArgumentParser:
     aup.add_argument("--json", action="store_true")
     aup.add_argument("--quiet", action="store_true")
     aup.add_argument("--project-root", default=".", dest="project_root")
-
-    return parser
 
 
 def main(argv: list[str] | None = None) -> int:
