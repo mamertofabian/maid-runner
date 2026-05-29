@@ -312,6 +312,111 @@ def test_validate_all_fails_when_inactive_dir_contains_unmarked_v2_manifest(
     assert "hidden-active.manifest.yaml" in batch.chain_errors[0].message
 
 
+def test_manifest_chain_reports_inactive_lifecycle_status_on_new_active_manifest(
+    tmp_path: Path,
+) -> None:
+    manifest_dir = tmp_path / "manifests"
+    active_path = manifest_dir / "new-active.manifest.yaml"
+    active_path.parent.mkdir(parents=True)
+    active_path.write_text(
+        """schema: "2"
+goal: "New active manifest with stale lifecycle metadata"
+type: fix
+metadata:
+  status: planning
+files:
+  create:
+    - path: src/new_active.py
+      artifacts:
+        - kind: function
+          name: new_active
+validate:
+  - pytest tests/test_new_active.py -q
+"""
+    )
+
+    chain = ManifestChain(manifest_dir, tmp_path)
+
+    direct_lifecycle_errors = chain.lifecycle_metadata_diagnostics()
+    lifecycle_errors = [
+        error
+        for error in chain.diagnostics()
+        if error.code == ErrorCode.ACTIVE_MANIFEST_INACTIVE_STATUS
+    ]
+    assert [error.code for error in direct_lifecycle_errors] == [
+        ErrorCode.ACTIVE_MANIFEST_INACTIVE_STATUS
+    ]
+    assert len(lifecycle_errors) == 1
+    assert lifecycle_errors[0].location is not None
+    assert lifecycle_errors[0].location.file == str(active_path.resolve())
+    assert "metadata.status: planning" in lifecycle_errors[0].message
+
+
+def test_inactive_directory_allows_lifecycle_status_metadata_marker(
+    tmp_path: Path,
+) -> None:
+    manifest_dir = tmp_path / "manifests"
+    _write_manifest(
+        manifest_dir / "top-level.manifest.yaml",
+        goal="Top-level active manifest",
+        source_path="src/top_level.py",
+        artifact="top_level",
+    )
+    draft_path = manifest_dir / "drafts" / "future.manifest.yaml"
+    draft_path.parent.mkdir(parents=True)
+    draft_path.write_text(
+        """schema: "2"
+goal: "Future draft manifest"
+type: fix
+metadata:
+  status: planning
+files:
+  create:
+    - path: src/future.py
+      artifacts:
+        - kind: function
+          name: future
+validate:
+  - pytest tests/test_future.py -q
+"""
+    )
+
+    chain = ManifestChain(manifest_dir, tmp_path)
+
+    assert chain.inactive_manifest_diagnostics() == []
+    assert {manifest.slug for manifest in chain.all_manifests} == {"top-level"}
+
+
+def test_selected_inactive_directory_root_allows_lifecycle_status_metadata(
+    tmp_path: Path,
+) -> None:
+    manifest_dir = tmp_path / "manifests" / "drafts"
+    draft_path = manifest_dir / "selected-draft.manifest.yaml"
+    draft_path.parent.mkdir(parents=True)
+    draft_path.write_text(
+        """schema: "2"
+goal: "Selected draft manifest"
+type: fix
+metadata:
+  status: planning
+files:
+  create:
+    - path: src/selected_draft.py
+      artifacts:
+        - kind: function
+          name: selected_draft
+validate:
+  - pytest tests/test_selected_draft.py -q
+"""
+    )
+
+    chain = ManifestChain(manifest_dir, tmp_path)
+
+    assert chain.lifecycle_metadata_diagnostics() == []
+    assert chain.diagnostics() == []
+    assert {manifest.slug for manifest in chain.all_manifests} == {"selected-draft"}
+
+
 def test_inactive_marker_text_inside_yaml_value_does_not_mark_manifest(
     tmp_path: Path,
 ) -> None:

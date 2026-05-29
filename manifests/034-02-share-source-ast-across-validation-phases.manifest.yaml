@@ -4,7 +4,6 @@ goal: "Share parsed source ASTs between implementation and behavioral validation
 type: refactor
 created: "2026-05-19"
 metadata:
-  status: draft
   tags:
     - performance
     - ast

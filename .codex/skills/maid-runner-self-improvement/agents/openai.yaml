@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Runner Self Improvement"
+  short_description: "Route systemic maid-runner improvement work"
+  default_prompt: "Use $maid-runner-self-improvement to synthesize maid-runner bug reports, review findings, insights, and workflow friction into a prioritized self-improvement backlog and routed draft-manifest candidates."

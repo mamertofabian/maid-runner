@@ -143,8 +143,13 @@ class ImplementationFileValidator:
         return [a for a in expected if a.kind != ArtifactKind.TEST_FUNCTION]
 
     def _is_strict(self, fs: FileSpec, chain: Optional[ManifestChain]) -> bool:
-        if chain and chain.manifests_for_file(fs.path):
-            is_strict = True
+        if chain and (manifests := chain.manifests_for_file(fs.path)):
+            is_strict = any(
+                chain_fs.is_strict
+                for manifest in manifests
+                for chain_fs in manifest.all_file_specs
+                if chain_fs.path == fs.path
+            )
         else:
             is_strict = fs.is_strict
 

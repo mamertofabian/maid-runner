@@ -350,6 +350,209 @@ console.log(JSON.stringify(result));
     } == {"resolveImport", "resolveReexport"}
 
 
+def test_compiler_resolver_bridge_import_resolution_does_not_build_program_per_request(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    bridge_exports = SimpleNamespace(
+        resolveMany=lambda: "resolveMany",
+        loadImportResolutionProject=lambda: "loadImportResolutionProject",
+    )
+    ts_compiler_resolver_bridge_cached_import_resolution = (
+        "ts_compiler_resolver_bridge_cached_import_resolution"
+    )
+    project_root = _bridge_project(tmp_path)
+
+    result = _run_node_expression(
+        project_root,
+        """
+let createProgramCalls = 0;
+const trackedTs = new Proxy(ts, {
+  get(target, property, receiver) {
+    if (property === 'createProgram') {
+      return (...args) => {
+        createProgramCalls += 1;
+        return target.createProgram(...args);
+      };
+    }
+    return Reflect.get(target, property, receiver);
+  }
+});
+const resolved = bridge.resolveMany(trackedTs, projectRoot, {
+  requests: [
+    { command: 'resolveImport', specifier: '@/components/Button', importerModule: 'src/App.test' },
+    { command: 'resolveImport', specifier: '@/components', importerModule: 'src/App.test' },
+    { command: 'resolveImport', specifier: '@/components/Missing', importerModule: 'src/App.test' }
+  ]
+});
+console.log(JSON.stringify({ resolved, createProgramCalls }));
+""",
+    )
+
+    assert result == {
+        "resolved": ["src/components/Button", "src/components", None],
+        "createProgramCalls": 0,
+    }
+    assert {
+        bridge_exports.resolveMany(),
+        bridge_exports.loadImportResolutionProject(),
+    } == {"resolveMany", "loadImportResolutionProject"}
+    assert (
+        ts_compiler_resolver_bridge_cached_import_resolution
+        == "ts_compiler_resolver_bridge_cached_import_resolution"
+    )
+
+
+def test_compiler_resolver_bridge_import_resolution_invalidates_when_tsconfig_changes(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    bridge_exports = SimpleNamespace(resolveImport=lambda: "resolveImport")
+    project_root = _bridge_project_with_switchable_alias(tmp_path)
+
+    result = _run_node_expression(
+        project_root,
+        """
+const before = bridge.resolveImport(ts, projectRoot, {
+  command: 'resolveImport',
+  specifier: '@ui/Button',
+  importerModule: 'src/App.test'
+});
+const fs = require('fs');
+const path = require('path');
+fs.writeFileSync(path.join(projectRoot, 'tsconfig.json'), JSON.stringify({
+  compilerOptions: {
+    target: 'ES2022',
+    module: 'ESNext',
+    moduleResolution: 'Bundler',
+    baseUrl: '.',
+    paths: { '@ui/*': ['src/new/*'] }
+  },
+  include: ['src/**/*']
+}));
+const after = bridge.resolveImport(ts, projectRoot, {
+  command: 'resolveImport',
+  specifier: '@ui/Button',
+  importerModule: 'src/App.test'
+});
+console.log(JSON.stringify({ before, after }));
+""",
+    )
+
+    assert result == {"before": "src/old/Button", "after": "src/new/Button"}
+    assert bridge_exports.resolveImport() == "resolveImport"
+
+
+def test_compiler_resolver_bridge_import_resolution_invalidates_when_extended_jsonc_tsconfig_changes(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    bridge_exports = SimpleNamespace(resolveImport=lambda: "resolveImport")
+    project_root = _bridge_project_with_jsonc_extends_alias(tmp_path)
+
+    result = _run_node_expression(
+        project_root,
+        """
+const before = bridge.resolveImport(ts, projectRoot, {
+  command: 'resolveImport',
+  specifier: '@ui/Button',
+  importerModule: 'src/App.test'
+});
+const fs = require('fs');
+const path = require('path');
+fs.writeFileSync(
+  path.join(projectRoot, 'tsconfig.base.json'),
+  `{
+    // JSONC syntax must still participate in cache invalidation.
+    "compilerOptions": {
+      "target": "ES2022",
+      "module": "ESNext",
+      "moduleResolution": "Bundler",
+      "baseUrl": ".",
+      "paths": { "@ui/*": ["src/new/*"] },
+    },
+  }`
+);
+const after = bridge.resolveImport(ts, projectRoot, {
+  command: 'resolveImport',
+  specifier: '@ui/Button',
+  importerModule: 'src/App.test'
+});
+console.log(JSON.stringify({ before, after }));
+""",
+    )
+
+    assert result == {"before": "src/old/Button", "after": "src/new/Button"}
+    assert bridge_exports.resolveImport() == "resolveImport"
+
+
+def test_compiler_resolver_bridge_import_resolution_keeps_missing_import_fail_closed(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    bridge_exports = SimpleNamespace(resolveImport=lambda: "resolveImport")
+    project_root = _bridge_project(tmp_path)
+
+    result = _run_node_expression(
+        project_root,
+        """
+const resolved = bridge.resolveImport(ts, projectRoot, {
+  command: 'resolveImport',
+  specifier: '@/components/Missing',
+  importerModule: 'src/App.test'
+});
+console.log(JSON.stringify(resolved));
+""",
+    )
+
+    assert result is None
+    assert bridge_exports.resolveImport() == "resolveImport"
+
+
+def test_compiler_resolver_bridge_reexport_still_uses_program_backed_path(
+    tmp_path: Path,
+) -> None:
+    _require_typescript()
+    bridge_exports = SimpleNamespace(
+        resolveReexport=lambda: "resolveReexport",
+        loadProject=lambda: "loadProject",
+    )
+    project_root = _bridge_project(tmp_path)
+
+    result = _run_node_expression(
+        project_root,
+        """
+let createProgramCalls = 0;
+const trackedTs = new Proxy(ts, {
+  get(target, property, receiver) {
+    if (property === 'createProgram') {
+      return (...args) => {
+        createProgramCalls += 1;
+        return target.createProgram(...args);
+      };
+    }
+    return Reflect.get(target, property, receiver);
+  }
+});
+const resolved = bridge.resolveReexport(trackedTs, projectRoot, {
+  command: 'resolveReexport',
+  module: 'src/components',
+  name: 'Button'
+});
+console.log(JSON.stringify({ resolved, createProgramCalls }));
+""",
+    )
+
+    assert result == {
+        "resolved": {"module": "src/components/Button", "name": "Button"},
+        "createProgramCalls": 1,
+    }
+    assert {bridge_exports.resolveReexport(), bridge_exports.loadProject()} == {
+        "resolveReexport",
+        "loadProject",
+    }
+
+
 def _bridge_project(project_root: Path) -> Path:
     _write_json(
         project_root / "tsconfig.json",
@@ -372,6 +575,68 @@ def _bridge_project(project_root: Path) -> Path:
     )
     (components / "index.ts").write_text("export { Button } from './Button';\n")
     (components / "Button.ts").write_text("export function Button() {}\n")
+    return project_root
+
+
+def _bridge_project_with_switchable_alias(project_root: Path) -> Path:
+    _write_json(
+        project_root / "tsconfig.json",
+        {
+            "compilerOptions": {
+                "target": "ES2022",
+                "module": "ESNext",
+                "moduleResolution": "Bundler",
+                "baseUrl": ".",
+                "paths": {"@ui/*": ["src/old/*"]},
+            },
+            "include": ["src/**/*"],
+        },
+    )
+    src = project_root / "src"
+    old = src / "old"
+    new = src / "new"
+    old.mkdir(parents=True)
+    new.mkdir(parents=True)
+    (src / "App.test.ts").write_text(
+        "import { Button } from '@ui/Button';\nButton();\n"
+    )
+    (old / "Button.ts").write_text("export function Button() {}\n")
+    (new / "Button.ts").write_text("export function Button() {}\n")
+    return project_root
+
+
+def _bridge_project_with_jsonc_extends_alias(project_root: Path) -> Path:
+    (project_root / "tsconfig.json").write_text(
+        """{
+  // The extending config itself uses JSONC syntax.
+  "extends": "./tsconfig.base.json",
+  "include": ["src/**/*"],
+}
+"""
+    )
+    (project_root / "tsconfig.base.json").write_text(
+        """{
+  // JSONC syntax is accepted by TypeScript config parsing.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": { "@ui/*": ["src/old/*"] },
+  },
+}
+"""
+    )
+    src = project_root / "src"
+    old = src / "old"
+    new = src / "new"
+    old.mkdir(parents=True)
+    new.mkdir(parents=True)
+    (src / "App.test.ts").write_text(
+        "import { Button } from '@ui/Button';\nButton();\n"
+    )
+    (old / "Button.ts").write_text("export function Button() {}\n")
+    (new / "Button.ts").write_text("export function Button() {}\n")
     return project_root
 
 

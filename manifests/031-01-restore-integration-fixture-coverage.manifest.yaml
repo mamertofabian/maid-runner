@@ -4,7 +4,6 @@ goal: "Restore full integration test suite by updating stale coverage fixtures"
 type: fix
 created: "2026-05-17"
 metadata:
-  status: draft
   tags:
     - integration-tests
     - behavioral-coverage

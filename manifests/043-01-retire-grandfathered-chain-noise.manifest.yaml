@@ -1,0 +1,65 @@
+schema: "2"
+goal: "Retire grandfathered supersession chain noise from normal MAID health checks"
+type: fix
+created: "2026-05-29"
+metadata:
+  tags:
+    - maid-workflow
+    - supersession
+    - validation-noise
+  priority: high
+description: |
+  The repository has a sealed `.maid/legacy-grandfathered.lock` for historical
+  supersession drops. Those drops are still auditable through the supersession
+  audit surface, but `maid validate --quiet` and `maid test` currently report
+  E111 informational chain diagnostics on every clean run.
+
+  Keep grandfathered drops visible through the explicit supersession audit API,
+  while removing E111 informational diagnostics from the normal
+  `ManifestChain.diagnostics()` health-check surface. Non-grandfathered
+  supersession drops and lock-file errors must continue to surface through
+  normal diagnostics.
+temptations:
+  - risk: "Do not remove supersession auditing or weaken non-grandfathered drop detection."
+    instead: "Filter only ErrorCode.GRANDFATHERED_SUPERSESSION from ManifestChain.diagnostics()."
+  - risk: "Do not hide grandfathered drops from the explicit audit surface."
+    instead: "Keep audit_supersession_artifacts() returning E111 entries so audit commands can count them."
+  - risk: "Do not change the legacy lock format or reseal historical entries."
+    instead: "Leave `.maid/legacy-grandfathered.lock` unchanged."
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+          description: "Return chain diagnostics for normal health checks while omitting sealed grandfathered supersession info entries."
+    - path: tests/core/test_chain.py
+      artifacts:
+        - kind: test_function
+          name: test_diagnostics_omits_grandfathered_supersession_infos_but_audit_keeps_them
+          source_scenario: "A sealed grandfather lock exempts a historical supersession drop."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "audit_supersession_artifacts reports the E111 entry, while diagnostics omits it from normal chain health."
+        - kind: test_function
+          name: test_diagnostics_keeps_non_grandfathered_supersession_drops
+          source_scenario: "A manifest supersedes another manifest and drops a public artifact without a grandfather lock."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "diagnostics still reports ARTIFACT_DROPPED_BY_SUPERSESSION so new drops remain visible."
+  read:
+    - .maid/legacy-grandfathered.lock
+    - tests/core/test_supersession_audit.py
+    - maid_runner/core/supersession_audit.py
+    - manifests/add-supersession-artifact-preservation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain.py tests/core/test_supersession_audit.py

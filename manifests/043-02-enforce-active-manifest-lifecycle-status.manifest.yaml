@@ -1,0 +1,244 @@
+schema: "2"
+goal: "Enforce truthful lifecycle metadata for active manifests"
+type: fix
+created: "2026-05-29"
+metadata:
+  tags:
+    - maid-workflow
+    - manifest-lifecycle
+    - validation-trust
+  priority: high
+description: |
+  Active manifests are promoted contracts, while draft and planning statuses
+  are inactive inventory signals for manifests under `manifests/drafts/`.
+  Remove stale `metadata.status` values from current active manifests as a
+  one-time hygiene cleanup, then add a chain diagnostic that rejects inactive
+  lifecycle statuses on future active manifests.
+
+  Draft-only lifecycle metadata remains valid in inactive directories. The
+  guard must make future stale active-manifest lifecycle metadata visible in
+  normal validation instead of relying on maintainer memory or a legacy
+  allow-list.
+temptations:
+  - risk: "Do not keep a permanent allow-list for historical stale metadata."
+    instead: "Perform the one-time active-manifest metadata cleanup and enforce the rule uniformly afterward."
+  - risk: "Do not invalidate draft inventory that uses `metadata.status: planning` under `manifests/drafts/`."
+    instead: "Apply the new lifecycle diagnostic only to active manifest trees, while preserving inactive-directory marking behavior."
+  - risk: "Do not weaken existing inactive-directory hiding detection."
+    instead: "Keep INACTIVE_MANIFEST_NOT_MARKED behavior unchanged and add a separate active-lifecycle diagnostic."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: ACTIVE_MANIFEST_INACTIVE_STATUS
+          of: ErrorCode
+          description: "Error code for active manifests that declare draft/planning/archive lifecycle metadata outside inactive inventory."
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: lifecycle_metadata_diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+          description: "Return diagnostics for active manifests that declare inactive lifecycle metadata statuses."
+        - kind: method
+          name: diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+          description: "Include active-manifest lifecycle metadata checks in normal chain diagnostics."
+    - path: maid_runner/core/_validate_all.py
+      artifacts:
+        - kind: function
+          name: _schema_chain_errors
+          args:
+            - name: chain
+              type: ManifestChain
+          returns: list[ValidationError]
+          description: "Return schema-mode chain diagnostics that include load, inactive-directory, and active lifecycle metadata errors."
+    - path: tests/core/test_manifest_chain_discovery.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_chain_reports_inactive_lifecycle_status_on_new_active_manifest
+          source_scenario: "A new active manifest in the root active tree declares metadata.status: planning."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain reports ACTIVE_MANIFEST_INACTIVE_STATUS through normal diagnostics."
+        - kind: test_function
+          name: test_inactive_directory_allows_lifecycle_status_metadata_marker
+          source_scenario: "A draft manifest under an inactive directory uses metadata.status: planning as its marker."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "Inactive manifest diagnostics remain clean and the draft is not loaded into the active chain."
+        - kind: test_function
+          name: test_selected_inactive_directory_root_allows_lifecycle_status_metadata
+          source_scenario: "A caller directly validates the drafts directory where a selected draft uses metadata.status: planning."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "ManifestChain treats the selected inactive root as draft validation context and returns no lifecycle diagnostics."
+    - path: tests/core/test_validate_schema_mode.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_engine_schema_mode_all_reports_inactive_active_lifecycle_status
+          source_scenario: "Schema-mode directory validation sees an active manifest with metadata.status: planning."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+          expected:
+            behavior: "Schema-mode validate_all reports ACTIVE_MANIFEST_INACTIVE_STATUS as a chain error."
+    - path: docs/plans/maid-runner-self-improvement-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _self_improvement_lifecycle_metadata_status
+          of: docs
+          type: markdown
+          description: "Backlog notes that mark the E111 noise item complete and route lifecycle metadata enforcement through 043-02."
+    - path: manifests/030-02-make-coherence-flag-fail-closed.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-03-reject-manifest-path-escapes.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-08-add-validate-run-tests-gate.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-09-add-worktree-scope-gate.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-10-add-maid-verify-done-gate.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/030-11-combine-validate-coherence-json.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/031-01-restore-integration-fixture-coverage.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/032-03-make-verify-strict-by-default.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/034-02-share-source-ast-across-validation-phases.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/034-03-cache-test-artifact-tables-across-manifests.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/035-01-characterize-validation-engine.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/041-02-batch-typescript-compiler-resolution.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/041-03-share-verify-validation-cache-scope.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+    - path: manifests/041-04-cache-ts-reexport-compiler-fallback.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _active_manifest_lifecycle_metadata_cleanup
+          of: manifest
+          description: "Removed stale metadata.status from the promoted active manifest."
+  read:
+    - docs/draft-manifest-workflow.md
+    - manifests/043-01-retire-grandfathered-chain-noise.manifest.yaml
+    - manifests/fix-manifest-dir-active-subdirectory-discovery.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest_chain_discovery.py tests/core/test_chain.py tests/core/test_validate_schema_mode.py

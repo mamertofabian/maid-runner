@@ -4,7 +4,6 @@ goal: "Require done-gate validate commands to run behavioral test files"
 type: fix
 created: "2026-05-17"
 metadata:
-  status: draft
   tags:
     - validate
     - verify

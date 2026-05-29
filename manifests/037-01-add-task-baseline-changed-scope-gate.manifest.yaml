@@ -4,7 +4,6 @@ goal: "Add a task-baseline changed-scope gate so files.read cannot hide producti
 type: fix
 created: "2026-05-20"
 metadata:
-  status: draft
   maid_task_base: main
   tags:
     - validation

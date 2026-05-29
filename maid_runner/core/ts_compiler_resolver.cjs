@@ -16,6 +16,8 @@ const SOURCE_EXTENSIONS = [
   ".cts",
 ];
 
+const IMPORT_RESOLUTION_PROJECT_CACHE = new Map();
+
 function main() {
   const raw = fs.readFileSync(0, "utf8");
   const request = JSON.parse(raw);
@@ -120,28 +122,12 @@ function findPackageJson(projectRoot) {
 }
 
 function loadProject(ts, projectRoot, extraRootName) {
-  const configPath = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
-  let options = {
-    allowJs: true,
-    jsx: ts.JsxEmit.ReactJSX,
-    moduleResolution: ts.ModuleResolutionKind.Node10,
-  };
-  let rootNames = [];
+  const projectConfig = readProjectConfig(ts, projectRoot);
+  const options = projectConfig.options;
+  let rootNames = projectConfig.rootNames;
 
-  if (configPath) {
-    const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
-    if (configFile.error) {
-      return { options, host: ts.createCompilerHost(options, true), program: null };
-    }
-    const parsed = ts.parseJsonConfigFileContent(
-      configFile.config,
-      ts.sys,
-      path.dirname(configPath),
-      undefined,
-      configPath
-    );
-    options = parsed.options;
-    rootNames = parsed.fileNames;
+  if (projectConfig.configError) {
+    return { options, host: ts.createCompilerHost(options, true), program: null };
   }
 
   if (extraRootName && !rootNames.includes(extraRootName)) {
@@ -153,6 +139,172 @@ function loadProject(ts, projectRoot, extraRootName) {
   return { options, host, program };
 }
 
+function loadImportResolutionProject(ts, projectRoot, importerFile) {
+  const cacheKey = importResolutionProjectCacheKey(ts, projectRoot, importerFile);
+  const cached = IMPORT_RESOLUTION_PROJECT_CACHE.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const projectConfig = readProjectConfig(ts, projectRoot);
+  const project = {
+    options: projectConfig.options,
+    host: ts.createCompilerHost(projectConfig.options, true),
+  };
+  IMPORT_RESOLUTION_PROJECT_CACHE.set(cacheKey, project);
+  return project;
+}
+
+function readProjectConfig(ts, projectRoot) {
+  const configPath = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
+  const defaultOptions = {
+    allowJs: true,
+    jsx: ts.JsxEmit.ReactJSX,
+    moduleResolution: ts.ModuleResolutionKind.Node10,
+  };
+
+  if (!configPath) {
+    return {
+      configPath: null,
+      options: defaultOptions,
+      rootNames: [],
+      configError: false,
+    };
+  }
+
+  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (configFile.error) {
+    return {
+      configPath,
+      options: defaultOptions,
+      rootNames: [],
+      configError: true,
+    };
+  }
+
+  const parsed = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    path.dirname(configPath),
+    undefined,
+    configPath
+  );
+  return {
+    configPath,
+    options: parsed.options,
+    rootNames: parsed.fileNames,
+    configError: false,
+  };
+}
+
+function importResolutionProjectCacheKey(ts, projectRoot, importerFile) {
+  const configPath = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
+  return JSON.stringify([
+    path.resolve(projectRoot),
+    configPath ? path.resolve(configPath) : "",
+    configPath ? projectConfigSignature(ts, projectRoot, configPath) : "no-config",
+    importerResolutionSignature(projectRoot, importerFile),
+  ]);
+}
+
+function projectConfigSignature(ts, projectRoot, configPath) {
+  const visited = new Set();
+  const signatures = [];
+
+  function visit(candidate) {
+    const resolved = path.resolve(candidate);
+    if (visited.has(resolved)) {
+      return;
+    }
+    visited.add(resolved);
+    signatures.push(fileContentSignature(resolved));
+
+    const configFile = ts.readConfigFile(resolved, ts.sys.readFile);
+    if (configFile.error || !configFile.config || !configFile.config.extends) {
+      return;
+    }
+
+    const extendedConfigs = Array.isArray(configFile.config.extends)
+      ? configFile.config.extends
+      : [configFile.config.extends];
+    for (const extendedConfig of extendedConfigs) {
+      if (typeof extendedConfig !== "string" || extendedConfig.length === 0) {
+        continue;
+      }
+      const extendedPath = resolveExtendsPath(projectRoot, resolved, extendedConfig);
+      if (extendedPath) {
+        visit(extendedPath);
+      } else {
+        signatures.push(`unresolved-extends:${extendedConfig}`);
+      }
+    }
+  }
+
+  visit(configPath);
+  return signatures.join("|");
+}
+
+function resolveExtendsPath(projectRoot, configPath, extendedConfig) {
+  if (extendedConfig.startsWith(".") || path.isAbsolute(extendedConfig)) {
+    const candidate = path.resolve(path.dirname(configPath), extendedConfig);
+    return withJsonExtension(candidate);
+  }
+
+  try {
+    const configRequire = moduleApi.createRequire(configPath);
+    return configRequire.resolve(extendedConfig);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function withJsonExtension(candidate) {
+  if (fs.existsSync(candidate)) {
+    return candidate;
+  }
+  if (path.extname(candidate) === "") {
+    const jsonCandidate = `${candidate}.json`;
+    if (fs.existsSync(jsonCandidate)) {
+      return jsonCandidate;
+    }
+  }
+  return candidate;
+}
+
+function importerResolutionSignature(projectRoot, importerFile) {
+  const importerPath = path.resolve(projectRoot, importerFile);
+  const packageJson = nearestPackageJson(projectRoot, path.dirname(importerPath));
+  return JSON.stringify([
+    path.relative(path.resolve(projectRoot), path.dirname(importerPath)),
+    packageJson ? fileContentSignature(packageJson) : "no-package-json",
+  ]);
+}
+
+function nearestPackageJson(projectRoot, startDir) {
+  const absoluteRoot = path.resolve(projectRoot);
+  let current = path.resolve(startDir);
+  while (isInsideOrEqual(absoluteRoot, current)) {
+    const candidate = path.join(current, "package.json");
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return null;
+}
+
+function fileContentSignature(fileName) {
+  try {
+    return `${path.resolve(fileName)}:${fs.readFileSync(fileName, "utf8")}`;
+  } catch (_error) {
+    return `${path.resolve(fileName)}:<missing>`;
+  }
+}
+
 function resolveImport(ts, projectRoot, request) {
   const specifier = String(request.specifier || "");
   const importerModule = String(request.importerModule || "");
@@ -161,7 +313,7 @@ function resolveImport(ts, projectRoot, request) {
   }
 
   const importerFile = moduleFileCandidate(projectRoot, importerModule);
-  const project = loadProject(ts, projectRoot, importerFile);
+  const project = loadImportResolutionProject(ts, projectRoot, importerFile);
   const resolved = ts.resolveModuleName(
     specifier,
     importerFile,
@@ -320,6 +472,10 @@ function isInsideProject(relativePath) {
     !relativePath.startsWith("..") &&
     !path.isAbsolute(relativePath)
   );
+}
+
+function isInsideOrEqual(root, candidate) {
+  return root === candidate || isInsideProject(path.relative(root, candidate));
 }
 
 function hasPathSegment(value, segment) {

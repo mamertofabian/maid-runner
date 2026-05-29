@@ -36,6 +36,48 @@ def test_executing_targets_reject_pytest_node_selector_by_default(tmp_path):
     assert allowed_paths == ["tests/test_gate.py"]
 
 
+def test_executing_targets_accept_uv_run_project_pytest_file(tmp_path):
+    test_file = tmp_path / "backend" / "tests" / "test_gate.py"
+    test_file.parent.mkdir(parents=True)
+    test_file.write_text("def test_gate():\n    assert True\n")
+
+    paths = targets.test_paths_from_executing_validate_command(
+        (
+            "uv",
+            "run",
+            "--project",
+            "backend",
+            "pytest",
+            "backend/tests/test_gate.py",
+            "-q",
+        ),
+        tmp_path,
+    )
+
+    assert paths == ["backend/tests/test_gate.py"]
+
+
+def test_executing_targets_reject_uv_run_directory_without_cwd_modeling(tmp_path):
+    test_file = tmp_path / "tests" / "test_gate.py"
+    test_file.parent.mkdir(parents=True)
+    test_file.write_text("def test_gate():\n    assert True\n")
+
+    paths = targets.test_paths_from_executing_validate_command(
+        (
+            "uv",
+            "run",
+            "--directory",
+            "backend",
+            "pytest",
+            "tests/test_gate.py",
+            "-q",
+        ),
+        tmp_path,
+    )
+
+    assert paths == []
+
+
 def test_command_target_coverage_maps_directory_target_to_file(tmp_path):
     (tmp_path / "tests" / "unit").mkdir(parents=True)
     (tmp_path / "tests" / "unit" / "test_gate.py").write_text(

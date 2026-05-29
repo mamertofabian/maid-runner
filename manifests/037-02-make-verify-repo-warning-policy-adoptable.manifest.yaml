@@ -4,7 +4,6 @@ goal: "Make maid verify adoptable for the repository while preserving strict beh
 type: fix
 created: "2026-05-20"
 metadata:
-  status: draft
   maid_task_base: main
   tags:
     - verify

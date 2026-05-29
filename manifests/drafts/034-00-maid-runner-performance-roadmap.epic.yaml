@@ -1,77 +1,36 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "MAID Runner performance and efficiency roadmap for validate, test, and verify"
+goal: "Archive consumed MAID Runner performance roadmap epic"
 type: refactor
-created: "2026-05-19"
+created: "2026-05-29"
 metadata:
-  status: planning
+  status: archived
   tags:
     - performance
     - efficiency
     - caching
     - parser-reuse
-    - parallelism
-  priority: high
+    - archive
+  priority: low
 description: |
-  Epic planning inventory for measurable speedups in `maid validate`,
-  `maid test`, and `maid verify` that preserve MAID's anti-gaming validation
-  contract. Findings are recorded in
-  docs/plans/maid-runner-performance-backlog.md.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `034-01` through `034-03`.
 
-  This epic must not be promoted or implemented directly. Promote one child
-  draft at a time so each speedup has focused equivalence and call-count tests,
-  a scoped implementation patch, measured before-and-after evidence, and an
-  implementation review.
-
-  Planned child order:
-  1. Cache the per-invocation ManifestChain so validate, coherence, file
-     tracking, and verify reuse a single load rather than rebuilding three to
-     five times per command.
-  2. Share parsed source ASTs between implementation and behavioral validation
-     phases so each tracked source file is parsed once per CLI invocation.
-  3. Cache test-file reads and parsed test-artifact tables across manifests in
-     the same CLI run so shared test files are not re-read per manifest.
-
-  Future waves (not in this draft batch): tree-sitter parser singletons,
-  inverted file-tracking index, single-build knowledge graph, opt-in
-  parallelism for independent per-manifest validation, and a content-hash
-  cache directory.
-
-  Speedups must satisfy the performance contract from the
-  `maid-runner-performance-optimization` skill: identical results, content-keyed
-  caches scoped to a CLI invocation, deterministic JSON output, and no silent
-  fallbacks.
-temptations:
-  - risk: "Do not weaken any anti-gaming check to make a path faster."
-    instead: "Add caching or memoization only where equivalence and invalidation tests prove the contract holds."
-  - risk: "Do not introduce process-wide or on-disk caches as the default."
-    instead: "Scope caches to the CLI invocation by default; gate cross-invocation caches behind explicit opt-in flags."
-  - risk: "Do not implement this epic as one broad rewrite of validate, chain, and test_runner."
-    instead: "Promote and implement one child draft at a time with measured before-and-after timings."
-  - risk: "Do not pursue micro-optimizations without measurement."
-    instead: "Downgrade any finding that cannot show a wall-time win on this repo's manifest set to the speculative section of the backlog."
+  The path is still read by active manifests as historical context, so it
+  remains stable as an archived pointer instead of being deleted. Current
+  performance priorities live in `docs/plans/maid-runner-performance-backlog.md`.
 files:
   edit:
-    - path: docs/plans/maid-runner-performance-backlog.md
+    - path: manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
       artifacts:
         - kind: attribute
-          name: _maid_runner_performance_roadmap
-          of: documentation
-          type: markdown
-          description: "Planning anchor for the validator and test-runner performance backlog."
+          name: _archived_performance_roadmap_epic
+          of: manifest
+          description: "Historical pointer for promoted child manifests 034-01 through 034-03."
   read:
-    - maid_runner/core/validate.py
-    - maid_runner/core/chain.py
-    - maid_runner/core/manifest.py
-    - maid_runner/core/_validation_test_artifacts.py
-    - maid_runner/core/test_runner.py
-    - maid_runner/validators/python.py
-    - maid_runner/validators/typescript.py
-    - maid_runner/graph/builder.py
-    - maid_runner/coherence/engine.py
-    - maid_runner/cli/commands/validate.py
-    - maid_runner/cli/commands/test.py
-    - maid_runner/cli/commands/verify.py
+    - docs/plans/maid-runner-performance-backlog.md
+    - manifests/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+    - manifests/034-02-share-source-ast-across-validation-phases.manifest.yaml
+    - manifests/034-03-cache-test-artifact-tables-across-manifests.manifest.yaml
 validate:
-  - uv run maid validate manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml --mode schema
+  - uv run maid validate manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml --mode schema --quiet

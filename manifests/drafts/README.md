@@ -22,9 +22,22 @@ Do not promote or implement epic drafts directly. Split them into smaller
 implementation-sized draft manifests, refine the behavioral tests, and promote
 one child draft at a time.
 
+Consumed epics that remain for historical context are marked with:
+
+```yaml
+# archive-kind: consumed-draft-epic
+metadata:
+  status: archived
+```
+
+Archived epic files are not live planning inventory. Keep their paths stable
+when active manifests still read them, and use their `read` lists only as
+pointers to the promoted child manifests or current specialist backlog.
+
 A draft is ready to promote when:
 
 - it is not marked as an epic planning draft;
+- it is not marked as archived inventory;
 - every declared public artifact has an exact signature or field type;
 - behavioral tests exist and exercise every declared production artifact;
 - the behavioral tests fail against the current implementation for the intended

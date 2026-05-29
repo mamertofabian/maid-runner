@@ -1,59 +1,36 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Post-030 MAID validate hardening roadmap for identity coverage, runnable tests, and strict verify"
+goal: "Archive consumed post-030 MAID validate hardening roadmap epic"
 type: fix
-created: "2026-05-17"
+created: "2026-05-29"
 metadata:
-  status: planning
+  status: archived
   tags:
     - validation
     - anti-gaming
     - fail-closed
     - verify
-  priority: critical
+    - archive
+  priority: low
 description: |
-  Epic planning inventory for closing the confirmed post-030 `maid validate`
-  and `maid verify` loopholes recorded in
-  docs/plans/maid-validate-hardening-backlog.md.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `032-01` through `032-03`.
 
-  This epic must not be promoted or implemented directly. Promote one child
-  draft at a time so each closure has its own behavioral tests,
-  implementation patch, validation evidence, and implementation review.
-
-  Planned child order:
-  1. Require identity-backed behavioral coverage for production artifacts.
-  2. Require `validate:` commands used by done gates to run behavioral tests.
-  3. Make `maid verify` strict by default.
-
-  The queue intentionally focuses on current, reproduced gaps rather than
-  re-planning the already promoted 030 hardening work.
-temptations:
-  - risk: "Do not re-open broad name-only coverage to keep legacy tests green."
-    instead: "Add identity-preserving positive cases and update affected tests/manifests deliberately."
-  - risk: "Do not treat a no-op command as a passing tests stage."
-    instead: "Require done-gate commands to target discovered behavioral test files through recognized test runners."
-  - risk: "Do not leave the automation-safe verify command permissive by default."
-    instead: "Make strict checks the default and provide any advisory mode as an explicit opt-out."
-  - risk: "Do not implement this epic as one broad validation rewrite."
-    instead: "Promote and implement one child draft at a time."
+  The file remains in `manifests/drafts/` only as a historical pointer. Current
+  validation-hardening priorities live in
+  `docs/plans/maid-validate-hardening-backlog.md`.
 files:
   edit:
-    - path: docs/plans/maid-validate-hardening-backlog.md
+    - path: manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml
       artifacts:
         - kind: attribute
-          name: _maid_validate_post_030_hardening_roadmap
-          of: documentation
-          type: markdown
-          description: "Planning anchor for the post-030 validator hardening queue."
+          name: _archived_post_030_hardening_roadmap_epic
+          of: manifest
+          description: "Historical pointer for promoted child manifests 032-01 through 032-03."
   read:
-    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
-    - manifests/030-08-add-validate-run-tests-gate.manifest.yaml
-    - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
-    - maid_runner/core/identity.py
-    - maid_runner/core/_validation_test_artifacts.py
-    - maid_runner/core/test_runner.py
-    - maid_runner/cli/commands/validate.py
-    - maid_runner/cli/commands/verify.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/032-01-require-identity-backed-behavioral-coverage.manifest.yaml
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
 validate:
-  - uv run maid validate manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml --mode schema
+  - uv run maid validate manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml --mode schema --quiet

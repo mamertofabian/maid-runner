@@ -1,0 +1,124 @@
+schema: "2"
+goal: "Allow brownfield frontend TypeScript API members to be narrowly contracted"
+type: fix
+created: "2026-05-28"
+description: |
+  Fix the runner limitations captured in the latest MAID bug report: valid
+  TypeScript import-type references inside generic call arguments must parse,
+  exported object-literal API members must be collectible as function artifacts,
+  tests that call a named imported API object's member must retain module
+  identity for behavioral coverage, and a first edit-only manifest for a
+  brownfield file must remain permissive under chain-backed validation.
+temptations:
+  - risk: "Do not silence TypeScript parse errors broadly."
+    instead: "Normalize only the valid import(\"module\").Type type-query form that the current tree-sitter grammar rejects."
+  - risk: "Do not treat every object-literal property as a module public function."
+    instead: "Collect function-valued properties only from object literals assigned to exported module-scope bindings."
+  - risk: "Do not weaken identity-backed coverage to name-only matching."
+    instead: "Attach the named imported object binding's module identity to member-access references."
+  - risk: "Do not disable strict chain validation for files created or snapshotted by prior manifests."
+    instead: "Keep strictness when a chain has a strict writable spec for the file, but allow extra public artifacts for edit-only brownfield chains."
+
+files:
+  create:
+    - path: tests/core/validation/test_frontend_brownfield_contracts.py
+      artifacts:
+        - kind: test_function
+          name: test_import_type_object_literal_api_members_are_collectible
+          source_scenario: "A TypeScript service exports an api object whose members are arrow functions, and an earlier member uses import('$lib/types/api.js').ExerciseAnalysis inside a generic fetchJson call."
+          actions:
+            - type: api_call
+              subject:
+                export: parse_typescript_source
+            - type: api_call
+              subject:
+                export: collect_implementation_artifacts
+          expected:
+            behavior: "The source parses without errors and the exported object-literal member is collected as a function artifact with its argument type."
+        - kind: test_function
+          name: test_named_imported_api_object_member_reference_keeps_module_identity
+          source_scenario: "A Vitest file imports { api } from a TypeScript service module and calls api.fitnessResetEnrollment."
+          actions:
+            - type: api_call
+              subject:
+                export: parse_typescript_source
+            - type: api_call
+              subject:
+                export: collect_behavioral_artifacts
+          expected:
+            behavior: "The behavioral collector emits a fitnessResetEnrollment access reference with the service module identity."
+        - kind: test_function
+          name: test_edit_only_manifest_chain_keeps_brownfield_files_permissive
+          source_scenario: "A chain contains only an edit-mode manifest for an existing Python file that also has unrelated public functions."
+          actions:
+            - type: api_call
+              subject:
+                export: ValidationEngine
+            - type: api_call
+              subject:
+                export: ImplementationFileValidator
+          expected:
+            behavior: "Implementation validation succeeds and does not report unexpected public artifacts for the unrelated existing function."
+  edit:
+    - path: maid_runner/validators/_typescript_parse.py
+      artifacts:
+        - kind: function
+          name: parse_typescript_source
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+            - name: ts_parser
+              type: Parser
+            - name: tsx_parser
+              type: Parser
+          returns: TypeScriptParseSession
+    - path: maid_runner/validators/_typescript_implementation.py
+      artifacts:
+        - kind: function
+          name: collect_implementation_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+          returns: list[FoundArtifact]
+    - path: maid_runner/validators/_typescript_behavioral.py
+      artifacts:
+        - kind: function
+          name: collect_behavioral_artifacts
+          args:
+            - name: root
+              type: Any
+            - name: source
+              type: bytes
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: list[FoundArtifact]
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: class
+          name: ImplementationFileValidator
+        - kind: method
+          name: validate_file_spec
+          of: ImplementationFileValidator
+          args:
+            - name: fs
+              type: FileSpec
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: list[ValidationError]
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/identity.py
+    - tests/core/validation/test_implementation_basics.py
+    - tests/core/validation/test_behavioral_coverage.py
+    - tests/core/validation/test_validate_all_chain.py
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_frontend_brownfield_contracts.py
+  - uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/validation/test_behavioral_coverage.py tests/core/validation/test_validate_all_chain.py tests/validators/test_typescript.py

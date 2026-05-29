@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-05-29
+
+### Added
+- **MAID Runner self-improvement skill** — Added a repo-local skill and backlog for synthesizing implementation-review findings, validation friction, and workflow lessons into scoped MAID improvement work.
+- **Brownfield TypeScript contract coverage** — Added behavioral coverage for frontend TypeScript contracts that exercise parser and implementation validation behavior in brownfield code.
+
+### Changed
+- **Manifest lifecycle enforcement** — Active manifests now require explicit lifecycle metadata, and consumed draft epics are archived out of the active planning queue.
+- **Roadmap maintenance** — Refreshed the self-improvement and performance backlog documents to reflect current validation, cleanup, and optimization priorities.
+
+### Fixed
+- **TypeScript compiler resolver cache state** — Compiler-backed import resolution now tracks project state needed for cache correctness across batched resolver sessions.
+- **Validation command integrity** — `uv run` commands with runner options are recognized correctly before the underlying test command is checked.
+- **Superseded manifest noise** — Retired grandfathered chain diagnostics that no longer apply to the active manifest lifecycle model.
+
 ## [2.13.0] - 2026-05-27
 
 ### Added
@@ -966,6 +981,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.14.0]: https://github.com/mamertofabian/maid-runner/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/mamertofabian/maid-runner/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/mamertofabian/maid-runner/compare/v2.11.0...v2.12.0
 [2.8.3]: https://github.com/mamertofabian/maid-runner/compare/v2.8.2...v2.8.3

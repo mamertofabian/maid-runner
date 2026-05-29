@@ -1,0 +1,98 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Recognize uv run options in validate-command integrity"
+type: fix
+created: "2026-05-29"
+metadata:
+  tags:
+    - validation
+    - command-integrity
+    - uv
+    - pytest
+  priority: high
+description: |
+  A reported arch-spec manifest used a valid command:
+
+  `uv run --project backend pytest backend/tests/services/test_prompt_engineering.py -q`
+
+  The command executes the declared pytest file, but MAID 2.13.0 reported
+  E230 because command-integrity parsing only unwraps `uv run <runner>` and
+  does not skip uv's own run options before looking for the underlying test
+  runner. Recognize bounded, non-cwd-changing uv run options that appear before
+  the runner while preserving fail-closed behavior for unknown wrappers,
+  cwd-changing wrappers, and non-executing or selector-only test-runner modes.
+temptations:
+  - risk: "Do not accept arbitrary unknown uv options by blindly skipping every dash-prefixed token."
+    instead: "Skip only known uv run options and their required values before recursively parsing the inner runner."
+  - risk: "Do not treat uv's --project value as a test target."
+    instead: "Strip uv wrapper options before both runner detection and target scanning."
+  - risk: "Do not weaken selector, collect-only, or help-mode rejection."
+    instead: "Delegate to the existing executing-target checks after the uv wrapper is unwrapped."
+  - risk: "Do not accept uv options that change the command working directory without modeling their path semantics."
+    instead: "Keep cwd-changing uv wrappers fail-closed until command target parsing can account for the changed root."
+files:
+  edit:
+    - path: maid_runner/core/_test_runner_invocation.py
+      artifacts:
+        - kind: function
+          name: _test_runner_invocation
+          source_scenario: "A validate command runs pytest through uv with a uv --project option before the runner."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_invocation
+          expected:
+            behavior: "The invocation parser identifies pytest and passes pytest's own args to existing integrity checks."
+        - kind: function
+          name: _test_runner_target_scan_segment
+          source_scenario: "A validate command scans test targets after uv run wrapper options."
+          actions:
+            - type: api_call
+              subject:
+                export: _test_runner_target_scan_segment
+          expected:
+            behavior: "Target scanning ignores uv wrapper options and still sees the pytest file target."
+    - path: tests/core/validation/test_test_command_targets.py
+      artifacts:
+        - kind: test_function
+          name: test_executing_targets_accept_uv_run_project_pytest_file
+          source_scenario: "A validate command uses `uv run --project backend pytest backend/tests/test_gate.py -q`."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_executing_validate_command
+          expected:
+            behavior: "The helper reports the declared pytest file as an executing test target."
+        - kind: test_function
+          name: test_executing_targets_reject_uv_run_directory_without_cwd_modeling
+          source_scenario: "A validate command uses the cwd-changing `uv run --directory backend` wrapper."
+          actions:
+            - type: api_call
+              subject:
+                export: test_paths_from_executing_validate_command
+          expected:
+            behavior: "The helper returns no executing test target until uv directory cwd semantics are modeled explicitly."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_command_integrity_accepts_uv_run_project_pytest_file
+          source_scenario: "A manifest reads a behavioral pytest file and validates it through `uv run --project backend pytest <file> -q`."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns no E230 error because the command runs the discovered behavioral test file."
+    - path: docs/plans/maid-runner-self-improvement-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _self_improvement_043_05_uv_run_command_integrity_status
+          of: documentation
+          type: markdown
+          description: "Records the bug-report-driven validate-command integrity follow-up closed by 043-05."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_targets.py tests/cli/test_validate_cmd.py
+  - uv run maid validate manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml --mode schema --quiet

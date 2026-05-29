@@ -20,6 +20,73 @@ _DJANGO_TEST_RUNNER = "django"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
 _PACKAGE_RUNNER_CWD_VALUE_FLAGS = frozenset({"-C", "--cwd", "--dir", "--prefix"})
+_UV_RUN_VALUE_FLAGS = frozenset(
+    {
+        "--config-file",
+        "--extra-index-url",
+        "--find-links",
+        "--group",
+        "--index",
+        "--index-strategy",
+        "--index-url",
+        "--keyring-provider",
+        "--link-mode",
+        "--no-extra",
+        "--no-group",
+        "--package",
+        "--prerelease",
+        "--project",
+        "--python",
+        "--python-platform",
+        "--resolution",
+        "--with",
+        "--with-editable",
+        "--with-requirements",
+        "--exclude-newer",
+        "--extra",
+        "--refresh-package",
+        "--reinstall-package",
+        "-p",
+    }
+)
+_UV_RUN_STANDALONE_FLAGS = frozenset(
+    {
+        "--active",
+        "--all-extras",
+        "--all-groups",
+        "--all-packages",
+        "--compile-bytecode",
+        "--dev",
+        "--exact",
+        "--frozen",
+        "--isolated",
+        "--locked",
+        "--managed-python",
+        "--module",
+        "--native-tls",
+        "--no-build",
+        "--no-build-isolation",
+        "--no-cache",
+        "--no-config",
+        "--no-dev",
+        "--no-editable",
+        "--no-index",
+        "--no-managed-python",
+        "--no-project",
+        "--no-python-downloads",
+        "--no-sources",
+        "--no-sync",
+        "--offline",
+        "--quiet",
+        "--refresh",
+        "--reinstall",
+        "--show-resolution",
+        "--system",
+        "--verbose",
+        "-q",
+        "-v",
+    }
+)
 _DJANGO_TEST_RUNNER_VALUE_FLAGS = frozenset(
     {
         "-p",
@@ -373,7 +440,10 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
     command = _command_name(parts[0])
 
     if command == "uv" and len(parts) >= 3 and parts[1] == "run":
-        return _test_runner_invocation(parts[2:])
+        inner_command = _uv_run_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_invocation(inner_command)
+        return None
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
         return _test_runner_invocation(parts[2:])
@@ -443,7 +513,10 @@ def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
     command = _command_name(parts[0])
 
     if command == "uv" and len(parts) >= 3 and parts[1] == "run":
-        return _test_runner_target_scan_segment(parts[2:])
+        inner_command = _uv_run_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_target_scan_segment(inner_command)
+        return parts
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
         return _test_runner_target_scan_segment(parts[2:])
@@ -494,6 +567,41 @@ def _package_runner_inner_command(
         return [*preserved_cwd_options, *parts[index:]]
 
     return None
+
+
+def _uv_run_inner_command(parts: list[str]) -> list[str] | None:
+    if len(parts) < 3 or parts[1] != "run":
+        return None
+
+    index = 2
+    while index < len(parts):
+        part = parts[index]
+        if part == "--":
+            return parts[index + 1 :] or None
+        if _is_attached_uv_run_value_option(part):
+            index += 1
+            continue
+        if part in _UV_RUN_VALUE_FLAGS:
+            if index + 1 >= len(parts) or parts[index + 1].startswith("-"):
+                return None
+            index += 2
+            continue
+        if part in _UV_RUN_STANDALONE_FLAGS:
+            index += 1
+            continue
+        if part.startswith("-"):
+            return None
+        return parts[index:]
+
+    return None
+
+
+def _is_attached_uv_run_value_option(part: str) -> bool:
+    return any(
+        part.startswith(f"{flag}=")
+        for flag in _UV_RUN_VALUE_FLAGS
+        if flag.startswith("--")
+    )
 
 
 def _django_test_args_after_subcommand(parts: list[str]) -> list[str] | None:

@@ -4,7 +4,6 @@ goal: "Reject manifest file paths that escape the project root"
 type: fix
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - manifest
     - path-safety

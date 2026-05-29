@@ -1804,6 +1804,24 @@ class TestCmdValidateSingleManifest:
 
         assert errors == []
 
+    def test_validate_command_integrity_accepts_uv_run_project_pytest_file(
+        self, tmp_path
+    ):
+        test_path = "backend/tests/test_gate.py"
+        manifest_path = _write_run_tests_project(
+            tmp_path,
+            "uv-run-project-pytest-file",
+            f"uv run --project backend pytest {test_path} -q",
+            test_path=test_path,
+        )
+
+        errors = validate_manifest_test_commands(
+            load_manifest(manifest_path),
+            tmp_path,
+        )
+
+        assert errors == []
+
     def test_validate_run_tests_json_includes_test_result(self, tmp_path, capsys):
         from maid_runner.cli.commands._main import main
 

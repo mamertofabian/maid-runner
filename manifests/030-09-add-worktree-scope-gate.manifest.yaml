@@ -4,7 +4,6 @@ goal: "Add a worktree scope gate that rejects changed production files outside w
 type: feature
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - worktree
     - manifest-scope

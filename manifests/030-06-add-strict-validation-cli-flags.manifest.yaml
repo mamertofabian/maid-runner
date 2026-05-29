@@ -4,7 +4,6 @@ goal: "Expose assertion, stub, and warning-failure checks through strict validat
 type: feature
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - cli
     - strict-mode

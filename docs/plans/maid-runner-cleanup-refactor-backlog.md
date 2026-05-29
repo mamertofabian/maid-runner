@@ -30,46 +30,57 @@ workflow.
 
 ## Cost Surface
 
-Module size landscape (production code only):
+Module size landscape (production code only), refreshed on 2026-05-29:
 
 | Module | Lines |
 |---|---|
 | `maid_runner/validators/python.py` | 2051 |
-| `maid_runner/core/validate.py` | 1212 |
-| `maid_runner/validators/_typescript_implementation.py` | 1186 |
-| `maid_runner/validators/_typescript_behavioral.py` | 1096 |
-| `maid_runner/core/test_runner.py` | 984 |
-| `maid_runner/core/_validation_test_artifacts.py` | 813 |
+| `maid_runner/validators/_typescript_implementation.py` | 1264 |
+| `maid_runner/validators/_typescript_behavioral.py` | 1132 |
 | `maid_runner/cli/commands/_format.py` | 769 |
+| `maid_runner/core/chain.py` | 742 |
 | `maid_runner/graph/query.py` | 726 |
+| `maid_runner/core/_ts_export_scanner.py` | 674 |
+| `maid_runner/core/_validation_test_artifacts.py` | 664 |
+| `maid_runner/core/manifest.py` | 658 |
+| `maid_runner/core/validate.py` | 592 |
 
-Manifest counts: 184 active, 3 drafts (before 034 batch). Test count: 73.
+Manifest count: 277 active or draft manifest files. Test file count: 110.
 
 ## Confirmed Cleanup Targets
 
 ### 1. Oversized methods in `validate.py`
 
-`maid_runner/core/validate.py` carries five methods each between 107 and 160
-lines that mix orchestration, error construction, and flow-control branches.
-These are the highest-leverage split candidates in the codebase.
+Status: closed by the later `038` extraction wave and `039-01`.
+
+The original audit found five oversized methods in `maid_runner/core/validate.py`.
+Current code no longer matches that target. The public `ValidationEngine`
+methods now mostly delegate to focused helper modules:
 
 | Method | Line | Approx length |
 |---|---|---|
-| `ValidationEngine.validate_removed_artifacts` | 701 | 160 |
-| `ValidationEngine.validate_all` | 226 | 136 |
-| `ValidationEngine.validate` | 115 | 111 |
-| `ValidationEngine._check_test_coverage` | 542 | 110 |
-| `ValidationEngine.validate_behavioral` | 362 | 107 |
+| `ValidationEngine._validate` | 135 | 109 |
+| `ValidationEngine.validate_acceptance` | 316 | 31 |
+| `ValidationEngine.validate_all` | 245 | 30 |
+| `ValidationEngine.validate` | 104 | 30 |
+| `ValidationEngine.validate_implementation` | 399 | 18 |
+| `ValidationEngine.validate_behavioral` | 301 | 14 |
+| `ValidationEngine.validate_removed_artifacts` | 418 | 14 |
 
-Each method has multiple early-return branches and inline error construction
-that obscures the orchestration intent. Splitting into named guard-clause
-helpers improves readability and lowers the cost of future hardening waves,
-provided characterization tests lock the existing error codes, severities,
-JSON output, and warning shapes first.
+Do not create the previously suggested
+`043-05-split-validation-engine-removed-artifacts.manifest.yaml` without a
+fresh audit. The current `validate_removed_artifacts` wrapper is already thin
+and delegates to `maid_runner/core/_removed_artifacts.py`.
+
+The remaining `ValidationEngine._validate` method is the only still-large
+method in this file. It may become a future refactor target, but it needs a
+fresh characterization review because it handles public `validate(...)` result
+assembly, path/schema load failures, chain diagnostics, acceptance validation,
+warning splitting, and duration measurement.
 
 **Engine**: `safe-refactor`.
-**Closure shape**: characterize first, then extract guard-clause helpers
-within the same module. No new public artifacts.
+**Closure shape**: closed for the old target. Any new target must be based on
+current code evidence and scoped in a new draft.
 
 ### 2. Duplicated parse-error wrapping across validators
 
@@ -141,18 +152,18 @@ implementation and do not touch any artifact declared by an active manifest.
 
 Recommended order so each refactor lands with characterization first:
 
-1. Characterize `ValidationEngine` orchestration paths so the existing error
-   codes, severities, JSON output, and warning shape are locked down before
-   any extraction.
-2. Extract the shared parse-error wrapping helper on `BaseValidator` and
-   route Python and TypeScript validators through it.
-3. Split `validate_removed_artifacts` into named guard-clause helpers.
-4. Split `validate_all` into named guard-clause helpers.
-5. Split `validate`, `_check_test_coverage`, and `validate_behavioral`
-   similarly, one at a time, with the characterization suite re-run after
-   each split.
+1. Done: characterize `ValidationEngine` orchestration paths via `035-01`.
+2. Done: extract shared parse-error wrapping via `035-02`.
+3. Done: extract `validate_removed_artifacts` policy via `038-11`.
+4. Done: extract `validate_all`, behavioral validation, implementation
+   validation, and implementation coverage helpers through the 038 wave.
+5. Next fresh cleanup work should start with a new audit of current large
+   modules such as `validators/python.py`, TypeScript validator internals,
+   `_format.py`, `chain.py`, or the remaining `ValidationEngine._validate`
+   method.
 
-The 035 draft queue covers items 1 and 2 as the seed batch.
+The 035 draft queue covered items 1 and 2 as the seed batch; later 038/039
+work continued the extraction.
 
 ## Suggested Acceptance Criteria
 
@@ -166,7 +177,11 @@ The 035 draft queue covers items 1 and 2 as the seed batch.
 
 ## Verification Notes
 
-Audit performed against the worktree at
+Original audit performed against the worktree at
 `.claude/worktrees/maid-runner-performance-optimization` based on HEAD
-`c5ba688`. Re-run the probes if the manifest set or the listed modules have
-materially changed.
+`c5ba688`.
+
+2026-05-29 refresh: current `maid_runner/core/validate.py` is 592 lines, the
+old `validate_removed_artifacts` and `validate_all` split targets are already
+thin wrappers, and future cleanup drafts should be selected from current code
+evidence rather than this historical method-size table.
