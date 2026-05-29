@@ -35,6 +35,28 @@ maid verify --keep-going --no-changed-scope --advisory --json
 keeping schema, behavioral, implementation, coherence, file tracking, worktree
 scope when applicable, and test stages.
 
+## Post-043 Timing Summary
+
+Measured on 2026-05-29 after `043-04` landed.
+
+| Project | Command | Wall time | Result | Notes |
+| --- | --- | ---: | --- | --- |
+| maid-runner | `uv run maid validate --mode schema --quiet` | 1.56s | pass | 281 active manifests. |
+| maid-runner | `uv run maid validate --mode behavioral --quiet` | 3.32s | pass | Strict assertion cache work is holding. |
+| maid-runner | `uv run maid validate --mode implementation --quiet` | 3.53s | pass | Source artifact caches are holding. |
+| maid-runner | `uv run maid verify --keep-going --json` | 43.05s | pass | Tests stage was 37.20s of 42.89s JSON-reported duration. |
+| maid-runner | `uv run maid test --json` | 36.85s | pass | 28 command executions after batching and pruning; one batched pytest run took 23.72s. |
+| tower-recall | `maid validate --mode behavioral --quiet` via local runner | 3.76s | pass | Down from the post-041 19.57s TypeScript hotspot. |
+| tower-recall | `maid validate --mode implementation --quiet` via local runner | 3.80s | pass | Comparable to implementation timing after prior cache work. |
+| tower-recall | `maid verify --keep-going --no-changed-scope --advisory --json` via local runner | 25.25s | failed | Current project file-tracking failure; tests stage still passed and took 17.70s. |
+| tower-recall | `maid test --json` via local runner | 16.75s | pass | Five serial command groups. |
+| tower-recall | Same five `maid test` commands launched concurrently | 7.26s | pass | Confirms opt-in parallel command execution can reduce test-stage wall time. |
+
+The refreshed measurements show the previous TypeScript compiler-resolution
+hotspot is closed enough to stop planning more TypeScript-cache work for now.
+The remaining measurable MAID-runner-side opportunity is the `maid test` stage:
+after safe batching and pruning, independent command groups still run serially.
+
 ## Post-041 Timing Summary
 
 Measured on 2026-05-29 after `041-01` through `041-04` landed. Commands used
@@ -202,6 +224,52 @@ Closure shape:
 - Preserve existing fail-closed semantics when TypeScript is missing, config
   parsing fails, the bridge times out, or a request returns malformed JSON.
 
+Status: closed by `043-04-cache-typescript-compiler-project-for-import-resolution`.
+
+Current evidence: Tower Recall strict behavioral validation is now 3.76s, down
+from the post-041 19.134s and the pre-041 46.356s. Do not create more
+TypeScript-resolution performance work without a fresh profile showing a new
+dominant TypeScript bridge cost.
+
+### 5. `maid test` serializes independent command groups after batching
+
+Files and functions:
+
+- `maid_runner/core/test_runner.py::run_tests`
+- `maid_runner/core/test_runner.py::_run_implementation_commands`
+- `maid_runner/core/_test_command_execution.py::_run_test_command`
+- `maid_runner/cli/commands/_main.py::_register_test_parser`
+- `maid_runner/cli/commands/test.py::cmd_test`
+- `maid_runner/cli/commands/verify.py::_tests_stage`
+
+Evidence:
+
+- MAID Runner `maid verify --keep-going --json` passed in 43.05s, with the
+  tests stage accounting for 37.20s.
+- MAID Runner `maid test --json` passed in 36.85s after existing batching
+  reduced the run to 28 command executions. The largest batched pytest command
+  took 23.72s, but remaining independent commands still ran serially.
+- Tower Recall `maid test --json` passed in 16.75s with five command groups:
+  batched Vitest 2.27s, `pnpm check` 5.59s, `pnpm lint` 4.73s,
+  `pnpm format:check` 3.68s, and one Python pytest command 0.14s.
+- Launching those same five Tower Recall commands concurrently passed in
+  7.26s. That is a 57% wall-time reduction for the test stage without changing
+  the command set or exit status.
+
+Closure shape:
+
+- Add an opt-in `maid test --jobs N` and matching `maid verify --test-jobs N`
+  path for independent implementation command groups after existing
+  de-duplication, pruning, and pytest batching.
+- Preserve default serial execution and fail-fast semantics; either disable
+  parallelism when fail-fast is active or document and test a deterministic
+  policy that does not hide the first failing command.
+- Preserve output determinism by returning `BatchTestResult.results` in the
+  same command order the serial runner would have produced, regardless of
+  completion order.
+- Keep cached in-process `maid validate` command reuse serial unless the
+  implementation isolates per-worker validation caches safely.
+
 ## Speculative Ideas
 
 - Opt-in parallel validation can help only after the caching work above. Running
@@ -226,8 +294,12 @@ Completed:
 
 Next draft:
 
-- None. Re-benchmark Tower Recall-style TypeScript behavioral validation
-  before creating the next performance draft.
+- `046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`
+
+Future draft candidates:
+
+- None for TypeScript validation until a fresh profile shows a new dominant
+  TypeScript bridge cost.
 
 ## Suggested Acceptance Criteria
 
@@ -237,6 +309,9 @@ Next draft:
 - CJS bridge tests prove import resolution does not construct a TypeScript
   program per import request when a compiler host is enough.
 - Cache invalidation tests cover tsconfig and importer root changes.
+- `maid test --jobs N` proves the same commands and exit statuses are reported
+  in deterministic result order, with deterministic overlap instrumentation
+  proving eligible independent command groups can run concurrently.
 - `maid verify --json` remains deterministic except for duration fields.
 - No optimization weakens schema, file-tracking, worktree-scope, coherence, or
   validate-command integrity checks.

@@ -1,0 +1,466 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Parallelize independent maid test command groups behind an explicit jobs flag"
+type: refactor
+created: "2026-05-29"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - test-runner
+    - parallelism
+    - cli
+  priority: high
+description: |
+  `maid test` already de-duplicates commands, prunes broad pytest targets, and
+  batches compatible pytest commands. Fresh timing shows the remaining test
+  stage is still serial across independent command groups. Tower Recall
+  `maid test --json` passed in 16.75s, while launching the same five command
+  groups concurrently passed in 7.26s.
+
+  Add opt-in parallelism for independent implementation command groups after
+  existing integrity checks, de-duplication, pruning, and pytest batching. The
+  serial behavior remains the default and fail-fast behavior remains stable.
+temptations:
+  - risk: "Do not change the default `maid test` or `maid verify` resource profile."
+    instead: "Expose explicit jobs flags and keep default execution serial."
+  - risk: "Do not report results in worker completion order."
+    instead: "Preserve the same `BatchTestResult.results` ordering that the serial command list would have produced."
+  - risk: "Do not run fail-fast test execution in parallel and then claim it stopped early."
+    instead: "Keep fail-fast on the serial path unless the implementation adds a tested deterministic cancellation policy."
+  - risk: "Do not share the mutable cached `maid validate` execution engine across threads."
+    instead: "Keep cached `maid validate` command groups serial or give each worker an isolated cache with explicit tests."
+  - risk: "Do not skip validate-command integrity, command de-duplication, pytest pruning, or batching before parallel scheduling."
+    instead: "Build the same post-batching command list first, then schedule only the independent tail."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - manifests/045-02-extract-test-runner-stream-orchestration.manifest.yaml
+    - maid_runner/core/_maid_validate_command_cache.py
+    - maid_runner/core/_test_command_batching.py
+    - tests/core/test_test_runner.py
+    - tests/cli/test_main.py
+    - tests/cli/test_test_cmd.py
+    - tests/cli/test_verify_cmd.py
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: run_tests
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: fail_fast
+              type: bool
+            - name: project_root
+              type: Union[str, Path]
+            - name: batch
+              type: bool | None
+              default: None
+            - name: jobs
+              type: int
+              default: "1"
+          returns: BatchTestResult
+          source_scenario: "`maid test --jobs 3` runs a manifest set with independent post-batching implementation command groups."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "The same command set is executed as the serial path, successful and failing results are counted identically, and returned results are ordered deterministically."
+        - kind: function
+          name: _run_tests_cached
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: "'manifests/'"
+            - name: fail_fast
+              type: bool
+              default: "False"
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+            - name: batch
+              type: bool | None
+              default: None
+            - name: jobs
+              type: int
+              default: "1"
+          returns: BatchTestResult
+          source_scenario: "The cached manifest-chain test runner receives an explicit jobs value from the public runner."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_tests_cached
+          expected:
+            behavior: "Default jobs remains serial and explicit jobs is forwarded into implementation command execution without changing preflight diagnostics."
+        - kind: function
+          name: _run_implementation_commands
+          args:
+            - name: commands
+              type: list[tuple[tuple[str, ...], str]]
+            - name: project_root
+              type: Path
+            - name: batch
+              type: bool | None
+            - name: fail_fast
+              type: bool
+            - name: chain_errors
+              type: list[ValidationError]
+            - name: previous_results
+              type: list[TestRunResult]
+            - name: previous_passed
+              type: int
+            - name: previous_failed
+              type: int
+            - name: jobs
+              type: int
+              default: "1"
+          returns: tuple[list[TestRunResult], int, int, BatchTestResult | None]
+          source_scenario: "Implementation commands include a compatible batched external group, non-batched external commands, and cached `maid validate` commands after existing batching and pruning."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_implementation_commands
+          expected:
+            behavior: "When jobs is greater than one and fail-fast is false, independent external command groups may run concurrently while cached validation commands preserve serial cache behavior; no command is duplicated or skipped, pass/fail counts match serial execution, and global results keep serial-equivalent order."
+        - kind: function
+          name: _run_parallel_test_commands
+          args:
+            - name: commands
+              type: list[tuple[tuple[str, ...], str]]
+            - name: project_root
+              type: Path
+            - name: jobs
+              type: int
+          returns: list[TestRunResult]
+          source_scenario: "Several independent external commands have no shared in-process cache dependency."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_parallel_test_commands
+          expected:
+            behavior: "Commands execute with at most the requested worker count and returned results match input order rather than completion order."
+        - kind: function
+          name: _positive_jobs_arg
+          args:
+            - name: value
+              type: str
+          returns: int
+          source_scenario: "A CLI jobs flag receives a user-provided worker count."
+          actions:
+            - type: api_call
+              subject:
+                function: _positive_jobs_arg
+          expected:
+            behavior: "Positive integers are accepted and zero, negative, and non-integer values fail parser validation before command execution."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: _register_test_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          source_scenario: "A user asks `maid test` to run independent command groups in parallel."
+          actions:
+            - type: api_call
+              subject:
+                function: _register_test_parser
+          expected:
+            behavior: "The parser accepts the explicit jobs value and leaves the default serial behavior unchanged."
+        - kind: function
+          name: _register_verify_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          source_scenario: "A user asks the full verify gate to use parallel test execution only for the tests stage."
+          actions:
+            - type: api_call
+              subject:
+                function: _register_verify_parser
+          expected:
+            behavior: "The parser accepts the explicit tests-stage jobs value without changing validation, coherence, file-tracking, or scope stages."
+    - path: maid_runner/cli/commands/test.py
+      artifacts:
+        - kind: function
+          name: cmd_test
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid test --jobs 2 --json` succeeds on independent command groups."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_test
+          expected:
+            behavior: "The command passes the requested jobs value into `run_tests` and JSON output remains schema-compatible apart from duration fields."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid verify --test-jobs 4 --json` reaches the command handler."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_verify
+          expected:
+            behavior: "The handler forwards the requested tests-stage jobs value into `_run_verify` without changing earlier verification options."
+        - kind: function
+          name: _run_verify
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+            - name: allow_empty
+              type: bool
+            - name: fail_fast
+              type: bool
+            - name: check_assertions
+              type: bool
+            - name: check_stubs
+              type: bool
+            - name: fail_on_warnings
+              type: bool
+            - name: require_worktree_scope
+              type: bool
+            - name: require_changed_scope
+              type: bool
+            - name: since
+              type: str | None
+            - name: base_ref
+              type: str | None
+            - name: include_tests
+              type: bool
+            - name: test_jobs
+              type: int
+              default: "1"
+          returns: VerificationResult
+          source_scenario: "`maid verify --test-jobs 4` reaches the tests stage after successful validation gates."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_verify
+          expected:
+            behavior: "Only the tests stage receives the requested jobs value; earlier verification stages keep their existing behavior."
+        - kind: function
+          name: _run_verify_cached
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+            - name: allow_empty
+              type: bool
+              default: "False"
+            - name: fail_fast
+              type: bool
+              default: "True"
+            - name: check_assertions
+              type: bool
+              default: "True"
+            - name: check_stubs
+              type: bool
+              default: "True"
+            - name: fail_on_warnings
+              type: bool
+              default: "True"
+            - name: require_worktree_scope
+              type: bool
+              default: "False"
+            - name: require_changed_scope
+              type: bool
+              default: "False"
+            - name: since
+              type: str | None
+              default: None
+            - name: base_ref
+              type: str | None
+              default: None
+            - name: include_tests
+              type: bool
+              default: "False"
+            - name: test_jobs
+              type: int
+              default: "1"
+          returns: VerificationResult
+          source_scenario: "The cached verify orchestration reaches the tests stage with explicit test jobs."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_verify_cached
+          expected:
+            behavior: "The jobs value is passed only to `_tests_stage`; validation cache scope and earlier stages remain unchanged."
+        - kind: function
+          name: _tests_stage
+          args:
+            - name: root
+              type: Path
+            - name: manifest_dir
+              type: str
+            - name: fail_fast
+              type: bool
+            - name: test_jobs
+              type: int
+              default: "1"
+          returns: VerificationStageResult
+          source_scenario: "The verify tests stage runs independent implementation commands with explicit parallelism."
+          actions:
+            - type: api_call
+              subject:
+                function: _tests_stage
+          expected:
+            behavior: "The stage reports the same success, failure counts, chain errors, and deterministic result order as serial execution."
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_run_tests_jobs_parallelizes_independent_implementation_commands
+          source_scenario: "Three independent non-pytest implementation commands are runnable after integrity preflight."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "A barrier/event-based assertion that cannot pass under serial execution proves at least two eligible commands are in flight when jobs is greater than one."
+        - kind: test_function
+          name: test_run_tests_jobs_preserves_serial_result_order_for_parallel_completions
+          source_scenario: "A later command finishes before an earlier command."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "The returned `BatchTestResult.results` order still matches the serial command order."
+        - kind: test_function
+          name: test_run_tests_jobs_mixed_parallel_and_serial_only_commands_match_serial_equivalence
+          source_scenario: "The implementation command list contains a batched external command, non-batched external commands, a cached `maid validate` command, and one failing external command."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "The parallel run executes exactly the serial-equivalent command list with no duplicates or omissions, reports the same pass/fail counts and exit statuses, preserves global result order, and keeps cached `maid validate` execution out of the shared worker pool."
+        - kind: test_function
+          name: test_run_tests_jobs_keeps_fail_fast_serial
+          source_scenario: "Fail-fast is requested with jobs greater than one."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "The first failing implementation command stops later commands exactly as the current serial path does."
+        - kind: test_function
+          name: test_run_tests_jobs_default_remains_serial
+          source_scenario: "A caller omits the jobs argument."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "Only one implementation command is in flight at a time, preserving existing default behavior."
+        - kind: test_function
+          name: test_run_tests_jobs_keeps_cached_maid_validate_commands_serial
+          source_scenario: "The command list includes cached `maid validate` commands and independent external commands."
+          actions:
+            - type: api_call
+              subject:
+                function: run_tests
+          expected:
+            behavior: "Cached validation commands do not share mutable in-process cache state across worker threads."
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_test_parser_accepts_jobs_option
+          source_scenario: "A user invokes the parser with `maid test --jobs 4`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parsed namespace contains jobs=4 and existing batch flags still parse."
+        - kind: test_function
+          name: test_test_parser_rejects_invalid_jobs_option
+          source_scenario: "A user invokes the parser with zero, negative, and non-integer jobs values."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser rejects invalid jobs values before command execution."
+    - path: tests/cli/test_test_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_test_forwards_jobs_to_run_tests
+          source_scenario: "`cmd_test` receives parsed args with jobs=3."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_test
+          expected:
+            behavior: "`cmd_test` calls `run_tests` with jobs=3 and returns success based on the batch result."
+        - kind: test_function
+          name: test_cmd_test_default_jobs_remains_serial
+          source_scenario: "`cmd_test` receives parsed args without an explicit jobs attribute from older callers."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_test
+          expected:
+            behavior: "`cmd_test` calls `run_tests` with jobs=1 so existing invocations remain serial."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_parser_accepts_test_jobs_option
+          source_scenario: "A user invokes the parser with `maid verify --test-jobs 4`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parsed namespace contains test_jobs=4 and verify stage flags still parse."
+        - kind: test_function
+          name: test_verify_parser_rejects_invalid_test_jobs_option
+          source_scenario: "A user invokes the parser with zero, negative, and non-integer test-jobs values."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser rejects invalid test-jobs values before command execution."
+        - kind: test_function
+          name: test_verify_passes_test_jobs_to_tests_stage
+          source_scenario: "`maid verify --keep-going --test-jobs 3` reaches the tests stage."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_verify
+          expected:
+            behavior: "The tests stage calls `run_tests` with jobs=3 while validation stages are unchanged."
+        - kind: test_function
+          name: test_cmd_verify_forwards_test_jobs_to_run_verify
+          source_scenario: "`cmd_verify` receives parsed args with test_jobs=3."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_verify
+          expected:
+            behavior: "`cmd_verify` forwards test_jobs=3 to `_run_verify` and leaves existing verify flags unchanged."
+        - kind: test_function
+          name: test_cmd_verify_default_test_jobs_remains_serial
+          source_scenario: "`cmd_verify` receives parsed args without an explicit test_jobs attribute from older callers."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_verify
+          expected:
+            behavior: "`cmd_verify` forwards test_jobs=1 to `_run_verify` so existing direct Namespace callers remain serial."
+validate:
+  - uv run python -m pytest -q tests/core/test_test_runner.py tests/cli/test_main.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
+  - uv run maid validate manifests/drafts/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml --mode schema --quiet

@@ -1,0 +1,55 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan opt-in parallel execution for independent maid test command groups"
+type: refactor
+created: "2026-05-29"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - test-runner
+    - parallelism
+    - verify
+  priority: high
+description: |
+  Fresh post-043 measurements show validation-stage performance is no longer
+  the dominant MAID Runner bottleneck. `maid verify` and reference-project runs
+  are now dominated by the `maid test` stage after existing batching and
+  pruning have already reduced duplicate command execution.
+
+  This roadmap intentionally keeps the next performance wave small: add an
+  opt-in parallel test command execution path that preserves the existing
+  serial default, deterministic result ordering, validate-command integrity
+  checks, and fail-fast behavior.
+
+  Planned child order:
+
+  1. `046-01-parallelize-independent-maid-test-command-groups`
+temptations:
+  - risk: "Do not parallelize by default and surprise users with changed resource usage."
+    instead: "Require an explicit jobs flag and keep the current serial path as the default."
+  - risk: "Do not reorder JSON or human-readable test results by completion order."
+    instead: "Collect parallel results by original command index and render them in serial-equivalent order."
+  - risk: "Do not weaken validate-command integrity, batching, pruning, or fail-fast contracts to make parallelism easier."
+    instead: "Run all existing preflight checks before scheduling and keep fail-fast on the serial path unless a deterministic policy is tested."
+  - risk: "Do not share mutable in-process validation caches unsafely across worker threads."
+    instead: "Keep cached `maid validate` command execution serial or isolate per-worker caches explicitly."
+files:
+  edit:
+    - path: manifests/drafts/046-00-maid-runner-parallel-test-execution.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _parallel_test_execution_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for opt-in parallel maid test command execution."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/test.py
+    - maid_runner/cli/commands/verify.py
+validate:
+  - uv run maid validate manifests/drafts/046-00-maid-runner-parallel-test-execution.epic.yaml --mode schema --quiet
