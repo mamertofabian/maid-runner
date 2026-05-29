@@ -219,36 +219,62 @@ def _run_tests_cached(
             chain_errors=[*chain_errors, *integrity_errors],
         )
 
-    # Collect all commands with stream tags
-    all_commands: list[tuple[tuple[str, ...], str, TestStream]] = []
-    for manifest in active:
-        # Stream 1: Acceptance tests first
+    acceptance_commands, implementation_commands = _collect_test_command_streams(active)
+    results, passed, failed, early_result = _run_acceptance_commands(
+        acceptance_commands,
+        project_root,
+        fail_fast,
+        chain_errors,
+    )
+    if early_result is not None:
+        return early_result
+
+    results, passed, failed, early_result = _run_implementation_commands(
+        implementation_commands,
+        project_root,
+        batch,
+        fail_fast,
+        chain_errors,
+        results,
+        passed,
+        failed,
+    )
+    if early_result is not None:
+        return early_result
+
+    return BatchTestResult(
+        results=results,
+        total=len(results),
+        passed=passed,
+        failed=failed,
+        chain_errors=chain_errors,
+    )
+
+
+def _collect_test_command_streams(
+    manifests: Iterable[Manifest],
+) -> tuple[list[tuple[tuple[str, ...], str]], list[tuple[tuple[str, ...], str]]]:
+    acceptance_commands: list[tuple[tuple[str, ...], str]] = []
+    implementation_commands: list[tuple[tuple[str, ...], str]] = []
+    for manifest in manifests:
         if manifest.acceptance is not None:
             for cmd in manifest.acceptance.tests:
-                all_commands.append((cmd, manifest.slug, TestStream.ACCEPTANCE))
-        # Stream 3: Implementation tests
+                acceptance_commands.append((cmd, manifest.slug))
         for cmd in manifest.validate_commands:
-            all_commands.append((cmd, manifest.slug, TestStream.IMPLEMENTATION))
+            implementation_commands.append((cmd, manifest.slug))
+    return acceptance_commands, implementation_commands
 
-    # Split acceptance and implementation commands
-    acceptance_commands = [
-        (cmd, slug)
-        for cmd, slug, stream in all_commands
-        if stream == TestStream.ACCEPTANCE
-    ]
-    impl_commands_with_slug = [
-        (cmd, slug)
-        for cmd, slug, stream in all_commands
-        if stream == TestStream.IMPLEMENTATION
-    ]
 
+def _run_acceptance_commands(
+    commands: list[tuple[tuple[str, ...], str]],
+    project_root: Path,
+    fail_fast: bool,
+    chain_errors: list[ValidationError],
+) -> tuple[list[TestRunResult], int, int, BatchTestResult | None]:
     results: list[TestRunResult] = []
     passed = 0
     failed = 0
-    maid_validate_cache: dict[str, object] = {}
-
-    # Stream 1: Run acceptance tests sequentially first
-    for cmd, slug in acceptance_commands:
+    for cmd, slug in commands:
         result = run_command(
             cmd, cwd=project_root, manifest_slug=slug, stream=TestStream.ACCEPTANCE
         )
@@ -258,20 +284,41 @@ def _run_tests_cached(
         else:
             failed += 1
             if fail_fast:
-                return BatchTestResult(
-                    results=results,
-                    total=len(results),
-                    passed=passed,
-                    failed=failed,
-                    chain_errors=chain_errors,
+                return (
+                    results,
+                    passed,
+                    failed,
+                    BatchTestResult(
+                        results=results,
+                        total=len(results),
+                        passed=passed,
+                        failed=failed,
+                        chain_errors=chain_errors,
+                    ),
                 )
 
-    # Stream 3: Run implementation tests (batched or sequential)
-    sequential_impl_commands = impl_commands_with_slug
+    return results, passed, failed, None
+
+
+def _run_implementation_commands(
+    commands: list[tuple[tuple[str, ...], str]],
+    project_root: Path,
+    batch: bool | None,
+    fail_fast: bool,
+    chain_errors: list[ValidationError],
+    previous_results: list[TestRunResult],
+    previous_passed: int,
+    previous_failed: int,
+) -> tuple[list[TestRunResult], int, int, BatchTestResult | None]:
+    results = list(previous_results)
+    passed = previous_passed
+    failed = previous_failed
+    maid_validate_cache: dict[str, object] = {}
+    sequential_impl_commands = commands
     if batch is not False:
         impl_commands_with_slug = _prune_covered_pytest_commands(
             _dedupe_commands(
-                impl_commands_with_slug,
+                commands,
                 cwd=project_root,
                 resolve_command=_resolve_command,
             ),
@@ -314,12 +361,17 @@ def _run_tests_cached(
             else:
                 failed += 1
                 if fail_fast:
-                    return BatchTestResult(
-                        results=results,
-                        total=len(results),
-                        passed=passed,
-                        failed=failed,
-                        chain_errors=chain_errors,
+                    return (
+                        results,
+                        passed,
+                        failed,
+                        BatchTestResult(
+                            results=results,
+                            total=len(results),
+                            passed=passed,
+                            failed=failed,
+                            chain_errors=chain_errors,
+                        ),
                     )
 
     for cmd, slug in sequential_impl_commands:
@@ -339,21 +391,20 @@ def _run_tests_cached(
         else:
             failed += 1
             if fail_fast:
-                return BatchTestResult(
-                    results=results,
-                    total=len(results),
-                    passed=passed,
-                    failed=failed,
-                    chain_errors=chain_errors,
+                return (
+                    results,
+                    passed,
+                    failed,
+                    BatchTestResult(
+                        results=results,
+                        total=len(results),
+                        passed=passed,
+                        failed=failed,
+                        chain_errors=chain_errors,
+                    ),
                 )
 
-    return BatchTestResult(
-        results=results,
-        total=len(results),
-        passed=passed,
-        failed=failed,
-        chain_errors=chain_errors,
-    )
+    return results, passed, failed, None
 
 
 def _validate_manifest_test_command_integrity(

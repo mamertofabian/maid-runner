@@ -74,6 +74,267 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     return project_root, manifest_path
 
 
+def test_run_tests_preserves_acceptance_before_batched_implementation_order(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    (manifests_dir / "a.manifest.yaml").write_text(
+        """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+acceptance:
+  tests:
+    - echo acceptance-a
+validate:
+  - pytest tests/test_a.py -v
+"""
+    )
+    (manifests_dir / "b.manifest.yaml").write_text(
+        """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - pytest tests/test_b.py -v
+"""
+    )
+
+    def fake_run_command(command, **kwargs):
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+    assert result.success is True
+    assert result.total == 2
+    assert [item.stream for item in result.results] == [
+        TestStream.ACCEPTANCE,
+        TestStream.IMPLEMENTATION,
+    ]
+    assert result.acceptance_results[0].manifest_slug == "a"
+    assert result.implementation_results[0].manifest_slug == "batch"
+    assert result.implementation_results[0].command == (
+        "pytest",
+        "tests/test_a.py",
+        "tests/test_b.py",
+        "-v",
+    )
+
+
+def test_run_tests_fail_fast_after_acceptance_failure_preserves_counts(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    (manifests_dir / "a.manifest.yaml").write_text(
+        """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+acceptance:
+  tests:
+    - echo acceptance-a
+validate:
+  - echo should-not-run
+"""
+    )
+    observed: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        observed.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=1,
+            stdout="",
+            stderr="failed",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(manifest_dir="manifests/", project_root=tmp_path, fail_fast=True)
+
+    assert result.success is False
+    assert result.total == 1
+    assert result.passed == 0
+    assert result.failed == 1
+    assert len(result.acceptance_results) == 1
+    assert result.implementation_results == []
+    assert observed == [("echo", "acceptance-a")]
+    assert result.chain_errors == []
+
+
+def test_run_tests_fail_fast_after_implementation_failure_preserves_acceptance_counts(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    (manifests_dir / "a.manifest.yaml").write_text(
+        """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+acceptance:
+  tests:
+    - echo acceptance-a
+validate:
+  - echo impl-a
+  - echo should-not-run
+"""
+    )
+    observed: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        observed.append(command)
+        exit_code = 0 if command == ("echo", "acceptance-a") else 1
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=exit_code,
+            stdout="",
+            stderr="" if exit_code == 0 else "failed",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        fail_fast=True,
+        batch=False,
+    )
+
+    assert result.success is False
+    assert result.total == 2
+    assert result.passed == 1
+    assert result.failed == 1
+    assert [item.stream for item in result.results] == [
+        TestStream.ACCEPTANCE,
+        TestStream.IMPLEMENTATION,
+    ]
+    assert observed == [("echo", "acceptance-a"), ("echo", "impl-a")]
+    assert result.acceptance_results[0].manifest_slug == "a"
+    assert result.implementation_results[0].manifest_slug == "a"
+
+
+def test_run_tests_cached_maid_validate_execution_preserved_after_extraction(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    contracts_dir = tmp_path / "contracts"
+    manifests_dir.mkdir()
+    contracts_dir.mkdir()
+    (manifests_dir / "a.manifest.yaml").write_text(
+        """schema: "2"
+goal: "A"
+type: snapshot
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+validate:
+  - maid validate contracts/target.manifest.yaml
+"""
+    )
+    (manifests_dir / "b.manifest.yaml").write_text(
+        """schema: "2"
+goal: "B"
+type: snapshot
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+validate:
+  - uv run maid validate contracts/target.manifest.yaml
+"""
+    )
+    (contracts_dir / "target.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  create:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+validate:
+  - echo target
+"""
+    )
+    cached_calls: list[tuple[tuple[str, ...], str]] = []
+
+    def fake_cached_maid_validate_command(command, **kwargs):
+        cached_calls.append((command, kwargs["manifest_slug"]))
+        return TestRunResult(
+            manifest_slug=kwargs["manifest_slug"],
+            command=command,
+            exit_code=0,
+            stdout="cached",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs["stream"],
+        )
+
+    def fail_if_subprocess_runner_is_used(command, **kwargs):
+        raise AssertionError(f"unexpected subprocess command: {command}")
+
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner._run_cached_maid_validate_command",
+        fake_cached_maid_validate_command,
+    )
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.run_command",
+        fail_if_subprocess_runner_is_used,
+    )
+
+    result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=False)
+
+    assert result.success is True
+    assert result.total == 2
+    assert result.passed == 2
+    assert result.failed == 0
+    assert cached_calls == [
+        (("maid", "validate", "contracts/target.manifest.yaml"), "a"),
+        (("uv", "run", "maid", "validate", "contracts/target.manifest.yaml"), "b"),
+    ]
+
+
 class TestRunCommand:
     def test_successful_command(self, tmp_path):
         result = run_command(("echo", "hello"), cwd=tmp_path)

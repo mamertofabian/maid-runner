@@ -4,7 +4,6 @@ goal: "Extract maid test stream orchestration helpers"
 type: refactor
 created: "2026-05-29"
 metadata:
-  status: planning
   engine: safe-refactor
   tags:
     - test-runner
@@ -80,26 +79,26 @@ files:
           args:
             - name: manifests
               type: "Iterable[Manifest]"
-          returns: "tuple[list[tuple[tuple[str, ...], str]], list[tuple[tuple[str, ...], str]]]"
+          returns: "tuple[list[tuple[tuple[str, Ellipsis], str]], list[tuple[tuple[str, Ellipsis], str]]]"
           description: "Return acceptance commands and implementation commands with manifest slugs in the same order as the current loop."
         - kind: function
           name: _run_acceptance_commands
           args:
             - name: commands
-              type: "list[tuple[tuple[str, ...], str]]"
+              type: "list[tuple[tuple[str, Ellipsis], str]]"
             - name: project_root
               type: Path
             - name: fail_fast
               type: bool
             - name: chain_errors
               type: list[ValidationError]
-          returns: "tuple[list[TestRunResult], int, int, BatchTestResult | None]"
+          returns: "tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]"
           description: "Run acceptance commands sequentially and return an early BatchTestResult only when fail-fast stops execution before implementation commands start."
         - kind: function
           name: _run_implementation_commands
           args:
             - name: commands
-              type: "list[tuple[tuple[str, ...], str]]"
+              type: "list[tuple[tuple[str, Ellipsis], str]]"
             - name: project_root
               type: Path
             - name: batch
@@ -114,7 +113,7 @@ files:
               type: int
             - name: previous_failed
               type: int
-          returns: "tuple[list[TestRunResult], int, int, BatchTestResult | None]"
+          returns: "tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]"
           description: "Run batched and sequential implementation commands with unchanged cached maid validate behavior, carrying prior acceptance results and counts into any fail-fast BatchTestResult."
     - path: tests/core/test_test_runner.py
       artifacts:
