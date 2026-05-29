@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 import re
 from pathlib import Path
 from typing import Optional, Union
@@ -122,7 +123,22 @@ _LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
 
 _TestArtifactCacheKey = tuple[str, str, str]
 _TestArtifactFileSignature = tuple[int, int]
-_TestDiscoveryDirectorySignature = tuple[str, int, int]
+_TestDiscoveryDirectoryEntrySignature = tuple[
+    str,
+    bool,
+    bool,
+    int,
+    int,
+    bool,
+    int | None,
+    int | None,
+]
+_TestDiscoveryDirectorySignature = tuple[
+    str,
+    int,
+    int,
+    tuple[_TestDiscoveryDirectoryEntrySignature, ...],
+]
 _TestDiscoveryDirectoryState = tuple[_TestDiscoveryDirectorySignature, ...]
 _TestDiscoveryCacheKey = tuple[str, str]
 
@@ -574,7 +590,31 @@ def _test_discovery_directory_signature(
     path: Path,
 ) -> _TestDiscoveryDirectorySignature:
     stat = path.stat()
-    return (str(path), stat.st_mtime_ns, stat.st_size)
+    entries = []
+    with os.scandir(path) as children:
+        for child in sorted(children, key=lambda entry: entry.name):
+            child_stat = child.stat(follow_symlinks=False)
+            target_is_file = child.is_file(follow_symlinks=True)
+            if target_is_file:
+                try:
+                    target_stat = child.stat(follow_symlinks=True)
+                except OSError:
+                    target_stat = None
+            else:
+                target_stat = None
+            entries.append(
+                (
+                    child.name,
+                    child.is_dir(follow_symlinks=False),
+                    child.is_file(follow_symlinks=False),
+                    child_stat.st_mtime_ns,
+                    child_stat.st_size,
+                    target_is_file,
+                    target_stat.st_mtime_ns if target_stat is not None else None,
+                    target_stat.st_size if target_stat is not None else None,
+                )
+            )
+    return (str(path), stat.st_mtime_ns, stat.st_size, tuple(entries))
 
 
 def _test_discovery_cache_key(

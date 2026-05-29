@@ -261,6 +261,70 @@ def test_find_test_files_signature_does_not_recurse_symlinked_directory(tmp_path
     assert find_test_files(manifest, tmp_path) == ["tests/test_inside.py"]
 
 
+def test_find_test_files_reuses_cache_when_symlinked_directory_target_changes(
+    monkeypatch,
+    tmp_path,
+):
+    _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
+    _write(tmp_path / "tests" / "test_inside.py")
+    outside = tmp_path / "outside"
+    _write(outside / "test_external.py")
+    try:
+        (tmp_path / "tests" / "linked").symlink_to(
+            outside,
+            target_is_directory=True,
+        )
+    except OSError as exc:
+        pytest.skip(f"symlink creation failed: {exc}")
+    manifest = load_manifest(_write_manifest(tmp_path, "first", "pytest tests/ -v"))
+    walks = _count_iterdir(monkeypatch, tmp_path / "tests")
+
+    first = find_test_files(manifest, tmp_path)
+    _write(outside / "test_later.py")
+    second = find_test_files(manifest, tmp_path)
+
+    assert walks == [tmp_path / "tests"]
+    assert first == second == ["tests/test_inside.py"]
+
+
+def test_find_test_files_invalidates_when_symlinked_file_target_appears(tmp_path):
+    _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
+    target = tmp_path / "target" / "test_external.py"
+    link = tmp_path / "tests" / "test_link.py"
+    link.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        pytest.skip(f"symlink creation failed: {exc}")
+    manifest = load_manifest(_write_manifest(tmp_path, "first", "pytest tests/ -v"))
+
+    first = find_test_files(manifest, tmp_path)
+    _write(target)
+    second = find_test_files(manifest, tmp_path)
+
+    assert first == []
+    assert second == ["tests/test_link.py"]
+
+
+def test_find_test_files_invalidates_when_symlinked_file_target_disappears(tmp_path):
+    _write(tmp_path / "src" / "shared.py", "def shared():\n    return 1\n")
+    target = _write(tmp_path / "target" / "test_external.py")
+    link = tmp_path / "tests" / "test_link.py"
+    link.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        pytest.skip(f"symlink creation failed: {exc}")
+    manifest = load_manifest(_write_manifest(tmp_path, "first", "pytest tests/ -v"))
+
+    first = find_test_files(manifest, tmp_path)
+    target.unlink()
+    second = find_test_files(manifest, tmp_path)
+
+    assert first == ["tests/test_link.py"]
+    assert second == []
+
+
 def test_find_test_files_falls_back_when_directory_signature_cannot_read(
     monkeypatch,
     tmp_path,
