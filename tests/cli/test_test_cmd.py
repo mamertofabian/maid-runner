@@ -117,6 +117,17 @@ def _write_noop_behavioral_test_project(
     return manifest_path
 
 
+def _write_pyproject_pytest_addopts(tmp_path, addopts: str) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.pytest.ini_options]
+            addopts = {addopts}
+            """
+        )
+    )
+
+
 def _write_parent_relative_test_target_project(tmp_path, slug: str):
     project_root = tmp_path / "project"
     project_root.mkdir()
@@ -313,6 +324,30 @@ class TestCmdTestAll:
         captured = capsys.readouterr()
         assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
         assert "python -c" in captured.out
+
+    def test_test_rejects_pyproject_pytest_selector_addopts(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        _write_noop_behavioral_test_project(
+            tmp_path,
+            "test-pyproject-selector",
+            validate_command="python -m pytest tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        os.chdir(tmp_path)
+        exit_code = main(["test"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "pyproject.toml" in captured.out
+        assert "-k test_other" in captured.out
 
     def test_test_rejects_parent_relative_validate_command_target(
         self, tmp_path, capsys

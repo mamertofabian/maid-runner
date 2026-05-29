@@ -22,6 +22,10 @@ from maid_runner.core._django_test_targets import (
     _django_source_root_candidates as django_source_root_candidates,
 )
 from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core._pytest_config_addopts import (
+    pyproject_pytest_addopts_args,
+    pyproject_pytest_addopts_errors,
+)
 from maid_runner.core._test_command_targets import (
     command_segments,
     test_files_covered_by_validate_command,
@@ -296,6 +300,13 @@ def validate_manifest_test_commands(
     if not test_files:
         return []
 
+    config_errors = _pyproject_pytest_addopts_integrity_errors(
+        manifest,
+        project_root,
+    )
+    if config_errors:
+        return config_errors
+
     covered: set[str] = set()
     for command in manifest.validate_commands:
         covered.update(
@@ -333,6 +344,57 @@ def validate_manifest_test_commands(
             ),
         )
     ]
+
+
+def _pyproject_pytest_addopts_integrity_errors(
+    manifest: Manifest,
+    project_root: Path,
+) -> list[ValidationError]:
+    errors: list[ValidationError] = []
+    for command in manifest.validate_commands:
+        inspection_errors = pyproject_pytest_addopts_errors(project_root, command)
+        if inspection_errors:
+            errors.append(
+                _validate_command_integrity_error(
+                    manifest,
+                    command,
+                    (
+                        "pyproject.toml pytest addopts could not be inspected: "
+                        + "; ".join(inspection_errors)
+                    ),
+                )
+            )
+            continue
+
+        addopts_args = pyproject_pytest_addopts_args(project_root, command)
+        if not addopts_args:
+            continue
+
+        synthetic_pytest_segment = ["python", "-m", "pytest", *addopts_args]
+        if _has_non_executing_test_runner_mode(synthetic_pytest_segment):
+            errors.append(
+                _validate_command_integrity_error(
+                    manifest,
+                    command,
+                    (
+                        "pyproject.toml pytest addopts put the test runner in a "
+                        f"non-executing mode: {_format_addopts(addopts_args)}"
+                    ),
+                )
+            )
+            continue
+        if _has_test_runner_selector(synthetic_pytest_segment):
+            errors.append(
+                _validate_command_integrity_error(
+                    manifest,
+                    command,
+                    (
+                        "pyproject.toml pytest addopts can select or deselect "
+                        f"behavioral tests: {_format_addopts(addopts_args)}"
+                    ),
+                )
+            )
+    return errors
 
 
 def _requires_validate_command_test_coverage(manifest: Manifest) -> bool:
@@ -475,6 +537,31 @@ def _test_target_covers_file(
 
 def _format_command(command: tuple[str, ...]) -> str:
     return " ".join(command)
+
+
+def _format_addopts(args: tuple[str, ...]) -> str:
+    return " ".join(args)
+
+
+def _validate_command_integrity_error(
+    manifest: Manifest,
+    command: tuple[str, ...],
+    reason: str,
+) -> ValidationError:
+    return ValidationError(
+        code=ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS,
+        message=(
+            "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS: "
+            f"Manifest '{manifest.slug}' validate command may not run the "
+            f"declared behavioral tests. {reason}. "
+            f"Command: {_format_command(command)}"
+        ),
+        location=Location(file=manifest.source_path),
+        suggestion=(
+            "Remove selector or non-executing pytest addopts from project "
+            "configuration for MAID behavioral test commands."
+        ),
+    )
 
 
 def _command_segments(command: tuple[str, ...]) -> list[list[str]]:

@@ -1,35 +1,31 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan pyproject pytest addopts hardening for MAID validate and verify"
+goal: "Archive consumed pyproject pytest addopts hardening epic"
 type: fix
 created: "2026-05-29"
 metadata:
-  status: planning
+  status: archived
   tags:
     - validation
     - anti-gaming
     - pytest
     - test-runner
     - fail-closed
+    - archive
   priority: high
 description: |
-  Track a bounded follow-up to the 032 validate-command integrity work. A
-  manifest can declare and target the right behavioral test directory while
-  `pyproject.toml` pytest config injects `addopts` such as `--collect-only` or
-  `-k test_other`, causing `maid verify` to report PASS even when the declared
-  behavioral test is not executed.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contract was promoted as
+  `manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml`.
 
-  Planned child order:
-  1. `044-01-reject-pytest-config-selector-addopts` - fail closed when
-     `pyproject.toml` pytest configuration can put a validate command into selector or
-     non-executing mode.
+  The promoted child closes the reproduced `pyproject.toml` pytest `addopts`
+  bypass for selector and non-executing modes. Other pytest config sources,
+  including `pytest.ini`, `tox.ini`, and `setup.cfg`, are deferred until a
+  separate scoped draft exists.
 
-  Evidence source: test-runner command/configuration evidence. The initial
-  closure is deliberately limited to `pyproject.toml` pytest `addopts` values
-  that MAID already knows how to classify from command arguments and
-  `PYTEST_ADDOPTS`. Other pytest config sources should be added in a follow-up
-  once the pyproject path is covered.
+  The file remains in `manifests/drafts/` only as a historical pointer. Current
+  validation-hardening status lives in
+  `docs/plans/maid-validate-hardening-backlog.md`.
 temptations:
   - risk: "Do not model general pytest collection, fixture, mark, or plugin semantics in MAID validators."
     instead: "Limit this wave to runner configuration that directly adds known selector or non-executing flags."
@@ -46,8 +42,9 @@ files:
         - kind: attribute
           name: pytest_config_addopts_hardening_backlog
           of: documentation
-          description: "Post-032 hardening finding and implementation queue for pyproject pytest addopts bypasses."
+          description: "Post-032 hardening status for the promoted pyproject pytest addopts bypass closure."
   read:
+    - manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml
     - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
     - maid_runner/core/_validation_test_artifacts.py
     - maid_runner/core/_test_runner_invocation.py

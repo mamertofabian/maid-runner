@@ -145,6 +145,10 @@ The JSON and text output should make strict failures visible and structured.
 
 ### 5. Pytest Config `addopts` Can Deselect or Avoid Behavioral Tests
 
+**Status:** The reproduced `pyproject.toml` pytest `addopts` bypass is
+promoted as `044-01-reject-pytest-config-selector-addopts`. Follow-up coverage
+for other pytest config sources remains separate deferred scope.
+
 **Scenario:** A manifest declares `src/widget.py:update`, lists
 `tests/test_widget.py` in `files.read`, and uses
 `python -m pytest tests -q` as its `validate:` command. The test file imports
@@ -165,18 +169,18 @@ still using an apparently valid test-runner command.
 
 **Code path:** `maid_runner/core/_validation_test_artifacts.py::
 validate_manifest_test_commands` checks discovered files against command
-targets. `maid_runner/core/_test_runner_invocation.py` detects selector and
-non-executing flags from command arguments, `PYTEST_ADDOPTS`, and command-line
-`--override-ini`, but it does not inspect project pytest configuration. The
-reproduced bypass used `pyproject.toml`; pytest can also load addopts from
-`pytest.ini`, `tox.ini`, and `setup.cfg`, which should be covered by follow-up
-tests before broadening the first implementation.
+targets and now rejects effective `pyproject.toml` pytest `addopts` values that
+inject known selector or non-executing flags. The guard reuses
+`maid_runner/core/_test_runner_invocation.py` classifiers for command
+arguments, `PYTEST_ADDOPTS`, command-line `--override-ini`, and pyproject
+addopts inspection. It also respects pytest config precedence so ignored
+pyproject addopts do not produce false positives.
 
-**Closure shape:** First fail closed for the reproduced `pyproject.toml`
+**Closure shape:** `044-01` fails closed for the reproduced `pyproject.toml`
 `addopts` path when the effective pytest command can inherit known selector or
-non-executing flags. Keep this as a bounded pytest-configuration guard or a
-runner-evidence adapter; do not attempt broad pytest fixture, plugin, or
-collection semantics in custom AST code.
+non-executing flags. Pytest can also load addopts from `pytest.ini`, `tox.ini`,
+and `setup.cfg`; those formats are not part of this closure and should be
+covered by a follow-up draft before expanding the guard.
 
 ## Gradual Closure Backlog
 
@@ -189,8 +193,8 @@ collection semantics in custom AST code.
 4. Make `maid verify` strict by default. Promoted as `032-03`.
 5. Reject reproduced `pyproject.toml` pytest `addopts` that can deselect
    declared behavioral tests or switch the runner into non-executing modes.
-   Add follow-up coverage for `pytest.ini`, `tox.ini`, and `setup.cfg` before
-   expanding the guard to those config sources.
+   Promoted as `044-01`. Follow-up coverage for `pytest.ini`, `tox.ini`, and
+   `setup.cfg` is deferred until a separate scoped draft exists.
 6. After those gates are stable, consider making strict identity coverage and
    assertion enforcement the default for directory-wide `maid validate` in a
    major-version release.
@@ -219,4 +223,7 @@ hardening pass. The child contracts now live under `manifests/032-01` through
 
 The 2026-05-29 pytest-config finding was reproduced with `pyproject.toml`
 `[tool.pytest.ini_options].addopts` set to `--collect-only` and `-k test_other`.
-Planning inventory for that follow-up starts under `manifests/drafts/044-*`.
+The pyproject closure is promoted as
+`manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml`; the
+consumed `044-00` epic remains under `manifests/drafts/` only as an archived
+historical pointer.

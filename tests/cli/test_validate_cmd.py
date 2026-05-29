@@ -15,6 +15,10 @@ from maid_runner.core._validation_test_artifacts import (
     find_test_files,
     validate_manifest_test_commands,
 )
+from maid_runner.core._pytest_config_addopts import (
+    pyproject_pytest_addopts_args,
+    pyproject_pytest_addopts_errors,
+)
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
 
@@ -165,6 +169,17 @@ def _write_run_tests_project(
     manifest_path = manifest_dir / f"{slug}.manifest.yaml"
     manifest_path.write_text(yaml.dump(manifest))
     return manifest_path
+
+
+def _write_pyproject_pytest_addopts(tmp_path, addopts: str) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.pytest.ini_options]
+            addopts = {addopts}
+            """
+        )
+    )
 
 
 def _commit_all(project_dir, message: str = "commit") -> str:
@@ -879,6 +894,349 @@ class TestCmdValidateSingleManifest:
         captured = capsys.readouterr()
         assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
         assert "PYTEST_ADDOPTS=--collect-only" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_config_collect_only(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-pyproject-collect-only",
+            "python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"--collect-only"')
+
+        assert pyproject_pytest_addopts_args(
+            tmp_path,
+            ("python", "-m", "pytest", "tests", "-q"),
+        ) == ("--collect-only",)
+        assert (
+            pyproject_pytest_addopts_errors(
+                tmp_path,
+                ("python", "-m", "pytest", "tests", "-q"),
+            )
+            == ()
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-pyproject-collect-only.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "pyproject.toml" in captured.out
+        assert "--collect-only" in captured.out
+
+    def test_validate_run_tests_rejects_pytest_config_selector_deselecting_behavioral_test(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-pyproject-selector",
+            "python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-pyproject-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "pyproject.toml" in captured.out
+        assert "-k test_other" in captured.out
+
+    def test_validate_run_tests_rejects_pyproject_addopts_with_empty_dot_pytest_ini(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-empty-dot-pytest-ini",
+            "python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"--collect-only"')
+        (tmp_path / ".pytest.ini").write_text("")
+
+        command = ("python", "-m", "pytest", "tests", "-q")
+        assert pyproject_pytest_addopts_args(tmp_path, command) == ("--collect-only",)
+        assert pyproject_pytest_addopts_errors(tmp_path, command) == ()
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-empty-dot-pytest-ini.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "pyproject.toml" in captured.out
+        assert "--collect-only" in captured.out
+
+    def test_validate_run_tests_allows_benign_pytest_config_addopts(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-benign-pyproject-addopts",
+            "python -m pytest tests -q",
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-q --disable-warnings"')
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-benign-pyproject-addopts.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" not in captured.out
+        assert (
+            "PASS [run-tests-benign-pyproject-addopts] python -m pytest tests -q"
+            in (captured.out)
+        )
+
+    def test_validate_run_tests_allows_pytest_ini_precedence_over_pyproject_addopts(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-pytest-ini-precedence",
+            "python -m pytest tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        command = ("python", "-m", "pytest", "tests", "-q")
+        assert pyproject_pytest_addopts_args(tmp_path, command) == ()
+        assert pyproject_pytest_addopts_errors(tmp_path, command) == ()
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-pytest-ini-precedence.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" not in captured.out
+        assert (
+            "PASS [run-tests-pytest-ini-precedence] python -m pytest tests -q"
+            in captured.out
+        )
+
+    def test_validate_run_tests_allows_explicit_pytest_config_over_pyproject_addopts(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-explicit-pytest-ini",
+            "python -m pytest -c pytest.ini tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        command = ("python", "-m", "pytest", "-c", "pytest.ini", "tests", "-q")
+        assert pyproject_pytest_addopts_args(tmp_path, command) == ()
+        assert pyproject_pytest_addopts_errors(tmp_path, command) == ()
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-explicit-pytest-ini.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" not in captured.out
+        assert (
+            "PASS [run-tests-explicit-pytest-ini] "
+            "python -m pytest -c pytest.ini tests -q"
+        ) in captured.out
+
+    def test_validate_run_tests_allows_override_ini_addopts_over_pyproject_addopts(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-override-ini-clears-pyproject",
+            "python -m pytest -o addopts= tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        command = ("python", "-m", "pytest", "-o", "addopts=", "tests", "-q")
+        assert pyproject_pytest_addopts_args(tmp_path, command) == ()
+        assert pyproject_pytest_addopts_errors(tmp_path, command) == ()
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-override-ini-clears-pyproject.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" not in captured.out
+        assert (
+            "PASS [run-tests-override-ini-clears-pyproject] "
+            "python -m pytest -o addopts= tests -q"
+        ) in captured.out
+
+    def test_validate_run_tests_allows_override_ini_addopts_with_explicit_pyproject(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-explicit-pyproject-override-addopts",
+            "python -m pytest -c pyproject.toml -o addopts= tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        command = (
+            "python",
+            "-m",
+            "pytest",
+            "-c",
+            "pyproject.toml",
+            "-o",
+            "addopts=",
+            "tests",
+            "-q",
+        )
+        assert pyproject_pytest_addopts_args(tmp_path, command) == ()
+        assert pyproject_pytest_addopts_errors(tmp_path, command) == ()
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                (
+                    "manifests/"
+                    "run-tests-explicit-pyproject-override-addopts.manifest.yaml"
+                ),
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" not in captured.out
+        assert (
+            "PASS [run-tests-explicit-pyproject-override-addopts] "
+            "python -m pytest -c pyproject.toml -o addopts= tests -q"
+        ) in captured.out
+
+    def test_validate_run_tests_rejects_malformed_pyproject_pytest_addopts(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-malformed-pyproject-addopts",
+            "python -m pytest tests -q",
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '["-q", 42]')
+
+        assert pyproject_pytest_addopts_errors(
+            tmp_path,
+            ("python", "-m", "pytest", "tests", "-q"),
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-malformed-pyproject-addopts.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+            ]
+        )
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in captured.out
+        assert "pyproject.toml" in captured.out
+        assert "addopts" in captured.out
 
     def test_validate_run_tests_rejects_pytest_addopts_override_ini_selector(
         self, tmp_path, capsys
@@ -1851,6 +2209,44 @@ class TestCmdValidateSingleManifest:
         assert data["tests"]["success"] is True
         assert data["tests"]["total"] == 1
         assert data["tests"]["results"][0]["exit_code"] == 0
+
+    def test_validate_run_tests_json_reports_pyproject_pytest_addopts_integrity_error(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        _write_run_tests_project(
+            tmp_path,
+            "run-tests-json-pyproject-selector",
+            "python -m pytest tests -q",
+            test_assertion="gate() == 'not ok'",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/run-tests-json-pyproject-selector.manifest.yaml",
+                "--no-chain",
+                "--run-tests",
+                "--json",
+            ]
+        )
+
+        assert exit_code == 1
+        data = json.loads(capsys.readouterr().out)
+        assert data["success"] is False
+        assert data["validation"]["success"] is True
+        chain_errors = data["tests"]["chain_errors"]
+        assert chain_errors[0]["code"] == "E230"
+        assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in chain_errors[0]["message"]
+        assert "pyproject.toml" in chain_errors[0]["message"]
 
     def test_validate_run_tests_json_reports_null_tests_when_structure_fails(
         self, tmp_path, capsys

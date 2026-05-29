@@ -1,10 +1,8 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Reject pyproject pytest addopts that can bypass declared behavioral tests"
 type: fix
 created: "2026-05-29"
 metadata:
-  status: planning
   tags:
     - validation
     - anti-gaming
@@ -103,6 +101,15 @@ files:
           expected:
             behavior: "maid validate --run-tests exits 1 before claiming tests passed."
         - kind: test_function
+          name: test_validate_run_tests_rejects_pyproject_addopts_with_empty_dot_pytest_ini
+          source_scenario: "A project has effective pyproject pytest addopts and an empty `.pytest.ini` that pytest ignores during config discovery."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests still rejects the effective pyproject addopts instead of treating the empty `.pytest.ini` as precedence."
+        - kind: test_function
           name: test_validate_run_tests_json_reports_pyproject_pytest_addopts_integrity_error
           source_scenario: "A caller requests JSON output when pyproject pytest addopts injects a selector that bypasses declared behavioral tests."
           actions:
@@ -120,6 +127,42 @@ files:
                 export: main
           expected:
             behavior: "maid validate --run-tests executes normally without command-integrity errors."
+        - kind: test_function
+          name: test_validate_run_tests_allows_pytest_ini_precedence_over_pyproject_addopts
+          source_scenario: "A manifest targets declared tests, pyproject.toml has selector addopts, but pytest.ini takes precedence."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests executes normally without treating ignored pyproject addopts as effective."
+        - kind: test_function
+          name: test_validate_run_tests_allows_explicit_pytest_config_over_pyproject_addopts
+          source_scenario: "A manifest targets declared tests with `python -m pytest -c pytest.ini tests -q` while pyproject.toml has selector addopts."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests executes normally because the explicit pytest config overrides pyproject.toml."
+        - kind: test_function
+          name: test_validate_run_tests_allows_override_ini_addopts_over_pyproject_addopts
+          source_scenario: "A manifest targets declared tests with `python -m pytest -o addopts= tests -q` while pyproject.toml has selector addopts."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests executes normally because the command-line addopts override replaces pyproject.toml addopts."
+        - kind: test_function
+          name: test_validate_run_tests_allows_override_ini_addopts_with_explicit_pyproject
+          source_scenario: "A manifest targets declared tests with `python -m pytest -c pyproject.toml -o addopts= tests -q` while pyproject.toml has selector addopts."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests executes normally because the command-line addopts override replaces pyproject.toml addopts even when pyproject.toml is explicit."
         - kind: test_function
           name: test_validate_run_tests_rejects_malformed_pyproject_pytest_addopts
           source_scenario: "A manifest targets declared behavioral tests, but pyproject.toml has malformed pytest addopts configuration."

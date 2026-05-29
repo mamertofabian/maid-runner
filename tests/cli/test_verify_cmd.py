@@ -62,6 +62,17 @@ def _write_verify_project(
     return manifest_path
 
 
+def _write_pyproject_pytest_addopts(tmp_path, addopts: str) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.pytest.ini_options]
+            addopts = {addopts}
+            """
+        )
+    )
+
+
 def _commit_all(project_dir, message: str = "commit") -> str:
     import subprocess
 
@@ -536,6 +547,91 @@ def test_verify_rejects_noop_validate_command_for_behavioral_tests(tmp_path, cap
     assert "FAIL tests" in output
     assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in output
     assert "python -c" in output
+
+
+def test_verify_rejects_pytest_config_collect_only(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-pyproject-collect-only",
+        test_source=(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n"
+        ),
+        validate_command="python -m pytest tests -q",
+    )
+    _write_pyproject_pytest_addopts(tmp_path, '"--collect-only"')
+
+    exit_code = main(["verify", "--no-changed-scope"])
+
+    assert exit_code == 1
+    output = capsys.readouterr().out
+    assert "FAIL tests" in output
+    assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in output
+    assert "pyproject.toml" in output
+    assert "--collect-only" in output
+
+
+def test_verify_rejects_pytest_config_selector_deselecting_behavioral_test(
+    tmp_path, capsys
+):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-pyproject-selector",
+        test_source=(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        ),
+        validate_command="python -m pytest tests -q",
+    )
+    _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+    exit_code = main(["verify", "--no-changed-scope"])
+
+    assert exit_code == 1
+    output = capsys.readouterr().out
+    assert "FAIL tests" in output
+    assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in output
+    assert "pyproject.toml" in output
+    assert "-k test_other" in output
+
+
+def test_verify_json_reports_pytest_config_addopts_integrity_error(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-json-pyproject-selector",
+        test_source=(
+            "from src.gate import gate\n\n"
+            "def test_gate():\n"
+            "    assert gate() == 'not ok'\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        ),
+        validate_command="python -m pytest tests -q",
+    )
+    _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+    exit_code = main(["verify", "--no-changed-scope", "--keep-going", "--json"])
+
+    assert exit_code == 1
+    data = json.loads(capsys.readouterr().out)
+    stages = {stage["name"]: stage for stage in data["stages"]}
+    errors = stages["tests"]["details"]["errors"]
+    assert errors[0]["code"] == "E230"
+    assert "VALIDATE_COMMAND_DOES_NOT_RUN_TESTS" in errors[0]["message"]
+    assert "pyproject.toml" in errors[0]["message"]
 
 
 def test_verify_rejects_runner_name_that_is_not_invoked(tmp_path, capsys):

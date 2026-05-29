@@ -50,6 +50,12 @@ validate:
     return manifest_path
 
 
+def _write_pyproject_pytest_addopts(tmp_path, addopts: str) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        f"[tool.pytest.ini_options]\naddopts = {addopts}\n"
+    )
+
+
 def _write_parent_relative_test_target_project(tmp_path, slug: str):
     project_root = tmp_path / "project"
     project_root.mkdir()
@@ -185,6 +191,24 @@ validate:
             ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
         ]
 
+    def test_run_manifest_tests_rejects_pyproject_pytest_collect_only(self, tmp_path):
+        manifest = _write_noop_behavioral_test_project(
+            tmp_path,
+            "pyproject-collect-only",
+            validate_command="python -m pytest tests -q",
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"--collect-only"')
+
+        result = run_manifest_tests(manifest, project_root=tmp_path)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+        assert "pyproject.toml" in result.chain_errors[0].message
+        assert "--collect-only" in result.chain_errors[0].message
+
     def test_run_manifest_tests_ignores_ambient_pytest_addopts(
         self, tmp_path, monkeypatch
     ):
@@ -273,6 +297,29 @@ validate:
         assert [error.code for error in result.chain_errors] == [
             ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
         ]
+
+    def test_run_tests_rejects_pyproject_pytest_selector_addopts(self, tmp_path):
+        _write_noop_behavioral_test_project(
+            tmp_path,
+            "pyproject-selector",
+            validate_command="python -m pytest tests -q",
+        )
+        (tmp_path / "tests" / "test_other.py").write_text(
+            "from src.gate import gate\n\n"
+            "def test_other():\n"
+            "    assert gate() == 'ok'\n"
+        )
+        _write_pyproject_pytest_addopts(tmp_path, '"-k test_other"')
+
+        result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+        assert result.success is False
+        assert result.total == 0
+        assert [error.code for error in result.chain_errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+        assert "pyproject.toml" in result.chain_errors[0].message
+        assert "-k test_other" in result.chain_errors[0].message
 
 
 class TestBatchMode:
