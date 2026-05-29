@@ -1,0 +1,57 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan pyproject pytest addopts hardening for MAID validate and verify"
+type: fix
+created: "2026-05-29"
+metadata:
+  status: planning
+  tags:
+    - validation
+    - anti-gaming
+    - pytest
+    - test-runner
+    - fail-closed
+  priority: high
+description: |
+  Track a bounded follow-up to the 032 validate-command integrity work. A
+  manifest can declare and target the right behavioral test directory while
+  `pyproject.toml` pytest config injects `addopts` such as `--collect-only` or
+  `-k test_other`, causing `maid verify` to report PASS even when the declared
+  behavioral test is not executed.
+
+  Planned child order:
+  1. `044-01-reject-pytest-config-selector-addopts` - fail closed when
+     `pyproject.toml` pytest configuration can put a validate command into selector or
+     non-executing mode.
+
+  Evidence source: test-runner command/configuration evidence. The initial
+  closure is deliberately limited to `pyproject.toml` pytest `addopts` values
+  that MAID already knows how to classify from command arguments and
+  `PYTEST_ADDOPTS`. Other pytest config sources should be added in a follow-up
+  once the pyproject path is covered.
+temptations:
+  - risk: "Do not model general pytest collection, fixture, mark, or plugin semantics in MAID validators."
+    instead: "Limit this wave to runner configuration that directly adds known selector or non-executing flags."
+  - risk: "Do not trust a directory target when pyproject pytest config can deselect the declared test file."
+    instead: "Combine target coverage with effective pytest option checks before running done-gate tests."
+  - risk: "Do not make documentation-only guidance the fix for an automation bypass."
+    instead: "Add a repeatable validation/test-runner gate with structured failure output."
+  - risk: "Do not weaken 032 command-integrity checks to handle this exception."
+    instead: "Layer config inspection or runner evidence on top of the existing command-target checks."
+files:
+  edit:
+    - path: docs/plans/maid-validate-hardening-backlog.md
+      artifacts:
+        - kind: attribute
+          name: pytest_config_addopts_hardening_backlog
+          of: documentation
+          description: "Post-032 hardening finding and implementation queue for pyproject pytest addopts bypasses."
+  read:
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/_test_runner_invocation.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+validate:
+  - uv run maid validate manifests/drafts/044-00-maid-validate-pytest-config-hardening.epic.yaml --mode schema --quiet

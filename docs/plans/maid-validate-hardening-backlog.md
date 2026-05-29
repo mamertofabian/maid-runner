@@ -37,6 +37,12 @@ post-030 second pass.
 
 ## Confirmed Loopholes
 
+### Post-032 Status
+
+The original post-030 loopholes below were promoted as `032-01` through
+`032-03`. A 2026-05-29 follow-up probe confirmed a remaining test-runner
+configuration gap after those closures.
+
 ### 1. Name-Only Behavioral Coverage Still Covers Local Code
 
 **Scenario:** A manifest declares `src/widget.py:update`, while the test file
@@ -137,15 +143,55 @@ strict flags are passed.
 advisory escape hatch if interactive workflows still need permissive behavior.
 The JSON and text output should make strict failures visible and structured.
 
+### 5. Pytest Config `addopts` Can Deselect or Avoid Behavioral Tests
+
+**Scenario:** A manifest declares `src/widget.py:update`, lists
+`tests/test_widget.py` in `files.read`, and uses
+`python -m pytest tests -q` as its `validate:` command. The test file imports
+and asserts against `update()` in `test_declared_behavior`, but project pytest
+configuration sets `addopts = '-k test_other'` or `addopts = '--collect-only'`.
+
+**Observed command and exit:** Throwaway projects under `/tmp` were validated
+through `maid_runner.cli.commands._main.main(["verify", "--no-changed-scope"])`.
+Both probes reported `Verify: PASS` and `verify_exit=0` even though the
+declared behavioral test would fail if executed, and `--collect-only` executes
+no tests at all.
+
+**Why this matters:** The 032 command-integrity gate verifies that the manifest
+command structurally targets the discovered test directory, but pytest can
+change execution through project config outside the manifest command text. An
+agent can hide a failing behavioral test behind config-level selectors while
+still using an apparently valid test-runner command.
+
+**Code path:** `maid_runner/core/_validation_test_artifacts.py::
+validate_manifest_test_commands` checks discovered files against command
+targets. `maid_runner/core/_test_runner_invocation.py` detects selector and
+non-executing flags from command arguments, `PYTEST_ADDOPTS`, and command-line
+`--override-ini`, but it does not inspect project pytest configuration. The
+reproduced bypass used `pyproject.toml`; pytest can also load addopts from
+`pytest.ini`, `tox.ini`, and `setup.cfg`, which should be covered by follow-up
+tests before broadening the first implementation.
+
+**Closure shape:** First fail closed for the reproduced `pyproject.toml`
+`addopts` path when the effective pytest command can inherit known selector or
+non-executing flags. Keep this as a bounded pytest-configuration guard or a
+runner-evidence adapter; do not attempt broad pytest fixture, plugin, or
+collection semantics in custom AST code.
+
 ## Gradual Closure Backlog
 
 1. Require identity-backed behavioral coverage for production artifacts.
+   Promoted as `032-01`.
 2. Reject local member access as owned production attribute coverage unless it
-   carries owner/module identity.
+   carries owner/module identity. Promoted as part of `032-01`.
 3. Fail `maid verify` and `maid validate --run-tests` when `validate:` commands
-   do not run the manifest's behavioral test files.
-4. Make `maid verify` strict by default.
-5. After those gates are stable, consider making strict identity coverage and
+   do not run the manifest's behavioral test files. Promoted as `032-02`.
+4. Make `maid verify` strict by default. Promoted as `032-03`.
+5. Reject reproduced `pyproject.toml` pytest `addopts` that can deselect
+   declared behavioral tests or switch the runner into non-executing modes.
+   Add follow-up coverage for `pytest.ini`, `tox.ini`, and `setup.cfg` before
+   expanding the guard to those config sources.
+6. After those gates are stable, consider making strict identity coverage and
    assertion enforcement the default for directory-wide `maid validate` in a
    major-version release.
 
@@ -170,3 +216,7 @@ local `ValidationEngine` calls and the local CLI entry point via
 Planning inventory started under `manifests/drafts/032-*` for the post-030
 hardening pass. The child contracts now live under `manifests/032-01` through
 `manifests/032-03`; the remaining draft epic is inactive roadmap inventory.
+
+The 2026-05-29 pytest-config finding was reproduced with `pyproject.toml`
+`[tool.pytest.ini_options].addopts` set to `--collect-only` and `-k test_other`.
+Planning inventory for that follow-up starts under `manifests/drafts/044-*`.

@@ -1,0 +1,202 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Reject pyproject pytest addopts that can bypass declared behavioral tests"
+type: fix
+created: "2026-05-29"
+metadata:
+  status: planning
+  tags:
+    - validation
+    - anti-gaming
+    - pytest
+    - test-runner
+  priority: high
+description: |
+  Close the bypass where a manifest validate command targets the discovered
+  behavioral test directory, but `pyproject.toml` pytest configuration injects
+  `addopts` that deselects the declared test or switches pytest into a
+  non-executing mode. `maid verify`, `maid validate --run-tests`, and
+  `maid test` should reject this before claiming tests passed.
+
+  The closure should reuse the existing classification of selector and
+  non-executing pytest options from `_test_runner_invocation.py`. Keep the
+  first implementation bounded to pytest config files and addopts; broader
+  pytest runtime semantics and additional config-file formats belong behind
+  runner execution evidence or follow-up drafts.
+temptations:
+  - risk: "Do not add a custom pytest semantic analyzer."
+    instead: "Read only effective pytest config addopts and reuse existing option classifiers."
+  - risk: "Do not accept `pytest tests` as sufficient when config injects `-k`, `-m`, or collect-only flags."
+    instead: "Fail command integrity with a structured error before running tests."
+  - risk: "Do not silently ignore malformed or unreadable pyproject pytest config."
+    instead: "Fail closed with a visible validation error when config cannot be inspected safely."
+  - risk: "Do not break benign pytest config such as `-q` or warning filters."
+    instead: "Add positive tests for harmless addopts while rejecting selectors and non-executing modes."
+files:
+  create:
+    - path: maid_runner/core/_pytest_config_addopts.py
+      artifacts:
+        - kind: function
+          name: pyproject_pytest_addopts_args
+          args:
+            - name: project_root
+              type: Path
+            - name: command
+              type: tuple[str, ...]
+          returns: tuple[str, ...]
+          description: "Return pytest addopts arguments loaded from pyproject.toml when it applies to a validate command."
+        - kind: function
+          name: pyproject_pytest_addopts_errors
+          args:
+            - name: project_root
+              type: Path
+            - name: command
+              type: tuple[str, ...]
+          returns: tuple[str, ...]
+          description: "Return human-readable pyproject inspection errors that should make command integrity fail closed."
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_test_commands
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[ValidationError]
+          description: "Reject validate commands whose effective pyproject pytest config can deselect or avoid discovered behavioral tests."
+    - path: maid_runner/core/_test_runner_invocation.py
+      artifacts:
+        - kind: function
+          name: _has_non_executing_test_runner_mode
+          args:
+            - name: segment
+              type: list[str]
+          returns: bool
+          description: "Classify non-executing runner modes for command arguments and pytest config addopts."
+        - kind: function
+          name: _has_test_runner_selector
+          args:
+            - name: segment
+              type: list[str]
+          returns: bool
+          description: "Classify selector options for command arguments and pytest config addopts."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_run_tests_rejects_pytest_config_collect_only
+          source_scenario: "A manifest targets `python -m pytest tests -q`, while pyproject pytest addopts injects `--collect-only`."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 1 and reports a structured validate-command integrity error."
+        - kind: test_function
+          name: test_validate_run_tests_rejects_pytest_config_selector_deselecting_behavioral_test
+          source_scenario: "A declared behavioral test would fail if run, but pyproject pytest addopts injects `-k test_other`."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 1 before claiming tests passed."
+        - kind: test_function
+          name: test_validate_run_tests_json_reports_pyproject_pytest_addopts_integrity_error
+          source_scenario: "A caller requests JSON output when pyproject pytest addopts injects a selector that bypasses declared behavioral tests."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests --json exits 1 and JSON includes VALIDATE_COMMAND_DOES_NOT_RUN_TESTS in test_result chain errors."
+        - kind: test_function
+          name: test_validate_run_tests_allows_benign_pytest_config_addopts
+          source_scenario: "A manifest targets the declared tests and pytest config only adds harmless display options."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests executes normally without command-integrity errors."
+        - kind: test_function
+          name: test_validate_run_tests_rejects_malformed_pyproject_pytest_addopts
+          source_scenario: "A manifest targets declared behavioral tests, but pyproject.toml has malformed pytest addopts configuration."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid validate --run-tests exits 1 with a visible command-integrity or config-inspection error instead of silently ignoring the malformed config."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_rejects_pytest_config_collect_only
+          source_scenario: "A manifest targets the right pytest directory, but pytest config makes the command collect tests without executing them."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 1 and the tests stage reports the command-integrity failure."
+        - kind: test_function
+          name: test_verify_rejects_pytest_config_selector_deselecting_behavioral_test
+          source_scenario: "A manifest's declared behavioral test would fail, but pytest config selects only an unrelated passing test."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify exits 1 instead of reporting PASS tests."
+        - kind: test_function
+          name: test_verify_json_reports_pytest_config_addopts_integrity_error
+          source_scenario: "A caller requests JSON output when pytest project config injects selector addopts that bypass declared behavioral tests."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid verify --json exits 1 and JSON includes VALIDATE_COMMAND_DOES_NOT_RUN_TESTS in the tests stage details."
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_run_manifest_tests_rejects_pyproject_pytest_collect_only
+          source_scenario: "A manifest targets `python -m pytest tests -q`, while pyproject pytest addopts injects `--collect-only`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_manifest_tests
+          expected:
+            behavior: "run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS in chain_errors."
+        - kind: test_function
+          name: test_run_tests_rejects_pyproject_pytest_selector_addopts
+          source_scenario: "Directory-wide manifest testing targets `python -m pytest tests -q`, while pyproject pytest addopts injects `-k test_other`."
+          actions:
+            - type: api_call
+              subject:
+                export: run_tests
+          expected:
+            behavior: "run_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS in chain_errors."
+    - path: tests/cli/test_test_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_test_rejects_pyproject_pytest_selector_addopts
+          source_scenario: "The `maid test` CLI runs all active manifests and pyproject pytest addopts would deselect the declared behavioral test."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "maid test exits 1 and reports VALIDATE_COMMAND_DOES_NOT_RUN_TESTS."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - maid_runner/core/result.py
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/test_runner.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/cli/commands/test.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py tests/core/test_test_runner.py tests/cli/test_test_cmd.py
