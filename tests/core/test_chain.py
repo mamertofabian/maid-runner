@@ -6,6 +6,11 @@ import pytest
 
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, Severity
+from maid_runner.core.supersession_audit import (
+    GrandfatherEntry,
+    GrandfatherLock,
+    compute_manifest_hash,
+)
 from maid_runner.core.types import ArtifactKind, FileMode
 
 
@@ -57,6 +62,112 @@ created: "2025-06-01T00:00:00Z"
         chain = ManifestChain(chain_dir)
         assert len(chain.active_manifests()) == 1
         assert chain.active_manifests()[0].slug == "add-greet"
+
+
+class TestManifestChainDiagnostics:
+    def test_diagnostics_omits_grandfathered_supersession_infos_but_audit_keeps_them(
+        self, chain_dir, tmp_path
+    ):
+        _write_manifest(
+            chain_dir / "b.manifest.yaml",
+            """schema: "2"
+goal: "B"
+type: feature
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: foo
+validate:
+  - pytest
+created: "2026-01-01T00:00:00Z"
+""",
+        )
+        a_path = chain_dir / "a.manifest.yaml"
+        _write_manifest(
+            a_path,
+            """schema: "2"
+goal: "A"
+type: feature
+supersedes: [b]
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: bar
+validate:
+  - pytest
+created: "2026-02-01T00:00:00Z"
+""",
+        )
+        lock = GrandfatherLock.empty().with_seal(
+            sealed_at="2026-05-29T00:00:00Z",
+            entries=(
+                GrandfatherEntry(
+                    superseding_slug="a",
+                    content_hash=compute_manifest_hash(a_path),
+                    dropped_artifact_keys=("b|src/a.py|function:foo",),
+                    reason="legacy migration",
+                ),
+            ),
+        )
+        lock.save(tmp_path / ".maid" / "legacy-grandfathered.lock")
+
+        chain = ManifestChain(chain_dir, project_root=tmp_path)
+
+        audit_errors = chain.audit_supersession_artifacts()
+        assert [error.code for error in audit_errors] == [
+            ErrorCode.GRANDFATHERED_SUPERSESSION
+        ]
+        assert all(
+            error.code != ErrorCode.GRANDFATHERED_SUPERSESSION
+            for error in chain.diagnostics()
+        )
+
+    def test_diagnostics_keeps_non_grandfathered_supersession_drops(
+        self, chain_dir, tmp_path
+    ):
+        _write_manifest(
+            chain_dir / "b.manifest.yaml",
+            """schema: "2"
+goal: "B"
+type: feature
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: foo
+validate:
+  - pytest
+created: "2026-01-01T00:00:00Z"
+""",
+        )
+        _write_manifest(
+            chain_dir / "a.manifest.yaml",
+            """schema: "2"
+goal: "A"
+type: feature
+supersedes: [b]
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: bar
+validate:
+  - pytest
+created: "2026-02-01T00:00:00Z"
+""",
+        )
+
+        chain = ManifestChain(chain_dir, project_root=tmp_path)
+
+        assert ErrorCode.ARTIFACT_DROPPED_BY_SUPERSESSION in [
+            error.code for error in chain.diagnostics()
+        ]
 
 
 class TestSupersession:

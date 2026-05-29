@@ -472,7 +472,7 @@ class ManifestChain:
 
     def diagnostics(self) -> list[ValidationError]:
         """Return all chain-level diagnostics discovered during loading."""
-        return (
+        diagnostics = (
             self.load_errors
             + self._detect_unmarked_inactive_manifests()
             + self.validate_supersession_integrity()
@@ -481,6 +481,11 @@ class ManifestChain:
             + self._detect_non_monotonic_sequence()
             + self.audit_supersession_artifacts()
         )
+        return [
+            error
+            for error in diagnostics
+            if error.code != ErrorCode.GRANDFATHERED_SUPERSESSION
+        ]
 
     def inactive_manifest_diagnostics(self) -> list[ValidationError]:
         """Return diagnostics for skipped inactive manifest directories."""
