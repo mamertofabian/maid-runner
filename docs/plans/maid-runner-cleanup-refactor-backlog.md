@@ -106,6 +106,8 @@ from a fresh validator-specific target.
 
 ### 3. Long CLI parser construction method in `_main.py`
 
+Status: closed by `045-01-extract-cli-parser-registration`.
+
 `maid_runner/cli/commands/_main.py:9-336` keeps every top-level and nested CLI
 subparser in one 328-line `build_parser()` method. This is a classic **Long
 Method** and **Shotgun Surgery** risk: every new CLI surface edits the same
@@ -136,6 +138,8 @@ subparser action and preserve the same parsed attributes, defaults, help
 strings, and suppressed aliases.
 
 ### 4. Mixed-concern `maid test` orchestration in `test_runner.py`
+
+Status: closed by `045-02-extract-test-runner-stream-orchestration`.
 
 `maid_runner/core/test_runner.py:188-356` keeps chain loading, chain error
 handling, command integrity checks, stream command collection, batching
@@ -223,10 +227,10 @@ Recommended order so each refactor lands with characterization first:
 3. Done: extract `validate_removed_artifacts` policy via `038-11`.
 4. Done: extract `validate_all`, behavioral validation, implementation
    validation, and implementation coverage helpers through the 038 wave.
-5. Next: characterize and extract CLI command-family registration helpers from
-   `_main.build_parser` via the `045` draft queue.
-6. Next: characterize and extract stream planning/execution helpers from
-   `_run_tests_cached` via the `045` draft queue.
+5. Done: characterize and extract CLI command-family registration helpers from
+   `_main.build_parser` via `045-01`.
+6. Done: characterize and extract stream planning/execution helpers from
+   `_run_tests_cached` via `045-02`.
 7. Future cleanup work can continue with current large modules such as
    `validators/python.py`, TypeScript validator internals, `_format.py`,
    `chain.py`, or the remaining `ValidationEngine._validate` method, but those
@@ -260,3 +264,8 @@ evidence rather than this historical method-size table.
 Current confirmed cleanup targets are `build_parser()` in
 `maid_runner/cli/commands/_main.py` and `_run_tests_cached()` in
 `maid_runner/core/test_runner.py`. Draft queue `045` captures those targets.
+
+2026-05-29 closure update: the `045` queue is consumed. `045-01` promoted the
+CLI parser registration helper extraction, and `045-02` promoted the test
+runner stream orchestration helper extraction. The draft epic remains only as
+an archived historical pointer.
