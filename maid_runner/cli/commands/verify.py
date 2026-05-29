@@ -53,6 +53,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
             include_tests=getattr(args, "include_tests", False),
+            test_jobs=getattr(args, "test_jobs", 1),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
         return 0 if _result_success(result) else 1
@@ -88,6 +89,7 @@ def _run_verify(
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
+    test_jobs: int = 1,
 ) -> VerificationResult:
     from maid_runner.core.chain import (
         _enter_manifest_chain_cache_scope,
@@ -109,6 +111,7 @@ def _run_verify(
             since=since,
             base_ref=base_ref,
             include_tests=include_tests,
+            test_jobs=test_jobs,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -128,6 +131,7 @@ def _run_verify_cached(
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
+    test_jobs: int = 1,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -217,7 +221,7 @@ def _run_verify_cached(
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
 
-        stages.append(_tests_stage(root, manifest_dir, fail_fast))
+        stages.append(_tests_stage(root, manifest_dir, fail_fast, test_jobs=test_jobs))
 
         return _verification_result(stages, started)
 
@@ -354,6 +358,7 @@ def _tests_stage(
     root: Path,
     manifest_dir: str,
     fail_fast: bool,
+    test_jobs: int = 1,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
@@ -378,6 +383,7 @@ def _tests_stage(
             manifest_dir=manifest_dir,
             project_root=root,
             fail_fast=fail_fast,
+            jobs=test_jobs,
         )
         return VerificationStageResult(
             name="tests",

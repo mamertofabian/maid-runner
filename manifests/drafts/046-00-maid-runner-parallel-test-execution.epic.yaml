@@ -1,31 +1,28 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan opt-in parallel execution for independent maid test command groups"
+goal: "Archive consumed opt-in parallel maid test execution epic"
 type: refactor
 created: "2026-05-29"
 metadata:
-  status: planning
+  status: archived
   tags:
     - performance
     - test-runner
     - parallelism
     - verify
-  priority: high
+    - archive
+  priority: low
 description: |
-  Fresh post-043 measurements show validation-stage performance is no longer
-  the dominant MAID Runner bottleneck. `maid verify` and reference-project runs
-  are now dominated by the `maid test` stage after existing batching and
-  pruning have already reduced duplicate command execution.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contract was promoted as
+  `manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`.
 
-  This roadmap intentionally keeps the next performance wave small: add an
-  opt-in parallel test command execution path that preserves the existing
-  serial default, deterministic result ordering, validate-command integrity
-  checks, and fail-fast behavior.
-
-  Planned child order:
-
-  1. `046-01-parallelize-independent-maid-test-command-groups`
+  The file remains in `manifests/drafts/` only as a historical pointer. Current
+  performance work should start from fresh measurements in
+  `docs/plans/maid-runner-performance-backlog.md` and the implemented opt-in
+  `maid test --jobs N` / `maid verify --test-jobs N` behavior for active
+  manifest-set test runs. Single-manifest `maid test --manifest ...` execution
+  remains serial.
 temptations:
   - risk: "Do not parallelize by default and surprise users with changed resource usage."
     instead: "Require an explicit jobs flag and keep the current serial path as the default."
@@ -40,12 +37,13 @@ files:
     - path: manifests/drafts/046-00-maid-runner-parallel-test-execution.epic.yaml
       artifacts:
         - kind: attribute
-          name: _parallel_test_execution_roadmap
+          name: _archived_parallel_test_execution_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for opt-in parallel maid test command execution."
+          description: "Historical pointer for promoted child manifest 046-01."
   read:
     - docs/plans/maid-runner-performance-backlog.md
+    - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
     - maid_runner/core/test_runner.py
     - maid_runner/core/_test_command_execution.py
     - maid_runner/cli/commands/_main.py

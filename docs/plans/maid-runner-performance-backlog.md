@@ -270,6 +270,17 @@ Closure shape:
 - Keep cached in-process `maid validate` command reuse serial unless the
   implementation isolates per-worker validation caches safely.
 
+Status: closed by
+`046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`.
+
+Current behavior: `maid test --jobs N` opts active manifest-set runs into
+parallel execution for independent implementation command groups, and
+`maid verify --test-jobs N` applies the same policy to the verify tests stage.
+Single-manifest `maid test --manifest ...` execution remains serial. Default
+jobs remain serial, fail-fast stays on the serial path, cached in-process
+`maid validate` commands are kept out of the worker pool, and results are
+reported in serial-equivalent order.
+
 ## Speculative Ideas
 
 - Opt-in parallel validation can help only after the caching work above. Running
@@ -291,10 +302,12 @@ Completed:
 3. `041-03-share-verify-validation-cache-scope.manifest.yaml`
 4. `041-04-cache-ts-reexport-compiler-fallback.manifest.yaml`
 5. `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
+6. `046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`
 
 Next draft:
 
-- `046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`
+- None pending from the current performance backlog. Re-benchmark before
+  planning another optimization slice.
 
 Future draft candidates:
 
@@ -318,7 +331,8 @@ Future draft candidates:
 
 ## Verification Notes
 
-The post-041 planning pass promoted and implemented `043-04`. Future draft
+The post-041 planning pass promoted and implemented `043-04`. The 046 pass
+promoted and implemented opt-in parallel test command execution. Future draft
 manifests must schema-validate before promotion, then be implemented one at a
 time through the MAID implementation workflow.
 

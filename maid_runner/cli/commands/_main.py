@@ -111,10 +111,18 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
 
 
 def _register_test_parser(sub: argparse._SubParsersAction) -> None:
+    from maid_runner.core.test_runner import _positive_jobs_arg
+
     p = sub.add_parser("test", help="Run validation commands from manifests")
     p.add_argument("--manifest", default=None)
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--fail-fast", action="store_true")
+    p.add_argument(
+        "--jobs",
+        type=_positive_jobs_arg,
+        default=1,
+        help="Run independent implementation command groups with this many workers",
+    )
     p.add_argument("--verbose", action="store_true")
     p.add_argument("--json", action="store_true")
     p.add_argument("--watch", action="store_true")
@@ -129,6 +137,8 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
 
 
 def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
+    from maid_runner.core.test_runner import _positive_jobs_arg
+
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
     p.add_argument("--manifest-dir", default="manifests/")
     p.add_argument("--allow-empty", action="store_true")
@@ -194,6 +204,12 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         "--include-tests",
         action="store_true",
         help="Include changed test files in scope gates",
+    )
+    p.add_argument(
+        "--test-jobs",
+        type=_positive_jobs_arg,
+        default=1,
+        help="Run the verify tests stage with this many test command workers",
     )
     p.add_argument("--json", action="store_true")
 

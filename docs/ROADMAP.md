@@ -93,14 +93,18 @@ Current references:
 - `docs/plans/maid-runner-performance-backlog.md`
 - `manifests/041-*`
 - `manifests/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
+- `manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`
 
 Near-term direction:
 
-- Continue measured optimization work from the post-041 benchmark matrix.
-- Re-benchmark Tower Recall-style TypeScript behavioral validation after the
-  `043-04` compiler bridge import-resolution cache.
-- Keep parallelism and cross-invocation disk caches speculative until profiling
-  proves they are the right next boundary.
+- Use `maid test --jobs N` for active manifest-set runs and
+  `maid verify --test-jobs N` only as explicit opt-in parallel test-stage
+  acceleration; single-manifest `maid test --manifest ...` and default
+  execution remain serial.
+- Re-benchmark representative projects after `046-01` before planning another
+  optimization slice.
+- Keep cross-invocation disk caches speculative until profiling proves they are
+  the right next boundary.
 
 ### Maintainability
 

@@ -310,6 +310,59 @@ class TestCmdTestAll:
         assert exit_code == 0
         assert captured["batch"] is None
 
+    def test_cmd_test_forwards_jobs_to_run_tests(self, monkeypatch, capsys):
+        from maid_runner.cli.commands.test import cmd_test
+        from maid_runner.core.result import BatchTestResult
+
+        captured = {}
+
+        def fake_run_tests(**kwargs):
+            captured["jobs"] = kwargs["jobs"]
+            return BatchTestResult(results=[], total=0, passed=0, failed=0)
+
+        monkeypatch.setattr("maid_runner.core.test_runner.run_tests", fake_run_tests)
+
+        exit_code = cmd_test(
+            Namespace(
+                manifest=None,
+                manifest_dir="manifests/",
+                fail_fast=False,
+                batch=None,
+                jobs=3,
+                verbose=False,
+                json=False,
+            )
+        )
+
+        assert exit_code == 0
+        assert captured["jobs"] == 3
+
+    def test_cmd_test_default_jobs_remains_serial(self, monkeypatch, capsys):
+        from maid_runner.cli.commands.test import cmd_test
+        from maid_runner.core.result import BatchTestResult
+
+        captured = {}
+
+        def fake_run_tests(**kwargs):
+            captured["jobs"] = kwargs["jobs"]
+            return BatchTestResult(results=[], total=0, passed=0, failed=0)
+
+        monkeypatch.setattr("maid_runner.core.test_runner.run_tests", fake_run_tests)
+
+        exit_code = cmd_test(
+            Namespace(
+                manifest=None,
+                manifest_dir="manifests/",
+                fail_fast=False,
+                batch=None,
+                verbose=False,
+                json=False,
+            )
+        )
+
+        assert exit_code == 0
+        assert captured["jobs"] == 1
+
     def test_test_rejects_noop_validate_command_for_behavioral_tests(
         self, tmp_path, capsys
     ):

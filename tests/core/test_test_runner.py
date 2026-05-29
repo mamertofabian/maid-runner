@@ -1,9 +1,15 @@
 """Tests for maid_runner.core.test_runner - test execution."""
 
+from __future__ import annotations
+
+import threading
+import time
+
 from maid_runner.core.test_runner import (
     run_command,
     run_manifest_tests,
     run_tests,
+    _run_parallel_test_commands,
     _resolve_command,
     _is_python_command,
     _can_batch,
@@ -332,6 +338,413 @@ validate:
     assert cached_calls == [
         (("maid", "validate", "contracts/target.manifest.yaml"), "a"),
         (("uv", "run", "maid", "validate", "contracts/target.manifest.yaml"), "b"),
+    ]
+
+
+def test_run_tests_jobs_parallelizes_independent_implementation_commands(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    for slug in ("a", "b", "c"):
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - echo {slug}
+"""
+        )
+
+    lock = threading.Lock()
+    two_in_flight = threading.Event()
+    active = 0
+    max_active = 0
+
+    def fake_run_command(command, **kwargs):
+        nonlocal active, max_active
+        with lock:
+            active += 1
+            max_active = max(max_active, active)
+            if active >= 2:
+                two_in_flight.set()
+        try:
+            assert two_in_flight.wait(timeout=1)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+        finally:
+            with lock:
+                active -= 1
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        jobs=3,
+    )
+
+    assert result.success is True
+    assert result.total == 3
+    assert max_active >= 2
+
+
+def test_run_tests_jobs_preserves_serial_result_order_for_parallel_completions(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    for slug in ("slow", "fast"):
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - echo {slug}
+"""
+        )
+
+    def fake_run_command(command, **kwargs):
+        if command == ("echo", "slow"):
+            time.sleep(0.05)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        jobs=2,
+    )
+
+    assert [item.command for item in result.results] == [
+        ("echo", "fast"),
+        ("echo", "slow"),
+    ]
+
+
+def test_run_tests_jobs_mixed_parallel_and_serial_only_commands_match_serial_equivalence(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    contracts_dir = tmp_path / "contracts"
+    manifests_dir.mkdir()
+    contracts_dir.mkdir()
+    manifest_specs = [
+        ("a", "pytest tests/test_a.py -v"),
+        ("b", "pytest tests/test_b.py -v"),
+        ("c", "echo c"),
+        ("d", "maid validate contracts/target.manifest.yaml"),
+        ("e", "echo e"),
+    ]
+    for slug, command in manifest_specs:
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - {command}
+"""
+        )
+    (contracts_dir / "target.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  create:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+validate:
+  - echo target
+"""
+    )
+    external_calls: list[tuple[str, ...]] = []
+    cached_calls: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        external_calls.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=1 if command == ("echo", "e") else 0,
+            stdout="",
+            stderr="failed" if command == ("echo", "e") else "",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    def fake_cached_maid_validate_command(command, **kwargs):
+        if command != ("maid", "validate", "contracts/target.manifest.yaml"):
+            return None
+        cached_calls.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs["manifest_slug"],
+            command=command,
+            exit_code=0,
+            stdout="cached",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs["stream"],
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner._run_cached_maid_validate_command",
+        fake_cached_maid_validate_command,
+    )
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        jobs=3,
+    )
+
+    assert result.success is False
+    assert result.total == 4
+    assert result.passed == 3
+    assert result.failed == 1
+    assert [item.command for item in result.results] == [
+        ("pytest", "tests/test_a.py", "tests/test_b.py", "-v"),
+        ("echo", "c"),
+        ("maid", "validate", "contracts/target.manifest.yaml"),
+        ("echo", "e"),
+    ]
+    assert external_calls == [
+        ("pytest", "tests/test_a.py", "tests/test_b.py", "-v"),
+        ("echo", "c"),
+        ("echo", "e"),
+    ]
+    assert cached_calls == [("maid", "validate", "contracts/target.manifest.yaml")]
+
+
+def test_run_tests_jobs_keeps_fail_fast_serial(tmp_path, monkeypatch):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    for slug in ("a", "b", "c"):
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - echo {slug}
+"""
+        )
+    observed: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        observed.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=1,
+            stdout="",
+            stderr="failed",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        fail_fast=True,
+        jobs=3,
+    )
+
+    assert result.success is False
+    assert result.total == 1
+    assert observed == [("echo", "a")]
+
+
+def test_run_tests_jobs_default_remains_serial(tmp_path, monkeypatch):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    for slug in ("a", "b"):
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - echo {slug}
+"""
+        )
+    lock = threading.Lock()
+    active = 0
+    max_active = 0
+
+    def fake_run_command(command, **kwargs):
+        nonlocal active, max_active
+        with lock:
+            active += 1
+            max_active = max(max_active, active)
+        try:
+            time.sleep(0.01)
+            return TestRunResult(
+                manifest_slug=kwargs.get("manifest_slug", ""),
+                command=command,
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_ms=1.0,
+                stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+            )
+        finally:
+            with lock:
+                active -= 1
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=False)
+
+    assert result.success is True
+    assert max_active == 1
+
+
+def test_run_tests_jobs_keeps_cached_maid_validate_commands_serial(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    contracts_dir = tmp_path / "contracts"
+    manifests_dir.mkdir()
+    contracts_dir.mkdir()
+    for slug in ("a", "b"):
+        (manifests_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug}"
+type: snapshot
+files:
+  create:
+    - path: src/{slug}.py
+      artifacts:
+        - kind: function
+          name: {slug}
+validate:
+  - maid validate contracts/{slug}.manifest.yaml
+"""
+        )
+        (contracts_dir / f"{slug}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: "{slug} target"
+type: snapshot
+files:
+  create:
+    - path: src/{slug}_target.py
+      artifacts:
+        - kind: function
+          name: {slug}_target
+validate:
+  - echo {slug}
+"""
+        )
+    worker_threads: list[str] = []
+    active_cached = 0
+    max_active_cached = 0
+
+    def fake_cached_maid_validate_command(command, **kwargs):
+        nonlocal active_cached, max_active_cached
+        worker_threads.append(threading.current_thread().name)
+        active_cached += 1
+        max_active_cached = max(max_active_cached, active_cached)
+        time.sleep(0.01)
+        active_cached -= 1
+        return TestRunResult(
+            manifest_slug=kwargs["manifest_slug"],
+            command=command,
+            exit_code=0,
+            stdout="cached",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs["stream"],
+        )
+
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner._run_cached_maid_validate_command",
+        fake_cached_maid_validate_command,
+    )
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        jobs=2,
+    )
+
+    assert result.success is True
+    assert max_active_cached == 1
+    assert worker_threads == ["MainThread", "MainThread"]
+
+
+def test_run_parallel_test_commands_returns_input_order(monkeypatch, tmp_path):
+    def fake_run_command(command, **kwargs):
+        if command == ("echo", "slow"):
+            time.sleep(0.05)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    results = _run_parallel_test_commands(
+        [(("echo", "slow"), "slow"), (("echo", "fast"), "fast")],
+        tmp_path,
+        jobs=2,
+    )
+
+    assert [item.command for item in results] == [
+        ("echo", "slow"),
+        ("echo", "fast"),
     ]
 
 

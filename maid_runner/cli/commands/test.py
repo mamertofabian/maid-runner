@@ -12,6 +12,7 @@ def cmd_test(args: argparse.Namespace) -> int:
 
     try:
         batch = getattr(args, "batch", None)
+        jobs = getattr(args, "jobs", 1)
         if args.manifest:
             result = run_manifest_tests(args.manifest, fail_fast=args.fail_fast)
         else:
@@ -19,6 +20,7 @@ def cmd_test(args: argparse.Namespace) -> int:
                 manifest_dir=args.manifest_dir,
                 fail_fast=args.fail_fast,
                 batch=batch,
+                jobs=jobs,
             )
         print(format_test_result(result, verbose=args.verbose, json_mode=args.json))
         return 0 if result.success else 1

@@ -390,6 +390,24 @@ class TestMissingCLIFlags:
         args = parser.parse_args(["test"])
         assert args.batch is None
 
+    def test_test_parser_accepts_jobs_option(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["test", "--jobs", "4", "--batch"])
+
+        assert args.jobs == 4
+        assert args.batch is True
+
+    def test_test_parser_rejects_invalid_jobs_option(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        for value in ("0", "-1", "not-an-int"):
+            with pytest.raises(SystemExit):
+                parser.parse_args(["test", "--jobs", value])
+
     def test_manifest_create_delete_flag(self):
         from maid_runner.cli.commands._main import build_parser
 

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 from contextlib import nullcontext
 import json
 import os
 import textwrap
 
+import pytest
 import yaml
 
 
@@ -117,6 +119,120 @@ def _without_durations(value):
     if isinstance(value, list):
         return [_without_durations(item) for item in value]
     return value
+
+
+def test_verify_parser_accepts_test_jobs_option():
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+    args = parser.parse_args(["verify", "--test-jobs", "4", "--keep-going"])
+
+    assert args.test_jobs == 4
+    assert args.fail_fast is False
+
+
+def test_verify_parser_rejects_invalid_test_jobs_option():
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+
+    for value in ("0", "-1", "not-an-int"):
+        with pytest.raises(SystemExit):
+            parser.parse_args(["verify", "--test-jobs", value])
+
+
+def test_verify_passes_test_jobs_to_tests_stage(tmp_path, monkeypatch):
+    from maid_runner.cli.commands.verify import _tests_stage
+    from maid_runner.core.result import BatchTestResult
+
+    captured = {}
+
+    def fake_integrity_errors(*args, **kwargs):
+        return []
+
+    def fake_run_tests(**kwargs):
+        captured["jobs"] = kwargs["jobs"]
+        return BatchTestResult(results=[], total=0, passed=0, failed=0)
+
+    monkeypatch.setattr(
+        "maid_runner.cli.commands.validate._validate_command_integrity_for_manifest_dir",
+        fake_integrity_errors,
+    )
+    monkeypatch.setattr("maid_runner.core.test_runner.run_tests", fake_run_tests)
+
+    stage = _tests_stage(tmp_path, "manifests/", fail_fast=False, test_jobs=3)
+
+    assert stage.success is True
+    assert captured["jobs"] == 3
+
+
+def test_cmd_verify_forwards_test_jobs_to_run_verify(monkeypatch, capsys):
+    from maid_runner.cli.commands.verify import cmd_verify
+    from maid_runner.core.result import VerificationResult
+
+    captured = {}
+
+    def fake_run_verify(**kwargs):
+        captured["test_jobs"] = kwargs["test_jobs"]
+        captured["fail_fast"] = kwargs["fail_fast"]
+        return VerificationResult(stages=(), duration_ms=1.0)
+
+    monkeypatch.setattr("maid_runner.cli.commands.verify._run_verify", fake_run_verify)
+
+    exit_code = cmd_verify(
+        argparse.Namespace(
+            manifest_dir="manifests/",
+            allow_empty=False,
+            fail_fast=False,
+            strict=False,
+            fail_on_warnings=False,
+            advisory=False,
+            worktree_scope=False,
+            changed_scope=False,
+            since=None,
+            base_ref=None,
+            include_tests=False,
+            test_jobs=3,
+            json=False,
+        )
+    )
+
+    assert exit_code == 0
+    assert captured["test_jobs"] == 3
+    assert captured["fail_fast"] is False
+
+
+def test_cmd_verify_default_test_jobs_remains_serial(monkeypatch, capsys):
+    from maid_runner.cli.commands.verify import cmd_verify
+    from maid_runner.core.result import VerificationResult
+
+    captured = {}
+
+    def fake_run_verify(**kwargs):
+        captured["test_jobs"] = kwargs["test_jobs"]
+        return VerificationResult(stages=(), duration_ms=1.0)
+
+    monkeypatch.setattr("maid_runner.cli.commands.verify._run_verify", fake_run_verify)
+
+    exit_code = cmd_verify(
+        argparse.Namespace(
+            manifest_dir="manifests/",
+            allow_empty=False,
+            fail_fast=True,
+            strict=False,
+            fail_on_warnings=False,
+            advisory=False,
+            worktree_scope=False,
+            changed_scope=False,
+            since=None,
+            base_ref=None,
+            include_tests=False,
+            json=False,
+        )
+    )
+
+    assert exit_code == 0
+    assert captured["test_jobs"] == 1
 
 
 def test_verify_returns_0_when_all_gates_pass(tmp_path, capsys):

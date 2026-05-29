@@ -4,7 +4,6 @@ goal: "Parallelize independent maid test command groups behind an explicit jobs 
 type: refactor
 created: "2026-05-29"
 metadata:
-  status: planning
   tags:
     - performance
     - test-runner
@@ -98,7 +97,7 @@ files:
           name: _run_implementation_commands
           args:
             - name: commands
-              type: list[tuple[tuple[str, ...], str]]
+              type: list[tuple[tuple[str, Ellipsis], str]]
             - name: project_root
               type: Path
             - name: batch
@@ -116,7 +115,7 @@ files:
             - name: jobs
               type: int
               default: "1"
-          returns: tuple[list[TestRunResult], int, int, BatchTestResult | None]
+          returns: tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]
           source_scenario: "Implementation commands include a compatible batched external group, non-batched external commands, and cached `maid validate` commands after existing batching and pruning."
           actions:
             - type: api_call
@@ -128,7 +127,7 @@ files:
           name: _run_parallel_test_commands
           args:
             - name: commands
-              type: list[tuple[tuple[str, ...], str]]
+              type: list[tuple[tuple[str, Ellipsis], str]]
             - name: project_root
               type: Path
             - name: jobs
@@ -463,4 +462,4 @@ files:
             behavior: "`cmd_verify` forwards test_jobs=1 to `_run_verify` so existing direct Namespace callers remain serial."
 validate:
   - uv run python -m pytest -q tests/core/test_test_runner.py tests/cli/test_main.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
-  - uv run maid validate manifests/drafts/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml --mode schema --quiet

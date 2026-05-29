@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import argparse
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Union
@@ -172,6 +174,7 @@ def run_tests(
     fail_fast: bool = False,
     project_root: Union[str, Path] = ".",
     batch: bool | None = None,
+    jobs: int = 1,
 ) -> BatchTestResult:
     chain_outermost = _enter_manifest_chain_cache_scope()
     try:
@@ -180,6 +183,7 @@ def run_tests(
             fail_fast=fail_fast,
             project_root=project_root,
             batch=batch,
+            jobs=jobs,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -191,6 +195,7 @@ def _run_tests_cached(
     fail_fast: bool = False,
     project_root: Union[str, Path] = ".",
     batch: bool | None = None,
+    jobs: int = 1,
 ) -> BatchTestResult:
     project_root = Path(project_root)
     chain_dir = project_root / manifest_dir
@@ -238,6 +243,7 @@ def _run_tests_cached(
         results,
         passed,
         failed,
+        jobs=jobs,
     )
     if early_result is not None:
         return early_result
@@ -309,12 +315,13 @@ def _run_implementation_commands(
     previous_results: list[TestRunResult],
     previous_passed: int,
     previous_failed: int,
+    jobs: int = 1,
 ) -> tuple[list[TestRunResult], int, int, BatchTestResult | None]:
     results = list(previous_results)
     passed = previous_passed
     failed = previous_failed
     maid_validate_cache: dict[str, object] = {}
-    sequential_impl_commands = commands
+    ordered_impl_commands = commands
     if batch is not False:
         impl_commands_with_slug = _prune_covered_pytest_commands(
             _dedupe_commands(
@@ -330,7 +337,7 @@ def _run_implementation_commands(
             tuple[tuple[str, ...], tuple[str, ...]],
             list[tuple[tuple[str, ...], str]],
         ] = {}
-        sequential_impl_commands = []
+        sequential_impl_commands: list[tuple[tuple[str, ...], str]] = []
         for cmd, slug in impl_commands_with_slug:
             group_key = _batch_group_key(
                 cmd,
@@ -344,6 +351,7 @@ def _run_implementation_commands(
             _, prefix, options = group_key
             batch_groups.setdefault((prefix, options), []).append((cmd, slug))
 
+        batched_impl_commands: list[tuple[tuple[str, ...], str]] = []
         for group in batch_groups.values():
             if len(group) <= 1:
                 sequential_impl_commands.extend(group)
@@ -354,27 +362,50 @@ def _run_implementation_commands(
                 resolve_command=_resolve_command,
                 is_uv_project=_is_uv_project,
             )
-            result = run_command(batched_cmd, cwd=project_root, manifest_slug="batch")
+            batched_impl_commands.append((batched_cmd, "batch"))
+        ordered_impl_commands = [*batched_impl_commands, *sequential_impl_commands]
+
+    if jobs > 1 and not fail_fast:
+        pending_external_commands: list[tuple[tuple[str, ...], str]] = []
+
+        def flush_external_commands() -> None:
+            nonlocal passed, failed
+            if not pending_external_commands:
+                return
+            parallel_results = _run_parallel_test_commands(
+                pending_external_commands,
+                project_root,
+                jobs,
+            )
+            results.extend(parallel_results)
+            passed += sum(1 for result in parallel_results if result.success)
+            failed += sum(1 for result in parallel_results if not result.success)
+            pending_external_commands.clear()
+
+        for cmd, slug in ordered_impl_commands:
+            result = _run_cached_maid_validate_command(
+                cmd,
+                cwd=project_root,
+                manifest_slug=slug,
+                stream=TestStream.IMPLEMENTATION,
+                cache=maid_validate_cache,
+                resolve_command=_resolve_command,
+            )
+            if result is None:
+                pending_external_commands.append((cmd, slug))
+                continue
+
+            flush_external_commands()
             results.append(result)
             if result.success:
                 passed += 1
             else:
                 failed += 1
-                if fail_fast:
-                    return (
-                        results,
-                        passed,
-                        failed,
-                        BatchTestResult(
-                            results=results,
-                            total=len(results),
-                            passed=passed,
-                            failed=failed,
-                            chain_errors=chain_errors,
-                        ),
-                    )
 
-    for cmd, slug in sequential_impl_commands:
+        flush_external_commands()
+        return results, passed, failed, None
+
+    for cmd, slug in ordered_impl_commands:
         result = _run_cached_maid_validate_command(
             cmd,
             cwd=project_root,
@@ -405,6 +436,33 @@ def _run_implementation_commands(
                 )
 
     return results, passed, failed, None
+
+
+def _run_parallel_test_commands(
+    commands: list[tuple[tuple[str, ...], str]],
+    project_root: Path,
+    jobs: int,
+) -> list[TestRunResult]:
+    if not commands:
+        return []
+
+    max_workers = min(jobs, len(commands))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(run_command, cmd, cwd=project_root, manifest_slug=slug)
+            for cmd, slug in commands
+        ]
+        return [future.result() for future in futures]
+
+
+def _positive_jobs_arg(value: str) -> int:
+    try:
+        jobs = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("jobs must be a positive integer") from exc
+    if jobs < 1:
+        raise argparse.ArgumentTypeError("jobs must be a positive integer")
+    return jobs
 
 
 def _validate_manifest_test_command_integrity(
