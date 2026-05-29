@@ -1,0 +1,111 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Extract CLI parser command registration helpers"
+type: refactor
+created: "2026-05-29"
+metadata:
+  status: planning
+  engine: safe-refactor
+  tags:
+    - cli
+    - parser
+    - safe-refactor
+    - extract-method
+  priority: medium
+description: |
+  Apply Fowler's Extract Method to the Long Method in
+  `maid_runner.cli.commands._main.build_parser`.
+
+  `build_parser()` currently spans `maid_runner/cli/commands/_main.py:9-336`
+  and registers every top-level and nested MAID command in one function. Keep
+  the public `build_parser() -> argparse.ArgumentParser` and
+  `main(argv: list[str] | None = None) -> int` APIs stable while moving
+  command-family registration into private helpers.
+
+  Feathers seam: the parser is constructed in memory, so tests can
+  characterize `parse_args(...)`, defaults, nested subcommands, and help text
+  without subprocesses or file system side effects.
+temptations:
+  - risk: "Do not change command names, option names, defaults, aliases, or help behavior while extracting helpers."
+    instead: "Move existing argparse registration statements into private helpers and keep the same parser object graph."
+  - risk: "Do not eagerly import command handler modules from `build_parser`."
+    instead: "Keep lazy handler imports in `main` unchanged."
+  - risk: "Do not remove the suppressed `--use-manifest-chain` and `--json-output` compatibility aliases."
+    instead: "Characterize those aliases before moving the validate parser registration."
+  - risk: "Do not split command handling or dispatch in this slice."
+    instead: "Only extract parser registration helpers; leave `main` dispatch behavior intact."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Return the same MAID CLI ArgumentParser while delegating command-family registration to private helpers."
+        - kind: function
+          name: _register_validate_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          description: "Register the validate subcommand with unchanged options, aliases, defaults, and help."
+        - kind: function
+          name: _register_test_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          description: "Register the test subcommand with unchanged batch, watch, output, and manifest options."
+        - kind: function
+          name: _register_verify_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          description: "Register the verify subcommand with unchanged strictness and changed-scope defaults."
+        - kind: function
+          name: _register_manifest_graph_chain_audit_parsers
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          description: "Register nested manifest, graph, chain, and audit command families with unchanged destination names."
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_parser_help_lists_all_top_level_commands
+          source_scenario: "The parser is built after command registration is extracted."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Formatted help lists the same top-level command names: validate, test, verify, snapshot, snapshot-system, bootstrap, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, and audit."
+        - kind: test_function
+          name: test_validate_compatibility_aliases_survive_parser_extraction
+          source_scenario: "The validate parser is extracted into a private helper."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "`validate --use-manifest-chain --json-output` still parses successfully with use_manifest_chain and json set to True."
+        - kind: test_function
+          name: test_nested_command_parsers_survive_parser_extraction
+          source_scenario: "Nested command-family registration is extracted."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "`manifest create`, `graph query`, `chain log`, and `audit supersessions` keep their destination attributes and default manifest directories."
+  read:
+    - docs/plans/maid-runner-cleanup-refactor-backlog.md
+    - manifests/snapshot-cli-commands--main.manifest.yaml
+    - manifests/040-37-retire-worktree-scope-legacy-cases.manifest.yaml
+    - tests/cli/test_audit_cmd.py
+    - tests/cli/test_chain_cmd.py
+    - tests/daemon/test_cli_serve.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_main.py tests/cli/test_audit_cmd.py tests/cli/test_chain_cmd.py tests/daemon/test_cli_serve.py

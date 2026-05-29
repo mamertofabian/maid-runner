@@ -1,0 +1,61 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan the next cleanup and refactor wave for MAID runner"
+type: refactor
+created: "2026-05-29"
+metadata:
+  status: planning
+  tags:
+    - cleanup
+    - safe-refactor
+    - cli
+    - test-runner
+  priority: medium
+description: |
+  Queue the next implementation-sized cleanup work found by the 2026-05-29
+  cleanup audit. This wave is intentionally behavior-preserving: it reduces
+  Long Method and mixed-concern orchestration risks without changing MAID's
+  manifest contract, CLI output, command execution semantics, error codes, or
+  public Python APIs.
+
+  Planned child order:
+
+  1. `045-01-extract-cli-parser-registration` - characterize and extract
+     command-family registration helpers from `build_parser`.
+  2. `045-02-extract-test-runner-stream-orchestration` - characterize and
+     extract stream collection/execution helpers from `_run_tests_cached`.
+
+  Rationale:
+
+  - `_main.build_parser` is a 328-line parser construction method repeatedly
+    touched by unrelated CLI work.
+  - `test_runner._run_tests_cached` is a 169-line orchestration method that
+    still mixes stream collection, batching, execution, fail-fast accounting,
+    and result assembly after earlier helper extractions.
+  - Both targets already have public seams and broad tests, making them good
+    safe-refactor candidates.
+temptations:
+  - risk: "Do not turn this cleanup wave into a CLI redesign."
+    instead: "Keep every parsed option, default, help string, alias, and dispatch behavior equivalent."
+  - risk: "Do not change which validation commands `maid test` executes or batches."
+    instead: "Extract helpers under characterization tests and preserve command order, stream tags, batch slugs, and fail-fast accounting."
+  - risk: "Do not delete public artifacts or active manifest references."
+    instead: "Use `maid-evolver` only if a later plan intentionally changes a public contract."
+  - risk: "Do not bundle performance optimization with cleanup."
+    instead: "Route measurable speedups through the performance optimization backlog."
+files:
+  edit:
+    - path: docs/plans/maid-runner-cleanup-refactor-backlog.md
+      artifacts:
+        - kind: attribute
+          name: cleanup_refactor_backlog_045
+          of: documentation
+          description: "Current cleanup findings and ordered 045 draft queue."
+  read:
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/core/test_runner.py
+    - tests/cli/test_main.py
+    - tests/core/test_test_runner.py
+validate:
+  - uv run maid validate manifests/drafts/045-00-maid-runner-cleanup-refactor-roadmap.epic.yaml --mode schema --quiet
