@@ -1,75 +1,44 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "MAID validate hardening roadmap for closing confirmed anti-gaming loopholes"
+goal: "Archive consumed MAID validate hardening roadmap epic"
 type: fix
-created: "2026-05-16"
+created: "2026-05-29"
 metadata:
-  status: planning
+  status: archived
   tags:
     - validation
     - anti-gaming
     - fail-closed
     - automation
-  priority: critical
+    - archive
+  priority: low
 description: |
-  Epic planning inventory for closing the confirmed `maid validate` loopholes
-  recorded in docs/plans/maid-validate-hardening-backlog.md. This epic must
-  not be promoted or implemented directly. Promote one child draft at a time
-  so each loophole gets its own behavioral tests, implementation patch, and
-  review loop.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `030-01` through `030-11`.
 
-  The unifying design rule is fail-closed validation. If an AI agent can run a
-  command, get exit code 0, and selectively quote only the green part of the
-  output while a real gate failed or was skipped, this queue treats that as a
-  validation bug.
-
-  Planned child order:
-  1. Fail closed when manifest discovery finds no manifests.
-  2. Make `maid validate --coherence` affect the command exit status.
-  3. Reject manifest file paths that escape the project root.
-  4. Reject duplicate YAML keys during manifest loading.
-  5. Promote missing behavioral coverage from warning to error.
-  6. Expose assertion/stub checks and warning failure through CLI strict mode.
-  7. Add fail-fast file tracking gates for undeclared production files.
-  8. Let `maid validate` optionally execute manifest `validate:` commands.
-  9. Add a worktree-scope gate for changed production files.
-  10. Add a combined `maid verify` done gate for agent and CI workflows.
-
-  The queue intentionally keeps individual steps small enough for the Codex
-  MAID loop. Later drafts may depend on earlier ones, but no child should
-  silently implement another child early. If a draft needs a predecessor,
-  promote the predecessor first.
-temptations:
-  - risk: "Do not turn this epic into a single broad validation rewrite."
-    instead: "Promote one child draft at a time and keep each fix independently reviewable."
-  - risk: "Do not solve fail-closed behavior by hiding warnings or suppressing output."
-    instead: "Add structured errors and non-zero exit codes for every confirmed bypass."
-  - risk: "Do not weaken existing advisory workflows without an explicit escape hatch."
-    instead: "Use named flags such as --allow-empty or --no-strict only where an advisory mode is truly needed."
-  - risk: "Do not rely on docs to tell agents to run the right command."
-    instead: "Make the CLI provide a single automation-safe gate for the workflow."
+  The file remains in `manifests/drafts/` only as a historical pointer. Current
+  validation-hardening priorities live in
+  `docs/plans/maid-validate-hardening-backlog.md`.
 files:
   edit:
-    - path: docs/plans/maid-validate-hardening-backlog.md
+    - path: manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml
       artifacts:
         - kind: attribute
-          name: _maid_validate_hardening_roadmap
-          of: documentation
-          type: markdown
-          description: "Planning anchor for the split-before-promote draft queue that closes confirmed validation loopholes."
+          name: _archived_validate_hardening_roadmap_epic
+          of: manifest
+          description: "Historical pointer for promoted child manifests 030-01 through 030-11."
   read:
-    - CLAUDE.md
-    - maid_runner/core/validate.py
-    - maid_runner/core/manifest.py
-    - maid_runner/core/result.py
-    - maid_runner/core/test_runner.py
-    - maid_runner/cli/commands/_main.py
-    - maid_runner/cli/commands/validate.py
-    - maid_runner/cli/commands/files.py
-    - tests/core/test_validate.py
-    - tests/core/test_manifest.py
-    - tests/cli/test_validate_cmd.py
-    - tests/cli/test_files_cmd.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/030-01-fail-empty-manifest-discovery.manifest.yaml
+    - manifests/030-02-make-coherence-flag-fail-closed.manifest.yaml
+    - manifests/030-03-reject-manifest-path-escapes.manifest.yaml
+    - manifests/030-04-reject-duplicate-yaml-keys.manifest.yaml
+    - manifests/030-05-promote-coverage-misses-to-errors.manifest.yaml
+    - manifests/030-06-add-strict-validation-cli-flags.manifest.yaml
+    - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+    - manifests/030-08-add-validate-run-tests-gate.manifest.yaml
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+    - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
+    - manifests/030-11-combine-validate-coherence-json.manifest.yaml
 validate:
-  - uv run maid validate manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml --mode schema
+  - uv run maid validate manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml --mode schema --quiet

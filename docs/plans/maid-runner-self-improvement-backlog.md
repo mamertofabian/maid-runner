@@ -111,6 +111,8 @@ was removed as a one-time cleanup in `043-02`.
 
 Primary lane: MAID workflow.
 
+Status: Completed by `manifests/043-03-archive-consumed-draft-epics.manifest.yaml`.
+
 Evidence: The `028`, `029`, `030`, `032`, and `041` draft epics each have their
 planned child manifests promoted under `manifests/`. `034-00` and `035-00` are
 also largely consumed, but active manifests still list those draft epic paths in
@@ -142,8 +144,9 @@ Suggested acceptance criteria:
 - `uv run maid validate --mode schema --quiet` and `uv run maid validate`
   both pass after the cleanup.
 
-Next action: plan a narrow draft for consumed-epic archival before deleting or
-moving any files.
+Next action: none for the consumed epics archived in `043-03`. Future draft
+cleanup should only delete archived paths after active `files.read` references
+are evolved.
 
 ### 4. Refresh Performance Measurements After the 041 Work
 
@@ -245,8 +248,7 @@ unless code, schemas, or active manifests are touched.
 
 1. Done: retire E111 grandfathered-drop chain noise via `043-01`.
 2. Done: define and enforce active-manifest lifecycle metadata via `043-02`.
-3. `maid-evolver`: archive consumed draft epics and remove stale active
-   references before deletion.
+3. Done: archive consumed draft epics as stable archive pointers via `043-03`.
 4. `maid-runner-performance-optimization`: re-benchmark after 041 and plan the
    next measured optimization wave.
 5. `maid-runner-cleanup-and-refactor`: continue characterized
@@ -272,12 +274,12 @@ Completed:
 
 - `043-01-retire-grandfathered-chain-noise.manifest.yaml`
 - `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
+- `043-03-archive-consumed-draft-epics.manifest.yaml`
 
 Remaining candidates:
 
-- `042-03-archive-consumed-draft-epics.manifest.yaml`
-- `042-04-refresh-post-041-performance-benchmarks.manifest.yaml`
-- `042-05-split-validation-engine-removed-artifacts.manifest.yaml`
+- `043-04-refresh-post-041-performance-benchmarks.manifest.yaml`
+- `043-05-split-validation-engine-removed-artifacts.manifest.yaml`
 
 These are candidates only. They should be created one at a time by the owning
 specialist skill after confirming scope and current evidence.
@@ -306,3 +308,5 @@ specialist skill after confirming scope and current evidence.
   coverage in `tests/core/test_validate_schema_mode.py`.
 - `043-02` implementation review returned ready after the one-time active
   manifest metadata cleanup was declared in the manifest contract.
+- `043-03` rewrote consumed epic drafts as `archive-kind` pointers with
+  `metadata.status: archived`, preserving paths still read by active manifests.

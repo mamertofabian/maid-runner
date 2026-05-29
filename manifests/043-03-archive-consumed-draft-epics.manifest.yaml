@@ -1,0 +1,100 @@
+schema: "2"
+goal: "Archive consumed split-before-promote draft epics without breaking manifest references"
+type: refactor
+created: "2026-05-29"
+metadata:
+  tags:
+    - maid-workflow
+    - draft-inventory
+    - manifest-lifecycle
+  priority: high
+description: |
+  Convert consumed split-before-promote epic drafts into concise archived
+  pointers while preserving their existing paths for active manifests that still
+  read them as historical context.
+
+  The archived draft files must no longer look like live planning inventory:
+  they use `# archive-kind:` markers, declare `metadata.status: archived`, keep
+  schema validation green when targeted directly, and point maintainers to the
+  promoted child manifests or current specialist backlog.
+temptations:
+  - risk: "Do not delete draft files that are still listed in active manifest files.read sections."
+    instead: "Keep stable paths for referenced epics and rewrite them as archived pointers."
+  - risk: "Do not leave consumed epics marked with draft-kind epic planning comments."
+    instead: "Replace live draft markers with archive markers and archived lifecycle metadata."
+  - risk: "Do not hide schema failures in archived inventory."
+    instead: "Validate each archived draft directly in schema mode after rewriting it."
+files:
+  edit:
+    - path: manifests/drafts/028-00-clean-code-maintainability-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_clean_code_roadmap_epic
+          of: manifest
+          description: "Archived pointer for the consumed 028 clean-code roadmap epic and its promoted child manifests."
+    - path: manifests/drafts/029-00-clean-code-maintainability-next-wave.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_clean_code_next_wave_epic
+          of: manifest
+          description: "Archived pointer for the consumed 029 clean-code next-wave epic and its promoted child manifests."
+    - path: manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_validate_hardening_roadmap_epic
+          of: manifest
+          description: "Archived pointer for the consumed 030 validation-hardening roadmap epic and its promoted child manifests."
+    - path: manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_post_030_hardening_roadmap_epic
+          of: manifest
+          description: "Archived pointer for the consumed 032 post-030 hardening epic and its promoted child manifests."
+    - path: manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_performance_roadmap_epic
+          of: manifest
+          description: "Archived pointer for the consumed 034 performance roadmap epic and its promoted child manifests."
+    - path: manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_cleanup_refactor_roadmap_epic
+          of: manifest
+          description: "Archived pointer for the consumed 035 cleanup/refactor roadmap epic and its promoted child manifests."
+    - path: manifests/drafts/041-00-maid-runner-performance-diagnostics.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_performance_diagnostics_epic
+          of: manifest
+          description: "Archived pointer for the consumed 041 performance diagnostics epic and its promoted child manifests."
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_archive_inventory_policy
+          of: documentation
+          type: markdown
+          description: "Documents that consumed epics use archive markers and remain only as historical pointers."
+    - path: docs/plans/maid-runner-self-improvement-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _archive_consumed_draft_epics_status
+          of: documentation
+          type: markdown
+          description: "Marks the consumed draft epic archival item as completed by 043-03."
+  read:
+    - manifests/034-01-cache-manifest-chain-per-cli-invocation.manifest.yaml
+    - manifests/034-02-share-source-ast-across-validation-phases.manifest.yaml
+    - manifests/034-03-cache-test-artifact-tables-across-manifests.manifest.yaml
+    - manifests/036-01-maid-serve-validator-daemon.manifest.yaml
+    - manifests/035-01-characterize-validation-engine.manifest.yaml
+    - manifests/035-02-extract-shared-parse-error-handling.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/028-00-clean-code-maintainability-roadmap.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/029-00-clean-code-maintainability-next-wave.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml --mode schema --quiet
+  - uv run maid validate manifests/drafts/041-00-maid-runner-performance-diagnostics.epic.yaml --mode schema --quiet
+  - uv run maid validate --quiet
