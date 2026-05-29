@@ -12,8 +12,9 @@ unbounded implementation work.
 
 - `uv run maid validate --quiet` on the current tree now passes without E111
   grandfathered-drop chain notices after `043-01`.
-- `uv run maid test` passes 18 commands and now reports no E111 chain noise
-  after `043-01`.
+- The original `uv run maid test` health probe passed 18 commands and reported
+  no E111 chain noise after `043-01`; the 2026-05-29 performance refresh later
+  measured `uv run maid test --json` at 26 commands and 41.07s.
 - `uv run maid test --quiet` was rejected because `maid test` does not support
   `--quiet`; the supported command was rerun.
 - Existing specialist plans were reviewed:
@@ -152,10 +153,17 @@ are evolved.
 
 Primary lane: Performance.
 
-Evidence: The performance backlog identified assertion parsing, TypeScript
+Status: Completed as a planning refresh on 2026-05-29. The refreshed
+measurements are recorded in `docs/plans/maid-runner-performance-backlog.md`,
+and the next implementation-sized draft is
+`manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`.
+
+Evidence: The performance backlog had identified assertion parsing, TypeScript
 compiler resolution, and verify cache scope as hot paths. Git history shows the
-041 cache/session/share-scope work has since landed, while the current local
-`maid test` run still takes about 31 seconds for 18 commands.
+041 cache/session/share-scope work has since landed. The refreshed local
+`maid-runner` measurements now show `maid test --json` at 41.07s for 26
+commands, while strict validation bottlenecks have moved mostly to Tower Recall
+TypeScript behavioral validation.
 
 Current symptom: The backlog contains pre-optimization benchmark numbers. The
 next bottleneck should be chosen from fresh measurements, not from stale timing
@@ -178,7 +186,8 @@ Suggested acceptance criteria:
 - Any new draft preserves JSON-visible output and fail-closed validation
   behavior.
 
-Next action: run a post-041 performance audit.
+Next action: promote and implement `043-04` if Tower Recall TypeScript
+behavioral validation remains the next performance priority.
 
 ### 5. Continue Characterized ValidationEngine Refactoring
 
@@ -249,8 +258,7 @@ unless code, schemas, or active manifests are touched.
 1. Done: retire E111 grandfathered-drop chain noise via `043-01`.
 2. Done: define and enforce active-manifest lifecycle metadata via `043-02`.
 3. Done: archive consumed draft epics as stable archive pointers via `043-03`.
-4. `maid-runner-performance-optimization`: re-benchmark after 041 and plan the
-   next measured optimization wave.
+4. Done: re-benchmark after 041 and plan the next measured optimization wave.
 5. `maid-runner-cleanup-and-refactor`: continue characterized
    `ValidationEngine` method splits.
 6. `feature-spec-architect` or docs-only editing: refresh strategy and roadmap
@@ -275,10 +283,11 @@ Completed:
 - `043-01-retire-grandfathered-chain-noise.manifest.yaml`
 - `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
 - `043-03-archive-consumed-draft-epics.manifest.yaml`
+- `043-04` planning refresh: post-041 performance backlog update plus
+  `manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
 
 Remaining candidates:
 
-- `043-04-refresh-post-041-performance-benchmarks.manifest.yaml`
 - `043-05-split-validation-engine-removed-artifacts.manifest.yaml`
 
 These are candidates only. They should be created one at a time by the owning
@@ -310,3 +319,7 @@ specialist skill after confirming scope and current evidence.
   manifest metadata cleanup was declared in the manifest contract.
 - `043-03` rewrote consumed epic drafts as `archive-kind` pointers with
   `metadata.status: archived`, preserving paths still read by active manifests.
+- `043-04` performance refresh measured MAID Runner plus five reference
+  projects after 041, confirmed Tower Recall TypeScript compiler bridge import
+  resolution as the next current hot path, and added one schema-validated draft
+  candidate.

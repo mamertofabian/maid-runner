@@ -3,9 +3,10 @@
 ## Purpose
 
 This backlog records measured performance diagnostics for `maid validate`,
-`maid test`, and `maid verify` across MAID Runner and five reference projects:
+`maid test`, and `maid verify` across MAID Runner and five reference projects.
+It was refreshed after the 041 performance work landed:
 
-- `maid-runner`: 267 manifests, 182 active, Python package with Python, TS, and Svelte validators.
+- `maid-runner`: 276 active manifests, Python package with Python, TS, and Svelte validators.
 - `adverio-tools-api`: 51 manifests, 43 active, Django/docker-heavy backend.
 - `adverio-tools-app`: 22 manifests, 22 active, Angular/Nx/Jest frontend.
 - `tower-recall`: 39 manifests, 28 active, Svelte/Vitest frontend.
@@ -34,37 +35,55 @@ maid verify --keep-going --no-changed-scope --advisory --json
 keeping schema, behavioral, implementation, coherence, file tracking, worktree
 scope when applicable, and test stages.
 
-## Timing Summary
+## Post-041 Timing Summary
+
+Measured on 2026-05-29 after `041-01` through `041-04` landed. Commands used
+the same local MAID Runner checkout and the same verify flags listed above.
 
 | Project | Schema validate | Behavioral validate | Implementation validate | `maid test --json` | Verify gate |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| maid-runner | 1.573s | 3.426s | 3.507s | 34.168s | 47.833s |
-| adverio-tools-api | 0.544s | 0.959s failed | 1.047s failed | 0.535s failed | 4.875s failed |
-| adverio-tools-app | 0.298s | 0.938s | 1.052s | 0.267s failed | 4.212s failed |
-| tower-recall | 0.337s | 40.694s | 36.538s | 20.116s | 92.591s failed |
-| atomic-carpool | 0.745s failed | 3.801s failed | 3.842s failed | 0.651s failed | 8.865s failed |
-| life-dashboard | 0.643s | 11.718s | 6.633s | 10.752s | 106.265s failed |
+| maid-runner | 1.54s | 3.35s | 3.50s | 41.07s | 47.49s |
+| adverio-tools-api | 0.55s | 0.91s failed | 0.99s failed | 0.49s failed | 4.34s failed |
+| adverio-tools-app | 0.27s | 1.14s | 1.31s | 0.28s failed | 4.31s failed |
+| tower-recall | 0.33s | 19.57s | 17.45s | 17.85s | 39.91s failed |
+| atomic-carpool | 0.72s failed | 21.08s failed | 16.50s failed | 0.62s failed | 37.36s failed |
+| life-dashboard | 0.67s | 6.04s | 4.06s | 13.91s | 22.77s failed |
 
-Nonzero exits were caused by current project state, not timing harness errors:
+The same project-state failures still explain most nonzero exits, except
+Atomic Carpool now spends materially more time before failing and needs a
+separate project-local triage before using it as a benchmark anchor.
+
+Nonzero exits in the refreshed matrix were caused by current project state, not
+timing harness errors:
 
 - `adverio-tools-api`: duplicate manifest sequence numbers E107.
 - `adverio-tools-app`: E230 validate-command integrity failures around `yarn test --testPathPattern`.
-- `atomic-carpool`: duplicate YAML key in `manifests/018-05-event-trip-detail-api.manifest.yaml`.
+- `atomic-carpool`: duplicate YAML key and downstream validation failures in
+  current project state.
 - `tower-recall`: verify file-tracking gate failed with undeclared and registered files.
 - `life-dashboard`: one batched pytest command failed in current dirty worktree.
 
 ## Stage Timing
 
-Stage-level API timing isolates the current bottlenecks:
+Stage-level API timing isolates strict validation bottlenecks. The current
+numbers were gathered inside one `ValidationEngine.validation_cache_scope()` to
+match the post-041 verify cache-sharing behavior.
 
-| Project | Schema | Behavioral with assertions | Implementation with stubs | Coherence | File tracking | Tests |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| tower-recall | 0.191s | 46.356s | 42.509s | 0.009s | 0.789s | 20.489s |
-| life-dashboard | 0.554s | 93.856s | 6.331s | 0.132s | 1.889s | 10.591s |
-| maid-runner | 1.569s | 9.394s | 2.488s | 0.141s | 0.445s | 38.897s |
+| Project | Schema | Behavioral with assertions | Implementation with stubs | File tracking | Tests |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| tower-recall | 0.189s | 19.134s | 3.509s | 4.083s failed | 17.85s |
+| life-dashboard | 0.495s | 7.307s | 1.107s | 2.562s failed | 13.91s |
+| maid-runner | 1.440s | 3.505s | 2.880s | 2.992s | 41.07s |
 
-Coherence and file tracking are not the main cost in these runs. Strict
-behavioral validation and TypeScript identity resolution dominate.
+The 041 work moved the previous worst cases substantially:
+
+- Life Dashboard behavioral-with-assertions fell from 93.856s to 7.307s.
+- Tower Recall implementation-with-stubs fell from 42.509s to 3.509s.
+- Tower Recall behavioral-with-assertions is still 19.134s and remains the
+  best current optimization target.
+
+Coherence was not remeasured in this pass because the prior run showed it below
+0.15s and the current slow stages are elsewhere.
 
 ## Confirmed Hot Paths
 
@@ -90,14 +109,11 @@ Evidence:
   so a broad command such as `pytest tests/ -v` turns into the whole test tree
   repeatedly.
 
-Closure shape:
+Status: closed by `041-01-cache-assertion-checks-and-test-discovery`.
 
-- Cache assertion-check results by resolved test path, validator/language family,
-  file mtime, and file size for the lifetime of one validation run.
-- Cache command/directory test-file discovery by normalized command and directory
-  signature to avoid repeated `rglob()` expansion.
-- Preserve per-request error locations and warning order, and clear caches at
-  the existing validation-run boundary.
+Current evidence: Life Dashboard strict behavioral validation is now 7.307s,
+down from 93.856s. Keep the invalidation and fail-closed tests from 041 visible
+when changing assertion-cache boundaries.
 
 ### 2. TypeScript compiler resolution spawns Node per unresolved request
 
@@ -118,19 +134,15 @@ Evidence:
   with 5,176 `resolve_ts_reexport` calls and 69 compiler-backed re-export
   requests.
 
-Closure shape:
+Status: partially closed by `041-02-batch-typescript-compiler-resolution` and
+`041-04-cache-ts-reexport-compiler-fallback`.
 
-- Keep the existing per-invocation result caches, but replace one-Node-process
-  per request with a per-validation compiler resolver session or batched request
-  API.
-- Batch import and re-export resolution requests discovered during TS/Svelte
-  behavioral collection and identity matching where possible.
-- Cache project config signatures and module entry signatures inside the same
-  resolver context so cache-key construction does not repeatedly stat the same
-  module entries.
-- Preserve fail-closed behavior: if the compiler bridge is missing, times out,
-  or returns malformed JSON, validation must expose the same result as the
-  current path.
+Current evidence: Tower Recall strict behavioral validation is now 19.134s,
+down from 46.356s. A fresh cProfile run still recorded 15.220s cumulative in
+`ts_compiler_resolver.py::_request`, driven by 105 session requests and 33
+compiler import resolutions. The remaining cost is no longer Node process
+startup per request; it is mostly bridge request latency while the CJS bridge
+rebuilds TypeScript project state for import resolution.
 
 ### 3. Verify clears validation caches between validation stages
 
@@ -153,14 +165,42 @@ Evidence:
   safely share source fingerprints, TypeScript resolution results, and parsed
   source state across those two stages.
 
+Status: closed by `041-03-share-verify-validation-cache-scope`.
+
+Current evidence: Tower Recall verify fell from 92.591s to 39.91s, and Life
+Dashboard verify fell from 106.265s to 22.77s, despite both still failing on
+current project-local gates.
+
+### 4. TypeScript bridge rebuilds project state for import resolution
+
+Files and functions:
+
+- `maid_runner/core/ts_compiler_resolver.cjs::resolveImport`
+- `maid_runner/core/ts_compiler_resolver.cjs::loadProject`
+- `maid_runner/core/ts_compiler_resolver.py::TypeScriptCompilerResolverSession._request`
+- `maid_runner/validators/_typescript_behavioral.py::_scan_imports`
+
+Evidence:
+
+- Tower Recall strict behavioral validation still takes 19.134s.
+- Fresh cProfile for Tower Recall recorded 15.220s cumulative in
+  `TypeScriptCompilerResolverSession._request`, with 105 request/response waits
+  and 33 `resolveImport` compiler calls.
+- `resolveImport` currently calls `loadProject`, and `loadProject` creates a
+  full TypeScript program even though import resolution only needs parsed
+  compiler options and a compiler host.
+
 Closure shape:
 
-- Add an explicit command-wide validation cache scope for `maid verify`.
-- Keep caches process-local and invocation-local; clear them before verify starts
-  and after it finishes.
-- Add JSON equivalence tests for verify output apart from duration fields, plus
-  call-count tests proving TypeScript resolver/cache reuse across behavioral and
-  implementation stages.
+- Split the CJS bridge's import-resolution path away from full program
+  construction.
+- Cache parsed config/options and compiler hosts inside one session process,
+  keyed by project root, tsconfig signature, and extra importer root when
+  needed.
+- Keep re-export resolution on a program-backed path, because symbol chasing
+  needs the TypeScript checker.
+- Preserve existing fail-closed semantics when TypeScript is missing, config
+  parsing fails, the bridge times out, or a request returns malformed JSON.
 
 ## Speculative Ideas
 
@@ -176,26 +216,42 @@ Closure shape:
 
 ## Gradual Closure Backlog
 
+Completed:
+
 1. `041-01-cache-assertion-checks-and-test-discovery.manifest.yaml`
 2. `041-02-batch-typescript-compiler-resolution.manifest.yaml`
 3. `041-03-share-verify-validation-cache-scope.manifest.yaml`
+4. `041-04-cache-ts-reexport-compiler-fallback.manifest.yaml`
+
+Next draft:
+
+1. `manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
 
 ## Suggested Acceptance Criteria
 
-- Life Dashboard strict behavioral validation avoids reparsing unchanged Python
-  tests per manifest, with an anti-redundancy test proving each unchanged test
-  file is assertion-checked once per validation run.
-- Tower Recall behavioral validation avoids one Node compiler subprocess per
-  unresolved TypeScript request, with a call-count test proving batched or
-  session-backed compiler resolution.
+- Tower Recall strict behavioral validation reduces bridge request cumulative
+  time without changing `ValidationResult` success flags, error codes,
+  warnings, or import identities.
+- CJS bridge tests prove import resolution does not construct a TypeScript
+  program per import request when a compiler host is enough.
+- Cache invalidation tests cover tsconfig and importer root changes.
 - `maid verify --json` remains deterministic except for duration fields.
-- Cache invalidation tests cover file content changes, mtime/size changes, and
-  project config changes.
 - No optimization weakens schema, file-tracking, worktree-scope, coherence, or
   validate-command integrity checks.
 
 ## Verification Notes
 
-This is a planning pass. No production code was changed. New draft manifests
-must schema-validate before promotion, then be implemented one at a time through
-the MAID implementation workflow.
+This is a planning pass. No production code was changed. Draft manifests must
+schema-validate before promotion, then be implemented one at a time through the
+MAID implementation workflow.
+
+Commands run during the 2026-05-29 refresh:
+
+- `uv run maid validate --mode schema --quiet`
+- `uv run maid validate --mode behavioral --quiet`
+- `uv run maid validate --mode implementation --quiet`
+- `uv run maid test --json`
+- `uv run maid verify --keep-going --no-changed-scope --advisory --json`
+- stage-level `ValidationEngine.validate_all(...)` probes for `maid-runner`,
+  `tower-recall`, and `life-dashboard`
+- cProfile probe for Tower Recall behavioral validation with assertion checks
