@@ -50,7 +50,9 @@ class TestCodexMaidLoopCommand(unittest.TestCase):
         self.assertIn("model_reasoning_effort=medium", command)
         self.assertIn("--json", command)
         self.assertIn("--cd", command)
-        self.assertEqual("maid-runner", Path(command[command.index("--cd") + 1]).name)
+        self.assertEqual(
+            codex_maid_loop._ROOT, Path(command[command.index("--cd") + 1])
+        )
         self.assertIn("--sandbox", command)
         self.assertEqual("workspace-write", command[command.index("--sandbox") + 1])
         self.assertIn("--output-last-message", command)
