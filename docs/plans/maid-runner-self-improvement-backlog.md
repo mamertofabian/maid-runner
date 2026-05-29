@@ -35,6 +35,10 @@ unbounded implementation work.
   parse-error refactoring, release recovery, and branch workflow were sampled.
 - `docs/maid-philosophy-and-vision.md`, `docs/ROADMAP.md`, and `specs/` were
   sampled for strategy and documentation drift.
+- A fresh MAID bug report was reviewed:
+  `~/.maid/bug-report/20260529-103724-arch-spec-uv-run-project-command-integrity.md`.
+  It showed a valid `uv run --project backend pytest ...` validate command
+  rejected by command-integrity parsing with E230.
 
 ## Prioritized Improvement Themes
 
@@ -271,6 +275,46 @@ Next action: none for the roadmap. A future pass may separately tighten
 `docs/maid-philosophy-and-vision.md` if it is being used as operational
 guidance instead of background philosophy.
 
+### 7. Recognize `uv run --project` Validate Commands
+
+Primary lane: Validation trust.
+
+Status: Implemented by
+`manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml`.
+
+Evidence: A 2026-05-29 bug report from `arch-spec` showed
+`uv run --project backend pytest backend/tests/services/test_prompt_engineering.py -q`
+successfully running the intended test file manually, while MAID reported E230
+because command-integrity parsing only recognized `uv run <runner>`.
+
+Current symptom: Valid uv wrapper options before the test runner can make
+`maid test` report zero executable commands even though the validate command is
+a real pytest invocation targeting the declared behavioral test file.
+
+Why it matters: E230 is a fail-closed anti-gaming gate. False positives force
+authors to rewrite valid commands or use workarounds, which weakens trust in the
+done gate and hides the real command shape projects need.
+
+Recommended owner skill: `maid-validate-hardening` for evidence and contract,
+then `maid-runner-draft-implement` style implementation review.
+
+Closure shape: Strip bounded, non-cwd-changing `uv run` options before runner
+detection and target scanning, then delegate to the existing test-runner
+integrity checks so selector, collect-only, help, cwd-changing wrappers, and
+unknown-wrapper behavior remains fail-closed.
+
+Suggested acceptance criteria:
+
+- `validate_manifest_test_commands` accepts `uv run --project backend pytest
+  <declared-test-file> -q`.
+- `test_paths_from_executing_validate_command` reports the declared test file
+  after uv wrapper options.
+- The manifest validates in behavioral, schema, and implementation modes.
+- The focused command-integrity and validate CLI tests pass.
+
+Next action: watch for other valid `uv run` wrapper options reported by real
+projects; do not broaden wrapper parsing without a reproduced command shape.
+
 ## Routed Backlog
 
 1. Done: retire E111 grandfathered-drop chain noise via `043-01`.
@@ -281,6 +325,8 @@ guidance instead of background philosophy.
    against the already-landed 038/039 extraction work.
 6. Done: refresh stale strategy and roadmap documentation for the current v2
    CLI and workflow state.
+7. Done: recognize bounded `uv run` wrapper options before pytest in
+   validate-command integrity via `043-05`.
 
 ## Specialist Follow-Ups
 
@@ -302,6 +348,7 @@ Completed:
 - `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
 - `043-03-archive-consumed-draft-epics.manifest.yaml`
 - `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
+- `043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml`
 
 Remaining candidates:
 
@@ -346,3 +393,6 @@ unless a new code audit finds a current behavior-preserving refactor target.
   `2.13.0`, refreshed `docs/ROADMAP.md`, and closed the stale
   `ValidationEngine.validate_removed_artifacts` cleanup candidate because the
   current method is already a delegate to `_removed_artifacts`.
+- The `043-05` bug-fix pass reproduced the E230 false positive for
+  `uv run --project ... pytest ...`, added focused command-target and
+  command-integrity regression tests, and confirmed the fixed tests pass.
