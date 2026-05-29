@@ -4,7 +4,6 @@ goal: "Let `maid validate` optionally execute manifest validation commands as pa
 type: feature
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - validate
     - test-runner

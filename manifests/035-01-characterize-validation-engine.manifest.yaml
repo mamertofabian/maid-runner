@@ -4,7 +4,6 @@ goal: "Characterize ValidationEngine orchestration so refactors preserve observa
 type: refactor
 created: "2026-05-19"
 metadata:
-  status: draft
   tags:
     - characterization
     - safe-refactor

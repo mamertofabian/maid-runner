@@ -6,7 +6,6 @@ created: "2026-05-18"
 supersedes:
   - 030-02-make-coherence-flag-fail-closed
 metadata:
-  status: draft
   tags:
     - validate
     - coherence

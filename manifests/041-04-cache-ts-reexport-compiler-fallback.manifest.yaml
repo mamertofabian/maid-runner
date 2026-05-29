@@ -4,7 +4,6 @@ goal: "Cache TypeScript re-export compiler fallback results for existing module 
 type: fix
 created: "2026-05-26"
 metadata:
-  status: planning
   tags:
     - performance
     - typescript

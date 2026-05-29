@@ -4,7 +4,6 @@ goal: "Require identity-backed behavioral coverage for production artifacts"
 type: fix
 created: "2026-05-17"
 metadata:
-  status: draft
   tags:
     - behavioral-coverage
     - identity

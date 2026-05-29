@@ -475,6 +475,7 @@ class ManifestChain:
         diagnostics = (
             self.load_errors
             + self._detect_unmarked_inactive_manifests()
+            + self.lifecycle_metadata_diagnostics()
             + self.validate_supersession_integrity()
             + self._detect_mixed_ordering()
             + self._detect_duplicate_sequence()
@@ -490,6 +491,37 @@ class ManifestChain:
     def inactive_manifest_diagnostics(self) -> list[ValidationError]:
         """Return diagnostics for skipped inactive manifest directories."""
         return self._detect_unmarked_inactive_manifests()
+
+    def lifecycle_metadata_diagnostics(self) -> list[ValidationError]:
+        """Return diagnostics for inactive lifecycle statuses on active manifests."""
+        if self._selected_manifest_dir_is_inactive():
+            return []
+
+        errors: list[ValidationError] = []
+        for manifest in self.all_manifests:
+            metadata = manifest.metadata
+            if not isinstance(metadata, dict):
+                continue
+            status = str(metadata.get("status", "")).strip().lower()
+            if status not in _INACTIVE_METADATA_STATUSES:
+                continue
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.ACTIVE_MANIFEST_INACTIVE_STATUS,
+                    message=(
+                        f"Active manifest '{manifest.slug}' declares "
+                        f"metadata.status: {status}, which is reserved for "
+                        "inactive manifest inventory."
+                    ),
+                    location=Location(file=manifest.source_path),
+                    suggestion=(
+                        "Remove inactive lifecycle metadata from promoted "
+                        "manifests, or keep draft/planning manifests under an "
+                        "inactive directory such as manifests/drafts/."
+                    ),
+                )
+            )
+        return errors
 
     def _detect_unmarked_inactive_manifests(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
@@ -515,6 +547,9 @@ class ManifestChain:
                 )
             )
         return errors
+
+    def _selected_manifest_dir_is_inactive(self) -> bool:
+        return self._manifest_dir.name in _INACTIVE_MANIFEST_DIR_NAMES
 
     def reload(self) -> None:
         self._manifests = None

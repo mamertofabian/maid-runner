@@ -10,9 +10,10 @@ unbounded implementation work.
 
 ## Current Evidence Reviewed
 
-- `uv run maid validate --quiet` on the current tree passed, while still
-  reporting 11 E111 grandfathered-drop chain notices.
-- `uv run maid test` passed 18 commands and reported the same 11 chain issues.
+- `uv run maid validate --quiet` on the current tree now passes without E111
+  grandfathered-drop chain notices after `043-01`.
+- `uv run maid test` passes 18 commands and now reports no E111 chain noise
+  after `043-01`.
 - `uv run maid test --quiet` was rejected because `maid test` does not support
   `--quiet`; the supported command was rerun.
 - Existing specialist plans were reviewed:
@@ -40,6 +41,8 @@ unbounded implementation work.
 
 Primary lane: MAID workflow.
 
+Status: Completed by `manifests/043-01-retire-grandfathered-chain-noise.manifest.yaml`.
+
 Evidence: `uv run maid validate --quiet` and `uv run maid test` both pass but
 report 11 E111 chain notices for dropped artifacts in file discovery, validation,
 graph constants, and retired tests.
@@ -64,11 +67,15 @@ Suggested acceptance criteria:
 - `uv run maid test` exits 0 and reports `Chain issues: 0`.
 - Focused tests prove intentional historical artifact drops remain auditable.
 
-Next action: create a narrow draft manifest for E111 chain-noise retirement.
+Next action: none. Keep explicit supersession audit coverage visible for
+grandfathered drops.
 
 ### 2. Make Manifest Lifecycle Metadata Truthful
 
 Primary lane: MAID workflow.
+
+Status: Implemented by
+`manifests/043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`.
 
 Evidence: Active manifests such as `032-*`, `035-01`, and `041-*` still include
 `metadata.status: draft` or `metadata.status: planning` even though git history
@@ -96,8 +103,9 @@ Suggested acceptance criteria:
 - A focused test or audit command catches stale active-manifest lifecycle
   metadata.
 
-Next action: plan a workflow hygiene draft that updates metadata semantics before
-editing many manifests.
+Next action: monitor future active manifests for
+`ACTIVE_MANIFEST_INACTIVE_STATUS`; current stale active-manifest status metadata
+was removed as a one-time cleanup in `043-02`.
 
 ### 3. Archive Consumed Draft Epics And Mark Live Plans
 
@@ -235,8 +243,8 @@ unless code, schemas, or active manifests are touched.
 
 ## Routed Backlog
 
-1. `maid-evolver`: retire E111 grandfathered-drop chain noise.
-2. `maid-evolver`: define and enforce active-manifest lifecycle metadata.
+1. Done: retire E111 grandfathered-drop chain noise via `043-01`.
+2. Done: define and enforce active-manifest lifecycle metadata via `043-02`.
 3. `maid-evolver`: archive consumed draft epics and remove stale active
    references before deletion.
 4. `maid-runner-performance-optimization`: re-benchmark after 041 and plan the
@@ -258,10 +266,15 @@ unless code, schemas, or active manifests are touched.
 - Consumed draft epics should not be deleted until active manifest `files.read`
   references have been checked and evolved where needed.
 
-## Draft Manifest Candidates
+## Draft Manifest Progress
 
-- `042-01-retire-grandfathered-chain-noise.manifest.yaml`
-- `042-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
+Completed:
+
+- `043-01-retire-grandfathered-chain-noise.manifest.yaml`
+- `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
+
+Remaining candidates:
+
 - `042-03-archive-consumed-draft-epics.manifest.yaml`
 - `042-04-refresh-post-041-performance-benchmarks.manifest.yaml`
 - `042-05-split-validation-engine-removed-artifacts.manifest.yaml`
@@ -283,8 +296,13 @@ specialist skill after confirming scope and current evidence.
 
 ## Verification Notes
 
-- `uv run maid validate --quiet`: passed; 11 E111 notices emitted.
+- `uv run maid validate --quiet`: now passes without E111 notices after
+  `043-01`.
 - `uv run maid test --quiet`: failed because the argument is unsupported.
-- `uv run maid test`: passed 18 commands; 0 failed; 11 chain issues reported.
-- No production code, tests, schemas, or active manifests were changed by this
-  planning pass.
+- `uv run maid test`: passed 18 commands; 0 failed; no E111 chain issues
+  reported after `043-01`.
+- `043-02` added an active-manifest lifecycle metadata diagnostic with focused
+  tests in `tests/core/test_manifest_chain_discovery.py` and schema-mode
+  coverage in `tests/core/test_validate_schema_mode.py`.
+- `043-02` implementation review returned ready after the one-time active
+  manifest metadata cleanup was declared in the manifest contract.

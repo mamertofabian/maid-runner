@@ -4,7 +4,6 @@ goal: "Cache test-file reads and collected test-artifact tables across manifests
 type: refactor
 created: "2026-05-19"
 metadata:
-  status: draft
   tags:
     - performance
     - behavioral-validation

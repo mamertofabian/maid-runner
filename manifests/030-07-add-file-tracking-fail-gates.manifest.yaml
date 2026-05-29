@@ -4,7 +4,6 @@ goal: "Add failing file-tracking gates for undeclared and weakly registered prod
 type: feature
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - file-tracking
     - validation

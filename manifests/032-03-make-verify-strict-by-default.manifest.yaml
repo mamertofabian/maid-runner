@@ -4,7 +4,6 @@ goal: "Make `maid verify` strict by default"
 type: fix
 created: "2026-05-17"
 metadata:
-  status: draft
   tags:
     - verify
     - strict-mode

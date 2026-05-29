@@ -4,7 +4,6 @@ goal: "Make `maid validate --coherence` fail closed when coherence checks fail o
 type: fix
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - validate
     - coherence

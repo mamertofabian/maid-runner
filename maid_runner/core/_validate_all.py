@@ -100,7 +100,7 @@ def _validate_schema_manifests(
         return _empty_manifest_set_result(
             chain_dir,
             message=f"No active manifests discovered in {chain_dir}",
-            chain_errors=chain.load_errors + chain.inactive_manifest_diagnostics(),
+            chain_errors=_schema_chain_errors(chain),
             duration_ms=duration,
         )
 
@@ -116,7 +116,7 @@ def _validate_schema_manifests(
     duration = (time.monotonic() - start) * 1000
     passed = sum(1 for result in results if result.success)
     failed = len(results) - passed
-    chain_errors = chain.load_errors + chain.inactive_manifest_diagnostics()
+    chain_errors = _schema_chain_errors(chain)
     if fail_on_warnings and _has_warning(chain_errors):
         failed += 1
     if check_file_tracking:
@@ -136,6 +136,14 @@ def _validate_schema_manifests(
         skipped=0,
         chain_errors=chain_errors,
         duration_ms=duration,
+    )
+
+
+def _schema_chain_errors(chain: ManifestChain) -> list[ValidationError]:
+    return (
+        chain.load_errors
+        + chain.inactive_manifest_diagnostics()
+        + chain.lifecycle_metadata_diagnostics()
     )
 
 

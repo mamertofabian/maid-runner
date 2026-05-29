@@ -125,6 +125,26 @@ def test_validation_engine_schema_mode_all_ignores_chain_diagnostics_for_schema_
     assert result.chain_errors == []
 
 
+def test_validation_engine_schema_mode_all_reports_inactive_active_lifecycle_status(
+    tmp_path,
+):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    manifest = _valid_manifest(metadata={"status": "planning"})
+    (manifest_dir / "schema-only.manifest.yaml").write_text(yaml.dump(manifest))
+
+    result = ValidationEngine(project_root=tmp_path).validate_all(
+        manifest_dir, mode=ValidationMode.SCHEMA
+    )
+
+    assert result.success is False
+    assert result.passed == 1
+    assert result.failed == 0
+    assert [error.code for error in result.chain_errors] == [
+        ErrorCode.ACTIVE_MANIFEST_INACTIVE_STATUS
+    ]
+
+
 @pytest.fixture
 def schema_cli_project(tmp_path, monkeypatch):
     manifest_dir = tmp_path / "manifests"

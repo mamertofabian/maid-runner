@@ -4,7 +4,6 @@ goal: "Batch TypeScript compiler-backed import and re-export resolution inside v
 type: refactor
 created: "2026-05-25"
 metadata:
-  status: planning
   tags:
     - performance
     - typescript

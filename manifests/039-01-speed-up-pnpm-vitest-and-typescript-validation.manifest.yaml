@@ -4,7 +4,6 @@ goal: "Speed up pnpm Vitest test runs and TypeScript-heavy MAID validation"
 type: fix
 created: "2026-05-23"
 metadata:
-  status: draft
   tags:
     - performance
     - test-runner

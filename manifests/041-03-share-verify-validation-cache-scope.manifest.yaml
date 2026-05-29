@@ -4,7 +4,6 @@ goal: "Share validation caches across `maid verify` validation stages"
 type: refactor
 created: "2026-05-25"
 metadata:
-  status: planning
   tags:
     - performance
     - verify

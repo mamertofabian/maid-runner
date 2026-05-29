@@ -4,7 +4,6 @@ goal: "Cache ManifestChain per CLI invocation so validate, coherence, file track
 type: refactor
 created: "2026-05-19"
 metadata:
-  status: draft
   tags:
     - performance
     - chain

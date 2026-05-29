@@ -4,7 +4,6 @@ goal: "Add a combined `maid verify` command as the automation-safe done gate"
 type: feature
 created: "2026-05-16"
 metadata:
-  status: draft
   tags:
     - verify
     - ci
