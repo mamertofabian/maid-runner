@@ -193,65 +193,83 @@ behavioral validation remains the next performance priority.
 
 Primary lane: Maintainability.
 
-Evidence: The cleanup backlog identifies oversized methods in
-`maid_runner/core/validate.py`, and `035-01` / `035-02` have already established
-characterization coverage and shared parse-error handling.
+Status: Closed as already implemented by the later `038` extraction wave and
+the `039-01` cache/refactor work. The self-improvement backlog entry was stale,
+not an unimplemented draft.
 
-Current symptom: Validation orchestration still mixes control flow, error
-construction, cache scope, and mode-specific behavior in large methods.
+Evidence: `maid_runner/core/validate.py` now delegates the old large
+orchestration paths to focused modules:
 
-Why it matters: Validator hardening and performance work repeatedly land in the
-same orchestration area. Large methods raise review cost and increase regression
-risk.
+- `ValidationEngine.validate_removed_artifacts` delegates to
+  `maid_runner/core/_removed_artifacts.py`.
+- `ValidationEngine.validate_all` delegates to
+  `maid_runner/core/_validate_all.py`.
+- `ValidationEngine.validate_behavioral` delegates to
+  `maid_runner/core/_behavioral_validation.py`.
+- `ValidationEngine._check_test_coverage` delegates to
+  `maid_runner/core/_implementation_coverage.py`.
+- `ValidationEngine.validate_implementation` delegates to
+  `maid_runner/core/_implementation_runner.py`.
 
-Recommended owner skill: `maid-runner-cleanup-and-refactor`.
+Current symptom: The cleanup backlog still contains the pre-extraction method
+size table and recommended next steps for `validate_removed_artifacts` and
+`validate_all`, even though those wrappers are now thin.
 
-Closure shape: Split one method at a time into private guard/helper functions
-under characterization tests, preserving `ValidationResult` fields, error
-codes, warning shapes, and JSON output.
+Why it matters: A stale cleanup target can make a future agent create a
+redundant `043-05` draft instead of selecting cleanup work from current code
+evidence.
+
+Recommended owner skill: `maid-runner-cleanup-and-refactor` for the next fresh
+cleanup audit, not for the stale `validate_removed_artifacts` split.
 
 Suggested acceptance criteria:
 
-- Each refactor draft touches one method or one tightly related helper group.
-- Characterization tests pass before and after the extraction.
-- `uv run maid validate`, `uv run maid test`, and focused pytest remain green.
+- The self-improvement backlog no longer points at
+  `validate_removed_artifacts` as pending implementation work.
+- The roadmap explains that future cleanup work must start from current code
+  evidence rather than the stale pre-038 method-size table.
+- Documentation verification confirms the current CLI version and schema-mode
+  validation still pass.
 
-Next action: promote the first method-split draft for
-`validate_removed_artifacts` or `validate_all`.
+Next action: refresh cleanup findings before creating any new refactor draft.
 
 ### 6. Update Stale Strategy And Roadmap Documentation
 
 Primary lane: Documentation.
 
-Evidence: `docs/ROADMAP.md` still describes version `0.1.3`, old test counts,
-and roadmap states that no longer match the current v2-era codebase. The
-philosophy document describes a future orchestrator while this repo already has
-Codex/Claude MAID loop tooling and review-gate instructions.
+Status: Completed as a markdown-only refresh on 2026-05-29.
 
-Current symptom: Strategic docs are useful but stale. They can mislead a new
-agent or contributor about what exists, what is deprecated, and what is still
-planned.
+Evidence: `docs/ROADMAP.md` described version `0.1.3`, old test counts, a
+2025 roadmap, and command names that no longer matched the current v2-era
+CLI. The current package and CLI report `2.13.0`, and
+`maid_runner/cli/commands/_main.py` exposes the current command set.
+
+Current symptom: Closed for the roadmap. `docs/maid-philosophy-and-vision.md`
+remains a long-form philosophy document and should be treated as strategic
+context rather than a live implementation plan.
 
 Why it matters: MAID Runner is workflow-heavy; stale docs cause expensive
 misreads and repeated clarification.
 
-Recommended owner skill: `feature-spec-architect` for a doc refresh plan, then
-plain documentation editing.
+Recommended owner skill: plain documentation editing. No MAID manifest is
+required because this was a markdown-only accuracy update.
 
-Closure shape: Replace the stale roadmap with a v2/current-state roadmap that
-links to the specialist backlogs and specs instead of duplicating obsolete
-implementation status.
+Closure shape: `docs/ROADMAP.md` now describes v2 current state, active
+workstreams, the current CLI command surface, deferred/external work, and links
+to the specialist backlogs instead of duplicating obsolete implementation
+status.
 
 Suggested acceptance criteria:
 
-- Current version, command set, validation modes, and active workflow gates are
-  accurate.
-- Old roadmap claims are either removed or clearly marked historical.
+- Current version, command set, validation surfaces, and active workflow gates
+  are accurate.
+- Old roadmap claims are removed instead of left as live priorities.
 - The roadmap points maintainers to the hardening, performance, cleanup, and
   self-improvement backlogs.
 
-Next action: do a markdown-only documentation refresh; no MAID manifest required
-unless code, schemas, or active manifests are touched.
+Next action: none for the roadmap. A future pass may separately tighten
+`docs/maid-philosophy-and-vision.md` if it is being used as operational
+guidance instead of background philosophy.
 
 ## Routed Backlog
 
@@ -259,10 +277,10 @@ unless code, schemas, or active manifests are touched.
 2. Done: define and enforce active-manifest lifecycle metadata via `043-02`.
 3. Done: archive consumed draft epics as stable archive pointers via `043-03`.
 4. Done: re-benchmark after 041 and plan the next measured optimization wave.
-5. `maid-runner-cleanup-and-refactor`: continue characterized
-   `ValidationEngine` method splits.
-6. `feature-spec-architect` or docs-only editing: refresh strategy and roadmap
-   documentation.
+5. Done: close the stale characterized `ValidationEngine` method-split item
+   against the already-landed 038/039 extraction work.
+6. Done: refresh stale strategy and roadmap documentation for the current v2
+   CLI and workflow state.
 
 ## Specialist Follow-Ups
 
@@ -288,10 +306,12 @@ Completed:
 
 Remaining candidates:
 
-- `043-05-split-validation-engine-removed-artifacts.manifest.yaml`
+- None from this backlog as of the 2026-05-29 documentation refresh.
 
-These are candidates only. They should be created one at a time by the owning
-specialist skill after confirming scope and current evidence.
+Future candidates should be created one at a time by the owning specialist
+skill after confirming current evidence. Do not create the stale
+`043-05-split-validation-engine-removed-artifacts.manifest.yaml` candidate
+unless a new code audit finds a current behavior-preserving refactor target.
 
 ## Speculative Ideas
 
@@ -323,3 +343,7 @@ specialist skill after confirming scope and current evidence.
   projects after 041, confirmed Tower Recall TypeScript compiler bridge import
   resolution as the next current hot path, and added one schema-validated draft
   candidate.
+- The 2026-05-29 documentation refresh confirmed `maid --version` reports
+  `2.13.0`, refreshed `docs/ROADMAP.md`, and closed the stale
+  `ValidationEngine.validate_removed_artifacts` cleanup candidate because the
+  current method is already a delegate to `_removed_artifacts`.
