@@ -153,10 +153,10 @@ are evolved.
 
 Primary lane: Performance.
 
-Status: Completed as a planning refresh on 2026-05-29. The refreshed
-measurements are recorded in `docs/plans/maid-runner-performance-backlog.md`,
-and the next implementation-sized draft is
-`manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`.
+Status: Completed as a planning refresh on 2026-05-29, then implemented by
+`manifests/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`.
+The refreshed measurements are recorded in
+`docs/plans/maid-runner-performance-backlog.md`.
 
 Evidence: The performance backlog had identified assertion parsing, TypeScript
 compiler resolution, and verify cache scope as hot paths. Git history shows the
@@ -186,8 +186,8 @@ Suggested acceptance criteria:
 - Any new draft preserves JSON-visible output and fail-closed validation
   behavior.
 
-Next action: promote and implement `043-04` if Tower Recall TypeScript
-behavioral validation remains the next performance priority.
+Next action: re-benchmark Tower Recall-style TypeScript behavioral validation
+before creating another performance draft.
 
 ### 5. Continue Characterized ValidationEngine Refactoring
 
@@ -301,8 +301,7 @@ Completed:
 - `043-01-retire-grandfathered-chain-noise.manifest.yaml`
 - `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
 - `043-03-archive-consumed-draft-epics.manifest.yaml`
-- `043-04` planning refresh: post-041 performance backlog update plus
-  `manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
+- `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
 
 Remaining candidates:
 
@@ -341,8 +340,8 @@ unless a new code audit finds a current behavior-preserving refactor target.
   `metadata.status: archived`, preserving paths still read by active manifests.
 - `043-04` performance refresh measured MAID Runner plus five reference
   projects after 041, confirmed Tower Recall TypeScript compiler bridge import
-  resolution as the next current hot path, and added one schema-validated draft
-  candidate.
+  resolution as the next current hot path, then promoted and implemented the
+  cache-backed import-resolution bridge manifest.
 - The 2026-05-29 documentation refresh confirmed `maid --version` reports
   `2.13.0`, refreshed `docs/ROADMAP.md`, and closed the stale
   `ValidationEngine.validate_removed_artifacts` cleanup candidate because the

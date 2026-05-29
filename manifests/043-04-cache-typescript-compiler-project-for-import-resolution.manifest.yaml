@@ -32,7 +32,6 @@ temptations:
     instead: "Add equivalence tests that compare import identities before and after the cached path for aliases, relative imports, and missing imports."
 files:
   read:
-    - docs/plans/maid-runner-performance-backlog.md
     - manifests/041-02-batch-typescript-compiler-resolution.manifest.yaml
     - manifests/041-04-cache-ts-reexport-compiler-fallback.manifest.yaml
     - maid_runner/core/ts_compiler_resolver.py
@@ -42,74 +41,17 @@ files:
   edit:
     - path: maid_runner/core/ts_compiler_resolver.cjs
       artifacts:
-        - kind: function
-          name: resolveImport
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: request
-              type: object
-          returns: "string | null"
-          source_scenario: "A TypeScript behavioral collector resolves many package or alias imports through the compiler bridge."
-          actions:
-            - type: api_call
-              subject:
-                export: resolveImport
-          expected:
-            behavior: "The function returns the same module identity as the current bridge while avoiding full TypeScript program construction for import-only requests."
-        - kind: function
-          name: resolveMany
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: request
-              type: object
-          returns: "array"
+        - kind: attribute
+          name: ts_compiler_resolver_bridge_cached_import_resolution
+          of: TypeScript compiler resolver bridge
+          type: script behavior
           source_scenario: "A resolver session sends many import and re-export requests in one validation run."
           actions:
             - type: api_call
               subject:
-                export: resolveMany
+                export: ts_compiler_resolver_bridge_cached_import_resolution
           expected:
-            behavior: "Responses remain ordered by request index while import requests reuse cached project options and host state where valid."
-        - kind: function
-          name: loadProject
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: extraRootName
-              type: string
-          returns: object
-          source_scenario: "Re-export resolution needs TypeScript checker state for a source file."
-          actions:
-            - type: api_call
-              subject:
-                export: loadProject
-          expected:
-            behavior: "Program-backed loading remains available for re-export resolution and is not used by import-only resolution when a lighter cached resolver state is enough."
-        - kind: function
-          name: loadImportResolutionProject
-          args:
-            - name: ts
-              type: object
-            - name: projectRoot
-              type: string
-            - name: importerFile
-              type: string
-          returns: object
-          source_scenario: "Import resolution needs compiler options and a host but not a full program."
-          actions:
-            - type: api_call
-              subject:
-                export: loadImportResolutionProject
-          expected:
-            behavior: "The helper returns cached options and host state for equivalent project inputs and invalidates when config or importer-root inputs change."
+            behavior: "Import requests reuse cached project options and host state without constructing a TypeScript program, while re-export requests still use the program-backed symbol path and all response identities remain unchanged."
     - path: tests/core/test_ts_compiler_resolver_session.py
       artifacts:
         - kind: test_function
@@ -131,6 +73,15 @@ files:
           expected:
             behavior: "The next import lookup observes the changed config instead of returning stale cached module identities."
         - kind: test_function
+          name: test_compiler_resolver_bridge_import_resolution_invalidates_when_extended_jsonc_tsconfig_changes
+          source_scenario: "A cached import-resolution project is used, then an extended JSONC tsconfig file changes path mappings."
+          actions:
+            - type: api_call
+              subject:
+                export: resolveImport
+          expected:
+            behavior: "The next import lookup observes the changed extended config instead of returning stale cached module identities."
+        - kind: test_function
           name: test_compiler_resolver_bridge_import_resolution_keeps_missing_import_fail_closed
           source_scenario: "A compiler-backed import request cannot resolve a missing package or alias target."
           actions:
@@ -148,6 +99,27 @@ files:
                 export: resolveReexport
           expected:
             behavior: "The re-export result remains unchanged and the test proves the program-backed path is still exercised for symbol chasing."
+    - path: docs/plans/maid-runner-performance-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _performance_backlog_043_04_promoted_status
+          of: documentation
+          type: markdown
+          description: "Marks 043-04 as promoted and implemented, with no remaining performance draft from the post-041 refresh."
+    - path: docs/plans/maid-runner-self-improvement-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _self_improvement_043_04_promoted_status
+          of: documentation
+          type: markdown
+          description: "Marks the 043-04 performance follow-up as implemented and routes the next action to re-benchmarking."
+    - path: docs/ROADMAP.md
+      artifacts:
+        - kind: attribute
+          name: _roadmap_043_04_promoted_reference
+          of: documentation
+          type: markdown
+          description: "Points the performance roadmap at the promoted 043-04 manifest instead of the deleted draft path."
 validate:
   - uv run python -m pytest -q tests/core/test_ts_compiler_resolver_session.py tests/core/test_ts_compiler_resolver.py
-  - uv run maid validate manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml --mode schema --quiet

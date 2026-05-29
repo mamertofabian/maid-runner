@@ -222,10 +222,12 @@ Completed:
 2. `041-02-batch-typescript-compiler-resolution.manifest.yaml`
 3. `041-03-share-verify-validation-cache-scope.manifest.yaml`
 4. `041-04-cache-ts-reexport-compiler-fallback.manifest.yaml`
+5. `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
 
 Next draft:
 
-1. `manifests/drafts/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
+- None. Re-benchmark Tower Recall-style TypeScript behavioral validation
+  before creating the next performance draft.
 
 ## Suggested Acceptance Criteria
 
@@ -241,9 +243,9 @@ Next draft:
 
 ## Verification Notes
 
-This is a planning pass. No production code was changed. Draft manifests must
-schema-validate before promotion, then be implemented one at a time through the
-MAID implementation workflow.
+The post-041 planning pass promoted and implemented `043-04`. Future draft
+manifests must schema-validate before promotion, then be implemented one at a
+time through the MAID implementation workflow.
 
 Commands run during the 2026-05-29 refresh:
 
