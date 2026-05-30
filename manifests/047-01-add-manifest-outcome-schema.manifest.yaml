@@ -4,7 +4,6 @@ goal: "Add strict optional manifest Outcome schema support"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
   tags:
     - manifest-schema
     - outcome-records
@@ -89,6 +88,15 @@ files:
                 function: save_manifest
           expected:
             behavior: "The reloaded Outcome matches the original status, summary, rationale, lessons, review notes, validation evidence, and completion timestamp."
+        - kind: test_function
+          name: test_load_manifest_reports_non_object_manifest_as_schema_error
+          source_scenario: "A YAML manifest has a non-object top-level value."
+          actions:
+            - type: api_call
+              subject:
+                function: load_manifest
+          expected:
+            behavior: "The public loader reports a schema error instead of crashing before schema validation."
   edit:
     - path: maid_runner/schemas/manifest.v2.schema.json
       artifacts:
@@ -99,9 +107,33 @@ files:
           description: "Strict optional top-level completion metadata schema for explicit manifest Outcome records."
     - path: maid_runner/core/types.py
       artifacts:
-        - kind: enum
+        - kind: class
           name: OutcomeStatus
           description: "Deterministic manifest Outcome lifecycle statuses with exact values: completed, failed, partial, superseded, archived, abandoned."
+        - kind: attribute
+          name: COMPLETED
+          of: OutcomeStatus
+          type: str
+        - kind: attribute
+          name: FAILED
+          of: OutcomeStatus
+          type: str
+        - kind: attribute
+          name: PARTIAL
+          of: OutcomeStatus
+          type: str
+        - kind: attribute
+          name: SUPERSEDED
+          of: OutcomeStatus
+          type: str
+        - kind: attribute
+          name: ARCHIVED
+          of: OutcomeStatus
+          type: str
+        - kind: attribute
+          name: ABANDONED
+          of: OutcomeStatus
+          type: str
         - kind: class
           name: OutcomeLesson
           description: "Structured lesson captured from a completed or otherwise closed manifest."
@@ -233,6 +265,6 @@ files:
           expected:
             behavior: "Outcome status, lessons, review notes, and validation evidence survive round-trip serialization exactly."
 validate:
-  - uv run python -m pytest -q tests/core/test_manifest_outcome.py
-  - uv run maid validate manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_manifest_outcome.py tests/core/test_manifest.py tests/core/test_test_functions.py tests/cli/test_validate_cmd.py
+  - uv run maid validate manifests/047-01-add-manifest-outcome-schema.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-01-add-manifest-outcome-schema.manifest.yaml --mode schema --quiet

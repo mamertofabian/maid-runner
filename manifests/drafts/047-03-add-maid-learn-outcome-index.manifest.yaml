@@ -44,7 +44,7 @@ temptations:
 files:
   read:
     - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
-    - manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml
+    - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
     - maid_runner/core/chain.py
     - maid_runner/core/manifest.py
     - maid_runner/core/types.py

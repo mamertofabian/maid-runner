@@ -89,6 +89,9 @@
       "required": ["tests"],
       "additionalProperties": false
     },
+    "outcome": {
+      "$ref": "#/definitions/OutcomeRecord"
+    },
     "supersedes": {
       "type": "array",
       "items": { "type": "string" }
@@ -156,6 +159,102 @@
     }
   ],
   "definitions": {
+    "OutcomeRecord": {
+      "type": "object",
+      "required": ["status", "summary"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed", "partial", "superseded", "archived", "abandoned"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "lessons": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/OutcomeLesson" }
+        },
+        "review_notes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/OutcomeReviewNote" }
+        },
+        "validation": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/OutcomeValidationEvidence" }
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "OutcomeLesson": {
+      "type": "object",
+      "required": ["lesson_type", "summary"],
+      "properties": {
+        "lesson_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "OutcomeReviewNote": {
+      "type": "object",
+      "required": ["source", "severity", "summary"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "OutcomeValidationEvidence": {
+      "type": "object",
+      "required": ["command", "status", "summary"],
+      "properties": {
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "TemptationSpec": {
       "type": "object",
       "required": ["risk", "instead"],

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Hashable
+from datetime import datetime
 import json
 from pathlib import Path
 from pathlib import PureWindowsPath
+import re
 import shlex
 from typing import Union
 
@@ -22,6 +24,11 @@ from maid_runner.core.types import (
     FileMode,
     FileSpec,
     Manifest,
+    OutcomeLesson,
+    OutcomeRecord,
+    OutcomeReviewNote,
+    OutcomeStatus,
+    OutcomeValidationEvidence,
     RemovedArtifactSpec,
     TaskType,
     TemptationSpec,
@@ -30,6 +37,9 @@ from maid_runner.core.types import (
 )
 
 _SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
+_RFC3339_DATE_TIME_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}" r"(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
+)
 
 
 class ManifestLoadError(Exception):
@@ -96,8 +106,35 @@ def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]
     if not schema_file.exists():
         return [f"Schema file not found: {schema_file}"]
     schema = json.loads(schema_file.read_text())
-    validator = jsonschema.Draft7Validator(schema)
-    return [e.message for e in validator.iter_errors(data)]
+    validator = jsonschema.Draft7Validator(
+        schema,
+        format_checker=jsonschema.FormatChecker(),
+    )
+    errors = [e.message for e in validator.iter_errors(data)]
+    errors.extend(_validate_outcome_completed_at(data))
+    return errors
+
+
+def _validate_outcome_completed_at(data: dict) -> list[str]:
+    if not isinstance(data, dict):
+        return []
+
+    outcome = data.get("outcome")
+    if not isinstance(outcome, dict):
+        return []
+
+    completed_at = outcome.get("completed_at")
+    if not isinstance(completed_at, str):
+        return []
+
+    if not _RFC3339_DATE_TIME_RE.fullmatch(completed_at):
+        return [f"{completed_at!r} is not a valid RFC 3339 date-time"]
+
+    try:
+        datetime.fromisoformat(completed_at.replace("Z", "+00:00"))
+    except ValueError:
+        return [f"{completed_at!r} is not a valid RFC 3339 date-time"]
+    return []
 
 
 def validate_manifest_paths(
@@ -354,6 +391,10 @@ def load_manifest(path: Union[str, Path]) -> Manifest:
     except Exception as exc:
         raise ManifestLoadError(str(path), str(exc)) from exc
 
+    if not isinstance(data, dict):
+        errors = validate_manifest_schema(data)
+        raise ManifestSchemaError(str(path), errors)
+
     # Detect v1 and convert
     from maid_runner.compat.v1_loader import is_v1_manifest, convert_v1_to_v2
 
@@ -425,6 +466,43 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         acceptance=acceptance,
         temptations=_parse_temptations(data.get("temptations", [])),
         removed_artifacts=_parse_removed_artifacts(data.get("removed_artifacts", [])),
+        outcome=_parse_outcome(data.get("outcome")),
+    )
+
+
+def _parse_outcome(data: dict | None) -> OutcomeRecord | None:
+    if data is None:
+        return None
+    return OutcomeRecord(
+        status=OutcomeStatus(data["status"]),
+        summary=data["summary"],
+        rationale=data.get("rationale"),
+        lessons=tuple(
+            OutcomeLesson(
+                lesson_type=item["lesson_type"],
+                summary=item["summary"],
+                tags=tuple(item.get("tags", [])),
+                paths=tuple(item.get("paths", [])),
+            )
+            for item in data.get("lessons", [])
+        ),
+        review_notes=tuple(
+            OutcomeReviewNote(
+                source=item["source"],
+                severity=item["severity"],
+                summary=item["summary"],
+            )
+            for item in data.get("review_notes", [])
+        ),
+        validation=tuple(
+            OutcomeValidationEvidence(
+                command=tuple(item["command"]),
+                status=item["status"],
+                summary=item["summary"],
+            )
+            for item in data.get("validation", [])
+        ),
+        completed_at=data.get("completed_at"),
     )
 
 
@@ -592,7 +670,49 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
         data["created"] = manifest.created
     if manifest.metadata:
         data["metadata"] = manifest.metadata
+    if manifest.outcome:
+        data["outcome"] = _outcome_to_dict(manifest.outcome)
 
+    return data
+
+
+def _outcome_to_dict(outcome: OutcomeRecord) -> dict:
+    data = {
+        "status": outcome.status.value,
+        "summary": outcome.summary,
+    }
+    if outcome.rationale is not None:
+        data["rationale"] = outcome.rationale
+    if outcome.lessons:
+        data["lessons"] = [
+            {
+                "lesson_type": lesson.lesson_type,
+                "summary": lesson.summary,
+                **({"tags": list(lesson.tags)} if lesson.tags else {}),
+                **({"paths": list(lesson.paths)} if lesson.paths else {}),
+            }
+            for lesson in outcome.lessons
+        ]
+    if outcome.review_notes:
+        data["review_notes"] = [
+            {
+                "source": note.source,
+                "severity": note.severity,
+                "summary": note.summary,
+            }
+            for note in outcome.review_notes
+        ]
+    if outcome.validation:
+        data["validation"] = [
+            {
+                "command": list(evidence.command),
+                "status": evidence.status,
+                "summary": evidence.summary,
+            }
+            for evidence in outcome.validation
+        ]
+    if outcome.completed_at is not None:
+        data["completed_at"] = outcome.completed_at
     return data
 
 

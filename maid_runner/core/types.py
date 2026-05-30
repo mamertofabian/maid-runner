@@ -46,10 +46,52 @@ class TestStream(str, Enum):
     IMPLEMENTATION = "implementation"
 
 
+class OutcomeStatus(str, Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+    PARTIAL = "partial"
+    SUPERSEDED = "superseded"
+    ARCHIVED = "archived"
+    ABANDONED = "abandoned"
+
+
 @dataclass(frozen=True)
 class AcceptanceConfig:
     tests: tuple[tuple[str, ...], ...] = ()
     immutable: bool = True
+
+
+@dataclass(frozen=True)
+class OutcomeLesson:
+    lesson_type: str
+    summary: str
+    tags: tuple[str, ...] = ()
+    paths: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class OutcomeReviewNote:
+    source: str
+    severity: str
+    summary: str
+
+
+@dataclass(frozen=True)
+class OutcomeValidationEvidence:
+    command: tuple[str, ...]
+    status: str
+    summary: str
+
+
+@dataclass(frozen=True)
+class OutcomeRecord:
+    status: OutcomeStatus
+    summary: str
+    rationale: Optional[str] = None
+    lessons: tuple[OutcomeLesson, ...] = ()
+    review_notes: tuple[OutcomeReviewNote, ...] = ()
+    validation: tuple[OutcomeValidationEvidence, ...] = ()
+    completed_at: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -175,6 +217,7 @@ class Manifest:
     acceptance: Optional[AcceptanceConfig] = None
     temptations: tuple[TemptationSpec, ...] = ()
     removed_artifacts: tuple[RemovedArtifactSpec, ...] = ()
+    outcome: Optional[OutcomeRecord] = None
 
     @property
     def all_file_specs(self) -> list[FileSpec]:

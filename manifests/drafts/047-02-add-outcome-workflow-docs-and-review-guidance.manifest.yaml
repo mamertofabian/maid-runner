@@ -31,7 +31,7 @@ temptations:
 files:
   read:
     - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
-    - manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml
+    - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
     - docs/maid-philosophy-and-vision.md
     - docs/agent-skills.md
     - docs/unit-testing-rules.md
