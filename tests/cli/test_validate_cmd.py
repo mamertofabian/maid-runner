@@ -3475,13 +3475,20 @@ class TestCmdValidateCoherenceFlag:
 
 
 class TestCmdValidateWatchMode:
-    def test_watch_without_watchdog_returns_error(self, project_dir, capsys):
+    def test_watch_without_watchdog_returns_error(
+        self, project_dir, capsys, monkeypatch
+    ):
         """If watchdog is not installed, watch mode returns 2."""
-        import importlib.util
+        import builtins
 
-        # Check if watchdog is available
-        if importlib.util.find_spec("watchdog") is not None:
-            pytest.skip("watchdog is installed, cannot test missing dependency path")
+        real_import = builtins.__import__
+
+        def import_without_watchdog(name, *args, **kwargs):
+            if name == "watchdog" or name.startswith("watchdog."):
+                raise ImportError("No module named 'watchdog'")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", import_without_watchdog)
 
         from maid_runner.cli.commands.validate import _run_watch
 
@@ -3499,6 +3506,8 @@ class TestCmdValidateWatchMode:
         )
         exit_code = _run_watch(args)
         assert exit_code == 2
+        captured = capsys.readouterr()
+        assert "Install with: pip install maid-runner[watch]" in captured.err
 
 
 class TestCmdValidateErrorHandling:

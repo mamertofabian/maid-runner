@@ -1,0 +1,36 @@
+schema: "2"
+goal: "Make the validate watch-mode missing-watchdog test deterministic"
+type: fix
+created: "2026-05-30"
+description: |
+  Replace the environment-dependent skip in the validate watch-mode dependency
+  test with a local import simulation. The test must exercise the missing
+  watchdog error path even when the development environment installs the
+  optional watch extra.
+
+  Rationale: watchdog is part of the repository's dev dependency group, so a
+  test that only runs when watchdog is absent is skipped in normal local and CI
+  environments. Blocking watchdog imports inside the test keeps the production
+  dependency boundary unchanged while preserving coverage of the error path.
+temptations:
+  - risk: "Do not remove the missing-watchdog coverage just because watchdog is installed in dev."
+    instead: "Simulate the ImportError inside the focused test and assert the public CLI error behavior."
+  - risk: "Do not make watchdog a required runtime dependency to satisfy the test."
+    instead: "Keep watchdog optional and verify the existing install hint remains visible."
+files:
+  edit:
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_watch_without_watchdog_returns_error
+          source_scenario: "Validate watch mode starts in an environment where the optional watchdog package cannot be imported."
+          actions:
+            - type: api_call
+              subject:
+                export: _run_watch
+          expected:
+            behavior: "_run_watch returns exit code 2 and prints the maid-runner[watch] install hint without skipping the test."
+  read:
+    - maid_runner/cli/commands/validate.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_cmd.py -rs
