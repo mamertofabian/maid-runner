@@ -268,3 +268,91 @@ validate:
   - uv run python -m pytest -q tests/core/test_manifest_outcome.py tests/core/test_manifest.py tests/core/test_test_functions.py tests/cli/test_validate_cmd.py
   - uv run maid validate manifests/047-01-add-manifest-outcome-schema.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/047-01-add-manifest-outcome-schema.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added strict optional Outcome records to v2 manifests."
+  rationale: "Implementation completed after read-only review loops hardened timestamp validation, non-object manifest handling, and loader error behavior; focused tests and repository MAID gates passed."
+  lessons:
+    - lesson_type: schema-hardening
+      summary: "Strict Outcome metadata needs both additionalProperties=false schema boundaries and parser-backed timestamp validation; date-time format checks alone are not enough in every jsonschema environment."
+      tags:
+        - manifest-schema
+        - outcome-records
+        - validation
+      paths:
+        - maid_runner/schemas/manifest.v2.schema.json
+        - maid_runner/core/manifest.py
+        - tests/core/test_manifest_outcome.py
+    - lesson_type: loader-safety
+      summary: "Public manifest loading must reject non-object YAML before compatibility detection so malformed manifests become schema errors instead of AttributeError crashes."
+      tags:
+        - manifest-loader
+        - schema-validation
+      paths:
+        - maid_runner/core/manifest.py
+        - tests/core/test_manifest_outcome.py
+    - lesson_type: contract-modeling
+      summary: "Outcome data belongs on Manifest as separate completion metadata and must not override scope, artifacts, validation commands, metadata, or supersession behavior."
+      tags:
+        - manifest-contract
+        - outcome-records
+      paths:
+        - maid_runner/core/types.py
+        - maid_runner/core/manifest.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Review loops found and drove fixes for loose completed_at validation, non-object schema crashes, and load_manifest compatibility detection ordering."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final read-only implementation review reported no findings and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_manifest_outcome.py
+        - tests/core/test_manifest.py
+        - tests/core/test_test_functions.py
+        - tests/cli/test_validate_cmd.py
+      status: passed
+      summary: "Declared focused pytest set passed with 178 passed and 1 skipped."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/types.py
+        - maid_runner/core/manifest.py
+        - tests/core/test_manifest_outcome.py
+      status: passed
+      summary: "Touched Python files passed Ruff checks."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with no failed manifests."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with all command groups passing."
+  completed_at: "2026-05-31T06:57:04+08:00"
