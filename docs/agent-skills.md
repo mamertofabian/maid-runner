@@ -28,6 +28,13 @@ maid-planner    →  maid-implementer    →  maid-auditor
                               repeat
 ```
 
+After `maid-implementer` completes validation and implementation review, the
+handoff should include explicit Outcome capture when the schema is available.
+The canonical guidance is
+[`docs/manifest-outcome-records.md`](manifest-outcome-records.md): Outcome is
+completion metadata, not a substitute for behavioral tests, declared artifacts,
+validation commands, supersession, or implementation review.
+
 ---
 
 ## Tool Packaging

@@ -4,7 +4,6 @@ goal: "Document Outcome capture in the MAID workflow"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
   tags:
     - documentation
     - maid-workflow
@@ -96,5 +95,55 @@ files:
           description: "Lifecycle note that implementation-review handoff is followed by explicit Outcome capture when the schema is available."
 validate:
   - uv run python -m pytest -q tests/test_manifest_outcome_docs.py
-  - uv run maid validate manifests/drafts/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Documented post-review Outcome capture and preserved MAID contract boundaries."
+  rationale: "Implementation review found no findings; focused docs tests and MAID validation passed on the promoted manifest."
+  lessons:
+    - lesson_type: documentation
+      summary: "Outcome guidance should place capture after implementation review and state that completed outcomes are the default learning source."
+      tags:
+        - maid-workflow
+        - outcome-records
+      paths:
+        - docs/manifest-outcome-records.md
+        - docs/draft-manifest-workflow.md
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Independent review reported no findings and confirmed the promoted manifest artifacts and dependency rewrite."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_manifest_outcome_docs.py
+      status: passed
+      summary: "Focused Outcome documentation tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --since
+        - HEAD
+        - --include-tests
+      status: passed
+      summary: "Changed-scope handoff gate passed with existing repository warnings."
+  completed_at: "2026-05-30T14:45:03Z"

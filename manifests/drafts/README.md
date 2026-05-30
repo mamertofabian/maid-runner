@@ -6,6 +6,8 @@ implementation contracts.
 
 The canonical workflow guide is
 [`docs/draft-manifest-workflow.md`](../../docs/draft-manifest-workflow.md).
+Outcome capture guidance is documented in
+[`docs/manifest-outcome-records.md`](../../docs/manifest-outcome-records.md).
 
 Use `000-parser-replacement-roadmap.md` as the alignment map for parser
 replacement follow-up work, shared boundaries, dependencies, and promotion
@@ -48,3 +50,8 @@ A draft is ready to promote when:
 Promote by moving the draft manifest from `manifests/drafts/` to `manifests/`.
 Compiler-backed work must preserve the fast path unless a manifest explicitly
 evolves that contract.
+
+Outcome records are added after a completed implementation review, not during
+initial draft planning. Drafts should describe the intended contract; the
+promoted manifest's optional `outcome` field records the completed result,
+validation evidence, and review notes after the work closes.

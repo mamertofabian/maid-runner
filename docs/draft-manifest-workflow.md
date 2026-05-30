@@ -33,8 +33,14 @@ Normal validation and test execution should target promoted manifests in
    `manifests/<slug>.manifest.yaml`.
 5. Implement strictly inside the promoted manifest's declared file scope.
 6. Validate the promoted path, run the declared tests, run the changed-scope
-   handoff gate, review the implementation against the manifest, then commit.
-7. Re-scan `manifests/drafts/` for the next child draft.
+   handoff gate, and review the implementation against the manifest.
+7. Capture Outcome after implementation review and before final handoff when
+   the schema is available. Outcome records are completion metadata documented
+   in `docs/manifest-outcome-records.md`; they do not replace behavioral tests,
+   declared artifacts, validation commands, or review.
+8. Commit only after the manifest, implementation, validation evidence, review,
+   and Outcome capture are ready.
+9. Re-scan `manifests/drafts/` for the next child draft.
 
 Drafts may be edited freely before promotion. After promotion, do not silently
 rewrite the contract. Use the normal MAID evolution path instead.
@@ -68,6 +74,19 @@ A child draft is ready to promote when:
 - dependencies on earlier drafts are clear and ordered.
 
 If a draft fails these checks, refine the draft before promotion.
+
+## Outcome Capture
+
+Outcome records close a promoted implementation session after implementation
+review and before final handoff. Add or update the manifest's optional
+`outcome` section only after the implementation result, validation evidence,
+and review notes are known.
+
+The canonical Outcome guide is
+[`docs/manifest-outcome-records.md`](manifest-outcome-records.md). Outcome is
+completion metadata; it does not loosen manifest scope, replace declared
+artifacts, substitute for behavioral tests, skip validation commands, or bypass
+implementation review.
 
 ## Automation
 
