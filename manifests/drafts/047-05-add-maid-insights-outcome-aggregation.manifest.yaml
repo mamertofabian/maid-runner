@@ -1,0 +1,249 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add deterministic `maid insights` Outcome aggregation"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - cli
+    - outcome-records
+    - insights
+    - aggregation
+  priority: medium
+description: |
+  Add deterministic aggregations over learned Outcome records. `maid insights`
+  summarizes explicit records by modules, tags, change types, lesson types,
+  review findings, validation evidence, and completion trends, while preserving
+  traceability back to source manifests.
+
+  Insights must consume the local index produced by `maid learn`; it must not
+  infer unrecorded lessons or depend on AI-generated summaries. Duplicate
+  records, supersession chains, archived drafts, and stale indexes must have
+  documented and tested handling.
+
+  Aggregations operate only on fields present in `OutcomeIndexRecord`.
+  Validation-status aggregation reads `validation_evidence.status`, change-type
+  aggregation reads manifest `task_type`, and completion trends bucket
+  `completed_at` by month with an `unknown` bucket for missing completion dates.
+temptations:
+  - risk: "Do not generate narrative insights that cannot be traced to source manifests."
+    instead: "Return deterministic aggregate counts, source manifest lists, and representative explicit lesson or review-note fields."
+  - risk: "Do not double-count the same source manifest record after index refresh or supersession."
+    instead: "Deduplicate by manifest slug and source fingerprint, and document how superseded or archived sources are excluded by the learned index."
+  - risk: "Do not hide stale index state behind a normal report."
+    instead: "Fail by default when the index is stale and require explicit opt-in for stale reporting."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - maid_runner/core/outcomes.py
+    - maid_runner/cli/commands/recall.py
+    - tests/core/test_outcomes.py
+  create:
+    - path: maid_runner/core/outcome_insights.py
+      artifacts:
+        - kind: class
+          name: OutcomeInsightGroup
+          description: "One deterministic aggregate bucket with traceable source manifests."
+        - kind: attribute
+          name: key
+          of: OutcomeInsightGroup
+          type: str
+        - kind: attribute
+          name: count
+          of: OutcomeInsightGroup
+          type: int
+        - kind: attribute
+          name: source_manifests
+          of: OutcomeInsightGroup
+          type: tuple[str, ...]
+        - kind: attribute
+          name: lesson_types
+          of: OutcomeInsightGroup
+          type: tuple[str, ...]
+        - kind: attribute
+          name: review_severities
+          of: OutcomeInsightGroup
+          type: tuple[str, ...]
+        - kind: class
+          name: OutcomeInsightsReport
+          description: "Deterministic aggregate report for learned Outcome records."
+        - kind: attribute
+          name: total_records
+          of: OutcomeInsightsReport
+          type: int
+        - kind: attribute
+          name: by_tag
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_path
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_artifact
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_change_type
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_lesson_type
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_review_severity
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_validation_status
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: attribute
+          name: by_completion_month
+          of: OutcomeInsightsReport
+          type: tuple[OutcomeInsightGroup, ...]
+        - kind: function
+          name: aggregate_outcome_insights
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: limit_per_group
+              type: int
+              default: "10"
+          returns: OutcomeInsightsReport
+          source_scenario: "An Outcome index contains records with overlapping tags, paths, artifacts, lesson types, review severities, and validation statuses."
+          actions:
+            - type: api_call
+              subject:
+                function: aggregate_outcome_insights
+          expected:
+            behavior: "The report contains deterministic aggregate groups for tags, paths, artifacts, change types, lesson types, review severities, validation evidence statuses, and completion months, with stable source manifest lists, duplicate-safe counts, and no generated or inferred lessons."
+    - path: maid_runner/cli/commands/insights.py
+      artifacts:
+        - kind: function
+          name: cmd_insights
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid insights --index .maid/outcomes.json --json` aggregates learned Outcome records."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_insights
+          expected:
+            behavior: "The command loads the index, uses index manifest_dir/project_root for staleness checks unless CLI overrides are provided, rejects stale indexes by default, renders deterministic aggregate groups, and returns nonzero for missing, malformed, or stale index data."
+    - path: tests/core/test_outcome_insights.py
+      artifacts:
+        - kind: test_function
+          name: test_aggregate_outcome_insights_groups_records_deterministically
+          source_scenario: "Outcome records share tags, paths, artifacts, lesson types, review severities, validation statuses, change types, and completion months."
+          actions:
+            - type: api_call
+              subject:
+                function: aggregate_outcome_insights
+          expected:
+            behavior: "Aggregate group keys, counts, and source manifest lists are sorted deterministically and traceable for every report category."
+        - kind: test_function
+          name: test_aggregate_outcome_insights_uses_validation_evidence_statuses
+          source_scenario: "Outcome records include validation evidence with pass, fail, and skipped statuses."
+          actions:
+            - type: api_call
+              subject:
+                function: aggregate_outcome_insights
+          expected:
+            behavior: "The validation-status groups are derived from validation_evidence.status rather than command text."
+        - kind: test_function
+          name: test_aggregate_outcome_insights_deduplicates_source_records_and_supersession_chains
+          source_scenario: "The index contains duplicate source fingerprints and records marked superseded by a later completed source."
+          actions:
+            - type: api_call
+              subject:
+                function: aggregate_outcome_insights
+          expected:
+            behavior: "Duplicate records are counted once, archived lifecycle records are excluded from default completed aggregations, superseded source records are excluded when their replacement is present, and source manifest lists do not repeat the same source."
+        - kind: test_function
+          name: test_aggregate_outcome_insights_respects_group_limits
+          source_scenario: "More groups are present than the requested per-group limit."
+          actions:
+            - type: api_call
+              subject:
+                function: aggregate_outcome_insights
+          expected:
+            behavior: "Each group category is truncated deterministically with the highest counts first and stable tie-breaks."
+    - path: tests/cli/test_insights_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_insights_parser_and_dispatch_are_registered
+          source_scenario: "A user invokes `maid insights --json`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The parser accepts insights options and `main([\"insights\", ...])` dispatch reaches the insights handler."
+        - kind: test_function
+          name: test_cmd_insights_outputs_traceable_aggregates
+          source_scenario: "`cmd_insights` reads a valid learned index."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_insights
+          expected:
+            behavior: "Output includes aggregate keys, counts, source manifests, change-type and completion-trend groups, and no untraceable generated prose."
+        - kind: test_function
+          name: test_cmd_insights_rejects_missing_malformed_or_stale_index
+          source_scenario: "The index path is missing, malformed, or stale."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_insights
+          expected:
+            behavior: "The command returns nonzero and names the index problem."
+        - kind: test_function
+          name: test_cmd_insights_allows_stale_index_only_with_explicit_flag
+          source_scenario: "The learned index is stale because a source manifest fingerprint changed or disappeared."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_insights
+          expected:
+            behavior: "The command fails by default, succeeds when stale reporting is explicitly allowed, and uses index manifest_dir/project_root unless CLI overrides are supplied."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid insights`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser exposes insights options for index path, manifest-dir/project-root staleness checks, group limits, stale-index opt-in, and JSON output."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          source_scenario: "The parsed command is `insights`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The CLI dispatches to `maid_runner.cli.commands.insights.cmd_insights`."
+validate:
+  - uv run python -m pytest -q tests/core/test_outcome_insights.py tests/cli/test_insights_cmd.py
+  - uv run maid validate manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode schema --quiet

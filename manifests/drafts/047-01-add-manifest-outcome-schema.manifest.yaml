@@ -1,0 +1,238 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add strict optional manifest Outcome schema support"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - manifest-schema
+    - outcome-records
+    - validation
+  priority: high
+description: |
+  Add an optional top-level `outcome` property to MAID v2 manifests. The
+  property records explicit completion metadata after implementation review:
+  status, summary, rationale, structured lessons, review notes, and validation
+  evidence. Existing manifests without `outcome` must remain valid.
+
+  The initial contract deliberately keeps Outcome strict and deterministic. It
+  does not change manifest scope, declared artifacts, validation commands, or
+  supersession behavior. Completed outcomes become indexable; failed, partial,
+  superseded, archived, and abandoned statuses are represented explicitly so
+  later indexing commands can filter them without inferring intent.
+
+  `OutcomeStatus` values are exactly `completed`, `failed`, `partial`,
+  `superseded`, `archived`, and `abandoned`. Later commands must treat
+  `completed` as the default learning status and require explicit filters for
+  every non-completed status.
+temptations:
+  - risk: "Do not make `outcome` a loose object with arbitrary extra fields."
+    instead: "Declare the exact schema fields, enums, required nested fields, and additionalProperties=false boundaries."
+  - risk: "Do not require Outcome for historical manifests."
+    instead: "Keep the top-level property optional and test that manifests without `outcome` still load and validate."
+  - risk: "Do not let Outcome override scope, artifacts, validation commands, supersession, or metadata."
+    instead: "Parse Outcome into separate completion-record dataclasses and leave existing Manifest contract fields authoritative."
+  - risk: "Do not encode lessons as undifferentiated prose only."
+    instead: "Use structured lesson entries with a type, summary, optional tags, and optional source path references."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - tests/core/test_manifest.py
+    - tests/core/test_test_functions.py
+    - tests/cli/test_validate_cmd.py
+  create:
+    - path: tests/core/test_manifest_outcome.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_schema_accepts_strict_outcome_record
+          source_scenario: "A manifest declares completed Outcome metadata with lessons, review notes, and validation evidence."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_schema
+          expected:
+            behavior: "Schema validation succeeds and the same manifest still validates when Outcome is omitted."
+        - kind: test_function
+          name: test_manifest_schema_rejects_outcome_unknown_fields_and_statuses
+          source_scenario: "Outcome includes an unexpected nested field or unsupported status."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_schema
+          expected:
+            behavior: "Schema validation reports the malformed Outcome instead of silently accepting it."
+        - kind: test_function
+          name: test_manifest_schema_pins_exact_outcome_status_values
+          source_scenario: "Outcome status validation receives every supported status and several unsupported aliases."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_schema
+          expected:
+            behavior: "Exactly completed, failed, partial, superseded, archived, and abandoned are accepted; aliases such as done, skipped, draft, and cancelled are rejected."
+        - kind: test_function
+          name: test_load_manifest_parses_outcome_record
+          source_scenario: "A YAML manifest with Outcome is loaded through the public loader."
+          actions:
+            - type: api_call
+              subject:
+                function: load_manifest
+          expected:
+            behavior: "The Manifest contains a typed OutcomeRecord with deterministic status and structured nested entries."
+        - kind: test_function
+          name: test_save_manifest_preserves_outcome_round_trip
+          source_scenario: "A manifest with Outcome is loaded, saved, and loaded again."
+          actions:
+            - type: api_call
+              subject:
+                function: save_manifest
+          expected:
+            behavior: "The reloaded Outcome matches the original status, summary, rationale, lessons, review notes, validation evidence, and completion timestamp."
+  edit:
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      artifacts:
+        - kind: attribute
+          name: outcome
+          of: MAID Manifest v2 schema
+          type: optional OutcomeRecord object
+          description: "Strict optional top-level completion metadata schema for explicit manifest Outcome records."
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: enum
+          name: OutcomeStatus
+          description: "Deterministic manifest Outcome lifecycle statuses with exact values: completed, failed, partial, superseded, archived, abandoned."
+        - kind: class
+          name: OutcomeLesson
+          description: "Structured lesson captured from a completed or otherwise closed manifest."
+        - kind: attribute
+          name: lesson_type
+          of: OutcomeLesson
+          type: str
+        - kind: attribute
+          name: summary
+          of: OutcomeLesson
+          type: str
+        - kind: attribute
+          name: tags
+          of: OutcomeLesson
+          type: tuple[str, ...]
+        - kind: attribute
+          name: paths
+          of: OutcomeLesson
+          type: tuple[str, ...]
+        - kind: class
+          name: OutcomeReviewNote
+          description: "Structured implementation-review note captured in an Outcome record."
+        - kind: attribute
+          name: source
+          of: OutcomeReviewNote
+          type: str
+        - kind: attribute
+          name: severity
+          of: OutcomeReviewNote
+          type: str
+        - kind: attribute
+          name: summary
+          of: OutcomeReviewNote
+          type: str
+        - kind: class
+          name: OutcomeValidationEvidence
+          description: "Validation command evidence preserved with a manifest Outcome record."
+        - kind: attribute
+          name: command
+          of: OutcomeValidationEvidence
+          type: tuple[str, ...]
+        - kind: attribute
+          name: status
+          of: OutcomeValidationEvidence
+          type: str
+        - kind: attribute
+          name: summary
+          of: OutcomeValidationEvidence
+          type: str
+        - kind: class
+          name: OutcomeRecord
+          description: "Parsed top-level Outcome completion metadata for a manifest."
+        - kind: attribute
+          name: status
+          of: OutcomeRecord
+          type: OutcomeStatus
+        - kind: attribute
+          name: summary
+          of: OutcomeRecord
+          type: str
+        - kind: attribute
+          name: rationale
+          of: OutcomeRecord
+          type: Optional[str]
+        - kind: attribute
+          name: lessons
+          of: OutcomeRecord
+          type: tuple[OutcomeLesson, ...]
+        - kind: attribute
+          name: review_notes
+          of: OutcomeRecord
+          type: tuple[OutcomeReviewNote, ...]
+        - kind: attribute
+          name: validation
+          of: OutcomeRecord
+          type: tuple[OutcomeValidationEvidence, ...]
+        - kind: attribute
+          name: completed_at
+          of: OutcomeRecord
+          type: Optional[str]
+        - kind: attribute
+          name: outcome
+          of: Manifest
+          type: Optional[OutcomeRecord]
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_schema
+          args:
+            - name: data
+              type: dict
+            - name: schema_version
+              type: str
+              default: "'2'"
+          returns: list[str]
+          source_scenario: "A manifest contains a valid or malformed top-level `outcome` record."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_schema
+          expected:
+            behavior: "Valid Outcome records pass schema validation, invalid statuses and unexpected nested fields are rejected, and manifests without Outcome still pass."
+        - kind: function
+          name: load_manifest
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: Manifest
+          source_scenario: "A schema-valid manifest includes an explicit Outcome section."
+          actions:
+            - type: api_call
+              subject:
+                function: load_manifest
+          expected:
+            behavior: "The returned Manifest exposes a typed OutcomeRecord without changing existing manifest fields."
+        - kind: function
+          name: save_manifest
+          args:
+            - name: manifest
+              type: Manifest
+            - name: path
+              type: Union[str, Path]
+          returns: None
+          source_scenario: "A loaded manifest with Outcome is saved and reloaded."
+          actions:
+            - type: api_call
+              subject:
+                function: save_manifest
+          expected:
+            behavior: "Outcome status, lessons, review notes, and validation evidence survive round-trip serialization exactly."
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest_outcome.py
+  - uv run maid validate manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml --mode schema --quiet

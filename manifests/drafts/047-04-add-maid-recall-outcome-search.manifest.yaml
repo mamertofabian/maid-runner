@@ -1,0 +1,268 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add deterministic `maid recall` Outcome search"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - cli
+    - outcome-records
+    - recall
+    - search
+  priority: high
+description: |
+  Add deterministic recall over the learned Outcome index. `maid recall` must
+  retrieve prior Outcome records by exact filters and stable ranked signals:
+  manifest slug, tags, paths, artifacts, validation commands, review notes, and
+  full-text terms. Ranking must be explainable and stable, with explicit
+  tie-breakers and traceable source manifests.
+
+  This command consumes the local index produced by `maid learn`. It must fail
+  loudly when the index is missing, malformed, or stale unless the user
+  explicitly opts into a stale read.
+
+  Ranking is fixed and additive: exact manifest slug match = 100, exact
+  declared path match = 80, exact artifact match = 60, exact tag match = 40,
+  validation command token match = 30, review-note text term match = 20, and
+  general full-text term match = 10. Matching is case-insensitive for text and
+  tag comparisons, path comparisons are normalized to repository-relative POSIX
+  form, and each unique query value contributes at most once per field per
+  record. Ties are sorted by manifest slug, then manifest path.
+
+  Empty queries are rejected. Text matching tokenizes on non-alphanumeric
+  boundaries, lowercases tokens, and ignores empty tokens. Validation-command
+  matches search command tokens only. Review-note matches search review-note
+  source, severity, and summary fields. General full-text matches search
+  manifest slug, goal/summary/rationale text when present in the index, lesson
+  summaries, lesson tags, declared paths, artifact names, validation evidence
+  summaries, and review notes. Review-note fields may contribute both the
+  review-note score and the general full-text score when both query dimensions
+  are supplied.
+
+  Inclusion is filter-first. Exact filters for manifest slugs, tags, paths,
+  artifacts, and validation commands are conjunctive across fields: when a
+  field is present in the query, a record must match at least one value for
+  that field to remain eligible. Text and review-text query terms are also
+  required when supplied: a record must match at least one token in the
+  corresponding searched fields. Ranking is applied only after this eligibility
+  pass; non-matching records are not returned with score zero.
+
+  This draft depends on promoted `047-03` Outcome index artifacts. Do not
+  promote it standalone before `maid_runner/core/outcomes.py`,
+  `maid_runner/cli/commands/learn.py`, and the learned index format exist.
+temptations:
+  - risk: "Do not implement recall as semantic search, embeddings, or generated summaries."
+    instead: "Rank deterministic exact and text-match signals, return source records and score reasons, and leave synthesis to the caller."
+  - risk: "Do not silently use a missing or stale index."
+    instead: "Require an index file, validate it before search, and fail stale reads unless an explicit stale-index flag is supplied."
+  - risk: "Do not produce unstable ordering for equal matches."
+    instead: "Use the declared score weights, one contribution per unique query value per field, and tie-break by manifest slug then manifest path."
+  - risk: "Do not search archived or non-completed outcomes by default through recall."
+    instead: "Respect the statuses present in the learned index and provide filters that only narrow the loaded records."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - maid_runner/core/outcomes.py
+    - maid_runner/cli/commands/learn.py
+    - tests/cli/test_learn_cmd.py
+  create:
+    - path: maid_runner/core/outcome_recall.py
+      artifacts:
+        - kind: class
+          name: OutcomeRecallQuery
+          description: "Deterministic query model for searching learned Outcome records."
+        - kind: attribute
+          name: text
+          of: OutcomeRecallQuery
+          type: str | None
+        - kind: attribute
+          name: tags
+          of: OutcomeRecallQuery
+          type: tuple[str, ...]
+        - kind: attribute
+          name: paths
+          of: OutcomeRecallQuery
+          type: tuple[str, ...]
+        - kind: attribute
+          name: artifacts
+          of: OutcomeRecallQuery
+          type: tuple[str, ...]
+        - kind: attribute
+          name: validation_commands
+          of: OutcomeRecallQuery
+          type: tuple[str, ...]
+        - kind: attribute
+          name: review_text
+          of: OutcomeRecallQuery
+          type: str | None
+        - kind: attribute
+          name: manifest_slugs
+          of: OutcomeRecallQuery
+          type: tuple[str, ...]
+        - kind: class
+          name: OutcomeRecallMatch
+          description: "Traceable recall result with deterministic score and match reasons."
+        - kind: attribute
+          name: record
+          of: OutcomeRecallMatch
+          type: OutcomeIndexRecord
+        - kind: attribute
+          name: score
+          of: OutcomeRecallMatch
+          type: int
+        - kind: attribute
+          name: reasons
+          of: OutcomeRecallMatch
+          type: tuple[str, ...]
+        - kind: function
+          name: recall_outcomes
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: query
+              type: OutcomeRecallQuery
+            - name: limit
+              type: int
+              default: "10"
+          returns: list[OutcomeRecallMatch]
+          source_scenario: "Several Outcome index records match by overlapping path, tag, artifact, validation command, review note, and text fields."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "Matches are scored by the fixed additive weights, include score reasons for each contributing field, respect the limit, normalize paths, compare text/tag values case-insensitively, and tie-break by manifest slug and path."
+    - path: maid_runner/cli/commands/recall.py
+      artifacts:
+        - kind: function
+          name: cmd_recall
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid recall --path maid_runner/core/manifest.py --tag validation --json` searches the learned Outcome index."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_recall
+          expected:
+            behavior: "The command loads the index, uses the index manifest_dir/project_root for staleness checks unless CLI overrides are provided, rejects stale indexes by default, prints ranked traceable matches, and returns nonzero for missing, malformed, or stale index data."
+    - path: tests/core/test_outcome_recall.py
+      artifacts:
+        - kind: test_function
+          name: test_recall_outcomes_ranks_by_deterministic_signal_weights
+          source_scenario: "Outcome records match different combinations of tags, paths, artifacts, review notes, and text terms."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "Scores and score reasons reflect the fixed weights: slug 100, path 80, artifact 60, tag 40, validation command 30, review text 20, and full text 10."
+        - kind: test_function
+          name: test_recall_outcomes_normalizes_paths_and_text_case
+          source_scenario: "Query values differ by path separator, repeated values, and text casing."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "Path matching uses repository-relative POSIX normalization, text/tag matching is case-insensitive, and duplicate query values do not inflate the score."
+        - kind: test_function
+          name: test_recall_outcomes_requires_all_supplied_filter_fields
+          source_scenario: "A query combines tag, path, artifact, validation-command, review-text, and general text filters."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "Records must match at least one value in every supplied filter or text field before ranking; partial matches across only some fields are excluded rather than returned with a lower score."
+        - kind: test_function
+          name: test_recall_outcomes_uses_stable_tie_breakers
+          source_scenario: "Two records receive the same deterministic score."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "The match order is manifest slug then manifest path, independent of original index order."
+        - kind: test_function
+          name: test_recall_outcomes_limit_and_empty_query_behavior_are_explicit
+          source_scenario: "A query has no filters or a small limit."
+          actions:
+            - type: api_call
+              subject:
+                function: recall_outcomes
+          expected:
+            behavior: "The helper rejects empty queries, returns only matching records for non-empty queries, and always honors limit."
+    - path: tests/cli/test_recall_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_recall_parser_and_dispatch_are_registered
+          source_scenario: "A user invokes `maid recall --tag validation`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser accepts recall filters and main dispatch reaches the recall handler."
+        - kind: test_function
+          name: test_cmd_recall_outputs_ranked_traceable_matches
+          source_scenario: "`cmd_recall` searches a valid learned index."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_recall
+          expected:
+            behavior: "Output includes manifest path, score, reasons, lessons, and review-note snippets without generated prose."
+        - kind: test_function
+          name: test_cmd_recall_rejects_missing_malformed_or_stale_index
+          source_scenario: "The index path is missing, malformed, or stale."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_recall
+          expected:
+            behavior: "The command returns nonzero and names the index problem."
+        - kind: test_function
+          name: test_cmd_recall_allows_stale_index_only_with_explicit_flag
+          source_scenario: "The learned index is stale because a source manifest fingerprint changed or disappeared."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_recall
+          expected:
+            behavior: "The command fails by default, succeeds when stale reads are explicitly allowed, and detects changed fingerprints, missing indexed sources, and stored manifest_dir/project_root mismatch unless CLI overrides are supplied."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid recall` with exact filters."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser exposes recall options for index path, text, tags, paths, artifacts, validation commands, review text, manifest slugs, limit, manifest-dir/project-root stale-check overrides, stale-index opt-in, and JSON output."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          source_scenario: "The parsed command is `recall`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The CLI dispatches to `maid_runner.cli.commands.recall.cmd_recall`."
+validate:
+  - uv run python -m pytest -q tests/core/test_outcome_recall.py tests/cli/test_recall_cmd.py
+  - uv run maid validate manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml --mode schema --quiet

@@ -1,0 +1,390 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add deterministic `maid learn` Outcome indexing"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - cli
+    - outcome-records
+    - learning
+    - index
+  priority: high
+description: |
+  Implement the smallest deterministic learning slice for explicit manifest
+  Outcome records. `maid learn` scans schema-valid manifests, extracts Outcome
+  records, applies documented status inclusion rules, and writes or refreshes a
+  local index that future recall and insights commands can read.
+
+  The index must be deterministic and traceable. Each record stores source
+  manifest identity, source path, status, manifest metadata, declared paths,
+  declared artifacts, validation command evidence, lessons, review notes, and a
+  source fingerprint used to detect staleness. By default, only completed
+  outcomes are indexable. When `include_statuses` is provided, it replaces the
+  default status set instead of adding to it, so callers can ask for exactly
+  failed, partial, superseded, archived, or abandoned records.
+
+  The index stores a source-derived `generated_from` fingerprint rather than a
+  wall-clock timestamp so identical inputs can produce byte-stable output.
+  Manifest lifecycle metadata is a separate filter from Outcome status:
+  manifests marked planning, draft, archived, archive, epic, or legacy are
+  excluded from the default learned index even when their Outcome status is
+  completed, unless a future command explicitly opts into inactive lifecycle
+  records.
+temptations:
+  - risk: "Do not infer lessons from manifests that lack an Outcome section."
+    instead: "Index only explicit Outcome records parsed from schema-valid manifests."
+  - risk: "Do not hide malformed Outcome records or stale indexes behind best-effort warnings."
+    instead: "Fail the learn command with source paths and validation errors when Outcome data or existing index data is malformed."
+  - risk: "Do not make the index depend on manifest discovery order from the filesystem."
+    instead: "Sort records by source manifest slug and path, and write JSON with stable keys and deterministic ordering."
+  - risk: "Do not mix archived, draft, failed, partial, superseded, or abandoned outcomes into the default completed-learning set."
+    instead: "Apply explicit status and lifecycle filters with tests for default and opt-in inclusion."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - maid_runner/cli/commands/validate.py
+    - tests/cli/test_chain_cmd.py
+  create:
+    - path: maid_runner/core/outcomes.py
+      artifacts:
+        - kind: class
+          name: OutcomeIndexRecord
+          description: "Stable, traceable index entry derived from one manifest Outcome record."
+        - kind: attribute
+          name: manifest_slug
+          of: OutcomeIndexRecord
+          type: str
+        - kind: attribute
+          name: manifest_path
+          of: OutcomeIndexRecord
+          type: str
+        - kind: attribute
+          name: status
+          of: OutcomeIndexRecord
+          type: str
+        - kind: attribute
+          name: lifecycle_status
+          of: OutcomeIndexRecord
+          type: str
+        - kind: attribute
+          name: superseded_by
+          of: OutcomeIndexRecord
+          type: str | None
+        - kind: attribute
+          name: task_type
+          of: OutcomeIndexRecord
+          type: str | None
+        - kind: attribute
+          name: created
+          of: OutcomeIndexRecord
+          type: str | None
+        - kind: attribute
+          name: completed_at
+          of: OutcomeIndexRecord
+          type: str | None
+        - kind: attribute
+          name: tags
+          of: OutcomeIndexRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: declared_paths
+          of: OutcomeIndexRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: artifacts
+          of: OutcomeIndexRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: validation_commands
+          of: OutcomeIndexRecord
+          type: tuple[tuple[str, ...], ...]
+        - kind: attribute
+          name: validation_evidence
+          of: OutcomeIndexRecord
+          type: tuple[OutcomeValidationEvidence, ...]
+        - kind: attribute
+          name: lessons
+          of: OutcomeIndexRecord
+          type: tuple[OutcomeLesson, ...]
+        - kind: attribute
+          name: review_notes
+          of: OutcomeIndexRecord
+          type: tuple[OutcomeReviewNote, ...]
+        - kind: attribute
+          name: source_fingerprint
+          of: OutcomeIndexRecord
+          type: str
+        - kind: class
+          name: OutcomeIndex
+          description: "Versioned deterministic index of explicit manifest Outcome records."
+        - kind: attribute
+          name: schema_version
+          of: OutcomeIndex
+          type: str
+        - kind: attribute
+          name: generated_from
+          of: OutcomeIndex
+          type: str
+        - kind: attribute
+          name: manifest_dir
+          of: OutcomeIndex
+          type: str
+        - kind: attribute
+          name: project_root
+          of: OutcomeIndex
+          type: str
+        - kind: attribute
+          name: records
+          of: OutcomeIndex
+          type: tuple[OutcomeIndexRecord, ...]
+        - kind: function
+          name: build_outcome_index
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+            - name: include_statuses
+              type: Collection[str] | None
+              default: None
+          returns: OutcomeIndex
+          source_scenario: "A manifest directory contains completed, failed, draft, archived, and malformed Outcome records."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "Only completed explicit Outcome records are indexed by default; explicit include_statuses replaces the default set; invalid status filters fail loudly; malformed records fail with source diagnostics; records are sorted deterministically and include manifest lifecycle, task type, completion time, validation evidence, and source fingerprints."
+        - kind: function
+          name: write_outcome_index
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: output_path
+              type: Union[str, Path]
+          returns: None
+          source_scenario: "An Outcome index is written twice from identical source data."
+          actions:
+            - type: api_call
+              subject:
+                function: write_outcome_index
+          expected:
+            behavior: "The JSON index has stable field order, deterministic record ordering, a source-derived generated_from fingerprint, and no wall-clock timestamp or untraceable generated summaries."
+        - kind: function
+          name: read_outcome_index
+          args:
+            - name: index_path
+              type: Union[str, Path]
+          returns: OutcomeIndex
+          source_scenario: "A previously written Outcome index is loaded."
+          actions:
+            - type: api_call
+              subject:
+                function: read_outcome_index
+          expected:
+            behavior: "Valid index data round-trips into typed records and malformed index data fails loudly."
+        - kind: function
+          name: outcome_index_is_stale
+          args:
+            - name: index_path
+              type: Union[str, Path]
+            - name: manifest_dir
+              type: Union[str, Path]
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+          returns: bool
+          source_scenario: "A source manifest changes after the index is written."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "The helper returns true when a source manifest fingerprint differs, an indexed source is missing, or the index manifest_dir/project_root no longer match the checked source tree."
+    - path: maid_runner/cli/commands/learn.py
+      artifacts:
+        - kind: function
+          name: cmd_learn
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid learn --manifest-dir manifests --output .maid/outcomes.json` refreshes the Outcome index."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The handler writes a deterministic index, reports indexed and skipped counts, supports JSON output, uses include-status as an exact replacement filter, and returns nonzero for malformed Outcome or index data."
+    - path: tests/core/test_outcomes.py
+      artifacts:
+        - kind: test_function
+          name: test_build_outcome_index_includes_completed_outcomes_by_default
+          source_scenario: "A fixture manifest directory contains completed and non-completed Outcome statuses."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "The returned index contains only completed records from active lifecycle manifests by default, with traceable manifest paths, task type, declared artifacts, validation evidence, and lifecycle metadata."
+        - kind: test_function
+          name: test_build_outcome_index_excludes_inactive_lifecycle_manifests_by_default
+          source_scenario: "Manifests with completed Outcome status are marked planning, draft, archived, archive, epic, or legacy in lifecycle metadata."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "Inactive lifecycle manifests are excluded from the default learned index even when Outcome status is completed."
+        - kind: test_function
+          name: test_build_outcome_index_include_statuses_replaces_default_filter
+          source_scenario: "A caller requests partial and failed Outcome statuses."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "Only the requested statuses are included; completed records are excluded unless completed was explicitly requested."
+        - kind: test_function
+          name: test_build_outcome_index_rejects_invalid_status_filters
+          source_scenario: "A caller requests typoed or unsupported Outcome statuses."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "The builder fails loudly with the invalid status values instead of returning an empty or partial index."
+        - kind: test_function
+          name: test_outcome_index_round_trips_with_byte_stable_source_fingerprint
+          source_scenario: "An index is written twice from unchanged source manifests."
+          actions:
+            - type: api_call
+              subject:
+                function: write_outcome_index
+          expected:
+            behavior: "Typed records round-trip exactly and identical source data produces identical generated_from and JSON bytes."
+        - kind: test_function
+          name: test_outcome_index_detects_changed_and_missing_sources
+          source_scenario: "An index is written, then a source manifest changes or is removed."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection flips for changed source fingerprints and for indexed source manifests that no longer exist."
+        - kind: test_function
+          name: test_outcome_index_detects_manifest_dir_and_project_root_mismatch
+          source_scenario: "An index written for one manifest directory or project root is checked against another source tree."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection returns true when manifest_dir or project_root differs from the index metadata."
+        - kind: test_function
+          name: test_read_outcome_index_fails_for_malformed_index_data
+          source_scenario: "A previously written index file is malformed or uses the wrong schema version."
+          actions:
+            - type: api_call
+              subject:
+                function: read_outcome_index
+          expected:
+            behavior: "The reader fails loudly with the index path instead of returning partial or placeholder records."
+        - kind: test_function
+          name: test_build_outcome_index_fails_for_malformed_outcome
+          source_scenario: "A manifest contains malformed Outcome data."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "The builder fails loudly with the manifest path instead of emitting a partial index."
+    - path: tests/cli/test_learn_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_learn_parser_and_dispatch_are_registered
+          source_scenario: "A user invokes `maid learn --manifest-dir manifests`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The parser accepts learn options and `main([\"learn\", ...])` dispatch reaches the learn handler."
+        - kind: test_function
+          name: test_cmd_learn_writes_index_and_reports_counts
+          source_scenario: "`cmd_learn` receives parsed arguments for completed Outcome indexing."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command writes the requested index path, reports indexed and skipped counts, and returns zero on success."
+        - kind: test_function
+          name: test_cmd_learn_include_status_replaces_completed_default
+          source_scenario: "`cmd_learn` receives include-status values for failed and partial outcomes."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command indexes only the explicitly requested statuses and reports completed records as skipped."
+        - kind: test_function
+          name: test_cmd_learn_rejects_invalid_include_status
+          source_scenario: "`cmd_learn` receives an unsupported include-status value."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command returns nonzero and prints the invalid status instead of writing an empty or misleading index."
+        - kind: test_function
+          name: test_cmd_learn_returns_nonzero_for_malformed_outcome
+          source_scenario: "A manifest in the requested directory has malformed Outcome data."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command returns nonzero and prints the source manifest path and validation problem."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid learn`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser exposes a learn subcommand with manifest-dir, output, include-status, json, and quiet options."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          source_scenario: "The parsed command is `learn`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The CLI dispatches to `maid_runner.cli.commands.learn.cmd_learn`."
+validate:
+  - uv run python -m pytest -q tests/core/test_outcomes.py tests/cli/test_learn_cmd.py
+  - uv run maid validate manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml --mode schema --quiet

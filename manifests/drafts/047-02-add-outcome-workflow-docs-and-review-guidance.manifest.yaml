@@ -1,0 +1,100 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Document Outcome capture in the MAID workflow"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - documentation
+    - maid-workflow
+    - outcome-records
+  priority: high
+description: |
+  Document how MAID-backed work closes after implementation review: capture an
+  explicit Outcome section on the completed manifest, preserving what was
+  learned without changing the original contract. The guidance must describe
+  Outcome as completion metadata and make clear that behavioral tests,
+  declared artifacts, validation commands, and implementation review remain
+  mandatory.
+
+  This draft depends on the schema draft defining Outcome's structure. It does
+  not enforce Outcome in the runner and does not ask agents to synthesize
+  lessons from unstructured history.
+temptations:
+  - risk: "Do not describe Outcome as a replacement for behavioral tests, manifest scope, or implementation review."
+    instead: "Place Outcome after review in the lifecycle and state that it records completion evidence only."
+  - risk: "Do not document an AI-only workflow."
+    instead: "Describe human-authored and agent-authored Outcome records as explicit manifest data that MAID can validate deterministically."
+  - risk: "Do not bury inclusion rules for failed, partial, superseded, archived, or abandoned outcomes."
+    instead: "Document status meanings and explain that completed outcomes are the default learning source while other statuses require explicit filters in future commands."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/047-01-add-manifest-outcome-schema.manifest.yaml
+    - docs/maid-philosophy-and-vision.md
+    - docs/agent-skills.md
+    - docs/unit-testing-rules.md
+  create:
+    - path: docs/manifest-outcome-records.md
+      artifacts:
+        - kind: attribute
+          name: _manifest_outcome_records_guide
+          of: documentation
+          type: markdown document
+          description: "Canonical guide for Outcome fields, status semantics, authoring timing, and deterministic learning boundaries."
+    - path: tests/test_manifest_outcome_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_outcome_docs_define_post_review_capture_step
+          source_scenario: "The Outcome workflow docs are rendered as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs place Outcome capture after implementation review and before final handoff, and workflow/readme guidance links or points to docs/manifest-outcome-records.md."
+        - kind: test_function
+          name: test_manifest_outcome_docs_preserve_manifest_contract_boundaries
+          source_scenario: "The docs explain how Outcome relates to normal MAID contract fields."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs state that Outcome does not replace behavioral tests, declared artifacts, validation commands, supersession, or implementation review."
+        - kind: test_function
+          name: test_manifest_outcome_docs_define_status_and_non_ai_boundaries
+          source_scenario: "The docs describe status filtering and deterministic learning."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs define completed versus non-completed Outcome statuses and state that MAID stores explicit data without AI inference."
+  edit:
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _outcome_capture_workflow_step
+          of: documentation
+          type: markdown section
+          description: "Workflow guidance that places Outcome capture after implementation review and before final handoff."
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _draft_outcome_promotion_note
+          of: documentation
+          type: markdown section
+          description: "Draft-manifest note explaining that Outcome records are added after completed implementation, not during initial planning."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _agent_skill_outcome_lifecycle_note
+          of: documentation
+          type: markdown section
+          description: "Lifecycle note that implementation-review handoff is followed by explicit Outcome capture when the schema is available."
+validate:
+  - uv run python -m pytest -q tests/test_manifest_outcome_docs.py
+  - uv run maid validate manifests/drafts/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml --mode schema --quiet

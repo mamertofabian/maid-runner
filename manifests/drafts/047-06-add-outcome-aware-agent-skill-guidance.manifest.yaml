@@ -1,0 +1,181 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add Outcome-aware agent skill guidance"
+type: feature
+created: "2026-05-30"
+metadata:
+  status: planning
+  tags:
+    - agent-skills
+    - maid-workflow
+    - outcome-records
+    - documentation
+  priority: medium
+description: |
+  Update MAID agent-skill guidance so planning, implementation, and review can
+  consume explicit Outcome records without making MAID runner depend on an AI
+  agent. Planning should recall related Outcome lessons before drafting new
+  manifests. Implementation should consult relevant Outcome records when
+  choosing tests and code patterns. Review should check whether the completed
+  manifest needs a new or updated Outcome section after the implementation
+  review gate.
+
+  This work updates repo-owned skill sources and generated Claude distribution
+  copies where appropriate. It must keep Outcome as deterministic MAID data,
+  not agent-only memory.
+
+  This child is sequenced after the schema, docs, learn, recall, and insights
+  drafts are promoted. If it is promoted before all deterministic commands are
+  available, the skill text must phrase command use as future-facing and must
+  not instruct agents to run unavailable commands.
+temptations:
+  - risk: "Do not make agent skills the only place where Outcome behavior is specified."
+    instead: "Point skills to the manifest Outcome docs and deterministic `maid learn`, `maid recall`, and `maid insights` commands."
+  - risk: "Do not ask agents to treat recalled Outcome lessons as approval to skip behavioral tests or implementation review."
+    instead: "State that recalled outcomes are planning evidence only and each new manifest still needs its own tests, scope, and review."
+  - risk: "Do not update source skill files while leaving package distribution copies stale."
+    instead: "Update source-of-truth skill files and the generated distribution files or run the sync script as part of validation."
+files:
+  read:
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+    - manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - docs/agent-skills.md
+    - scripts/sync_claude_files.py
+  create:
+    - path: tests/test_claude_skill_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_outcome_guidance_is_synced_to_distributed_claude_skills
+          source_scenario: "Outcome-aware guidance is added to source Claude skills."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The generated package skill copies contain the same Outcome guidance anchors as source skills."
+        - kind: test_function
+          name: test_claude_skill_distribution_matches_source_after_sync
+          source_scenario: "Source Claude skills are synchronized into the package distribution."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Every edited distributed Claude skill matches the source skill content after sync, not only the Outcome anchors."
+        - kind: test_function
+          name: test_outcome_guidance_role_matrix_is_specific
+          source_scenario: "Codex and Claude agent skills mention Outcome recall and capture."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "A per-skill matrix verifies planner recall before drafting, implementer consultation for tests/code patterns, plan-review recalled-evidence checks, implementation-review Outcome capture after verdict, and self-improvement routing for recurring lessons; each role also states that Outcome records do not replace behavioral tests, declared scope, validation, or review."
+        - kind: test_function
+          name: test_outcome_guidance_is_future_facing_until_commands_exist
+          source_scenario: "The skill guidance is promoted before all deterministic Outcome commands are implemented."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guidance either depends on promoted learn/recall/insights commands or clearly says unavailable commands are future-facing."
+  edit:
+    - path: .claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _planner_outcome_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Planning guidance to run deterministic Outcome recall before drafting when an index is available."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_outcome_context_guidance
+          of: skill
+          type: markdown section
+          description: "Implementation guidance to consult related Outcome records as historical evidence without expanding manifest scope."
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementation_review_outcome_capture_check
+          of: skill
+          type: markdown section
+          description: "Review guidance to verify whether completed work needs an Outcome section after the review verdict is ready."
+    - path: .claude/skills/maid-plan-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _plan_review_outcome_evidence_check
+          of: skill
+          type: markdown section
+          description: "Plan-review guidance to check that recalled Outcome lessons informed the draft when relevant and available."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_outcome_context_guidance
+          of: skill
+          type: markdown section
+          description: "Codex implementation guidance to consult related Outcome records as historical evidence without expanding manifest scope."
+    - path: .codex/skills/maid-runner-self-improvement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_self_improvement_outcome_routing_guidance
+          of: skill
+          type: markdown section
+          description: "Codex planning guidance to route recurring Outcome lessons into appropriate future draft queues."
+    - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_draft_implement_outcome_context_guidance
+          of: skill
+          type: markdown section
+          description: "Claude implementation guidance to consult related Outcome records as historical evidence without expanding manifest scope."
+    - path: .claude/skills/maid-runner-self-improvement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_self_improvement_outcome_routing_guidance
+          of: skill
+          type: markdown section
+          description: "Claude planning guidance to route recurring Outcome lessons into appropriate future draft queues."
+    - path: maid_runner/claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_planner_outcome_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Generated package copy of planner Outcome recall guidance."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementer_outcome_context_guidance
+          of: skill
+          type: markdown section
+          description: "Generated package copy of implementer Outcome context guidance."
+    - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementation_review_outcome_capture_check
+          of: skill
+          type: markdown section
+          description: "Generated package copy of implementation-review Outcome capture guidance."
+    - path: maid_runner/claude/skills/maid-plan-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_plan_review_outcome_evidence_check
+          of: skill
+          type: markdown section
+          description: "Generated package copy of plan-review Outcome evidence guidance."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _outcome_aware_skill_lifecycle
+          of: documentation
+          type: markdown section
+          description: "Documentation of how agent skills consume deterministic Outcome recall and capture explicit Outcome records."
+validate:
+  - uv run python -m pytest -q tests/test_claude_skill_distribution.py
+  - uv run maid validate manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode schema --quiet
