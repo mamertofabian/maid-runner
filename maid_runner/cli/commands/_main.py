@@ -23,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_snapshot_system_parser(sub)
     _register_bootstrap_parser(sub)
     _register_learn_parser(sub)
+    _register_recall_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -262,6 +263,23 @@ def _register_learn_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--quiet", action="store_true")
 
 
+def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("recall", help="Search the deterministic Outcome index")
+    p.add_argument("--index", default=".maid/outcomes.json")
+    p.add_argument("--text", default=None)
+    p.add_argument("--tag", action="append", default=None)
+    p.add_argument("--path", action="append", default=None)
+    p.add_argument("--artifact", action="append", default=None)
+    p.add_argument("--validation-command", action="append", default=None)
+    p.add_argument("--review-text", default=None)
+    p.add_argument("--manifest-slug", action="append", default=None)
+    p.add_argument("--manifest-dir", default=None)
+    p.add_argument("--project-root", default=None)
+    p.add_argument("--allow-stale-index", action="store_true")
+    p.add_argument("--limit", type=int, default=10)
+    p.add_argument("--json", action="store_true")
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -425,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
         "learn": "_cmd_learn",
+        "recall": "_cmd_recall",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -451,6 +470,7 @@ def main(argv: list[str] | None = None) -> int:
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
         learn as learn_mod,
+        recall as recall_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -471,6 +491,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
         "_cmd_learn": learn_mod.cmd_learn,
+        "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

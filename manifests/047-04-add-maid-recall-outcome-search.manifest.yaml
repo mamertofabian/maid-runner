@@ -4,7 +4,6 @@ goal: "Add deterministic `maid recall` Outcome search"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
   tags:
     - cli
     - outcome-records
@@ -101,6 +100,10 @@ files:
           name: manifest_slugs
           of: OutcomeRecallQuery
           type: tuple[str, ...]
+        - kind: attribute
+          name: project_root
+          of: OutcomeRecallQuery
+          type: str | None
         - kind: class
           name: OutcomeRecallMatch
           description: "Traceable recall result with deterministic score and match reasons."
@@ -263,6 +266,141 @@ files:
           expected:
             behavior: "The CLI dispatches to `maid_runner.cli.commands.recall.cmd_recall`."
 validate:
-  - uv run python -m pytest -q tests/core/test_outcome_recall.py tests/cli/test_recall_cmd.py
-  - uv run maid validate manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_outcome_recall.py tests/cli/test_recall_cmd.py tests/cli/test_learn_cmd.py
+  - uv run maid validate manifests/047-04-add-maid-recall-outcome-search.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-04-add-maid-recall-outcome-search.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added deterministic Outcome recall and the `maid recall` command."
+  rationale: "Implementation completed after a read-only review loop found and verified fixes for repository-relative path normalization and strict full-text field boundaries."
+  lessons:
+    - lesson_type: path-normalization
+      summary: "Recall path filters need an explicit project root so absolute paths inside the repository normalize to learned repository-relative POSIX paths while out-of-root absolute paths remain non-matching."
+      tags:
+        - recall
+        - paths
+        - cli
+      paths:
+        - maid_runner/core/outcome_recall.py
+        - maid_runner/cli/commands/recall.py
+        - tests/core/test_outcome_recall.py
+    - lesson_type: contract-fidelity
+      summary: "Full-text recall should search only the fields named by the manifest contract; lesson paths and lesson types are useful metadata but must not widen general text eligibility."
+      tags:
+        - outcome-records
+        - search
+        - validation
+      paths:
+        - maid_runner/core/outcome_recall.py
+        - tests/core/test_outcome_recall.py
+    - lesson_type: review-loop
+      summary: "Independent review found edge cases that focused green tests missed, so each accepted recall behavior now has a matching regression test."
+      tags:
+        - implementation-review
+        - regression-tests
+        - maid-workflow
+      paths:
+        - tests/core/test_outcome_recall.py
+        - tests/cli/test_recall_cmd.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "First review found absolute paths under the project root did not normalize to learned repository-relative paths."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Second review found out-of-root absolute paths could falsely match relative-looking paths and full-text search included lesson paths outside the approved field list."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Third review found full-text search included lesson types outside the approved field list."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final read-only re-review reported no findings and returned verdict ready, with residual risk limited to untested Windows drive-letter absolute paths."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_outcome_recall.py
+        - tests/cli/test_recall_cmd.py
+        - tests/cli/test_learn_cmd.py
+      status: passed
+      summary: "Focused Outcome recall, recall CLI, and learned-index CLI coverage passed with 20 tests."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/outcome_recall.py
+        - maid_runner/cli/commands/recall.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_outcome_recall.py
+        - tests/cli/test_recall_cmd.py
+      status: passed
+      summary: "Focused lint checks passed for the new recall implementation and tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+      status: passed
+      summary: "Promoted manifest test runner passed all three declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 202 active manifests, 85 skipped superseded manifests, and no failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 38 commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - learn
+        - --manifest-dir
+        - manifests
+        - --output
+        - /tmp/maid-runner-outcomes-recall-smoke.json
+        - --quiet
+      status: passed
+      summary: "Real manifest-tree Outcome learning run refreshed a temporary index after the completed recall outcome was recorded."
+    - command:
+        - uv
+        - run
+        - maid
+        - recall
+        - --index
+        - /tmp/maid-runner-outcomes-recall-smoke.json
+        - --manifest-slug
+        - 047-04-add-maid-recall-outcome-search
+        - --json
+      status: passed
+      summary: "Recall retrieved the completed 047-04 outcome record from the learned index with a deterministic slug score."
+    - command:
+        - uv
+        - run
+        - maid
+        - recall
+        - --index
+        - /tmp/maid-runner-outcomes-recall-smoke.json
+        - --path
+        - maid_runner/core/outcome_recall.py
+        - --tag
+        - recall
+        - --limit
+        - "3"
+        - --json
+      status: passed
+      summary: "Recall retrieved the completed 047-04 outcome record from path and tag filters with traceable score reasons."
+  completed_at: "2026-05-31T07:25:00+08:00"

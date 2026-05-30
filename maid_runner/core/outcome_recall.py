@@ -1,0 +1,295 @@
+"""Deterministic search over learned Outcome index records."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+import re
+
+from maid_runner.core.outcomes import OutcomeIndex, OutcomeIndexRecord
+
+
+@dataclass(frozen=True)
+class OutcomeRecallQuery:
+    text: str | None = None
+    tags: tuple[str, ...] = ()
+    paths: tuple[str, ...] = ()
+    artifacts: tuple[str, ...] = ()
+    validation_commands: tuple[str, ...] = ()
+    review_text: str | None = None
+    manifest_slugs: tuple[str, ...] = ()
+    project_root: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "tags", tuple(self.tags))
+        object.__setattr__(self, "paths", tuple(self.paths))
+        object.__setattr__(self, "artifacts", tuple(self.artifacts))
+        object.__setattr__(
+            self,
+            "validation_commands",
+            tuple(self.validation_commands),
+        )
+        object.__setattr__(self, "manifest_slugs", tuple(self.manifest_slugs))
+
+
+@dataclass(frozen=True)
+class OutcomeRecallMatch:
+    record: OutcomeIndexRecord
+    score: int
+    reasons: tuple[str, ...]
+
+
+def recall_outcomes(
+    index: OutcomeIndex,
+    query: OutcomeRecallQuery,
+    limit: int = 10,
+) -> list[OutcomeRecallMatch]:
+    normalized = _NormalizedQuery.from_query(query)
+    if normalized.is_empty:
+        raise ValueError("Outcome recall query cannot be empty")
+
+    matches: list[OutcomeRecallMatch] = []
+    for record in index.records:
+        match = _score_record(record, normalized)
+        if match is not None:
+            matches.append(match)
+
+    matches.sort(
+        key=lambda match: (
+            -match.score,
+            match.record.manifest_slug,
+            match.record.manifest_path,
+        )
+    )
+    return matches[: max(0, limit)]
+
+
+@dataclass(frozen=True)
+class _NormalizedQuery:
+    text_tokens: tuple[str, ...]
+    tags: tuple[str, ...]
+    paths: tuple[str, ...]
+    artifacts: tuple[str, ...]
+    validation_commands: tuple[str, ...]
+    review_tokens: tuple[str, ...]
+    manifest_slugs: tuple[str, ...]
+    project_root: str | None
+
+    @classmethod
+    def from_query(cls, query: OutcomeRecallQuery) -> "_NormalizedQuery":
+        return cls(
+            text_tokens=_tokens(query.text),
+            tags=_unique(str(tag).lower() for tag in query.tags if str(tag).strip()),
+            paths=_unique(
+                _normalize_path(path, query.project_root) for path in query.paths
+            ),
+            artifacts=_unique(str(artifact) for artifact in query.artifacts),
+            validation_commands=_unique(
+                str(command)
+                for command in query.validation_commands
+                if str(command).strip()
+            ),
+            review_tokens=_tokens(query.review_text),
+            manifest_slugs=_unique(
+                str(slug) for slug in query.manifest_slugs if str(slug).strip()
+            ),
+            project_root=query.project_root,
+        )
+
+    @property
+    def is_empty(self) -> bool:
+        return not any(
+            (
+                self.text_tokens,
+                self.tags,
+                self.paths,
+                self.artifacts,
+                self.validation_commands,
+                self.review_tokens,
+                self.manifest_slugs,
+            )
+        )
+
+
+def _score_record(
+    record: OutcomeIndexRecord,
+    query: _NormalizedQuery,
+) -> OutcomeRecallMatch | None:
+    reasons: list[str] = []
+    score = 0
+
+    slug_score = _score_exact(
+        query.manifest_slugs,
+        {record.manifest_slug},
+        weight=100,
+        reason_prefix="manifest_slug",
+    )
+    if slug_score is None:
+        return None
+    score += slug_score[0]
+    reasons.extend(slug_score[1])
+
+    path_score = _score_exact(
+        query.paths,
+        {_normalize_path(path, query.project_root) for path in record.declared_paths},
+        weight=80,
+        reason_prefix="path",
+    )
+    if path_score is None:
+        return None
+    score += path_score[0]
+    reasons.extend(path_score[1])
+
+    artifact_score = _score_exact(
+        query.artifacts,
+        set(record.artifacts),
+        weight=60,
+        reason_prefix="artifact",
+    )
+    if artifact_score is None:
+        return None
+    score += artifact_score[0]
+    reasons.extend(artifact_score[1])
+
+    tag_score = _score_exact(
+        query.tags,
+        {tag.lower() for tag in record.tags},
+        weight=40,
+        reason_prefix="tag",
+    )
+    if tag_score is None:
+        return None
+    score += tag_score[0]
+    reasons.extend(tag_score[1])
+
+    command_score = _score_exact(
+        query.validation_commands,
+        {token for command in record.validation_commands for token in command},
+        weight=30,
+        reason_prefix="validation_command",
+    )
+    if command_score is None:
+        return None
+    score += command_score[0]
+    reasons.extend(command_score[1])
+
+    review_score = _score_text(
+        query.review_tokens,
+        _review_note_tokens(record),
+        weight=20,
+        reason_prefix="review_text",
+    )
+    if review_score is None:
+        return None
+    score += review_score[0]
+    reasons.extend(review_score[1])
+
+    text_score = _score_text(
+        query.text_tokens,
+        _full_text_tokens(record),
+        weight=10,
+        reason_prefix="text",
+    )
+    if text_score is None:
+        return None
+    score += text_score[0]
+    reasons.extend(text_score[1])
+
+    return OutcomeRecallMatch(record=record, score=score, reasons=tuple(reasons))
+
+
+def _score_exact(
+    query_values: tuple[str, ...],
+    record_values: set[str],
+    *,
+    weight: int,
+    reason_prefix: str,
+) -> tuple[int, list[str]] | None:
+    if not query_values:
+        return 0, []
+
+    matched = [value for value in query_values if value in record_values]
+    if not matched:
+        return None
+    return (
+        len(matched) * weight,
+        [f"{reason_prefix}:{value} (+{weight})" for value in matched],
+    )
+
+
+def _score_text(
+    query_tokens: tuple[str, ...],
+    record_tokens: set[str],
+    *,
+    weight: int,
+    reason_prefix: str,
+) -> tuple[int, list[str]] | None:
+    if not query_tokens:
+        return 0, []
+
+    matched = [token for token in query_tokens if token in record_tokens]
+    if not matched:
+        return None
+    return (
+        len(matched) * weight,
+        [f"{reason_prefix}:{token} (+{weight})" for token in matched],
+    )
+
+
+def _review_note_tokens(record: OutcomeIndexRecord) -> set[str]:
+    return {
+        token
+        for note in record.review_notes
+        for token in _tokens(" ".join((note.source, note.severity, note.summary)))
+    }
+
+
+def _full_text_tokens(record: OutcomeIndexRecord) -> set[str]:
+    chunks: list[str] = [
+        record.manifest_slug,
+        *record.declared_paths,
+        *record.artifacts,
+    ]
+    chunks.extend(summary.summary for summary in record.validation_evidence)
+    for lesson in record.lessons:
+        chunks.append(lesson.summary)
+        chunks.extend(lesson.tags)
+    for note in record.review_notes:
+        chunks.extend((note.source, note.severity, note.summary))
+
+    return {token for chunk in chunks for token in _tokens(chunk)}
+
+
+def _tokens(text: str | None) -> tuple[str, ...]:
+    if not text:
+        return ()
+    return _unique(token.lower() for token in re.split(r"[^A-Za-z0-9]+", text) if token)
+
+
+def _normalize_path(path: str, project_root: str | None = None) -> str:
+    raw_path = Path(str(path).replace("\\", "/"))
+    if raw_path.is_absolute() and project_root is not None:
+        try:
+            raw_path = raw_path.resolve().relative_to(Path(project_root).resolve())
+        except ValueError:
+            return raw_path.resolve().as_posix()
+    normalized = raw_path.as_posix()
+    parts: list[str] = []
+    for part in normalized.split("/"):
+        if part in {"", "."}:
+            continue
+        if part == ".." and parts:
+            parts.pop()
+            continue
+        parts.append(part)
+    return "/".join(parts)
+
+
+def _unique(values) -> tuple[str, ...]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            result.append(value)
+    return tuple(result)
