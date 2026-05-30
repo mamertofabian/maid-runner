@@ -4,7 +4,6 @@ goal: "Add deterministic `maid learn` Outcome indexing"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
   tags:
     - cli
     - outcome-records
@@ -45,6 +44,9 @@ files:
   read:
     - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
     - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
+    - manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - maid_runner/core/chain.py
     - maid_runner/core/manifest.py
     - maid_runner/core/types.py
@@ -131,6 +133,10 @@ files:
           name: generated_from
           of: OutcomeIndex
           type: str
+        - kind: attribute
+          name: included_statuses
+          of: OutcomeIndex
+          type: tuple[str, ...]
         - kind: attribute
           name: manifest_dir
           of: OutcomeIndex
@@ -244,6 +250,15 @@ files:
           expected:
             behavior: "Inactive lifecycle manifests are excluded from the default learned index even when Outcome status is completed."
         - kind: test_function
+          name: test_build_outcome_index_skips_inactive_manifest_directories_by_default
+          source_scenario: "A manifest directory contains inactive draft and v1 archive subdirectories."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "Inactive child manifest directories are skipped by default instead of breaking the active learned index."
+        - kind: test_function
           name: test_build_outcome_index_include_statuses_replaces_default_filter
           source_scenario: "A caller requests partial and failed Outcome statuses."
           actions:
@@ -252,6 +267,15 @@ files:
                 function: build_outcome_index
           expected:
             behavior: "Only the requested statuses are included; completed records are excluded unless completed was explicitly requested."
+        - kind: test_function
+          name: test_build_outcome_index_records_chain_supersession_metadata
+          source_scenario: "A completed Outcome manifest is superseded by a later manifest in the same chain."
+          actions:
+            - type: api_call
+              subject:
+                function: build_outcome_index
+          expected:
+            behavior: "The index records chain supersession metadata through superseded_by instead of losing the relationship."
         - kind: test_function
           name: test_build_outcome_index_rejects_invalid_status_filters
           source_scenario: "A caller requests typoed or unsupported Outcome statuses."
@@ -280,6 +304,42 @@ files:
           expected:
             behavior: "Staleness detection flips for changed source fingerprints and for indexed source manifests that no longer exist."
         - kind: test_function
+          name: test_outcome_index_staleness_preserves_index_status_filter
+          source_scenario: "An index is written with an explicit non-completed status filter."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection checks the same status set represented by the existing index rather than defaulting back to completed records."
+        - kind: test_function
+          name: test_outcome_index_staleness_preserves_zero_record_status_filter
+          source_scenario: "An index is written with an explicit status filter that currently matches no records."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection preserves the stored status filter even when the index has zero records."
+        - kind: test_function
+          name: test_outcome_index_staleness_detects_new_status_from_original_filter
+          source_scenario: "An index is written with multiple explicit statuses and one status initially has no matching records."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection reports stale when a new source appears for a status that belonged to the original filter."
+        - kind: test_function
+          name: test_outcome_index_staleness_detects_excluded_supersession_metadata_change
+          source_scenario: "A non-indexed manifest later supersedes an indexed Outcome source."
+          actions:
+            - type: api_call
+              subject:
+                function: outcome_index_is_stale
+          expected:
+            behavior: "Staleness detection reports stale when derived supersession metadata changes even if indexed source fingerprints do not."
+        - kind: test_function
           name: test_outcome_index_detects_manifest_dir_and_project_root_mismatch
           source_scenario: "An index written for one manifest directory or project root is checked against another source tree."
           actions:
@@ -297,6 +357,15 @@ files:
                 function: read_outcome_index
           expected:
             behavior: "The reader fails loudly with the index path instead of returning partial or placeholder records."
+        - kind: test_function
+          name: test_read_outcome_index_fails_for_unsupported_record_status
+          source_scenario: "A previously written index contains an unsupported Outcome status."
+          actions:
+            - type: api_call
+              subject:
+                function: read_outcome_index
+          expected:
+            behavior: "The reader fails loudly instead of accepting semantically malformed status data."
         - kind: test_function
           name: test_build_outcome_index_fails_for_malformed_outcome
           source_scenario: "A manifest contains malformed Outcome data."
@@ -348,6 +417,24 @@ files:
           expected:
             behavior: "The command returns nonzero and prints the invalid status instead of writing an empty or misleading index."
         - kind: test_function
+          name: test_cmd_learn_returns_nonzero_for_missing_manifest_dir
+          source_scenario: "`cmd_learn` receives a manifest directory path that does not exist."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command returns nonzero and does not write an empty index for a missing manifest directory."
+        - kind: test_function
+          name: test_cmd_learn_returns_nonzero_for_malformed_existing_index
+          source_scenario: "`cmd_learn` is asked to refresh an output path that already contains malformed index data."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_learn
+          expected:
+            behavior: "The command returns nonzero rather than silently replacing malformed existing index data."
+        - kind: test_function
           name: test_cmd_learn_returns_nonzero_for_malformed_outcome
           source_scenario: "A manifest in the requested directory has malformed Outcome data."
           actions:
@@ -385,6 +472,95 @@ files:
           expected:
             behavior: "The CLI dispatches to `maid_runner.cli.commands.learn.cmd_learn`."
 validate:
-  - uv run python -m pytest -q tests/core/test_outcomes.py tests/cli/test_learn_cmd.py
-  - uv run maid validate manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_outcomes.py tests/cli/test_learn_cmd.py tests/cli/test_chain_cmd.py
+  - uv run maid validate manifests/047-03-add-maid-learn-outcome-index.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-03-add-maid-learn-outcome-index.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added deterministic Outcome indexing and the `maid learn` command."
+  rationale: "Implementation completed after multiple read-only review loops found and verified fixes for inactive manifest discovery, missing manifest directories, supersession metadata, malformed index data, and staleness checks for custom status filters."
+  lessons:
+    - lesson_type: validation
+      summary: "Outcome indexes need to preserve the exact status filter used to generate them; rebuilding staleness from only indexed record statuses loses empty or initially absent statuses."
+      tags:
+        - outcome-records
+        - staleness
+        - index
+      paths:
+        - maid_runner/core/outcomes.py
+        - tests/core/test_outcomes.py
+    - lesson_type: chain-semantics
+      summary: "Derived chain metadata such as superseded_by must affect index freshness even when the superseding manifest is not itself indexed."
+      tags:
+        - supersession
+        - manifest-chain
+        - learning
+      paths:
+        - maid_runner/core/outcomes.py
+        - tests/core/test_outcomes.py
+    - lesson_type: command-integrity
+      summary: "A real `maid learn --manifest-dir manifests` run is necessary because inactive archive directories can expose failures missed by narrow fixtures."
+      tags:
+        - cli
+        - dogfooding
+        - validation
+      paths:
+        - maid_runner/cli/commands/learn.py
+        - tests/cli/test_learn_cmd.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial reviews found inactive archive recursion, empty indexes for missing manifest directories, undeclared downstream reference edits, supersession metadata loss, stale custom-filter handling, and malformed index acceptance."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final read-only re-review reported no findings and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_outcomes.py
+        - tests/cli/test_learn_cmd.py
+        - tests/cli/test_chain_cmd.py
+      status: passed
+      summary: "Focused Outcome indexing, learn command, and declared read-test coverage passed with 48 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - learn
+        - --manifest-dir
+        - manifests
+        - --output
+        - /tmp/maid-runner-outcomes-review.json
+        - --quiet
+      status: passed
+      summary: "Real manifest-tree Outcome learning run passed after refreshing a temporary output index."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 201 active manifests and no failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 36 commands."
+  completed_at: "2026-05-31T06:53:15+08:00"

@@ -22,6 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_snapshot_parser(sub)
     _register_snapshot_system_parser(sub)
     _register_bootstrap_parser(sub)
+    _register_learn_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -246,6 +247,21 @@ def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--verbose", action="store_true")
 
 
+def _register_learn_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("learn", help="Refresh the deterministic Outcome index")
+    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument("--output", default=".maid/outcomes.json")
+    p.add_argument(
+        "--include-status",
+        action="append",
+        default=None,
+        dest="include_status",
+        help="Outcome status to index; replaces the completed-only default",
+    )
+    p.add_argument("--json", action="store_true")
+    p.add_argument("--quiet", action="store_true")
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -408,6 +424,7 @@ def main(argv: list[str] | None = None) -> int:
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
+        "learn": "_cmd_learn",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -433,6 +450,7 @@ def main(argv: list[str] | None = None) -> int:
         verify as verify_mod,
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
+        learn as learn_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -452,6 +470,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
+        "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

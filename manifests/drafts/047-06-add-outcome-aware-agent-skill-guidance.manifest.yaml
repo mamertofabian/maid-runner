@@ -39,7 +39,7 @@ files:
   read:
     - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
     - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
-    - manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
     - manifests/drafts/047-04-add-maid-recall-outcome-search.manifest.yaml
     - manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
     - docs/agent-skills.md

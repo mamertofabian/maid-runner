@@ -36,7 +36,7 @@ temptations:
 files:
   read:
     - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
-    - manifests/drafts/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
     - maid_runner/core/outcomes.py
     - maid_runner/cli/commands/recall.py
     - tests/core/test_outcomes.py
