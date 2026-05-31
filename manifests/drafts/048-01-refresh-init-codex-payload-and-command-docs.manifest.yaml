@@ -1,0 +1,256 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Refresh maid init Codex payload support and current command documentation"
+type: feature
+created: "2026-05-31"
+metadata:
+  status: planning
+  tags:
+    - init
+    - codex
+    - agent-skills
+    - documentation
+    - packaging
+  priority: medium
+description: |
+  Update the `maid init` integration layer so MAID Runner can distribute the
+  current repo-owned Codex skills as a first-class init payload, while keeping
+  the existing Claude payload behavior intact. The implementation should add an
+  explicit `maid init --tool codex` path that installs `.codex/skills`, any
+  skill-local agent metadata, a manifest for stale-file pruning, and a marked
+  MAID section in `AGENTS.md`.
+
+  Refresh package sync and build metadata so generated payload copies under
+  `maid_runner/` match the source `.claude/` and `.codex/` directories. The
+  sync flow should remain deterministic, prune generated payloads that are no
+  longer manifest-declared, and keep custom user files in target repositories.
+
+  Update stale references in README, roadmap, and agent-skill documentation so
+  they reflect the current CLI commands registered by `build_parser`, including
+  `learn`, `recall`, `insights`, `test --jobs`, and `verify --test-jobs`, and
+  the current Claude and Codex skill distributions.
+temptations:
+  - risk: "Do not make `maid init --tool codex` copy live source directories directly from the development checkout."
+    instead: "Package a generated `maid_runner/codex/` resource payload and install from importlib resources, matching the Claude payload pattern."
+  - risk: "Do not leave generated package payloads or package-data globs stale after adding Codex skills."
+    instead: "Update the sync script, build target, clean target, and pyproject package-data entries together, then verify generated files match the source manifests."
+  - risk: "Do not rewrite user-owned `AGENTS.md`, `.codex/skills`, or custom agent metadata wholesale during force installs."
+    instead: "Replace only the marked MAID section and prune only paths previously declared by the installed MAID Codex manifest."
+  - risk: "Do not update command docs from memory."
+    instead: "Derive the documented command list and key options from the current `build_parser` registrations and assert representative parser behavior in tests."
+files:
+  read:
+    - manifests/snapshot-cli-commands-init.manifest.yaml
+    - manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - .claude/manifest.json
+    - .codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
+    - .codex/skills/maid-runner-draft-implement/SKILL.md
+    - .codex/skills/maid-runner-performance-optimization/SKILL.md
+    - .codex/skills/maid-runner-self-improvement/SKILL.md
+    - .codex/skills/maid-validate-hardening/SKILL.md
+    - maid_runner/claude/manifest.json
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/init.py
+    - scripts/sync_claude_files.py
+    - tests/cli/test_init_cmd.py
+  create:
+    - path: maid_runner/codex/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _codex_payload_manifest
+          of: codex_payload
+          type: json object
+          description: "Generated package manifest listing distributable Codex skills and skill-local agent metadata for stale-file pruning."
+    - path: maid_runner/codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_cleanup_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the Codex cleanup/refactor planning skill."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the Codex draft implementation wrapper skill."
+    - path: maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_performance_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the Codex performance optimization planning skill."
+    - path: maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_self_improvement_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the Codex self-improvement planning skill."
+    - path: maid_runner/codex/skills/maid-validate-hardening/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_validate_hardening_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the Codex validation hardening planning skill."
+    - path: tests/test_agent_payload_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_codex_payload_manifest_matches_source_skills
+          source_scenario: "The package Codex payload is synchronized from `.codex/skills`."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The generated Codex manifest lists every source Codex skill and the package payload contains byte-for-byte matching skill files plus declared agent metadata."
+        - kind: test_function
+          name: test_agent_payload_package_data_includes_claude_and_codex_assets
+          source_scenario: "The distribution package is built from pyproject package-data globs."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Package-data includes Claude and Codex manifests, skill files, and skill-local agent metadata required by init installs."
+        - kind: test_function
+          name: test_command_docs_match_registered_parser_commands
+          source_scenario: "README and roadmap list the current CLI command surface."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The documented command lists include all public commands registered by `build_parser`, including learn, recall, insights, and current test/verify job options."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid init --tool codex` or inspects init help."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The init parser accepts an explicit `codex` tool choice while preserving existing claude, cursor, windsurf, generic, and auto choices."
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "A user initializes a repository with `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_init
+          expected:
+            behavior: "The command creates MAID config files, installs manifest-declared Codex payload files under `.codex/`, updates only the marked MAID section of `AGENTS.md`, reports dry-run changes without writing files, and prunes stale prior MAID Codex payload paths without deleting user custom files."
+    - path: tests/cli/test_init_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_init_codex_creates_repo_level_maid_assets
+          source_scenario: "A repository runs `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The command installs `.codex/manifest.json`, the current Codex skill directories, skill-local agent metadata, and a marked MAID section in `AGENTS.md` without creating Claude files."
+        - kind: test_function
+          name: test_init_codex_dry_run_reports_assets_without_creating_them
+          source_scenario: "A repository runs `maid init --tool codex --dry-run`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "Dry-run output names representative Codex payload files and `AGENTS.md`, while leaving `.codex`, `AGENTS.md`, manifests, and `.maidrc.yaml` absent."
+        - kind: test_function
+          name: test_init_codex_force_replaces_only_marked_agents_section_and_prunes_stale_payload
+          source_scenario: "A repository with previous MAID Codex payload files and custom user files runs `maid init --tool codex --force`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The MAID section is replaced, stale manifest-declared Codex files are removed, current payload files are installed, and custom Codex skills or agent files remain."
+        - kind: test_function
+          name: test_init_non_codex_tool_does_not_create_codex_assets
+          source_scenario: "A repository runs `maid init --tool generic`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "Generic initialization does not create `.codex` or `AGENTS.md`."
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: main
+          args: []
+          returns: None
+          source_scenario: "Maintainers sync agent payloads before building a package."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The sync command copies manifest-declared Claude and Codex payload files into package resources, removes stale generated payload directories, and reports both payload families deterministically."
+    - path: Makefile
+      artifacts:
+        - kind: attribute
+          name: _agent_payload_sync_targets
+          of: makefile
+          type: make targets
+          description: "Build and clean targets sync and remove both Claude and Codex package payload directories, while preserving a compatibility alias for the old sync target if retained."
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: _maid_runner_package_data_agent_payloads
+          of: pyproject
+          type: TOML package-data entry
+          description: "Package data includes generated Claude and Codex manifests, skill files, and skill-local agent metadata."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _current_init_and_cli_reference
+          of: documentation
+          type: markdown section
+          description: "README init, multi-tool support, CLI reference, and workflow examples reflect Codex init support and current parser commands/options."
+    - path: docs/ROADMAP.md
+      artifacts:
+        - kind: attribute
+          name: _current_cli_command_inventory
+          of: documentation
+          type: markdown section
+          description: "Roadmap current state lists the CLI commands and validation surfaces currently registered by the parser."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _current_claude_and_codex_skill_distribution
+          of: documentation
+          type: markdown section
+          description: "Agent-skill documentation replaces stale four-skill and Claude-only language with current Claude and Codex distributions plus sync instructions."
+    - path: docs/plans/maid-runner-cleanup-refactor-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _current_cleanup_skill_reference
+          of: documentation
+          type: markdown section
+          description: "Cleanup backlog references the current Codex and Claude cleanup skill locations instead of a stale Claude-only path."
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py
+  - uv run maid validate manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode schema --quiet
