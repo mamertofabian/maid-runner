@@ -4,7 +4,7 @@ goal: "Add deterministic `maid insights` Outcome aggregation"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
+  status: active
   tags:
     - cli
     - outcome-records
@@ -244,6 +244,141 @@ files:
           expected:
             behavior: "The CLI dispatches to `maid_runner.cli.commands.insights.cmd_insights`."
 validate:
-  - uv run python -m pytest -q tests/core/test_outcome_insights.py tests/cli/test_insights_cmd.py
-  - uv run maid validate manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_outcome_insights.py tests/cli/test_insights_cmd.py tests/core/test_outcomes.py
+  - uv run maid validate manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added deterministic Outcome insights aggregation and the `maid insights` command."
+  rationale: "Implementation completed after a read-only review loop confirmed the scoped 047-05 files were ready. An initial review discussion was resolved by excluding an unrelated untracked 048 draft from this handoff."
+  lessons:
+    - lesson_type: command-integrity
+      summary: "Outcome insight reports should stay deterministic aggregate data with source manifest lists, not generated narrative lessons or inferred guidance."
+      tags:
+        - insights
+        - outcome-records
+        - traceability
+      paths:
+        - maid_runner/core/outcome_insights.py
+        - maid_runner/cli/commands/insights.py
+        - tests/core/test_outcome_insights.py
+    - lesson_type: validation
+      summary: "Promoted manifests that read existing behavioral test files need their focused pytest command to include that read-test coverage or `maid test --manifest` will reject the command set."
+      tags:
+        - maid-test
+        - manifest-contract
+        - behavioral-validation
+      paths:
+        - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+        - tests/core/test_outcomes.py
+    - lesson_type: review-loop
+      summary: "Implementation review should distinguish unrelated untracked workspace files from the manifest handoff scope, then re-review the clarified packet before marking ready."
+      tags:
+        - implementation-review
+        - scope-control
+        - maid-workflow
+      paths:
+        - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "First review found no 047-05 implementation issues but returned needs-discussion because an unrelated untracked 048 draft was present outside the review packet."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Re-review excluded the unrelated 048 draft, reported no findings, and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_outcome_insights.py
+        - tests/cli/test_insights_cmd.py
+        - tests/core/test_outcomes.py
+      status: passed
+      summary: "Focused Outcome insights, insights CLI, and declared read-test coverage passed with 24 tests."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/outcome_insights.py
+        - maid_runner/cli/commands/insights.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_outcome_insights.py
+        - tests/cli/test_insights_cmd.py
+      status: passed
+      summary: "Focused lint checks passed for the insights implementation, CLI registration, and tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+      status: passed
+      summary: "Promoted manifest test runner passed all three declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 203 active manifests, 85 skipped superseded manifests, and no failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 40 commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - learn
+        - --manifest-dir
+        - manifests
+        - --output
+        - /tmp/maid-runner-outcomes-insights-smoke.json
+        - --quiet
+      status: passed
+      summary: "Real manifest-tree Outcome learning refreshed a temporary index after the completed insights outcome was recorded."
+    - command:
+        - uv
+        - run
+        - maid
+        - recall
+        - --index
+        - /tmp/maid-runner-outcomes-insights-smoke.json
+        - --manifest-slug
+        - 047-05-add-maid-insights-outcome-aggregation
+        - --json
+      status: passed
+      summary: "Recall retrieved the completed 047-05 outcome record from the learned index with a deterministic slug score."
+    - command:
+        - uv
+        - run
+        - maid
+        - insights
+        - --index
+        - /tmp/maid-runner-outcomes-insights-smoke.json
+        - --limit
+        - "5"
+        - --json
+      status: passed
+      summary: "Insights aggregated five completed Outcome records, including 047-05 tag, path, artifact, change-type, validation-status, review-severity, lesson-type, and completion-month groups."
+  completed_at: "2026-05-31T07:47:38+08:00"

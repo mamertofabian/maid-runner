@@ -24,6 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_bootstrap_parser(sub)
     _register_learn_parser(sub)
     _register_recall_parser(sub)
+    _register_insights_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -280,6 +281,16 @@ def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--json", action="store_true")
 
 
+def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("insights", help="Aggregate deterministic Outcome insights")
+    p.add_argument("--index", default=".maid/outcomes.json")
+    p.add_argument("--manifest-dir", default=None)
+    p.add_argument("--project-root", default=None)
+    p.add_argument("--allow-stale-index", action="store_true")
+    p.add_argument("--limit", type=int, default=10)
+    p.add_argument("--json", action="store_true")
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -444,6 +455,7 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap": "_cmd_bootstrap",
         "learn": "_cmd_learn",
         "recall": "_cmd_recall",
+        "insights": "_cmd_insights",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -471,6 +483,7 @@ def main(argv: list[str] | None = None) -> int:
         bootstrap as bootstrap_mod,
         learn as learn_mod,
         recall as recall_mod,
+        insights as insights_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -492,6 +505,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
         "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_recall": recall_mod.cmd_recall,
+        "_cmd_insights": insights_mod.cmd_insights,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,
