@@ -133,16 +133,18 @@ def _clear_existing_socket(socket_path: Path) -> None:
 def _acquire_pidfile(pidfile_path: Path) -> bool:
     """Atomically claim the pidfile. Return True on success, False if another live daemon owns it."""
     for _ in range(2):
+        claim_path = pidfile_path.with_name(
+            f".{pidfile_path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
+        )
         try:
-            fd = os.open(
-                str(pidfile_path),
-                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                0o644,
-            )
-        except FileExistsError:
-            if not check_stale_pidfile(pidfile_path):
-                return False
-            continue
+            claim_path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            return False
+
+        try:
+            fd = os.open(str(claim_path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
         except OSError:
             return False
 
@@ -150,6 +152,28 @@ def _acquire_pidfile(pidfile_path: Path) -> bool:
             os.write(fd, str(os.getpid()).encode("ascii"))
         finally:
             os.close(fd)
+
+        try:
+            os.link(str(claim_path), str(pidfile_path))
+        except FileExistsError:
+            try:
+                claim_path.unlink()
+            except OSError:
+                pass
+            if not check_stale_pidfile(pidfile_path):
+                return False
+            continue
+        except OSError:
+            try:
+                claim_path.unlink()
+            except OSError:
+                pass
+            return False
+
+        try:
+            claim_path.unlink()
+        except OSError:
+            pass
         return True
     return False
 

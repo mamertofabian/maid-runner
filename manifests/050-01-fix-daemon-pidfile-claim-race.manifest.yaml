@@ -1,0 +1,111 @@
+schema: "2"
+goal: "Fix daemon pidfile concurrent claim race"
+type: fix
+created: "2026-05-31"
+metadata:
+  tags:
+    - daemon
+    - release
+    - concurrency
+  priority: high
+description: |
+  Close the release-blocking race where `_acquire_pidfile()` creates the
+  pidfile before writing the owner PID. A concurrent claimant can observe the
+  temporary empty file, treat it as malformed stale state, unlink it, and also
+  report success. The daemon must make pidfile claims with content already
+  written before the public pidfile path becomes visible, so exactly one
+  claimant can succeed even under same-process thread contention.
+
+  Rationale: the GitHub release workflow for v2.15.0 failed in the full test
+  matrix because the existing concurrent pidfile test observed two successful
+  claimants. The fix should preserve stale pidfile replacement while removing
+  the transient empty-file window.
+temptations:
+  - risk: "Do not weaken or skip the concurrent pidfile test to unblock publishing."
+    instead: "Add deterministic coverage for the empty-pidfile window and fix the claim algorithm."
+  - risk: "Do not make malformed historical pidfiles permanently block daemon startup."
+    instead: "Preserve stale pidfile replacement for existing files while avoiding malformed transient claims during acquisition."
+files:
+  edit:
+    - path: maid_runner/daemon/server.py
+      artifacts:
+        - kind: function
+          name: _acquire_pidfile
+          args:
+            - name: pidfile_path
+              type: Path
+          returns: bool
+          description: "Atomically claim the pidfile with the owner PID written before the public pidfile path is visible."
+    - path: tests/daemon/test_server.py
+      artifacts:
+        - kind: test_function
+          name: test_pidfile_contenders_do_not_remove_claim_before_pid_is_written
+          source_scenario: "One daemon claimant has created its claim file but has not finished writing the PID while a second claimant starts."
+          actions:
+            - type: api_call
+              subject:
+                function: _acquire_pidfile
+          expected:
+            behavior: "Only one claimant returns True, the losing claimant leaves the winning pidfile intact, and the final pidfile contains the current process PID."
+  read:
+    - manifests/036-01-maid-serve-validator-daemon.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/daemon/test_server.py
+outcome:
+  status: completed
+  summary: "Fixed a release-blocking daemon pidfile claim race by making the public pidfile appear only after the owner PID has been written."
+  rationale: "The v2.15.0 tag workflow failed before publishing because concurrent pidfile claimants could observe and remove a transient empty pidfile. The fix writes into a same-directory temporary claim file and atomically links it into place, preserving stale pidfile replacement while closing the empty-file window."
+  completed_at: "2026-05-31T13:30:00+08:00"
+  lessons:
+    - lesson_type: concurrency-hardening
+      summary: "Atomic file creation is not enough when contenders inspect file contents before the creating process has written them; publish the fully written claim atomically instead."
+      tags:
+        - daemon
+        - pidfile
+        - release
+      paths:
+        - maid_runner/daemon/server.py
+        - tests/daemon/test_server.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Independent review found no findings; residual risk is limited to filesystems without hard-link support and cross-process stress not separately exercised."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/daemon/test_server.py
+        - -k
+        - pidfile_contenders
+      status: failed
+      summary: "Red phase failed on the old implementation with two successful pidfile claimants."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/050-01-fix-daemon-pidfile-claim-race.manifest.yaml
+      status: passed
+      summary: "Manifest-scoped MAID test passed the daemon server behavioral test file."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2269 passed and 5 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test gate passed all 46 commands."

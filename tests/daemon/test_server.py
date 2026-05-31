@@ -412,6 +412,51 @@ class TestAtomicPidfile:
         assert pidfile.exists()
         assert pidfile.read_text().strip() == str(os.getpid())
 
+    def test_pidfile_contenders_do_not_remove_claim_before_pid_is_written(
+        self, tmp_path, monkeypatch
+    ):
+        from maid_runner.daemon import server as daemon_server
+
+        pidfile = tmp_path / "claim-before-write.pid"
+        original_write = daemon_server.os.write
+        first_write_started = threading.Event()
+        release_first_write = threading.Event()
+        blocked_first_write = False
+
+        def slow_first_write(fd, data):
+            nonlocal blocked_first_write
+            if not blocked_first_write:
+                blocked_first_write = True
+                first_write_started.set()
+                assert release_first_write.wait(timeout=2.0)
+            return original_write(fd, data)
+
+        monkeypatch.setattr(daemon_server.os, "write", slow_first_write)
+
+        results: list[bool] = []
+        lock = threading.Lock()
+
+        def claim():
+            ok = daemon_server._acquire_pidfile(pidfile)
+            with lock:
+                results.append(ok)
+
+        first = threading.Thread(target=claim)
+        first.start()
+        assert first_write_started.wait(timeout=2.0)
+
+        second = threading.Thread(target=claim)
+        second.start()
+        second.join(timeout=2.0)
+
+        release_first_write.set()
+        first.join(timeout=2.0)
+
+        assert results.count(True) == 1
+        assert results.count(False) == len(results) - 1
+        assert pidfile.exists()
+        assert pidfile.read_text().strip() == str(os.getpid())
+
     def test_acquire_pidfile_replaces_stale_pidfile(self, tmp_path):
         from maid_runner.daemon.server import _acquire_pidfile
 
