@@ -1,11 +1,10 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan manifest Outcome records and deterministic MAID learning commands"
+goal: "Archive consumed manifest Outcome learning epic"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
+  status: archived
   tags:
     - maid-workflow
     - manifest-schema
@@ -13,113 +12,44 @@ metadata:
     - learning
     - recall
     - insights
-  priority: high
+    - archive
+  priority: low
 description: |
-  Add a post-implementation Outcome step to the MAID methodology so completed
-  manifests preserve the lessons that future planning should remember.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as:
 
-  The design choice agreed for this epic is `outcome`, not `retrospective`,
-  `lessons`, or `rationale_notes`, because the section describes the completed
-  state of the contract and can contain multiple completion facts: status,
-  summary, rationale, lessons, review notes, and validation evidence.
+  - `047-01-add-manifest-outcome-schema`
+  - `047-02-add-outcome-workflow-docs-and-review-guidance`
+  - `047-03-add-maid-learn-outcome-index`
+  - `047-04-add-maid-recall-outcome-search`
+  - `047-05-add-maid-insights-outcome-aggregation`
+  - `047-06-add-outcome-aware-agent-skill-guidance`
 
-  This epic preserves MAID runner's non-AI contract. MAID should not infer
-  wisdom from manifests or depend on an AI service. A human or AI agent may
-  author the Outcome section after implementation review, but MAID validates,
-  stores, indexes, recalls, and aggregates only explicit structured data from
-  completed manifests.
+  The promoted children added optional strict Outcome records, documented the
+  post-review Outcome workflow, implemented deterministic `maid learn`,
+  `maid recall`, and `maid insights` commands, and updated Claude and Codex
+  skill guidance to consume Outcome records without making MAID runner depend
+  on an AI agent.
 
-  The planned feature treats a MAID manifest as both a living planning document
-  and a verifiable contract, then adds a completion-memory layer beside that
-  contract. The original planning fields remain authoritative for scope,
-  artifacts, and validation. Outcome metadata must be append-only completion
-  evidence; it must not weaken, override, or supersede the behavioral contract.
-
-  Future commands should be defined in deterministic terms:
-
-  1. `maid learn` extracts and validates explicit Outcome records from
-     completed manifests, then writes or refreshes a local deterministic index.
-  2. `maid recall` retrieves prior Outcome lessons by manifest id, tags,
-     paths, artifacts, validation commands, review notes, and text search.
-  3. `maid insights` aggregates explicit Outcome records to show recurring bug
-     patterns, useful test patterns, fragile modules, review findings, and
-     completion trends.
-
-  Planned child order:
-
-  1. `047-01-add-manifest-outcome-schema` - add an optional top-level
-     `outcome` property with strict structure and schema tests. The initial
-     schema should support a deterministic status enum, summary, rationale,
-     lessons, review notes, and validation command evidence without allowing
-     arbitrary contract-changing fields. The status model should make the
-     indexable completed state explicit and leave failed, partial, superseded,
-     archived, or abandoned outcomes either excluded by default or included only
-     under a documented filter.
-  2. `047-02-add-outcome-workflow-docs-and-review-guidance` - document that
-     MAID-backed implementation sessions close with implementation review
-     followed by an Outcome capture step. The guidance should explain that
-     Outcome is completion metadata and is not a replacement for behavioral
-     tests, manifest scope, or review.
-  3. `047-03-add-maid-learn-outcome-index` - implement the smallest
-     deterministic indexing slice for explicit Outcome records. The first child
-     should define the index storage format, source manifest identity, refresh
-     behavior, stale-index detection, malformed-data failures, and inclusion
-     rules for completed versus non-completed outcomes. If that scope cannot fit
-     one implementation-sized draft, split storage/refresh from CLI reporting
-     before promotion.
-  4. `047-04-add-maid-recall-outcome-search` - implement deterministic recall
-     over the learned index using exact and ranked signals such as paths, tags,
-     artifacts, validation commands, manifest metadata, review notes, and
-     full-text matching. Ranking must be stable and explainable, with explicit
-     tie-breakers and no semantic-search, embedding, or AI-summary dependency.
-  5. `047-05-add-maid-insights-outcome-aggregation` - implement deterministic
-     aggregations over learned Outcome records for modules, tags, change types,
-     lesson types, review findings, and validation evidence. Aggregations must
-     report traceable source manifests and define how duplicate records,
-     supersession chains, archived drafts, and stale indexes are excluded or
-     counted.
-  6. `047-06-add-outcome-aware-agent-skill-guidance` - add Codex and Claude
-     skill/workflow guidance that closes the loop: planning should recall
-     related Outcome lessons before drafting new manifests, implementation
-     should consult related Outcome records when choosing test and code
-     patterns, and review should check whether the completed manifest needs a
-     new or updated Outcome section. This child should be documentation/skill
-     work saved in the repo or skill distribution path used by this project; it
-     should not make MAID runner depend on any AI agent.
-
-  The first child should make Outcome valid but optional so existing manifests
-  do not break. A later child may add done-gate or review-loop enforcement for
-  newly completed manifests once the schema, docs, and command behavior are
-  stable. Existing and future manifest planning guidance should also reference
-  related Outcome records when available, but only as planning evidence; related
-  outcomes must never replace a manifest's own behavioral tests, declared
-  artifacts, validation commands, or implementation review.
-temptations:
-  - risk: "Do not add AI inference, embeddings, remote services, hidden summarization, or agent-skill-only semantics to MAID runner."
-    instead: "Require explicit Outcome fields and deterministic MAID commands first; make Codex/Claude skill guidance consume those validated commands and records."
-  - risk: "Do not let Outcome fields rewrite, weaken, or supersede the original manifest contract."
-    instead: "Keep scope, artifacts, tests, and validation authoritative in the existing planning fields; treat Outcome as append-only completion metadata."
-  - risk: "Do not make Outcome required for every historical manifest in the first schema change."
-    instead: "Introduce Outcome as optional, then add scoped workflow enforcement only for newly completed work after command and documentation support exists."
-  - risk: "Do not ship recall or insights as vague prose generation."
-    instead: "Return traceable records and aggregations with manifest paths, tags, lesson types, source fields, stable tie-breakers, and explicit de-duplication policy so future agents can synthesize judgment explicitly."
-  - risk: "Do not bury the agreed naming decision under aliases."
-    instead: "Use `outcome` as the manifest property and reserve `lessons` for structured entries inside `outcome`."
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future Outcome workflow enforcement
+  should start from a fresh scoped manifest after the schema, commands, docs,
+  and skill guidance added by the 047 children.
 files:
-  create:
+  edit:
     - path: manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
       artifacts:
         - kind: attribute
-          name: _manifest_outcome_learning_roadmap
+          name: _archived_manifest_outcome_learning_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for manifest Outcome records and deterministic MAID learning, recall, and insights commands."
+          description: "Historical pointer for promoted child manifests 047-01 through 047-06."
   read:
-    - maid_runner/schemas/manifest.v2.schema.json
-    - maid_runner/core/manifest.py
-    - maid_runner/core/chain.py
-    - maid_runner/cli/commands/_main.py
-    - docs/draft-manifest-workflow.md
-    - manifests/drafts/README.md
+    - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
+    - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+    - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml --mode schema --quiet
