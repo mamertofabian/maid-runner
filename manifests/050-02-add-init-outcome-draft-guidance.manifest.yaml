@@ -1,0 +1,141 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Teach maid init guidance to require draft promotion and Outcome capture"
+type: feature
+created: "2026-05-31"
+metadata:
+  tags:
+    - init
+    - codex
+    - claude
+    - outcome-records
+    - draft-manifests
+  priority: medium
+description: |
+  Update the generated MAID guidance inserted by `maid init --tool claude` and
+  `maid init --tool codex` so new MAID-enabled repositories inherit the current
+  workflow rule: draft manifests are planning inventory that must be promoted
+  one implementation-sized manifest at a time, and every MAID-backed session
+  must capture an Outcome record in the promoted active manifest after
+  implementation validation and implementation review, before final handoff.
+
+  This is intentionally limited to the generated `CLAUDE.md` and `AGENTS.md`
+  MAID sections. It does not change the installed skill payload files, the
+  manifest Outcome schema, or unrelated CLI command registration.
+temptations:
+  - risk: "Do not update only the already-edited downstream repositories and leave future `maid init` output stale."
+    instead: "Change the `maid init` section renderers and cover both Claude and Codex generated guidance with CLI tests."
+  - risk: "Do not imply Outcome replaces tests, artifacts, validation commands, supersession, or implementation review."
+    instead: "Keep Outcome described as post-review completion metadata with concrete validation and review evidence."
+  - risk: "Do not broaden this task into skill payload rewrites or unrelated command documentation while benchmark work is already dirty in the tree."
+    instead: "Limit edits to `maid_runner/cli/commands/init.py`, the focused init tests, and this manifest."
+files:
+  read:
+    - manifests/snapshot-cli-commands-init.manifest.yaml
+    - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+    - docs/draft-manifest-workflow.md
+    - docs/manifest-outcome-records.md
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "A user initializes a repository with `maid init --tool claude` or `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_init
+          expected:
+            behavior: "The generated MAID section in `CLAUDE.md` or `AGENTS.md` explains that draft manifests under `manifests/drafts/` must be promoted before implementation and that Outcome capture is required after implementation validation and review before final handoff."
+    - path: tests/cli/test_init_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_init_claude_creates_repo_level_maid_assets
+          source_scenario: "A repository runs `maid init --tool claude`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The generated `CLAUDE.md` MAID section contains draft promotion guidance, required Outcome capture timing, evidence boundaries, and references to draft/outcome docs."
+        - kind: test_function
+          name: test_init_codex_creates_repo_level_maid_assets
+          source_scenario: "A repository runs `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The generated `AGENTS.md` MAID section contains draft promotion guidance, required Outcome capture timing, evidence boundaries, and references to draft/outcome docs."
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_cmd.py
+  - uv run maid validate manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Updated `maid init` generated Claude and Codex guidance to require draft promotion and post-review Outcome capture."
+  rationale: "Fresh MAID-enabled repositories now inherit the same workflow rule documented in downstream repos: drafts are planning inventory until promoted, and reviewed MAID work needs explicit Outcome evidence before handoff."
+  lessons:
+    - lesson_type: testing
+      summary: "Generated guidance tests should assert the exact promotion action and evidence-citation wording, not only broad topic mentions."
+      tags:
+        - init
+        - outcome-records
+        - draft-manifests
+      paths:
+        - tests/cli/test_init_cmd.py
+    - lesson_type: workflow
+      summary: "When a repository-wide `maid test` pass already ran, a post-review test-only assertion fix can be closed with focused reruns plus an explicit residual-risk note."
+      tags:
+        - review-loop
+        - validation
+      paths:
+        - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+  review_notes:
+    - source: "implementation-review-subagent"
+      severity: warning
+      summary: "Initial review found the generated-guidance tests did not explicitly assert the promotion action, matching draft deletion boundary, or concrete validation/review evidence wording."
+    - source: "implementation-review-subagent"
+      severity: info
+      summary: "Re-review reported no findings and returned verdict ready after the assertions were strengthened."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_init_cmd.py
+      status: passed
+      summary: "All init command tests passed after updating generated guidance and strengthening assertions."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+      status: passed
+      summary: "The manifest's three validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed before the final assertion-only review fix."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed before the final assertion-only review fix."
+  completed_at: "2026-05-31T20:45:00+08:00"

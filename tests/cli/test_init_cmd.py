@@ -91,6 +91,15 @@ class TestCmdInit:
         assert MAID_SECTION_END in claude_md
         assert "maid-planner" in claude_md
         assert "maid-implementation-review" in claude_md
+        assert "Draft manifests under `manifests/drafts/`" in claude_md
+        assert "Promote one implementation-sized draft into `manifests/`" in claude_md
+        assert "remove only the matching draft path" in claude_md
+        assert "capture an Outcome record" in claude_md
+        assert "after implementation validation and implementation review" in claude_md
+        assert "concrete validation evidence and review notes" in claude_md
+        assert "does not replace behavioral tests" in claude_md
+        assert "docs/draft-manifest-workflow.md" in claude_md
+        assert "docs/manifest-outcome-records.md" in claude_md
         assert "Available MAID slash commands" not in claude_md
 
     def test_init_claude_dry_run_reports_assets_without_creating_them(
@@ -215,6 +224,15 @@ class TestCmdInit:
         assert MAID_SECTION_END in agents_md
         assert "maid-runner-draft-implement" in agents_md
         assert "maid-validate-hardening" in agents_md
+        assert "Draft manifests under `manifests/drafts/`" in agents_md
+        assert "Promote one implementation-sized draft into `manifests/`" in agents_md
+        assert "remove only the matching draft path" in agents_md
+        assert "capture an Outcome record" in agents_md
+        assert "after implementation validation and implementation review" in agents_md
+        assert "concrete validation evidence and review notes" in agents_md
+        assert "does not replace behavioral tests" in agents_md
+        assert "docs/draft-manifest-workflow.md" in agents_md
+        assert "docs/manifest-outcome-records.md" in agents_md
 
     def test_init_codex_dry_run_reports_assets_without_creating_them(
         self, tmp_path, capsys, monkeypatch

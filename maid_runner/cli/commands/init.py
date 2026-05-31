@@ -202,7 +202,8 @@ def _render_claude_md_section(manifest: dict) -> str:
         "For new features, bug fixes, and refactors, plan with "
         "`maid-planner`, review with `maid-plan-review`, implement with "
         "`maid-implementer`, and review the result with "
-        "`maid-implementation-review` before handoff."
+        "`maid-implementation-review` before handoff.\n\n"
+        f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
     )
@@ -225,7 +226,25 @@ def _render_agents_md_section(manifest: dict) -> str:
         "For maid-runner work, plan or audit with the specialized "
         "`maid-runner-*` skills, implement approved drafts with "
         "`maid-runner-draft-implement`, and keep validation-hardening work "
-        "inside `maid-validate-hardening`."
+        "inside `maid-validate-hardening`.\n\n"
+        f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
+    )
+
+
+def _render_draft_outcome_guidance() -> str:
+    return (
+        "Draft manifests under `manifests/drafts/` are planning inventory, not "
+        "active contracts. Promote one implementation-sized draft into "
+        "`manifests/`, implement and review the promoted manifest, then remove "
+        "only the matching draft path.\n\n"
+        "Always capture an Outcome record after implementation validation and "
+        "implementation review, before final handoff. Outcome capture is "
+        "required for completed, partial, failed, superseded, archived, or "
+        "abandoned MAID work. The Outcome must cite "
+        "concrete validation evidence and review notes; it does not replace "
+        "behavioral tests, declared artifacts, validation commands, or "
+        "implementation review. See `docs/draft-manifest-workflow.md` and "
+        "`docs/manifest-outcome-records.md`."
     )
