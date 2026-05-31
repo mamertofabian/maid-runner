@@ -25,8 +25,9 @@ Cleanup and refactor work must satisfy these invariants:
 - private helpers (`_` prefix) can be renamed, split, or removed without an
   evolver plan provided behavior is preserved.
 
-See `.claude/skills/maid-runner-cleanup-and-refactor/SKILL.md` for the full
-workflow.
+See `.codex/skills/maid-runner-cleanup-and-refactor/SKILL.md` for the Codex
+workflow and `.claude/skills/maid-runner-cleanup-and-refactor/SKILL.md` for
+the Claude copy.
 
 ## Cost Surface
 

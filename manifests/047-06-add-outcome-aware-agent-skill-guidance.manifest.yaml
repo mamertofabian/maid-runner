@@ -42,7 +42,7 @@ files:
     - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
     - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
     - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
-    - manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+    - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
     - docs/agent-skills.md
     - scripts/sync_claude_files.py
   create:
@@ -258,7 +258,7 @@ outcome:
         - scope-control
       paths:
         - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
-        - manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+        - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
     - lesson_type: agent-skills
       summary: "Repo-local Codex skill copies and installed user-level Codex skills can diverge; update both when the active Codex session behavior depends on the user-level skill tree."
       tags:

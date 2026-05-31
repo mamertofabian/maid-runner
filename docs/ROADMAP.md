@@ -48,6 +48,9 @@ Current CLI commands:
 - `maid snapshot`
 - `maid snapshot-system`
 - `maid bootstrap`
+- `maid learn`
+- `maid recall`
+- `maid insights`
 - `maid manifest create`
 - `maid manifests`
 - `maid files`
@@ -60,6 +63,12 @@ Current CLI commands:
 - `maid chain replay`
 - `maid audit supersessions`
 - `maid serve`
+
+Current command options include explicit parallel test-stage controls:
+`maid test --jobs N` for independent implementation command groups and
+`maid verify --test-jobs N` for the verify test stage. `maid init --tool`
+currently accepts `claude`, `codex`, `cursor`, `windsurf`, `generic`, and
+`auto`.
 
 ## Active Workstreams
 

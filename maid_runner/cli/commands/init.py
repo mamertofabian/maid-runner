@@ -12,13 +12,19 @@ from pathlib import Path
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
 _MAID_SECTION_END = "<!-- END MAID RUNNER -->"
-_CLAUDE_MANIFEST_SECTIONS = ("agents", "commands", "skills")
+_PAYLOAD_PATH_PREFIXES = {
+    "agents": "agents",
+    "commands": "commands",
+    "skills": "skills",
+    "skill_agents": "skills",
+}
 
 
 def cmd_init(args: argparse.Namespace) -> int:
     manifest_dir = Path("manifests")
     config_file = Path(".maidrc.yaml")
     install_claude = args.tool in {"auto", "claude"}
+    install_codex = args.tool == "codex"
 
     if not args.force:
         if manifest_dir.exists() and config_file.exists():
@@ -32,7 +38,9 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Would create: {manifest_dir}/")
         print(f"Would create: {config_file}")
         if install_claude:
-            _print_claude_dry_run()
+            _print_agent_dry_run("claude", ".claude", "CLAUDE.md")
+        if install_codex:
+            _print_agent_dry_run("codex", ".codex", "AGENTS.md")
         return 0
 
     manifest_dir.mkdir(exist_ok=True)
@@ -47,7 +55,9 @@ def cmd_init(args: argparse.Namespace) -> int:
     config_file.write_text(config_content)
 
     if install_claude:
-        _install_claude_payload(Path.cwd())
+        _install_agent_payload(Path.cwd(), "claude", ".claude", "CLAUDE.md")
+    if install_codex:
+        _install_agent_payload(Path.cwd(), "codex", ".codex", "AGENTS.md")
 
     print(f"Initialized MAID in {Path.cwd()}")
     print(f"  Created: {manifest_dir}/")
@@ -55,20 +65,23 @@ def cmd_init(args: argparse.Namespace) -> int:
     if install_claude:
         print("  Updated: .claude/")
         print("  Updated: CLAUDE.md")
+    if install_codex:
+        print("  Updated: .codex/")
+        print("  Updated: AGENTS.md")
     return 0
 
 
-def _claude_payload_root():
-    return resources.files("maid_runner").joinpath("claude")
+def _agent_payload_root(tool: str):
+    return resources.files("maid_runner").joinpath(tool)
 
 
-def _claude_manifest() -> dict:
-    manifest = _claude_payload_root().joinpath("manifest.json")
+def _agent_manifest(tool: str) -> dict:
+    manifest = _agent_payload_root(tool).joinpath("manifest.json")
     return json.loads(manifest.read_text())
 
 
-def _payload_files():
-    root = _claude_payload_root()
+def _payload_files(tool: str):
+    root = _agent_payload_root(tool)
     for child in root.iterdir():
         if child.is_file():
             yield child, Path(child.name)
@@ -86,29 +99,35 @@ def _walk_resource_files(root, prefix: Path):
             yield from _walk_resource_files(child, child_path)
 
 
-def _print_claude_dry_run() -> None:
-    for _, relative_path in _payload_files():
-        print(f"Would create: .claude/{relative_path.as_posix()}")
-    print("Would update: CLAUDE.md")
+def _print_agent_dry_run(tool: str, target_dir: str, guidance_file: str) -> None:
+    for _, relative_path in _payload_files(tool):
+        print(f"Would create: {target_dir}/{relative_path.as_posix()}")
+    print(f"Would update: {guidance_file}")
 
 
-def _install_claude_payload(project_root: Path) -> None:
-    claude_dir = project_root / ".claude"
-    payload_files = list(_payload_files())
-    manifest = _claude_manifest()
-    _prune_claude_payload(
-        claude_dir, _read_existing_claude_manifest(claude_dir), manifest
+def _install_agent_payload(
+    project_root: Path, tool: str, target_dir_name: str, guidance_file_name: str
+) -> None:
+    target_dir = project_root / target_dir_name
+    payload_files = list(_payload_files(tool))
+    manifest = _agent_manifest(tool)
+    _prune_agent_payload(
+        target_dir, _read_existing_agent_manifest(target_dir), manifest
     )
     for source_file, relative_path in payload_files:
-        destination = claude_dir / relative_path
+        destination = target_dir / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(source_file.read_bytes())
 
-    _update_claude_md(project_root / "CLAUDE.md", manifest)
+    if tool == "claude":
+        section = _render_claude_md_section(manifest)
+    else:
+        section = _render_agents_md_section(manifest)
+    _update_marked_guidance(project_root / guidance_file_name, section)
 
 
-def _read_existing_claude_manifest(claude_dir: Path) -> dict:
-    manifest_path = claude_dir / "manifest.json"
+def _read_existing_agent_manifest(target_dir: Path) -> dict:
+    manifest_path = target_dir / "manifest.json"
     if not manifest_path.exists():
         return {}
     try:
@@ -117,43 +136,42 @@ def _read_existing_claude_manifest(claude_dir: Path) -> dict:
         return {}
 
 
-def _prune_claude_payload(
-    claude_dir: Path, previous_manifest: dict, current_manifest: dict
+def _prune_agent_payload(
+    target_dir: Path, previous_manifest: dict, current_manifest: dict
 ) -> None:
-    if not claude_dir.exists():
+    if not target_dir.exists():
         return
 
     stale_paths = _manifest_payload_paths(previous_manifest) - _manifest_payload_paths(
         current_manifest
     )
     for relative_path in sorted(stale_paths, reverse=True):
-        path = claude_dir / relative_path
+        path = target_dir / relative_path
         if path.is_dir():
             shutil.rmtree(path)
-            _prune_empty_claude_parents(path.parent, claude_dir)
+            _prune_empty_agent_parents(path.parent, target_dir)
         elif path.exists():
             path.unlink()
-            _prune_empty_claude_parents(path.parent, claude_dir)
+            _prune_empty_agent_parents(path.parent, target_dir)
 
 
 def _manifest_payload_paths(manifest: dict) -> set[str]:
     paths: set[str] = set()
-    for section in _CLAUDE_MANIFEST_SECTIONS:
+    for section, prefix in _PAYLOAD_PATH_PREFIXES.items():
         for name in manifest.get(section, {}).get("distributable", []):
-            paths.add(f"{section}/{name}")
+            paths.add(f"{prefix}/{name}")
     return paths
 
 
-def _prune_empty_claude_parents(path: Path, claude_dir: Path) -> None:
-    while path != claude_dir and path.parent != path:
+def _prune_empty_agent_parents(path: Path, target_dir: Path) -> None:
+    while path != target_dir and path.parent != path:
         if not path.exists() or any(path.iterdir()):
             return
         path.rmdir()
         path = path.parent
 
 
-def _update_claude_md(path: Path, manifest: dict) -> None:
-    section = _render_claude_md_section(manifest)
+def _update_marked_guidance(path: Path, section: str) -> None:
     if not path.exists():
         path.write_text(section)
         return
@@ -185,6 +203,29 @@ def _render_claude_md_section(manifest: dict) -> str:
         "`maid-planner`, review with `maid-plan-review`, implement with "
         "`maid-implementer`, and review the result with "
         "`maid-implementation-review` before handoff."
+        f"{agent_text}\n"
+        f"{_MAID_SECTION_END}\n"
+    )
+
+
+def _render_agents_md_section(manifest: dict) -> str:
+    skills = ", ".join(f"`{name}`" for name in manifest["skills"]["distributable"])
+    agent_count = len(manifest.get("skill_agents", {}).get("distributable", []))
+    agent_text = (
+        f"\n\nInstalled Codex skill-local agent metadata files: {agent_count}."
+        if agent_count
+        else ""
+    )
+    return (
+        f"{_MAID_SECTION_START}\n"
+        "## MAID Runner\n\n"
+        "### MAID Codex Skills Workflow\n"
+        "Use the installed MAID Codex skills for repository-specific "
+        f"manifest-driven development: {skills}.\n\n"
+        "For maid-runner work, plan or audit with the specialized "
+        "`maid-runner-*` skills, implement approved drafts with "
+        "`maid-runner-draft-implement`, and keep validation-hardening work "
+        "inside `maid-validate-hardening`."
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
     )

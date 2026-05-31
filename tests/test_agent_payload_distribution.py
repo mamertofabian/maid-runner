@@ -1,0 +1,104 @@
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
+    import tomli as tomllib
+
+from maid_runner.cli.commands._main import build_parser
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+CODEX_DISTRIBUTABLE_SKILLS = [
+    "maid-runner-cleanup-and-refactor",
+    "maid-runner-draft-implement",
+    "maid-runner-performance-optimization",
+    "maid-runner-self-improvement",
+    "maid-validate-hardening",
+]
+
+
+def _read(relative_path: str, root: Path = PROJECT_ROOT) -> str:
+    return (root / relative_path).read_text()
+
+
+def _sync_distribution(tmp_path: Path) -> Path:
+    workspace = tmp_path / "workspace"
+    shutil.copytree(PROJECT_ROOT / ".claude", workspace / ".claude")
+    shutil.copytree(PROJECT_ROOT / ".codex", workspace / ".codex")
+    scripts_dir = workspace / "scripts"
+    scripts_dir.mkdir()
+    shutil.copy2(PROJECT_ROOT / "scripts/sync_claude_files.py", scripts_dir)
+
+    subprocess.run(
+        [sys.executable, "scripts/sync_claude_files.py"],
+        cwd=workspace,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return workspace
+
+
+def _top_level_commands(parser: argparse.ArgumentParser) -> list[str]:
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return sorted(action.choices)
+    raise AssertionError("parser has no subcommands")
+
+
+def test_codex_payload_manifest_matches_source_skills(tmp_path: Path):
+    from scripts.sync_claude_files import main as sync_main
+
+    assert callable(sync_main)
+    synced_workspace = _sync_distribution(tmp_path)
+    manifest = json.loads(
+        _read("maid_runner/codex/manifest.json", root=synced_workspace)
+    )
+
+    assert manifest["skills"]["distributable"] == CODEX_DISTRIBUTABLE_SKILLS
+
+    for skill_name in CODEX_DISTRIBUTABLE_SKILLS:
+        source_skill = f".codex/skills/{skill_name}/SKILL.md"
+        distributed_skill = f"maid_runner/codex/skills/{skill_name}/SKILL.md"
+        assert _read(distributed_skill, root=synced_workspace) == _read(source_skill)
+
+    for relative_agent in manifest["skill_agents"]["distributable"]:
+        source_agent = f".codex/skills/{relative_agent}"
+        distributed_agent = f"maid_runner/codex/skills/{relative_agent}"
+        assert _read(distributed_agent, root=synced_workspace) == _read(source_agent)
+
+
+def test_agent_payload_package_data_includes_claude_and_codex_assets():
+    pyproject = tomllib.loads(_read("pyproject.toml"))
+    package_data = pyproject["tool"]["setuptools"]["package-data"]["maid_runner"]
+
+    for pattern in (
+        "claude/manifest.json",
+        "claude/agents/*.md",
+        "claude/skills/*/SKILL.md",
+        "codex/manifest.json",
+        "codex/skills/*/SKILL.md",
+        "codex/skills/*/agents/*.yaml",
+    ):
+        assert pattern in package_data
+
+
+def test_command_docs_match_registered_parser_commands():
+    commands = _top_level_commands(build_parser())
+    docs_text = _read("README.md") + "\n" + _read("docs/ROADMAP.md")
+
+    for command in commands:
+        assert f"`maid {command}" in docs_text
+
+    assert "`maid learn`" in docs_text
+    assert "`maid recall`" in docs_text
+    assert "`maid insights`" in docs_text
+    assert "`maid test`" in docs_text and "`--jobs" in docs_text
+    assert "`maid verify`" in docs_text and "`--test-jobs" in docs_text
+    assert "codex" in docs_text.lower()

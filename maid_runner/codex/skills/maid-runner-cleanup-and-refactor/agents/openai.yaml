@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Runner Cleanup and Refactor"
+  short_description: "Plan safe maid-runner cleanup drafts"
+  default_prompt: "Use $maid-runner-cleanup-and-refactor to audit maid-runner for confirmed cleanup and refactor targets, save the findings, create a split-before-promote draft-manifest queue, self-review the plans, and run schema validation."

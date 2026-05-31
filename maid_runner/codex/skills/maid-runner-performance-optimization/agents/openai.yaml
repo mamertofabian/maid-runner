@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Runner Performance Optimization"
+  short_description: "Plan maid-runner performance draft queues"
+  default_prompt: "Use $maid-runner-performance-optimization to profile maid validate, maid test, and maid verify, capture confirmed performance findings, create a split-before-promote draft-manifest queue, self-review the plans, and run schema validation."

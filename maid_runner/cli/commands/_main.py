@@ -357,7 +357,7 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--tool",
         default="auto",
-        choices=["claude", "cursor", "windsurf", "generic", "auto"],
+        choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
     )
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--force", action="store_true")

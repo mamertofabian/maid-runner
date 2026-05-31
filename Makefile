@@ -1,7 +1,7 @@
 # MAID Runner Development Makefile
 # Convenience commands for development workflow
 
-.PHONY: help test validate watch dev install-dev sync-claude build clean dead-code
+.PHONY: help test validate watch dev install-dev sync-agent-payloads sync-claude build clean dead-code
 
 help:
 	@echo "MAID Runner Development Commands:"
@@ -15,8 +15,9 @@ help:
 	@echo "  make lint-fix      - Run linting and fix issues"
 	@echo "  make format        - Run formatting"
 	@echo "  make dead-code     - Detect unused/dead code with vulture"
-	@echo "  make sync-claude   - Sync Claude Code files for package distribution"
-	@echo "  make build         - Build package (includes sync-claude)"
+	@echo "  make sync-agent-payloads - Sync Claude and Codex files for package distribution"
+	@echo "  make sync-claude   - Compatibility alias for sync-agent-payloads"
+	@echo "  make build         - Build package (includes sync-agent-payloads)"
 	@echo "  make clean         - Clean generated files"
 
 # Run all tests
@@ -116,18 +117,20 @@ dead-code:
 	@echo "💡 Note: Review results carefully for false positives"
 	@echo "   Add legitimate exceptions to .vulture whitelist file"
 
-# Sync Claude Code integration files for package distribution
-sync-claude:
-	@echo "Syncing Claude Code integration files..."
+# Sync agent integration files for package distribution
+sync-agent-payloads:
+	@echo "Syncing Claude and Codex integration files..."
 	@uv run python scripts/sync_claude_files.py
 
+sync-claude: sync-agent-payloads
+
 # Build package (includes sync)
-build: sync-claude
+build: sync-agent-payloads
 	@echo "Building package..."
 	@uv run python -m build
 
 # Clean generated files
 clean:
 	@echo "Cleaning generated files..."
-	@rm -rf maid_runner/claude/ dist/ build/ *.egg-info
+	@rm -rf maid_runner/claude/ maid_runner/codex/ dist/ build/ *.egg-info
 	@echo "✓ Clean complete"

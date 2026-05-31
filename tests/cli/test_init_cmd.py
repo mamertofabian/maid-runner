@@ -185,3 +185,120 @@ class TestCmdInit:
         assert (tmp_path / ".maidrc.yaml").is_file()
         assert not (tmp_path / ".claude").exists()
         assert not (tmp_path / "CLAUDE.md").exists()
+
+    def test_init_codex_creates_repo_level_maid_assets(self, tmp_path, monkeypatch):
+        from maid_runner.cli.commands._main import main
+
+        monkeypatch.chdir(tmp_path)
+        exit_code = main(["init", "--tool", "codex"])
+
+        assert exit_code == 0
+        assert (tmp_path / "manifests").is_dir()
+        assert (tmp_path / ".maidrc.yaml").is_file()
+        assert (tmp_path / ".codex" / "manifest.json").is_file()
+        assert (
+            tmp_path / ".codex" / "skills" / "maid-runner-draft-implement" / "SKILL.md"
+        ).is_file()
+        assert (
+            tmp_path
+            / ".codex"
+            / "skills"
+            / "maid-runner-cleanup-and-refactor"
+            / "agents"
+            / "openai.yaml"
+        ).is_file()
+        assert not (tmp_path / ".claude").exists()
+        assert not (tmp_path / "CLAUDE.md").exists()
+
+        agents_md = (tmp_path / "AGENTS.md").read_text()
+        assert MAID_SECTION_START in agents_md
+        assert MAID_SECTION_END in agents_md
+        assert "maid-runner-draft-implement" in agents_md
+        assert "maid-validate-hardening" in agents_md
+
+    def test_init_codex_dry_run_reports_assets_without_creating_them(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        from maid_runner.cli.commands._main import main
+
+        monkeypatch.chdir(tmp_path)
+        exit_code = main(["init", "--tool", "codex", "--dry-run"])
+
+        assert exit_code == 0
+        assert not (tmp_path / "manifests").exists()
+        assert not (tmp_path / ".maidrc.yaml").exists()
+        assert not (tmp_path / ".codex").exists()
+        assert not (tmp_path / "AGENTS.md").exists()
+        captured = capsys.readouterr()
+        assert (
+            "Would create: .codex/skills/maid-runner-draft-implement/SKILL.md"
+            in captured.out
+        )
+        assert (
+            "Would create: .codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml"
+            in captured.out
+        )
+        assert "Would update: AGENTS.md" in captured.out
+
+    def test_init_codex_force_replaces_only_marked_agents_section_and_prunes_stale_payload(
+        self, tmp_path, monkeypatch
+    ):
+        from maid_runner.cli.commands._main import main
+
+        monkeypatch.chdir(tmp_path)
+        Path("AGENTS.md").write_text(
+            "Project heading\n\n"
+            f"{MAID_SECTION_START}\n"
+            "stale MAID instructions\n"
+            f"{MAID_SECTION_END}\n\n"
+            "Project footer\n"
+        )
+        main(["init", "--tool", "codex"])
+        Path(".codex/manifest.json").write_text(
+            """
+{
+  "skills": {"distributable": ["old-skill"]},
+  "skill_agents": {"distributable": ["old-skill/agents/openai.yaml"]}
+}
+""".strip()
+        )
+        Path(".codex/skills/old-skill/agents").mkdir(parents=True)
+        Path(".codex/skills/old-skill/SKILL.md").write_text("stale skill\n")
+        Path(".codex/skills/old-skill/agents/openai.yaml").write_text(
+            "stale agent metadata\n"
+        )
+        Path(".codex/skills/custom-skill/agents").mkdir(parents=True)
+        Path(".codex/skills/custom-skill/SKILL.md").write_text("custom skill\n")
+        Path(".codex/skills/custom-skill/agents/openai.yaml").write_text(
+            "custom agent metadata\n"
+        )
+
+        exit_code = main(["init", "--tool", "codex", "--force"])
+
+        assert exit_code == 0
+        agents_md = Path("AGENTS.md").read_text()
+        assert "Project heading" in agents_md
+        assert "Project footer" in agents_md
+        assert "stale MAID instructions" not in agents_md
+        assert agents_md.count(MAID_SECTION_START) == 1
+        assert agents_md.count(MAID_SECTION_END) == 1
+        assert "maid-runner-self-improvement" in agents_md
+        installed_skills = sorted(path.name for path in Path(".codex/skills").iterdir())
+        assert "old-skill" not in installed_skills
+        assert "custom-skill" in installed_skills
+        assert "maid-runner-draft-implement" in installed_skills
+        assert Path(".codex/skills/custom-skill/agents/openai.yaml").is_file()
+
+    def test_init_non_codex_tool_does_not_create_codex_assets(
+        self, tmp_path, monkeypatch
+    ):
+        from maid_runner.cli.commands._main import main
+
+        monkeypatch.chdir(tmp_path)
+        exit_code = main(["init", "--tool", "generic"])
+
+        assert exit_code == 0
+        assert (tmp_path / "manifests").is_dir()
+        assert (tmp_path / ".maidrc.yaml").is_file()
+        assert not (tmp_path / ".codex").exists()
+        assert not (tmp_path / "AGENTS.md").exists()

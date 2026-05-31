@@ -66,6 +66,7 @@ pip install maid-runner[watch]       # File watching for TDD mode
 
 ```bash
 maid init                        # Claude Code (default)
+maid init --tool codex           # Codex repo skills
 maid init --tool cursor          # Cursor IDE
 maid init --tool windsurf        # Windsurf IDE
 maid init --tool generic         # Generic MAID.md
@@ -79,22 +80,33 @@ for the MAID-only Claude skills, implementation-review agent, and marked
 current MAID workflow skills for planning, plan review, implementation,
 implementation review, evolution, auditing, and incident logging.
 
+### Repo-Level Codex Install
+
+Use `maid init --tool codex` inside repositories that should receive the
+repo-owned Codex MAID skills. It installs `.codex/manifest.json`, the
+distributed `.codex/skills` payload, skill-local agent metadata, and a marked
+MAID Runner section in `AGENTS.md`.
+
 ## CLI Reference
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--watch`, `--watch-all` |
-| `maid test` | Run validation commands from manifests | `--manifest <path>`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--json` |
-| `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--force` |
+| `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
+| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json` |
+| `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
+| `maid bootstrap [directory]` | Bootstrap manifests for an existing project | `--output-dir`, `--exclude`, `--include-private`, `--dry-run`, `--json` |
+| `maid learn` | Refresh the deterministic Outcome index | `--manifest-dir`, `--output`, `--include-status`, `--json`, `--quiet` |
+| `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
+| `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
 | `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
 | `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
 | `maid schema` | Display manifest JSON Schema | |
 | `maid audit supersessions` | Audit supersession artifact preservation | `--manifest-dir`, `--seal`, `--unseal`, `--lock`, `--json`, `--quiet` |
-| `maid init` | Initialize MAID in project | `--tool claude\|cursor\|windsurf\|generic\|auto` |
+| `maid init` | Initialize MAID in project | `--tool claude\|codex\|cursor\|windsurf\|generic\|auto` |
 | `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |

@@ -4,7 +4,7 @@ goal: "Refresh maid init Codex payload support and current command documentation
 type: feature
 created: "2026-05-31"
 metadata:
-  status: planning
+  status: completed
   tags:
     - init
     - codex
@@ -68,6 +68,13 @@ files:
           of: codex_payload
           type: markdown document
           description: "Generated package copy of the Codex cleanup/refactor planning skill."
+    - path: maid_runner/codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_cleanup_agent_metadata
+          of: codex_payload
+          type: yaml document
+          description: "Generated package copy of the Codex cleanup/refactor skill-local OpenAI agent metadata."
     - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
       artifacts:
         - kind: attribute
@@ -82,6 +89,13 @@ files:
           of: codex_payload
           type: markdown document
           description: "Generated package copy of the Codex performance optimization planning skill."
+    - path: maid_runner/codex/skills/maid-runner-performance-optimization/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_performance_agent_metadata
+          of: codex_payload
+          type: yaml document
+          description: "Generated package copy of the Codex performance optimization skill-local OpenAI agent metadata."
     - path: maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md
       artifacts:
         - kind: attribute
@@ -89,6 +103,13 @@ files:
           of: codex_payload
           type: markdown document
           description: "Generated package copy of the Codex self-improvement planning skill."
+    - path: maid_runner/codex/skills/maid-runner-self-improvement/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_self_improvement_agent_metadata
+          of: codex_payload
+          type: yaml document
+          description: "Generated package copy of the Codex self-improvement skill-local OpenAI agent metadata."
     - path: maid_runner/codex/skills/maid-validate-hardening/SKILL.md
       artifacts:
         - kind: attribute
@@ -96,6 +117,13 @@ files:
           of: codex_payload
           type: markdown document
           description: "Generated package copy of the Codex validation hardening planning skill."
+    - path: maid_runner/codex/skills/maid-validate-hardening/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_validate_hardening_agent_metadata
+          of: codex_payload
+          type: yaml document
+          description: "Generated package copy of the Codex validation hardening skill-local OpenAI agent metadata."
     - path: tests/test_agent_payload_distribution.py
       artifacts:
         - kind: test_function
@@ -252,5 +280,5 @@ files:
           description: "Cleanup backlog references the current Codex and Claude cleanup skill locations instead of a stale Claude-only path."
 validate:
   - uv run python -m pytest -q tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py
-  - uv run maid validate manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml --mode schema --quiet

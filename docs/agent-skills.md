@@ -2,16 +2,21 @@
 
 ## Overview
 
-Four AI agent skills that operationalize the MAID methodology across the complete development lifecycle. Each skill is a self-contained prompt definition that guides an AI agent through a specific phase of contract-driven development.
+AI agent skills operationalize the MAID methodology across the complete
+development lifecycle. Each skill is a self-contained prompt definition that
+guides an AI agent through a specific phase of contract-driven development.
 
-### The Four Skills
+### Core Skills
 
 | Skill | Phase | Question It Answers |
 |-------|-------|---------------------|
 | `maid-planner` | Create | "What are we building?" |
+| `maid-plan-review` | Review | "Is the contract ready?" |
 | `maid-implementer` | Execute | "Make it work." |
+| `maid-implementation-review` | Review | "Did implementation stay in scope?" |
 | `maid-evolver` | Evolve | "We need to change the plan." |
 | `maid-auditor` | Verify | "Did anything break?" |
+| `maid-incident-logger` | Learn | "Is this a reusable workflow lesson?" |
 
 ### Lifecycle
 
@@ -62,8 +67,9 @@ guidance until deterministic command support is promoted.
 
 ## Tool Packaging
 
-The canonical, versioned copies of these Claude Code skills live in this repo
-under `.claude/skills/`.
+The canonical, versioned Claude Code skill copies live in this repo under
+`.claude/skills/`. The repo-owned Codex skill copies live under
+`.codex/skills/`.
 
 The skill payload is:
 
@@ -72,24 +78,25 @@ The skill payload is:
 
 ### Recommended Distribution Pattern
 
-1. Edit the source-of-truth skill under `.claude/skills/<name>/`
+1. Edit the source-of-truth skill under `.claude/skills/<name>/` or `.codex/skills/<name>/`
 2. Keep `SKILL.md` focused on the reusable procedure, not tool-specific UI metadata
-3. Copy the skill folder into the generated package payload with `scripts/sync_claude_files.py`
+3. Copy the skill folder into the generated package payload with `scripts/sync_claude_files.py` or `make sync-agent-payloads`
 
 ### Current MAID Skill Distribution
 
 The current MAID skill distribution installed by `maid init --tool claude`
-places the MAID-only skill set into a target
-repository under `.claude/skills/`: `maid-planner`, `maid-plan-review`,
-`maid-implementer`, `maid-implementation-review`, `maid-evolver`,
-`maid-auditor`, and `maid-incident-logger`. The Claude repo-level payload is
-generated from `.claude/skills/` by `scripts/sync_claude_files.py`.
+places the MAID-only skill set into a target repository under `.claude/skills/`:
+`maid-planner`, `maid-plan-review`, `maid-implementer`,
+`maid-implementation-review`, `maid-evolver`, `maid-auditor`, and
+`maid-incident-logger`. The Claude repo-level payload is generated from
+`.claude/skills/` into `maid_runner/claude/` by `scripts/sync_claude_files.py`.
 
-This repository also keeps repo-local Codex skill copies under `.codex/skills/`
-for Codex sessions started inside maid-runner. The general MAID Codex skills
-(`maid-planner`, `maid-plan-review`, `maid-implementer`, and
-`maid-implementation-review`) mirror the installed user-level skill behavior,
-while the `maid-runner-*` Codex skills add repository-specific workflow lanes.
+The Codex distribution installed by `maid init --tool codex` places the
+repo-owned maid-runner skill set into `.codex/skills/`: `maid-runner-cleanup-and-refactor`,
+`maid-runner-draft-implement`, `maid-runner-performance-optimization`,
+`maid-runner-self-improvement`, and `maid-validate-hardening`. Skill-local
+agent metadata under `agents/` is copied with those skills and listed in the
+generated `maid_runner/codex/manifest.json` for stale-file pruning.
 
 ---
 
