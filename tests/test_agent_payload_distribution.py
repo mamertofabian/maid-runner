@@ -52,6 +52,18 @@ def _top_level_commands(parser: argparse.ArgumentParser) -> list[str]:
     raise AssertionError("parser has no subcommands")
 
 
+def _command_options(parser: argparse.ArgumentParser, command: str) -> set[str]:
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            subparser = action.choices[command]
+            return {
+                option
+                for subparser_action in subparser._actions
+                for option in subparser_action.option_strings
+            }
+    raise AssertionError("parser has no subcommands")
+
+
 def test_codex_payload_manifest_matches_source_skills(tmp_path: Path):
     from scripts.sync_claude_files import main as sync_main
 
@@ -102,3 +114,40 @@ def test_command_docs_match_registered_parser_commands():
     assert "`maid test`" in docs_text and "`--jobs" in docs_text
     assert "`maid verify`" in docs_text and "`--test-jobs" in docs_text
     assert "codex" in docs_text.lower()
+
+
+def test_codex_skill_probe_commands_use_registered_cli_options():
+    parser = build_parser()
+    test_options = _command_options(parser, "test")
+    verify_options = _command_options(parser, "verify")
+    source_self_improvement = _read(
+        ".codex/skills/maid-runner-self-improvement/SKILL.md"
+    )
+    source_performance = _read(
+        ".codex/skills/maid-runner-performance-optimization/SKILL.md"
+    )
+    distributed_self_improvement = _read(
+        "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md"
+    )
+    distributed_performance = _read(
+        "maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md"
+    )
+    skill_text = "\n".join(
+        [
+            source_self_improvement,
+            source_performance,
+            distributed_self_improvement,
+            distributed_performance,
+        ]
+    )
+
+    assert "--quiet" not in test_options
+    assert "--quiet" not in verify_options
+    assert "--json" in test_options
+    assert "--json" in verify_options
+    assert distributed_self_improvement == source_self_improvement
+    assert distributed_performance == source_performance
+    assert "maid test --quiet" not in skill_text
+    assert "maid verify --keep-going --quiet" not in skill_text
+    assert "maid test --json" in skill_text
+    assert "maid verify --keep-going --json" in skill_text

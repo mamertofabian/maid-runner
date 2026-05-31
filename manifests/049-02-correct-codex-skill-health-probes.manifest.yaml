@@ -1,0 +1,144 @@
+schema: "2"
+goal: "Correct Codex skill health probe commands"
+type: fix
+created: "2026-05-31"
+metadata:
+  tags:
+    - codex
+    - agent-skills
+    - documentation
+    - cli
+  priority: medium
+description: |
+  The repo-owned Codex planning skills list health and profiling probes that
+  include `maid test --quiet` and `maid verify --keep-going --quiet`, but those
+  commands do not support `--quiet`. Replace the stale probe examples with
+  supported command forms and add a focused regression test that checks the
+  documented probe flags against the registered CLI parser surface.
+temptations:
+  - risk: "Do not add a quiet flag to `maid test` or `maid verify` just to match stale skill guidance."
+    instead: "Correct the skill probe examples to use currently supported CLI options."
+  - risk: "Do not update only the generated package payload copy."
+    instead: "Keep `.codex/skills` source files and `maid_runner/codex/skills` distributed copies synchronized."
+files:
+  read:
+    - maid_runner/cli/commands/_main.py
+    - scripts/sync_claude_files.py
+  edit:
+    - path: .codex/skills/maid-runner-self-improvement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_self_improvement_supported_health_probes
+          of: skill
+          type: markdown section
+          description: "Self-improvement health probe examples use supported MAID CLI flags."
+    - path: .codex/skills/maid-runner-performance-optimization/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_performance_supported_profile_probes
+          of: skill
+          type: markdown section
+          description: "Performance profiling probe examples use supported MAID CLI flags."
+    - path: maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_self_improvement_supported_health_probes
+          of: codex_payload
+          type: markdown section
+          description: "Generated package copy of supported self-improvement health probe examples."
+    - path: maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_performance_supported_profile_probes
+          of: codex_payload
+          type: markdown section
+          description: "Generated package copy of supported performance profiling probe examples."
+    - path: tests/test_agent_payload_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_codex_skill_probe_commands_use_registered_cli_options
+          source_scenario: "A Codex agent follows repo-owned skill health probe guidance."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Codex skill probe examples do not use unsupported `--quiet` flags for `maid test` or `maid verify`, and instead reference supported JSON output flags."
+validate:
+  - uv run python -m pytest -q tests/test_agent_payload_distribution.py
+  - uv run maid validate manifests/049-02-correct-codex-skill-health-probes.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Corrected Codex skill probe examples to use supported MAID CLI flags and added regression coverage for source and distributed skill copies."
+  rationale: "The branch audit found that repo-owned Codex skill guidance recommended unsupported `maid test --quiet` and `maid verify --keep-going --quiet` forms. The fix keeps guidance aligned with the registered parser surface and prevents stale committed package payload copies from drifting."
+  completed_at: "2026-05-31T13:05:00+08:00"
+  lessons:
+    - lesson_type: documentation-integrity
+      summary: "Agent skill command examples should be checked against the actual CLI parser, especially when different subcommands expose different reporting flags."
+      tags:
+        - codex
+        - cli
+        - agent-skills
+      paths:
+        - .codex/skills/maid-runner-self-improvement/SKILL.md
+        - .codex/skills/maid-runner-performance-optimization/SKILL.md
+        - tests/test_agent_payload_distribution.py
+    - lesson_type: distribution-integrity
+      summary: "Regression coverage for generated agent payloads should inspect committed distributed copies, not only regenerated temporary payloads or source skill files."
+      tags:
+        - codex
+        - packaging
+        - tests
+      paths:
+        - maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md
+        - maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md
+        - tests/test_agent_payload_distribution.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found the new regression test checked source skill files but not the committed distributed payload copies."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Re-review found no findings after the test was expanded to cover source/distributed equality and stale probe absence across both copies."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_agent_payload_distribution.py
+      status: passed
+      summary: "Agent payload distribution tests passed with 4 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/049-02-correct-codex-skill-health-probes.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Manifest implementation validation passed for the Codex skill probe correction."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/049-02-correct-codex-skill-health-probes.manifest.yaml
+      status: passed
+      summary: "Manifest-scoped MAID test passed both declared validation commands."
+    - command:
+        - rg
+        - -n
+        - "maid test --quiet|maid verify --keep-going --quiet"
+        - .codex/skills
+        - maid_runner/codex/skills
+      status: passed
+      summary: "No stale unsupported probe examples remain in source or distributed Codex skills."

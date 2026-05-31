@@ -117,10 +117,10 @@ time uv run maid validate --quiet
 time uv run maid validate manifests/<slug>.manifest.yaml --mode implementation --quiet
 
 # Verify all stages, where redundancy across stages tends to dominate.
-time uv run maid verify --keep-going --quiet
+time uv run maid verify --keep-going --json
 
 # Test runner end-to-end.
-time uv run maid test --quiet
+time uv run maid test --json
 ```
 
 For deeper inspection, drop a `cProfile` harness in `/tmp` that imports the

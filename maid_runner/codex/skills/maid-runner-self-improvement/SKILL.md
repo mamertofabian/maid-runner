@@ -142,8 +142,8 @@ Useful probes:
 ```bash
 # Current health.
 uv run maid validate --quiet
-uv run maid test --quiet
-uv run maid verify --keep-going --quiet
+uv run maid test --json
+uv run maid verify --keep-going --json
 
 # Planning inventory.
 find manifests/drafts -maxdepth 2 -name '*.yaml' | sort
