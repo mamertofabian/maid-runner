@@ -48,6 +48,14 @@ from maid_runner.graph.query import (
 )
 from maid_runner.graph.builder import GraphBuilder
 from maid_runner.graph.query import GraphQuery
+from maid_runner.graph.api import (
+    build_graph_from_manifest_dir,
+    graph_stats,
+    query_graph,
+    analyze_file_dependencies,
+    serialize_graph,
+    export_graph,
+)
 
 __all__ = [
     "NodeType",
@@ -88,4 +96,10 @@ __all__ = [
     "QueryExecutor",
     "GraphBuilder",
     "GraphQuery",
+    "build_graph_from_manifest_dir",
+    "graph_stats",
+    "query_graph",
+    "analyze_file_dependencies",
+    "serialize_graph",
+    "export_graph",
 ]
