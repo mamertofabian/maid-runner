@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-05-31
+
+### Added
+- **Manifest Outcome workflow** — Added typed Outcome records for completed manifests, deterministic `maid learn`, `maid recall`, and `maid insights` commands, plus guidance that feeds validated outcomes back into MAID planning, implementation, review, and self-improvement loops.
+- **Codex init payload support** — `maid init --tool codex` now installs packaged repo-owned Codex skill payloads, updates the managed AGENTS.md MAID section, and prunes only manifest-declared stale payload paths while preserving custom files.
+- **Parallel `maid test` execution** — `maid test` can execute compatible command groups in parallel while preserving validation-command semantics.
+
+### Changed
+- **Agent skill distribution** — Ported self-improvement and validation-hardening skills to Claude, added repo-local Codex skill copies, and aligned generated skill payload checks across source and packaged distributions.
+- **Validation and runner internals** — Extracted CLI parser registration helpers and test-runner stream orchestration, and archived completed cleanup, performance, and Outcome planning inventory after promotion.
+- **Package metadata** — Modernized release metadata to SPDX license strings and raised the setuptools build backend floor required to parse that metadata.
+
+### Fixed
+- **Pytest configuration injection** — Validation now rejects `pyproject.toml` pytest `addopts` bypass attempts instead of allowing project config to smuggle unsupported pytest arguments.
+- **Codex skill health probes** — Replaced stale skill examples that used unsupported `maid test --quiet` and `maid verify --keep-going --quiet` forms with supported JSON-output probes.
+- **Watch-mode dependency coverage** — Missing-watchdog coverage is now deterministic even when the optional watch extra is installed.
+
 ## [2.14.0] - 2026-05-29
 
 ### Added
@@ -981,6 +998,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.15.0]: https://github.com/mamertofabian/maid-runner/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/mamertofabian/maid-runner/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/mamertofabian/maid-runner/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/mamertofabian/maid-runner/compare/v2.11.0...v2.12.0
