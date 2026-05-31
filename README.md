@@ -116,7 +116,9 @@ MAID Runner section in `AGENTS.md`.
 
 **Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
 
-Run `maid howto --section commands` for detailed usage and examples.
+Run `maid howto --section commands` for detailed usage and examples. For common
+failure modes, see [docs/troubleshooting.md](docs/troubleshooting.md) or run
+`maid howto --section troubleshooting`.
 
 ### Common Workflows
 

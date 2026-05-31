@@ -1,0 +1,171 @@
+schema: "2"
+goal: "Create a troubleshooting guide and expose it through maid howto"
+type: feature
+created: "2026-05-31T22:18:32+08:00"
+metadata:
+  github_issue: 57
+  tags:
+    - documentation
+    - troubleshooting
+    - howto
+  priority: medium
+description: |
+  Issue #57 asks for a comprehensive troubleshooting guide with 20+ common
+  issues, clear solutions, and an FAQ. The README already advertises
+  `maid howto --section troubleshooting`, but the howto command has no
+  troubleshooting topic. Add a canonical `docs/troubleshooting.md`, make the
+  CLI topic point users to it while covering high-signal diagnostics, and add a
+  README link so the guide is discoverable from the primary documentation.
+
+  The guide should be built from real MAID Runner diagnostics and workflow
+  failure modes visible in the current codebase, not generic AI-development
+  advice.
+temptations:
+  - risk: "Do not satisfy the issue with a shallow list of generic documentation bullets."
+    instead: "Document at least 20 numbered MAID-specific troubleshooting entries with symptoms, likely causes, and concrete fixes."
+  - risk: "Do not add a troubleshooting howto topic that only duplicates the whole guide inline."
+    instead: "Keep the CLI topic concise, include the most common diagnostics, and point to docs/troubleshooting.md for the complete guide."
+  - risk: "Do not invent diagnostic codes or unsupported recovery commands."
+    instead: "Use ErrorCode values and CLI options present in the current codebase and README command table."
+  - risk: "Do not leave the new documentation unreachable from existing user entry points."
+    instead: "Link the guide from README and expose it through the documented howto section alias."
+files:
+  read:
+    - maid_runner/core/result.py
+    - docs/planning/GITHUB_ISSUES_CREATED.md
+  create:
+    - path: docs/troubleshooting.md
+      artifacts:
+        - kind: attribute
+          name: _troubleshooting_guide
+          of: documentation
+          type: markdown document
+          description: "Canonical troubleshooting guide with 20+ MAID-specific issues, clear fixes, and FAQ entries."
+    - path: tests/test_troubleshooting_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_troubleshooting_guide_covers_common_issue_threshold
+          source_scenario: "The troubleshooting guide is read as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide contains at least 20 numbered troubleshooting entries and each sampled entry uses symptom/cause/fix language."
+        - kind: test_function
+          name: test_troubleshooting_guide_uses_real_diagnostics_and_workflows
+          source_scenario: "The guide documents MAID Runner diagnostics and commands."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide references real ErrorCode values and current MAID commands for validation, testing, verification, chains, and outcomes."
+        - kind: test_function
+          name: test_troubleshooting_guide_includes_faq_and_readme_entrypoint
+          source_scenario: "The troubleshooting guide and README are read as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide includes an FAQ section and README links to docs/troubleshooting.md."
+  edit:
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Print troubleshooting guidance when the topic or --section alias is troubleshooting."
+    - path: tests/cli/test_howto_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_howto_troubleshooting_topic_links_guide_and_common_codes
+          source_scenario: "A user asks the CLI for troubleshooting guidance."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_howto
+          expected:
+            behavior: "The command succeeds, links docs/troubleshooting.md, and mentions common validation diagnostics."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _troubleshooting_guide_entrypoint
+          of: documentation
+          type: markdown section
+          description: "README entry point that links users from the CLI reference to docs/troubleshooting.md."
+validate:
+  - uv run python -m pytest -q tests/test_troubleshooting_docs.py tests/cli/test_howto_cmd.py
+  - uv run maid validate manifests/057-01-add-troubleshooting-guide.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/057-01-add-troubleshooting-guide.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Created a MAID troubleshooting guide and exposed it through the documented howto topic."
+  rationale: "Focused docs and CLI tests, manifest validation, full MAID validation, full MAID tests, and independent implementation re-review all passed after correcting an unsupported coherence-code claim."
+  lessons:
+    - lesson_type: documentation
+      summary: "Troubleshooting docs should distinguish ErrorCode-backed diagnostics from command outputs that format issues by severity/message."
+      tags:
+        - troubleshooting
+        - diagnostics
+        - documentation
+      paths:
+        - docs/troubleshooting.md
+        - maid_runner/cli/commands/howto.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found an unsupported claim that coherence output reports E400-E404 codes; the guide was corrected to describe severity/message output."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Re-review reported no findings and returned verdict ready after the documentation fix and validation reruns."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_troubleshooting_docs.py
+        - tests/cli/test_howto_cmd.py
+      status: passed
+      summary: "Focused troubleshooting documentation and howto tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/057-01-add-troubleshooting-guide.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Manifest implementation validation passed with expected E307 markdown validator warnings for docs/troubleshooting.md and README.md."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/057-01-add-troubleshooting-guide.manifest.yaml
+      status: passed
+      summary: "Manifest-declared validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full active manifest validation passed: 298 manifests, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test run passed: 50 commands, 0 failed."
+  completed_at: "2026-05-31T14:31:32Z"

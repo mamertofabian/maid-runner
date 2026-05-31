@@ -81,3 +81,18 @@ class TestCmdHowto:
         assert "Unix socket" in captured.out
         assert "PATH_ESCAPE" in captured.out
         assert "docs/maid-serve.md" in captured.out
+
+    def test_howto_troubleshooting_topic_links_guide_and_common_codes(self, capsys):
+        import argparse
+
+        from maid_runner.cli.commands.howto import cmd_howto
+
+        exit_code = cmd_howto(argparse.Namespace(topic="troubleshooting"))
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Troubleshooting" in captured.out
+        assert "docs/troubleshooting.md" in captured.out
+        assert "E200" in captured.out
+        assert "E300" in captured.out
+        assert "E114" in captured.out
+        assert "FAQ" in captured.out
