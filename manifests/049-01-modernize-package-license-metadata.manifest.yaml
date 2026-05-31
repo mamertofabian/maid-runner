@@ -1,0 +1,134 @@
+schema: "2"
+goal: "Modernize package license metadata before release"
+type: fix
+created: "2026-05-31"
+metadata:
+  tags:
+    - packaging
+    - release
+    - pyproject
+  priority: medium
+description: |
+  Remove setuptools deprecation warnings from the release build by replacing
+  the legacy `project.license` TOML table with a modern SPDX license string and
+  dropping the deprecated MIT license classifier. Raise the build backend floor
+  to a setuptools version that accepts SPDX license strings so isolated builds
+  remain valid when dependency resolution chooses the minimum allowed backend.
+
+  The package already declares the MIT license through the LICENSE file and
+  project metadata. The release build should not depend on metadata forms that
+  setuptools has scheduled for removal.
+temptations:
+  - risk: "Do not suppress or ignore the setuptools deprecation warning in build output."
+    instead: "Represent the license in `pyproject.toml` with the current SPDX string form."
+  - risk: "Do not remove unrelated classifiers or package metadata while cleaning up the license warning."
+    instead: "Only replace the license table and drop the deprecated MIT license classifier."
+  - risk: "Do not declare SPDX license metadata while leaving the build backend range open to setuptools versions that cannot parse it."
+    instead: "Raise the setuptools build-system floor to the first known compatible release and assert that floor in packaging tests."
+files:
+  read:
+    - Makefile
+  edit:
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: _project_license_metadata
+          of: pyproject
+          type: TOML project license metadata
+          description: "Project license metadata uses SPDX string form, avoids deprecated license classifiers, and declares a compatible setuptools build backend floor."
+    - path: tests/ci/test_publish_workflow.py
+      artifacts:
+        - kind: test_function
+          name: test_project_license_metadata_uses_modern_spdx_form
+          source_scenario: "Maintainers build the package for release with current setuptools."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The project license is declared as the SPDX string `MIT`, the deprecated MIT license classifier is absent, and the build backend requires setuptools 77.0.3 or newer."
+validate:
+  - uv run python -m pytest -q tests/ci/test_publish_workflow.py
+  - uv run maid validate manifests/049-01-modernize-package-license-metadata.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Modernized package license metadata and raised the compatible setuptools build backend floor."
+  rationale: "Implementation completed after focused packaging tests, full MAID validation, package builds without license deprecation warnings, twine checks, artifact metadata spot checks, and an independent read-only review loop."
+  completed_at: "2026-05-31T12:35:00+08:00"
+  lessons:
+    - lesson_type: packaging-compatibility
+      summary: "When replacing legacy license metadata with SPDX string metadata, raise the setuptools build-system floor to a version that can parse the new form."
+      tags:
+        - packaging
+        - pyproject
+        - setuptools
+      paths:
+        - pyproject.toml
+        - tests/ci/test_publish_workflow.py
+    - lesson_type: validation-integrity
+      summary: "MAID test command integrity rejects overly narrow pytest selectors when a manifest declares a behavioral test file; use the discovered test file path in the manifest validate command."
+      tags:
+        - maid-test
+        - manifest-contract
+        - command-integrity
+      paths:
+        - manifests/049-01-modernize-package-license-metadata.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found the SPDX license string was incompatible with the existing `setuptools>=61.0` build backend floor."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Re-review found no findings after the build backend floor was raised to `setuptools>=77.0.3`; residual risk is limited to static committed metadata tests, covered by local build and artifact spot checks."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/ci/test_publish_workflow.py
+      status: passed
+      summary: "Focused release-workflow packaging tests passed with 5 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/049-01-modernize-package-license-metadata.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Manifest implementation validation passed for the packaging metadata contract."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID test suite passed 45 declared commands."
+    - command:
+        - make
+        - build
+      status: passed
+      summary: "Package build succeeded with `setuptools>=77.0.3` and no setuptools license deprecation warnings."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2267 passed and 5 skipped."
+    - command:
+        - uv
+        - run
+        - twine
+        - check
+        - dist/*
+      status: passed
+      summary: "Distribution metadata check passed for current local artifacts."

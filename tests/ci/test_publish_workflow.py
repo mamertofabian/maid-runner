@@ -43,6 +43,18 @@ def test_package_data_includes_claude_skills() -> None:
     assert "claude/commands/*.md" not in package_data
 
 
+def test_project_license_metadata_uses_modern_spdx_form() -> None:
+    pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+
+    project = pyproject["project"]
+    classifiers = project["classifiers"]
+    build_requires = pyproject["build-system"]["requires"]
+
+    assert project["license"] == "MIT"
+    assert "License :: OSI Approved :: MIT License" not in classifiers
+    assert "setuptools>=77.0.3" in build_requires
+
+
 def test_python_310_tomli_fallback_dependency_is_locked() -> None:
     pyproject = tomllib.loads(Path("pyproject.toml").read_text())
     dev_dependencies = pyproject["dependency-groups"]["dev"]
