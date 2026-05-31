@@ -1,0 +1,204 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Surface validation locations and suggestions in text CLI output"
+type: feature
+created: "2026-05-31"
+metadata:
+  github_issue: 118
+  tags:
+    - cli
+    - formatter
+    - validation-output
+  priority: medium
+description: |
+  Current validation errors already carry structured `location` and
+  `suggestion` fields for JSON consumers. Plain text CLI output should show
+  that same actionable context for terminal users without changing JSON
+  payloads or quiet-mode output.
+
+  Add normal text formatting for validation errors and warnings so available
+  locations render as `Location: path[:line[:column]]` and suggestions render
+  as `Suggestion: ...` under the existing code/message line. Reuse that same
+  formatting path for single-manifest validation, batch validation chain and
+  nested manifest failures, and verify-stage validation details. File-scope
+  diagnostics such as changed files outside manifest scope are covered through
+  their existing ValidationError location and suggestion data.
+temptations:
+  - risk: "Do not change ValidationError.to_dict or JSON result payloads to solve a text-output issue."
+    instead: "Keep JSON serialization unchanged and format location/suggestion only in non-JSON CLI text paths."
+  - risk: "Do not enrich quiet output with extra location or suggestion lines."
+    instead: "Leave quiet mode as code plus message so scripts that parse compact output remain stable."
+  - risk: "Do not duplicate validation error text assembly in every formatter branch."
+    instead: "Route validation, batch, and verify error rendering through one shared text formatter."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_validation_result
+          args:
+            - name: result
+              type: ValidationResult
+          returns: str
+          description: "Format a single validation result in text, quiet, or JSON mode while preserving JSON and quiet contracts."
+        - kind: function
+          name: format_batch_result
+          args:
+            - name: result
+              type: BatchValidationResult
+          returns: str
+          description: "Format batch validation summaries and failure details, including available validation error context in normal text mode."
+        - kind: function
+          name: format_verify_result
+          args:
+            - name: result
+              type: VerificationResult
+          returns: str
+          description: "Format verify-stage output and include validation error context for failed or warning validation stages."
+    - path: tests/cli/test_format.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_text_includes_location_and_suggestion
+          source_scenario: "A single validation result has an error with file, line, column, and suggestion fields."
+          actions:
+            - type: api_call
+              subject:
+                export: format_validation_result
+          expected:
+            behavior: "Normal text output includes the existing error code/message plus indented Location and Suggestion lines."
+        - kind: test_function
+          name: test_validation_quiet_keeps_code_and_message_only
+          source_scenario: "A quiet single validation result has an error with location and suggestion fields."
+          actions:
+            - type: api_call
+              subject:
+                export: format_validation_result
+          expected:
+            behavior: "Quiet output remains code plus message and omits Location and Suggestion lines."
+        - kind: test_function
+          name: test_validation_text_includes_warning_location_and_suggestion
+          source_scenario: "A single validation result has a warning with file and suggestion fields."
+          actions:
+            - type: api_call
+              subject:
+                export: format_validation_result
+          expected:
+            behavior: "Normal text output includes Location and Suggestion lines for displayed warnings."
+        - kind: test_function
+          name: test_batch_text_includes_chain_error_location_and_suggestion
+          source_scenario: "A batch validation result has a chain error with location and suggestion fields."
+          actions:
+            - type: api_call
+              subject:
+                export: format_batch_result
+          expected:
+            behavior: "Normal batch text output includes Location and Suggestion lines for chain errors."
+        - kind: test_function
+          name: test_batch_text_includes_nested_manifest_error_location_and_suggestion
+          source_scenario: "A batch validation result contains a failed manifest with an error location and suggestion."
+          actions:
+            - type: api_call
+              subject:
+                export: format_batch_result
+          expected:
+            behavior: "The nested failed manifest output includes Location and Suggestion lines."
+        - kind: test_function
+          name: test_format_verify_result_text_includes_validation_error_context
+          source_scenario: "A verify result has a failed validation stage with an error location and suggestion."
+          actions:
+            - type: api_call
+              subject:
+                export: format_verify_result
+          expected:
+            behavior: "Verify text output includes Location and Suggestion lines in the validation stage details."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/verify.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_format.py tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py
+outcome:
+  status: completed
+  summary: "Plain text validation, batch validation, and verify output now surface available ValidationError location and suggestion context while preserving JSON and quiet-mode contracts."
+  rationale: "Terminal users need actionable diagnostics without switching to JSON. The implementation keeps structured result serialization unchanged, leaves quiet output compact, and centralizes normal text rendering so displayed validation errors and warnings share one context format."
+  completed_at: "2026-05-31T19:11:03+08:00"
+  lessons:
+    - lesson_type: cli-diagnostics
+      summary: "Validation diagnostic enrichment should be implemented at the formatter boundary so JSON contracts and quiet script-oriented output remain stable."
+      tags:
+        - cli
+        - validation-output
+        - formatter
+      paths:
+        - maid_runner/cli/commands/_format.py
+        - tests/cli/test_format.py
+    - lesson_type: manifest-validation
+      summary: "When a MAID manifest lists contextual test files in files.read, its validate command must run those files or `maid test` will reject the manifest with E230."
+      tags:
+        - maid
+        - test-runner
+        - manifest-contract
+      paths:
+        - manifests/048-01-surface-validation-context-in-text-output.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Independent read-only review reported no findings and returned verdict ready; residual risk was limited to verify coverage using a single ValidationResult while batch verify formatting was manually inspected."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_format.py
+      status: passed
+      summary: "Focused formatter tests passed with 41 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/048-01-surface-validation-context-in-text-output.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_format.py
+        - tests/cli/test_validate_cmd.py
+        - tests/cli/test_verify_cmd.py
+      status: passed
+      summary: "Manifest validate command passed with 190 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 294 manifests, 209 passed, 0 failed, and 85 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 46 commands."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/_format.py
+        - tests/cli/test_format.py
+      status: passed
+      summary: "Ruff passed for the touched Python files."

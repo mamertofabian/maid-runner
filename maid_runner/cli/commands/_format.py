@@ -96,12 +96,12 @@ def format_validation_result(
     if result.errors:
         lines.append(f"  Errors ({len(result.errors)}):")
         for err in result.errors:
-            lines.append(f"    {err.code.value} {err.message}")
+            lines.extend(_format_validation_error_lines(err, indent="    "))
 
     if result.warnings:
         lines.append(f"  Warnings ({len(result.warnings)}):")
         for w in result.warnings:
-            lines.append(f"    {w.code.value} {w.message}")
+            lines.extend(_format_validation_error_lines(w, indent="    "))
 
     return _append_test_result("\n".join(lines), test_result, quiet=quiet)
 
@@ -155,7 +155,7 @@ def format_batch_result(
         lines.append("")
         lines.append(f"Chain Issues ({len(result.chain_errors)}):")
         for err in result.chain_errors:
-            lines.append(f"  {err.code.value} {err.message}")
+            lines.extend(_format_validation_error_lines(err, indent="  "))
 
     for r in result.results:
         if not r.success:
@@ -293,6 +293,53 @@ def _append_test_result(
     return f"{formatted_validation}\n\n{formatted_tests}"
 
 
+def _format_validation_error_lines(error, *, indent: str) -> list[str]:
+    lines = [f"{indent}{_format_validation_error_summary(error)}"]
+    location = _format_validation_error_location(error)
+    if location:
+        lines.append(f"{indent}  Location: {location}")
+    suggestion = getattr(error, "suggestion", None)
+    if suggestion:
+        lines.append(f"{indent}  Suggestion: {suggestion}")
+    return lines
+
+
+def _format_validation_error_summary(error) -> str:
+    code = getattr(getattr(error, "code", None), "value", None)
+    message = getattr(error, "message", None)
+    if code and message:
+        return f"{code} {message}"
+    return str(error)
+
+
+def _format_validation_error_location(error) -> str:
+    location = getattr(error, "location", None)
+    if location is None:
+        return ""
+
+    file = getattr(location, "file", None)
+    if not file:
+        return ""
+
+    rendered = str(file)
+    line = getattr(location, "line", None)
+    column = getattr(location, "column", None)
+    end_line = getattr(location, "end_line", None)
+    end_column = getattr(location, "end_column", None)
+
+    if line is not None:
+        rendered = f"{rendered}:{line}"
+        if column is not None:
+            rendered = f"{rendered}:{column}"
+
+    if end_line is not None:
+        rendered = f"{rendered}-{end_line}"
+        if end_column is not None:
+            rendered = f"{rendered}:{end_column}"
+
+    return rendered
+
+
 def _verification_success(result: VerificationResult) -> bool:
     return all(stage.success for stage in result.stages)
 
@@ -372,10 +419,8 @@ def _verify_error_to_dict(error) -> dict | str:
 
 
 def _format_verify_error(error) -> str:
-    code = getattr(getattr(error, "code", None), "value", None)
-    message = getattr(error, "message", None)
-    if code and message:
-        return f"{code} {message}"
+    if hasattr(error, "code") and hasattr(error, "message"):
+        return "\n".join(_format_validation_error_lines(error, indent=""))
     return str(error)
 
 
@@ -386,7 +431,9 @@ def _format_verify_validation_details(validation) -> str:
 
 
 def _format_verify_batch_validation_details(result: BatchValidationResult) -> str:
-    lines = [_format_verify_error(error) for error in result.chain_errors]
+    lines = []
+    for error in result.chain_errors:
+        lines.extend(_format_verify_error(error).splitlines())
     for validation in result.results:
         if not validation.success or validation.warnings:
             status = "FAIL" if not validation.success else "WARN"
@@ -400,8 +447,10 @@ def _format_verify_batch_validation_details(result: BatchValidationResult) -> st
 def _format_verify_single_validation_details(validation) -> str:
     lines = []
     if not validation.success:
-        lines.extend(_format_verify_error(error) for error in validation.errors)
-    lines.extend(_format_verify_error(warning) for warning in validation.warnings)
+        for error in validation.errors:
+            lines.extend(_format_verify_error(error).splitlines())
+    for warning in validation.warnings:
+        lines.extend(_format_verify_error(warning).splitlines())
     return "\n".join(f"  {line}" for line in lines)
 
 

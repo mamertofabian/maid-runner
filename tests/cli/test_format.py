@@ -14,6 +14,7 @@ from maid_runner.core.result import (
     FileTrackingReport,
     FileTrackingStatus,
     Location,
+    Severity,
     TestRunResult,
     ValidationError,
     ValidationResult,
@@ -141,6 +142,88 @@ class TestFormatValidationResult:
         output = format_validation_result(failure_result, quiet=True)
         assert "E300" in output
 
+    def test_validation_text_includes_location_and_suggestion(self):
+        from maid_runner.cli.commands._format import format_validation_result
+
+        result = ValidationResult(
+            success=False,
+            manifest_slug="scope-gate",
+            manifest_path="manifests/scope-gate.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            errors=[
+                ValidationError(
+                    code=ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE,
+                    message="Changed file is outside manifest scope",
+                    location=Location(file="src/orphan.py", line=5, column=3),
+                    suggestion=(
+                        "Add src/orphan.py to the manifest scope or revert the "
+                        "unscoped change."
+                    ),
+                )
+            ],
+        )
+
+        output = format_validation_result(result)
+
+        assert "E114 Changed file is outside manifest scope" in output
+        assert "Location: src/orphan.py:5:3" in output
+        assert (
+            "Suggestion: Add src/orphan.py to the manifest scope or revert the "
+            "unscoped change."
+        ) in output
+
+    def test_validation_quiet_keeps_code_and_message_only(self):
+        from maid_runner.cli.commands._format import format_validation_result
+
+        result = ValidationResult(
+            success=False,
+            manifest_slug="scope-gate",
+            manifest_path="manifests/scope-gate.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            errors=[
+                ValidationError(
+                    code=ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE,
+                    message="Changed file is outside manifest scope",
+                    location=Location(file="src/orphan.py", line=5, column=3),
+                    suggestion="Add src/orphan.py to the manifest scope.",
+                )
+            ],
+        )
+
+        output = format_validation_result(result, quiet=True)
+
+        assert output == "  E114 Changed file is outside manifest scope"
+        assert "Location:" not in output
+        assert "Suggestion:" not in output
+
+    def test_validation_text_includes_warning_location_and_suggestion(self):
+        from maid_runner.cli.commands._format import format_validation_result
+
+        result = ValidationResult(
+            success=True,
+            manifest_slug="scope-gate",
+            manifest_path="manifests/scope-gate.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            warnings=[
+                ValidationError(
+                    code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
+                    message="No validator available for README.md",
+                    severity=Severity.WARNING,
+                    location=Location(file="README.md"),
+                    suggestion="Install a validator plugin or mark the file as docs-only.",
+                )
+            ],
+        )
+
+        output = format_validation_result(result)
+
+        assert "E307 No validator available for README.md" in output
+        assert "Location: README.md" in output
+        assert (
+            "Suggestion: Install a validator plugin or mark the file as docs-only."
+            in output
+        )
+
 
 class TestFormatBatchResult:
     def test_batch_text_shows_summary(self, batch_result):
@@ -166,6 +249,74 @@ class TestFormatBatchResult:
         output = format_batch_result(batch_result, quiet=True)
         # Quiet mode should show failed manifests only
         assert "add-auth" in output
+
+    def test_batch_text_includes_chain_error_location_and_suggestion(self):
+        from maid_runner.cli.commands._format import format_batch_result
+
+        result = BatchValidationResult(
+            results=[],
+            total_manifests=0,
+            passed=0,
+            failed=0,
+            skipped=0,
+            chain_errors=[
+                ValidationError(
+                    code=ErrorCode.EMPTY_MANIFEST_SET,
+                    message="No active manifests found",
+                    location=Location(file="manifests"),
+                    suggestion=(
+                        "Pass --allow-empty only when an empty manifest set is "
+                        "intentional."
+                    ),
+                )
+            ],
+        )
+
+        output = format_batch_result(result)
+
+        assert "E112 No active manifests found" in output
+        assert "Location: manifests" in output
+        assert (
+            "Suggestion: Pass --allow-empty only when an empty manifest set is "
+            "intentional."
+        ) in output
+
+    def test_batch_text_includes_nested_manifest_error_location_and_suggestion(
+        self,
+    ):
+        from maid_runner.cli.commands._format import format_batch_result
+
+        failing_result = ValidationResult(
+            success=False,
+            manifest_slug="scope-gate",
+            manifest_path="manifests/scope-gate.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            errors=[
+                ValidationError(
+                    code=ErrorCode.ARTIFACT_NOT_DEFINED,
+                    message="Artifact 'AuthService.login' not defined",
+                    location=Location(file="src/auth/service.py", line=42),
+                    suggestion="Implement AuthService.login or remove the manifest artifact.",
+                )
+            ],
+        )
+        result = BatchValidationResult(
+            results=[failing_result],
+            total_manifests=1,
+            passed=0,
+            failed=1,
+            skipped=0,
+        )
+
+        output = format_batch_result(result)
+
+        assert "FAIL scope-gate" in output
+        assert "E300 Artifact 'AuthService.login' not defined" in output
+        assert "Location: src/auth/service.py:42" in output
+        assert (
+            "Suggestion: Implement AuthService.login or remove the manifest artifact."
+            in output
+        )
 
 
 class TestFormatTestResult:
@@ -346,6 +497,51 @@ class TestFormatVerifyResult:
             {"name": "schema", "success": True},
             {"name": "tests", "success": True},
         ]
+
+    def test_format_verify_result_text_includes_validation_error_context(self):
+        from maid_runner.cli.commands._format import format_verify_result
+        from maid_runner.core.result import (
+            VerificationResult,
+            VerificationStageResult,
+        )
+
+        validation = ValidationResult(
+            success=False,
+            manifest_slug="scope-gate",
+            manifest_path="manifests/scope-gate.manifest.yaml",
+            mode=ValidationMode.IMPLEMENTATION,
+            errors=[
+                ValidationError(
+                    code=ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE,
+                    message="Changed file is outside manifest scope",
+                    location=Location(file="src/orphan.py", line=5, column=3),
+                    suggestion=(
+                        "Add src/orphan.py to the manifest scope or revert the "
+                        "unscoped change."
+                    ),
+                )
+            ],
+        )
+        result = VerificationResult(
+            stages=(
+                VerificationStageResult(
+                    name="implementation",
+                    success=False,
+                    _validation=validation,
+                ),
+            )
+        )
+
+        output = format_verify_result(result)
+
+        assert "Verify: FAIL" in output
+        assert "FAIL implementation" in output
+        assert "E114 Changed file is outside manifest scope" in output
+        assert "Location: src/orphan.py:5:3" in output
+        assert (
+            "Suggestion: Add src/orphan.py to the manifest scope or revert the "
+            "unscoped change."
+        ) in output
 
 
 class TestPrintError:
