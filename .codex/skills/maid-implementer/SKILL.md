@@ -11,10 +11,14 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 
 - Load the manifest first.
 - Implement only what the manifest declares.
-- `files.create` is Strict Mode. `files.edit` is Permissive Mode.
+- `files.create` and `files.edit` declare contracted public artifacts.
+- `files.read` may include touched-but-uncontracted files for behavioral tests,
+  imports, or narrow call-site delegation when the manifest intent and pinned
+  MAID implementation validation allow it.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
-- NEVER modify code not listed in the manifest `files.create` or `files.edit`.
+- NEVER modify files not listed in the manifest `files.create`, `files.edit`, or
+  `files.read`.
 - NEVER modify the manifest during implementation.
 - NEVER modify behavioral tests unless the user explicitly approves changing the contract.
 - If implementation validation exposes a bad manifest, write `plan-revision.md` explaining the issue and stop. Do not force tests green by working around a bad plan.
@@ -26,7 +30,7 @@ Read the approved manifest and extract:
 
 - files to create
 - files to edit
-- read-only dependencies
+- read dependencies and any touched-but-uncontracted contextual files
 - exact artifacts
 - temptations and their `instead` procedures
 - validation commands
@@ -68,8 +72,17 @@ For `files.create`:
 
 For `files.edit`:
 
-- add the declared artifacts conservatively
+- add or change the declared artifacts conservatively
 - preserve existing behavior unless the tests require change
+
+For `files.read`:
+
+- treat the file as contextual unless the manifest description clearly allows a
+  narrow edit
+- allowed narrow edits include behavioral spec coverage, imports, and call-site
+  replacement that delegates to contracted artifacts
+- do not introduce or change public API from a `files.read` file; stop for a
+  plan revision if that becomes necessary
 
 ## Phase 4 — Validate Implementation
 
@@ -108,10 +121,12 @@ Before reporting completion, run a read-only MAID implementation review using th
 - validation passed
 - no implementation-phase drift or process violations were introduced
 
-Use a fresh read-only reviewer with an explicit review packet containing the
-manifest path, changed files, diff summary, and validation output. Do not rely
-on the full implementation transcript, and do not require separate per-turn
-reviewer-agent approval when repo guidance grants standing authorization.
+When that review uses a subagent, spawn a fresh reviewer with an explicit review
+packet. Do not fork the full session context into the reviewer; this preserves
+the same independent-review pattern used by loop-style reviewer agents.
+Do not require a separate per-turn subagent approval when the target repo,
+active skill, or user prompt grants standing authorization for MAID reviewer
+subagents.
 
 Treat the review verdict as a gate. Fix concrete implementation defects, rerun
 focused validation, and run another implementation review. Repeat until the

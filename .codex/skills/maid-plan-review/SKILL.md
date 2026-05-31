@@ -38,6 +38,19 @@ Check:
 
 Flag manifests that are too broad, too narrow, or missing critical read dependencies.
 
+For MAID 2.7.2 manifests, distinguish contracted files from contextual files:
+
+- `files.create` and `files.edit` are the public artifact contract.
+- `files.read` may include files that are touched but not themselves contracted,
+  such as behavioral specs or existing components where the task only replaces
+  call sites to delegate into a new sprout.
+- Do not require a touched file to move from `files.read` to `files.edit` unless
+  the task intentionally changes or contracts that file's public artifacts, or
+  implementation validation rejects the scope.
+- Be wary of forcing large existing public classes into `files.edit`; MAID may
+  then require declarations for the class's full public surface, expanding the
+  manifest beyond the behavioral contract.
+
 ## Phase 4 — Artifact Quality Review
 
 Confirm:

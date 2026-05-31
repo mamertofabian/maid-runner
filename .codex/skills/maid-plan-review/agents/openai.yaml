@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Plan Review"
+  short_description: "Review a MAID manifest and behavioral tests before coding"
+  default_prompt: "Use $maid-plan-review to review the current MAID manifest and behavioral tests, check rationale and temptations, adversarially assess likely gaming paths, confirm behavioral validation, confirm the red phase, flag blockers precisely, and end with an explicit verdict."

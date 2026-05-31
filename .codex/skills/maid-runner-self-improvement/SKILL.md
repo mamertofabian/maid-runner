@@ -112,6 +112,20 @@ best evidence for each candidate.
 Treat evidence quality as the first filter. Prefer current, reproducible
 signals over old notes.
 
+## Outcome-Aware MAID Guidance
+
+Outcome records are deterministic manifest data, not agent-only memory. Use
+`maid learn`, `maid recall`, and `maid insights` as durable evidence sources
+when analyzing recent MAID work.
+
+- Use `maid insights` output as deterministic evidence for recurring lessons.
+- Route recurring Outcome lessons into the appropriate future draft queue when
+  the lesson has current evidence and a bounded owner lane.
+- Use recalled Outcome records to sharpen probes, but do not treat them as
+  proof that a current problem still exists.
+- Outcome insights do not replace current reproduction, behavioral tests, validation, or review.
+- Outcome records do not replace behavioral tests, declared scope, validation, or review.
+
 Evidence tiers:
 
 1. **Confirmed current failure:** a command, test, review, or bug report still

@@ -35,6 +35,29 @@ The canonical guidance is
 completion metadata, not a substitute for behavioral tests, declared artifacts,
 validation commands, supersession, or implementation review.
 
+## Outcome-Aware Skill Lifecycle
+
+Outcome records are deterministic manifest data. They are learned and recalled
+through explicit MAID commands, not inferred from agent memory. Skills may use
+`maid learn`, `maid recall`, and `maid insights` to gather historical evidence
+for the next contract, but recalled lessons do not replace behavioral tests,
+declared scope, validation, or review.
+
+| Role | Outcome use |
+|------|-------------|
+| `maid-planner` | Run `maid learn` when the index is missing or stale, then use `maid recall` to review related lessons before drafting. |
+| `maid-plan-review` | Check whether relevant recalled evidence informed the draft when available, without making recall an automatic approval or rejection rule. |
+| `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, while staying inside the approved manifest scope. |
+| `maid-implementation-review` | After the review verdict is ready, check whether the completed manifest needs an `outcome:` record backed by validation and review evidence. |
+| `maid-runner-draft-implement` | Recall related lessons before promotion and treat them as historical context for tests, implementation, and review packet quality. |
+| `maid-runner-self-improvement` | Use `maid insights` to route recurring Outcome lessons into the appropriate future draft queue. |
+
+The deterministic commands are promoted in the 047 Outcome-learning sequence:
+`maid learn` builds the index, `maid recall` searches it, and `maid insights`
+aggregates recurring patterns. If a downstream project has not promoted those
+commands yet, skill text must describe their use as future-facing command
+guidance until deterministic command support is promoted.
+
 ---
 
 ## Tool Packaging
@@ -61,6 +84,12 @@ repository under `.claude/skills/`: `maid-planner`, `maid-plan-review`,
 `maid-implementer`, `maid-implementation-review`, `maid-evolver`,
 `maid-auditor`, and `maid-incident-logger`. The Claude repo-level payload is
 generated from `.claude/skills/` by `scripts/sync_claude_files.py`.
+
+This repository also keeps repo-local Codex skill copies under `.codex/skills/`
+for Codex sessions started inside maid-runner. The general MAID Codex skills
+(`maid-planner`, `maid-plan-review`, `maid-implementer`, and
+`maid-implementation-review`) mirror the installed user-level skill behavior,
+while the `maid-runner-*` Codex skills add repository-specific workflow lanes.
 
 ---
 

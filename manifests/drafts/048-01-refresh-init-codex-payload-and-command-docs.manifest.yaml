@@ -41,7 +41,7 @@ temptations:
 files:
   read:
     - manifests/snapshot-cli-commands-init.manifest.yaml
-    - manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - .claude/manifest.json
     - .codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
     - .codex/skills/maid-runner-draft-implement/SKILL.md

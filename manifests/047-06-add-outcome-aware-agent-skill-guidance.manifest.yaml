@@ -4,7 +4,7 @@ goal: "Add Outcome-aware agent skill guidance"
 type: feature
 created: "2026-05-30"
 metadata:
-  status: planning
+  status: active
   tags:
     - agent-skills
     - maid-workflow
@@ -42,6 +42,7 @@ files:
     - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
     - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
     - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
     - docs/agent-skills.md
     - scripts/sync_claude_files.py
   create:
@@ -83,6 +84,62 @@ files:
                 function: Path.read_text
           expected:
             behavior: "The guidance either depends on promoted learn/recall/insights commands or clearly says unavailable commands are future-facing."
+    - path: .codex/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_local_planner_outcome_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of planner Outcome recall guidance."
+    - path: .codex/skills/maid-planner/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _codex_local_planner_agent_prompt
+          of: skill agent metadata
+          type: yaml mapping
+          description: "Repo-local Codex planner agent prompt metadata."
+    - path: .codex/skills/maid-plan-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_local_plan_review_outcome_evidence_check
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of plan-review Outcome evidence guidance."
+    - path: .codex/skills/maid-plan-review/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _codex_local_plan_review_agent_prompt
+          of: skill agent metadata
+          type: yaml mapping
+          description: "Repo-local Codex plan-review agent prompt metadata."
+    - path: .codex/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_local_implementer_outcome_context_guidance
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of implementer Outcome context guidance."
+    - path: .codex/skills/maid-implementer/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _codex_local_implementer_agent_prompt
+          of: skill agent metadata
+          type: yaml mapping
+          description: "Repo-local Codex implementer agent prompt metadata."
+    - path: .codex/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_local_implementation_review_outcome_capture_check
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of implementation-review Outcome capture guidance."
+    - path: .codex/skills/maid-implementation-review/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _codex_local_implementation_review_agent_prompt
+          of: skill agent metadata
+          type: yaml mapping
+          description: "Repo-local Codex implementation-review agent prompt metadata."
   edit:
     - path: .claude/skills/maid-planner/SKILL.md
       artifacts:
@@ -177,5 +234,104 @@ files:
           description: "Documentation of how agent skills consume deterministic Outcome recall and capture explicit Outcome records."
 validate:
   - uv run python -m pytest -q tests/test_claude_skill_distribution.py
-  - uv run maid validate manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode behavioral --quiet
-  - uv run maid validate manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added Outcome-aware guidance to Claude and Codex MAID skills."
+  rationale: "Implementation completed after focused validation, repository-wide MAID gates, and a read-only review loop confirmed that guidance stays tied to deterministic Outcome commands while preserving MAID contract boundaries."
+  lessons:
+    - lesson_type: distribution
+      summary: "Tests for generated Claude skill distribution should run the sync script in an isolated workspace instead of depending on ignored local generated files."
+      tags:
+        - claude-skills
+        - generated-files
+        - clean-checkout
+      paths:
+        - tests/test_claude_skill_distribution.py
+        - scripts/sync_claude_files.py
+    - lesson_type: scope-control
+      summary: "Downstream draft reference rewrites performed during promotion need to be represented in the promoted manifest scope."
+      tags:
+        - manifest-promotion
+        - implementation-review
+        - scope-control
+      paths:
+        - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+        - manifests/drafts/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+    - lesson_type: agent-skills
+      summary: "Repo-local Codex skill copies and installed user-level Codex skills can diverge; update both when the active Codex session behavior depends on the user-level skill tree."
+      tags:
+        - codex-skills
+        - agent-skills
+        - workflow-guidance
+      paths:
+        - .codex/skills/maid-planner/SKILL.md
+        - .codex/skills/maid-implementation-review/SKILL.md
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found the distribution test depended on ignored generated files under maid_runner/claude, which could fail in a clean checkout."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Re-review found the downstream 048 draft reference update was correct but not declared in the promoted manifest scope."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final re-review reported no findings and returned verdict ready after the isolated sync test, scope declaration, repo-local Codex skill copies, and validation reruns."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_claude_skill_distribution.py
+      status: passed
+      summary: "Focused skill guidance and distribution-sync tests passed with 4 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Promoted manifest behavioral validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+      status: passed
+      summary: "Promoted manifest test runner passed all three declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 204 active manifests, 85 skipped superseded manifests, and no failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 42 commands."
+  completed_at: "2026-05-31T11:38:00+08:00"

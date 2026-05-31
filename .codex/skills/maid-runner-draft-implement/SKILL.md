@@ -44,6 +44,18 @@ general MAID skills:
    red phase is meaningful.
 4. Restate the manifest `temptations` before editing.
 
+## Outcome-Aware MAID Guidance
+
+Outcome records are deterministic manifest data, not agent-only memory. When
+available, use `maid learn`, `maid recall`, and `maid insights` as explicit
+historical evidence for the current draft pass.
+
+- Before promoting a draft, use deterministic Outcome recall when a learned index is available.
+- Consult recalled Outcome records when choosing focused tests and code patterns.
+- Use `maid insights` only to identify recurring lesson patterns that may need
+  future manifests, not to expand this manifest's implementation scope.
+- Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.
+
 ## Automation-Selected Scope
 
 When invoked by `tools/codex_maid_loop.py`, implement only the

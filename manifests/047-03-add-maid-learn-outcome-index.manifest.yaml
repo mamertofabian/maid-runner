@@ -46,7 +46,7 @@ files:
     - manifests/047-01-add-manifest-outcome-schema.manifest.yaml
     - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
     - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
-    - manifests/drafts/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - maid_runner/core/chain.py
     - maid_runner/core/manifest.py
     - maid_runner/core/types.py
