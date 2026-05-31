@@ -94,6 +94,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json` |
+| `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
 | `maid bootstrap [directory]` | Bootstrap manifests for an existing project | `--output-dir`, `--exclude`, `--include-private`, `--dry-run`, `--json` |

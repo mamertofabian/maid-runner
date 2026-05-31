@@ -31,6 +31,7 @@ class TestBuildParser:
             "schema",
             "howto",
             "chain",
+            "benchmark",
             "serve",
             "audit",
         ):
@@ -85,6 +86,39 @@ class TestBuildParser:
         parser = build_parser()
         args = parser.parse_args(["test"])
         assert args.command == "test"
+
+    def test_benchmark_parser_accepts_output_and_project_options(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "benchmark",
+                "../tower-recall",
+                "--manifest-dir",
+                "contracts/",
+                "--command-prefix",
+                "uv",
+                "--command-prefix",
+                "run",
+                "--repeat",
+                "2",
+                "--json-output",
+                "benchmark.json",
+                "--markdown-output",
+                "benchmark.md",
+                "--json",
+            ]
+        )
+
+        assert args.command == "benchmark"
+        assert args.projects == ["../tower-recall"]
+        assert args.manifest_dir == "contracts/"
+        assert args.command_prefix == ["uv", "run"]
+        assert args.repeat == 2
+        assert args.json_output == "benchmark.json"
+        assert args.markdown_output == "benchmark.md"
+        assert args.json is True
 
     def test_parser_has_schema_subcommand(self):
         from maid_runner.cli.commands._main import build_parser

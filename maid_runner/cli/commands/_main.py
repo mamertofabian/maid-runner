@@ -25,6 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_learn_parser(sub)
     _register_recall_parser(sub)
     _register_insights_parser(sub)
+    _register_benchmark_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -291,6 +292,40 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--json", action="store_true")
 
 
+def _register_benchmark_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "benchmark",
+        help="Run local benchmark timings for MAID validation gates",
+    )
+    p.add_argument("projects", nargs="*", help="Project paths to benchmark")
+    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument(
+        "--command-prefix",
+        action="append",
+        default=[],
+        help="Prefix each measured command, repeat for multiple words",
+    )
+    p.add_argument(
+        "--repeat",
+        type=_positive_repeat_arg,
+        default=1,
+        help="Run the full benchmark matrix this many times per project",
+    )
+    p.add_argument("--json-output", default=None)
+    p.add_argument("--markdown-output", default=None)
+    p.add_argument("--json", action="store_true")
+
+
+def _positive_repeat_arg(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("repeat must be a positive integer") from exc
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("repeat must be a positive integer")
+    return parsed
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -456,6 +491,7 @@ def main(argv: list[str] | None = None) -> int:
         "learn": "_cmd_learn",
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
+        "benchmark": "_cmd_benchmark",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -484,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
         learn as learn_mod,
         recall as recall_mod,
         insights as insights_mod,
+        benchmark as benchmark_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -506,6 +543,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
+        "_cmd_benchmark": benchmark_mod.cmd_benchmark,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

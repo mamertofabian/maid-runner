@@ -1,0 +1,274 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add repeatable local benchmark harness for MAID validation gates"
+type: feature
+created: "2026-05-31"
+metadata:
+  github_issue: 119
+  tags:
+    - performance
+    - benchmark
+    - cli
+    - validation
+  priority: medium
+description: |
+  Add a repeatable local benchmark harness for MAID performance work so fresh
+  measurements can be gathered for the current repository and optional external
+  project paths. The harness should run the same gate matrix documented in the
+  performance backlog: schema validation, behavioral validation,
+  implementation validation, `maid test`, and `maid verify`.
+
+  The first slice is a measurement tool, not a regression gate. It must not add
+  CI thresholds or treat failed validation as success. Nonzero stage exits are
+  captured in JSON and Markdown output, keep the benchmark report unsuccessful,
+  and make the CLI return a nonzero exit code while still recording every stage
+  that ran.
+temptations:
+  - risk: "Do not add timing thresholds or CI failure budgets in this first benchmark slice."
+    instead: "Record durations and exit status only; leave threshold decisions to later baseline work."
+  - risk: "Do not skip failed stages or normalize nonzero validation exits into successful benchmark rows."
+    instead: "Capture each stage exit code, mark that stage and project unsuccessful, and return 1 from the CLI when any stage fails."
+  - risk: "Do not hard-code the maid-runner checkout as the only benchmark target."
+    instead: "Accept one or more project paths and an optional command prefix so external repositories can run against a local runner checkout."
+  - risk: "Do not hide the benchmark matrix only in prose."
+    instead: "Expose the stage command matrix through a tested public helper and the `maid benchmark` CLI."
+files:
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/cli/commands/test.py
+    - maid_runner/cli/commands/verify.py
+    - tests/cli/test_test_cmd.py
+    - tests/cli/test_verify_cmd.py
+    - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
+  create:
+    - path: maid_runner/core/benchmark.py
+      artifacts:
+        - kind: function
+          name: benchmark_stage_commands
+          args:
+            - name: manifest_dir
+              type: str
+          returns: "tuple[tuple[str, tuple[str, ...]], ...]"
+          source_scenario: "A local benchmark run needs the standard MAID performance stage matrix."
+          actions:
+            - type: api_call
+              subject:
+                function: benchmark_stage_commands
+          expected:
+            behavior: "The helper returns schema, behavioral, implementation, maid test, and maid verify commands in deterministic order."
+        - kind: function
+          name: run_benchmark
+          args:
+            - name: project_paths
+              type: "Sequence[Union[str, Path]]"
+            - name: command_prefix
+              type: "Sequence[str]"
+            - name: manifest_dir
+              type: str
+            - name: repeat
+              type: int
+          returns: "dict[str, object]"
+          source_scenario: "A benchmark run targets the current repository or one or more external project paths."
+          actions:
+            - type: api_call
+              subject:
+                function: run_benchmark
+          expected:
+            behavior: "The report records every configured stage with command, project path, exit code, success flag, duration, stdout/stderr tails, repeat index, and overall success without skipping later stages after a failure."
+        - kind: function
+          name: format_benchmark_markdown
+          args:
+            - name: report
+              type: "Mapping[str, object]"
+          returns: str
+          source_scenario: "A benchmark report is ready for human review."
+          actions:
+            - type: api_call
+              subject:
+                function: format_benchmark_markdown
+          expected:
+            behavior: "The formatter emits a concise Markdown table summarizing project, stage, status, duration, exit code, and command."
+    - path: maid_runner/cli/commands/benchmark.py
+      artifacts:
+        - kind: function
+          name: cmd_benchmark
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid benchmark` runs the local performance matrix and writes optional report files."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_benchmark
+          expected:
+            behavior: "The command runs the benchmark, emits JSON and Markdown according to output flags, and returns 1 when any measured stage fails."
+    - path: tests/core/test_benchmark.py
+      artifacts:
+        - kind: test_function
+          name: test_benchmark_stage_commands_cover_validation_test_and_verify_gates
+          source_scenario: "The benchmark matrix is generated for a custom manifest directory."
+          actions:
+            - type: api_call
+              subject:
+                function: benchmark_stage_commands
+          expected:
+            behavior: "The matrix contains schema, behavioral, implementation, maid test, and maid verify commands with the requested manifest directory."
+        - kind: test_function
+          name: test_run_benchmark_records_every_stage_and_failed_exit_code
+          source_scenario: "One validation stage exits nonzero during a benchmark run."
+          actions:
+            - type: api_call
+              subject:
+                function: run_benchmark
+          expected:
+            behavior: "The report marks the failed stage, project, and overall run unsuccessful while still recording all five stage executions."
+        - kind: test_function
+          name: test_format_benchmark_markdown_summarizes_projects_and_failures
+          source_scenario: "A benchmark report has one passing stage and one failing stage."
+          actions:
+            - type: api_call
+              subject:
+                function: format_benchmark_markdown
+          expected:
+            behavior: "The Markdown summary includes a table row for each stage with PASS/FAIL status, duration, exit code, and command text."
+    - path: tests/cli/test_benchmark_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_cmd_benchmark_writes_json_and_markdown_outputs
+          source_scenario: "The benchmark CLI is invoked with explicit JSON and Markdown output paths."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_benchmark
+          expected:
+            behavior: "The command writes machine-readable JSON, writes a Markdown table summary, prints the Markdown summary, and returns 0 for an all-passing report."
+        - kind: test_function
+          name: test_cmd_benchmark_returns_failure_when_stage_fails
+          source_scenario: "A measured benchmark stage exits nonzero."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_benchmark
+          expected:
+            behavior: "The command prints a JSON report with success false when requested and returns 1 instead of reporting success."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Return a parser that includes the new benchmark subcommand while preserving existing command registrations."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: "list[str] | None"
+          returns: int
+          description: "Dispatch the benchmark subcommand through the same lazy command-handler pattern as existing CLI commands."
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_parser_help_lists_all_top_level_commands
+          source_scenario: "The benchmark command is registered as a top-level command."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "Formatted help includes benchmark along with the existing top-level commands."
+        - kind: test_function
+          name: test_benchmark_parser_accepts_output_and_project_options
+          source_scenario: "A benchmark run is configured for an external project and explicit report files."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser accepts project paths, repeat count, manifest directory, command prefix, JSON output, Markdown output, and JSON stdout options."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _cli_reference_benchmark_command
+          of: README
+          type: markdown table row
+          description: "CLI reference entry documenting `maid benchmark` and its key local measurement options."
+validate:
+  - uv run python -m pytest -q tests/core/test_benchmark.py tests/cli/test_benchmark_cmd.py tests/cli/test_main.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
+outcome:
+  status: completed
+  summary: "Added `maid benchmark` as a repeatable local benchmark harness for schema, behavioral, implementation, maid test, and maid verify gates with JSON and Markdown reporting."
+  rationale: "A first-class CLI command keeps the performance matrix executable for the current checkout and external project paths, preserves failed validation exits in the report, and avoids threshold policy until stable baseline data exists."
+  completed_at: "2026-05-31T19:55:44+08:00"
+  lessons:
+    - lesson_type: benchmark-tooling
+      summary: "Local performance harnesses should report stage failures as measured failures, not normalize them into successful timing rows."
+      tags:
+        - performance
+        - benchmark
+        - validation
+      paths:
+        - maid_runner/core/benchmark.py
+        - maid_runner/cli/commands/benchmark.py
+    - lesson_type: manifest-validation
+      summary: "When contextual test files are listed in files.read, the manifest validate command must run those files or `maid test --manifest` rejects the contract with E230."
+      tags:
+        - maid
+        - test-runner
+        - manifest-contract
+      paths:
+        - manifests/049-01-add-local-benchmark-harness.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Independent read-only reviewer reported no findings and returned verdict ready; residual non-blocking gaps were end-to-end main dispatch, repeat > 1 report rows, and dash-prefixed command-prefix parser ergonomics."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/049-01-add-local-benchmark-harness.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed after the manifest command covered all declared contextual test files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/049-01-add-local-benchmark-harness.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the declared benchmark artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/049-01-add-local-benchmark-harness.manifest.yaml
+        - --json
+      status: passed
+      summary: "Manifest validation command passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --quiet
+      status: passed
+      summary: "Repository-wide MAID validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --json
+      status: passed
+      summary: "Repository-wide MAID test passed with 46 commands passing."
