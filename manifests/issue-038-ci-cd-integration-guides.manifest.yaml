@@ -1,0 +1,175 @@
+schema: "2"
+goal: "Write cross-platform CI/CD integration guides"
+type: feature
+created: "2026-06-01"
+metadata:
+  github_issue: 38
+  maid_task_base: c920aa91b501e96400195f1e7a4284e89b1f0af8
+  tags:
+    - documentation
+    - ci-cd
+    - github-actions
+    - gitlab-ci
+    - jenkins
+    - circleci
+  priority: medium
+description: |
+  Issue #38 asks for comprehensive CI/CD integration guides with documentation
+  for at least four CI/CD platforms, working examples for each, troubleshooting
+  guidance, and best practices.
+
+  GitHub Actions already has reusable workflow templates and a dedicated setup
+  guide from issue #32. Add a broader CI/CD guide that points GitHub users to
+  that canonical page while documenting GitLab CI, Jenkins, CircleCI, and a
+  generic shell template. The examples should preserve MAID's intended CI gate:
+  install dependencies, run `maid verify` with an explicit base reference where
+  changed-scope validation is required, run `maid test --json` as the
+  manifest-declared contract gate, and publish `.maid/` JSON reports as build
+  artifacts.
+temptations:
+  - risk: "Do not replace the existing GitHub Actions guide with duplicated partial setup text."
+    instead: "Keep docs/github-actions.md as the detailed GitHub reference and link to it from the cross-platform guide."
+  - risk: "Do not satisfy the platform count with shallow headings and no runnable examples."
+    instead: "Include concrete snippets for GitHub Actions, GitLab CI, Jenkins, CircleCI, and a generic shell pipeline."
+  - risk: "Do not document CI commands that rely on implicit branch baselines."
+    instead: "Show explicit base-ref handling for pull requests or merge requests and explain when push builds use the full gate."
+  - risk: "Do not make coverage reporting look like a replacement for MAID's declared tests."
+    instead: "Document `maid test --json` as the contract gate and keep coverage as a separate optional reporting step."
+files:
+  read:
+    - docs/github-actions.md
+    - docs/troubleshooting.md
+    - docs/planning/GITHUB_ISSUES_CREATED.md
+  create:
+    - path: docs/ci-cd-integration.md
+      artifacts:
+        - kind: attribute
+          name: _ci_cd_integration_guide
+          of: documentation
+          type: markdown document
+          description: "Cross-platform CI/CD guide covering GitHub Actions, GitLab CI, Jenkins, CircleCI, generic pipelines, troubleshooting, and best practices."
+    - path: tests/test_ci_cd_integration_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_ci_cd_integration_guide_covers_required_platforms
+          source_scenario: "The CI/CD integration guide and existing GitHub Actions guide are read as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The new guide is marked as the CI/CD integration guide, links to docs/github-actions.md, and covers GitHub Actions, GitLab CI, Jenkins, CircleCI, and a generic CI/CD template."
+        - kind: test_function
+          name: test_ci_cd_integration_guide_includes_working_examples
+          source_scenario: "The CI/CD integration guide's fenced examples are inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide includes platform file names, install commands, verify/test commands, and JSON/coverage artifact paths in copyable examples."
+        - kind: test_function
+          name: test_ci_cd_integration_guide_documents_troubleshooting_and_best_practices
+          source_scenario: "The CI/CD integration guide is read as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide documents troubleshooting topics and best practices for base refs, dependency installation, JSON artifacts, command integrity, validator warnings, verify/test ordering, and coverage boundaries."
+        - kind: test_function
+          name: test_readme_links_ci_cd_integration_guides
+          source_scenario: "The README is read as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The README links users to the cross-platform CI/CD guide and the GitHub Actions guide."
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _ci_cd_integration_entrypoint
+          of: documentation
+          type: markdown section
+          description: "README entry point that links users to the cross-platform CI/CD guide and dedicated GitHub Actions guide."
+validate:
+  - uv run python -m pytest -q tests/test_ci_cd_integration_docs.py
+  - uv run maid validate manifests/issue-038-ci-cd-integration-guides.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/issue-038-ci-cd-integration-guides.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added a cross-platform CI/CD integration guide for GitHub Actions, GitLab CI, Jenkins, CircleCI, and generic shell pipelines."
+  rationale: "Focused documentation tests, manifest implementation validation, full MAID validation, full MAID test gates, and independent re-review passed after correcting broken relative links and GitLab branch-pipeline fallback behavior."
+  lessons:
+    - lesson_type: documentation
+      summary: "Documentation tests for markdown guides should resolve relative links from the guide's directory instead of checking only visible link text."
+      tags:
+        - documentation
+        - markdown-links
+        - ci-cd
+      paths:
+        - docs/ci-cd-integration.md
+        - tests/test_ci_cd_integration_docs.py
+    - lesson_type: ci-cd
+      summary: "GitLab CI examples that use merge-request target variables need an explicit branch-pipeline fallback or rules that prevent branch execution."
+      tags:
+        - gitlab-ci
+        - ci-cd
+        - changed-scope
+      paths:
+        - docs/ci-cd-integration.md
+        - tests/test_ci_cd_integration_docs.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found sibling docs links resolved to docs/docs/... and the GitLab example failed on branch pipelines; both were fixed with regression coverage."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Re-review reported no findings and returned verdict ready, with residual risk limited to lack of live provider CI execution."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_ci_cd_integration_docs.py
+      status: passed
+      summary: "Focused CI/CD documentation tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/issue-038-ci-cd-integration-guides.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed with expected E307 no-validator warnings for markdown documentation."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/issue-038-ci-cd-integration-guides.manifest.yaml
+      status: passed
+      summary: "Manifest-declared validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full active manifest validation passed: 300 manifests, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test run passed: 54 commands, 0 failed."
+  completed_at: "2026-06-01T00:36:51Z"

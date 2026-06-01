@@ -158,6 +158,15 @@ maid audit supersessions --manifest-dir manifests --json
 maid audit supersessions --manifest-dir manifests --seal
 ```
 
+### CI/CD Integration
+
+<!-- _ci_cd_integration_entrypoint -->
+
+Use [CI/CD Integration](docs/ci-cd-integration.md) for GitHub Actions, GitLab
+CI, Jenkins, CircleCI, and generic pipeline examples that run `maid verify`,
+`maid test --json`, and publish `.maid/` JSON reports. GitHub users can also
+start from the dedicated [GitHub Actions guide](docs/github-actions.md).
+
 ### File Tracking
 
 When validating with manifest chains (default), MAID Runner reports file compliance status:
