@@ -13,7 +13,8 @@ from maid_runner.core.ts_module_paths import (
     resolve_ts_reexport,
     ts_file_to_module_path,
 )
-from maid_runner.validators.base import BaseValidator, CollectionResult
+from maid_runner.core.types import ArtifactKind
+from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
 
 try:
     from maid_runner.validators.typescript import TypeScriptValidator
@@ -57,16 +58,33 @@ class SvelteValidator(BaseValidator):
         file_path: Union[str, Path],
     ) -> CollectionResult:
         script_content = _extract_script(source, self._svelte_parser)
+        component_artifact = _component_artifact(file_path, bool(script_content))
         if not script_content:
             return CollectionResult(
-                artifacts=[], language="svelte", file_path=str(file_path)
+                artifacts=(
+                    [component_artifact] if component_artifact is not None else []
+                ),
+                language="svelte",
+                file_path=str(file_path),
             )
         # Delegate to TypeScript validator with .ts extension
         result = self._ts_validator.collect_implementation_artifacts(
             script_content, str(file_path).replace(".svelte", ".ts")
         )
+        artifacts = list(result.artifacts)
+        if component_artifact is not None:
+            artifacts = [
+                artifact
+                for artifact in artifacts
+                if not (
+                    artifact.kind == ArtifactKind.FUNCTION
+                    and artifact.of is None
+                    and artifact.name == component_artifact.name
+                )
+            ]
+            artifacts.append(component_artifact)
         return CollectionResult(
-            artifacts=result.artifacts,
+            artifacts=artifacts,
             language="svelte",
             file_path=str(file_path),
             errors=result.errors,
@@ -135,3 +153,23 @@ def _extract_script(source: str, parser: Parser) -> str:
         stack.extend(reversed(node.children))
 
     return "\n".join(scripts)
+
+
+def _component_artifact(
+    file_path: Union[str, Path], has_script_content: bool
+) -> Optional[FoundArtifact]:
+    if not has_script_content:
+        return None
+
+    component_name = Path(file_path).stem
+    if not component_name.isidentifier():
+        return None
+
+    module_path = ts_file_to_module_path(file_path, Path(".")) or None
+    return FoundArtifact(
+        kind=ArtifactKind.FUNCTION,
+        name=component_name,
+        returns="Svelte component instance",
+        line=1,
+        module_path=module_path,
+    )

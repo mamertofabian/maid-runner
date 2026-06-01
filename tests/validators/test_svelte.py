@@ -7,7 +7,10 @@ from pathlib import Path
 import pytest
 
 from maid_runner.core.identity import match_artifact_to_references
+from maid_runner.core.result import ErrorCode
 from maid_runner.core.types import ArtifactKind
+from maid_runner.core.types import ValidationMode
+from maid_runner.core.validate import ValidationEngine
 from maid_runner.validators.base import FoundArtifact
 
 try:
@@ -35,6 +38,110 @@ def _find(artifacts, name, kind=None):
                 continue
             return a
     return None
+
+
+def test_component_file_stem_is_collected_as_function_artifact(
+    validator: SvelteValidator,
+) -> None:
+    source = """<script lang="ts">
+export let repoName: string;
+</script>
+
+<section>{repoName}</section>
+"""
+
+    result = validator.collect_implementation_artifacts(
+        source, "src/lib/components/RepoSettings.svelte"
+    )
+
+    component = _find(result.artifacts, "RepoSettings", ArtifactKind.FUNCTION)
+    assert component is not None
+    assert component.module_path == "src/lib/components/RepoSettings"
+    assert component.line == 1
+
+
+def test_component_artifact_takes_precedence_over_same_name_script_helper(
+    validator: SvelteValidator,
+) -> None:
+    source = """<script lang="ts">
+function RepoSettings(repoName: string): string {
+    return repoName;
+}
+</script>
+
+<section>{RepoSettings('demo')}</section>
+"""
+
+    result = validator.collect_implementation_artifacts(
+        source, "src/lib/components/RepoSettings.svelte"
+    )
+
+    components = [
+        artifact
+        for artifact in result.artifacts
+        if artifact.name == "RepoSettings" and artifact.kind == ArtifactKind.FUNCTION
+    ]
+    assert len(components) == 1
+    assert components[0].returns == "Svelte component instance"
+    assert components[0].args == ()
+    assert components[0].line == 1
+
+
+def test_component_artifact_satisfies_implementation_validation(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "manifests" / "add-settings.manifest.yaml"
+    manifest_path.parent.mkdir()
+    manifest_path.write_text(
+        """schema: "2"
+goal: "Add settings component"
+type: feature
+files:
+  edit:
+    - path: src/lib/components/RepoSettings.svelte
+      artifacts:
+        - kind: function
+          name: RepoSettings
+          args:
+            - name: props
+              type: RepoSettings component props
+          returns: Svelte component instance
+  read:
+    - tests/repo-settings.test.ts
+validate:
+  - vitest run tests/repo-settings.test.ts
+"""
+    )
+    component_path = tmp_path / "src" / "lib" / "components" / "RepoSettings.svelte"
+    component_path.parent.mkdir(parents=True)
+    component_path.write_text(
+        """<script lang="ts">
+export let repoName: string;
+</script>
+
+<section>{repoName}</section>
+"""
+    )
+    test_path = tmp_path / "tests" / "repo-settings.test.ts"
+    test_path.parent.mkdir()
+    test_path.write_text(
+        """import RepoSettings from '../src/lib/components/RepoSettings.svelte';
+
+test('component can be imported', () => {
+  expect(RepoSettings).toBeDefined();
+});
+"""
+    )
+
+    result = ValidationEngine(project_root=tmp_path).validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+    )
+
+    assert result.success is True
+    assert not any(
+        error.code == ErrorCode.ARTIFACT_NOT_DEFINED for error in result.errors
+    )
 
 
 class TestSvelteScriptExtraction:

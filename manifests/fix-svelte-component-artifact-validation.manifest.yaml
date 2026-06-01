@@ -1,0 +1,133 @@
+schema: '2'
+goal: Detect Svelte component file artifacts during implementation validation
+type: fix
+created: '2026-06-01T09:05:00+08:00'
+description: |
+  Svelte component files are importable runtime surfaces even when their script
+  blocks only export props or helpers. Implementation validation should collect
+  a public function artifact named after the .svelte file stem so manifests can
+  declare component artifacts such as RepoSettings or FileChangesModal without
+  depending on private script internals.
+
+  This intentionally fixes only Svelte component artifact collection. Exported
+  TypeScript const fixtures such as Playwright base.extend remain modeled by
+  the TypeScript collector's existing exported attribute behavior unless a
+  separate manifest evolves that artifact model.
+temptations:
+  - risk: "Do not satisfy the regression by changing implementation validation to ignore missing Svelte artifacts."
+    instead: "Collect the Svelte component artifact through SvelteValidator.collect_implementation_artifacts so normal E300 checks stay strict."
+  - risk: "Do not expose Svelte script-local functions, props, or private handlers as component contracts."
+    instead: "Add exactly one public component artifact named from the .svelte file stem while preserving delegated TypeScript script artifacts."
+  - risk: "Do not fold Playwright fixture callable-const modeling into this Svelte validator fix."
+    instead: "Leave exported const fixture classification unchanged and document it as a separate artifact-model decision."
+files:
+  edit:
+    - path: maid_runner/validators/svelte.py
+      artifacts:
+        - kind: method
+          name: collect_implementation_artifacts
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: CollectionResult
+    - path: tests/validators/test_svelte.py
+      artifacts:
+        - kind: test_function
+          name: test_component_file_stem_is_collected_as_function_artifact
+        - kind: test_function
+          name: test_component_artifact_takes_precedence_over_same_name_script_helper
+        - kind: test_function
+          name: test_component_artifact_satisfies_implementation_validation
+  read:
+    - maid_runner/validators/base.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/_implementation_validation.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_svelte.py
+outcome:
+  status: completed
+  summary: |
+    Svelte implementation collection now exposes a component function artifact
+    named from the .svelte file stem, allowing brownfield component manifests to
+    pass implementation validation without declaring private script internals.
+  rationale: |
+    The fix keeps E300 enforcement strict by adding the artifact at collection
+    time instead of weakening implementation validation. The synthesized
+    component artifact replaces delegated same-name script functions so local
+    helpers cannot accidentally satisfy the component contract.
+  lessons:
+    - lesson_type: validator-artifact-modeling
+      summary: |
+        Framework file-level runtime surfaces may need explicit collector
+        artifacts even when the underlying script parser delegates to another
+        language validator.
+      tags:
+        - svelte
+        - implementation-validation
+        - artifact-collection
+      paths:
+        - maid_runner/validators/svelte.py
+        - tests/validators/test_svelte.py
+  review_notes:
+    - source: maid-implementation-review
+      severity: fixed
+      summary: |
+        First review found that a same-name script helper could suppress the
+        component artifact. The collector now gives the component artifact
+        precedence and a regression test covers that case.
+    - source: maid-implementation-review
+      severity: ready
+      summary: |
+        Second read-only review reported no findings and verdict ready, with
+        markup-only and non-identifier Svelte filenames left outside this
+        manifest's tested scope.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/validators/test_svelte.py
+      status: passed
+      summary: 24 Svelte validator tests passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-svelte-component-artifact-validation.manifest.yaml
+        - --mode
+        - behavioral
+      status: passed
+      summary: Behavioral validation passed for the manifest.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-svelte-component-artifact-validation.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: Implementation validation passed for the manifest.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: 301 manifests validated with 215 passed, 0 failed, and 86 skipped.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: 54 MAID test commands passed.
+  completed_at: '2026-06-01T09:31:00+08:00'
