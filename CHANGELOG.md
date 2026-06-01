@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-06-01
+
+### Added
+- **Runner graph CLI surfaces** — Added runner-owned graph query, export, and analyze APIs and CLI behavior for active manifest-chain graphs, deterministic JSON output, and file dependency analysis.
+- **Local benchmark harness** — Added `maid benchmark` for timing validation gates across local projects with JSON and Markdown report output support.
+- **CI/CD guidance and reusable workflows** — Added reusable GitHub Actions templates for MAID validation and test gates, plus cross-platform CI/CD integration guidance for GitHub Actions, GitLab CI, Jenkins, CircleCI, and shell pipelines.
+- **Troubleshooting guide** — Added a MAID troubleshooting guide covering validation, chain, scope, outcome, and workflow issues, exposed through `maid howto troubleshooting`.
+
+### Changed
+- **Release and init guidance** — Updated generated `maid init` Claude and Codex guidance so new MAID-enabled repositories require draft promotion outcomes and post-review Outcome capture.
+
+### Fixed
+- **Validation text output** — Single validation, batch validation, and verify text output now surface available error locations and suggestions while preserving JSON and quiet-mode contracts.
+- **Svelte component artifacts** — Svelte implementation collection now synthesizes component function artifacts from `.svelte` file stems so private script helpers cannot satisfy component contracts.
+
 ## [2.15.0] - 2026-05-31
 
 ### Added
@@ -998,6 +1013,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.16.0]: https://github.com/mamertofabian/maid-runner/compare/v2.15.0...v2.16.0
 [2.15.0]: https://github.com/mamertofabian/maid-runner/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/mamertofabian/maid-runner/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/mamertofabian/maid-runner/compare/v2.12.0...v2.13.0
