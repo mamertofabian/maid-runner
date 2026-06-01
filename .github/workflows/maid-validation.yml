@@ -69,6 +69,18 @@ jobs:
           INSTALL_COMMAND="${{ inputs['install-command'] || 'uv sync' }}"
           bash -euo pipefail -c "$INSTALL_COMMAND"
 
+      - name: Install maid-runner npm dependencies when package lock exists
+        run: |
+          if [[ "${{ github.repository }}" == "mamertofabian/maid-runner" && -f package-lock.json ]]; then
+            npm ci
+          fi
+
+      - name: Sync maid-runner packaged agent payloads when available
+        run: |
+          if [[ "${{ github.repository }}" == "mamertofabian/maid-runner" && -f scripts/sync_claude_files.py ]]; then
+            uv run python scripts/sync_claude_files.py
+          fi
+
       - name: Run MAID validation gate
         env:
           MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}

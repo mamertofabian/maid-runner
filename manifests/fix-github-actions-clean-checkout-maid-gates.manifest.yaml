@@ -1,0 +1,75 @@
+schema: "2"
+goal: "Prepare clean GitHub Actions checkouts before standalone MAID gates"
+type: fix
+created: "2026-06-01"
+metadata:
+  tags:
+    - github-actions
+    - ci-cd
+    - release
+  priority: high
+description: |
+  The standalone MAID validation and MAID test workflows run on direct pushes
+  to this repository as well as through workflow_call. In a clean GitHub Actions
+  checkout, generated package payloads under `maid_runner/claude/` are absent
+  because they are ignored source artifacts, and Node dependencies may also be
+  absent even though the manifest-declared test batch exercises TypeScript
+  behavior.
+
+  Add guarded preparation steps to both reusable workflows for this repository:
+  when `github.repository` is `mamertofabian/maid-runner`, run `npm ci` only
+  when `package-lock.json` exists, and run the packaged agent payload sync only
+  when this repository's `scripts/sync_claude_files.py` exists. Downstream
+  workflow_call users should keep the default reusable behavior without running
+  a caller-owned script at that path or receiving repository-specific npm work.
+temptations:
+  - risk: "Do not make reusable workflows depend unconditionally on this repository's sync script."
+    instead: "Guard the sync step so downstream repositories without the script skip it."
+  - risk: "Do not assume every MAID-enabled repository is a Node project."
+    instead: "Run npm installation only when a package lock is present."
+  - risk: "Do not hide the branch workflow failure as a release-only anomaly."
+    instead: "Cover the clean-checkout preparation contract in workflow template tests."
+files:
+  read:
+    - manifests/032-issue-github-actions-workflow-templates.manifest.yaml
+    - scripts/sync_claude_files.py
+    - package-lock.json
+  edit:
+    - path: .github/workflows/maid-validation.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_validation_clean_checkout_preparation
+          of: github_actions
+          type: workflow steps
+          description: "Validation workflow conditionally installs npm dependencies and syncs generated agent payloads for maid-runner checkouts before running maid verify."
+    - path: .github/workflows/maid-test.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_test_clean_checkout_preparation
+          of: github_actions
+          type: workflow steps
+          description: "MAID test workflow conditionally installs npm dependencies and syncs generated agent payloads for maid-runner checkouts before running maid test."
+    - path: tests/ci/test_github_actions_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_maid_validation_workflow_prepares_clean_checkout_assets
+          source_scenario: "The standalone validation workflow runs from a clean GitHub Actions checkout of this repository."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow prepares optional npm dependencies and generated agent payloads for maid-runner checkouts before running the validation gate without running caller-owned scripts."
+        - kind: test_function
+          name: test_maid_test_workflow_prepares_clean_checkout_assets
+          source_scenario: "The standalone MAID test workflow runs from a clean GitHub Actions checkout of this repository."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow prepares optional npm dependencies and generated agent payloads for maid-runner checkouts before running the MAID test contract without running caller-owned scripts."
+validate:
+  - uv run python -m pytest -q tests/ci/test_github_actions_templates.py
+  - uv run maid validate manifests/fix-github-actions-clean-checkout-maid-gates.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/fix-github-actions-clean-checkout-maid-gates.manifest.yaml --mode schema --quiet

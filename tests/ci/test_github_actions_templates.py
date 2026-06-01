@@ -21,6 +21,11 @@ def _run_steps(workflow: dict, job_name: str) -> list[str]:
     return [step["run"] for step in steps if "run" in step]
 
 
+def _step_names(workflow: dict, job_name: str) -> list[str]:
+    steps = workflow["jobs"][job_name]["steps"]
+    return [step["name"] for step in steps if "name" in step]
+
+
 def test_maid_validation_workflow_is_reusable_and_event_driven() -> None:
     workflow = _workflow(VALIDATION_WORKFLOW)
     triggers = workflow["on"]
@@ -42,6 +47,31 @@ def test_maid_validation_workflow_is_reusable_and_event_driven() -> None:
     assert "actions/upload-artifact" in str(job["steps"])
 
 
+def test_maid_validation_workflow_prepares_clean_checkout_assets() -> None:
+    workflow = _workflow(VALIDATION_WORKFLOW)
+    names = _step_names(workflow, "maid-validation")
+    runs = "\n".join(_run_steps(workflow, "maid-validation"))
+
+    assert "Install maid-runner npm dependencies when package lock exists" in names
+    assert "Sync maid-runner packaged agent payloads when available" in names
+    assert names.index("Install dependencies") < names.index(
+        "Install maid-runner npm dependencies when package lock exists"
+    )
+    assert names.index(
+        "Sync maid-runner packaged agent payloads when available"
+    ) < names.index("Run MAID validation gate")
+    assert (
+        '[[ "${{ github.repository }}" == "mamertofabian/maid-runner" '
+        "&& -f package-lock.json ]]" in runs
+    )
+    assert (
+        '[[ "${{ github.repository }}" == "mamertofabian/maid-runner" '
+        "&& -f scripts/sync_claude_files.py ]]" in runs
+    )
+    assert "npm ci" in runs
+    assert "scripts/sync_claude_files.py" in runs
+
+
 def test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref() -> None:
     source = VALIDATION_WORKFLOW.read_text(encoding="utf-8")
 
@@ -54,6 +84,31 @@ def test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref() -> Non
     assert "--no-changed-scope" in source
     assert "$GITHUB_STEP_SUMMARY" in source
     assert 'exit "$VERIFY_EXIT"' in source
+
+
+def test_maid_test_workflow_prepares_clean_checkout_assets() -> None:
+    workflow = _workflow(TEST_WORKFLOW)
+    names = _step_names(workflow, "maid-test")
+    runs = "\n".join(_run_steps(workflow, "maid-test"))
+
+    assert "Install maid-runner npm dependencies when package lock exists" in names
+    assert "Sync maid-runner packaged agent payloads when available" in names
+    assert names.index("Install dependencies") < names.index(
+        "Install maid-runner npm dependencies when package lock exists"
+    )
+    assert names.index(
+        "Sync maid-runner packaged agent payloads when available"
+    ) < names.index("Run MAID test contract")
+    assert (
+        '[[ "${{ github.repository }}" == "mamertofabian/maid-runner" '
+        "&& -f package-lock.json ]]" in runs
+    )
+    assert (
+        '[[ "${{ github.repository }}" == "mamertofabian/maid-runner" '
+        "&& -f scripts/sync_claude_files.py ]]" in runs
+    )
+    assert "npm ci" in runs
+    assert "scripts/sync_claude_files.py" in runs
 
 
 def test_maid_test_workflow_runs_contract_tests_and_coverage() -> None:
