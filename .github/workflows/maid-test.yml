@@ -1,0 +1,104 @@
+name: MAID Test
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version used to run MAID tests."
+        required: false
+        type: string
+        default: "3.12"
+      install-command:
+        description: "Dependency installation command."
+        required: false
+        type: string
+        default: "uv sync --group dev"
+      manifest-dir:
+        description: "Directory containing MAID manifests."
+        required: false
+        type: string
+        default: "manifests/"
+      test-jobs:
+        description: "Number of parallel MAID test jobs."
+        required: false
+        type: number
+        default: 1
+      coverage-command:
+        description: "Coverage command to run after maid test passes."
+        required: false
+        type: string
+        default: "uv run python -m pytest tests/ --cov --cov-report=xml"
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+      - "dev/**"
+      - "release/**"
+
+jobs:
+  maid-test:
+    name: MAID tests and coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ inputs['python-version'] || '3.12' }}
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: |
+          INSTALL_COMMAND="${{ inputs['install-command'] || 'uv sync --group dev' }}"
+          bash -euo pipefail -c "$INSTALL_COMMAND"
+
+      - name: Run MAID test contract
+        env:
+          MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}
+          TEST_JOBS: ${{ inputs['test-jobs'] || 1 }}
+        run: |
+          set +e
+          mkdir -p .maid
+          uv run maid test --json --manifest-dir "$MANIFEST_DIR" --jobs "$TEST_JOBS" > .maid/maid-test.json
+          TEST_EXIT=$?
+          {
+            echo "## MAID tests"
+            echo
+            echo "- Manifest directory: $MANIFEST_DIR"
+            echo "- JSON report: .maid/maid-test.json"
+            echo "- Exit code: $TEST_EXIT"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$TEST_EXIT"
+
+      - name: Run coverage command
+        run: |
+          COVERAGE_COMMAND="${{ inputs['coverage-command'] || 'uv run python -m pytest tests/ --cov --cov-report=xml' }}"
+          bash -euo pipefail -c "$COVERAGE_COMMAND"
+
+      - name: Upload MAID test report
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: maid-test-report
+          path: .maid/maid-test.json
+          if-no-files-found: error
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: warn
+
+# _maid_test_reusable_workflow

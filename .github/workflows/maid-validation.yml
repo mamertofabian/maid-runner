@@ -1,0 +1,116 @@
+name: MAID Validation
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version used to run MAID."
+        required: false
+        type: string
+        default: "3.12"
+      install-command:
+        description: "Dependency installation command."
+        required: false
+        type: string
+        default: "uv sync"
+      manifest-dir:
+        description: "Directory containing MAID manifests."
+        required: false
+        type: string
+        default: "manifests/"
+      base-ref:
+        description: "Optional explicit comparison base, such as origin/main."
+        required: false
+        type: string
+        default: ""
+      test-jobs:
+        description: "Number of parallel MAID test jobs for maid verify."
+        required: false
+        type: number
+        default: 1
+      extra-verify-args:
+        description: "Additional arguments passed to maid verify."
+        required: false
+        type: string
+        default: ""
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+      - "dev/**"
+      - "release/**"
+
+jobs:
+  maid-validation:
+    name: MAID validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ inputs['python-version'] || '3.12' }}
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: |
+          INSTALL_COMMAND="${{ inputs['install-command'] || 'uv sync' }}"
+          bash -euo pipefail -c "$INSTALL_COMMAND"
+
+      - name: Run MAID validation gate
+        env:
+          MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}
+          BASE_REF_INPUT: ${{ inputs['base-ref'] || '' }}
+          TEST_JOBS: ${{ inputs['test-jobs'] || 1 }}
+          EXTRA_VERIFY_ARGS: ${{ inputs['extra-verify-args'] || '' }}
+        run: |
+          set +e
+          mkdir -p .maid
+
+          VERIFY_EXIT=0
+          if [[ -n "$BASE_REF_INPUT" ]]; then
+            BASE_REF="$BASE_REF_INPUT"
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" --json $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            VERIFY_EXIT=$?
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            BASE_REF="origin/${{ github.base_ref }}"
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" --json $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            VERIFY_EXIT=$?
+          else
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --no-changed-scope --test-jobs "$TEST_JOBS" --json $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            VERIFY_EXIT=$?
+          fi
+
+          {
+            echo "## MAID validation"
+            echo
+            echo "- Event: ${{ github.event_name }}"
+            echo "- Manifest directory: $MANIFEST_DIR"
+            echo "- JSON report: .maid/maid-verify.json"
+            echo "- Exit code: $VERIFY_EXIT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "$VERIFY_EXIT"
+
+      - name: Upload MAID validation report
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: maid-verify-report
+          path: .maid/maid-verify.json
+          if-no-files-found: error
+
+# _maid_validation_reusable_workflow

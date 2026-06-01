@@ -1,0 +1,169 @@
+schema: "2"
+goal: "Create reusable GitHub Actions workflow templates for MAID validation"
+type: feature
+created: "2026-05-31"
+metadata:
+  github_issue: 32
+  tags:
+    - github-actions
+    - ci-cd
+    - workflow-templates
+  priority: high
+description: |
+  Issue #32 asks for reusable GitHub Actions workflows for MAID validation,
+  test execution, manifest-chain validation, PR gates, automated reporting, and
+  setup documentation.
+
+  Add reusable v2 workflow templates that downstream repositories can call with
+  workflow_call while also supporting direct push and pull_request validation in
+  this repository. The validation gate should use the current `maid verify`
+  command with JSON output and an explicit `--base-ref` for pull requests,
+  because changed-scope comparisons need a concrete base branch in CI. Push
+  validation should cover the full active manifest set without depending on a
+  changed-scope base ref. The separate test workflow should run `maid test` and
+  an overridable coverage command so teams can preserve MAID's declared test
+  contract while still publishing conventional coverage artifacts.
+temptations:
+  - risk: "Do not add workflows that only validate this repository's publish pipeline."
+    instead: "Make the workflows reusable through workflow_call and document downstream caller examples."
+  - risk: "Do not rely on implicit pull-request merge-base detection in CI."
+    instead: "Fetch the base branch and pass an explicit --base-ref to maid verify for pull_request runs."
+  - risk: "Do not hide machine-readable validation results in logs only."
+    instead: "Write JSON reports under .maid/, upload them as artifacts, and append a concise GitHub step summary."
+  - risk: "Do not replace MAID's manifest-declared tests with generic coverage alone."
+    instead: "Run maid test as the contract gate and keep coverage as an overridable follow-up command."
+files:
+  create:
+    - path: .github/workflows/maid-validation.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_validation_reusable_workflow
+          of: github_actions
+          type: workflow template
+          description: "Reusable push and PR MAID validation workflow that runs maid verify with JSON reporting and explicit PR base refs."
+    - path: .github/workflows/maid-test.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_test_reusable_workflow
+          of: github_actions
+          type: workflow template
+          description: "Reusable MAID test and coverage workflow that runs maid test with JSON reporting before an overridable coverage command."
+    - path: docs/github-actions.md
+      artifacts:
+        - kind: attribute
+          name: _github_actions_setup_guide
+          of: documentation
+          type: markdown document
+          description: "Setup guide for downstream reusable workflow callers, PR gates, push validation, JSON artifacts, and coverage customization."
+    - path: tests/ci/test_github_actions_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_maid_validation_workflow_is_reusable_and_event_driven
+          source_scenario: "The MAID validation workflow template is read as GitHub Actions YAML."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow exposes workflow_call inputs, pull_request and push triggers, installs dependencies, and uploads a JSON validation report."
+        - kind: test_function
+          name: test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref
+          source_scenario: "The validation job shell steps are inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Pull request validation fetches the base branch and runs maid verify --base-ref with --json, while push validation runs the full gate without changed-scope."
+        - kind: test_function
+          name: test_maid_test_workflow_runs_contract_tests_and_coverage
+          source_scenario: "The reusable MAID test workflow is read as GitHub Actions YAML."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow exposes workflow_call, runs maid test --json, runs an overridable coverage command, and uploads both test and coverage artifacts."
+        - kind: test_function
+          name: test_github_actions_docs_show_downstream_setup_and_reporting
+          source_scenario: "The GitHub Actions setup guide is read as markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs show downstream uses examples for both templates and explain PR base refs, push validation, JSON reports, PR gates, and coverage customization."
+validate:
+  - uv run python -m pytest -q tests/ci/test_github_actions_templates.py
+  - uv run maid validate manifests/032-issue-github-actions-workflow-templates.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/032-issue-github-actions-workflow-templates.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added reusable GitHub Actions workflow templates for MAID validation, MAID tests, coverage reporting, and downstream setup documentation."
+  rationale: "Focused workflow tests, manifest validation, full MAID validation, full MAID test gates, and independent implementation re-review passed after fixing documented ref and uv installer path issues."
+  lessons:
+    - lesson_type: ci-cd
+      summary: "Reusable workflow examples should reference a real branch or exact release tag, not an unpublished moving major tag."
+      tags:
+        - github-actions
+        - documentation
+        - release-tags
+      paths:
+        - docs/github-actions.md
+        - tests/ci/test_github_actions_templates.py
+    - lesson_type: ci-cd
+      summary: "Astral's uv installer should add $HOME/.local/bin to GITHUB_PATH in GitHub Actions templates."
+      tags:
+        - github-actions
+        - uv
+        - ci-cd
+      paths:
+        - .github/workflows/maid-validation.yml
+        - .github/workflows/maid-test.yml
+        - tests/ci/test_github_actions_templates.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found docs used @v2 even though the repository has no moving v2 tag; docs now use @main and explain exact release tags."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Second review found the uv installer path was wrong; workflows now add $HOME/.local/bin and tests guard against .cargo/bin."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final re-review reported no findings and returned verdict ready, with residual risk limited to lack of local actionlint and live downstream workflow execution."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/ci/test_github_actions_templates.py
+      status: passed
+      summary: "Focused reusable workflow template tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/032-issue-github-actions-workflow-templates.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed with expected E307 no-validator warnings for workflow YAML and markdown documentation."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full active manifest validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test gate passed with 52 commands."
+  completed_at: "2026-06-01T00:14:42Z"
