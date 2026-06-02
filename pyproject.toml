@@ -29,7 +29,7 @@ dependencies = [
 Homepage = "https://github.com/mamertofabian/maid-runner"
 Repository = "https://github.com/mamertofabian/maid-runner"
 Issues = "https://github.com/mamertofabian/maid-runner/issues"
-Documentation = "https://github.com/mamertofabian/maid-runner#readme"
+Documentation = "https://maid-runner.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
 typescript = [
@@ -51,6 +51,10 @@ watch = [
 ]
 
 [dependency-groups]
+docs = [
+    "sphinx>=7.4.7",
+    "furo>=2024.8.6",
+]
 dev = [
     "pytest>=8.4.2",
     "black>=25.1.0",
