@@ -289,9 +289,7 @@ def test_verify_default_fails_when_test_has_no_assertions(tmp_path, capsys):
     _write_verify_project(
         tmp_path,
         slug="verify-no-assertions",
-        test_source=(
-            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
-        ),
+        test_source=("from src.gate import gate\n\ndef test_gate():\n    gate()\n"),
     )
 
     exit_code = main(["verify", "--no-changed-scope"])
@@ -310,9 +308,7 @@ def test_verify_advisory_mode_allows_missing_assertion_warning(tmp_path, capsys)
     _write_verify_project(
         tmp_path,
         slug="verify-advisory-no-assertions",
-        test_source=(
-            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
-        ),
+        test_source=("from src.gate import gate\n\ndef test_gate():\n    gate()\n"),
     )
 
     exit_code = main(["verify", "--advisory", "--no-changed-scope"])
@@ -333,9 +329,7 @@ def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys)
         tmp_path,
         slug="verify-legacy-no-assertions",
         created="2026-05-16",
-        test_source=(
-            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
-        ),
+        test_source=("from src.gate import gate\n\ndef test_gate():\n    gate()\n"),
     )
 
     exit_code = main(["verify", "--no-changed-scope"])
@@ -344,6 +338,7 @@ def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys)
     output = capsys.readouterr().out
     assert "Verify: PASS" in output
     assert "PASS behavioral" in output
+    assert "E118" in output
     assert "E210" in output
     assert "test_gate" in output
 
@@ -605,9 +600,7 @@ def test_verify_json_preserves_missing_assertion_details(tmp_path, capsys):
     _write_verify_project(
         tmp_path,
         slug="verify-json-no-assertions",
-        test_source=(
-            "from src.gate import gate\n\n" "def test_gate():\n" "    gate()\n"
-        ),
+        test_source=("from src.gate import gate\n\ndef test_gate():\n    gate()\n"),
     )
 
     exit_code = main(["verify", "--json"])

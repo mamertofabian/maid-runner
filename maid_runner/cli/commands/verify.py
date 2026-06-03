@@ -405,7 +405,7 @@ def _has_blocking_validation_warnings(
         return False
 
     for error in getattr(result, "chain_errors", ()):
-        if _is_blocking_chain_warning(error):
+        if _is_blocking_chain_warning(error, project_root):
             return True
 
     for validation in getattr(result, "results", ()):
@@ -422,10 +422,14 @@ def _has_blocking_validation_warnings(
     return False
 
 
-def _is_blocking_chain_warning(error) -> bool:
+def _is_blocking_chain_warning(error, project_root: Path) -> bool:
     if getattr(error, "severity", None) != Severity.WARNING:
         return False
-    return getattr(error, "code", None) != ErrorCode.GRANDFATHERED_SUPERSESSION
+    if getattr(error, "code", None) == ErrorCode.GRANDFATHERED_SUPERSESSION:
+        return False
+    location = getattr(error, "location", None)
+    manifest_path = getattr(location, "file", "") if location is not None else ""
+    return _manifest_warnings_are_blocking(str(manifest_path), project_root)
 
 
 def _manifest_warnings_are_blocking(manifest_path: str, project_root: Path) -> bool:

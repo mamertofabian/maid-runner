@@ -40,9 +40,7 @@ def _write_clean_project(project: Path) -> None:
     )
     _write(
         project / "tests" / "test_beta.py",
-        "from src.beta import beta\n\n"
-        "def test_beta():\n"
-        "    assert beta() == 'beta'\n",
+        "from src.beta import beta\n\ndef test_beta():\n    assert beta() == 'beta'\n",
     )
     _write_manifest(
         project,
@@ -50,7 +48,7 @@ def _write_clean_project(project: Path) -> None:
         """schema: "2"
 goal: "Add alpha"
 type: feature
-created: "2026-01-01"
+created: "2026-01-01T00:00:00Z"
 files:
   create:
     - path: src/alpha.py
@@ -69,7 +67,7 @@ validate:
         """schema: "2"
 goal: "Add beta"
 type: feature
-created: "2026-01-02"
+created: "2026-01-02T00:00:00Z"
 files:
   create:
     - path: src/beta.py
@@ -157,7 +155,7 @@ def test_validate_all_locks_supersession_warning_shape(tmp_path: Path) -> None:
         """schema: "2"
 goal: "Replace missing base"
 type: feature
-created: "2026-01-01"
+created: "2026-01-01T00:00:00Z"
 supersedes:
   - missing-base
 files:
@@ -492,7 +490,7 @@ def test_validate_removed_artifacts_locks_method_requires_of(
 ) -> None:
     _write(
         tmp_path / "src" / "greet.py",
-        "class Greeter:\n" "    def old_method(self) -> None:\n" "        pass\n",
+        "class Greeter:\n    def old_method(self) -> None:\n        pass\n",
     )
     manifest_path = _write(
         tmp_path / "remove-old.manifest.yaml",

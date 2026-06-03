@@ -1,0 +1,109 @@
+schema: "2"
+goal: "Warn on every ambiguous active created timestamp, without date-based grandfathering."
+type: fix
+created: "2026-06-03T01:08:01Z"
+description: |
+  The 058 manifest made created timestamp diagnostics future-facing by skipping
+  active manifests whose created value sorted before 2026-06-03. That weakens
+  event-log trust in brownfield repositories: old active manifests can still be
+  ambiguous, and teams need to see those warnings before relying on created
+  ordering.
+
+  This follow-up keeps schema compatibility and automatic UTC stamping for new
+  create/promote flows, but removes the date cutoff from active-chain created
+  diagnostics. All active unsequenced date-only created values warn, and all
+  duplicate unsequenced created values warn, regardless of when the manifests
+  were written. Sequence numbers still take precedence, and slug remains the
+  final deterministic fallback when created values tie.
+temptations:
+  - risk: "Do not hide ambiguous historical manifests behind a migration cutoff."
+    instead: "Warn for every active imprecise or duplicate unsequenced created value while keeping validation non-failing by default."
+  - risk: "Do not remove slug ordering fallback while warning about ties."
+    instead: "Keep sequence_number -> created -> slug ordering deterministic and make the duplicate warning explain the slug fallback."
+  - risk: "Do not make schema validation reject date-only created values."
+    instead: "Keep schema compatibility and enforce the stronger behavior through chain diagnostics."
+
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+  read:
+    - tests/core/test_manifest_event_log.py
+    - tests/cli/test_verify_cmd.py
+    - tests/core/test_validate_engine_characterization.py
+    - manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml
+
+validate:
+  - uv run python -m pytest tests/core/test_manifest_event_log.py tests/cli/test_verify_cmd.py tests/core/test_validate_engine_characterization.py -q
+outcome:
+  status: completed
+  summary: "Removed date-based grandfathering from active created timestamp diagnostics while preserving deterministic slug fallback."
+  rationale: "The cutoff hid ambiguous historical active manifests, so the diagnostics now warn for every imprecise active unsequenced created value and every duplicate unsequenced active created value. The event-log sort remains sequence_number, then created, then slug, and verify applies its existing advisory/blocking policy to chain warnings by manifest location."
+  lessons:
+    - lesson_type: chain-semantics
+      summary: "Created timestamp diagnostics must not use a future cutoff because old active manifests can still affect current event-log ordering."
+      tags:
+        - manifest-chain
+        - created-timestamp
+        - sequencing
+      paths:
+        - maid_runner/core/chain.py
+        - tests/core/test_manifest_event_log.py
+    - lesson_type: validation-policy
+      summary: "When chain warnings point at a manifest file, verify should apply the same advisory/blocking age policy it uses for per-manifest warnings."
+      tags:
+        - verify
+        - warning-policy
+        - chain-diagnostics
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - tests/cli/test_verify_cmd.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Review found E118 also warned on sequenced manifests despite the contract only treating missing sequence_number as created-order ambiguity; E118 now skips sequenced manifests and has a regression test."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/core/test_manifest_event_log.py
+        - tests/cli/test_verify_cmd.py
+        - tests/core/test_validate_engine_characterization.py
+        - -q
+      status: passed
+      summary: "Focused manifest-chain, verify, and validation-engine tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed; existing active manifests now produce expected created-order warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 60 MAID-declared command groups passed; the run reports 239 created-order chain warnings from existing active manifests."

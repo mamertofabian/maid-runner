@@ -25,7 +25,6 @@ _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
 )
 _UTC_CREATED_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-_STRICT_CREATED_TIMESTAMP_SINCE = "2026-06-03"
 _ManifestDirSignature = tuple[tuple[str, int, int], ...]
 
 
@@ -476,9 +475,7 @@ class ManifestChain:
     def _detect_imprecise_created_timestamps(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
         for manifest in self.active_manifests():
-            if manifest.created is None:
-                continue
-            if manifest.created < _STRICT_CREATED_TIMESTAMP_SINCE:
+            if manifest.sequence_number is not None or manifest.created is None:
                 continue
             if _UTC_CREATED_TIMESTAMP_RE.match(manifest.created):
                 continue
@@ -487,9 +484,9 @@ class ManifestChain:
                     code=ErrorCode.IMPRECISE_CREATED_TIMESTAMP,
                     message=(
                         f"Manifest '{manifest.slug}' uses created "
-                        f"{manifest.created!r}; active manifests created on or "
-                        f"after {_STRICT_CREATED_TIMESTAMP_SINCE} should use a "
-                        "full UTC timestamp like 2026-06-03T07:41:32Z."
+                        f"{manifest.created!r}; active manifests should use a "
+                        "full UTC timestamp like 2026-06-03T07:41:32Z when "
+                        "sequence_number is absent."
                     ),
                     severity=Severity.WARNING,
                     location=Location(file=manifest.source_path),
@@ -502,8 +499,6 @@ class ManifestChain:
         created_to_paths: dict[str, list[str]] = {}
         for manifest in self.active_manifests():
             if manifest.sequence_number is not None or manifest.created is None:
-                continue
-            if manifest.created < _STRICT_CREATED_TIMESTAMP_SINCE:
                 continue
             created_to_slugs.setdefault(manifest.created, []).append(manifest.slug)
             created_to_paths.setdefault(manifest.created, []).append(

@@ -286,6 +286,30 @@ class TestChainEventLog:
 
         assert [m.slug for m in log] == ["a", "b", "c"]
 
+    def test_event_log_falls_back_to_slug_when_unsequenced_created_ties(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second by slug",
+            created="2026-01-01T10:30:00Z",
+        )
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first by slug",
+            created="2026-01-01T10:30:00Z",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        log = chain.event_log()
+
+        assert [m.slug for m in log] == ["a", "b"]
+
     def test_event_log_includes_superseded_manifests(self, tmp_path: Path) -> None:
         manifest_dir = tmp_path / "manifests"
         manifest_dir.mkdir()
@@ -424,7 +448,7 @@ class TestCreatedTimestampDiagnostics:
             manifest_dir,
             "date-only.manifest.yaml",
             goal="date only",
-            created="2026-06-03",
+            created="2026-04-25",
         )
 
         chain = ManifestChain(manifest_dir, tmp_path)
@@ -452,6 +476,26 @@ class TestCreatedTimestampDiagnostics:
         warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
         assert warnings == []
 
+    def test_sequenced_date_only_created_emits_no_imprecise_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "sequenced-date-only.manifest.yaml",
+            goal="sequenced date only",
+            created="2026-04-25",
+            sequence_number=1,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert warnings == []
+
     def test_duplicate_unsequenced_created_emits_ordering_warning(
         self, tmp_path: Path
     ) -> None:
@@ -462,13 +506,13 @@ class TestCreatedTimestampDiagnostics:
             manifest_dir,
             "a.manifest.yaml",
             goal="first",
-            created="2026-06-03T10:30:00Z",
+            created="2026-04-25T10:30:00Z",
         )
         _write_manifest(
             manifest_dir,
             "b.manifest.yaml",
             goal="second",
-            created="2026-06-03T10:30:00Z",
+            created="2026-04-25T10:30:00Z",
         )
 
         chain = ManifestChain(manifest_dir, tmp_path)
@@ -478,6 +522,7 @@ class TestCreatedTimestampDiagnostics:
             d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
         ]
         assert len(duplicates) == 1, f"Expected duplicate created warning: {diags}"
+        assert "falls back to slug" in duplicates[0].message
 
     def test_duplicate_created_is_not_ambiguous_when_sequence_numbers_exist(
         self, tmp_path: Path
