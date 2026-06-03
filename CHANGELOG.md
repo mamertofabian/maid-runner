@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.1] - 2026-06-03
+
+### Added
+- **Manifest promotion CLI** — Added `maid manifest promote` so draft manifests can be validated, cleaned for active lifecycle use, and moved into `manifests/` through the runner.
+
+### Changed
+- **Manifest creation timestamps** — `maid manifest create` now records full UTC `created` timestamps with time, preventing new drafts from tying on date-only metadata.
+- **Manifest chronology diagnostics** — Chain analysis now warns about future manifests that keep imprecise or duplicate `created` timestamps when no sequence number is available.
+
+### Fixed
+- **Draft promotion safety** — Promotion rejects invalid manifest names, malformed YAML, duplicate YAML keys, and schema-invalid drafts before writing active manifests, and it avoids partial output or draft deletion on failure.
+
 ## [2.16.0] - 2026-06-01
 
 ### Added
@@ -1013,6 +1025,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.16.1]: https://github.com/mamertofabian/maid-runner/compare/v2.16.0...v2.16.1
 [2.16.0]: https://github.com/mamertofabian/maid-runner/compare/v2.15.0...v2.16.0
 [2.15.0]: https://github.com/mamertofabian/maid-runner/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/mamertofabian/maid-runner/compare/v2.13.0...v2.14.0

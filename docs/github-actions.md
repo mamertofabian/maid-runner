@@ -91,7 +91,7 @@ artifact, uploads `coverage.xml` as the `coverage-report` artifact when present,
 and appends the MAID test status to `$GITHUB_STEP_SUMMARY`.
 
 The examples use `@main` because this repository publishes exact release tags
-such as `v2.16.0`, not a moving `v2` major tag. Pin to an exact release tag
+such as `v2.16.1`, not a moving `v2` major tag. Pin to an exact release tag
 after the templates are released if your project needs immutable CI behavior.
 
 ## Inputs
