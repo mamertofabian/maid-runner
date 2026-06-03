@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.3] - 2026-06-03
+
+### Fixed
+- **`maid verify` warning policy** — Created-order chain diagnostics (`E118` and `E119`) remain visible in verify output and JSON, but no longer fail the default verify gate.
+
 ## [2.16.2] - 2026-06-03
 
 ### Fixed
