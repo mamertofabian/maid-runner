@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Callable, Optional, Union
 
 from maid_runner.compat.v1_loader import is_v1_manifest
@@ -23,6 +24,8 @@ _MANIFEST_FILE_PATTERNS = ("*.manifest.yaml", "*.manifest.yml", "*.manifest.json
 _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
 )
+_UTC_CREATED_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_STRICT_CREATED_TIMESTAMP_SINCE = "2026-06-03"
 _ManifestDirSignature = tuple[tuple[str, int, int], ...]
 
 
@@ -470,6 +473,61 @@ class ManifestChain:
                 )
         return errors
 
+    def _detect_imprecise_created_timestamps(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
+        for manifest in self.active_manifests():
+            if manifest.created is None:
+                continue
+            if manifest.created < _STRICT_CREATED_TIMESTAMP_SINCE:
+                continue
+            if _UTC_CREATED_TIMESTAMP_RE.match(manifest.created):
+                continue
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.IMPRECISE_CREATED_TIMESTAMP,
+                    message=(
+                        f"Manifest '{manifest.slug}' uses created "
+                        f"{manifest.created!r}; active manifests created on or "
+                        f"after {_STRICT_CREATED_TIMESTAMP_SINCE} should use a "
+                        "full UTC timestamp like 2026-06-03T07:41:32Z."
+                    ),
+                    severity=Severity.WARNING,
+                    location=Location(file=manifest.source_path),
+                )
+            )
+        return errors
+
+    def _detect_duplicate_unsequenced_created(self) -> list[ValidationError]:
+        created_to_slugs: dict[str, list[str]] = {}
+        created_to_paths: dict[str, list[str]] = {}
+        for manifest in self.active_manifests():
+            if manifest.sequence_number is not None or manifest.created is None:
+                continue
+            if manifest.created < _STRICT_CREATED_TIMESTAMP_SINCE:
+                continue
+            created_to_slugs.setdefault(manifest.created, []).append(manifest.slug)
+            created_to_paths.setdefault(manifest.created, []).append(
+                manifest.source_path
+            )
+
+        errors: list[ValidationError] = []
+        for created, slugs in created_to_slugs.items():
+            if len(slugs) <= 1:
+                continue
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.DUPLICATE_UNSEQUENCED_CREATED,
+                    message=(
+                        f"Duplicate created value {created!r} among unsequenced "
+                        f"active manifests: {', '.join(sorted(slugs))}. "
+                        "Event order falls back to slug for this tie."
+                    ),
+                    severity=Severity.WARNING,
+                    location=Location(file=created_to_paths[created][0]),
+                )
+            )
+        return errors
+
     def diagnostics(self) -> list[ValidationError]:
         """Return all chain-level diagnostics discovered during loading."""
         diagnostics = (
@@ -480,6 +538,8 @@ class ManifestChain:
             + self._detect_mixed_ordering()
             + self._detect_duplicate_sequence()
             + self._detect_non_monotonic_sequence()
+            + self._detect_imprecise_created_timestamps()
+            + self._detect_duplicate_unsequenced_created()
             + self.audit_supersession_artifacts()
         )
         return [

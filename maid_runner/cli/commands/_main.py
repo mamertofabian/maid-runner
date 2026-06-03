@@ -362,6 +362,10 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         help="Add task-specific anti-gaming guidance as 'risk::instead'.",
     )
+    pp = msub.add_parser("promote", help="Promote a draft manifest")
+    pp.add_argument("manifest_path")
+    pp.add_argument("--output-dir", default="manifests/")
+    pp.add_argument("--json", action="store_true")
 
 
 def _register_manifests_parser(sub: argparse._SubParsersAction) -> None:

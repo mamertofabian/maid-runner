@@ -409,6 +409,107 @@ class TestDuplicateSequenceNumber:
 
 
 # ---------------------------------------------------------------------------
+# created timestamp precision diagnostics
+# ---------------------------------------------------------------------------
+
+
+class TestCreatedTimestampDiagnostics:
+    def test_date_only_created_emits_imprecise_timestamp_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "date-only.manifest.yaml",
+            goal="date only",
+            created="2026-06-03",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert len(warnings) == 1, f"Expected imprecise created warning: {diags}"
+
+    def test_full_utc_created_timestamp_emits_no_imprecise_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "timestamped.manifest.yaml",
+            goal="timestamped",
+            created="2026-06-02T10:30:00Z",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert warnings == []
+
+    def test_duplicate_unsequenced_created_emits_ordering_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-06-03T10:30:00Z",
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-06-03T10:30:00Z",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        duplicates = [
+            d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
+        ]
+        assert len(duplicates) == 1, f"Expected duplicate created warning: {diags}"
+
+    def test_duplicate_created_is_not_ambiguous_when_sequence_numbers_exist(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-06-03T10:30:00Z",
+            sequence_number=1,
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-06-03T10:30:00Z",
+            sequence_number=2,
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        duplicates = [
+            d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
+        ]
+        assert duplicates == []
+
+
+# ---------------------------------------------------------------------------
 # Non-monotonic sequence_number diagnostic
 # ---------------------------------------------------------------------------
 

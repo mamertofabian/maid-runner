@@ -1,0 +1,173 @@
+schema: "2"
+goal: "Enforce full UTC created timestamps at manifest creation and promotion, and warn when active unsequenced manifests have ambiguous created ordering."
+type: feature
+created: "2026-06-03T00:02:00Z"
+description: |
+  Collaborative repositories hit duplicate sequence_number conflicts, so new
+  unsequenced manifests need useful chronological metadata without making
+  hand-assigned sequence numbers mandatory. This manifest makes MAID-owned
+  creation paths write full UTC ISO-8601 timestamps, adds an explicit
+  promotion command that stamps active manifests at promotion time, and surfaces
+  active-chain warnings when unsequenced manifests still rely on date-only or
+  duplicate created values.
+
+  Rationale:
+    - Promotion time is the active event-log time; draft creation time can be
+      stale and often has only a date.
+    - Existing historical manifests remain schema-valid for backward
+      compatibility; validation warnings guide migration without breaking old
+      repositories.
+    - Duplicate exact created values only matter for unsequenced active
+      manifests because sequence_number already supplies order when present.
+temptations:
+  - risk: "Do not make manifest schema v2 reject date-only created values."
+    instead: "Keep old manifests loadable and add active-chain warnings plus generation-time stamping."
+  - risk: "Do not add sequence_number auto-assignment to avoid timestamp ties."
+    instead: "Use full UTC created timestamps for create/promote and leave sequence_number optional."
+  - risk: "Do not test timestamp behavior by importing private helper functions."
+    instead: "Assert observable YAML output and public CLI command behavior through cmd_manifest and main."
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: IMPRECISE_CREATED_TIMESTAMP
+          of: ErrorCode
+          type: str
+        - kind: attribute
+          name: DUPLICATE_UNSEQUENCED_CREATED
+          of: ErrorCode
+          type: str
+
+  read:
+    - tests/cli/test_manifest_cmd.py
+    - tests/core/test_manifest_event_log.py
+    - maid_runner/core/manifest.py
+    - maid_runner/schemas/manifest.v2.schema.json
+
+validate:
+  - uv run python -m pytest tests/cli/test_manifest_cmd.py tests/core/test_manifest_event_log.py -q
+outcome:
+  status: completed
+  summary: "Added UTC timestamp stamping for manifest creation and safe draft promotion, plus future-facing created-order diagnostics."
+  rationale: "The implementation keeps schema v2 backward-compatible while making MAID-owned creation and promotion paths emit full UTC timestamps; promotion now validates drafts before writing or deleting them, and full MAID validation, full MAID tests, formatting, linting, and implementation review passed."
+  lessons:
+    - lesson_type: workflow-hardening
+      summary: "Promotion commands should validate through the same manifest loader and schema path used by normal MAID validation before writing active files or deleting drafts."
+      tags:
+        - manifest-promotion
+        - loader-safety
+        - schema-validation
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_cmd.py
+    - lesson_type: chain-semantics
+      summary: "Future unsequenced manifests can avoid sequence-number collaboration conflicts by using full UTC created timestamps, with warnings for imprecise or duplicate active ordering metadata."
+      tags:
+        - created-timestamp
+        - manifest-chain
+        - sequence-number
+      paths:
+        - maid_runner/core/chain.py
+        - tests/core/test_manifest_event_log.py
+    - lesson_type: review-hardening
+      summary: "Review found promotion edge cases around JSON/YAML format mismatch, inactive metadata, invalid schema, duplicate YAML keys, undiscoverable filenames, and output-directory side effects; each needed a regression test before the final ready verdict."
+      tags:
+        - implementation-review
+        - promotion-safety
+        - regression-tests
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_cmd.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "First review found that JSON draft promotion would write YAML content to a .json path and that metadata.status: draft would remain active-invalid; both were fixed."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Second review found promotion did not validate draft schema or reject duplicate YAML keys before deleting the draft; promotion now uses load_manifest_raw and validate_manifest_schema before writing."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Third review found non-discoverable YAML filenames and output-directory creation on failed promotion; promotion now requires .manifest.yaml/.manifest.yml and delays directory creation until validation passes."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final re-review reported no findings and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/cli/test_manifest_cmd.py
+        - tests/core/test_manifest_event_log.py
+        - -q
+      status: passed
+      summary: "Focused CLI and manifest-chain tests passed with 64 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Manifest implementation validation passed after the final promotion safety fixes."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_cmd.py
+      status: passed
+      summary: "Focused lint check passed for the final promotion implementation and tests."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - .
+      status: passed
+      summary: "Repository formatting check passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full active manifest validation passed: 304 manifests, 218 passed, 86 skipped, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test gate passed: 60 commands, 60 passed."
+  completed_at: "2026-06-03T00:21:57Z"
