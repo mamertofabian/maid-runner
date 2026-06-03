@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.2] - 2026-06-03
+
+### Fixed
+- **Manifest chronology warnings** — Removed the date-based cutoff from active unsequenced `created` timestamp diagnostics so ambiguous historical manifests now warn too.
+- **Sequenced manifest warning scope** — Kept date-only `created` warnings scoped to manifests without `sequence_number`, since sequenced manifests already have explicit ordering.
+- **Created tie messaging** — Duplicate unsequenced `created` warnings now state that event ordering falls back to the manifest slug for deterministic ties.
+
 ## [2.16.1] - 2026-06-03
 
 ### Added
