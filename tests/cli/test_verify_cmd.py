@@ -343,6 +343,81 @@ def test_verify_legacy_manifest_warning_is_advisory_by_default(tmp_path, capsys)
     assert "test_gate" in output
 
 
+def test_verify_created_timestamp_chain_warning_is_advisory_by_default(
+    tmp_path, capsys
+):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-current-date-only",
+        created="2026-06-02",
+    )
+
+    exit_code = main(["verify", "--no-changed-scope"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "E118" in output
+
+
+def test_verify_duplicate_created_chain_warning_is_advisory_by_default(
+    tmp_path, capsys
+):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    _write_verify_project(
+        tmp_path,
+        slug="verify-duplicate-created",
+        created="2026-06-02T10:30:00Z",
+    )
+    (tmp_path / "src" / "other.py").write_text(
+        "def other() -> str:\n    value = 'ok'\n    return value\n"
+    )
+    (tmp_path / "tests" / "test_other.py").write_text(
+        "from src.other import other\n\n"
+        "def test_other():\n"
+        "    assert other() == 'ok'\n"
+    )
+    (tmp_path / "manifests" / "verify-duplicate-created-read.manifest.yaml").write_text(
+        yaml.dump(
+            {
+                "schema": "2",
+                "goal": "Duplicate created warning",
+                "type": "feature",
+                "created": "2026-06-02T10:30:00Z",
+                "files": {
+                    "create": [
+                        {
+                            "path": "src/other.py",
+                            "artifacts": [
+                                {
+                                    "kind": "function",
+                                    "name": "other",
+                                    "returns": "str",
+                                }
+                            ],
+                        }
+                    ],
+                    "read": ["tests/test_other.py"],
+                },
+                "validate": ["python -m pytest tests/test_other.py -q"],
+            }
+        )
+    )
+
+    exit_code = main(["verify", "--no-changed-scope"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "E119" in output
+    assert "falls back to slug" in output
+
+
 def test_verify_validator_unavailable_warning_is_advisory_by_default(
     tmp_path,
 ):

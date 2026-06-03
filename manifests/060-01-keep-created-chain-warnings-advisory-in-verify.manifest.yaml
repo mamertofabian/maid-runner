@@ -1,0 +1,86 @@
+schema: "2"
+goal: "Keep created timestamp chain warnings advisory in maid verify."
+type: fix
+created: "2026-06-03T01:46:30Z"
+description: |
+  The 059 follow-up correctly removed date-based grandfathering from active
+  unsequenced created timestamp diagnostics, but default `maid verify` treated
+  the newly surfaced E118/E119 chain warnings as blocking for manifests created
+  after the strict-warning cutoff. That made branch validation fail even though
+  these diagnostics are intended to surface sequencing ambiguity without
+  blocking release gates by default.
+
+  This fix keeps E118 and E119 visible in verify output and JSON while making
+  them advisory chain warnings. Other warning policies remain unchanged.
+temptations:
+  - risk: "Do not hide E118/E119 from verify output to make CI green."
+    instead: "Keep the warnings visible but non-blocking in the default verify gate."
+  - risk: "Do not weaken all verify warnings."
+    instead: "Scope the advisory policy only to created-order chain warning codes."
+
+files:
+  edit:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _is_blocking_chain_warning
+          args:
+            - name: error
+              type: ValidationError
+            - name: project_root
+              type: Path
+          returns: bool
+
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_created_timestamp_chain_warning_is_advisory_by_default
+        - kind: test_function
+          name: test_verify_duplicate_created_chain_warning_is_advisory_by_default
+
+  read:
+    - manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml
+    - .github/workflows/maid-validation.yml
+
+validate:
+  - uv run python -m pytest tests/cli/test_verify_cmd.py -q
+outcome:
+  status: completed
+  summary: "Made created-order chain warnings advisory in maid verify while preserving warning visibility."
+  rationale: "E118 and E119 are sequencing diagnostics for ambiguous unsequenced manifests; branch validation should continue to show them without failing the default verify gate. The fix scopes advisory behavior to those chain warning codes and leaves other warning failure policy intact."
+  lessons:
+    - lesson_type: release-gate-policy
+      summary: "New chain diagnostics that intentionally warn on brownfield history must be checked against maid verify, not only maid validate, because verify can apply stricter warning failure policy."
+      tags:
+        - verify
+        - chain-diagnostics
+        - release-gates
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - tests/cli/test_verify_cmd.py
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/cli/test_verify_cmd.py
+        - -q
+        - -k
+        - created_timestamp_chain_warning_is_advisory or duplicate_created_chain_warning_is_advisory
+      status: passed
+      summary: "Targeted red/green regression tests passed after the advisory-chain warning policy change."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --manifest-dir
+        - manifests/
+        - --no-changed-scope
+        - --test-jobs
+        - "1"
+        - --json
+      status: passed
+      summary: "The exact branch validation command now exits 0 while preserving 239 created-order chain warnings in JSON output."

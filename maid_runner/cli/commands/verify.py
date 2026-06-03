@@ -12,6 +12,7 @@ from typing import Union
 from maid_runner.cli.commands._format import format_verify_result, print_error
 from maid_runner.core.result import (
     ErrorCode,
+    ValidationError,
     Severity,
     VerificationResult,
     VerificationStageResult,
@@ -21,6 +22,13 @@ from maid_runner.core.result import (
 _STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
 _WARNING_ADVISORY_TASK_TYPES = frozenset({"snapshot", "system-snapshot"})
 _ADVISORY_WARNING_CODES = frozenset({ErrorCode.VALIDATOR_NOT_AVAILABLE})
+_ADVISORY_CHAIN_WARNING_CODES = frozenset(
+    {
+        ErrorCode.GRANDFATHERED_SUPERSESSION,
+        ErrorCode.IMPRECISE_CREATED_TIMESTAMP,
+        ErrorCode.DUPLICATE_UNSEQUENCED_CREATED,
+    }
+)
 _BASE_VALIDATOR_DEFAULT_HOOK_STUBS = frozenset(
     {
         "generate_test_stub",
@@ -422,10 +430,10 @@ def _has_blocking_validation_warnings(
     return False
 
 
-def _is_blocking_chain_warning(error, project_root: Path) -> bool:
+def _is_blocking_chain_warning(error: ValidationError, project_root: Path) -> bool:
     if getattr(error, "severity", None) != Severity.WARNING:
         return False
-    if getattr(error, "code", None) == ErrorCode.GRANDFATHERED_SUPERSESSION:
+    if getattr(error, "code", None) in _ADVISORY_CHAIN_WARNING_CODES:
         return False
     location = getattr(error, "location", None)
     manifest_path = getattr(location, "file", "") if location is not None else ""
