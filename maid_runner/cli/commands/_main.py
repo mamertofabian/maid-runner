@@ -243,6 +243,8 @@ def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--output-dir", default="manifests/")
     p.add_argument("--exclude", action="append", default=None)
     p.add_argument("--no-gitignore", action="store_true")
+    p.add_argument("--rank", action="store_true")
+    p.add_argument("--limit", type=int, default=20)
     p.add_argument("--include-private", action="store_true")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--json", action="store_true")

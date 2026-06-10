@@ -4,7 +4,7 @@ goal: "Extend maid bootstrap with a ranked, bounded adoption plan for undeclared
 type: feature
 created: "2026-06-10T01:04:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 061-00-manifest-authoring-and-brownfield-onboarding
   tags:
     - adoption
@@ -185,4 +185,4 @@ files:
     - tests/cli/test_bootstrap_rank_cmd.py
 validate:
   - uv run python -m pytest tests/core/test_bootstrap_ranking.py tests/cli/test_bootstrap_rank_cmd.py -v
-  - uv run maid validate manifests/drafts/061-04-rank-bootstrap-adoption-plan.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml --mode schema --quiet
