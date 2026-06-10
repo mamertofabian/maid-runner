@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
+import shlex
 
 from maid_runner.cli.commands._format import print_error
 
@@ -23,6 +24,8 @@ def cmd_manifest(args: argparse.Namespace) -> int:
         return _cmd_create(args)
     if args.manifest_command == "promote":
         return _cmd_promote(args)
+    if args.manifest_command == "from-diff":
+        return _cmd_from_diff(args)
     return 2
 
 
@@ -174,11 +177,104 @@ def _cmd_promote(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_from_diff(args: argparse.Namespace) -> int:
+    from maid_runner.core.diff_scope import (
+        DiffScopeError,
+        collect_diff_scope,
+    )
+    from maid_runner.core.manifest_from_diff import (
+        FromDiffRenderError,
+        build_from_diff_manifest,
+        default_from_diff_slug,
+        write_from_diff_manifest,
+    )
+
+    baseline = _baseline_from_args(args)
+    if baseline is None:
+        print_error(
+            "Changed-scope baseline required: pass the task baseline explicitly; "
+            "MAID will not guess main, dev, or a remote branch."
+        )
+        return 2
+
+    try:
+        slug = args.slug or default_from_diff_slug(Path.cwd(), baseline)
+        diff = collect_diff_scope(Path.cwd(), baseline)
+        output_path = Path(args.output or f"manifests/drafts/{slug}.manifest.yaml")
+        if not _is_manifest_draft_path(output_path):
+            raise FromDiffRenderError(
+                f"Manifest from-diff output must be under manifests/drafts/: {output_path}"
+            )
+        data = build_from_diff_manifest(diff, slug)
+        _set_validate_path(data, output_path)
+
+        if args.dry_run:
+            if args.json:
+                print(json.dumps(data, indent=2))
+            else:
+                import yaml
+
+                print(yaml.safe_dump(data, default_flow_style=False, sort_keys=False))
+            return 0
+
+        path = write_from_diff_manifest(data, output_path, force=args.force)
+    except (DiffScopeError, FromDiffRenderError) as exc:
+        print_error(str(exc))
+        return 2
+
+    if args.json:
+        print(json.dumps({"path": str(path)}, indent=2))
+    else:
+        print(f"Wrote {path}")
+    return 0
+
+
+def _set_validate_path(data: dict, output_path: Path) -> None:
+    data["validate"] = [
+        f"maid validate {shlex.quote(_display_output_path(output_path))} --mode schema --quiet"
+    ]
+
+
+def _display_output_path(output_path: Path) -> str:
+    try:
+        return output_path.resolve(strict=False).relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        return output_path.as_posix()
+
+
+def _is_manifest_draft_path(path: Path) -> bool:
+    root = Path.cwd().resolve(strict=False)
+    draft_root = (root / "manifests" / "drafts").resolve(strict=False)
+    candidate = path if path.is_absolute() else root / path
+    try:
+        candidate.resolve(strict=False).relative_to(draft_root)
+    except ValueError:
+        return False
+    return True
+
+
 def _artifact_to_manifest_dict(artifact) -> dict:
     data = {"kind": artifact.kind.value, "name": artifact.name}
     if artifact.of:
         data["of"] = artifact.of
     return data
+
+
+def _baseline_from_args(args: argparse.Namespace):
+    selected = [
+        args.since is not None,
+        args.base_ref is not None,
+        bool(args.worktree),
+    ]
+    if sum(selected) != 1:
+        return None
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    if args.worktree:
+        return DiffScopeBaseline(source="worktree", commitish=None)
+    if args.since is not None:
+        return DiffScopeBaseline(source="since", commitish=args.since)
+    return DiffScopeBaseline(source="base-ref", commitish=args.base_ref)
 
 
 def _parse_temptation_arg(value: str) -> tuple[str, str]:

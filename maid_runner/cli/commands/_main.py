@@ -366,6 +366,17 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     pp.add_argument("manifest_path")
     pp.add_argument("--output-dir", default="manifests/")
     pp.add_argument("--json", action="store_true")
+    fdp = msub.add_parser(
+        "from-diff", help="Generate a draft manifest from git diff scope"
+    )
+    fdp.add_argument("--since", default=None)
+    fdp.add_argument("--base-ref", default=None, dest="base_ref")
+    fdp.add_argument("--worktree", action="store_true")
+    fdp.add_argument("--slug", default=None)
+    fdp.add_argument("--output", default=None)
+    fdp.add_argument("--force", action="store_true")
+    fdp.add_argument("--dry-run", action="store_true")
+    fdp.add_argument("--json", action="store_true")
 
 
 def _register_manifests_parser(sub: argparse._SubParsersAction) -> None:

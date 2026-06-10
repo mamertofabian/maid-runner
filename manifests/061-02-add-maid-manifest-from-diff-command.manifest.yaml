@@ -4,7 +4,7 @@ goal: "Add a `maid manifest from-diff` subcommand that renders the diff-scope de
 type: feature
 created: "2026-06-10T01:02:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 061-00-manifest-authoring-and-brownfield-onboarding
   tags:
     - adoption
@@ -146,6 +146,58 @@ files:
           description: "Structured generation failure: rendered draft failed schema validation or output refused."
           bases:
             - Exception
+    - path: tests/core/test_manifest_from_diff.py
+      artifacts:
+        - kind: test_function
+          name: test_build_from_diff_manifest_renders_schema_valid_review_marked_draft
+        - kind: test_function
+          name: test_build_from_diff_manifest_quotes_slug_path_in_validate_command
+        - kind: test_function
+          name: test_build_from_diff_manifest_rejects_empty_diff
+        - kind: test_function
+          name: test_build_from_diff_manifest_is_deterministic
+        - kind: test_function
+          name: test_default_from_diff_slug_uses_resolved_since_commit_hash
+        - kind: test_function
+          name: test_write_from_diff_manifest_refuses_existing_output_without_force
+        - kind: test_function
+          name: test_write_from_diff_manifest_force_overwrites_with_stable_yaml
+        - kind: test_function
+          name: test_write_from_diff_manifest_writes_nothing_when_schema_invalid
+        - kind: test_function
+          name: test_write_from_diff_manifest_rejects_non_draft_output
+        - kind: test_function
+          name: test_write_from_diff_manifest_rejects_draft_path_outside_project
+    - path: tests/cli/test_manifest_from_diff_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_from_diff_dry_run_json_writes_nothing
+        - kind: test_function
+          name: test_manifest_from_diff_dry_run_rejects_empty_diff
+        - kind: test_function
+          name: test_manifest_from_diff_writes_default_draft_and_json_result
+        - kind: test_function
+          name: test_manifest_from_diff_custom_output_sets_validate_command
+        - kind: test_function
+          name: test_manifest_from_diff_quotes_spaced_slug_validate_command
+        - kind: test_function
+          name: test_manifest_from_diff_requires_exactly_one_baseline
+        - kind: test_function
+          name: test_manifest_from_diff_counts_empty_string_baseline_flags
+        - kind: test_function
+          name: test_manifest_from_diff_cmd_manifest_rejects_missing_baseline
+        - kind: test_function
+          name: test_manifest_from_diff_build_parser_registers_subcommand
+        - kind: test_function
+          name: test_manifest_from_diff_invalid_commitish_exits_without_writing
+        - kind: test_function
+          name: test_manifest_from_diff_refuses_existing_output_without_force
+        - kind: test_function
+          name: test_manifest_from_diff_force_overwrites_existing_output
+        - kind: test_function
+          name: test_manifest_from_diff_rejects_active_manifest_output
+        - kind: test_function
+          name: test_manifest_from_diff_rejects_draft_output_outside_project
   edit:
     - path: maid_runner/cli/commands/manifest.py
       artifacts:
@@ -175,8 +227,152 @@ files:
     - maid_runner/core/manifest.py
     - maid_runner/core/types.py
     - docs/draft-manifest-workflow.md
-    - tests/core/test_manifest_from_diff.py
-    - tests/cli/test_manifest_from_diff_cmd.py
 validate:
   - uv run python -m pytest tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py -v
-  - uv run maid validate manifests/drafts/061-02-add-maid-manifest-from-diff-command.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added maid manifest from-diff with deterministic draft rendering and draft-only write guards."
+  rationale: "Promoted the 061-02 draft, implemented the core renderer plus CLI subcommand, and tightened the behavior through repeated implementation review findings before all focused and repository gates passed."
+  lessons:
+    - lesson_type: lifecycle-guard
+      summary: "Generated manifests must enforce the draft boundary in both CLI and serializer paths; checking only for a manifests/drafts suffix is insufficient because an absolute path outside the current project can still match that suffix."
+      tags:
+        - manifest-authoring
+        - path-containment
+        - draft-lifecycle
+      paths:
+        - maid_runner/core/manifest_from_diff.py
+        - maid_runner/cli/commands/manifest.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+    - lesson_type: fail-closed
+      summary: "Empty diff-scope results should fail generation instead of emitting a schema-invalid empty files section, including dry-run output."
+      tags:
+        - manifest-authoring
+        - schema-validation
+        - empty-diff
+      paths:
+        - maid_runner/core/manifest_from_diff.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+    - lesson_type: cli-semantics
+      summary: "Baseline option validation must count flag presence, not truthiness, so explicit empty string values cannot bypass the exactly-one-baseline rule when combined with --worktree."
+      tags:
+        - cli
+        - baseline-validation
+        - fail-closed
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+    - lesson_type: command-generation
+      summary: "Generated validate commands need to target the actual custom output path and quote paths with spaces so the draft remains executable as rendered."
+      tags:
+        - cli
+        - shell-quoting
+        - validation-command
+      paths:
+        - maid_runner/core/manifest_from_diff.py
+        - maid_runner/cli/commands/manifest.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Initial review found active-manifest output paths were accepted, empty diffs produced invalid dry-run output, custom output paths left stale validate commands, and falsy defaults were dropped; all were fixed with behavioral coverage."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Second review found absolute paths under another project's manifests/drafts directory were accepted and validate paths with spaces were not shell-safe; both were fixed."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Third review found baseline validation used truthiness, allowing --worktree combined with an empty --since value; flag-presence validation and regression tests fixed the bypass."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+        - -v
+      status: passed
+      summary: "All 24 focused core and CLI tests passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/manifest_from_diff.py
+        - maid_runner/cli/commands/manifest.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+      status: passed
+      summary: "Focused lint passed."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/core/manifest_from_diff.py
+        - maid_runner/cli/commands/manifest.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+      status: passed
+      summary: "Focused formatting check passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml
+      status: passed
+      summary: "Manifest-declared test commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --since
+        - HEAD
+        - --include-tests
+      status: passed
+      summary: "Changed-scope verify passed all gates after adding the new tests to the manifest's created files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with only pre-existing chain timestamp warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed: 62 commands passed, 0 failed."
