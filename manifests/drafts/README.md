@@ -36,6 +36,11 @@ Archived epic files are not live planning inventory. Keep their paths stable
 when active manifests still read them, and use their `read` lists only as
 pointers to the promoted child manifests or current specialist backlog.
 
+A draft may exist as planning inventory before tests or implementation files are
+created. Missing planned test files, `E200`, or pytest "file not found" results
+mean the draft is not promotion-ready yet; they are not defects in inventory
+drafts by themselves.
+
 A draft is ready to promote when:
 
 - it is not marked as an epic planning draft;

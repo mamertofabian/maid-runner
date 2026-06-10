@@ -1,6 +1,6 @@
 ---
 name: maid-planner
-description: Plan a coding task as a machine-checkable MAID manifest instead of free-form markdown. Analyzes the project, asks clarifying questions, drafts a manifest with behavioral tests, validates it with `maid validate --mode behavioral`, and gets user approval. The manifest becomes the implementation contract. Use at the start of every new feature, bug fix, or refactor.
+description: Plan a coding task as a machine-checkable MAID manifest instead of free-form markdown. Analyzes the project, asks clarifying questions, drafts or refines a manifest, and for implementation-ready plans adds behavioral tests, validates with `maid validate --mode behavioral`, and gets user approval. The promoted manifest becomes the implementation contract. Use at the start of every new feature, bug fix, or refactor.
 ---
 
 # MAID Planner
@@ -11,7 +11,10 @@ Replace free-form markdown planning with a machine-checkable MAID manifest contr
 
 - NEVER write implementation code before the manifest is approved.
 - NEVER assume missing information. Ask instead.
-- NEVER skip validation. The manifest MUST pass `maid validate --mode behavioral` before approval.
+- NEVER skip validation for an implementation-ready contract. The manifest MUST
+  pass `maid validate --mode behavioral` before approval, promotion, or
+  immediate implementation. Early draft inventory may be schema-only or mention
+  planned tests, but must be labeled and reported as not promotion-ready yet.
 - NEVER go off-manifest. If new work is discovered during implementation, stop and create a new manifest.
 - NEVER approve a manifest with generic artifact declarations. The manifest must declare exact public symbols, signatures, return types, and field types.
 - ALWAYS include task-specific `temptations` when the work has likely shortcuts. Each entry must pair a concrete risk with the procedure to use instead.
@@ -70,7 +73,10 @@ Wait for the user's response before proceeding.
 
 ## Phase 3 — Draft the Manifest
 
-Create a draft manifest in `manifests/<slug>.manifest.yaml`.
+Create a draft manifest using the repository's draft convention. In this repo,
+planning inventory belongs in `manifests/drafts/<slug>.manifest.yaml`; promote
+one implementation-sized child to `manifests/<slug>.manifest.yaml` only after
+the promotion criteria are satisfied.
 
 ### Temptations and Rationale
 
@@ -121,7 +127,10 @@ For important choices, include rationale: state what was chosen and why. The imp
 
 ## Phase 4 — Write Behavioral Tests
 
-Write the behavioral tests referenced by the manifest `validate` commands.
+For an implementation-ready plan, write the behavioral tests referenced by the
+manifest `validate` commands. For early draft inventory, it is acceptable to
+describe planned tests and validation commands before the files exist, but the
+draft is not approval-ready or promotable until the tests are created.
 
 Requirements:
 
@@ -134,7 +143,9 @@ Requirements:
 
 Run the behavioral tests against the current codebase before implementation.
 
-The tests must fail. If they pass, the contract is weak or malformed.
+The tests must fail. If they pass, the contract is weak or malformed. If the
+test files are still planned and absent, red phase is not confirmed yet; do not
+present the draft as approved, promotable, or ready for implementation.
 
 ## Phase 6 — Validate the Manifest
 
@@ -144,7 +155,10 @@ Run:
 maid validate manifests/<slug>.manifest.yaml --mode behavioral
 ```
 
-The manifest is not ready if behavioral validation reports any error, including `E200` unreferenced artifacts.
+The manifest is not ready for approval, promotion, or immediate implementation
+if behavioral validation reports any error, including `E200` unreferenced
+artifacts. For draft inventory, record the result as pending test creation
+rather than treating the draft's existence as invalid.
 
 ### Pre-Approval Checklist
 

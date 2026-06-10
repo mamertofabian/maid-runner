@@ -20,14 +20,16 @@ manifest chain.
 
 Normal validation and test execution should target promoted manifests in
 `manifests/`. Draft validation is focused on plan quality before promotion.
+Early inventory drafts may reference planned test files that do not exist yet;
+that makes them not promotion-ready, but it is not by itself a planning defect.
 
 ## Lifecycle
 
 1. Define the larger goal in an issue, spec, roadmap, or epic draft.
 2. Split the known work into child draft manifests under `manifests/drafts/`.
-3. Review and refine each draft until its scope, declared artifacts,
-   behavioral tests, validation command, dependencies, and temptations are
-   coherent.
+3. Review and refine each draft until its scope, declared artifacts, planned or
+   actual behavioral tests, validation command, dependencies, and temptations
+   are coherent.
 4. Promote one implementation-sized draft by moving it from
    `manifests/drafts/<slug>.manifest.yaml` to
    `manifests/<slug>.manifest.yaml`.
@@ -74,6 +76,12 @@ A child draft is ready to promote when:
 - dependencies on earlier drafts are clear and ordered.
 
 If a draft fails these checks, refine the draft before promotion.
+
+Do not apply the promotion checklist to every draft in the queue. For an
+inventory draft, schema validation and coherent scope may be enough to keep it
+as a future work item. For the draft selected for implementation, the first
+work is to create or refine the behavioral tests, confirm the red phase, pass
+behavioral validation against the draft path, then promote it to `manifests/`.
 
 ## From-Diff Authoring Loop
 

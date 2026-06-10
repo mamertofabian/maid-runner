@@ -7,13 +7,22 @@ description: "Review a MAID manifest and its behavioral tests before implementat
 
 Review a manifest and its behavioral tests before implementation begins. This is the quality gate between planning and coding.
 
+Distinguish draft inventory from an implementation-ready contract. Drafts under
+`manifests/drafts/` may exist before behavioral test files are created. Missing
+planned tests, pytest "file not found", or `E200` means the draft is not ready
+to promote or implement yet; it is not automatically a defect in inventory
+planning. Apply the behavioral-test and red-phase gates only when reviewing a
+manifest for approval, promotion, or immediate implementation.
+
 ## Rules
 
 - NEVER modify the manifest or tests during review.
 - NEVER proceed to implementation if blockers are found.
 - ALWAYS confirm the red phase.
 - Judge the plan, not the idea.
-- Treat missing explicit signatures, missing field types, and `E200` behavioral misses as blockers.
+- Treat missing explicit signatures and missing field types as blockers.
+- Treat `E200` behavioral misses as blockers only for manifests presented as
+  approval-ready, promotion-ready, or implementation-ready.
 - Treat missing rationale for important design choices as a revision item.
 - Treat generic, missing, or unpaired `temptations` as blockers when the task has obvious implementation shortcuts.
 
@@ -95,11 +104,16 @@ Run:
 maid validate manifests/<slug>.manifest.yaml --mode behavioral
 ```
 
-Any `E200 Artifact '<name>' not used in any test file` result is a blocker.
+Any `E200 Artifact '<name>' not used in any test file` result is a blocker for
+approval, promotion, or immediate implementation. For draft inventory, report it
+as "not promotion-ready yet" rather than rejecting the draft's existence.
 
 ## Phase 7 — Confirm Red Phase
 
-Run the manifest validation commands before implementation. The tests must fail for the intended reason.
+Run the manifest validation commands before implementation. The tests must fail
+for the intended reason. If a draft only references planned test files that do
+not exist yet, note that red-phase confirmation still needs to happen as the
+first promotion/implementation step.
 
 ## Phase 8 — Verdict
 
