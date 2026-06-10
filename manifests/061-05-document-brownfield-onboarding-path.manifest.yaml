@@ -1,0 +1,206 @@
+schema: '2'
+goal: Document the from-diff authoring loop and ranked bootstrap adoption path as
+  the recommended brownfield entry
+type: feature
+created: '2026-06-10T10:02:05Z'
+metadata:
+  epic: 061-00-manifest-authoring-and-brownfield-onboarding
+  tags:
+  - adoption
+  - manifest-authoring
+  - bootstrap
+  - developer-experience
+  priority: high
+description: "Documentation child. Update `docs/draft-manifest-workflow.md`, the README\n\
+  quick start, and the `maid howto` content\n(`maid_runner/cli/commands/howto.py`)\
+  \ to describe the from-diff authoring\nloop and the ranked bootstrap adoption path\
+  \ as the recommended brownfield\nentry into MAID.\n\nThe documented behavior must\
+  \ restate the implemented contracts exactly;\ndo not document aspirational behavior:\n\
+  \n- From-diff authoring loop (`maid manifest from-diff`): code the change,\n  run\
+  \ `maid manifest from-diff` with exactly one of `--since <commit>`,\n  `--base-ref\
+  \ <ref>`, or `--worktree` (zero or two baselines exit 2 with\n  an E115-style baseline-required\
+  \ message; MAID will not guess main, dev,\n  or a remote branch). The command renders\
+  \ a deterministic, schema-valid\n  draft into `manifests/drafts/<slug>.manifest.yaml`\
+  \ (default slug\n  `from-diff-<UTC-date>-<short-commit-hash>`); supports `--slug`,\n\
+  \  `--output`, `--force` (required to overwrite an existing draft),\n  `--dry-run`,\
+  \ and `--json`. Generated drafts are marked with the goal\n  placeholder `\"TODO:\
+  \ describe this change\"`,\n  `metadata.generated_by: maid-manifest-from-diff`,\
+  \ and\n  `metadata.needs_review: true`; artifacts whose types the collectors\n \
+  \ could not determine omit the unknown fields rather than guessing.\n- Promotion\
+  \ boundary: generated manifests are always drafts. They land in\n  `manifests/drafts/`,\
+  \ never directly in the active chain, and never\n  self-promote. The promotion gates\
+  \ already documented in\n  `docs/draft-manifest-workflow.md` remain the only path\
+  \ to an active\n  contract, and `needs_review: true` is not promotable: the author\
+  \ must\n  review, replace the goal placeholder, fill placeholder artifacts, and\n\
+  \  clear needs_review before promotion.\n- Validate suggestions: generated drafts\
+  \ suggest pytest commands only for\n  test files that exist and currently reference\
+  \ at least one changed\n  artifact; otherwise the draft's validate list is only\n\
+  \  `maid validate <draft-path> --mode schema --quiet`.\n- Ranked bootstrap adoption\
+  \ (`maid bootstrap --rank`): ranks undeclared\n  files with `--limit N` (default\
+  \ 20) and `--json` support, using raw\n  signals churn (commit count from `git log\
+  \ --follow --oneline --\n  <path>`), inbound_refs (count of project files importing\
+  \ the\n  candidate), and public_artifacts (collector artifact count), ordered\n\
+  \  churn descending, inbound_refs descending, public_artifacts descending,\n  path\
+  \ ascending. There is no composite weighted score; output reports\n  the raw signal\
+  \ values per file, and `--rank` writes no manifests. The\n  documented brownfield\
+  \ path is: rank, then onboard the top files one at\n  a time (snapshot or from-diff),\
+  \ instead of bulk snapshotting\n  everything.\n\nEdits:\n\n- `docs/draft-manifest-workflow.md`:\
+  \ add a section describing the\n  from-diff authoring loop as a draft-generation\
+  \ entry point, the\n  generated-draft markers, and how needs_review interacts with\
+  \ the\n  existing promotion criteria.\n- `README.md`: extend the Quick Start / common\
+  \ workflows with the\n  brownfield entry: `maid bootstrap --rank` then `maid manifest\n\
+  \  from-diff` per change, with the review-then-promote loop.\n- `maid_runner/cli/commands/howto.py`:\
+  \ add or extend howto topic content\n  covering `manifest from-diff` and `bootstrap\
+  \ --rank` so `maid howto`\n  surfaces the same guidance. Only the private `_TOPICS`\
+  \ content and the\n  existing `cmd_howto` flow change; no new public API.\n\nDocumentation\
+  \ standards: state facts in present tense; no temporal\nmarkers (\"NEW\", \"now\
+  \ available\", before/after comparisons).\n\nTest expectations (planned behavioral\
+  \ tests in\ntests/test_brownfield_onboarding_docs.py, following the existing\ndocs-assertion\
+  \ pattern of tests/test_manifest_outcome_docs.py reading\nrendered files with Path.read_text):\n\
+  \n- the workflow doc describes from-diff drafts landing in\n  manifests/drafts/\
+  \ with the needs_review marker and no self-promotion.\n- the README quick start\
+  \ mentions `maid bootstrap --rank` and\n  `maid manifest from-diff` as the brownfield\
+  \ entry.\n- the howto content covers both commands and the exactly-one-baseline\n\
+  \  rule.\n\nPlanning notes: the epic says \"README quick start\" without naming\
+  \ the\nfile; this child conservatively edits the repository root `README.md`.\n\
+  The docs test file lives at tests/ root, matching the existing\ntests/test_manifest_outcome_docs.py\
+  \ docs-test placement.\n\nOut of scope: any code behavior changes to diff-scope\
+  \ collection\n(061-01), the from-diff command (061-02), validate suggestions (061-03),\n\
+  or bootstrap ranking (061-04). If a sibling's flag or marker differs at\nimplementation\
+  \ time, fix the documentation to match the implemented\ncontract, not the other\
+  \ way around.\n"
+temptations:
+- risk: Do not document generated manifests as promotable or as landing directly in
+    manifests/.
+  instead: 'State that generated drafts land in manifests/drafts/ with needs_review:
+    true and that the documented promotion gates remain the only path to an active
+    contract.'
+- risk: Do not describe a composite ranking score or invented bootstrap signals.
+  instead: Document exactly the raw churn, inbound_refs, and public_artifacts signals
+    and the pinned multi-key ordering.
+- risk: Do not add temporal or marketing language to the docs.
+  instead: State current capabilities in present tense per the repository documentation
+    standards.
+files:
+  create:
+  - path: tests/test_brownfield_onboarding_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_workflow_doc_describes_from_diff_draft_promotion_boundary
+    - kind: test_function
+      name: test_readme_quick_start_presents_brownfield_entry
+    - kind: test_function
+      name: test_howto_content_covers_rank_from_diff_and_baseline_rule
+  edit:
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _from_diff_authoring_loop_section
+      of: documentation
+      type: markdown section
+      description: Workflow section describing maid manifest from-diff draft generation,
+        generated-draft markers, and the needs_review promotion boundary.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _brownfield_onboarding_quick_start
+      of: documentation
+      type: markdown section
+      description: Quick-start guidance presenting maid bootstrap --rank plus maid
+        manifest from-diff as the recommended brownfield entry.
+  - path: maid_runner/cli/commands/howto.py
+    artifacts:
+    - kind: function
+      name: cmd_howto
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Howto content extended to cover manifest from-diff and bootstrap
+        --rank guidance.
+  read:
+  - manifests/drafts/README.md
+  - maid_runner/cli/commands/manifest.py
+  - maid_runner/cli/commands/bootstrap.py
+  - tests/test_manifest_outcome_docs.py
+validate:
+- uv run python -m pytest tests/test_brownfield_onboarding_docs.py tests/test_manifest_outcome_docs.py
+  -v
+- uv run maid validate manifests/061-05-document-brownfield-onboarding-path.manifest.yaml
+  --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Documented the ranked bootstrap and from-diff draft loop as the brownfield onboarding path."
+  rationale: "Promoted the 061-05 draft, updated the workflow docs, README, and howto content to match the implemented 061 contracts, added docs assertions for the public guidance, fixed the implementation review finding for omitted howto ranking order, and completed re-review with a ready verdict."
+  lessons:
+  - lesson_type: documentation-contract
+    summary: "When a workflow spans multiple user-facing docs surfaces, test each surface for the same contract terms so README and howto guidance do not drift from the workflow doc."
+    tags:
+    - documentation
+    - brownfield-onboarding
+    - manifest-authoring
+    paths:
+    - README.md
+    - docs/draft-manifest-workflow.md
+    - maid_runner/cli/commands/howto.py
+    - tests/test_brownfield_onboarding_docs.py
+  - lesson_type: review-coverage
+    summary: "Raw ranking signals are not enough documentation for bootstrap adoption; the deterministic ordering must be stated and asserted wherever bootstrap --rank is presented as onboarding guidance."
+    tags:
+    - bootstrap
+    - ranking
+    - developer-experience
+    paths:
+    - maid_runner/cli/commands/howto.py
+    - tests/test_brownfield_onboarding_docs.py
+  review_notes:
+  - source: maid-implementation-reviewer
+    severity: warning
+    summary: "Initial review found maid howto commands documented raw bootstrap --rank signals but omitted the pinned ordering; howto content and docs assertions were updated before re-review."
+  - source: maid-implementation-reviewer
+    severity: info
+    summary: "Second review found no issues, confirmed manifest scope matched the implementation, reran focused validation, and returned ready."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/test_brownfield_onboarding_docs.py
+    - tests/test_manifest_outcome_docs.py
+    - -v
+    status: passed
+    summary: "Focused docs assertions passed, 6 tests."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_howto_cmd.py
+    - tests/test_brownfield_onboarding_docs.py
+    - -v
+    status: passed
+    summary: "Howto command coverage plus brownfield docs assertions passed, 13 tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/061-05-document-brownfield-onboarding-path.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed with existing repo warnings for markdown validator gaps and manifest-chain timestamp issues."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --since
+    - HEAD
+    - --include-tests
+    status: passed
+    summary: "Changed-scope verify passed schema, behavioral, coherence, file_tracking, worktree_scope, changed_scope, and tests gates."
+  completed_at: '2026-06-10T10:18:18Z'

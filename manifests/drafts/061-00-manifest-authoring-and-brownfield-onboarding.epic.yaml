@@ -1,127 +1,37 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan manifest-from-diff generation and guided brownfield onboarding"
+goal: "Archive consumed manifest authoring and brownfield onboarding epic"
 type: feature
 created: "2026-06-10"
 metadata:
-  status: planning
+  status: archived
   tags:
     - adoption
     - manifest-authoring
     - bootstrap
     - snapshot
     - developer-experience
-  priority: high
+    - archive
+  priority: low
 description: |
-  Reduce the highest adoption tax in the MAID workflow: authoring the first
-  manifest. Today the methodology asks authors to write a YAML contract before
-  coding, and brownfield teams to bootstrap manifests file by file. Both steps
-  reuse machinery MAID Runner already has (artifact collectors, snapshot
-  generation, changed-scope diff detection) but expose none of it as an
-  authoring aid.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as:
 
-  This epic inverts the existing collectors: instead of only validating that
-  code matches a hand-written manifest, MAID Runner should be able to derive a
-  draft manifest from observed changes so the author reviews and corrects a
-  generated contract instead of writing one from scratch. Generated manifests
-  are always drafts: they land in `manifests/drafts/`, never directly in the
-  active chain, and they never self-promote. The existing promotion gates in
-  `docs/draft-manifest-workflow.md` remain the only path to an active
-  contract.
+  - `061-01-extract-diff-scope-artifact-collection`
+  - `061-02-add-maid-manifest-from-diff-command`
+  - `061-03-suggest-validate-commands-from-test-layout`
+  - `061-04-rank-bootstrap-adoption-plan`
+  - `061-05-document-brownfield-onboarding-path`
 
-  Design constraints agreed for this epic:
+  The promoted children added reusable diff-scope collection, deterministic
+  `maid manifest from-diff` draft generation, evidence-backed validate command
+  suggestions, ranked brownfield bootstrap adoption, and documentation for the
+  rank-then-from-diff onboarding path.
 
-  1. Generation is deterministic. The same worktree state and baseline must
-     produce the same draft manifest, byte for byte, so output is reviewable
-     and testable.
-  2. Generation reuses the existing snapshot artifact collectors and the
-     changed-scope baseline rules (`--since`, `--base-ref`, worktree scope).
-     No new diff semantics; `E115`-style fail-closed baseline resolution
-     applies when no baseline can be derived.
-  3. Generated drafts must be honest about gaps: artifacts that collectors
-     cannot type exactly are emitted with explicit placeholder markers that
-     fail promotion review, not silently guessed signatures.
-  4. The output draft must schema-validate (`maid validate <draft> --mode
-     schema`) at generation time, or generation fails with a structured error.
-
-  Decisions already made for the implementer. Do not redesign these:
-
-  1. Core module: 061-01 creates `maid_runner/core/diff_scope.py` exposing
-     `collect_diff_scope(project_root, baseline)` returning a
-     `DiffScopeResult` that partitions repo-relative paths into
-     created/edited/deleted and carries per-file public artifact deltas
-     (added, signature-changed, removed). The baseline input mirrors the
-     existing changed-scope inputs (since-commit, base-ref, or
-     worktree-only) and reuses `maid_runner/core/worktree.py` helpers and
-     the snapshot collectors; no new git semantics.
-  2. CLI surface: 061-02 adds a `from-diff` subcommand to the existing
-     `maid manifest` group in `maid_runner/cli/commands/manifest.py` with
-     flags `--since <commit>`, `--base-ref <ref>`, `--worktree`,
-     `--slug <slug>`, `--output <path>`, `--force`, `--dry-run`, `--json`.
-     Exactly one of `--since`, `--base-ref`, or `--worktree` is required;
-     otherwise exit 2 with a baseline-required message matching E115
-     semantics. Default output path is `manifests/drafts/<slug>.manifest.yaml`
-     and the default slug is `from-diff-<UTC-date>-<short-commit-hash>`.
-  3. Generated draft markers: the goal defaults to the literal text
-     `"TODO: describe this change"`, and the manifest records
-     `metadata.generated_by: maid-manifest-from-diff` plus
-     `metadata.needs_review: true`. Artifacts whose exact types could not
-     be collected omit the unknown fields rather than guessing; the
-     promotion checklist treats `needs_review: true` as not promotable.
-  4. Validate-command suggestion (061-03): suggest only pytest commands for
-     test files that exist AND currently reference at least one changed
-     artifact through the existing behavioral-reference collectors. When no
-     such test evidence exists, the generated `validate:` list contains only
-     `maid validate <draft-path> --mode schema --quiet` and
-     `needs_review: true` remains, so an incomplete draft cannot pass the
-     promotion checklist.
-  5. Bootstrap ranking (061-04): `maid bootstrap --rank` with `--limit N`
-     (default 20). Signals per candidate file: `churn` = commit count from
-     `git log --follow --oneline -- <path>`, `inbound_refs` = count of
-     project files importing the candidate via the existing import
-     scanners, `public_artifacts` = collector artifact count. Ordering is
-     churn descending, then inbound_refs descending, then public_artifacts
-     descending, then path ascending. Output reports the raw signal values
-     per file; do not invent a composite weighted score.
-
-  Planned child order:
-
-  1. `061-01-extract-diff-scope-artifact-collection` - extract a reusable
-     core helper that, given a baseline (since/base-ref/worktree), returns the
-     changed file set partitioned into create/edit/delete plus the public
-     artifact delta per changed file (added, changed-signature, removed),
-     reusing `maid_runner/core/worktree.py` scope detection and the snapshot
-     collectors. Pure library slice with behavioral tests against fixture
-     repositories; no CLI surface yet.
-  2. `061-02-add-maid-manifest-from-diff-command` - add `maid manifest
-     from-diff` that renders the 061-01 delta into a schema-valid draft
-     manifest under `manifests/drafts/` with goal placeholder, files
-     create/edit/delete sections, collected artifacts, and `--since`,
-     `--base-ref`, `--dry-run`, `--output`, and `--json` options. The command
-     refuses to overwrite existing drafts without `--force` and fails closed
-     when the baseline is ambiguous.
-  3. `061-03-suggest-validate-commands-from-test-layout` - derive suggested
-     `validate:` commands for generated drafts by locating existing test files
-     that reference the changed artifacts (reusing behavioral-reference
-     collection), falling back to the schema-only validate command per
-     decision 4. Suggestions must only name test files that exist and
-     currently reference at least one changed artifact.
-  4. `061-04-rank-bootstrap-adoption-plan` - extend `maid bootstrap` with a
-     guided incremental mode that ranks undeclared files by git churn,
-     inbound reference count, and public artifact count, then emits a
-     prioritized adoption plan (`--limit N`, `--json`) instead of bulk
-     snapshotting everything. Ranking signals must be deterministic and
-     traceable in output.
-  5. `061-05-document-brownfield-onboarding-path` - documentation child:
-     update `docs/draft-manifest-workflow.md`, the README quick start, and
-     `maid howto` content to describe the from-diff authoring loop and the
-     ranked bootstrap adoption path as the recommended brownfield entry.
-
-  Children 1 and 2 are the core value and must land in order. Children 3 and 4
-  are independent of each other after 061-02. If 061-02 cannot fit one
-  implementation-sized draft, split rendering/serialization from CLI wiring
-  before promotion.
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future manifest-authoring or
+  brownfield-onboarding work should start from a fresh scoped manifest after
+  the contracts and documentation added by the 061 children.
 temptations:
   - risk: "Do not let generated manifests skip the draft lifecycle or auto-promote into manifests/."
     instead: "Always write to manifests/drafts/ and keep the documented promotion gates as the only path to an active contract."
@@ -134,22 +44,19 @@ temptations:
   - risk: "Do not duplicate snapshot collector logic inside the new command."
     instead: "Extract the shared diff-scope collection helper first (061-01) and have both snapshot and from-diff call it."
 files:
-  create:
+  edit:
     - path: manifests/drafts/061-00-manifest-authoring-and-brownfield-onboarding.epic.yaml
       artifacts:
         - kind: attribute
-          name: _manifest_authoring_onboarding_roadmap
+          name: _archived_manifest_authoring_onboarding_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for maid manifest from-diff generation and guided brownfield bootstrap adoption."
+          description: "Historical pointer for promoted child manifests 061-01 through 061-05."
   read:
-    - maid_runner/core/snapshot.py
-    - maid_runner/core/worktree.py
-    - maid_runner/core/bootstrap.py
-    - maid_runner/cli/commands/manifest.py
-    - maid_runner/cli/commands/bootstrap.py
-    - maid_runner/cli/commands/snapshot.py
-    - docs/draft-manifest-workflow.md
-    - manifests/drafts/README.md
+    - manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml
+    - manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml
+    - manifests/061-03-suggest-validate-commands-from-test-layout.manifest.yaml
+    - manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml
+    - manifests/061-05-document-brownfield-onboarding-path.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/061-00-manifest-authoring-and-brownfield-onboarding.epic.yaml --mode schema --quiet

@@ -75,6 +75,50 @@ A child draft is ready to promote when:
 
 If a draft fails these checks, refine the draft before promotion.
 
+## From-Diff Authoring Loop
+
+`maid manifest from-diff` creates a draft manifest from an implemented change so
+the author can review and correct a generated contract. Code the change, then
+run the command with exactly one baseline option:
+
+```bash
+maid manifest from-diff --since <commit>
+maid manifest from-diff --base-ref <ref>
+maid manifest from-diff --worktree
+```
+
+Supplying zero baseline options or more than one baseline option exits with code
+2 and a baseline-required message that follows the `E115` fail-closed rule. MAID
+does not guess `main`, `dev`, or a remote branch.
+
+The command writes deterministic, schema-valid drafts under
+`manifests/drafts/<slug>.manifest.yaml`. The default slug is
+`from-diff-<UTC-date>-<short-commit-hash>`, and callers can use `--slug`,
+`--output`, `--force`, `--dry-run`, and `--json`. `--force` is required to
+overwrite an existing draft. A generated draft starts with the goal placeholder
+`"TODO: describe this change"` plus these markers:
+
+```yaml
+metadata:
+  generated_by: maid-manifest-from-diff
+  needs_review: true
+```
+
+Generated drafts are not active contracts and do not self-promote. They remain
+in `manifests/drafts/` until the author reviews them, replaces the goal
+placeholder, fills any placeholder artifacts, clears `needs_review: true`, and
+satisfies the promotion criteria above. The `metadata.needs_review: true`
+marker means the draft is not promotable yet. Artifacts whose exact types are
+not known omit the unknown fields instead of guessing.
+
+Generated drafts suggest pytest commands only for test files that exist and
+currently reference at least one changed artifact. Without that evidence, the
+draft's `validate:` list contains only:
+
+```bash
+maid validate <draft-path> --mode schema --quiet
+```
+
 ## Outcome Capture
 
 Outcome records close a promoted implementation session after implementation

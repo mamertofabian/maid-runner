@@ -42,6 +42,11 @@ maid init
 
 # Interactive guide
 maid howto --section quickstart
+
+# Brownfield entry: rank existing files, then generate reviewed drafts per change
+maid bootstrap --rank --limit 20
+maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
+maid validate manifests/drafts/describe-the-change.manifest.yaml --mode schema --quiet
 ```
 
 ## Installation
@@ -150,6 +155,14 @@ maid test
 # Branch handoff gate for humans, CI, and AI agents
 maid verify --base-ref <parent-branch>
 
+# Brownfield onboarding: rank candidates before adding contracts
+maid bootstrap --rank --limit 20
+
+# Draft a manifest from one implemented change; choose exactly one baseline
+maid manifest from-diff --since <commit> --slug describe-the-change
+maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
+maid manifest from-diff --worktree --slug describe-the-change
+
 # JSON output for CI/CD
 maid validate --json
 
@@ -219,6 +232,33 @@ Use `--worktree-scope` for fast live checks of uncommitted local changes. Use
 staged, unstaged, and untracked files since the task baseline by default. Use
 `maid validate --changed-scope` only when you want the lower-level validate
 command to run the same gate explicitly.
+
+### Brownfield Onboarding
+
+For existing projects, start with a ranked adoption pass instead of bulk
+snapshotting every file:
+
+```bash
+maid bootstrap --rank --limit 20
+```
+
+The ranked output is advisory and writes no manifests. It lists undeclared files
+with raw `churn`, `inbound_refs`, and `public_artifacts` values, ordered by churn
+descending, inbound references descending, public artifacts descending, then
+path ascending. Use `--json` when automation needs the same raw signals.
+
+Onboard the top files one at a time. For an implemented change, generate a draft
+contract from the diff:
+
+```bash
+maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
+```
+
+`maid manifest from-diff` requires exactly one of `--since <commit>`,
+`--base-ref <ref>`, or `--worktree`; MAID does not guess a baseline. Generated
+manifests land in `manifests/drafts/` with `metadata.needs_review: true`, so the
+author reviews the draft, replaces the goal placeholder, fills any placeholder
+artifacts, clears `needs_review`, and then promotes through the draft workflow.
 
 ## Manifest Structure (v2 YAML)
 
