@@ -1,10 +1,9 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Add opt-in `--require-plan-lock` and `--require-red-evidence` enforcement to `maid verify` with E700-E705"
 type: feature
 created: "2026-06-10T07:03:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 067-00-plan-lock-and-red-phase-evidence
   tags:
     - validation-trust
@@ -174,3 +173,102 @@ validate:
   - uv run python -m pytest -q tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py
   - uv run maid validate manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added opt-in plan-lock and red-phase-evidence enforcement to maid verify with E700-E705 structured errors."
+  rationale: "Implemented after red-phase coverage failures, fixed three independent review findings, and validated with focused behavioral tests, promoted-manifest validation, repository MAID gates, and a final ready review verdict."
+  lessons:
+    - lesson_type: validation
+      summary: "A lock that enforces manifest shrinkage needs a contract snapshot richer than artifact identity; otherwise removing return types or other metadata can weaken the contract without changing artifact names."
+      tags:
+        - plan-lock
+        - contract-shrinkage
+        - anti-gaming
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_enforcement.py
+    - lesson_type: compatibility
+      summary: "Legacy lock payloads without the new contract snapshot must fail visibly on manifest hash changes rather than silently allowing E702 bypasses."
+      tags:
+        - legacy-locks
+        - fail-closed
+        - plan-lock
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_enforcement.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "First review found missing-lock E700 was incorrectly emitted for --require-red-evidence alone and legacy locks without contract snapshots could bypass E702; both were fixed and regression-tested."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Second review found E702 only compared artifact identity keys and missed metadata shrinkage such as removed return types; fixed by snapshotting atomic artifact declarations and adding a regression test."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Final review reported no findings; residual risk noted that E702-E705 JSON/text parity relies on the shared _errors formatting path, with direct parity tests covering E700 and E701."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock_enforcement.py
+        - tests/cli/test_verify_plan_lock_cmd.py
+      status: passed
+      summary: "Focused behavioral tests passed: 20 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed on the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for declared artifacts."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_enforcement.py
+      status: passed
+      summary: "Black check passed after the final review fix; earlier full changed-file black checks also passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_enforcement.py
+      status: passed
+      summary: "Ruff check passed after the final review fix; earlier full changed-file ruff checks also passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and pre-existing E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 71 commands passing and pre-existing E118/E119 chain warnings."

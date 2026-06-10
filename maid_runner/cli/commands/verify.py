@@ -62,6 +62,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
             base_ref=getattr(args, "base_ref", None),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
+            require_plan_lock=getattr(args, "require_plan_lock", False),
+            require_red_evidence=getattr(args, "require_red_evidence", False),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
         return 0 if _result_success(result) else 1
@@ -98,6 +100,8 @@ def _run_verify(
     base_ref: str | None = None,
     include_tests: bool = False,
     test_jobs: int = 1,
+    require_plan_lock: bool = False,
+    require_red_evidence: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.chain import (
         _enter_manifest_chain_cache_scope,
@@ -120,6 +124,8 @@ def _run_verify(
             base_ref=base_ref,
             include_tests=include_tests,
             test_jobs=test_jobs,
+            require_plan_lock=require_plan_lock,
+            require_red_evidence=require_red_evidence,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -140,6 +146,8 @@ def _run_verify_cached(
     base_ref: str | None = None,
     include_tests: bool = False,
     test_jobs: int = 1,
+    require_plan_lock: bool = False,
+    require_red_evidence: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -216,6 +224,18 @@ def _run_verify_cached(
         stages.append(_file_tracking_stage(root, manifest_dir, engine))
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
+
+        if require_plan_lock or require_red_evidence:
+            stages.append(
+                _plan_lock_stage(
+                    root,
+                    manifest_dir,
+                    require_plan_lock=require_plan_lock,
+                    require_red_evidence=require_red_evidence,
+                )
+            )
+            if not _should_continue(stages[-1], fail_fast):
+                return _verification_result(stages, started)
 
         if require_worktree_scope or _git_metadata_available(root):
             stages.append(_worktree_scope_stage(root, manifest_dir, include_tests))
@@ -308,6 +328,35 @@ def _file_tracking_stage(
         )
     except Exception as exc:
         return _error_stage("file_tracking", started, exc)
+
+
+def _plan_lock_stage(
+    root: Path,
+    manifest_dir: str,
+    *,
+    require_plan_lock: bool,
+    require_red_evidence: bool,
+) -> VerificationStageResult:
+    started = time.monotonic()
+    try:
+        from maid_runner.core.chain import get_cached_manifest_chain
+        from maid_runner.core.plan_lock import enforce_plan_locks
+
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        errors = enforce_plan_locks(
+            chain,
+            root,
+            require_plan_lock=require_plan_lock,
+            require_red_evidence=require_red_evidence,
+        )
+        return VerificationStageResult(
+            name="plan_lock",
+            success=not errors,
+            _duration_ms=_elapsed_ms(started),
+            _errors=tuple(errors),
+        )
+    except Exception as exc:
+        return _error_stage("plan_lock", started, exc)
 
 
 def _worktree_scope_stage(

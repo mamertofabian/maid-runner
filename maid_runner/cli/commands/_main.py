@@ -216,6 +216,16 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         default=1,
         help="Run the verify tests stage with this many test command workers",
     )
+    p.add_argument(
+        "--require-plan-lock",
+        action="store_true",
+        help="Fail when active manifests are missing or violate plan locks",
+    )
+    p.add_argument(
+        "--require-red-evidence",
+        action="store_true",
+        help="Fail when plan locks lack valid red-phase evidence",
+    )
     p.add_argument("--json", action="store_true")
 
 

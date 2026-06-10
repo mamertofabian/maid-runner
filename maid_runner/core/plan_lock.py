@@ -26,7 +26,9 @@ from pathlib import Path
 from typing import Optional
 
 from maid_runner.core._test_command_execution import _run_test_command
+from maid_runner.core.chain import ManifestChain
 from maid_runner.core.manifest import _is_test_file, load_manifest, slug_from_path
+from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import Manifest
 
@@ -172,6 +174,9 @@ class PlanLock:
             ],
             "red_evidence": self.red_evidence,
         }
+        contract = _load_manifest_contract_for_lock(self, p)
+        if contract is not None:
+            payload["_manifest_contract"] = contract
         p.write_text(json.dumps(payload, indent=2))
 
 
@@ -254,6 +259,78 @@ def capture_red_phase_evidence(
     )
 
 
+def enforce_plan_locks(
+    chain: ManifestChain,
+    project_root: Path,
+    require_plan_lock: bool,
+    require_red_evidence: bool,
+) -> "tuple[ValidationError, ...]":
+    """Evaluate active manifests against their plan locks."""
+    if not require_plan_lock and not require_red_evidence:
+        return ()
+
+    root = Path(project_root)
+    errors: list[ValidationError] = []
+    loaded_lock_paths: set[Path] = set()
+
+    for manifest in chain.active_manifests():
+        lock_path = default_plan_lock_path(root, manifest.slug)
+        loaded_lock_paths.add(lock_path)
+        if not lock_path.exists():
+            if require_plan_lock:
+                errors.append(_lock_error(ErrorCode.PLAN_LOCK_MISSING, manifest))
+            continue
+
+        lock = _load_lock_or_error(lock_path)
+        if isinstance(lock, ValidationError):
+            errors.append(lock)
+            continue
+
+        recorded_manifest = root / lock.manifest_path
+        if not recorded_manifest.exists():
+            errors.append(_lock_error(ErrorCode.PLAN_LOCK_STALE, manifest))
+            continue
+
+        errors.extend(_test_hash_errors(lock, manifest, root))
+        weakening_detail = _contract_weakening_detail(lock_path, lock, manifest)
+        if weakening_detail is not None:
+            errors.append(
+                _lock_error(
+                    ErrorCode.MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK,
+                    manifest,
+                    detail=weakening_detail,
+                )
+            )
+
+        if require_red_evidence:
+            if lock.red_evidence is None:
+                errors.append(
+                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_MISSING, manifest)
+                )
+            elif not _red_evidence_is_valid(lock.red_evidence):
+                errors.append(
+                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_INVALID, manifest)
+                )
+
+    for lock_path in _plan_lock_files(root):
+        if lock_path in loaded_lock_paths:
+            continue
+        lock = _load_lock_or_error(lock_path)
+        if isinstance(lock, ValidationError):
+            errors.append(lock)
+            continue
+        if not (root / lock.manifest_path).exists():
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.PLAN_LOCK_STALE,
+                    message="PLAN_LOCK_STALE: lock references a missing manifest",
+                    location=Location(file=lock.manifest_path),
+                )
+            )
+
+    return tuple(errors)
+
+
 def _behavioral_test_paths(manifest: Manifest) -> list[str]:
     """Collect the manifest's behavioral test files.
 
@@ -301,3 +378,183 @@ def _has_valid_red_evidence(commands: tuple[RedPhaseCommandEvidence, ...]) -> bo
 def _combined_output_tail(stdout: str, stderr: str, max_lines: int = 20) -> str:
     combined = "\n".join(part for part in (stdout, stderr) if part)
     return "\n".join(combined.splitlines()[-max_lines:])
+
+
+def _load_manifest_contract_for_lock(lock: PlanLock, lock_path: Path) -> dict | None:
+    manifest_path = _project_root_from_lock_path(lock_path) / lock.manifest_path
+    if not manifest_path.exists():
+        return None
+    return _manifest_contract(load_manifest(manifest_path))
+
+
+def _project_root_from_lock_path(lock_path: Path) -> Path:
+    try:
+        return lock_path.parents[2]
+    except IndexError:
+        return Path(".")
+
+
+def _manifest_contract(manifest: Manifest) -> dict:
+    return {
+        "artifacts": sorted(_artifact_declarations(manifest)),
+        "test_files": sorted(_behavioral_test_paths(manifest)),
+    }
+
+
+def _artifact_declarations(manifest: Manifest) -> set[str]:
+    declarations: set[str] = set()
+    for file_spec in manifest.all_file_specs:
+        for artifact in file_spec.artifacts:
+            prefix = f"{file_spec.path}:{artifact.merge_key()}"
+            declarations.add(prefix)
+            declarations.add(f"{prefix}:kind={artifact.kind.value}")
+            if artifact.of is not None:
+                declarations.add(f"{prefix}:of={artifact.of}")
+            if artifact.returns is not None:
+                declarations.add(f"{prefix}:returns={artifact.returns}")
+            if artifact.type_annotation is not None:
+                declarations.add(f"{prefix}:type={artifact.type_annotation}")
+            if artifact.is_async:
+                declarations.add(f"{prefix}:async=true")
+            for arg in artifact.args:
+                declarations.add(
+                    f"{prefix}:arg={arg.name}:type={arg.type}:default={arg.default}"
+                )
+            for raised in artifact.raises:
+                declarations.add(f"{prefix}:raises={raised}")
+            for base in artifact.bases:
+                declarations.add(f"{prefix}:base={base}")
+            for type_parameter in artifact.type_parameters:
+                declarations.add(f"{prefix}:type_parameter={type_parameter}")
+    return declarations
+
+
+def _load_lock_or_error(lock_path: Path) -> PlanLock | ValidationError:
+    try:
+        return PlanLock.load(lock_path)
+    except (FileNotFoundError, _PlanLockLoadError) as exc:
+        return ValidationError(
+            code=ErrorCode.PLAN_LOCK_STALE,
+            message=f"PLAN_LOCK_STALE: lock cannot be loaded: {exc}",
+            location=Location(file=str(lock_path)),
+        )
+
+
+def _test_hash_errors(
+    lock: PlanLock,
+    manifest: Manifest,
+    project_root: Path,
+) -> list[ValidationError]:
+    errors: list[ValidationError] = []
+    current_test_paths = set(_behavioral_test_paths(manifest))
+    if set(lock.test_hashes) - current_test_paths:
+        return []
+
+    for rel, locked_hash in lock.test_hashes.items():
+        full = project_root / rel
+        current_hash = compute_manifest_hash(full) if full.exists() else None
+        if current_hash != locked_hash:
+            errors.append(
+                _lock_error(
+                    ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,
+                    manifest,
+                    detail=f"behavioral test changed after lock: {rel}",
+                )
+            )
+    return errors
+
+
+def _contract_weakening_detail(
+    lock_path: Path,
+    lock: PlanLock,
+    manifest: Manifest,
+) -> str | None:
+    locked_tests = set(lock.test_hashes)
+    current_contract = _manifest_contract(manifest)
+    if locked_tests - set(current_contract["test_files"]):
+        return "behavioral test entries shrank"
+
+    locked_contract = _load_locked_contract(lock_path)
+    if not locked_contract:
+        current_hash = compute_manifest_hash(Path(manifest.source_path))
+        if current_hash == lock.manifest_hash:
+            return None
+        return (
+            "legacy plan lock lacks a manifest contract snapshot; "
+            "revise the lock after reviewing the manifest change"
+        )
+    locked_artifacts = set(locked_contract.get("artifacts", ()))
+    current_artifacts = set(current_contract["artifacts"])
+    if locked_artifacts - current_artifacts:
+        return "declared artifacts shrank"
+    return None
+
+
+def _load_locked_contract(lock_path: Path) -> dict | None:
+    try:
+        data = json.loads(lock_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    contract = data.get("_manifest_contract")
+    return contract if isinstance(contract, dict) else None
+
+
+def _red_evidence_is_valid(evidence: dict) -> bool:
+    if not isinstance(evidence, dict) or evidence.get("red") is not True:
+        return False
+    commands = evidence.get("commands")
+    if not isinstance(commands, list):
+        return False
+    classifications = [
+        command.get("classification")
+        for command in commands
+        if isinstance(command, dict)
+    ]
+    return "red" in classifications and "invalid" not in classifications
+
+
+def _plan_lock_files(project_root: Path) -> tuple[Path, ...]:
+    lock_dir = project_root / ".maid" / "plan-locks"
+    if not lock_dir.exists():
+        return ()
+    return tuple(sorted(lock_dir.glob("*.lock.json")))
+
+
+def _lock_error(
+    code: ErrorCode,
+    manifest: Manifest,
+    *,
+    detail: str | None = None,
+) -> ValidationError:
+    messages = {
+        ErrorCode.PLAN_LOCK_MISSING: "PLAN_LOCK_MISSING: manifest has no plan lock",
+        ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK: (
+            "BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK: behavioral test hash changed"
+        ),
+        ErrorCode.MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK: (
+            "MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK: manifest contract shrank"
+        ),
+        ErrorCode.PLAN_LOCK_STALE: "PLAN_LOCK_STALE: lock references a missing manifest",
+        ErrorCode.RED_PHASE_EVIDENCE_MISSING: (
+            "RED_PHASE_EVIDENCE_MISSING: plan lock has no red-phase evidence"
+        ),
+        ErrorCode.RED_PHASE_EVIDENCE_INVALID: (
+            "RED_PHASE_EVIDENCE_INVALID: red-phase evidence is not valid red"
+        ),
+    }
+    message = messages[code]
+    if detail:
+        message = f"{message} ({detail})"
+    return ValidationError(
+        code=code,
+        message=message,
+        location=Location(file=_manifest_location(manifest)),
+    )
+
+
+def _manifest_location(manifest: Manifest) -> str:
+    path = Path(manifest.source_path)
+    try:
+        return path.relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        return str(path)
