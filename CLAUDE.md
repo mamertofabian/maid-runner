@@ -39,9 +39,9 @@ Confirm the high-level goal with user before proceeding.
 
 ### Phase 4.5: Git Branch Placement
 1. Keep `main` release-only and stable. It should point at tagged or release-ready states, not routine fix, feature, or refactor commits.
-2. Use `dev/v2.next` as the standing integration branch for the next v2 batch and next-release stabilization work.
+2. Use `release/v2.next` as the standing integration branch for the next v2 batch and next-release stabilization work.
 3. Use scoped branches such as `fix/<short-slug>`, `feat/<short-slug>`, `refactor/<short-slug>`, or `docs/<short-slug>` only when the work needs isolated review before it joins the next batch.
-4. Prefer the slash form `dev/v2.next`, consistent with existing `dev/v2.x` branch names. Do not use broad catch-all branches such as `fix/general-fix-batch` when the intent is next-release integration.
+4. Prefer the slash form `release/v2.next`, consistent with existing `release/v2.x` branch names. Do not use broad catch-all branches such as `fix/general-fix-batch` when the intent is next-release integration.
 5. If a non-release commit lands on `main` by mistake before it is pushed, preserve the commit on the intended branch first, then move local `main` back to the release base. Do not rewrite published history, push branches, or delete remote branches without explicit user approval.
 
 ### Phase 5: Review-Fix-Ready Loop
