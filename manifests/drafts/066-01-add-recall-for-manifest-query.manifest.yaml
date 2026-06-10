@@ -75,12 +75,15 @@ description: |
   - Stale-index failure: a stale index fails by default and succeeds only
     with `--allow-stale-index`.
 
-  Edge cases: a manifest whose extracted fields are all empty yields an empty
-  derived query, which must fail loudly (the existing `recall_outcomes`
-  rejects empty queries; surface that as a clear CLI error naming the
-  manifest). A missing or unparseable manifest path returns nonzero with the
-  path in the error. Duplicate values across fields are de-duplicated per
-  query dimension exactly as existing query normalization already does.
+  Edge cases: a manifest whose extractable fields are all empty is rejected by
+  `derive_recall_query` with a `ValueError` naming the manifest path and
+  stating that no recall query signals were found. `cmd_recall` surfaces that
+  failure as a clear nonzero CLI error, including JSON error output when
+  `--json` is used. The existing `recall_outcomes` empty-query guard remains
+  unchanged for manually constructed generic `OutcomeRecallQuery` values. A
+  missing or unparseable manifest path returns nonzero with the path in the
+  error. Duplicate values across fields are de-duplicated per query dimension
+  exactly as existing query normalization already does.
 
   Planning note: the epic does not pin whether derived filters are conjunctive
   like hand-written recall filters. Conservative reading: derived signals are
