@@ -54,6 +54,18 @@ def _repo_with_worktree_change(project_dir: Path) -> None:
     _write(project_dir, "src/new.py", "def new_func() -> bool:\n    return True\n")
 
 
+def _repo_with_evidenced_worktree_change(project_dir: Path) -> None:
+    _init_repo(project_dir)
+    _write(project_dir, "src/base.py", "def base() -> None:\n    return None\n")
+    _write(
+        project_dir,
+        "tests/test_base.py",
+        "from src.base import base\n\n\ndef test_base():\n    assert base() is None\n",
+    )
+    _commit_all(project_dir, "baseline")
+    _write(project_dir, "src/base.py", "def base() -> str:\n    return 'changed'\n")
+
+
 def test_manifest_from_diff_dry_run_json_writes_nothing(tmp_path, monkeypatch, capsys):
     from maid_runner.cli.commands._main import main
 
@@ -127,6 +139,28 @@ def test_manifest_from_diff_writes_default_draft_and_json_result(
     assert data["files"]["create"][0]["path"] == "src/new.py"
 
 
+def test_manifest_from_diff_default_output_preserves_evidenced_validate_suggestion(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+
+    _repo_with_evidenced_worktree_change(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = main(
+        ["manifest", "from-diff", "--worktree", "--slug", "demo", "--json"]
+    )
+
+    assert exit_code == 0
+    result = json.loads(capsys.readouterr().out)
+    data = yaml.safe_load((tmp_path / result["path"]).read_text())
+    assert data["validate"] == [
+        "pytest tests/test_base.py -v",
+        "maid validate manifests/drafts/demo.manifest.yaml --mode schema --quiet",
+    ]
+    assert data["metadata"]["needs_review"] is True
+
+
 def test_manifest_from_diff_custom_output_sets_validate_command(
     tmp_path, monkeypatch, capsys
 ):
@@ -154,6 +188,37 @@ def test_manifest_from_diff_custom_output_sets_validate_command(
     assert data["validate"] == [
         "maid validate manifests/drafts/custom.manifest.yaml --mode schema --quiet"
     ]
+
+
+def test_manifest_from_diff_custom_output_preserves_evidenced_validate_suggestion(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+
+    _repo_with_evidenced_worktree_change(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = main(
+        [
+            "manifest",
+            "from-diff",
+            "--worktree",
+            "--slug",
+            "demo",
+            "--output",
+            "manifests/drafts/custom.manifest.yaml",
+            "--dry-run",
+            "--json",
+        ]
+    )
+
+    assert exit_code == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["validate"] == [
+        "pytest tests/test_base.py -v",
+        "maid validate manifests/drafts/custom.manifest.yaml --mode schema --quiet",
+    ]
+    assert data["metadata"]["needs_review"] is True
 
 
 def test_manifest_from_diff_quotes_spaced_slug_validate_command(

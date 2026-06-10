@@ -4,7 +4,7 @@ goal: "Derive suggested validate commands for generated drafts from existing tes
 type: feature
 created: "2026-06-10T01:03:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 061-00-manifest-authoring-and-brownfield-onboarding
   tags:
     - adoption
@@ -113,10 +113,21 @@ files:
           args:
             - name: diff
               type: DiffScopeResult
+            - name: project_root
+              type: Union[str, Path]
             - name: slug
               type: str
           returns: dict
           description: "Rendering now emits validate commands from suggest_validate_commands instead of hardcoding the schema-only fallback."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "From-diff custom output handling now preserves evidenced pytest suggestions and only rewrites the schema validate command path."
   read:
     - maid_runner/core/diff_scope.py
     - maid_runner/core/_file_discovery.py
@@ -124,6 +135,97 @@ files:
     - maid_runner/validators/registry.py
     - maid_runner/validators/python.py
     - tests/core/test_validate_suggestions.py
+    - tests/core/test_manifest_from_diff.py
+    - tests/cli/test_manifest_from_diff_cmd.py
 validate:
-  - uv run python -m pytest tests/core/test_validate_suggestions.py -v
-  - uv run maid validate manifests/drafts/061-03-suggest-validate-commands-from-test-layout.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest tests/core/test_validate_suggestions.py tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py -v
+  - uv run maid validate manifests/061-03-suggest-validate-commands-from-test-layout.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added validate-command suggestions for generated from-diff draft manifests."
+  rationale: "Promoted the 061-03 draft, added evidence-backed pytest suggestion discovery, threaded project_root through rendering to avoid hidden cwd coupling, preserved suggestions through custom CLI output handling, and fixed an implementation-review finding for unavailable optional validators before re-review returned ready."
+  lessons:
+    - lesson_type: testability
+      summary: "Renderer logic that inspects project files should receive project_root explicitly; using Path.cwd() made synthetic renderer tests depend on unrelated repository tests with matching artifact names."
+      tags:
+        - manifest-authoring
+        - testability
+        - project-root
+      paths:
+        - maid_runner/core/manifest_from_diff.py
+        - tests/core/test_manifest_from_diff.py
+    - lesson_type: cli-semantics
+      summary: "Custom output path handling must preserve evidenced pytest suggestions and rewrite only the schema validate command, otherwise the user-facing from-diff command silently discards the new evidence."
+      tags:
+        - cli
+        - validation-command
+        - manifest-authoring
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+    - lesson_type: optional-dependency
+      summary: "Suggestion discovery must skip test files whose optional validator cannot be instantiated, so missing TypeScript or Svelte parser extras do not crash generation for unrelated changes."
+      tags:
+        - optional-dependencies
+        - validators
+        - fail-soft
+      paths:
+        - maid_runner/core/validate_suggestions.py
+        - tests/core/test_validate_suggestions.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Initial review found optional validator instantiation could raise ImportError while scanning unrelated test files; added a guarded skip path and regression test before re-review."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Second review found no actionable issues and returned ready, noting only that the optional-validator regression uses a synthetic validator to cover the failing registry.get path."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/core/test_validate_suggestions.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+        - -v
+      status: passed
+      summary: "All 35 focused core and CLI tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/061-03-suggest-validate-commands-from-test-layout.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/061-03-suggest-validate-commands-from-test-layout.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with only pre-existing E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed: 63 commands passed, 0 failed."
+  completed_at: "2026-06-10T06:13:09Z"

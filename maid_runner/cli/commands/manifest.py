@@ -205,7 +205,7 @@ def _cmd_from_diff(args: argparse.Namespace) -> int:
             raise FromDiffRenderError(
                 f"Manifest from-diff output must be under manifests/drafts/: {output_path}"
             )
-        data = build_from_diff_manifest(diff, slug)
+        data = build_from_diff_manifest(diff, Path.cwd(), slug)
         _set_validate_path(data, output_path)
 
         if args.dry_run:
@@ -230,9 +230,28 @@ def _cmd_from_diff(args: argparse.Namespace) -> int:
 
 
 def _set_validate_path(data: dict, output_path: Path) -> None:
-    data["validate"] = [
-        f"maid validate {shlex.quote(_display_output_path(output_path))} --mode schema --quiet"
+    schema_command = (
+        f"maid validate {shlex.quote(_display_output_path(output_path))} "
+        "--mode schema --quiet"
+    )
+    existing = data.get("validate") or []
+    suggestions = [
+        command for command in existing if not _is_schema_validate_command(command)
     ]
+    data["validate"] = suggestions + [schema_command]
+
+
+def _is_schema_validate_command(command: str) -> bool:
+    try:
+        parts = shlex.split(command)
+    except ValueError:
+        return False
+    return (
+        len(parts) == 6
+        and parts[0] == "maid"
+        and parts[1] == "validate"
+        and parts[3:] == ["--mode", "schema", "--quiet"]
+    )
 
 
 def _display_output_path(output_path: Path) -> str:

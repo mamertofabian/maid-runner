@@ -72,7 +72,7 @@ def _artifact(
     return ArtifactSpec(kind=kind, name=name, args=args, returns=returns, of=of)
 
 
-def test_build_from_diff_manifest_renders_schema_valid_review_marked_draft():
+def test_build_from_diff_manifest_renders_schema_valid_review_marked_draft(tmp_path):
     diff = DiffScopeResult(
         created=("README.md", "src/new.py"),
         edited=("src/edited.py",),
@@ -99,7 +99,7 @@ def test_build_from_diff_manifest_renders_schema_valid_review_marked_draft():
         ),
     )
 
-    data = build_from_diff_manifest(diff, "from-diff-demo")
+    data = build_from_diff_manifest(diff, tmp_path, "from-diff-demo")
 
     assert data["goal"] == "TODO: describe this change"
     assert data["metadata"]["generated_by"] == "maid-manifest-from-diff"
@@ -134,10 +134,10 @@ def test_build_from_diff_manifest_renders_schema_valid_review_marked_draft():
     assert validate_manifest_schema(data) == []
 
 
-def test_build_from_diff_manifest_quotes_slug_path_in_validate_command():
+def test_build_from_diff_manifest_quotes_slug_path_in_validate_command(tmp_path):
     diff = DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=())
 
-    data = build_from_diff_manifest(diff, "my demo")
+    data = build_from_diff_manifest(diff, tmp_path, "my demo")
 
     assert shlex.split(data["validate"][0]) == [
         "maid",
@@ -149,14 +149,14 @@ def test_build_from_diff_manifest_quotes_slug_path_in_validate_command():
     ]
 
 
-def test_build_from_diff_manifest_rejects_empty_diff():
+def test_build_from_diff_manifest_rejects_empty_diff(tmp_path):
     diff = DiffScopeResult(created=(), edited=(), deleted=(), deltas=())
 
     with pytest.raises(FromDiffRenderError, match="No changed files"):
-        build_from_diff_manifest(diff, "empty")
+        build_from_diff_manifest(diff, tmp_path, "empty")
 
 
-def test_build_from_diff_manifest_is_deterministic():
+def test_build_from_diff_manifest_is_deterministic(tmp_path):
     diff = DiffScopeResult(
         created=("z.py", "a.py"),
         edited=("b.py",),
@@ -172,12 +172,12 @@ def test_build_from_diff_manifest_is_deterministic():
     )
 
     first = yaml.safe_dump(
-        build_from_diff_manifest(diff, "same-slug"),
+        build_from_diff_manifest(diff, tmp_path, "same-slug"),
         default_flow_style=False,
         sort_keys=False,
     )
     second = yaml.safe_dump(
-        build_from_diff_manifest(diff, "same-slug"),
+        build_from_diff_manifest(diff, tmp_path, "same-slug"),
         default_flow_style=False,
         sort_keys=False,
     )
@@ -209,6 +209,7 @@ def test_write_from_diff_manifest_refuses_existing_output_without_force(
     output.write_text("existing\n")
     data = build_from_diff_manifest(
         DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=()),
+        tmp_path,
         "demo",
     )
 
@@ -227,6 +228,7 @@ def test_write_from_diff_manifest_force_overwrites_with_stable_yaml(
     output.write_text("existing\n")
     data = build_from_diff_manifest(
         DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=()),
+        tmp_path,
         "demo",
     )
 
@@ -262,6 +264,7 @@ def test_write_from_diff_manifest_rejects_non_draft_output(tmp_path, monkeypatch
     output = tmp_path / "manifests" / "active.manifest.yaml"
     data = build_from_diff_manifest(
         DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=()),
+        tmp_path,
         "demo",
     )
 
@@ -280,6 +283,7 @@ def test_write_from_diff_manifest_rejects_draft_path_outside_project(
     )
     data = build_from_diff_manifest(
         DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=()),
+        tmp_path,
         "demo",
     )
 

@@ -18,6 +18,7 @@ from maid_runner.core.diff_scope import (
 )
 from maid_runner.core.manifest import validate_manifest_schema
 from maid_runner.core.types import ArtifactKind, ArtifactSpec
+from maid_runner.core.validate_suggestions import suggest_validate_commands
 
 _GOAL_PLACEHOLDER = "TODO: describe this change"
 _GENERATED_BY = "maid-manifest-from-diff"
@@ -42,7 +43,11 @@ def default_from_diff_slug(
     return f"from-diff-{date}-{short_hash}"
 
 
-def build_from_diff_manifest(diff: DiffScopeResult, slug: str) -> dict:
+def build_from_diff_manifest(
+    diff: DiffScopeResult,
+    project_root: Union[str, Path],
+    slug: str,
+) -> dict:
     """Render diff-scope data into deterministic draft manifest data."""
     if not diff.created and not diff.edited and not diff.deleted:
         raise FromDiffRenderError("No changed files found for diff-scope manifest.")
@@ -90,11 +95,13 @@ def build_from_diff_manifest(diff: DiffScopeResult, slug: str) -> dict:
             "needs_review": True,
         },
         "files": files,
-        "validate": [
-            _schema_validate_command(
-                Path("manifests") / "drafts" / f"{slug}.manifest.yaml"
+        "validate": list(
+            suggest_validate_commands(
+                diff,
+                project_root,
+                Path("manifests") / "drafts" / f"{slug}.manifest.yaml",
             )
-        ],
+        ),
     }
 
 
