@@ -4,7 +4,7 @@ goal: "Add the tamper-evident plan-lock data model and the `maid plan lock|revis
 type: feature
 created: "2026-06-10T07:01:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 067-00-plan-lock-and-red-phase-evidence
   tags:
     - validation-trust
@@ -81,6 +81,13 @@ description: |
   red-phase evidence (067-02); `maid verify` enforcement flags and the
   E700-E705 error codes (067-03); workflow documentation and skill payload
   updates (067-04).
+
+  Implementation note: the repository consistency test
+  tests/test_agent_payload_distribution.py requires every registered
+  top-level CLI command to be mentioned in README.md or docs/ROADMAP.md.
+  This child therefore adds one `maid plan` row to the README command
+  reference table. Full plan-lock workflow documentation remains 067-04
+  scope.
 temptations:
   - risk: "Do not allow silent lock overwrites or empty revision reasons."
     instead: "Refuse re-lock without revise, require a non-empty reason string, and append immutable revision history entries."
@@ -221,6 +228,13 @@ files:
           returns: int
           description: "Report lock state, hash matches and mismatches, and red evidence in text and --json."
   edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _plan_command_reference_row
+          of: documentation
+          type: markdown table row
+          description: "Command reference row for maid plan lock|revise|status, required by the command-docs consistency test."
     - path: maid_runner/cli/commands/_main.py
       artifacts:
         - kind: function
@@ -246,3 +260,98 @@ validate:
   - uv run python -m pytest -q tests/core/test_plan_lock.py tests/cli/test_plan_cmd.py
   - uv run maid validate manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added the tamper-evident plan-lock data model in maid_runner/core/plan_lock.py and the maid plan lock|revise|status CLI."
+  rationale: "Implemented after reproducing the gaming vector (post-approval behavioral test edit passing maid validate undetected) in a throwaway project; implementation review returned ready to merge with no blocking findings, with focused tests, full suite, and repository MAID gates passing."
+  lessons:
+    - lesson_type: process
+      summary: "Registering a new top-level CLI command trips the command-docs consistency test, so a CLI child manifest needs a README command-reference row in scope even when full workflow documentation belongs to a later documentation child."
+      tags:
+        - cli-registration
+        - docs-consistency
+        - manifest-scope
+      paths:
+        - maid_runner/cli/commands/_main.py
+        - README.md
+    - lesson_type: contract-honesty
+      summary: "A corrupt plan lock must fail closed on every path that touches it, including the lock-creation overwrite check, so a broken lock can never be silently replaced by a fresh one."
+      tags:
+        - fail-closed
+        - plan-lock
+        - anti-gaming
+      paths:
+        - maid_runner/core/plan_lock.py
+        - maid_runner/cli/commands/plan.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready to merge with no blocking findings; noted that status resolves the manifest path cwd-relative while test files resolve against --project-root, deferred to 067-03 where E703 distinguishes missing manifests, and that PlanLock immutability is shallow over its hash dicts as contracted."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock.py
+        - tests/cli/test_plan_cmd.py
+      status: passed
+      summary: "All 33 behavioral tests passed, including the adversarial tampered-test detection case."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed on the promoted path."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Strict-mode implementation validation passed for both created modules."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with only pre-existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 67 command entries passing."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --since
+        - HEAD
+      status: passed
+      summary: "Changed-scope handoff gate passed all stages including coherence, file tracking, worktree scope, changed scope, and tests."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2425 passed and 5 skipped."
+  completed_at: "2026-06-10T11:03:06Z"

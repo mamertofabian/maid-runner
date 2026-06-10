@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_validate_parser(sub)
     _register_test_parser(sub)
     _register_verify_parser(sub)
+    _register_plan_parser(sub)
     _register_snapshot_parser(sub)
     _register_snapshot_system_parser(sub)
     _register_bootstrap_parser(sub)
@@ -216,6 +217,22 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Run the verify tests stage with this many test command workers",
     )
     p.add_argument("--json", action="store_true")
+
+
+def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("plan", help="Tamper-evident plan lock operations")
+    psub = p.add_subparsers(dest="plan_command")
+    lp = psub.add_parser("lock", help="Create a plan lock for a manifest")
+    lp.add_argument("manifest_path")
+    lp.add_argument("--project-root", default=".", dest="project_root")
+    rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
+    rp.add_argument("manifest_path")
+    rp.add_argument("--reason", default=None)
+    rp.add_argument("--project-root", default=".", dest="project_root")
+    sp = psub.add_parser("status", help="Report plan lock state and hash matches")
+    sp.add_argument("manifest_path")
+    sp.add_argument("--json", action="store_true")
+    sp.add_argument("--project-root", default=".", dest="project_root")
 
 
 def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
@@ -502,6 +519,7 @@ def main(argv: list[str] | None = None) -> int:
         "validate": "_cmd_validate",
         "test": "_cmd_test",
         "verify": "_cmd_verify",
+        "plan": "_cmd_plan",
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
@@ -532,6 +550,7 @@ def main(argv: list[str] | None = None) -> int:
         validate as validate_mod,
         test as test_mod,
         verify as verify_mod,
+        plan as plan_mod,
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
         learn as learn_mod,
@@ -554,6 +573,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_validate": validate_mod.cmd_validate,
         "_cmd_test": test_mod.cmd_test,
         "_cmd_verify": verify_mod.cmd_verify,
+        "_cmd_plan": plan_mod.cmd_plan,
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
