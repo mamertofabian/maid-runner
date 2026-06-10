@@ -4,7 +4,7 @@ goal: "Extract a reusable core helper that partitions baseline-changed files and
 type: feature
 created: "2026-06-10T01:01:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 061-00-manifest-authoring-and-brownfield-onboarding
   tags:
     - adoption
@@ -57,7 +57,9 @@ description: |
     delta entry. deleted files: every public artifact in the baseline
     version is a `removed` entry. edited files: compare baseline vs current
     public artifact sets by (name, of); same identity with a differing
-    signature (args/returns/kind) is `signature_changed`.
+    signature (args/returns/kind) is `signature_changed`. `signature_changed`
+    entries carry the current (worktree-side) signature, not the baseline
+    signature.
   - Baseline file content for since/base-ref scopes is read with
     `git show <resolved-commitish>:<path>`; for worktree scope the baseline
     content is the HEAD version of the file. This is content retrieval at
@@ -174,4 +176,96 @@ files:
     - tests/core/test_diff_scope.py
 validate:
   - uv run python -m pytest tests/core/test_diff_scope.py -v
-  - uv run maid validate manifests/drafts/061-01-extract-diff-scope-artifact-collection.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added maid_runner/core/diff_scope.py with deterministic baseline partitioning and public artifact deltas."
+  rationale: "Implemented after plan review approved the promoted draft; implementation review drove one fix (binary-file decode crash) before returning ready to merge with focused tests, full suite, and repository MAID gates passing."
+  lessons:
+    - lesson_type: contract-honesty
+      summary: "Content retrieval must stay behind the validator guard: fetching baseline bytes via git show without text decoding lets binary and non-source files keep their contracted empty-delta behavior instead of crashing with UnicodeDecodeError."
+      tags:
+        - diff-scope
+        - fail-closed
+        - binary-files
+      paths:
+        - maid_runner/core/diff_scope.py
+        - tests/core/test_diff_scope.py
+    - lesson_type: test-design
+      summary: "Base-ref fixtures must advance the parent branch past the divergence point; otherwise merge-base resolution is indistinguishable from parent-tip resolution and a wrong implementation passes."
+      tags:
+        - merge-base
+        - fixture-repos
+        - behavioral-testing
+      paths:
+        - tests/core/test_diff_scope.py
+    - lesson_type: behavioral-validation
+      summary: "Type annotations on test helpers do not count as artifact usage for behavioral validation; tests need direct references such as isinstance assertions for declared result classes."
+      tags:
+        - behavioral-validation
+        - e200
+      paths:
+        - tests/core/test_diff_scope.py
+  review_notes:
+    - source: maid-plan-reviewer
+      severity: warning
+      summary: "Plan review required delta assertions under worktree and base-ref baselines to close a hollow-implementation path, and a description sentence pinning that signature_changed carries the current signature; approved after revision."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Implementation review found changed binary files crashed with raw UnicodeDecodeError instead of the contracted empty-delta behavior; fixed red-first with a binary-file behavioral test, then re-review returned ready to merge."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/core/test_diff_scope.py
+        - -v
+      status: passed
+      summary: "All 17 behavioral tests passed against fixture git repositories."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Strict-mode implementation validation passed for the created module."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with only pre-existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with all command groups passing."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --since
+        - HEAD
+      status: passed
+      summary: "Changed-scope handoff gate passed all gates including coherence, file tracking, worktree scope, changed scope, and tests."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2345 passed and 5 skipped."
+  completed_at: "2026-06-10T02:49:05Z"
