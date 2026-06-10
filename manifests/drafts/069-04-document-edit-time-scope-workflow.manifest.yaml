@@ -1,0 +1,170 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Document the edit-time scope enforcement workflow across README, docs, and skill guidance"
+type: feature
+created: "2026-06-10T09:04:00Z"
+metadata:
+  status: draft
+  epic: 069-00-edit-time-scope-enforcement-hooks
+  tags:
+    - scope-enforcement
+    - hooks
+    - agent-integration
+  priority: medium
+description: |
+  Documentation child for epic 069-00. Document how MAID sessions use the
+  active-task and hook commands shipped by siblings 069-01 through
+  069-03: a README section, `docs/agent-skills.md` updates, and skill
+  guidance updates so that MAID implementation sessions start with
+  `maid task start <manifest>` after a draft is promoted and clear the
+  active task with `maid task stop` at handoff.
+
+  Pinned decisions to restate accurately in the documentation (from epic
+  069-00; the docs must describe, not redesign, these):
+
+  1. Active-task resolution order: the `MAID_ACTIVE_MANIFEST` environment
+     variable if set; otherwise the single-line file
+     `.maid/active-manifest` containing a repo-relative manifest path;
+     otherwise no active task. `maid task start <manifest-path>` writes
+     the file (rejecting paths outside the project or nonexistent files),
+     `maid task stop` removes it idempotently, and `maid task status`
+     prints the current value in text and `--json` with env-var
+     precedence visible.
+  2. Scope decisions: `maid hook scope-check --path <file-path>` (or
+     `--stdin` with a JSON `{"path": ...}` object) outputs one JSON
+     object `{"decision": "allow"|"deny", "reason": ...,
+     "active_manifest": ...}` with exit code 0 allow, 2 deny, 1 internal
+     error. With no active task the default policy allows with reason
+     `no-active-task`. With an active task, allowed paths are the
+     manifest's `files.create`, `files.edit`, and `files.delete` entries,
+     the manifest's own path, its declared test files, and paths under
+     `manifests/drafts/`; everything else is denied with a reason naming
+     the active manifest and the closest declared scope entries.
+  3. Strict mode for autonomous loops: `--strict` flips both the
+     no-active-task and internal-error outcomes to deny. Document that
+     interactive sessions use the default fail-open policy (a broken hook
+     never bricks an editor) and that locked-down autonomous loops should
+     pass `--strict`.
+  4. The hook is advisory infrastructure, not a validation gate. The
+     documentation must state explicitly that `maid verify` changed-scope
+     checks remain the authoritative handoff evidence and that hook
+     decisions add no `ErrorCode` entries.
+  5. Workflow placement: after a draft manifest is promoted to
+     `manifests/`, the session runs `maid task start
+     manifests/<slug>.manifest.yaml`; at handoff (after implementation
+     review), the session runs `maid task stop`. Hook wiring is installed
+     by `maid init` payloads (Claude PreToolUse settings, Cursor
+     hooks.json, Codex pre-edit guidance in the managed AGENTS.md
+     section).
+
+  Planning note: skill guidance updates follow the established
+  source-plus-distribution pattern: update the repo-local
+  `.claude/skills/maid-implementer/SKILL.md` and `.codex/skills/
+  maid-runner-draft-implement/SKILL.md` sources together with the
+  packaged copies under `maid_runner/claude/skills/` and
+  `maid_runner/codex/skills/` so distribution copies do not go stale
+  (see scripts/sync_claude_files.py).
+
+  Behavioral tests must cover (documentation assertions via
+  Path.read_text, following the tests/test_manifest_outcome_docs.py
+  pattern): the README section documents `maid task start`/`stop` and
+  the scope-check hook; docs/agent-skills.md places task start after
+  promotion and task stop at handoff; the guidance documents `--strict`
+  for autonomous loops and default fail-open behavior; the guidance
+  states that `maid verify` remains the authoritative gate; and the
+  edited skill sources and packaged distribution copies contain the same
+  task-start/handoff guidance anchors.
+
+  Out of scope for this child: the task commands implementation (069-01);
+  the scope-check command implementation (069-02); payload hook wiring
+  (069-03). This child changes documentation and skill text only.
+temptations:
+  - risk: "Do not describe the hook as a validation gate or substitute for maid verify."
+    instead: "State that hooks are fast advisory enforcement and maid verify changed-scope checks remain the authoritative handoff evidence."
+  - risk: "Do not document task state beyond the single active-manifest path."
+    instead: "Describe only start, stop, and status over the single repo-relative path contract."
+  - risk: "Do not update source skill files while leaving package distribution copies stale."
+    instead: "Update source-of-truth skill files and the packaged distribution copies together, with a test asserting shared guidance anchors."
+files:
+  create:
+    - path: tests/test_edit_time_scope_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_readme_documents_task_and_scope_check_workflow
+          source_scenario: "The README gains an edit-time scope enforcement section."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The README documents maid task start/stop around promotion and handoff, the maid hook scope-check command, and the allow/deny JSON decision contract."
+        - kind: test_function
+          name: test_agent_skills_docs_place_task_lifecycle_in_workflow
+          source_scenario: "docs/agent-skills.md describes the MAID session lifecycle."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The agent-skills docs instruct sessions to run maid task start after promotion, maid task stop at handoff, and document strict mode for autonomous loops with verify remaining authoritative."
+        - kind: test_function
+          name: test_skill_guidance_anchors_are_synced_to_distribution_copies
+          source_scenario: "Source skill files and packaged distribution copies are updated together."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The edited Claude and Codex skill sources and their packaged copies under maid_runner/ contain the same task-start and handoff guidance anchors."
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _edit_time_scope_enforcement_section
+          of: documentation
+          type: markdown section
+          description: "README section documenting maid task start/stop, the scope-check hook decision contract, strict mode, and verify remaining authoritative."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _edit_time_scope_workflow_guidance
+          of: documentation
+          type: markdown section
+          description: "Agent-skills lifecycle guidance: maid task start after promotion, maid task stop at handoff, strict mode for autonomous loops."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_active_task_guidance
+          of: skill
+          type: markdown section
+          description: "Implementer skill guidance to start the active task after promotion and clear it at handoff."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementer_active_task_guidance
+          of: skill
+          type: markdown section
+          description: "Packaged copy of the implementer active-task guidance."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_active_task_guidance
+          of: skill
+          type: markdown section
+          description: "Codex draft-implement skill guidance to start the active task after promotion and clear it at handoff."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_active_task_guidance
+          of: skill
+          type: markdown section
+          description: "Packaged copy of the Codex draft-implement active-task guidance."
+  read:
+    - manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml
+    - docs/draft-manifest-workflow.md
+    - scripts/sync_claude_files.py
+    - tests/test_manifest_outcome_docs.py
+validate:
+  - uv run python -m pytest -q tests/test_edit_time_scope_docs.py
+  - uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode schema --quiet

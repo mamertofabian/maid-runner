@@ -1,0 +1,195 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add the `--plan-packet` planning report mode to `maid recall --for-manifest`"
+type: feature
+created: "2026-06-10T06:02:00Z"
+metadata:
+  status: draft
+  epic: 066-00-outcome-recall-planning-integration.epic
+  tags:
+    - outcome-records
+    - recall
+    - learning
+    - maid-workflow
+  priority: medium
+description: |
+  Add a planning-oriented report mode to the manifest-derived recall command
+  shipped by 066-01. The mode is the flag `--plan-packet` on the SAME command:
+  `maid recall --for-manifest <path> --plan-packet`. It renders a compact,
+  deterministic summary block suitable for inclusion in plan-review packets.
+
+  Pinned decisions (do not redesign):
+
+  1. The planning report mode is the flag `--plan-packet` on the same
+     `maid recall` command, not a new subcommand.
+  2. Output is a deterministic compact block with FIXED section order:
+     first related manifests, second outcome statuses, third recurring
+     lessons touching the same paths, fourth prior validation-command
+     failures.
+  3. Each section shows at most 5 entries, ordered with the existing stable
+     recall tie-breakers (score descending, then manifest slug, then manifest
+     path; within a single manifest, index order of the underlying records).
+     Truncation is reported explicitly with the omitted count (for example
+     "... 3 more omitted").
+  4. Stale-index behavior matches existing recall semantics: fail with the
+     stale-index error unless `--allow-stale-index` is passed; never silently
+     answer from stale data during planning.
+  5. Recall consultation is advisory in this epic. The plan packet is
+     planning evidence only; it never replaces a manifest's own behavioral
+     tests, declared artifacts, validation commands, or implementation
+     review, and no done-gate or promotion gate starts requiring it.
+  6. No AI inference, embeddings, or generated prose. Every entry in the
+     packet is traceable to an explicit Outcome index record field.
+
+  Section content (derived from the ranked matches of the 066-01 derivation
+  against the learned index):
+
+  - Related manifests: manifest slug and path of each ranked match.
+  - Outcome statuses: the Outcome status of each related manifest.
+  - Recurring lessons touching the same paths: lessons from related records
+    whose lesson paths overlap the query manifest's declared file paths.
+  - Prior validation-command failures: validation evidence entries from
+    related records whose status is not passed.
+
+  Behavioral test expectations (from the epic): output ordering and
+  truncation rules must be explicit and tested. Tests cover the fixed
+  section order, the at-most-5-entries cap with explicit omitted counts,
+  byte-stable output for identical inputs, empty-section rendering (a
+  section with no entries states that explicitly rather than disappearing,
+  keeping the block shape deterministic), and `--json` output carrying the
+  same sections, entries, and omitted counts as the text block.
+
+  Planning note: the epic does not state whether `--plan-packet` is valid
+  without `--for-manifest`. Conservative reading: `--plan-packet` requires
+  `--for-manifest` and combining it with hand-written filters alone is a
+  usage error, because every packet section is defined relative to a query
+  manifest.
+
+  Planning note: the epic does not pin a JSON flag for the packet.
+  Conservative reading: reuse the existing `--json` flag so the command
+  surface gains exactly one new flag.
+
+  Out of scope for this child: signal derivation itself (066-01, a hard
+  dependency that must land first), agent skill guidance (066-03), and init
+  payload sync (066-04).
+temptations:
+  - risk: "Do not generate prose summaries or let entry selection depend on inference."
+    instead: "Build every packet section by deterministic selection from explicit Outcome index record fields, reusing the existing ranking and tie-breakers."
+  - risk: "Do not silently truncate sections or reorder them between runs."
+    instead: "Use the fixed section order, cap each section at 5 entries with stable tie-breakers, and report the omitted count explicitly."
+  - risk: "Do not let the plan packet gate validation, done states, or promotion."
+    instead: "Keep the packet advisory planning evidence; enforcement would be a separate future contract."
+  - risk: "Do not silently answer planning queries from a stale Outcome index."
+    instead: "Reuse the existing stale-index failure and require the explicit --allow-stale-index opt-in."
+files:
+  edit:
+    - path: maid_runner/core/outcome_recall.py
+      artifacts:
+        - kind: class
+          name: PlanPacketSection
+          description: "One deterministic plan-packet section with its capped entries and omitted count."
+        - kind: attribute
+          name: title
+          of: PlanPacketSection
+          type: str
+        - kind: attribute
+          name: entries
+          of: PlanPacketSection
+          type: tuple[str, ...]
+        - kind: attribute
+          name: omitted_count
+          of: PlanPacketSection
+          type: int
+        - kind: class
+          name: PlanPacket
+          description: "Deterministic compact planning summary derived from manifest-based recall matches."
+        - kind: attribute
+          name: manifest_path
+          of: PlanPacket
+          type: str
+        - kind: attribute
+          name: sections
+          of: PlanPacket
+          type: tuple[PlanPacketSection, ...]
+        - kind: function
+          name: build_plan_packet
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: derivation
+              type: ManifestRecallDerivation
+            - name: limit_per_section
+              type: int
+              default: "5"
+          returns: PlanPacket
+          source_scenario: "A learned index contains related manifests, mixed outcome statuses, overlapping-path lessons, and failed validation evidence."
+          actions:
+            - type: api_call
+              subject:
+                function: build_plan_packet
+          expected:
+            behavior: "Sections appear in the fixed order (related manifests, outcome statuses, recurring lessons touching the same paths, prior validation-command failures), each capped at limit_per_section entries with stable tie-breakers and an explicit omitted count."
+        - kind: function
+          name: render_plan_packet
+          args:
+            - name: packet
+              type: PlanPacket
+          returns: str
+          source_scenario: "The same plan packet is rendered twice."
+          actions:
+            - type: api_call
+              subject:
+                function: render_plan_packet
+          expected:
+            behavior: "Rendering is byte-stable for identical inputs, keeps the fixed section order, states empty sections explicitly, and reports omitted counts."
+    - path: maid_runner/cli/commands/recall.py
+      artifacts:
+        - kind: function
+          name: cmd_recall
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid recall --for-manifest <path> --plan-packet` renders a planning summary."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_recall
+          expected:
+            behavior: "The command renders the deterministic plan packet in text or --json, rejects --plan-packet without --for-manifest as a usage error, and preserves stale-index failure unless --allow-stale-index is passed."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid recall --for-manifest <path> --plan-packet`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The recall parser accepts --plan-packet alongside --for-manifest and the existing recall options."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          source_scenario: "The parsed command is `recall` with --plan-packet."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The CLI dispatches to `maid_runner.cli.commands.recall.cmd_recall`."
+  read:
+    - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+    - manifests/drafts/066-01-add-recall-for-manifest-query.manifest.yaml
+    - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - maid_runner/core/outcomes.py
+    - tests/core/test_plan_packet.py
+    - tests/cli/test_recall_plan_packet_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_plan_packet.py tests/cli/test_recall_plan_packet_cmd.py

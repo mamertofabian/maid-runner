@@ -1,0 +1,248 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add the tamper-evident plan-lock data model and the `maid plan lock|revise|status` CLI"
+type: feature
+created: "2026-06-10T07:01:00Z"
+metadata:
+  status: draft
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Implement the plan-lock data model (load, save, hash computation, revision
+  append) in a new `maid_runner/core/plan_lock.py`, plus the
+  `maid plan lock|revise|status` CLI in a new
+  `maid_runner/cli/commands/plan.py` registered in
+  `maid_runner/cli/commands/_main.py`. No enforcement in this child:
+  enforcement flags on `maid verify` belong to the sibling child
+  067-03-enforce-plan-lock-in-verify.
+
+  Pinned decisions (from epic 067-00; do not redesign):
+
+  1. Lock storage: one JSON lock file per manifest at
+     `.maid/plan-locks/<manifest-slug>.lock.json`. Reuse the sha256 content
+     hash approach of `compute_manifest_hash` in
+     `maid_runner/core/supersession_audit.py` (hash of file bytes, prefixed
+     with `sha256:`). Mirror the file-backed load/save pattern of
+     `GrandfatherLock` in the same module, including failing closed when a
+     lock file exists but is corrupt, unreadable, or malformed (a missing
+     lock file is fine; a present-but-broken lock file is a trust failure).
+  2. Each lock records: the manifest path; the manifest content hash; the
+     manifest's behavioral test file paths (from `files.read` entries that
+     are test files plus declared test files) with per-file content hashes;
+     the lock creation UTC timestamp; a monotonically increasing `revision`
+     integer starting at 1; and a `revisions` history list where each entry
+     holds the prior hashes, the revision timestamp, and a non-empty
+     free-text `reason`.
+  3. CLI surface: a new `maid plan` command group with three subcommands.
+     `maid plan lock <manifest-path>` creates a lock and REFUSES to
+     overwrite an existing lock (no silent overwrite; the user must use
+     `revise`). `maid plan revise <manifest-path> --reason "<text>"`
+     re-locks with the current hashes, appends the prior hashes to
+     `revisions`, increments `revision`, and requires a non-empty reason
+     (reject an empty or missing `--reason`). `maid plan status
+     <manifest-path>` reports lock state, hash matches and mismatches
+     against the current files, and red evidence, in both text and `--json`
+     output.
+  4. Red-phase evidence capture (running `validate:` commands and
+     classifying exit codes) is the sibling child 067-02. In this child the
+     lock record stores a `red_evidence` field that is always `null`
+     (JSON-serializable payload slot reserved for 067-02).
+  5. Hardening-lane discipline: first reproduce the gaming vector in a
+     throwaway project (edit a behavioral test after a plan is approved and
+     observe that nothing detects it), then land that reproduction as an
+     adversarial behavioral test proving the lock records make the
+     tampering machine-detectable via `maid plan status` hash mismatch
+     reporting.
+
+  Planning note: the epic does not pin the in-memory shape of the lock
+  record. The most conservative reading mirrors the proven
+  `GrandfatherLock` pattern: frozen dataclasses `PlanLock` and
+  `PlanLockRevision` with `load`/`save` methods, plus module-level helper
+  functions `default_plan_lock_path`, `create_plan_lock`, and
+  `revise_plan_lock`. `red_evidence` is typed `dict | None` (a verbatim
+  JSON payload slot) so that 067-02 can populate it without changing this
+  child's declared contract.
+
+  Behavioral tests must cover: lock creation writes the expected JSON
+  record; refusal to overwrite an existing lock; revise with a non-empty
+  reason appends history and increments revision; revise without a reason
+  (or with an empty reason) is rejected; status JSON shape (lock state,
+  per-file hash match/mismatch, red evidence field); corrupt lock file
+  load failure fails closed; and hash stability across repeated runs over
+  unchanged files.
+
+  Out of scope for this child: running `validate:` commands and capturing
+  red-phase evidence (067-02); `maid verify` enforcement flags and the
+  E700-E705 error codes (067-03); workflow documentation and skill payload
+  updates (067-04).
+temptations:
+  - risk: "Do not allow silent lock overwrites or empty revision reasons."
+    instead: "Refuse re-lock without revise, require a non-empty reason string, and append immutable revision history entries."
+  - risk: "Do not implement verify enforcement or new error codes in this child."
+    instead: "Ship only the lock data model and the maid plan CLI; enforcement belongs to 067-03."
+  - risk: "Do not treat a corrupt or malformed lock file as a missing lock."
+    instead: "Fail closed on present-but-unparseable lock files, mirroring the GrandfatherLock load behavior."
+  - risk: "Do not implement the lock model before reproducing the gaming vector."
+    instead: "First reproduce a post-approval behavioral test edit going undetected in a throwaway project, then land that reproduction as an adversarial test against maid plan status."
+files:
+  create:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: class
+          name: PlanLockRevision
+          description: "One immutable revision history entry holding the prior hashes, revision timestamp, and non-empty reason."
+        - kind: attribute
+          name: prior_manifest_hash
+          of: PlanLockRevision
+          type: str
+        - kind: attribute
+          name: prior_test_hashes
+          of: PlanLockRevision
+          type: dict[str, str]
+        - kind: attribute
+          name: revised_at
+          of: PlanLockRevision
+          type: str
+        - kind: attribute
+          name: reason
+          of: PlanLockRevision
+          type: str
+        - kind: class
+          name: PlanLock
+          description: "Tamper-evident per-manifest plan lock record stored at .maid/plan-locks/<manifest-slug>.lock.json."
+        - kind: attribute
+          name: manifest_path
+          of: PlanLock
+          type: str
+        - kind: attribute
+          name: manifest_hash
+          of: PlanLock
+          type: str
+        - kind: attribute
+          name: test_hashes
+          of: PlanLock
+          type: dict[str, str]
+        - kind: attribute
+          name: created_at
+          of: PlanLock
+          type: str
+        - kind: attribute
+          name: revision
+          of: PlanLock
+          type: int
+        - kind: attribute
+          name: revisions
+          of: PlanLock
+          type: tuple[PlanLockRevision, ...]
+        - kind: attribute
+          name: red_evidence
+          of: PlanLock
+          type: dict | None
+        - kind: method
+          name: load
+          of: PlanLock
+          args:
+            - name: path
+              type: Path
+          returns: PlanLock
+          description: "Load a lock file; fail closed when the file exists but is corrupt, unreadable, or malformed."
+        - kind: method
+          name: save
+          of: PlanLock
+          args:
+            - name: path
+              type: Path
+          returns: None
+        - kind: function
+          name: default_plan_lock_path
+          args:
+            - name: project_root
+              type: Path
+            - name: manifest_slug
+              type: str
+          returns: Path
+          description: "Return .maid/plan-locks/<manifest-slug>.lock.json under the project root."
+        - kind: function
+          name: create_plan_lock
+          args:
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+          returns: PlanLock
+          description: "Build a revision-1 lock with sha256 hashes of the manifest and its behavioral test files; red_evidence is null."
+        - kind: function
+          name: revise_plan_lock
+          args:
+            - name: existing
+              type: PlanLock
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: reason
+              type: str
+          returns: PlanLock
+          description: "Re-lock with current hashes, append the prior hashes to revisions, increment revision, and reject an empty reason."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Dispatch maid plan <subcommand> to lock, revise, or status."
+        - kind: function
+          name: cmd_plan_lock
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Create a plan lock; refuse to overwrite an existing lock."
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Re-lock with current hashes; require a non-empty --reason."
+        - kind: function
+          name: cmd_plan_status
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Report lock state, hash matches and mismatches, and red evidence in text and --json."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Parser exposes a plan command group with lock, revise (--reason), and status (--json) subcommands."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "The CLI dispatches plan subcommands to maid_runner.cli.commands.plan.cmd_plan."
+  read:
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/manifest.py
+    - maid_runner/cli/commands/audit.py
+    - tests/core/test_plan_lock.py
+    - tests/cli/test_plan_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_plan_lock.py tests/cli/test_plan_cmd.py
+  - uv run maid validate manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml --mode schema --quiet

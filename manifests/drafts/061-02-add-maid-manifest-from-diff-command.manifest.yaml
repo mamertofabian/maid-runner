@@ -1,0 +1,182 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add a `maid manifest from-diff` subcommand that renders the diff-scope delta into a schema-valid draft manifest under manifests/drafts/"
+type: feature
+created: "2026-06-10T01:02:00Z"
+metadata:
+  status: draft
+  epic: 061-00-manifest-authoring-and-brownfield-onboarding
+  tags:
+    - adoption
+    - manifest-authoring
+    - developer-experience
+  priority: high
+description: |
+  Add `maid manifest from-diff`: invert the validators so the author reviews
+  and corrects a generated draft contract instead of writing one from scratch.
+  The command consumes the 061-01 diff-scope helper
+  (`maid_runner.core.diff_scope.collect_diff_scope` returning a
+  `DiffScopeResult` with created/edited/deleted partitions and per-file
+  public artifact deltas) and renders a draft manifest.
+
+  Pinned decisions (do not redesign):
+
+  - CLI surface: a `from-diff` subcommand under the existing `maid manifest`
+    group in `maid_runner/cli/commands/manifest.py`, with flags
+    `--since <commit>`, `--base-ref <ref>`, `--worktree`, `--slug <slug>`,
+    `--output <path>`, `--force`, `--dry-run`, `--json`.
+  - Exactly one of `--since`, `--base-ref`, or `--worktree` is required.
+    If zero or more than one is given, exit 2 with a baseline-required
+    message matching E115 semantics ("pass the task baseline explicitly;
+    MAID will not guess main, dev, or a remote branch"). Invalid baselines
+    surfaced by the diff-scope helper also exit 2 (fail closed).
+  - Default output path is `manifests/drafts/<slug>.manifest.yaml`. Default
+    slug is `from-diff-<UTC-date>-<short-commit-hash>` (short hash of the
+    resolved baseline commit; for `--worktree` use the short hash of HEAD).
+  - Generated draft markers: `goal` defaults to the literal text
+    `"TODO: describe this change"`, and the manifest records
+    `metadata.generated_by: maid-manifest-from-diff` plus
+    `metadata.needs_review: true`. The promotion checklist treats
+    `needs_review: true` as not promotable; nothing in this command may
+    auto-promote or write into `manifests/` directly.
+  - Honest gaps: artifacts whose exact types the collectors could not
+    determine omit the unknown fields (no `args`/`returns`/`type` keys)
+    rather than carrying guessed signatures.
+  - The rendered draft must schema-validate at generation time (the same
+    check as `maid validate <draft> --mode schema`, via
+    `maid_runner.core.manifest.validate_manifest_schema`). If it does not,
+    generation fails with a structured error and writes nothing.
+  - Generation is deterministic: the same worktree state and baseline (and
+    same slug) produce the same draft manifest, byte for byte. Sort file
+    entries and artifacts; do not embed wall-clock timestamps in the body
+    beyond the slug's UTC date component.
+
+  Rendering rules:
+
+  - `files.create` entries come from the created partition with their
+    `added` artifacts; `files.edit` entries from the edited partition with
+    the artifacts this change added or signature-changed; `files.delete`
+    entries from the deleted partition (with a generated reason noting the
+    file was removed in the diff). Changed files with empty artifact deltas
+    and no validator still appear in the matching files section; for
+    create/edit sections that require artifacts, emit an explicit
+    placeholder attribute artifact (underscore-prefixed name, with a
+    description marking it as a generated placeholder) so the draft
+    schema-validates but cannot pass promotion review.
+  - The generated `validate:` list for this child contains only
+    `maid validate <draft-path> --mode schema --quiet` (test-derived
+    suggestions are 061-03's scope).
+  - `--dry-run` prints the rendered draft (YAML, or JSON with `--json`)
+    without writing. `--json` on a real run prints a structured result with
+    at least the output path. The command refuses to overwrite an existing
+    draft without `--force` (exit 2 with a clear message).
+
+  Test expectations (planned behavioral tests in
+  tests/core/test_manifest_from_diff.py and
+  tests/cli/test_manifest_from_diff_cmd.py, run against fixture git
+  repositories in tmp_path):
+
+  - rendered draft contains the pinned goal placeholder, generated_by and
+    needs_review markers, files sections matching the delta partitions, and
+    schema-validates.
+  - identical inputs render byte-identical drafts.
+  - zero baseline flags, two baseline flags, and an invalid commitish all
+    exit 2 without writing output.
+  - existing output path without --force exits 2; with --force overwrites.
+  - --dry-run writes nothing; --json emits parseable JSON.
+  - parser registration: `maid manifest from-diff --worktree` dispatches
+    through build_parser/main to the manifest command handler.
+
+  Planning notes: the epic pins the CLI location but not the rendering
+  module; this child conservatively places rendering/serialization in a new
+  core module `maid_runner/core/manifest_from_diff.py` so the CLI stays a
+  thin wrapper (and so rendering could be split out per the epic's fallback
+  note). The placeholder-artifact rule for validator-less created/edited
+  files is a conservative reading required to satisfy both "every changed
+  file is listed" and "the draft must schema-validate".
+
+  Out of scope: validate-command suggestions from existing test layout
+  (061-03), bootstrap ranking (061-04), documentation of the authoring loop
+  (061-05), and the diff/delta collection itself (already landed in 061-01).
+temptations:
+  - risk: "Do not let generated manifests skip the draft lifecycle or auto-promote into manifests/."
+    instead: "Always write to manifests/drafts/ and keep the documented promotion gates as the only path to an active contract."
+  - risk: "Do not guess artifact signatures or types that collectors could not determine."
+    instead: "Omit the unknown fields and keep metadata.needs_review: true so the draft fails promotion review until a human or agent fills them in."
+  - risk: "Do not invent new diff or baseline semantics inside the command."
+    instead: "Resolve the baseline from exactly one of --since/--base-ref/--worktree and delegate to maid_runner.core.diff_scope, exiting 2 with E115-style messaging otherwise."
+  - risk: "Do not duplicate snapshot collector or diff-scope logic inside the CLI module."
+    instead: "Keep cmd_manifest a thin dispatcher over maid_runner/core/manifest_from_diff.py, which consumes the 061-01 helper."
+files:
+  create:
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: default_from_diff_slug
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: baseline
+              type: DiffScopeBaseline
+          returns: str
+          description: "Returns from-diff-<UTC-date>-<short-commit-hash> for the resolved baseline (HEAD short hash for worktree scope)."
+        - kind: function
+          name: build_from_diff_manifest
+          args:
+            - name: diff
+              type: DiffScopeResult
+            - name: slug
+              type: str
+          returns: dict
+          description: "Renders the diff-scope delta into deterministic, schema-valid draft manifest data with the pinned goal placeholder and generated_by/needs_review markers."
+        - kind: function
+          name: write_from_diff_manifest
+          args:
+            - name: data
+              type: dict
+            - name: output_path
+              type: Union[str, Path]
+            - name: force
+              type: bool
+              default: "False"
+          returns: Path
+          description: "Schema-validates the rendered draft, refuses to overwrite without force, and writes byte-stable YAML."
+        - kind: class
+          name: FromDiffRenderError
+          description: "Structured generation failure: rendered draft failed schema validation or output refused."
+          bases:
+            - Exception
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Dispatch extended to the from-diff subcommand with the exactly-one-baseline rule and exit code 2 on violations."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Registers the manifest from-diff subparser with --since/--base-ref/--worktree/--slug/--output/--force/--dry-run/--json."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: "None"
+          returns: int
+  read:
+    - maid_runner/core/diff_scope.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - docs/draft-manifest-workflow.md
+    - tests/core/test_manifest_from_diff.py
+    - tests/cli/test_manifest_from_diff_cmd.py
+validate:
+  - uv run python -m pytest tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py -v
+  - uv run maid validate manifests/drafts/061-02-add-maid-manifest-from-diff-command.manifest.yaml --mode schema --quiet

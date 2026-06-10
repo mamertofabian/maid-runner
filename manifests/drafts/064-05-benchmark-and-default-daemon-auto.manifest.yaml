@@ -1,0 +1,129 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Publish daemon benchmark evidence and flip the maid validate routing default to auto"
+type: feature
+created: "2026-06-10T04:05:00Z"
+metadata:
+  status: draft
+  epic: 064-00-daemon-first-agent-validation
+  tags:
+    - performance
+    - daemon
+    - maid-serve
+    - agent-loops
+  priority: medium
+description: |
+  Final child of epic 064-00. After 064-01 (routing) and 064-02 (daemon
+  cache) are stable, publish benchmark evidence across representative
+  projects and, only if wins are demonstrated, flip the `--daemon` routing
+  default on `maid validate` from `off` to `auto`, with documentation
+  updates for agent skills, MCP guidance, and `docs/maid-serve.md`. This
+  child must be last in the epic.
+
+  Pinned decisions from epic 064-00. Do not redesign these:
+
+  1. The default flip is conditional on benchmark evidence. Record
+     before/after timings with `uv run maid benchmark` (or documented
+     equivalent) across representative projects in this child's outcome
+     evidence. If the daemon path shows no measurable win, the default
+     stays `off` and this child is dropped, not merged.
+  2. The flag itself does not change: `--daemon auto|off|require` as
+     defined by 064-01. Only the default value moves from `off` to `auto`.
+  3. Fail open is mandatory for the new default: under `auto`, a missing,
+     stale, or version-mismatched daemon must never fail or block a
+     validation call; the CLI silently falls back to direct execution and
+     reports the routing decision only in verbose/JSON diagnostics.
+     Single-shot CLI usage with no daemon running must behave exactly as
+     today.
+  4. The equivalence contract still holds: daemon-routed runs produce JSON
+     identical to direct runs except fields whose names contain
+     `duration`; equivalence tests from 064-01 must keep passing with the
+     new default.
+  5. Health check semantics are unchanged: routing requires a `ping`
+     response reporting the same resolved project root and the same
+     maid_runner version as the client; any mismatch or connection failure
+     falls back silently under `auto`.
+
+  Implementation shape:
+
+  - `maid_runner/cli/commands/_main.py`: `build_parser` changes the
+    `--daemon` default for the validate subparser from `off` to `auto`.
+  - `docs/maid-serve.md`: document the auto-routing default, the fail-open
+    fallback behavior, the health check, how to opt out (`--daemon off`),
+    how to require the daemon (`--daemon require`), and the published
+    benchmark evidence supporting the flip. MCP guidance for daemon-first
+    validation is documented here as well (see planning note).
+  - `docs/agent-skills.md`: add daemon-first guidance for agent loops:
+    start `maid serve` once, let `auto` routing pick it up, and rely on
+    fail-open fallback.
+
+  Edge cases and test expectations:
+
+  - The validate parser default for `--daemon` is `auto` (CLI test).
+  - With no daemon running, `maid validate` under the default succeeds via
+    silent fallback and produces output identical to `--daemon off`
+    (duration fields excluded).
+  - `--daemon off` still fully disables socket access.
+  - Docs tests assert `docs/maid-serve.md` documents the auto default,
+    fallback semantics, and benchmark evidence, and that
+    `docs/agent-skills.md` carries the daemon-first agent-loop guidance.
+
+  Planning note: the epic says documentation updates cover "agent skills,
+  MCP guidance, and docs/maid-serve.md" but names no dedicated MCP
+  documentation file; the conservative reading is to place the MCP guidance
+  in `docs/maid-serve.md` (which already documents the daemon protocol for
+  external integrations) rather than invent a new file. Planning note: the
+  repo already has a `tests/daemon/` domain directory; the CLI default
+  test lives in `tests/cli/` next to the other validate command tests and
+  the docs assertions live in a root-level docs test, matching existing
+  repo patterns.
+
+  Out of scope: any new routing, caching, protocol, or transport behavior
+  (064-01 through 064-04); changing `require` semantics; flipping any
+  default on `maid verify`.
+temptations:
+  - risk: "Do not flip the default without fresh, representative measurements."
+    instead: "Publish before/after uv run maid benchmark evidence across representative projects in the outcome, and drop this child if the win is not demonstrated."
+  - risk: "Do not make the daemon a hard dependency or break single-shot CLI usage."
+    instead: "Keep auto strictly fail-open with silent fallback so maid validate without a daemon behaves exactly as today."
+  - risk: "Do not let daemon-backed results diverge from direct execution under the new default."
+    instead: "Keep the 064-01 equivalence tests green with the auto default and compare JSON output with duration fields stripped."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user runs maid validate without passing --daemon."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The validate subparser's --daemon option defaults to auto while keeping choices auto, off, require."
+    - path: docs/maid-serve.md
+      artifacts:
+        - kind: attribute
+          name: _daemon_auto_routing_guidance
+          of: documentation
+          type: markdown section
+          description: "Documents the auto routing default, fail-open fallback, health check, opt-out and require modes, MCP integration guidance, and the published benchmark evidence."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _daemon_first_agent_loop_guidance
+          of: documentation
+          type: markdown section
+          description: "Guidance for agent loops to start maid serve once and rely on auto routing with fail-open fallback."
+  read:
+    - maid_runner/daemon/client.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/core/benchmark.py
+    - tests/cli/test_validate_daemon_default.py
+    - tests/test_maid_serve_docs.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_validate_daemon_default.py tests/test_maid_serve_docs.py
+  - uv run maid validate manifests/drafts/064-05-benchmark-and-default-daemon-auto.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/064-05-benchmark-and-default-daemon-auto.manifest.yaml --mode schema --quiet

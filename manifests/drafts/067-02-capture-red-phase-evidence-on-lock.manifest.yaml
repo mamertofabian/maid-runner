@@ -1,0 +1,165 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Capture red-phase runtime evidence on `maid plan lock` and `maid plan revise` by exit-code classification"
+type: feature
+created: "2026-06-10T07:02:00Z"
+metadata:
+  status: draft
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Add validate-command execution and exit-code classification to
+  `maid plan lock` and `maid plan revise`, reusing the command execution
+  helpers in `maid_runner/core/_test_command_execution.py`
+  (`_run_test_command` returns a `TestRunResult` with exit code, stdout,
+  stderr, and duration). This child edits the existing
+  `maid_runner/core/plan_lock.py` and `maid_runner/cli/commands/plan.py`
+  created by sibling child 067-01-add-plan-lock-storage-and-cli, which must
+  land first.
+
+  Pinned decisions (from epic 067-00; do not redesign):
+
+  1. Red-phase evidence is captured by `maid plan lock` (and `revise`): it
+     runs the manifest's `validate:` commands and classifies the result by
+     process exit code ONLY. Exit code 1 from pytest means tests ran and
+     failed, which is valid red evidence. Exit codes 2, 3, 4, or 5 mean
+     usage, internal, or collection errors and are NOT valid red evidence.
+     Exit code 0 means tests already pass; record `red: false`. Do NOT
+     parse pytest text output for classification; exit codes are the
+     deterministic boundary.
+  2. Record per-command: the command string, the exit code, the final 20
+     lines of combined output (output tail is for humans only, never
+     machine-interpreted), and the derived red classification.
+  3. `maid plan lock --no-run` skips evidence capture entirely and records
+     `red_evidence: null`. The same flag applies to `maid plan revise`.
+  4. The evidence is stored in the lock record's existing `red_evidence`
+     field (declared `dict | None` by 067-01). The typed evidence classes
+     introduced here serialize into that JSON payload via `to_payload`;
+     the `PlanLock.red_evidence` contract from 067-01 is unchanged.
+  5. Hardening-lane discipline: first reproduce the gaming vector in a
+     throwaway project (skip the red phase entirely, or pass off a pytest
+     collection error as "failing tests"), then land the reproduction as
+     adversarial behavioral tests proving exit 2/3/4/5 is classified as
+     invalid evidence and exit 0 as not-red.
+
+  Planning note: the epic does not name the classification labels. The
+  conservative choice is a three-way string classification: "red" (exit 1),
+  "not_red" (exit 0), "invalid" (exit 2, 3, 4, 5, and any other nonzero
+  exit including timeouts and spawn failures reported as negative exit
+  codes by the command helper). Recorded per-command and aggregated: the
+  evidence is valid red only when at least one command classifies "red"
+  and no command classifies "invalid"; record the aggregate in the
+  `red` boolean.
+
+  Behavioral tests must cover: a validate command exiting 1 is recorded as
+  classification "red" with `red: true`; exit 2 is recorded as "invalid"
+  with `red: false`; exit 0 is recorded as "not_red" with `red: false`;
+  `--no-run` records `red_evidence: null`; and output-tail truncation keeps
+  only the final 20 lines of combined output for a command that prints
+  more than 20 lines.
+
+  Out of scope for this child: the lock data model itself (067-01);
+  `maid verify` enforcement flags `--require-red-evidence` /
+  `--require-plan-lock` and error codes E704/E705 (067-03); documentation
+  (067-04).
+temptations:
+  - risk: "Do not parse pytest text output to classify red-phase failures."
+    instead: "Classify by process exit code only, as pinned in the epic; record the output tail for humans without machine-interpreting it."
+  - risk: "Do not treat pytest usage, internal, or collection errors (exit 2-5) as valid red evidence."
+    instead: "Classify exit 1 as red, exit 0 as not_red, and every other exit as invalid evidence."
+  - risk: "Do not record unbounded command output in the lock file."
+    instead: "Store only the final 20 lines of combined output per command."
+  - risk: "Do not implement evidence capture before reproducing the gaming vector."
+    instead: "First reproduce a skipped red phase and a collection-error pass-off in a throwaway project, then land both as adversarial tests."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: class
+          name: RedPhaseCommandEvidence
+          description: "Per-command red-phase record: command string, exit code, 20-line output tail, derived classification."
+        - kind: attribute
+          name: command
+          of: RedPhaseCommandEvidence
+          type: str
+        - kind: attribute
+          name: exit_code
+          of: RedPhaseCommandEvidence
+          type: int
+        - kind: attribute
+          name: output_tail
+          of: RedPhaseCommandEvidence
+          type: str
+        - kind: attribute
+          name: classification
+          of: RedPhaseCommandEvidence
+          type: str
+        - kind: class
+          name: RedPhaseEvidence
+          description: "Aggregate red-phase evidence captured by maid plan lock/revise."
+        - kind: attribute
+          name: red
+          of: RedPhaseEvidence
+          type: bool
+        - kind: attribute
+          name: commands
+          of: RedPhaseEvidence
+          type: tuple[RedPhaseCommandEvidence, ...]
+        - kind: attribute
+          name: captured_at
+          of: RedPhaseEvidence
+          type: str
+        - kind: method
+          name: to_payload
+          of: RedPhaseEvidence
+          args: []
+          returns: dict
+          description: "Serialize the evidence into the JSON payload stored in PlanLock.red_evidence."
+        - kind: function
+          name: classify_red_exit_code
+          args:
+            - name: exit_code
+              type: int
+          returns: str
+          description: "Exit 1 -> red; exit 0 -> not_red; exits 2/3/4/5 and any other nonzero exit -> invalid. Exit codes are the only classification input."
+        - kind: function
+          name: capture_red_phase_evidence
+          args:
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+          returns: RedPhaseEvidence
+          description: "Run the manifest's validate commands via the shared command execution helper and record per-command evidence."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_lock
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Lock captures red-phase evidence by default; --no-run records red_evidence: null."
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Revise re-captures red-phase evidence by default; --no-run records red_evidence: null."
+  read:
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - tests/core/test_plan_lock_red_evidence.py
+    - tests/cli/test_plan_cmd_red_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_cmd_red_evidence.py
+  - uv run maid validate manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml --mode schema --quiet

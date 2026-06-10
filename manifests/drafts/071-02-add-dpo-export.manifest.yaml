@@ -1,0 +1,134 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add `maid incident export --format dpo` emitting JSONL chosen/rejected training pairs"
+type: feature
+created: "2026-06-10T11:02:00Z"
+metadata:
+  status: draft
+  epic: 071-00-gaming-incident-flywheel.epic
+  tags:
+    - anti-gaming
+    - incidents
+    - dpo-data
+  priority: low
+description: |
+  Implement the training-data export over the incident store created by
+  071-01: `maid incident export --format dpo --output <path>`.
+
+  Depends on 071-01 (record format, closed vocabulary, and the
+  `maid incident` command surface in `maid_runner/core/incidents.py` and
+  `maid_runner/cli/commands/incident.py`). Do not promote before 071-01;
+  children of this epic land strictly in order.
+
+  Pinned decisions (do not redesign):
+
+  1. CLI surface, exactly: `maid incident export --format dpo --output
+     <path>`. It emits a JSONL file where each line pairs `rejected_diff`
+     against `chosen_diff` with the packet diagnostics as context.
+  2. Records without a chosen diff are SKIPPED and the skip count is
+     reported. The export is a dumb serializer; no filtering heuristics
+     beyond completeness (a record is complete when it has both
+     rejected_diff and chosen_diff).
+  3. Non-AI contract: export serializes only explicit stored data. No
+     inference, scoring, deduplication, or quality heuristics.
+  4. Output is deterministic: lines are ordered by the same
+     timestamp-then-filename ordering that `maid incident list` uses, and
+     each line is JSON with stable key order.
+
+  Behavioral test expectations (from the epic): JSONL line shape,
+  incomplete-record skipping with reported counts, deterministic ordering,
+  and empty store behavior (an empty or absent incident store produces an
+  output file with zero lines, reports zero exported and zero skipped, and
+  exits zero).
+
+  Edge cases: an unknown `--format` value is a usage error naming the
+  supported format; a missing `--output` is a usage error; a malformed
+  incident record file fails the export loudly with the record path named
+  rather than being silently skipped (skipping is only for structurally
+  valid records lacking chosen_diff).
+
+  Planning note: the epic pins the pairing and context but not the exact
+  JSONL keys. Conservative reading: each line is an object with exactly
+  `context` (the packet `diagnostics` list embedded in the record),
+  `rejected` (rejected_diff text), and `chosen` (chosen_diff text). No
+  extra fields are invented.
+
+  Out of scope for this child: record capture/update/list (071-01),
+  temptation suggestions (071-03), and skill guidance (071-04).
+temptations:
+  - risk: "Do not add filtering, scoring, or deduplication heuristics to the export."
+    instead: "Serialize every complete record deterministically; the only exclusion rule is missing chosen_diff, reported as a skip count."
+  - risk: "Do not silently drop malformed records to keep the export running."
+    instead: "Fail loudly with the malformed record path; skipping is reserved for valid records that lack a chosen diff."
+  - risk: "Do not embed full repository state or extra invented fields in export lines."
+    instead: "Emit exactly the packet diagnostics as context plus the rejected and chosen diffs, keeping lines prompt-sized and reviewable."
+files:
+  edit:
+    - path: maid_runner/core/incidents.py
+      artifacts:
+        - kind: class
+          name: DpoExportReport
+          description: "Deterministic export result with exported and skipped counts."
+        - kind: attribute
+          name: exported_count
+          of: DpoExportReport
+          type: int
+        - kind: attribute
+          name: skipped_count
+          of: DpoExportReport
+          type: int
+        - kind: attribute
+          name: output_path
+          of: DpoExportReport
+          type: str
+        - kind: function
+          name: export_incidents_dpo
+          args:
+            - name: incidents_dir
+              type: Union[str, Path]
+            - name: output_path
+              type: Union[str, Path]
+          returns: DpoExportReport
+          source_scenario: "An incident store contains complete records, records without a chosen diff, and is exported to JSONL."
+          actions:
+            - type: api_call
+              subject:
+                function: export_incidents_dpo
+          expected:
+            behavior: "Each complete record becomes one JSONL line pairing rejected against chosen with packet diagnostics as context; records without chosen_diff are skipped and counted; ordering matches list ordering; an empty store yields zero lines and zero counts; malformed record files fail loudly."
+    - path: maid_runner/cli/commands/incident.py
+      artifacts:
+        - kind: function
+          name: cmd_incident
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid incident export --format dpo --output pairs.jsonl` serializes the incident store."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_incident
+          expected:
+            behavior: "export writes the JSONL file, reports exported and skipped counts, rejects unknown formats and missing output paths as usage errors, and returns nonzero for malformed record files."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid incident export --format dpo --output <path>`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The incident subcommand exposes an export action with --format and --output options."
+  read:
+    - manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml
+    - manifests/drafts/070-00-structured-retry-packets.epic.yaml
+    - manifests/drafts/071-01-add-incident-record-storage-and-capture.manifest.yaml
+    - tests/core/test_incident_export.py
+    - tests/cli/test_incident_export_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_incident_export.py tests/cli/test_incident_export_cmd.py

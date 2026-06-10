@@ -1,0 +1,173 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add a --strict-delta migration report on maid validate that lists only the diagnostics unique to the strict-preview run without changing the exit code"
+type: feature
+created: "2026-06-10T02:03:00Z"
+metadata:
+  status: draft
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+    - validation-trust
+    - hardening
+    - strict-defaults
+  priority: high
+description: |
+  Make the strict-defaults migration measurable before the major-version
+  flip. Users need a command that reports exactly which manifests and files
+  would fail under strict defaults, with structured error codes, before any
+  default changes. This child adds that report on top of the strict-preview
+  evaluation introduced in 062-02.
+
+  Pinned decisions (do not redesign):
+
+  - The flag is `--strict-delta` on `maid validate` (not on `maid verify`).
+  - A `--strict-delta` run executes the default-gate evaluation and the
+    strict-preview evaluation in one process and reports only the
+    diagnostics unique to the strict run, grouped by manifest then file,
+    in text and JSON.
+  - The JSON report lives under the top-level key `"strict_delta"`.
+  - The process exit code stays determined by the default-gate result so
+    CI adoption of the report is non-breaking: a project that passes the
+    default gates exits 0 even when the delta is non-empty.
+  - Every delta entry carries a stable error code and a location (manifest
+    path, file path where applicable), so CI can track migration progress
+    over time by diffing the structured report.
+
+  Behavior specifics:
+
+  - "Unique to the strict run" means a structured diagnostic (code plus
+    manifest plus location identity) present in the strict-preview result
+    and absent from the default-gate result. Diagnostics that fail both
+    runs are not migration work and are excluded from the delta.
+  - Delta ordering is deterministic: entries sorted by manifest path, then
+    file path, then error code, so identical input states produce
+    byte-identical reports.
+  - An empty delta (strict adds nothing) produces an explicit empty report
+    in text and an empty list under `"strict_delta"` in JSON.
+  - When the default gates already fail, the exit code is nonzero from the
+    default-gate result and the delta report is still produced for the
+    diagnostics unique to the strict run.
+  - Both evaluations run in a single process (no subprocess re-invocation
+    of the CLI); the strict evaluation reuses the same gate-set expansion
+    that `--strict-preview` (062-02) uses, so the report can never drift
+    from preview behavior.
+
+  Test expectations (behavioral tests in tests/core/test_strict_delta.py
+  and tests/cli/test_strict_delta_cmd.py, written during planning of this
+  child, using fixture projects in tmp_path):
+
+  - compute_strict_delta returns only diagnostics present in the strict
+    result and absent from the default result, with deterministic
+    manifest/file/code ordering.
+  - Diagnostics failing both evaluations are excluded from the delta.
+  - `maid validate --strict-delta` exits 0 on a fixture that passes
+    default gates but has strict-only failures, and the JSON output lists
+    those failures with stable codes and locations under `"strict_delta"`.
+  - `maid validate --strict-delta` exits nonzero when the default gates
+    fail, preserving default-gate exit semantics.
+  - An all-clean fixture produces an empty delta report in text and JSON.
+  - Parser registration: `maid validate --strict-delta` is accepted by
+    `build_parser` and dispatches through `main`.
+
+  Planning notes: the epic pins the flag, the single-process requirement,
+  the grouping, the JSON key, and the exit-code rule, but not the module
+  layout or type names; this child conservatively creates
+  `maid_runner/core/strict_delta.py` with `StrictDeltaEntry`,
+  `StrictDeltaReport`, and `compute_strict_delta` as declared below.
+  Diagnostic identity for delta membership (code + manifest + location) is
+  the conservative reading of "diagnostics unique to the strict run" and
+  is recorded here.
+
+  Out of scope: the pytest config guard extension (062-01), the
+  strict-preview flag itself (062-02, a prerequisite this child builds
+  on), and flipping defaults plus `--legacy-gates` and documentation
+  (062-04).
+temptations:
+  - risk: "Do not let the delta report change green/red meaning for default runs."
+    instead: "Keep the exit code determined solely by the default-gate result so CI can adopt the report without breaking."
+  - risk: "Do not compute the delta by re-invoking the CLI or re-parsing text output."
+    instead: "Run both evaluations in one process and compare structured diagnostics with stable codes and locations."
+  - risk: "Do not let the delta drift from what --strict-preview actually enforces."
+    instead: "Reuse the exact strict-preview gate-set expansion from 062-02 for the strict evaluation."
+files:
+  create:
+    - path: maid_runner/core/strict_delta.py
+      artifacts:
+        - kind: class
+          name: StrictDeltaEntry
+          description: "One diagnostic unique to the strict run: manifest, optional file location, stable error code, severity, and message."
+        - kind: attribute
+          name: manifest_path
+          of: StrictDeltaEntry
+          type: str
+        - kind: attribute
+          name: file
+          of: StrictDeltaEntry
+          type: str | None
+        - kind: attribute
+          name: code
+          of: StrictDeltaEntry
+          type: str
+        - kind: attribute
+          name: severity
+          of: StrictDeltaEntry
+          type: str
+        - kind: attribute
+          name: message
+          of: StrictDeltaEntry
+          type: str
+        - kind: class
+          name: StrictDeltaReport
+          description: "Deterministically ordered migration delta between default-gate and strict-preview evaluations."
+        - kind: attribute
+          name: entries
+          of: StrictDeltaReport
+          type: tuple[StrictDeltaEntry, ...]
+        - kind: method
+          name: to_dict
+          of: StrictDeltaReport
+          args: []
+          returns: dict
+          description: "JSON-ready representation used as the value of the top-level strict_delta key."
+        - kind: function
+          name: compute_strict_delta
+          args:
+            - name: default_result
+              type: BatchValidationResult
+            - name: strict_result
+              type: BatchValidationResult
+          returns: StrictDeltaReport
+          description: "Return only the diagnostics unique to the strict evaluation, grouped and sorted by manifest then file then code."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The validate subparser accepts --strict-delta."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "Dispatch carries the strict-delta option through to the validate handler."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Run default-gate and strict-preview evaluations in one process, print the strict_delta report in text or JSON, and keep the exit code from the default-gate result."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/core/validate.py
+    - tests/core/test_strict_delta.py
+    - tests/cli/test_strict_delta_cmd.py
+validate:
+  - uv run python -m pytest tests/core/test_strict_delta.py tests/cli/test_strict_delta_cmd.py -v
+  - uv run maid validate manifests/drafts/062-03-report-strict-migration-delta.manifest.yaml --mode schema --quiet

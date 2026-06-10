@@ -1,0 +1,170 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Update skill, README, and howto guidance so implementer sessions run gates with --packet and retry from packets"
+type: feature
+created: "2026-06-10T10:04:00Z"
+metadata:
+  status: draft
+  epic: 070-00-structured-retry-packets
+  tags:
+    - agent-loops
+    - retry-protocol
+    - developer-experience
+    - anti-gaming
+  priority: high
+description: |
+  Documentation child for epic 070-00. Update the packaged Claude and
+  Codex skill guidance, the README, and the `maid howto` topics so that
+  implementer sessions use the failure-packet workflow shipped by
+  siblings 070-01 through 070-03. Depends on those siblings landing
+  first; the guidance describes shipped behavior, not future plans.
+
+  Pinned workflow to state in the guidance (from epic 070-00; describe,
+  do not redesign):
+
+  1. Run validation gates with the packet flag:
+     `maid validate --packet` and `maid verify --packet`. A packet JSON
+     file is written only when the run fails (exit code 1); on a passing
+     run no packet is written and any stale packet at the path is
+     removed. Default packet path: `.maid/last-failure-packet.json`.
+  2. On failure, read the packet instead of re-exploring the repository.
+     The packet is self-contained: command argv, exit code, project
+     root, per-failed-manifest contract excerpts (path, goal, type,
+     declared files with artifact lists, validate commands), diagnostics
+     with code/message/file/line/suggestion, per-failed-command output
+     tails (final 50 lines), and environment versions.
+  3. Respect `next_action` kinds. Each diagnostic may carry a structured
+     repair recipe with kind one of edit-implementation, edit-tests,
+     edit-manifest, run-command, revise-plan, escalate-human. Recipes
+     never instruct weakening tests or the manifest as the first remedy
+     for an implementation failure; where a test or manifest edit is
+     legitimate, the recipe says so explicitly and contract changes
+     route through the loud plan-revision path. Codes without recipes
+     have `next_action: null`.
+  4. Stop at the attempt bound. The documented retry protocol
+     (docs/agent-retry-protocol.md, shipped by 070-03) bounds retries at
+     5 attempts by default, after which the session stops and escalates
+     to a human with the final packet. Skill guidance must instruct
+     sessions not to loop past the bound and not to silence the failure.
+
+  Planning note: "howto updates describe the flag" is pinned by the
+  epic; the `maid howto` topic content lives as text inside
+  `maid_runner/cli/commands/howto.py`, so this child edits that file's
+  existing `cmd_howto` surface (text content only, no behavior change).
+
+  Planning note: skill guidance updates follow the established
+  source-plus-distribution pattern: update the repo-local
+  `.claude/skills/maid-implementer/SKILL.md` and
+  `.codex/skills/maid-runner-draft-implement/SKILL.md` sources together
+  with the packaged copies under `maid_runner/claude/skills/` and
+  `maid_runner/codex/skills/` so distribution copies do not go stale
+  (see scripts/sync_claude_files.py).
+
+  Behavioral tests must cover (documentation assertions via
+  Path.read_text, following the tests/test_manifest_outcome_docs.py
+  pattern): the README describes the --packet flag, the
+  write-on-failure/clear-on-success contract, and the default packet
+  path; the howto text mentions running gates with --packet; the Claude
+  and Codex implementer skill guidance instructs reading the packet on
+  failure instead of re-exploring, respecting next_action kinds, and
+  stopping at the attempt bound with human escalation; the guidance
+  states that recipes never authorize weakening tests or manifests to
+  silence errors; and the edited skill sources and packaged
+  distribution copies contain the same packet-workflow guidance anchors.
+
+  Out of scope for this child: registry codes and recipes (070-01);
+  packet serialization and CLI wiring (070-02); the loop refactor and
+  the retry protocol document itself (070-03). This child changes
+  documentation, skill text, and howto topic text only.
+temptations:
+  - risk: "Do not phrase guidance so agents treat next_action recipes as permission to weaken tests or manifests."
+    instead: "State explicitly that contract changes route through the loud plan-revision path and recipes never authorize silencing errors."
+  - risk: "Do not document unbounded retrying."
+    instead: "State the default bound of 5 attempts and the human-escalation step with the final packet."
+  - risk: "Do not update source skill files while leaving package distribution copies stale."
+    instead: "Update source-of-truth skill files and the packaged distribution copies together, with a test asserting shared guidance anchors."
+files:
+  create:
+    - path: tests/test_packet_skill_guidance_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_readme_and_howto_describe_packet_flag
+          source_scenario: "The README and maid howto topics gain failure-packet guidance."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The README documents --packet on validate and verify, the write-on-failure/clear-on-success contract, and the default .maid/last-failure-packet.json path, and the howto topic text mentions running gates with --packet."
+        - kind: test_function
+          name: test_skill_guidance_instructs_packet_driven_retries
+          source_scenario: "Claude and Codex implementer skill guidance describes the packet retry workflow."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The skill guidance instructs reading the packet on failure instead of re-exploring, respecting next_action kinds, stopping at the default bound of 5 attempts, escalating with the final packet, and never weakening tests or manifests to silence errors."
+        - kind: test_function
+          name: test_packet_guidance_anchors_are_synced_to_distribution_copies
+          source_scenario: "Source skill files and packaged distribution copies are updated together."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The edited Claude and Codex skill sources and their packaged copies under maid_runner/ contain the same packet-workflow guidance anchors."
+  edit:
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _failure_packet_flag_section
+          of: documentation
+          type: markdown section
+          description: "README section documenting --packet on maid validate and maid verify, the write-on-failure/clear-on-success contract, and the default packet path."
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Howto topic text mentions running validation gates with --packet and reading the failure packet on failure (text-only update, no behavior change)."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Implementer skill guidance: run gates with --packet, read the packet on failure, respect next_action kinds, stop at the attempt bound."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementer_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Packaged copy of the implementer packet retry guidance."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Codex draft-implement skill guidance for the packet-driven retry workflow and the attempt bound."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Packaged copy of the Codex draft-implement packet retry guidance."
+  read:
+    - manifests/drafts/070-00-structured-retry-packets.epic.yaml
+    - docs/agent-retry-protocol.md
+    - scripts/sync_claude_files.py
+    - tests/test_manifest_outcome_docs.py
+validate:
+  - uv run python -m pytest -q tests/test_packet_skill_guidance_docs.py
+  - uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode schema --quiet

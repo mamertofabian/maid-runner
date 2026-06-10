@@ -1,0 +1,131 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Wire the scope-check hook into the Claude and Cursor init payloads and the Codex guidance section"
+type: feature
+created: "2026-06-10T09:03:00Z"
+metadata:
+  status: draft
+  epic: 069-00-edit-time-scope-enforcement-hooks
+  tags:
+    - hooks
+    - agent-integration
+    - init-payloads
+  priority: medium
+description: |
+  Ship the edit-time scope-check hook configuration through the packaged
+  `maid init` payloads so that agent runtimes call
+  `maid hook scope-check` (added by sibling child 069-02, which must land
+  first) before file writes.
+
+  Pinned decisions (from epic 069-00; do not redesign):
+
+  1. Claude Code payload: add a PreToolUse hook entry, matching Write and
+     Edit tool events, to the packaged `.claude` settings. The hook pipes
+     the tool event JSON to `maid hook scope-check --stdin`. The
+     scope-check command reads `{"path": ...}` from stdin and answers
+     with a single JSON decision object, exit 0 allow / 2 deny / 1
+     internal error (allow by default).
+  2. Cursor payload: add the equivalent `hooks.json` entry so Cursor's
+     hook mechanism pipes the same event JSON to
+     `maid hook scope-check --stdin`.
+  3. Codex guidance: Codex hook support differs, so the packaged Codex
+     payload documents the same check as a pre-edit instruction. The
+     managed AGENTS.md section (between the BEGIN/END MAID RUNNER
+     markers rendered by `maid init --tool codex`) explains the deny
+     semantics: before editing a file during an active MAID task, run
+     `maid hook scope-check --path <file>` and treat exit code 2 as
+     out-of-scope.
+  4. All payloads must go through the existing `_install_agent_payload`
+     flow in `maid_runner/cli/commands/init.py` and the
+     packaged-distribution parity checks used by current payload
+     manifests. Do not hand-edit installed payload files outside the
+     packaged flow.
+  5. The hook is advisory infrastructure, not a validation gate. It never
+     replaces `maid verify` changed-scope checks and adds no `ErrorCode`
+     entries.
+
+  Planning note: `maid init --tool` already accepts `cursor` as a choice
+  in `maid_runner/cli/commands/_main.py`, but `cmd_init` currently
+  installs payloads only for `claude` and `codex` and no
+  `maid_runner/cursor/` payload directory exists. The most conservative
+  reading of pinned decision 4 is to add a minimal packaged Cursor
+  payload (`maid_runner/cursor/manifest.json` plus
+  `maid_runner/cursor/hooks.json`) installed into `.cursor/` through the
+  same `_install_agent_payload` flow when `--tool cursor` is selected,
+  rather than inventing a separate installation mechanism.
+
+  Planning note: the packaged Claude payload has no settings file today,
+  and `_install_agent_payload` copies payload files byte-for-byte. To
+  avoid clobbering unrelated user settings, the implementer should keep
+  the packaged hook configuration minimal and, if `.claude/settings.json`
+  already exists in the target project, ensure the install preserves
+  unrelated keys while guaranteeing the PreToolUse scope-check entry is
+  present. Test both the fresh-install and existing-settings cases. If
+  preserving existing settings requires more than a small, contained
+  merge step in init.py, stop and split per-tool wiring into separate
+  drafts before promotion, as the epic allows.
+
+  Behavioral tests must cover: after `maid init --tool claude` the
+  installed `.claude` settings contain a PreToolUse entry matching
+  Write/Edit that pipes to `maid hook scope-check --stdin`; after
+  `maid init --tool cursor` the installed `.cursor/hooks.json` contains
+  the equivalent scope-check entry; after `maid init --tool codex` the
+  managed AGENTS.md section documents the pre-edit scope-check
+  instruction and its deny semantics; `maid init` dry-run output names
+  the hook payload files that would be created; and the packaged
+  distribution parity expectations hold (packaged payload files and
+  installed copies match).
+
+  Out of scope for this child: the `maid task` commands (069-01); the
+  `maid hook scope-check` decision logic itself (069-02); README, docs,
+  and skill guidance for the edit-time scope workflow (069-04).
+temptations:
+  - risk: "Do not hand-edit installed payload files outside the packaged flow."
+    instead: "Ship hook wiring through the existing init payload installation and parity-check mechanism."
+  - risk: "Do not let a broken hook block all editing by default."
+    instead: "Wire the default (non-strict) scope-check invocation in payloads; fail-open semantics on internal errors are part of the hook contract."
+  - risk: "Do not treat hook decisions as validation evidence."
+    instead: "Keep maid verify changed-scope checks authoritative; payload wiring is advisory enforcement only."
+files:
+  create:
+    - path: maid_runner/claude/settings.json
+      artifacts:
+        - kind: attribute
+          name: _claude_pretooluse_scope_check_hook
+          of: configuration
+          type: json hooks configuration
+          description: "Packaged Claude Code settings entry registering a PreToolUse hook on Write/Edit tool events that pipes event JSON to maid hook scope-check --stdin."
+    - path: maid_runner/cursor/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _cursor_payload_manifest
+          of: configuration
+          type: json payload manifest
+          description: "Packaged Cursor payload manifest listing distributable files for the existing _install_agent_payload flow."
+    - path: maid_runner/cursor/hooks.json
+      artifacts:
+        - kind: attribute
+          name: _cursor_scope_check_hooks
+          of: configuration
+          type: json hooks configuration
+          description: "Packaged Cursor hooks.json entry piping pre-edit event JSON to maid hook scope-check --stdin."
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "maid init installs the Claude hook settings, the Cursor hooks payload for --tool cursor, and the Codex pre-edit scope-check guidance in the managed AGENTS.md section, all through _install_agent_payload; dry-run names the hook payload files."
+  read:
+    - maid_runner/claude/manifest.json
+    - maid_runner/codex/manifest.json
+    - maid_runner/cli/commands/_main.py
+    - tests/cli/test_init_cmd.py
+    - tests/cli/test_init_hook_payloads.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_hook_payloads.py tests/cli/test_init_cmd.py
+  - uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode schema --quiet

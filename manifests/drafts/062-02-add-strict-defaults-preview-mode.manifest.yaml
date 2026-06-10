@@ -1,0 +1,140 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add a --strict-preview opt-in that runs maid validate and maid verify with the intended future strict defaults and labels the run in text and JSON"
+type: feature
+created: "2026-06-10T02:02:00Z"
+metadata:
+  status: draft
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+    - validation-trust
+    - hardening
+    - strict-defaults
+  priority: high
+description: |
+  Add an explicit opt-in that runs `maid validate` and `maid verify` with the
+  gate set intended to become the default in the next major release, so
+  projects can migrate early and CI can adopt the future behavior before the
+  flip. Today the strongest gates (identity-backed behavioral coverage,
+  assertion enforcement, and coverage-miss errors, landed via 030-06 and
+  032-01 through 032-03) sit behind individual opt-in strict flags, so a
+  green default run is weaker than the validator can actually prove.
+
+  Pinned decisions (do not redesign):
+
+  - The flag is `--strict-preview`, available on both `maid validate` and
+    `maid verify`.
+  - JSON output gains a top-level `"strict_preview": true` marker; text
+    output prefixes the summary line with `[strict-preview]`.
+  - Strict preview enables the intended future defaults: identity-backed
+    behavioral coverage, assertion enforcement, and coverage-miss errors.
+    These map onto the gates that already exist behind opt-in flags; this
+    child adds no new analyzers and no new gate logic. Concretely, the flag
+    must enable at least the full existing `--strict` expansion (assertion
+    checks, stub checks, fail-on-warnings as wired through
+    `_strict_options` in `maid_runner/cli/commands/validate.py`) plus any
+    existing opt-in identity-backed coverage and coverage-miss enforcement
+    options from the 030-06 / 032-01..032-03 hardening work.
+  - Default behavior is unchanged when the flag is absent. Default changes
+    ship only in the major-version child (062-04).
+
+  Behavior specifics:
+
+  - The exit code of a `--strict-preview` run reflects the strict
+    evaluation: the caller explicitly opted in, so newly failing
+    diagnostics fail the run. (Non-breaking side-by-side comparison is the
+    job of `--strict-delta` in 062-03.)
+  - The `[strict-preview]` prefix and `"strict_preview": true` marker
+    appear on both passing and failing runs, so output is always
+    distinguishable from a default-gate run.
+  - Combining `--strict-preview` with the individual strict flags
+    (`--strict`, `--check-assertions`, `--check-stubs`,
+    `--fail-on-warnings`) is allowed and behaves as the union; it never
+    weakens the preview gate set.
+  - `--strict-preview --json` and plain `--strict-preview` must report the
+    same diagnostics (JSON parity).
+
+  Test expectations (behavioral tests in tests/cli/test_strict_preview.py,
+  written during planning of this child, using fixture projects in
+  tmp_path):
+
+  - `maid validate --strict-preview` fails on a fixture that passes the
+    default gates but violates a strict gate (for example a behavioral
+    test exercising an artifact without assertions), proving the preview
+    is stronger than the default run.
+  - The same fixture passes plain `maid validate`, proving defaults are
+    unchanged.
+  - Text output contains the `[strict-preview]` summary prefix and JSON
+    output contains top-level `"strict_preview": true` on both passing and
+    failing fixtures.
+  - `maid verify --strict-preview` wires the same gate set through the
+    verify stages and labels text and JSON output identically.
+  - A run without the flag emits no strict-preview marker in text or JSON.
+  - Parser registration: `maid validate --strict-preview` and
+    `maid verify --strict-preview` are accepted by `build_parser` and
+    dispatch through `main`.
+
+  Planning notes: the epic names the future-default gate set as
+  "identity-backed behavioral coverage, assertion enforcement, and
+  coverage-miss errors" without enumerating engine option names. The
+  conservative reading recorded here: map each named gate to the existing
+  opt-in option that the 030-06 / 032-01..032-03 manifests landed; if a
+  named gate has no existing opt-in switch, stop and raise it as a
+  prerequisite rather than inventing new gate logic in this child. The
+  epic says the preview runs "directory-wide" validate; this child applies
+  the flag uniformly to directory-wide and single-manifest invocations so
+  output labeling never depends on invocation shape.
+
+  Out of scope: the pytest config guard extension (062-01), the
+  `--strict-delta` migration report (062-03), and flipping defaults plus
+  `--legacy-gates` and documentation (062-04).
+temptations:
+  - risk: "Do not add new static analyzers or speculative gate logic while wiring the preview flag."
+    instead: "Only enable gates that already exist behind opt-in flags and are backed by reproduced false-green evidence; route new bypass ideas to the hardening backlog."
+  - risk: "Do not flip any default behavior in this child."
+    instead: "Keep default runs byte-identical when --strict-preview is absent; defaults change only in the 062-04 major-version child."
+  - risk: "Do not make strict-preview runs indistinguishable from default runs."
+    instead: "Always emit the [strict-preview] text prefix and the top-level strict_preview JSON marker, on success and failure alike."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The validate and verify subparsers accept --strict-preview."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "Dispatch carries the strict-preview option through to the validate and verify handlers."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Run validation with the future-default strict gate set when --strict-preview is given and label text and JSON output."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Run the verification gate with the future-default strict gate set when --strict-preview is given and label text and JSON output."
+  read:
+    - maid_runner/core/validate.py
+    - maid_runner/cli/commands/_format.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - tests/cli/test_strict_preview.py
+validate:
+  - uv run python -m pytest tests/cli/test_strict_preview.py -v
+  - uv run maid validate manifests/drafts/062-02-add-strict-defaults-preview-mode.manifest.yaml --mode schema --quiet

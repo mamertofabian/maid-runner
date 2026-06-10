@@ -1,0 +1,129 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Derive suggested validate commands for generated drafts from existing test files that reference the changed artifacts"
+type: feature
+created: "2026-06-10T01:03:00Z"
+metadata:
+  status: draft
+  epic: 061-00-manifest-authoring-and-brownfield-onboarding
+  tags:
+    - adoption
+    - manifest-authoring
+  priority: high
+description: |
+  Make `maid manifest from-diff` drafts carry useful `validate:` suggestions
+  instead of only the schema-only fallback. This child adds a core helper
+  that inspects the existing test layout and suggests pytest commands, then
+  wires it into the from-diff rendering added by 061-02
+  (`maid_runner/core/manifest_from_diff.py`).
+
+  Pinned decisions (do not redesign):
+
+  - Suggest only pytest commands for test files that BOTH exist on disk AND
+    currently reference at least one changed artifact through the existing
+    behavioral-reference collectors (each validator's
+    `collect_behavioral_artifacts`, the same machinery behavioral
+    validation uses). Do not suggest commands for hypothetical or inferred
+    test paths (e.g. name-pattern guesses like tests/test_<stem>.py without
+    reference evidence).
+  - When no such test evidence exists, the generated `validate:` list
+    contains only `maid validate <draft-path> --mode schema --quiet`, and
+    `metadata.needs_review: true` remains set, so an incomplete draft cannot
+    pass the promotion checklist.
+  - Changed artifacts are the per-file public artifact deltas produced by
+    `maid_runner.core.diff_scope.collect_diff_scope` (added,
+    signature-changed, and removed entries of each `FileArtifactDelta`).
+  - Determinism: identical inputs produce identical suggestion lists.
+    Suggestions are sorted by test file path ascending and de-duplicated.
+
+  Behavior specifics:
+
+  - New module `maid_runner/core/validate_suggestions.py` exposing
+    `suggest_validate_commands(diff, project_root, draft_path)` that returns
+    the complete suggested `validate:` list for a generated draft: one
+    pytest command per evidenced test file, followed by the schema-only
+    command for the draft path; or only the schema-only command when no
+    test evidence exists.
+  - Test files are discovered with the existing test-file discovery
+    (`maid_runner/core/_file_discovery.py` helpers such as `is_test_file`),
+    not a new glob convention. A test file counts as evidence when its
+    collected behavioral references include at least one changed artifact
+    name (matching by artifact name, and `of` parent when present).
+  - Suggested command format is `pytest <test-path> -v`, matching the
+    existing snapshot command inference in maid_runner/core/snapshot.py
+    (generated drafts may live in projects without uv).
+  - Unparseable test files contribute no evidence (skipped for suggestion
+    purposes); they must not crash generation.
+  - 061-02's rendering is updated so `build_from_diff_manifest` emits the
+    suggested list instead of hardcoding the schema-only fallback. The
+    pinned generated-draft markers from 061-02 are unchanged: goal stays
+    `"TODO: describe this change"`, `metadata.generated_by:
+    maid-manifest-from-diff`, `metadata.needs_review: true`.
+
+  Test expectations (planned behavioral tests in
+  tests/core/test_validate_suggestions.py, run against fixture projects in
+  tmp_path):
+
+  - a test file that exists and references a changed artifact yields a
+    pytest suggestion for exactly that file.
+  - a test file that exists but references none of the changed artifacts is
+    excluded.
+  - a referenced-looking path that does not exist is never suggested.
+  - no evidence at all yields only the schema-only validate command.
+  - suggestions are deterministic and sorted; duplicates collapse.
+  - the from-diff rendering includes the suggestions in the generated
+    draft's validate list.
+
+  Planning notes: the epic pins the suggestion rules but not the module
+  location, function signature, or command format; this child conservatively
+  creates `maid_runner/core/validate_suggestions.py` with the signature
+  declared below, matches artifacts by name (plus `of` when present), and
+  uses the `pytest <path> -v` format consistent with snapshot inference.
+
+  Out of scope: the diff-scope delta collection (061-01), the from-diff CLI
+  flags and draft writing (061-02), bootstrap ranking (061-04), and
+  documentation updates (061-05).
+temptations:
+  - risk: "Do not suggest test commands for files that do not exist or do not reference any changed artifact."
+    instead: "Require both existence on disk and behavioral-reference evidence through the existing collectors before suggesting a command."
+  - risk: "Do not drop needs_review or upgrade the draft's promotability because suggestions were found."
+    instead: "Keep metadata.needs_review: true and the schema-only validate command so promotion still requires human review."
+  - risk: "Do not build a new test-reference scanner or glob convention."
+    instead: "Reuse collect_behavioral_artifacts from the existing validators and the existing test-file discovery helpers."
+files:
+  create:
+    - path: maid_runner/core/validate_suggestions.py
+      artifacts:
+        - kind: function
+          name: suggest_validate_commands
+          args:
+            - name: diff
+              type: DiffScopeResult
+            - name: project_root
+              type: Union[str, Path]
+            - name: draft_path
+              type: Union[str, Path]
+          returns: tuple[str, ...]
+          description: "Returns the deterministic validate list: pytest commands for evidenced test files plus the schema-only command, or schema-only when no evidence exists."
+  edit:
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: build_from_diff_manifest
+          args:
+            - name: diff
+              type: DiffScopeResult
+            - name: slug
+              type: str
+          returns: dict
+          description: "Rendering now emits validate commands from suggest_validate_commands instead of hardcoding the schema-only fallback."
+  read:
+    - maid_runner/core/diff_scope.py
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/python.py
+    - tests/core/test_validate_suggestions.py
+validate:
+  - uv run python -m pytest tests/core/test_validate_suggestions.py -v
+  - uv run maid validate manifests/drafts/061-03-suggest-validate-commands-from-test-layout.manifest.yaml --mode schema --quiet

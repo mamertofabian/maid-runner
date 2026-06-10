@@ -1,0 +1,190 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Make the strict gates the default for maid validate and maid verify in the major release, with a labeled --legacy-gates escape hatch and migration documentation"
+type: feature
+created: "2026-06-10T02:04:00Z"
+metadata:
+  status: draft
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+    - validation-trust
+    - strict-defaults
+    - major-release
+  priority: high
+description: |
+  The major-version child of the strict-by-default epic: make the strict
+  gate set (the exact set `--strict-preview` from 062-02 enables:
+  identity-backed behavioral coverage, assertion enforcement, and
+  coverage-miss errors) the default behavior of `maid validate` and
+  `maid verify`, add the documented legacy escape hatch, and ship the
+  migration documentation.
+
+  Sequencing constraint pinned by the epic: this child must not land until
+  062-01 through 062-03 are stable in a released minor version. Default
+  changes ship only in a major version.
+
+  Pinned decisions (do not redesign):
+
+  - The strict gates become the default; no opt-in flag is needed anymore.
+  - `--legacy-gates` restores the prior default behavior. It prints a
+    deprecation notice on stderr when active and marks JSON output with a
+    top-level `"legacy_gates": true`. It is documented as a bounded
+    migration aid, not a permanent mode.
+  - No environment-variable escape hatch; the `--legacy-gates` flag is the
+    single opt-out.
+  - Documentation updates ship in this child: README, troubleshooting,
+    howto guidance, and init payload guidance, plus upgrade notes that map
+    each newly failing error code to its migration fix (using the stable
+    codes the `--strict-delta` report from 062-03 emits).
+  - No new analyzers or gate logic: this child only changes which existing
+    gates run by default and adds the labeled opt-out.
+
+  Behavior specifics:
+
+  - A default `maid validate` or `maid verify` run enforces the strict
+    gate set; fixtures that failed only under `--strict-preview` before
+    the flip now fail by default.
+  - `--legacy-gates` restores the pre-flip gate set for both commands. The
+    stderr deprecation notice names the flag, states it is a migration
+    aid, and points at the upgrade notes. The notice goes to stderr so it
+    never corrupts JSON on stdout.
+  - `"legacy_gates": true` appears at the top level of JSON output on both
+    passing and failing legacy runs; text output must also make the legacy
+    mode visible (the run may not look identical to a pre-flip default
+    run).
+  - `--strict-preview` (062-02) becomes a no-op alias for the default
+    behavior; it remains accepted so existing CI invocations do not break,
+    and its markers continue to be emitted when the flag is passed.
+  - Combining `--legacy-gates` with `--strict-preview` or `--strict` is a
+    usage error (exit code 2): the caller asked for contradictory gate
+    sets.
+  - The upgrade notes document, for each error code that can newly fail
+    after the flip (at minimum the assertion-enforcement, stub, coverage,
+    and identity-coverage codes enabled by the strict set), what the code
+    means and the concrete migration fix.
+
+  Test expectations (behavioral tests in
+  tests/cli/test_strict_default_flip.py and
+  tests/test_strict_defaults_docs.py, written during planning of this
+  child):
+
+  - A fixture that previously failed only under --strict-preview now
+    fails a default `maid validate` run and a default `maid verify` run.
+  - `--legacy-gates` makes the same fixture pass, prints the deprecation
+    notice on stderr, and JSON output carries top-level
+    `"legacy_gates": true`.
+  - No environment variable disables the strict defaults (setting a
+    plausible variable name has no effect).
+  - `--legacy-gates` combined with `--strict-preview` exits 2 with a
+    usage error.
+  - Docs tests (047-02 pattern, Path.read_text assertions): the migration
+    guide exists, maps newly failing error codes to fixes, and describes
+    --legacy-gates as a bounded migration aid; README and troubleshooting
+    reference the strict defaults and link the migration guide; howto and
+    init payload guidance no longer describe the strict gates as opt-in.
+
+  Planning notes: the epic names "init payload guidance" without listing
+  specific payload files; this child conservatively declares
+  `maid_runner/claude/skills/maid-implementer/SKILL.md` (the implementer
+  workflow guidance installed by `maid init --tool claude`) and instructs
+  the implementer to review the other payload documents under
+  `maid_runner/claude/` and `maid_runner/codex/` for stale opt-in strict
+  guidance, extending this manifest's edit list before touching any
+  additional file. "Howto" is read as the `maid howto` topic text in
+  `maid_runner/cli/commands/howto.py`. The epic permits splitting the flip
+  from the documentation refresh if this child grows beyond one
+  implementation-sized draft; re-split before promotion in that case.
+
+  Out of scope: the pytest config guard extension (062-01), the
+  strict-preview flag mechanics (062-02), and the strict-delta report
+  (062-03); all three must already be released.
+temptations:
+  - risk: "Do not flip strict defaults in a minor release or silently change green/red meaning."
+    instead: "Land this child only in the major version, after 062-01 through 062-03 are stable in a released minor version, with explicit upgrade notes."
+  - risk: "Do not make the legacy escape hatch invisible or permanent."
+    instead: "Label legacy-gate runs with a stderr deprecation notice and the legacy_gates JSON marker, and document the hatch as a bounded migration aid."
+  - risk: "Do not add an environment-variable opt-out alongside the flag."
+    instead: "Keep --legacy-gates as the single opt-out, exactly as the epic pins."
+  - risk: "Do not add new static analyzers or gate logic while flipping defaults."
+    instead: "Only change which existing, evidence-backed gates run by default."
+files:
+  create:
+    - path: docs/strict-defaults-migration.md
+      artifacts:
+        - kind: attribute
+          name: _strict_defaults_migration_guide
+          of: documentation
+          type: markdown document
+          description: "Upgrade notes mapping each error code that newly fails under strict defaults to its migration fix, plus the bounded --legacy-gates migration aid."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The validate and verify subparsers accept --legacy-gates; strict gates are the default."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "Dispatch carries the legacy-gates option through to the validate and verify handlers."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Enforce strict gates by default; honor --legacy-gates with a stderr deprecation notice and the legacy_gates JSON marker."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Enforce strict gates by default; honor --legacy-gates with a stderr deprecation notice and the legacy_gates JSON marker."
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Howto topic text describes strict gates as the default and --legacy-gates as a bounded migration aid."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _strict_defaults_readme_guidance
+          of: documentation
+          type: markdown section
+          description: "README guidance stating strict gates are the default and linking the migration guide."
+    - path: docs/troubleshooting.md
+      artifacts:
+        - kind: attribute
+          name: _strict_defaults_troubleshooting_section
+          of: documentation
+          type: markdown section
+          description: "Troubleshooting entries for newly failing strict-default error codes, pointing at the migration guide and --legacy-gates."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _strict_defaults_payload_guidance
+          of: documentation
+          type: markdown section
+          description: "Init payload guidance updated so installed agent workflow docs treat strict gates as the default rather than opt-in."
+  read:
+    - docs/plans/maid-validate-hardening-backlog.md
+    - maid_runner/core/validate.py
+    - tests/cli/test_strict_default_flip.py
+    - tests/test_strict_defaults_docs.py
+validate:
+  - uv run python -m pytest tests/cli/test_strict_default_flip.py tests/test_strict_defaults_docs.py -v
+  - uv run maid validate manifests/drafts/062-04-flip-strict-defaults-in-major-release.manifest.yaml --mode schema --quiet

@@ -1,0 +1,119 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Rewrite maid-incident-logger skill guidance to use the deterministic maid incident commands"
+type: feature
+created: "2026-06-10T11:04:00Z"
+metadata:
+  status: draft
+  epic: 071-00-gaming-incident-flywheel.epic
+  tags:
+    - anti-gaming
+    - incidents
+    - dpo-data
+    - learning
+  priority: low
+description: |
+  Documentation child. Rewrite the repo-local and packaged
+  maid-incident-logger skill guidance so the skill calls the deterministic
+  CLI commands shipped by 071-01 through 071-03 instead of hand-writing
+  incident records, keeping skills as consumers of deterministic CLI
+  behavior.
+
+  Depends on 071-01, 071-02, and 071-03; children of this epic land strictly
+  in order, so do not promote this child before those command surfaces
+  exist.
+
+  Pinned decisions (do not redesign):
+
+  1. The guidance quotes the exact commands and adds no new CLI behavior:
+
+       maid incident capture --manifest <path> --packet <path>
+         --rejected-diff <path> --tags <comma-list> [--notes <text>]
+       maid incident update <incident-path> --chosen-diff <path>
+       maid incident list [--tag <tag>] [--json]
+       maid incident export --format dpo --output <path>
+       maid incident suggest-temptations --paths <comma-list> [--json]
+
+  2. The guidance documents the capture workflow after a contract-integrity
+     gate catches a gaming attempt: capture the incident with the failure
+     packet and the rejected diff immediately, then update the record with
+     the chosen diff AFTER the honest fix lands.
+  3. The guidance documents the closed pattern-tag vocabulary exactly
+     (`test-weakening`, `trivial-test`, `stub-implementation`,
+     `contract-renegotiation`, `scope-escape`, `runner-gaming`,
+     `false-done`) and states that unknown tags are rejected as a usage
+     error and that vocabulary changes require a manifest evolution.
+  4. The guidance preserves the non-AI contract: a human or agent decides
+     that an event was a gaming attempt; MAID records and retrieves the
+     evidence deterministically with no inference, classification models,
+     or hidden summarization.
+  5. Cross-link the epic 066 recall workflow for surfacing incidents during
+     planning. This is documentation-only coupling: the incident and recall
+     implementations stay independent.
+
+  The rewrite replaces the current hand-authored record format in the skill
+  (markdown files under `~/.maid/incidents/` with skill-defined metadata)
+  with the command-backed workflow writing YAML records under the
+  repository's `.maid/incidents/`. DPO curation judgment guidance in the
+  skill (when a pair is DPO-worthy) remains human judgment text, but storage
+  and export go through the commands.
+
+  Behavioral test expectations: tests read the skill files and assert that
+  (a) the guidance quotes each of the five command forms above, (b) the
+  capture-then-update workflow is documented in that order, (c) the closed
+  vocabulary is listed exactly, (d) the 066 recall workflow is cross-linked,
+  and (e) the repo-local source and the packaged distribution copy carry the
+  same guidance anchors (using the isolated-workspace sync pattern from
+  tests/test_claude_skill_distribution.py).
+
+  Planning note: the maid-incident-logger skill exists only in the Claude
+  payload (`.claude/skills/maid-incident-logger/` with its packaged copy
+  under `maid_runner/claude/skills/maid-incident-logger/`); there is no
+  Codex incident-logger skill, so no `.codex/` file is touched and none is
+  invented.
+
+  Planning note: the current skill stores incidents under `~/.maid/incidents/`
+  (user-level); the commands pinned by the epic store under the repository's
+  `.maid/incidents/`. The rewritten guidance follows the commands and
+  documents the repo-local location.
+
+  Out of scope for this child: any CLI or core code change (071-01 through
+  071-03) and the 066 recall guidance updates to planner/implementer/review
+  skills (066-03/066-04).
+temptations:
+  - risk: "Do not keep instructing agents to hand-write incident record files."
+    instead: "Quote the deterministic maid incident commands for capture, update, list, export, and suggestions; skills consume CLI behavior."
+  - risk: "Do not document commands, flags, or tags that the implemented CLI does not ship."
+    instead: "Quote exactly the 071-01/071-02/071-03 command forms and the closed vocabulary, adding no new CLI behavior."
+  - risk: "Do not couple the incident and recall implementations while cross-linking them."
+    instead: "Cross-link the 066 recall workflow as documentation only; the implementations stay independent."
+  - risk: "Do not update the source skill file while leaving the packaged distribution copy stale."
+    instead: "Update the source skill and the generated distribution copy via the sync script, with isolated-workspace parity tests."
+files:
+  edit:
+    - path: .claude/skills/maid-incident-logger/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _incident_logger_cli_workflow_guidance
+          of: skill
+          type: markdown section
+          description: "Rewritten guidance calling maid incident capture/update/list/export/suggest-temptations, documenting the post-gate capture workflow, the closed tag vocabulary, and the 066 recall cross-link."
+    - path: maid_runner/claude/skills/maid-incident-logger/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_incident_logger_cli_workflow_guidance
+          of: skill
+          type: markdown section
+          description: "Generated package copy of the rewritten incident-logger guidance."
+  read:
+    - manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml
+    - manifests/drafts/070-00-structured-retry-packets.epic.yaml
+    - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+    - manifests/drafts/071-01-add-incident-record-storage-and-capture.manifest.yaml
+    - manifests/drafts/071-02-add-dpo-export.manifest.yaml
+    - manifests/drafts/071-03-add-temptation-suggestions.manifest.yaml
+    - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+    - scripts/sync_claude_files.py
+    - tests/test_incident_skill_guidance.py
+validate:
+  - uv run python -m pytest -q tests/test_incident_skill_guidance.py

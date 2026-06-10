@@ -1,0 +1,201 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add the artifact knockout rewrite/run/restore engine proving tests fail when a declared artifact is broken"
+type: feature
+created: "2026-06-10T08:02:00Z"
+metadata:
+  status: draft
+  epic: 068-00-behavioral-constraint-evidence
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - mutation
+  priority: high
+description: |
+  Implement the knockout rewrite/run/restore engine in a new
+  `maid_runner/core/knockout.py`, WITHOUT any CLI exposure. CLI wiring is
+  deliberately deferred to sibling child 068-03 so the in-place file
+  rewriting engine is fully tested before any CLI can invoke it. This
+  child depends on no other 068 sibling and may reuse the command
+  execution helpers in `maid_runner/core/_test_command_execution.py`.
+
+  Pinned decisions (from epic 068-00; do not redesign):
+
+  1. Scope is Python-only in this epic. TypeScript and Svelte knockout
+     are explicitly out of scope and require a future epic with their own
+     rewrite-safety evidence; do not partially implement them here.
+  2. Knockout procedure, per declared public function or method artifact
+     in the manifest's Python files:
+     a. Verify the target file has no uncommitted modifications via the
+        existing worktree helpers in `maid_runner/core/worktree.py`
+        (`changed_files`); refuse with a structured error otherwise,
+        overridable by an `allow_dirty` option (surfaced as
+        `--knockout-allow-dirty` in 068-03).
+     b. Rewrite the artifact body in place to
+        `raise NotImplementedError("maid-knockout")` using AST line spans
+        for the replacement (reuse the parsing approach of
+        `maid_runner/validators/_python_implementation.py`).
+     c. Run the manifest's `validate:` commands.
+     d. Restore the original file content from an in-memory copy in a
+        `finally` block and verify the restored content hash equals the
+        original before reporting.
+  3. If every validate command still exits 0 with the artifact knocked
+     out, fail with E711 ARTIFACT_KNOCKOUT_NOT_DETECTED naming the
+     artifact and file. Harness errors (restore failure, parse failure,
+     command spawn failure) fail closed with E712
+     KNOCKOUT_HARNESS_FAILURE; a restore failure must also print the
+     recovery instruction (git checkout of the named file).
+  4. Cost control: artifacts run sequentially and deterministically in
+     manifest declaration order; a `limit` option bounds the number of
+     artifacts tested (default unlimited; surfaced as `--knockout-limit`
+     in 068-03); results report per-artifact pass/fail with durations.
+     No parallelism in this epic.
+  5. New error codes reserved in `maid_runner/core/result.py`
+     `ErrorCode`: E711 ARTIFACT_KNOCKOUT_NOT_DETECTED and E712
+     KNOCKOUT_HARNESS_FAILURE. Both were verified free at planning time
+     (no E71x codes exist yet; E710 is taken by sibling 068-01).
+     Re-verify before implementation; on collision take the next free
+     E71x value and record the change in this manifest description.
+  6. Full mutation testing (mutmut or similar) is explicitly out of
+     scope. Knockout is the bounded alternative; do not generalize it
+     into a mutation framework.
+  7. Hardening-lane discipline: first reproduce the gaming vector in a
+     throwaway project (a stub body or hardcoded return that passes
+     structural checks and trivial tests), then land the reproduction as
+     an adversarial behavioral test proving knockout reports E711 for it.
+
+  Planning note: the epic does not pin the engine's public API. The
+  conservative choice mirrors the artifact-coverage report shape:
+  `KnockoutResult` per artifact, `KnockoutReport` aggregate with
+  structured errors and `to_dict` for later CLI JSON output, a public
+  `rewrite_artifact_body` source-to-source function so body replacement
+  is directly testable, and a `run_knockout` entry point taking the
+  loaded manifest, project root, optional limit, and allow_dirty flag.
+
+  Behavioral tests must cover: body replacement correctness for plain
+  functions, methods, async functions, and decorated functions (decorators
+  and signatures preserved, body replaced with
+  `raise NotImplementedError("maid-knockout")`); restore-on-exception
+  (file content restored even when the validate run raises); restore hash
+  verification (a restored-content mismatch is reported as E712 with the
+  git checkout recovery instruction); dirty-worktree refusal (and the
+  allow_dirty override); and deterministic ordering in manifest
+  declaration order with the limit option respected.
+
+  Out of scope for this child: any CLI flags or `maid verify` wiring
+  (068-03); the execution-coverage gate and E710 (068-01); documentation
+  (068-04); TypeScript/Svelte support and full mutation testing.
+temptations:
+  - risk: "Do not mutate source files without a verified restore path."
+    instead: "Refuse dirty target files by default, restore in a finally block, verify restored content hashes, and fail closed with the git checkout recovery instruction on any restore anomaly."
+  - risk: "Do not expose the knockout engine through any CLI in this child."
+    instead: "Ship the engine module only; CLI wiring is 068-03 so the rewriting engine is fully tested before any CLI can invoke it."
+  - risk: "Do not generalize knockout into a mutation-testing framework."
+    instead: "Implement exactly one mutation: replace the artifact body with raise NotImplementedError(\"maid-knockout\")."
+  - risk: "Do not run knockouts in parallel or in nondeterministic order."
+    instead: "Run sequentially in manifest declaration order with an optional limit, reporting per-artifact durations."
+files:
+  create:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: class
+          name: KnockoutResult
+          description: "Per-artifact knockout outcome: whether breaking the artifact made at least one validate command fail."
+        - kind: attribute
+          name: artifact_name
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: artifact_kind
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: parent_class
+          of: KnockoutResult
+          type: str | None
+        - kind: attribute
+          name: file_path
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: detected
+          of: KnockoutResult
+          type: bool
+        - kind: attribute
+          name: duration_ms
+          of: KnockoutResult
+          type: float
+        - kind: class
+          name: KnockoutReport
+          description: "Aggregate knockout run result with structured E711/E712 errors."
+        - kind: attribute
+          name: results
+          of: KnockoutReport
+          type: tuple[KnockoutResult, ...]
+        - kind: attribute
+          name: errors
+          of: KnockoutReport
+          type: tuple[ValidationError, ...]
+        - kind: attribute
+          name: success
+          of: KnockoutReport
+          type: bool
+        - kind: method
+          name: to_dict
+          of: KnockoutReport
+          args: []
+          returns: dict
+          description: "JSON-serializable report shape for later CLI --json output."
+        - kind: function
+          name: rewrite_artifact_body
+          args:
+            - name: source
+              type: str
+            - name: artifact_name
+              type: str
+            - name: artifact_kind
+              type: str
+            - name: parent_class
+              type: str | None
+              default: None
+          returns: str
+          description: "Return the source with the named function/method body replaced by raise NotImplementedError(\"maid-knockout\") using AST line spans, preserving decorators and signature."
+        - kind: function
+          name: run_knockout
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: limit
+              type: int | None
+              default: None
+            - name: allow_dirty
+              type: bool
+              default: "False"
+          returns: KnockoutReport
+          description: "Sequentially knock out each declared public function/method artifact in manifest declaration order, run validate commands, restore from in-memory copy in a finally block, and verify restored content hashes."
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: ARTIFACT_KNOCKOUT_NOT_DETECTED
+          of: ErrorCode
+          type: str
+          description: "E711: every validate command still exited 0 with the named artifact knocked out."
+        - kind: attribute
+          name: KNOCKOUT_HARNESS_FAILURE
+          of: ErrorCode
+          type: str
+          description: "E712: knockout harness error (restore failure, parse failure, command spawn failure); fails closed."
+  read:
+    - maid_runner/core/worktree.py
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/core/manifest.py
+    - tests/core/test_knockout.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout.py
+  - uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode schema --quiet

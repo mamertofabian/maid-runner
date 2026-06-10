@@ -1,0 +1,188 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Extend maid bootstrap with a ranked, bounded adoption plan for undeclared files instead of bulk snapshotting"
+type: feature
+created: "2026-06-10T01:04:00Z"
+metadata:
+  status: draft
+  epic: 061-00-manifest-authoring-and-brownfield-onboarding
+  tags:
+    - adoption
+    - bootstrap
+    - developer-experience
+  priority: high
+description: |
+  Add a guided incremental mode to `maid bootstrap`: `maid bootstrap --rank`
+  ranks undeclared files by deterministic, traceable signals and emits a
+  prioritized adoption plan instead of generating snapshot manifests for
+  everything. The user then acts on the plan explicitly (e.g. snapshotting
+  or running from-diff per file); `--rank` itself writes no manifests.
+
+  Pinned decisions (do not redesign):
+
+  - CLI: `maid bootstrap --rank` with `--limit N`, default 20. `--json`
+    must be supported for the ranked output, alongside the existing
+    bootstrap flags for discovery (`--exclude`, `--no-gitignore`,
+    `directory`, `--output-dir` for locating the manifest chain).
+  - Signals per candidate file:
+    - `churn` = commit count from `git log --follow --oneline -- <path>`.
+    - `inbound_refs` = count of project files importing the candidate via
+      the existing import scanners (the Python validator's import scanning
+      and the JS/TS import collection in
+      maid_runner/core/_js_ts_imports.py); do not write a new import
+      parser.
+    - `public_artifacts` = artifact count from the existing snapshot
+      collectors (ValidatorRegistry + collect_implementation_artifacts,
+      excluding private underscore-prefixed artifacts).
+  - Ordering: churn descending, then inbound_refs descending, then
+    public_artifacts descending, then path ascending. Ranking signals must
+    be deterministic and traceable: the output reports the raw signal
+    values per file. Do not invent a composite weighted score.
+  - Candidates are undeclared files: source files discovered exactly like
+    the existing `bootstrap_project` flow (discover_source_files, test
+    files filtered out, exclusions respected) that are not tracked by the
+    manifest chain.
+
+  Behavior specifics:
+
+  - Core ranking lives in `maid_runner/core/bootstrap.py` next to
+    `bootstrap_project`: `rank_bootstrap_candidates(...)` returns a
+    `BootstrapRankReport` containing the ordered, limit-truncated
+    `BootstrapCandidate` tuple plus the total candidate count before
+    truncation (so the report is honest about what was cut off).
+  - A candidate absent from git history (e.g. untracked new file) has
+    churn 0. A candidate no other file imports has inbound_refs 0. Files
+    whose collector fails to parse report public_artifacts 0 rather than
+    aborting the whole ranking (ranking is advisory, not a validation
+    gate).
+  - `--limit` truncates only after the full deterministic ordering.
+  - Human-readable output lists rank, path, and the three raw signal
+    values; `--json` emits the same data structurally. Exit 0 on success;
+    discovery/manifest-chain failures keep the existing bootstrap error
+    behavior (message + exit 2).
+  - Without `--rank`, existing `maid bootstrap` behavior is unchanged.
+
+  Test expectations (planned behavioral tests in
+  tests/core/test_bootstrap_ranking.py and
+  tests/cli/test_bootstrap_rank_cmd.py, run against fixture git
+  repositories in tmp_path):
+
+  - ordering follows churn desc, inbound_refs desc, public_artifacts desc,
+    path asc, including tie-breaks at each level.
+  - already-tracked files and test files are excluded from candidates.
+  - --limit default is 20 and truncation happens after ordering, with the
+    pre-truncation total reported.
+  - untracked-in-git files rank with churn 0; identical runs produce
+    identical reports.
+  - parser registration: `maid bootstrap --rank --limit 5 --json`
+    dispatches through build_parser/main and emits parseable JSON with raw
+    signal values per file and no composite score field.
+
+  Planning notes: the epic pins the signals, ordering, and flags but not
+  the core function or report type names; this child conservatively places
+  ranking in maid_runner/core/bootstrap.py with the artifacts declared
+  below. Treating per-file collector parse failures as public_artifacts 0
+  (instead of failing the plan) is a conservative reading recorded here.
+
+  Out of scope: diff-scope collection (061-01), the from-diff command
+  (061-02), validate-command suggestions (061-03), and documentation of the
+  ranked adoption path (061-05). This child does not change what
+  non-ranked bootstrap snapshots produce.
+temptations:
+  - risk: "Do not bulk-generate manifests for the whole repository in the guided bootstrap mode."
+    instead: "Rank candidates with deterministic, traceable signals and emit a bounded adoption plan the user explicitly acts on; --rank writes no manifests."
+  - risk: "Do not invent a composite weighted score for the ranking."
+    instead: "Report the raw churn, inbound_refs, and public_artifacts values per file and order by the pinned multi-key sort."
+  - risk: "Do not write a new import parser for inbound reference counting."
+    instead: "Reuse the existing Python validator import scanning and maid_runner/core/_js_ts_imports.py collection."
+files:
+  edit:
+    - path: maid_runner/core/bootstrap.py
+      artifacts:
+        - kind: class
+          name: BootstrapCandidate
+          description: "One undeclared file with its raw ranking signals."
+        - kind: attribute
+          name: path
+          of: BootstrapCandidate
+          type: str
+        - kind: attribute
+          name: churn
+          of: BootstrapCandidate
+          type: int
+        - kind: attribute
+          name: inbound_refs
+          of: BootstrapCandidate
+          type: int
+        - kind: attribute
+          name: public_artifacts
+          of: BootstrapCandidate
+          type: int
+        - kind: class
+          name: BootstrapRankReport
+          description: "Deterministic, limit-bounded adoption plan over undeclared files."
+        - kind: attribute
+          name: candidates
+          of: BootstrapRankReport
+          type: tuple[BootstrapCandidate, ...]
+        - kind: attribute
+          name: total_candidates
+          of: BootstrapRankReport
+          type: int
+        - kind: attribute
+          name: limit
+          of: BootstrapRankReport
+          type: int
+        - kind: function
+          name: rank_bootstrap_candidates
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: manifest_dir
+              type: str
+              default: "'manifests/'"
+            - name: limit
+              type: int
+              default: "20"
+            - name: exclude_patterns
+              type: set[str] | None
+              default: "None"
+            - name: respect_gitignore
+              type: bool
+              default: "True"
+          returns: BootstrapRankReport
+    - path: maid_runner/cli/commands/bootstrap.py
+      artifacts:
+        - kind: function
+          name: cmd_bootstrap
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Handles --rank/--limit by emitting the ranked adoption plan (text or --json) without writing manifests; non-rank behavior unchanged."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Bootstrap parser gains --rank and --limit (default 20)."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: "None"
+          returns: int
+  read:
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/_js_ts_imports.py
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/python.py
+    - tests/core/test_bootstrap_ranking.py
+    - tests/cli/test_bootstrap_rank_cmd.py
+validate:
+  - uv run python -m pytest tests/core/test_bootstrap_ranking.py tests/cli/test_bootstrap_rank_cmd.py -v
+  - uv run maid validate manifests/drafts/061-04-rank-bootstrap-adoption-plan.manifest.yaml --mode schema --quiet

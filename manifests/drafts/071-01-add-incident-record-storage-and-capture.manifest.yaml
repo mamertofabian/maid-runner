@@ -1,0 +1,272 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add deterministic gaming-incident record storage and the maid incident capture/update/list commands"
+type: feature
+created: "2026-06-10T11:01:00Z"
+metadata:
+  status: draft
+  epic: 071-00-gaming-incident-flywheel.epic
+  tags:
+    - anti-gaming
+    - incidents
+    - learning
+  priority: low
+description: |
+  Implement the incident record format, the closed pattern-tag vocabulary,
+  and the `maid incident capture|update|list` CLI surface in a new
+  `maid_runner/core/incidents.py` and `maid_runner/cli/commands/incident.py`
+  (both module paths are pinned by the epic).
+
+  HARD PROMOTION GATE (verify at promotion time, pinned by the epic): this
+  child MUST NOT be promoted before manifest
+  `070-02-emit-failure-packets-from-validate-and-verify` is an active
+  implemented manifest, because incident records embed the failure packet
+  JSON that 070-02 produces. Check `manifests/` for that active manifest
+  before promoting this draft.
+
+  Pinned decisions (do not redesign):
+
+  1. Storage: incident records are YAML files under `.maid/incidents/`,
+     named `<utc-timestamp>-<slug>.incident.yaml`. Each record has EXACTLY
+     these fields: `incident_version` (integer, starts at 1), `created`
+     (UTC timestamp), `manifest` (repo-relative path), `gates` (list of
+     error codes that fired, for example E701 or E711), `packet` (embedded
+     copy of the failure packet JSON from epic 070), `rejected_diff`
+     (unified diff text of the gamed attempt, supplied by the caller),
+     `chosen_diff` (unified diff of the eventually accepted fix, optional,
+     added later via update), `pattern_tags` (caller-supplied list from the
+     documented closed vocabulary), and `notes` (free text, optional).
+  2. Closed pattern-tag vocabulary, exactly: `test-weakening`,
+     `trivial-test`, `stub-implementation`, `contract-renegotiation`,
+     `scope-escape`, `runner-gaming`, `false-done`. Reject unknown tags with
+     a usage error naming the vocabulary; do NOT auto-create tags.
+     Vocabulary changes require a manifest evolution.
+  3. CLI surface, exactly: `maid incident capture --manifest <path>
+     --packet <path> --rejected-diff <path> --tags <comma-list>
+     [--notes <text>]` validates inputs (packet parses as JSON, tags from
+     the closed vocabulary, manifest exists) and writes the record;
+     `maid incident update <incident-path> --chosen-diff <path>` attaches
+     the accepted fix; `maid incident list [--tag <tag>] [--json]` reports
+     records deterministically ordered by timestamp.
+  4. Non-AI contract: capture, storage, indexing, and aggregation handle
+     only explicit structured data passed in by the caller. No inference,
+     classification models, or hidden summarization. A human or agent
+     decides that an event was a gaming attempt; MAID records and retrieves
+     the evidence deterministically.
+
+  Behavioral test expectations (from the epic): capture happy path, unknown
+  tag rejection, malformed packet rejection (packet file that does not parse
+  as JSON), update attaching the chosen diff, list ordering and JSON shape,
+  and timestamped filename determinism with an injected clock (the core
+  capture function accepts an explicit `created` timestamp so tests can pin
+  the filename).
+
+  Edge cases: capture with a manifest path that does not exist fails as a
+  usage error; update on a missing incident path fails with the path named;
+  list on an absent or empty `.maid/incidents/` directory returns an empty
+  result, not an error; multiple tags are accepted as a comma-list and each
+  is validated against the vocabulary.
+
+  Planning note: the epic's capture flags do not include a `--gates` flag.
+  Conservative reading: the `gates` field is derived deterministically from
+  the error codes present in the embedded packet's `diagnostics` entries
+  (explicit field extraction from caller-supplied data, no inference).
+
+  Planning note: the epic does not pin how the filename `<slug>` is derived.
+  Conservative reading: the slug is the manifest filename stem (for example
+  `070-02-emit-failure-packets-from-validate-and-verify` for that manifest
+  path), which keeps filenames deterministic for a given manifest and clock.
+
+  Out of scope for this child: DPO export (071-02), temptation suggestions
+  (071-03), and the maid-incident-logger skill guidance rewrite (071-04).
+temptations:
+  - risk: "Do not add AI classification of whether an attempt was gaming."
+    instead: "Capture only caller-asserted incidents with explicit closed-vocabulary tags; MAID stores and retrieves deterministically."
+  - risk: "Do not invent an open-ended tag taxonomy."
+    instead: "Enforce the documented closed vocabulary and reject unknown tags with a usage error naming the vocabulary; vocabulary changes require a manifest evolution."
+  - risk: "Do not embed full repository state in incident records."
+    instead: "Store the failure packet, the supplied diffs, tags, and notes only, keeping records portable and reviewable."
+  - risk: "Do not promote this child before the failure-packet dependency exists."
+    instead: "Verify 070-02-emit-failure-packets-from-validate-and-verify is an active implemented manifest before promoting this draft."
+files:
+  create:
+    - path: maid_runner/core/incidents.py
+      artifacts:
+        - kind: attribute
+          name: PATTERN_TAGS
+          of: incidents
+          type: tuple[str, ...]
+          description: "The closed pattern-tag vocabulary: test-weakening, trivial-test, stub-implementation, contract-renegotiation, scope-escape, runner-gaming, false-done."
+        - kind: class
+          name: IncidentRecord
+          description: "One caller-asserted gaming-incident record with exactly the epic-pinned fields."
+        - kind: attribute
+          name: incident_version
+          of: IncidentRecord
+          type: int
+        - kind: attribute
+          name: created
+          of: IncidentRecord
+          type: str
+        - kind: attribute
+          name: manifest
+          of: IncidentRecord
+          type: str
+        - kind: attribute
+          name: gates
+          of: IncidentRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: packet
+          of: IncidentRecord
+          type: dict
+        - kind: attribute
+          name: rejected_diff
+          of: IncidentRecord
+          type: str
+        - kind: attribute
+          name: chosen_diff
+          of: IncidentRecord
+          type: str | None
+        - kind: attribute
+          name: pattern_tags
+          of: IncidentRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: notes
+          of: IncidentRecord
+          type: str | None
+        - kind: class
+          name: StoredIncident
+          description: "A loaded incident record paired with its storage path for traceable listing and updates."
+        - kind: attribute
+          name: path
+          of: StoredIncident
+          type: str
+        - kind: attribute
+          name: record
+          of: StoredIncident
+          type: IncidentRecord
+        - kind: function
+          name: capture_incident
+          args:
+            - name: incidents_dir
+              type: Union[str, Path]
+            - name: manifest
+              type: str
+            - name: packet
+              type: dict
+            - name: rejected_diff
+              type: str
+            - name: pattern_tags
+              type: Collection[str]
+            - name: notes
+              type: str | None
+              default: None
+            - name: created
+              type: str | None
+              default: None
+          returns: Path
+          source_scenario: "A caller captures a caught gaming attempt with a failure packet, rejected diff, and closed-vocabulary tags."
+          actions:
+            - type: api_call
+              subject:
+                function: capture_incident
+          expected:
+            behavior: "A YAML record named <utc-timestamp>-<slug>.incident.yaml is written with exactly the pinned fields, incident_version 1, gates derived from packet diagnostics codes, unknown tags rejected, and a deterministic filename when created is injected."
+        - kind: function
+          name: read_incident
+          args:
+            - name: incident_path
+              type: Union[str, Path]
+          returns: IncidentRecord
+          source_scenario: "A previously written incident record is loaded."
+          actions:
+            - type: api_call
+              subject:
+                function: read_incident
+          expected:
+            behavior: "Valid records round-trip into typed values and malformed record files fail loudly with the path named."
+        - kind: function
+          name: update_incident
+          args:
+            - name: incident_path
+              type: Union[str, Path]
+            - name: chosen_diff
+              type: str
+          returns: IncidentRecord
+          source_scenario: "The honest fix lands and its diff is attached to an existing incident."
+          actions:
+            - type: api_call
+              subject:
+                function: update_incident
+          expected:
+            behavior: "The stored record gains chosen_diff while all other fields are preserved; a missing incident path fails with the path named."
+        - kind: function
+          name: list_incidents
+          args:
+            - name: incidents_dir
+              type: Union[str, Path]
+            - name: tag
+              type: str | None
+              default: None
+          returns: tuple[StoredIncident, ...]
+          source_scenario: "Several incident records exist under .maid/incidents/."
+          actions:
+            - type: api_call
+              subject:
+                function: list_incidents
+          expected:
+            behavior: "Records are returned deterministically ordered by timestamp, optionally filtered to one closed-vocabulary tag; an absent or empty directory yields an empty result."
+    - path: maid_runner/cli/commands/incident.py
+      artifacts:
+        - kind: function
+          name: cmd_incident
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid incident capture --manifest <path> --packet <path> --rejected-diff <path> --tags test-weakening` records a caught gaming attempt."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_incident
+          expected:
+            behavior: "capture validates that the packet parses as JSON, tags come from the closed vocabulary, and the manifest exists, then writes the record; update attaches the chosen diff; list reports records ordered by timestamp with --tag filtering and --json output; usage errors name the problem and return nonzero."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          source_scenario: "A user invokes `maid incident capture`, `maid incident update`, or `maid incident list`."
+          actions:
+            - type: api_call
+              subject:
+                function: build_parser
+          expected:
+            behavior: "The parser exposes an incident subcommand with capture (--manifest, --packet, --rejected-diff, --tags, --notes), update (incident path, --chosen-diff), and list (--tag, --json) actions."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          source_scenario: "The parsed command is `incident`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The CLI dispatches to `maid_runner.cli.commands.incident.cmd_incident`."
+  read:
+    - manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml
+    - manifests/drafts/070-00-structured-retry-packets.epic.yaml
+    - maid_runner/core/result.py
+    - .claude/skills/maid-incident-logger/SKILL.md
+    - tests/core/test_incidents.py
+    - tests/cli/test_incident_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_incidents.py tests/cli/test_incident_cmd.py

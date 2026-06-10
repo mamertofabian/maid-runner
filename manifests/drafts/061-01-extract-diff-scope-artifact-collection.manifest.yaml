@@ -1,0 +1,177 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Extract a reusable core helper that partitions baseline-changed files and collects per-file public artifact deltas"
+type: feature
+created: "2026-06-10T01:01:00Z"
+metadata:
+  status: draft
+  epic: 061-00-manifest-authoring-and-brownfield-onboarding
+  tags:
+    - adoption
+    - manifest-authoring
+    - snapshot
+  priority: high
+description: |
+  Create `maid_runner/core/diff_scope.py`, a pure library slice with no CLI
+  surface. It is the foundation for `maid manifest from-diff` (a later child)
+  and must expose `collect_diff_scope(project_root, baseline)` returning a
+  `DiffScopeResult` that:
+
+  1. Partitions repo-relative changed paths into created / edited / deleted
+     sets, derived from the baseline.
+  2. Carries per-file public artifact deltas: artifacts added, artifacts whose
+     signature changed, and artifacts removed, comparing the baseline version
+     of each file against the current worktree version.
+
+  Pinned decisions (do not redesign):
+
+  - The baseline input mirrors the existing changed-scope inputs: a
+    since-commit, a base-ref (resolved through `git merge-base <ref> HEAD`),
+    or worktree-only scope. Reuse the helpers in
+    `maid_runner/core/worktree.py` (`changed_files`, `changed_files_since`,
+    `ChangedScopeBaseline`, and their git plumbing) instead of writing new
+    git invocations for change detection. No new diff or baseline semantics.
+  - Artifact collection reuses the existing snapshot artifact collectors:
+    `ValidatorRegistry.with_builtin_validators()` and each validator's
+    `collect_implementation_artifacts`, the same machinery
+    `maid_runner/core/snapshot.py` uses. Do not duplicate collector logic.
+  - Generation is deterministic. The same worktree state and baseline must
+    produce the same `DiffScopeResult`: all path tuples and artifact delta
+    tuples are sorted (paths ascending; artifacts by name, then `of`).
+  - Fail-closed baseline resolution applies, matching E115
+    (`CHANGED_SCOPE_BASELINE_REQUIRED` / `CHANGED_SCOPE_BASELINE_INVALID`)
+    semantics: when no baseline can be derived, or the supplied commitish is
+    invalid, raise `DiffScopeError` with a clear message instead of guessing
+    main, dev, or a remote branch.
+  - Be honest about gaps: artifacts whose exact types the collectors cannot
+    determine keep their unknown fields unset (None / empty) rather than
+    carrying guessed signatures. Only public artifacts (no leading
+    underscore) participate in deltas.
+
+  Behavior specifics:
+
+  - `DiffScopeBaseline` is a frozen dataclass with `source` (one of
+    `"since"`, `"base-ref"`, `"worktree"`) and `commitish` (str | None;
+    None only for worktree scope).
+  - created files: every public artifact in the current file is an `added`
+    delta entry. deleted files: every public artifact in the baseline
+    version is a `removed` entry. edited files: compare baseline vs current
+    public artifact sets by (name, of); same identity with a differing
+    signature (args/returns/kind) is `signature_changed`.
+  - Baseline file content for since/base-ref scopes is read with
+    `git show <resolved-commitish>:<path>`; for worktree scope the baseline
+    content is the HEAD version of the file. This is content retrieval at
+    the already-resolved baseline, not new diff semantics.
+  - Changed files with no registered validator (e.g. YAML, Markdown) still
+    appear in the created/edited/deleted partitions but contribute empty
+    artifact deltas.
+  - A changed source file that the collector fails to parse raises
+    `DiffScopeError` naming the path (fail closed, mirroring how
+    `SnapshotError` surfaces parse failures), rather than silently emitting
+    a partial delta.
+
+  Test expectations (behavioral tests in tests/core/test_diff_scope.py,
+  written during planning of this child, run against fixture git
+  repositories built in tmp_path):
+
+  - created/edited/deleted partitioning is correct for since, base-ref, and
+    worktree baselines.
+  - added / signature_changed / removed deltas are detected for a Python
+    fixture file across baseline and current versions.
+  - identical inputs produce identical (deterministically ordered) results.
+  - missing/invalid baseline raises DiffScopeError (fail closed).
+  - private artifacts are excluded from deltas; non-source files yield empty
+    deltas; unparseable source fails loudly.
+
+  Planning notes: the epic pins the function name, parameter list, and
+  result concept but not the exact result field names or baseline type name;
+  this child conservatively defines `DiffScopeBaseline`, `FileArtifactDelta`,
+  `DiffScopeResult`, and `DiffScopeError` as declared below. Baseline content
+  retrieval via `git show` and the parse-failure fail-closed rule are
+  conservative readings recorded here.
+
+  Out of scope: rendering a draft manifest from the delta and any CLI flags
+  (061-02), validate-command suggestions from test layout (061-03),
+  bootstrap ranking (061-04), and documentation updates (061-05).
+temptations:
+  - risk: "Do not invent new diff or baseline semantics for generation."
+    instead: "Reuse the existing changed-scope baseline rules from maid_runner/core/worktree.py and fail closed when no baseline evidence exists, matching maid verify behavior."
+  - risk: "Do not guess artifact signatures or types that collectors could not determine."
+    instead: "Leave unknown fields unset in the delta so downstream rendering emits explicit placeholders that fail promotion review."
+  - risk: "Do not duplicate snapshot collector logic inside the new module."
+    instead: "Call ValidatorRegistry.with_builtin_validators() and collect_implementation_artifacts, the same path maid_runner/core/snapshot.py uses."
+files:
+  create:
+    - path: maid_runner/core/diff_scope.py
+      artifacts:
+        - kind: class
+          name: DiffScopeBaseline
+          description: "Resolved baseline for diff-scope collection: since-commit, base-ref, or worktree-only."
+        - kind: attribute
+          name: source
+          of: DiffScopeBaseline
+          type: str
+        - kind: attribute
+          name: commitish
+          of: DiffScopeBaseline
+          type: str | None
+        - kind: class
+          name: FileArtifactDelta
+          description: "Public artifact delta for one changed file: added, signature-changed, and removed artifacts."
+        - kind: attribute
+          name: path
+          of: FileArtifactDelta
+          type: str
+        - kind: attribute
+          name: added
+          of: FileArtifactDelta
+          type: tuple[ArtifactSpec, ...]
+        - kind: attribute
+          name: signature_changed
+          of: FileArtifactDelta
+          type: tuple[ArtifactSpec, ...]
+        - kind: attribute
+          name: removed
+          of: FileArtifactDelta
+          type: tuple[ArtifactSpec, ...]
+        - kind: class
+          name: DiffScopeResult
+          description: "Deterministic partition of baseline-changed paths plus per-file public artifact deltas."
+        - kind: attribute
+          name: created
+          of: DiffScopeResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: edited
+          of: DiffScopeResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: deleted
+          of: DiffScopeResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: deltas
+          of: DiffScopeResult
+          type: tuple[FileArtifactDelta, ...]
+        - kind: class
+          name: DiffScopeError
+          description: "Raised for missing/invalid baselines or unparseable changed source files (fail closed)."
+          bases:
+            - Exception
+        - kind: function
+          name: collect_diff_scope
+          args:
+            - name: project_root
+              type: Union[str, Path]
+            - name: baseline
+              type: DiffScopeBaseline
+          returns: DiffScopeResult
+  read:
+    - maid_runner/core/worktree.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_diff_scope.py
+validate:
+  - uv run python -m pytest tests/core/test_diff_scope.py -v
+  - uv run maid validate manifests/drafts/061-01-extract-diff-scope-artifact-collection.manifest.yaml --mode schema --quiet

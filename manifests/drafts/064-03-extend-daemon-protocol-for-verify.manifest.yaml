@@ -1,0 +1,160 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Extend the daemon protocol with a verify method and protocol version negotiation"
+type: feature
+created: "2026-06-10T04:03:00Z"
+metadata:
+  status: draft
+  epic: 064-00-daemon-first-agent-validation
+  tags:
+    - performance
+    - daemon
+    - maid-serve
+    - agent-loops
+  priority: medium
+description: |
+  Extend the `maid serve` NDJSON protocol with the verify-relevant methods
+  agents actually loop on, and add protocol version negotiation so old
+  clients fail with a structured error instead of undefined behavior. This
+  child follows 064-01 (CLI routing) and preserves the protocol's existing
+  `ok`/`result` error layering: protocol-layer failures surface as
+  `ok: false` with a structured error code, while validation outcomes
+  surface inside `result` (e.g. `result.success: false`).
+
+  Pinned decisions from epic 064-00. Do not redesign these:
+
+  1. Protocol versioning: requests carry an integer `protocol_version`,
+     and an absent `protocol_version` means 1. The daemon answers an
+     unsupported version with protocol-layer `ok: false` and error code
+     `UNSUPPORTED_PROTOCOL_VERSION`, never undefined behavior. Existing
+     version-1 clients (no `protocol_version` field) keep working
+     unchanged.
+  2. Verify over the daemon covers the verify stages minus subprocess test
+     execution, or a documented subset. The conservative subset pinned by
+     this draft: validation, coherence, and file-tracking stages; the tests
+     stage is excluded because it shells out to subprocess test runners and
+     belongs to single-shot execution. The handler response documents which
+     stages ran and which were skipped.
+  3. The daemon stays repo-bound: `handle_verify` resolves paths only
+     inside the daemon's startup project root, ignores client-supplied
+     `project_root`, and rejects escaping paths with the existing
+     request-layer error pattern (`DaemonRequestError`, surfaced as
+     `ok: false`).
+  4. Equivalence contract: daemon verify responses must match direct
+     `maid verify --json` content for the stages they run, excluding fields
+     whose names contain `duration`; tests serialize both and compare after
+     stripping those fields.
+  5. Benchmark gate: this slice is benchmark-gated. Record before/after
+     timings with `uv run maid benchmark` (or documented equivalent) for
+     looped verify calls in the outcome evidence. If the slice shows no
+     measurable win, it is dropped, not merged.
+
+  Implementation shape:
+
+  - `maid_runner/daemon/protocol.py`: `Request` gains a `protocol_version`
+    int field defaulting to 1; `parse_request` reads an optional integer
+    `protocol_version` (absent means 1, non-integer is a protocol error)
+    and raises `UnsupportedProtocolVersionError` for versions the server
+    does not support. `verify` joins the allowed methods.
+  - `maid_runner/daemon/server.py`: dispatch maps
+    `UnsupportedProtocolVersionError` to an `ok: false` response with code
+    `UNSUPPORTED_PROTOCOL_VERSION` (private `_dispatch` change; the public
+    `Server` surface is unchanged).
+  - `maid_runner/daemon/handlers.py`: new `handle_verify(params)` registered
+    in `HANDLERS`, reusing the core verify pipeline for the included stages
+    and returning its JSON-mode dict.
+
+  Edge cases and test expectations:
+
+  - Request without `protocol_version` is treated as version 1 and served
+    normally (backward compatibility).
+  - Request with `protocol_version: 1` is served normally.
+  - Request with an unsupported version (e.g. 99) gets `ok: false` and
+    error code `UNSUPPORTED_PROTOCOL_VERSION` with the request id echoed.
+  - Request with a non-integer `protocol_version` is a protocol error.
+  - `verify` with a path escaping the daemon project root gets a
+    request-layer `ok: false` error, not a crash.
+  - `verify` response content matches direct verify JSON for the included
+    stages after stripping duration fields, on both passing and failing
+    projects; the excluded tests stage is reported as skipped/not-run, not
+    silently absent.
+
+  Planning note: the epic allows "a documented subset" of verify stages;
+  this draft conservatively pins the subset to validation, coherence, and
+  file-tracking, excluding subprocess test execution. Planning note: the
+  epic does not name the unsupported-version exception; this draft pins
+  `UnsupportedProtocolVersionError` in protocol.py so the server can map it
+  to the pinned error code. Planning note: the repo already has a
+  `tests/daemon/` domain directory, so the planned tests live there.
+
+  Out of scope: CLI routing of `maid verify` through the daemon (a later
+  decision; 064-01 covers only `maid validate` routing), daemon-resident
+  caching (064-02), Windows transport (064-04), and default-mode flip with
+  docs (064-05).
+temptations:
+  - risk: "Do not let unsupported protocol versions produce undefined behavior or silent downgrade."
+    instead: "Answer unsupported versions with protocol-layer ok: false and code UNSUPPORTED_PROTOCOL_VERSION, and treat an absent protocol_version as exactly version 1."
+  - risk: "Do not run subprocess test execution inside the daemon to make verify complete."
+    instead: "Serve the pinned subset (validation, coherence, file tracking) and report excluded stages explicitly as skipped."
+  - risk: "Do not let daemon verify results diverge from direct execution."
+    instead: "Ship equivalence tests comparing daemon and direct verify JSON for the included stages after stripping duration fields."
+  - risk: "Do not merge this slice without fresh measurements."
+    instead: "Record before/after uv run maid benchmark evidence for looped verify calls in the outcome and drop the slice if it shows no measurable win."
+files:
+  edit:
+    - path: maid_runner/daemon/protocol.py
+      artifacts:
+        - kind: class
+          name: UnsupportedProtocolVersionError
+          bases:
+            - ProtocolError
+          description: "Raised when a request carries a protocol_version the daemon does not support."
+        - kind: attribute
+          name: protocol_version
+          of: Request
+          type: int
+        - kind: function
+          name: parse_request
+          args:
+            - name: line
+              type: str
+          returns: Request
+          source_scenario: "Requests arrive with absent, valid, unsupported, and non-integer protocol_version fields."
+          actions:
+            - type: api_call
+              subject:
+                function: parse_request
+          expected:
+            behavior: "Absent protocol_version parses as 1; supported integers parse onto Request.protocol_version; unsupported versions raise UnsupportedProtocolVersionError; non-integer values raise ProtocolError; verify is an allowed method."
+    - path: maid_runner/daemon/server.py
+      artifacts:
+        - kind: class
+          name: Server
+          description: "Dispatch maps UnsupportedProtocolVersionError to an ok: false response with code UNSUPPORTED_PROTOCOL_VERSION."
+    - path: maid_runner/daemon/handlers.py
+      artifacts:
+        - kind: function
+          name: handle_verify
+          args:
+            - name: params
+              type: dict
+          returns: dict
+          source_scenario: "A client sends a verify request to the daemon for the repo-bound project root."
+          actions:
+            - type: api_call
+              subject:
+                function: handle_verify
+          expected:
+            behavior: "Runs the validation, coherence, and file-tracking verify stages inside the daemon project root, reports the excluded tests stage as skipped, matches direct verify JSON content (duration fields excluded), ignores client-supplied project_root, and rejects escaping paths with a request-layer error."
+  read:
+    - maid_runner/daemon/client.py
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/core/result.py
+    - maid_runner/core/benchmark.py
+    - docs/maid-serve.md
+    - tests/daemon/test_daemon_protocol_version.py
+    - tests/daemon/test_daemon_verify.py
+validate:
+  - uv run python -m pytest -q tests/daemon/test_daemon_protocol_version.py tests/daemon/test_daemon_verify.py
+  - uv run maid validate manifests/drafts/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode schema --quiet

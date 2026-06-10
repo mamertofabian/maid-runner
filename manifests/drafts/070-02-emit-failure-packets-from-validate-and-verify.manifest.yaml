@@ -1,0 +1,172 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Emit self-contained failure packets from `maid validate --packet` and `maid verify --packet`"
+type: feature
+created: "2026-06-10T10:02:00Z"
+metadata:
+  status: draft
+  epic: 070-00-structured-retry-packets
+  tags:
+    - diagnostics
+    - agent-loops
+    - developer-experience
+    - anti-gaming
+  priority: high
+description: |
+  Implement the failure packet: one JSON document per failed gate run
+  containing everything a retrying agent needs without re-exploring the
+  repository. Packet construction and serialization live in a new
+  `maid_runner/core/failure_packet.py`; CLI wiring adds a `--packet`
+  flag to `maid validate` (maid_runner/cli/commands/validate.py) and
+  `maid verify` (maid_runner/cli/commands/verify.py), registered in
+  `maid_runner/cli/commands/_main.py`. Depends on sibling child 070-01
+  (the diagnostics registry providing per-code `next_action` repair
+  recipes), which must land first.
+
+  Pinned decisions (from epic 070-00; do not redesign):
+
+  1. Packet trigger and location: `maid validate --packet <path>` and
+     `maid verify --packet <path>` write a packet JSON file only when the
+     run fails (exit code 1). When the run passes, no packet file is
+     written and any pre-existing file at the path is REMOVED so stale
+     packets cannot be replayed. Default packet path when the flag is
+     passed without a value: `.maid/last-failure-packet.json`.
+  2. Packet content, top-level keys exactly:
+     - `packet_version`: integer, starts at 1.
+     - `command`: the argv list of the invoked command.
+     - `exit_code`: the run's exit code.
+     - `project_root`: absolute path.
+     - `manifest`: per failed manifest: path, goal, type, declared files
+       with artifact lists, and validate commands.
+     - `diagnostics`: every error and warning with code, message, file,
+       line where available, suggestion, and `next_action`.
+     - `test_output`: per failed validate command: command string, exit
+       code, and the final 50 lines of combined output.
+     - `environment`: maid version and python version.
+     All lists deterministically ordered. No file contents beyond the
+     manifest excerpt and output tails; packets must stay small enough to
+     fit an agent prompt.
+  3. `next_action` per diagnostic comes from the 070-01 registry
+     (`render_next_action` in maid_runner/core/diagnostics_registry.py),
+     filled with the diagnostic's actual file/artifact/command values.
+     Codes without a recipe emit `next_action: null`; never invent a
+     generic recipe that could instruct contract weakening.
+  4. Packets complement, not replace, the existing `--json` output
+     contract. Writing a packet never changes pass/fail semantics or exit
+     codes, and packet diagnostics must match the equivalent `--json`
+     diagnostics one-to-one (same codes, messages, locations).
+
+  Planning note: the epic pins `manifest` as a per-failed-manifest
+  section. The most conservative serialization is a deterministically
+  ordered list of objects under the `manifest` key (one entry per failed
+  manifest, ordered by manifest path), each holding path, goal, type,
+  declared files with their artifact name lists, and validate commands;
+  a single-manifest failure produces a one-entry list.
+
+  Behavioral tests must cover: a failing run writes a packet containing
+  exactly the eight pinned top-level keys; a passing run writes no packet
+  AND removes a pre-existing stale file at the packet path; the default
+  path `.maid/last-failure-packet.json` is used when `--packet` is passed
+  without a value; deterministic ordering (two runs over identical
+  failures produce identical packet bytes); test_output tails are
+  truncated to the final 50 lines of combined output per failed validate
+  command; multi-manifest batch failures produce one manifest entry per
+  failed manifest, deterministically ordered; packet diagnostics match
+  the equivalent `--json` diagnostics one-to-one; diagnostics carry
+  next_action objects for covered codes and next_action null for
+  uncovered codes; and exit codes with `--packet` are identical to runs
+  without the flag.
+
+  Out of scope for this child: registry codes and recipe content
+  (070-01); the bounded retry loop tooling and the
+  docs/agent-retry-protocol.md contract (070-03); skill and README
+  guidance updates (070-04).
+temptations:
+  - risk: "Do not replace or fork the existing --json output contract."
+    instead: "Packets are an additive view; assert one-to-one diagnostic parity between packet and JSON output in tests."
+  - risk: "Do not let packets grow unbounded with file contents or full logs."
+    instead: "Cap output tails at 50 lines per command and include only manifest excerpts, keeping packets prompt-sized."
+  - risk: "Do not leave stale packets behind after a passing run."
+    instead: "Remove the packet file on success so a retry loop can never act on outdated failure state."
+  - risk: "Do not let packet writing change validation semantics or exit codes."
+    instead: "Treat the packet as a write-only derived view; assert identical pass/fail behavior with and without --packet."
+files:
+  create:
+    - path: maid_runner/core/failure_packet.py
+      artifacts:
+        - kind: function
+          name: build_failure_packet
+          args:
+            - name: command
+              type: list[str]
+            - name: exit_code
+              type: int
+            - name: project_root
+              type: Union[str, Path]
+            - name: validation
+              type: BatchValidationResult | ValidationResult | VerificationResult
+            - name: test_results
+              type: BatchTestResult | None
+              default: None
+          returns: dict
+          description: "Build the packet dict with exactly the pinned top-level keys (packet_version, command, exit_code, project_root, manifest, diagnostics, test_output, environment), deterministic list ordering, registry-rendered next_action per diagnostic, and 50-line output tails."
+        - kind: function
+          name: write_failure_packet
+          args:
+            - name: packet
+              type: dict
+            - name: path
+              type: Union[str, Path]
+          returns: None
+          description: "Serialize the packet deterministically to the given path, creating parent directories as needed."
+        - kind: function
+          name: clear_failure_packet
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: bool
+          description: "Remove a pre-existing packet file after a passing run; return True when a stale file was removed."
+  edit:
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "maid validate honors --packet: writes the failure packet only on exit code 1 and clears any stale packet on success, without changing exit codes."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "maid verify honors --packet with the same write-on-failure, clear-on-success contract as maid validate."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "validate and verify parsers accept --packet with an optional path value defaulting to .maid/last-failure-packet.json."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "The CLI forwards the parsed packet path to the validate and verify handlers."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/core/diagnostics_registry.py
+    - maid_runner/cli/commands/_format.py
+    - tests/core/test_failure_packet.py
+    - tests/cli/test_packet_flag.py
+validate:
+  - uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py
+  - uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode schema --quiet

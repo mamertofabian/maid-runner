@@ -1,0 +1,161 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Update Claude and Codex MAID skill guidance to consult manifest-derived Outcome recall"
+type: feature
+created: "2026-06-10T06:03:00Z"
+metadata:
+  status: draft
+  epic: 066-00-outcome-recall-planning-integration.epic
+  tags:
+    - agent-skills
+    - maid-workflow
+    - recall
+    - outcome-records
+  priority: medium
+description: |
+  Documentation child. Update the repo-local and distributed Claude and Codex
+  skill payloads so the MAID workflow consults related Outcomes by default:
+
+  - maid-planner recalls related Outcomes BEFORE drafting a new manifest.
+  - maid-implementer consults related Outcomes when choosing test and code
+    patterns.
+  - maid-implementation-review checks whether a completed manifest needs a
+    new or updated Outcome record.
+
+  Pinned decisions (do not redesign):
+
+  1. The guidance MUST quote the exact commands shipped by 066-01 and 066-02
+     and add no new CLI behavior. The exact supported commands are:
+
+       maid recall --for-manifest <path>
+       maid recall --for-manifest <path> --plan-packet
+
+     plus the existing `maid learn` refresh command and the
+     `--allow-stale-index` opt-in. Do not document flags, subcommands, or
+     output modes that 066-01/066-02 did not ship.
+  2. Skill guidance changes are workflow text and packaged payloads only;
+     MAID Runner gains no AI dependency and no hidden behavior. Agents run
+     the same commands a human could run by hand.
+  3. Recall consultation is advisory. The guidance must state that recalled
+     Outcomes are planning evidence only; they never replace a manifest's own
+     behavioral tests, declared artifacts, validation commands, or
+     implementation review. No done-gate or promotion gate requires recall
+     evidence.
+  4. Stale-index handling: the guidance instructs agents that a stale index
+     fails by default, and the remedy is running `maid learn` (or, when a
+     stale read is acceptable, passing `--allow-stale-index`); never to work
+     around the failure another way.
+
+  Files touched mirror the 047-06 Outcome-guidance pattern: the repo-local
+  Claude sources under `.claude/skills/`, the repo-local Codex copies under
+  `.codex/skills/`, and the generated package distribution copies under
+  `maid_runner/claude/skills/` for the three roles (maid-planner,
+  maid-implementer, maid-implementation-review). Generated Claude copies are
+  synchronized via `scripts/sync_claude_files.py`; the distribution parity
+  test pattern (sync into an isolated workspace rather than depending on
+  ignored local generated files) from `tests/test_claude_skill_distribution.py`
+  applies to the planned guidance tests.
+
+  Behavioral test expectations: tests read the skill files and assert that
+  (a) each of the three roles contains the recall guidance anchor for its
+  phase, (b) the guidance quotes the exact `maid recall --for-manifest`
+  and `--plan-packet` command forms, (c) each role states that recalled
+  Outcomes are advisory and do not replace tests, scope, validation, or
+  review, and (d) repo-local Claude sources and Codex copies carry the same
+  guidance anchors.
+
+  Planning note: the epic names only the planner, implementer, and
+  implementation-review roles for this child, so the maid-plan-review skill
+  is intentionally not edited here (its recalled-evidence check from 047-06
+  already exists and is unchanged).
+
+  Planning note: per the 047-06 lesson, the generated copies under
+  `maid_runner/claude/skills/` are gitignored locally and produced by the
+  sync script; they are declared here so the distribution contract stays
+  explicit, and tests must run the sync script in an isolated workspace.
+
+  Out of scope for this child: the CLI behavior itself (066-01, 066-02) and
+  the `maid init` payload propagation with packaged-distribution parity
+  checks for new repositories (066-04).
+temptations:
+  - risk: "Do not put recall workflow knowledge only in agent skills or describe commands that do not exist."
+    instead: "Quote the exact supported commands shipped by 066-01/066-02 and add no new CLI behavior."
+  - risk: "Do not ask agents to treat recalled Outcome lessons as approval to skip behavioral tests or implementation review."
+    instead: "State that recalled outcomes are advisory planning evidence only and each new manifest still needs its own tests, scope, and review."
+  - risk: "Do not update source skill files while leaving package distribution copies stale."
+    instead: "Update source-of-truth skill files and the generated distribution files via the sync script, with isolated-workspace parity tests."
+files:
+  edit:
+    - path: .claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _planner_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Planner guidance to run `maid recall --for-manifest <path>` (and --plan-packet) on the draft before finalizing a new manifest."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Implementer guidance to consult manifest-derived recall results when choosing test and code patterns, without expanding manifest scope."
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementation_review_outcome_record_check
+          of: skill
+          type: markdown section
+          description: "Review guidance to check whether the completed manifest needs a new or updated Outcome record, with recall commands for finding related records."
+    - path: .codex/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_planner_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of planner manifest-derived recall guidance."
+    - path: .codex/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_implementer_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of implementer manifest-derived recall guidance."
+    - path: .codex/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_implementation_review_outcome_record_check
+          of: skill
+          type: markdown section
+          description: "Repo-local Codex copy of implementation-review Outcome record check guidance."
+    - path: maid_runner/claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_planner_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Generated package copy of planner manifest-derived recall guidance."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementer_manifest_recall_guidance
+          of: skill
+          type: markdown section
+          description: "Generated package copy of implementer manifest-derived recall guidance."
+    - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementation_review_outcome_record_check
+          of: skill
+          type: markdown section
+          description: "Generated package copy of implementation-review Outcome record check guidance."
+  read:
+    - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+    - manifests/drafts/066-01-add-recall-for-manifest-query.manifest.yaml
+    - manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - scripts/sync_claude_files.py
+    - docs/agent-skills.md
+    - tests/test_recall_skill_guidance.py
+validate:
+  - uv run python -m pytest -q tests/test_recall_skill_guidance.py

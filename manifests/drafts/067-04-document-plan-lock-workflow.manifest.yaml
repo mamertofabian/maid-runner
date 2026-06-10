@@ -1,0 +1,193 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Document the plan-lock and red-phase-evidence workflow across CLAUDE.md, specs, README, howto, and skill payloads"
+type: feature
+created: "2026-06-10T07:04:00Z"
+metadata:
+  status: draft
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+    - validation-trust
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Documentation child for epic 067-00. Extend the CLAUDE.md workflow
+  phases, `docs/maid_specs.md`, the README, and the `maid howto` content so
+  the documented planning loop ends with `maid plan lock` and the
+  implementation handoff runs
+  `maid verify --require-plan-lock --require-red-evidence`. Update the
+  packaged Claude and Codex skill payload guidance to quote those exact
+  commands. This child depends on siblings 067-01 through 067-03, which
+  must land first.
+
+  Pinned decisions (from epic 067-00; restated so this child is
+  self-contained):
+
+  1. The plan-lock workflow being documented: `maid plan lock
+     <manifest-path>` seals the approved manifest and its behavioral test
+     files with sha256 content hashes in
+     `.maid/plan-locks/<manifest-slug>.lock.json` and captures red-phase
+     evidence by running the manifest's `validate:` commands, classifying
+     by process exit code only (pytest exit 1 = valid red; exits 2/3/4/5 =
+     invalid; exit 0 = tests already pass, not red). `maid plan lock
+     --no-run` records `red_evidence: null`. `maid plan revise
+     <manifest-path> --reason "<text>"` is the legitimate path for
+     intentional plan changes and requires a non-empty reason. `maid plan
+     status <manifest-path>` reports lock state, hash matches/mismatches,
+     and red evidence in text and `--json`.
+  2. Enforcement is opt-in in this release: `maid verify
+     --require-plan-lock --require-red-evidence` fails with E700
+     PLAN_LOCK_MISSING, E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
+     MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK (only when declared artifacts
+     or behavioral test entries shrink; additions are legal), E703
+     PLAN_LOCK_STALE, E704 RED_PHASE_EVIDENCE_MISSING, and E705
+     RED_PHASE_EVIDENCE_INVALID. Strict-by-default is deferred to the 062
+     major-release epic; document the flags as opt-in, not default.
+  3. Documented planning loop ordering: the Phase 2 planning loop ends
+     with `maid plan lock` after behavioral validation passes and the user
+     approves the plan; implementation handoff (Phase 4/5 verification)
+     runs `maid verify --require-plan-lock --require-red-evidence`.
+  4. Skill payload sources live at `.claude/skills/<name>/SKILL.md` and
+     `.codex/skills/<name>/SKILL.md`; `make sync-agent-payloads` copies
+     them into the distributed package, so only the source directories are
+     edited here. The skills to update are `maid-planner` (planning loop
+     ends with `maid plan lock`) and `maid-implementation-review` (review
+     gate runs `maid verify --require-plan-lock --require-red-evidence`),
+     in both the Claude and Codex payload trees, quoting those exact
+     commands.
+  5. The `maid howto` interactive guide content lives in
+     `maid_runner/cli/commands/howto.py` (private `_TOPICS` mapping
+     rendered by the public `cmd_howto`); its workflow and commands
+     sections must mention `maid plan lock` and the enforcement flags.
+
+  Follow the repository documentation standards: present tense, current
+  state only, no temporal markers ("NEW", "now available") and no
+  before/after comparisons.
+
+  Behavioral docs tests (pattern of tests/test_manifest_outcome_docs.py)
+  must verify: the documented planning loop ends with `maid plan lock`
+  and handoff guidance quotes
+  `maid verify --require-plan-lock --require-red-evidence`; the docs state
+  exit-code-only red-phase classification and the revise-with-reason path;
+  and the skill payload sources for maid-planner and
+  maid-implementation-review quote the exact commands.
+
+  Out of scope for this child: any code or behavior change to the plan
+  lock model, CLI, or verify enforcement (067-01 through 067-03); the
+  E710-E712 constraint-evidence gates documentation (068-04).
+temptations:
+  - risk: "Do not document plan-lock enforcement as default-on."
+    instead: "Describe --require-plan-lock and --require-red-evidence as opt-in flags; the default flip belongs to epic 062."
+  - risk: "Do not describe red-phase classification as output parsing."
+    instead: "Document exit-code-only classification: pytest exit 1 is valid red, exits 2/3/4/5 are invalid, exit 0 is not red."
+  - risk: "Do not edit the generated maid_runner/claude or maid_runner/codex payload copies."
+    instead: "Edit only the .claude/skills and .codex/skills sources; make sync-agent-payloads regenerates the packaged copies."
+files:
+  create:
+    - path: tests/test_plan_lock_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_plan_lock_docs_end_planning_loop_with_plan_lock
+          source_scenario: "The workflow docs (CLAUDE.md, docs/maid_specs.md, README.md) are rendered as repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The documented planning loop ends with `maid plan lock` and implementation handoff guidance quotes `maid verify --require-plan-lock --require-red-evidence`."
+        - kind: test_function
+          name: test_plan_lock_docs_describe_exit_code_classification_and_revise
+          source_scenario: "The docs describe red-phase evidence and intentional plan changes."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs state exit-code-only classification (exit 1 red, exits 2-5 invalid, exit 0 not red), the --no-run null-evidence behavior, and the `maid plan revise --reason` path with E700-E705 meanings."
+        - kind: test_function
+          name: test_plan_lock_skill_payloads_quote_exact_commands
+          source_scenario: "The Claude and Codex skill payload sources for maid-planner and maid-implementation-review are read."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Both payload trees quote `maid plan lock` in planning guidance and `maid verify --require-plan-lock --require-red-evidence` in review guidance."
+        - kind: test_function
+          name: test_howto_workflow_mentions_plan_lock_commands
+          source_scenario: "`maid howto` renders the workflow and commands sections."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_howto
+          expected:
+            behavior: "The howto output mentions `maid plan lock` in the workflow guidance and the enforcement flags in the commands guidance."
+  edit:
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_workflow_phase
+          of: documentation
+          type: markdown section
+          description: "Workflow phase guidance ending the planning loop with maid plan lock and running maid verify --require-plan-lock --require-red-evidence at handoff."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_spec_section
+          of: documentation
+          type: markdown section
+          description: "Specification of plan locks, revisions, red-phase exit-code classification, and E700-E705 enforcement semantics."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_readme_commands
+          of: documentation
+          type: markdown section
+          description: "README command table and workflow notes covering maid plan lock|revise|status and the opt-in verify enforcement flags."
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Howto workflow and commands topics mention maid plan lock and the opt-in enforcement flags."
+    - path: .claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_planner_plan_lock_guidance
+          of: documentation
+          type: markdown section
+          description: "Claude planner skill guidance ending the planning loop with the exact command maid plan lock."
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_review_plan_lock_guidance
+          of: documentation
+          type: markdown section
+          description: "Claude review skill guidance quoting the exact command maid verify --require-plan-lock --require-red-evidence."
+    - path: .codex/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_planner_plan_lock_guidance
+          of: documentation
+          type: markdown section
+          description: "Codex planner skill guidance ending the planning loop with the exact command maid plan lock."
+    - path: .codex/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_review_plan_lock_guidance
+          of: documentation
+          type: markdown section
+          description: "Codex review skill guidance quoting the exact command maid verify --require-plan-lock --require-red-evidence."
+  read:
+    - manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+    - docs/draft-manifest-workflow.md
+    - tests/test_manifest_outcome_docs.py
+    - tests/test_plan_lock_docs.py
+validate:
+  - uv run python -m pytest -q tests/test_plan_lock_docs.py
+  - uv run maid validate manifests/067-04-document-plan-lock-workflow.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/067-04-document-plan-lock-workflow.manifest.yaml --mode schema --quiet

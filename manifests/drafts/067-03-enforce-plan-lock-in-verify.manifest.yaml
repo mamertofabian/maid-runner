@@ -1,0 +1,176 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Add opt-in `--require-plan-lock` and `--require-red-evidence` enforcement to `maid verify` with E700-E705"
+type: feature
+created: "2026-06-10T07:03:00Z"
+metadata:
+  status: draft
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Add `--require-plan-lock` and `--require-red-evidence` flags to
+  `maid verify`, emitting the new E7xx contract-integrity error codes with
+  text and JSON output parity. This child depends on siblings 067-01 (lock
+  data model and `maid plan` CLI) and 067-02 (red-phase evidence capture),
+  which must land first.
+
+  Pinned decisions (from epic 067-00; do not redesign):
+
+  1. Enforcement lives in `maid verify` and is OPT-IN in this epic via the
+     `--require-plan-lock` and `--require-red-evidence` flags.
+     Strict-by-default is explicitly deferred to the 062 strict-by-default
+     major-release epic; do not flip any defaults here.
+  2. When enforcement is on, for each active manifest that has a lock at
+     `.maid/plan-locks/<manifest-slug>.lock.json`:
+     - A behavioral test file whose current sha256 content hash differs
+       from the locked hash without a recorded revision fails with E701
+       BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.
+     - A manifest whose declared artifacts or behavioral test set SHRANK
+       relative to the locked manifest content fails with E702
+       MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK. Additions are legal and do
+       not require a revision; E702 fires only on shrink.
+     - A manifest named by the `--require-plan-lock` scope with no lock at
+       all fails with E700 PLAN_LOCK_MISSING.
+     - A lock whose recorded manifest path no longer exists fails with
+       E703 PLAN_LOCK_STALE.
+  3. Under `--require-red-evidence`: a lock whose `red_evidence` is null
+     fails with E704 RED_PHASE_EVIDENCE_MISSING; a lock whose evidence
+     exists but whose classification is not valid red fails with E705
+     RED_PHASE_EVIDENCE_INVALID.
+  4. New error codes are reserved as the E7xx contract-integrity family in
+     `maid_runner/core/result.py` `ErrorCode`: E700 PLAN_LOCK_MISSING,
+     E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,
+     E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE,
+     E704 RED_PHASE_EVIDENCE_MISSING, E705 RED_PHASE_EVIDENCE_INVALID.
+     E700-E705 were verified free in `maid_runner/core/result.py` at
+     planning time (no E7xx codes exist yet). Re-verify before
+     implementation; if a code collides by then, take the next free E7xx
+     value and record the change in this manifest description.
+  5. `maid plan revise <manifest> --reason "<text>"` is the legitimate
+     path to clear E701/E702 after an intentional plan change: a recorded
+     revision re-baselines the hashes.
+  6. Hardening-lane discipline: first reproduce each gaming vector in a
+     throwaway project (weaken an approved behavioral test after lock;
+     delete a declared artifact from the manifest after lock), then land
+     those reproductions as adversarial behavioral tests proving the gate
+     fails closed.
+
+  Planning note: the epic does not pin where the enforcement logic lives.
+  The conservative choice is a public `enforce_plan_locks` function in the
+  existing `maid_runner/core/plan_lock.py` (keeping lock semantics in one
+  module), wired into the verify pipeline in
+  `maid_runner/cli/commands/verify.py` as an additional verification
+  stage with text and JSON output parity matching the existing stages.
+
+  Adversarial behavioral tests must reproduce: a behavioral test weakened
+  after lock fails E701; an artifact deleted from the manifest after lock
+  fails E702; a legitimate additive manifest edit (new artifact or new
+  test file added after lock) passes without revision; `maid plan revise`
+  with a non-empty reason clears E701. Also cover: missing lock under
+  --require-plan-lock fails E700; a lock whose recorded manifest path no
+  longer exists fails E703; null red_evidence under --require-red-evidence
+  fails E704; non-red evidence fails E705; and JSON output carries the
+  same codes as text output.
+
+  Out of scope for this child: the lock data model and maid plan CLI
+  (067-01); red-phase evidence capture (067-02); flipping enforcement
+  defaults (epic 062); documentation and skill payload updates (067-04).
+temptations:
+  - risk: "Do not make plan-lock enforcement the default in this epic."
+    instead: "Ship opt-in flags here; the default flip belongs to the 062 strict-by-default major-release epic."
+  - risk: "Do not treat manifest additions as contract weakening."
+    instead: "Fail E702 only when declared artifacts or behavioral test entries shrink relative to the locked content."
+  - risk: "Do not implement enforcement before reproducing each gaming vector."
+    instead: "First reproduce the weakened-test and removed-artifact bypasses in a throwaway project and land those reproductions as adversarial tests."
+  - risk: "Do not let text and JSON verify output diverge on E700-E705."
+    instead: "Emit the same structured errors in both output modes and assert parity in the behavioral tests."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: PLAN_LOCK_MISSING
+          of: ErrorCode
+          type: str
+          description: "E700: manifest in --require-plan-lock scope has no plan lock."
+        - kind: attribute
+          name: BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK
+          of: ErrorCode
+          type: str
+          description: "E701: behavioral test file hash differs from the locked hash without a recorded revision."
+        - kind: attribute
+          name: MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK
+          of: ErrorCode
+          type: str
+          description: "E702: declared artifacts or behavioral test set shrank relative to the locked manifest content."
+        - kind: attribute
+          name: PLAN_LOCK_STALE
+          of: ErrorCode
+          type: str
+          description: "E703: lock's recorded manifest path no longer exists."
+        - kind: attribute
+          name: RED_PHASE_EVIDENCE_MISSING
+          of: ErrorCode
+          type: str
+          description: "E704: red_evidence is null under --require-red-evidence."
+        - kind: attribute
+          name: RED_PHASE_EVIDENCE_INVALID
+          of: ErrorCode
+          type: str
+          description: "E705: red evidence exists but classification is not valid red."
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: enforce_plan_locks
+          args:
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: Path
+            - name: require_plan_lock
+              type: bool
+            - name: require_red_evidence
+              type: bool
+          returns: tuple[ValidationError, ...]
+          description: "Evaluate active manifests against their plan locks and return E700-E705 structured errors."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Verify honors --require-plan-lock and --require-red-evidence and reports E700-E705 in text and JSON."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Verify parser exposes --require-plan-lock and --require-red-evidence opt-in flags."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "Verify dispatch passes the new enforcement flags through to cmd_verify."
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/cli/commands/plan.py
+    - maid_runner/cli/commands/_format.py
+    - tests/core/test_plan_lock_enforcement.py
+    - tests/cli/test_verify_plan_lock_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py
+  - uv run maid validate manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml --mode schema --quiet
