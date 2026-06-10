@@ -4,7 +4,7 @@ goal: "Capture red-phase runtime evidence on `maid plan lock` and `maid plan rev
 type: feature
 created: "2026-06-10T07:02:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 067-00-plan-lock-and-red-phase-evidence
   tags:
     - validation-trust
@@ -153,13 +153,111 @@ files:
               type: argparse.Namespace
           returns: int
           description: "Revise re-captures red-phase evidence by default; --no-run records red_evidence: null."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Parser exposes --no-run for maid plan lock and maid plan revise."
   read:
     - maid_runner/core/_test_command_execution.py
     - maid_runner/core/manifest.py
     - maid_runner/core/result.py
     - tests/core/test_plan_lock_red_evidence.py
     - tests/cli/test_plan_cmd_red_evidence.py
+    - tests/cli/test_plan_cmd.py
 validate:
-  - uv run python -m pytest -q tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_cmd_red_evidence.py
+  - uv run python -m pytest -q tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py
   - uv run maid validate manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-10T11:34:40Z"
+  summary: "Captured red-phase runtime evidence for maid plan lock and revise using exit-code-only classification."
+  rationale: "Implemented after reproducing the missing declared artifacts as the red phase; evidence capture now records bounded per-command output, classifies exit 1 as red, exit 0 as not_red, and every other exit as invalid, while --no-run preserves a null red_evidence payload."
+  lessons:
+    - lesson_type: contract-honesty
+      summary: "When a promoted draft requires a user-facing CLI flag, the parser file must be in manifest scope; otherwise direct handler tests can pass while the real CLI remains incomplete."
+      tags:
+        - cli-parser
+        - manifest-scope
+        - plan-lock
+      paths:
+        - maid_runner/cli/commands/_main.py
+        - maid_runner/cli/commands/plan.py
+    - lesson_type: validation
+      summary: "A files.read behavioral test added for compatibility must also be covered by the manifest validate command, or maid test can fail even after focused pytest and manifest validation pass."
+      tags:
+        - validate-command
+        - behavioral-tests
+        - maid-test
+      paths:
+        - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+        - tests/cli/test_plan_cmd.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready with no findings; noted a non-blocking residual test realism gap that the invalid-evidence CLI test simulates exit 2 with a script rather than a real pytest collection error, which is acceptable because classification is intentionally exit-code only."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock_red_evidence.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+        - tests/cli/test_plan_cmd.py
+      status: passed
+      summary: "Focused behavioral tests passed: 35 passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/plan_lock.py
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_plan_lock_red_evidence.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+        - tests/cli/test_plan_cmd.py
+      status: passed
+      summary: "Ruff passed on touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed on the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for declared artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and existing advisory E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 69 commands passed and existing advisory E118/E119 chain warnings."

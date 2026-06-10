@@ -12,19 +12,21 @@ lock file is fine, but a present-and-broken lock file fails closed.
 
 Re-locking requires an explicit revision with a non-empty reason; the prior
 hashes are appended to an immutable `revisions` history. The `red_evidence`
-slot is reserved for red-phase runtime evidence capture and is always null in
-this module.
+slot stores bounded red-phase runtime evidence captured from the manifest's
+validate commands when a plan is locked or revised.
 """
 
 from __future__ import annotations
 
 import json
+import shlex
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from maid_runner.core.manifest import _is_test_file, load_manifest
+from maid_runner.core._test_command_execution import _run_test_command
+from maid_runner.core.manifest import _is_test_file, load_manifest, slug_from_path
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import Manifest
 
@@ -60,6 +62,41 @@ class PlanLockRevision:
     prior_test_hashes: dict[str, str]
     revised_at: str
     reason: str
+
+
+@dataclass(frozen=True)
+class RedPhaseCommandEvidence:
+    """Per-command red-phase record."""
+
+    command: str
+    exit_code: int
+    output_tail: str
+    classification: str
+
+
+@dataclass(frozen=True)
+class RedPhaseEvidence:
+    """Aggregate red-phase evidence captured by maid plan lock/revise."""
+
+    red: bool
+    commands: tuple[RedPhaseCommandEvidence, ...]
+    captured_at: str
+
+    def to_payload(self) -> dict:
+        """Serialize the evidence into the JSON payload stored in a plan lock."""
+        return {
+            "red": self.red,
+            "captured_at": self.captured_at,
+            "commands": [
+                {
+                    "command": command.command,
+                    "exit_code": command.exit_code,
+                    "output_tail": command.output_tail,
+                    "classification": command.classification,
+                }
+                for command in self.commands
+            ],
+        }
 
 
 @dataclass(frozen=True)
@@ -182,6 +219,41 @@ def revise_plan_lock(
     )
 
 
+def classify_red_exit_code(exit_code: int) -> str:
+    """Classify red-phase evidence by process exit code only."""
+    if exit_code == 1:
+        return "red"
+    if exit_code == 0:
+        return "not_red"
+    return "invalid"
+
+
+def capture_red_phase_evidence(
+    manifest_path: Path, project_root: Path
+) -> RedPhaseEvidence:
+    """Run the manifest's validate commands and record red-phase evidence."""
+    manifest = load_manifest(manifest_path)
+    root = Path(project_root)
+    slug = slug_from_path(manifest_path)
+    commands: list[RedPhaseCommandEvidence] = []
+    for command in manifest.validate_commands:
+        result = _run_test_command(command, cwd=root, manifest_slug=slug)
+        commands.append(
+            RedPhaseCommandEvidence(
+                command=shlex.join(command),
+                exit_code=result.exit_code,
+                output_tail=_combined_output_tail(result.stdout, result.stderr),
+                classification=classify_red_exit_code(result.exit_code),
+            )
+        )
+    command_tuple = tuple(commands)
+    return RedPhaseEvidence(
+        red=_has_valid_red_evidence(command_tuple),
+        commands=command_tuple,
+        captured_at=_utc_now(),
+    )
+
+
 def _behavioral_test_paths(manifest: Manifest) -> list[str]:
     """Collect the manifest's behavioral test files.
 
@@ -218,3 +290,14 @@ def _project_relative_path(manifest_path: Path, project_root: Path) -> str:
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _has_valid_red_evidence(commands: tuple[RedPhaseCommandEvidence, ...]) -> bool:
+    return any(command.classification == "red" for command in commands) and not any(
+        command.classification == "invalid" for command in commands
+    )
+
+
+def _combined_output_tail(stdout: str, stderr: str, max_lines: int = 20) -> str:
+    combined = "\n".join(part for part in (stdout, stderr) if part)
+    return "\n".join(combined.splitlines()[-max_lines:])

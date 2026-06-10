@@ -52,6 +52,7 @@ def _lock_args(manifest_path: Path, project_root: Path) -> SimpleNamespace:
         plan_command="lock",
         manifest_path=str(manifest_path),
         project_root=str(project_root),
+        no_run=True,
         json=False,
     )
 
@@ -64,6 +65,7 @@ def _revise_args(
         manifest_path=str(manifest_path),
         project_root=str(project_root),
         reason=reason,
+        no_run=True,
         json=False,
     )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from maid_runner.cli.commands._format import print_error
@@ -29,6 +30,7 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
     """Create a plan lock; refuse to overwrite an existing lock."""
     from maid_runner.core.plan_lock import (
         PlanLock,
+        capture_red_phase_evidence,
         create_plan_lock,
         _PlanLockLoadError,
     )
@@ -55,6 +57,13 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
 
     try:
         lock = create_plan_lock(ctx.manifest_path, ctx.project_root)
+        if not getattr(args, "no_run", False):
+            lock = replace(
+                lock,
+                red_evidence=capture_red_phase_evidence(
+                    ctx.manifest_path, ctx.project_root
+                ).to_payload(),
+            )
     except _plan_input_errors() as exc:
         print_error(str(exc), json_mode=ctx.json_mode)
         return 2
@@ -70,6 +79,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
     """Re-lock with current hashes; require a non-empty --reason."""
     from maid_runner.core.plan_lock import (
         PlanLock,
+        capture_red_phase_evidence,
         revise_plan_lock,
         _PlanLockLoadError,
     )
@@ -104,6 +114,13 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         revised = revise_plan_lock(
             existing, ctx.manifest_path, ctx.project_root, reason
         )
+        if not getattr(args, "no_run", False):
+            revised = replace(
+                revised,
+                red_evidence=capture_red_phase_evidence(
+                    ctx.manifest_path, ctx.project_root
+                ).to_payload(),
+            )
     except _plan_input_errors() as exc:
         print_error(str(exc), json_mode=ctx.json_mode)
         return 2
