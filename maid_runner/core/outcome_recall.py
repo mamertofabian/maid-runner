@@ -5,7 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import shlex
+from typing import Union
 
+from maid_runner.core.manifest import load_manifest_raw
 from maid_runner.core.outcomes import OutcomeIndex, OutcomeIndexRecord
 
 
@@ -37,6 +40,155 @@ class OutcomeRecallMatch:
     record: OutcomeIndexRecord
     score: int
     reasons: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ManifestQuerySignal:
+    value: str
+    dimension: str
+    source_field: str
+
+
+@dataclass(frozen=True)
+class ManifestRecallDerivation:
+    manifest_path: str
+    signals: tuple[ManifestQuerySignal, ...]
+    query: OutcomeRecallQuery
+
+
+def derive_recall_query(
+    manifest_path: Union[str, Path],
+    project_root: Union[str, Path] = ".",
+) -> ManifestRecallDerivation:
+    manifest_file = Path(manifest_path)
+    root = Path(project_root)
+    load_path = manifest_file if manifest_file.is_absolute() else root / manifest_file
+    try:
+        manifest_data = load_manifest_raw(load_path)
+    except Exception as exc:
+        raise ValueError(f"Failed to load manifest {manifest_file}: {exc}") from exc
+    if not isinstance(manifest_data, dict):
+        raise ValueError(f"Manifest {manifest_file} root must be an object")
+
+    signals: list[ManifestQuerySignal] = []
+
+    files = manifest_data.get("files", {})
+    if not isinstance(files, dict):
+        files = {}
+
+    for section_name, file_specs in (
+        ("create", files.get("create", [])),
+        ("edit", files.get("edit", [])),
+    ):
+        if not isinstance(file_specs, list):
+            continue
+        for file_index, file_spec in enumerate(file_specs):
+            if not isinstance(file_spec, dict):
+                continue
+            file_path = _non_empty_string(file_spec.get("path"))
+            if file_path is None:
+                continue
+            signals.append(
+                ManifestQuerySignal(
+                    value=file_path,
+                    dimension="path",
+                    source_field=f"files.{section_name}[{file_index}].path",
+                )
+            )
+            artifacts = file_spec.get("artifacts", [])
+            if not isinstance(artifacts, list):
+                continue
+            for artifact_index, artifact in enumerate(artifacts):
+                if not isinstance(artifact, dict):
+                    continue
+                artifact_kind = _non_empty_string(artifact.get("kind"))
+                artifact_name = _non_empty_string(artifact.get("name"))
+                if artifact_kind is None or artifact_name is None:
+                    continue
+                artifact_owner = _non_empty_string(artifact.get("of"))
+                qualified_name = (
+                    f"{artifact_owner}.{artifact_name}"
+                    if artifact_owner is not None
+                    else artifact_name
+                )
+                signals.append(
+                    ManifestQuerySignal(
+                        value=f"{file_path}:{artifact_kind}:{qualified_name}",
+                        dimension="artifact",
+                        source_field=(
+                            f"files.{section_name}[{file_index}]"
+                            f".artifacts[{artifact_index}].name"
+                        ),
+                    )
+                )
+
+    delete_specs = files.get("delete", [])
+    if not isinstance(delete_specs, list):
+        delete_specs = []
+    for file_index, delete_spec in enumerate(delete_specs):
+        if not isinstance(delete_spec, dict):
+            continue
+        delete_path = _non_empty_string(delete_spec.get("path"))
+        if delete_path is None:
+            continue
+        signals.append(
+            ManifestQuerySignal(
+                value=delete_path,
+                dimension="path",
+                source_field=f"files.delete[{file_index}].path",
+            )
+        )
+
+    metadata = manifest_data.get("metadata", {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    tags = metadata.get("tags", ())
+    if isinstance(tags, list):
+        for tag_index, tag in enumerate(tags):
+            tag_value = _non_empty_string(tag)
+            if tag_value is not None:
+                signals.append(
+                    ManifestQuerySignal(
+                        value=tag_value,
+                        dimension="tag",
+                        source_field=f"metadata.tags[{tag_index}]",
+                    )
+                )
+
+    validate_commands = manifest_data.get("validate", [])
+    if not isinstance(validate_commands, list):
+        validate_commands = []
+    for command_index, command in enumerate(validate_commands):
+        for token in _validate_command_tokens(command):
+            token_value = _non_empty_string(token)
+            if token_value is not None:
+                signals.append(
+                    ManifestQuerySignal(
+                        value=token_value,
+                        dimension="validation-command",
+                        source_field=f"validate[{command_index}]",
+                    )
+                )
+
+    if not signals:
+        raise ValueError(
+            f"Manifest-derived recall query for {manifest_file} has no recall "
+            "query signals"
+        )
+
+    project_root_text = str(root)
+    query = OutcomeRecallQuery(
+        paths=_values_for_dimension(signals, "path"),
+        artifacts=_values_for_dimension(signals, "artifact"),
+        tags=_values_for_dimension(signals, "tag"),
+        validation_commands=_values_for_dimension(signals, "validation-command"),
+        project_root=project_root_text,
+    )
+    return ManifestRecallDerivation(
+        manifest_path=_normalize_path(str(load_path), project_root_text),
+        signals=tuple(signals),
+        query=query,
+    )
 
 
 def recall_outcomes(
@@ -264,6 +416,28 @@ def _tokens(text: str | None) -> tuple[str, ...]:
     if not text:
         return ()
     return _unique(token.lower() for token in re.split(r"[^A-Za-z0-9]+", text) if token)
+
+
+def _values_for_dimension(
+    signals: list[ManifestQuerySignal],
+    dimension: str,
+) -> tuple[str, ...]:
+    return _unique(signal.value for signal in signals if signal.dimension == dimension)
+
+
+def _validate_command_tokens(command) -> tuple[str, ...]:
+    if isinstance(command, str):
+        return tuple(shlex.split(command))
+    if isinstance(command, list):
+        return tuple(str(token) for token in command)
+    return ()
+
+
+def _non_empty_string(value) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
 
 
 def _normalize_path(path: str, project_root: str | None = None) -> str:

@@ -1,10 +1,9 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Add `maid recall --for-manifest <path>` deriving deterministic recall queries from a manifest"
 type: feature
 created: "2026-06-10T06:01:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 066-00-outcome-recall-planning-integration.epic
   tags:
     - outcome-records
@@ -36,7 +35,10 @@ description: |
      No new ranking algorithm. The existing `recall_outcomes` reason strings
      already encode these dimensions; the new surface maps derived signals
      onto the existing query fields (`paths`, `artifacts`, `tags`,
-     `validation_commands`) and reports per-result reasons as today.
+     `validation_commands`) and reports per-result reasons as today. Artifact
+     signals use MAID's existing indexed artifact identity format
+     `<file path>:<kind>:<qualified artifact name>`, because bare artifact
+     names would not match learned Outcome index records.
   4. Stale-index behavior matches existing recall semantics: fail with the
      stale-index error unless `--allow-stale-index` is passed. Never silently
      answer a planning query from stale data.
@@ -82,8 +84,11 @@ description: |
   `--json` is used. The existing `recall_outcomes` empty-query guard remains
   unchanged for manually constructed generic `OutcomeRecallQuery` values. A
   missing or unparseable manifest path returns nonzero with the path in the
-  error. Duplicate values across fields are de-duplicated per query dimension
-  exactly as existing query normalization already does.
+  error. Manual recall query filters such as `--tag`, `--path`, and
+  `--manifest-slug` are rejected when `--for-manifest` is supplied so the CLI
+  never silently ignores user-provided filters or weakens the manifest-derived
+  query semantics. Duplicate values across fields are de-duplicated per query
+  dimension exactly as existing query normalization already does.
 
   Planning note: the epic does not pin whether derived filters are conjunctive
   like hand-written recall filters. Conservative reading: derived signals are
@@ -167,7 +172,7 @@ files:
               subject:
                 function: cmd_recall
           expected:
-            behavior: "The command derives the query from the manifest, reports derived signals with their source fields in text and JSON, prints ranked matches with existing per-result reasons, fails stale indexes unless --allow-stale-index, and returns nonzero for missing or unparseable manifests and empty derivations."
+            behavior: "The command derives the query from the manifest, reports derived signals with their source fields in text and JSON, prints ranked matches with existing per-result reasons, fails stale indexes unless --allow-stale-index, rejects manual query filters supplied alongside --for-manifest, and returns nonzero for missing or unparseable manifests and empty derivations with the manifest path in the error."
     - path: maid_runner/cli/commands/_main.py
       artifacts:
         - kind: function
@@ -195,6 +200,23 @@ files:
                 function: main
           expected:
             behavior: "The CLI dispatches to `maid_runner.cli.commands.recall.cmd_recall`."
+    - path: manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _reads_active_066_01_manifest
+          of: manifest
+          type: yaml read reference
+          description: "The downstream 066-02 draft reads the promoted active 066-01 manifest path instead of the deleted 066-01 draft path."
+    - path: manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _reads_active_066_01_manifest
+          of: manifest
+          type: yaml read reference
+          description: "The downstream 066-03 draft reads the promoted active 066-01 manifest path instead of the deleted 066-01 draft path."
+  delete:
+    - path: manifests/drafts/066-01-add-recall-for-manifest-query.manifest.yaml
+      reason: "Promote the implemented draft into manifests/066-01-add-recall-for-manifest-query.manifest.yaml."
   read:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
     - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
@@ -205,3 +227,121 @@ files:
     - tests/cli/test_recall_for_manifest_cmd.py
 validate:
   - uv run python -m pytest -q tests/core/test_manifest_recall_query.py tests/cli/test_recall_for_manifest_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-06-10T22:08:56Z"
+  summary: "Added manifest-derived Outcome recall queries through `maid recall --for-manifest <path>` with traceable query signals in text and JSON output."
+  rationale: "Promoted the first child of the 066 epic and kept the implementation deterministic: manifest fields are extracted directly, mapped onto the existing `OutcomeRecallQuery`, and searched with the existing recall ranking and stale-index checks unchanged."
+  lessons:
+    - lesson_type: implementation-review
+      summary: "Relative manifest paths for CLI flags that compose with `--project-root` must be resolved against the explicit project root, not the process working directory."
+      tags:
+        - cli
+        - project-root
+        - path-resolution
+      paths:
+        - maid_runner/core/outcome_recall.py
+        - tests/core/test_manifest_recall_query.py
+        - tests/cli/test_recall_for_manifest_cmd.py
+    - lesson_type: workflow
+      summary: "When behavioral fixtures change after plan locking, recapture red evidence against the final test files before implementation handoff."
+      tags:
+        - plan-lock
+        - red-phase
+        - maid-workflow
+      paths:
+        - .maid/plan-locks/066-01-add-recall-for-manifest-query.lock.json
+        - tests/core/test_manifest_recall_query.py
+        - tests/cli/test_recall_for_manifest_cmd.py
+    - lesson_type: workflow
+      summary: "Promoting a draft manifest is not complete until the source draft is deleted and downstream draft read references point at the active manifest path."
+      tags:
+        - draft-promotion
+        - manifest-scope
+        - maid-workflow
+      paths:
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+        - manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml
+        - manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "First review found that relative `--for-manifest` paths were loaded from the process cwd instead of `--project-root`; core and CLI red coverage was added and the loader was fixed."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Second review reported no findings; residual risk noted that coverage focuses on YAML manifests and does not separately exercise malformed JSON manifest input."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Follow-up review found the plan lock no longer matched after manifest scope cleanup was declared; the lock was refreshed with red evidence against the final manifest contract."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Final review found that manual recall filters were silently ignored with --for-manifest and malformed JSON manifest errors omitted the manifest path; both behaviors were covered and fixed."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_manifest_recall_query.py
+        - tests/cli/test_recall_for_manifest_cmd.py
+        - tests/core/test_outcome_recall.py
+        - tests/cli/test_recall_cmd.py
+      status: passed
+      summary: "Focused and regression recall tests passed: 24 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted 066-01 manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+      status: passed
+      summary: "The manifest-declared test command passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/outcome_recall.py
+        - maid_runner/cli/commands/recall.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_manifest_recall_query.py
+        - tests/cli/test_recall_for_manifest_cmd.py
+      status: passed
+      summary: "Ruff passed for the touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and pre-existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test passed with 73 commands passing and pre-existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - plan
+        - status
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+      status: passed
+      summary: "Plan lock status passed with matching manifest/test hashes and recorded red evidence."

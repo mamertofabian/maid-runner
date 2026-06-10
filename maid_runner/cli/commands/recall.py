@@ -7,7 +7,12 @@ import json
 from pathlib import Path
 import sys
 
-from maid_runner.core.outcome_recall import OutcomeRecallQuery, recall_outcomes
+from maid_runner.core.outcome_recall import (
+    ManifestQuerySignal,
+    OutcomeRecallQuery,
+    derive_recall_query,
+    recall_outcomes,
+)
 from maid_runner.core.outcomes import outcome_index_is_stale, read_outcome_index
 
 
@@ -40,10 +45,19 @@ def cmd_recall(args: argparse.Namespace) -> int:
         except Exception as exc:
             return _error(f"Outcome index staleness check failed: {exc}", args)
 
+    derivation = None
     try:
-        matches = recall_outcomes(
-            index,
-            OutcomeRecallQuery(
+        if getattr(args, "for_manifest", None):
+            manual_flags = _manual_query_filter_flags(args)
+            if manual_flags:
+                raise ValueError(
+                    "--for-manifest cannot be combined with manual recall "
+                    f"filters: {', '.join(manual_flags)}"
+                )
+            derivation = derive_recall_query(args.for_manifest, project_root)
+            query = derivation.query
+        else:
+            query = OutcomeRecallQuery(
                 text=getattr(args, "text", None),
                 tags=tuple(getattr(args, "tag", ()) or ()),
                 paths=tuple(getattr(args, "path", ()) or ()),
@@ -54,23 +68,35 @@ def cmd_recall(args: argparse.Namespace) -> int:
                 review_text=getattr(args, "review_text", None),
                 manifest_slugs=tuple(getattr(args, "manifest_slug", ()) or ()),
                 project_root=project_root,
-            ),
+            )
+        matches = recall_outcomes(
+            index,
+            query,
             limit=getattr(args, "limit", 10),
         )
     except Exception as exc:
         return _error(str(exc), args)
 
     if getattr(args, "json", False):
-        print(
-            json.dumps(
-                {
-                    "count": len(matches),
-                    "matches": [_match_to_dict(match) for match in matches],
-                },
-                sort_keys=True,
-            )
-        )
+        payload = {
+            "count": len(matches),
+            "matches": [_match_to_dict(match) for match in matches],
+        }
+        if derivation is not None:
+            payload["derived_signals"] = [
+                _signal_to_dict(signal) for signal in derivation.signals
+            ]
+            payload["manifest_path"] = derivation.manifest_path
+        print(json.dumps(payload, sort_keys=True))
         return 0
+
+    if derivation is not None:
+        print(f"Derived query signals from {derivation.manifest_path}:")
+        for signal in derivation.signals:
+            print(
+                f"  {signal.dimension}: {signal.value} "
+                f"(source: {signal.source_field})"
+            )
 
     for match in matches:
         print(f"{match.record.manifest_path} score={match.score}")
@@ -95,6 +121,33 @@ def _match_to_dict(match) -> dict:
         ],
         "score": match.score,
     }
+
+
+def _signal_to_dict(signal: ManifestQuerySignal) -> dict:
+    return {
+        "dimension": signal.dimension,
+        "source_field": signal.source_field,
+        "value": signal.value,
+    }
+
+
+def _manual_query_filter_flags(args: argparse.Namespace) -> list[str]:
+    flags: list[str] = []
+    if getattr(args, "text", None):
+        flags.append("--text")
+    if getattr(args, "tag", None):
+        flags.append("--tag")
+    if getattr(args, "path", None):
+        flags.append("--path")
+    if getattr(args, "artifact", None):
+        flags.append("--artifact")
+    if getattr(args, "validation_command", None):
+        flags.append("--validation-command")
+    if getattr(args, "review_text", None):
+        flags.append("--review-text")
+    if getattr(args, "manifest_slug", None):
+        flags.append("--manifest-slug")
+    return flags
 
 
 def _error(message: str, args: argparse.Namespace) -> int:

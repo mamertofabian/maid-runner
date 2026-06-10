@@ -306,6 +306,7 @@ def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--validation-command", action="append", default=None)
     p.add_argument("--review-text", default=None)
     p.add_argument("--manifest-slug", action="append", default=None)
+    p.add_argument("--for-manifest", default=None)
     p.add_argument("--manifest-dir", default=None)
     p.add_argument("--project-root", default=None)
     p.add_argument("--allow-stale-index", action="store_true")

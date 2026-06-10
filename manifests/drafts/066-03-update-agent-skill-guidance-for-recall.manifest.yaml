@@ -151,7 +151,7 @@ files:
           description: "Generated package copy of implementation-review Outcome record check guidance."
   read:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
-    - manifests/drafts/066-01-add-recall-for-manifest-query.manifest.yaml
+    - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
     - manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml
     - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - scripts/sync_claude_files.py

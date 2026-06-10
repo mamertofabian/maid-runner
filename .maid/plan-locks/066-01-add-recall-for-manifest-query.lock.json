@@ -1,0 +1,156 @@
+{
+  "manifest_path": "manifests/066-01-add-recall-for-manifest-query.manifest.yaml",
+  "manifest_hash": "sha256:07ba9c92be58aea403070f9431dd6bf11b1560e1c0e5ee828c491d289ce602b8",
+  "test_hashes": {
+    "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+    "tests/cli/test_recall_for_manifest_cmd.py": "sha256:25a64f2e63c00c2cf1cc0a33701a687ae58ff2561901f27e65f89b4edbdcd6d2"
+  },
+  "created_at": "2026-06-10T13:46:29.020334+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:02d93f664179a382f7d0cce56d05aaaadffa848a97de8b11e980da12535fbc27",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:9d54c9d5059559f4ba3d21dccb088cf62fe4ac172b6d704b2088cd96d02bfe71",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:0718ef451b8949e069bd9737444585c1283b92571ae016b2b86d97381890d446"
+      },
+      "revised_at": "2026-06-10T13:52:17.855416+00:00",
+      "reason": "Correct empty-signal behavioral fixture after lock so the test manifest contains no validate-derived signals."
+    },
+    {
+      "prior_manifest_hash": "sha256:02d93f664179a382f7d0cce56d05aaaadffa848a97de8b11e980da12535fbc27",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:6308cdbf74c9c0f2f701183d9bcf44189746e807dfaea9c557a54a395418bd64",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a4ed8fc0cc6b5cfc3a2cdf7af4d8f0e31678dcdda72ede3c786348258419a99a"
+      },
+      "revised_at": "2026-06-10T13:53:53.709685+00:00",
+      "reason": "Recapture red evidence after correcting the empty-signal behavioral fixture before implementation."
+    },
+    {
+      "prior_manifest_hash": "sha256:02d93f664179a382f7d0cce56d05aaaadffa848a97de8b11e980da12535fbc27",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:6308cdbf74c9c0f2f701183d9bcf44189746e807dfaea9c557a54a395418bd64",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a4ed8fc0cc6b5cfc3a2cdf7af4d8f0e31678dcdda72ede3c786348258419a99a"
+      },
+      "revised_at": "2026-06-10T13:58:59.265385+00:00",
+      "reason": "Add red coverage for resolving relative --for-manifest paths against project_root."
+    },
+    {
+      "prior_manifest_hash": "sha256:02d93f664179a382f7d0cce56d05aaaadffa848a97de8b11e980da12535fbc27",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a9e018c5be16e001c71814f29fec9e47253efb92043db703e0e601085b39de82"
+      },
+      "revised_at": "2026-06-10T22:09:38.820054+00:00",
+      "reason": "Add completed Outcome record and recapture red evidence for the final manifest contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:1eba30705672c45649a9e63eec8055c5eb447d93d591b7e6c0da2360367b34e2",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a9e018c5be16e001c71814f29fec9e47253efb92043db703e0e601085b39de82"
+      },
+      "revised_at": "2026-06-10T22:15:35.061671+00:00",
+      "reason": "Declare promoted draft cleanup scope and recapture red evidence for the final manifest contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:7e56afacd20ed4a2c9e618d322e17b7368ff981f8fa9896ff0f8e84aaa244fd0",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a9e018c5be16e001c71814f29fec9e47253efb92043db703e0e601085b39de82"
+      },
+      "revised_at": "2026-06-10T22:16:19.969072+00:00",
+      "reason": "Record promoted draft cleanup outcome and recapture red evidence for the final manifest contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:99302aea40561546e4f80212dccc40fa064543c35e888013daccdad9d5cad440",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a9e018c5be16e001c71814f29fec9e47253efb92043db703e0e601085b39de82"
+      },
+      "revised_at": "2026-06-10T22:17:05.006799+00:00",
+      "reason": "Declare promoted draft deletion and recapture red evidence for the final manifest contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:ac6bc43de5c1675d2edf49eb2fba5c33d0f95938a9724a029ffebdb66c482b67",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:a9e018c5be16e001c71814f29fec9e47253efb92043db703e0e601085b39de82"
+      },
+      "revised_at": "2026-06-10T22:22:21.370636+00:00",
+      "reason": "Cover final review findings and recapture red evidence for the final manifest contract."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-10T22:22:21.727460+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_manifest_recall_query.py tests/cli/test_recall_for_manifest_cmd.py",
+        "exit_code": 1,
+        "output_tail": "        )\n        payload = json.loads(capsys.readouterr().out)\n>       assert str(bad_manifest) in payload[\"error\"]\nE       AssertionError: assert '/tmp/pytest-of-atomrem/pytest-28/test_cmd_recall_for_manifest_r2/bad.manifest.json' in 'Outcome recall query cannot be empty'\nE        +  where '/tmp/pytest-of-atomrem/pytest-28/test_cmd_recall_for_manifest_r2/bad.manifest.json' = str(PosixPath('/tmp/pytest-of-atomrem/pytest-28/test_cmd_recall_for_manifest_r2/bad.manifest.json'))\n\ntests/cli/test_recall_for_manifest_cmd.py:208: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_extracts_traceable_manifest_signals\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_rejects_manifest_without_query_signals\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_resolves_relative_manifest_under_project_root\nFAILED tests/core/test_manifest_recall_query.py::test_manifest_derived_query_reuses_existing_recall_tie_breakers\nFAILED tests/core/test_manifest_recall_query.py::test_manifest_derived_query_returns_no_matches_for_empty_index\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_recall_parser_accepts_for_manifest_and_dispatches\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_outputs_derived_signals_and_matches\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_preserves_stale_index_failure\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_reports_missing_and_empty_derivations\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_rejects_manual_query_filters\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_reports_json_parse_errors_with_path\n11 failed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:kind=function",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:returns=int",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.dimension",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.dimension:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.dimension:of=ManifestQuerySignal",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.dimension:type=str",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.source_field",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.source_field:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.source_field:of=ManifestQuerySignal",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.source_field:type=str",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.value",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.value:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.value:of=ManifestQuerySignal",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestQuerySignal.value:type=str",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.manifest_path",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.manifest_path:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.manifest_path:of=ManifestRecallDerivation",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.manifest_path:type=str",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.query",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.query:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.query:of=ManifestRecallDerivation",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.query:type=OutcomeRecallQuery",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.signals",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.signals:kind=attribute",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.signals:of=ManifestRecallDerivation",
+      "maid_runner/core/outcome_recall.py:attribute:ManifestRecallDerivation.signals:type=tuple[ManifestQuerySignal, ...]",
+      "maid_runner/core/outcome_recall.py:class:ManifestQuerySignal",
+      "maid_runner/core/outcome_recall.py:class:ManifestQuerySignal:kind=class",
+      "maid_runner/core/outcome_recall.py:class:ManifestRecallDerivation",
+      "maid_runner/core/outcome_recall.py:class:ManifestRecallDerivation:kind=class",
+      "maid_runner/core/outcome_recall.py:function:derive_recall_query",
+      "maid_runner/core/outcome_recall.py:function:derive_recall_query:arg=manifest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/outcome_recall.py:function:derive_recall_query:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/outcome_recall.py:function:derive_recall_query:kind=function",
+      "maid_runner/core/outcome_recall.py:function:derive_recall_query:returns=ManifestRecallDerivation",
+      "manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest",
+      "manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:kind=attribute",
+      "manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:of=manifest",
+      "manifests/drafts/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:type=yaml read reference",
+      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest",
+      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:kind=attribute",
+      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:of=manifest",
+      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:type=yaml read reference"
+    ],
+    "test_files": [
+      "tests/cli/test_recall_for_manifest_cmd.py",
+      "tests/core/test_manifest_recall_query.py"
+    ]
+  }
+}
