@@ -1,10 +1,9 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Document the plan-lock and red-phase-evidence workflow across CLAUDE.md, specs, README, howto, and skill payloads"
 type: feature
 created: "2026-06-10T07:04:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 067-00-plan-lock-and-red-phase-evidence
   tags:
     - validation-trust
@@ -188,6 +187,84 @@ files:
     - tests/test_manifest_outcome_docs.py
     - tests/test_plan_lock_docs.py
 validate:
-  - uv run python -m pytest -q tests/test_plan_lock_docs.py
+  - uv run python -m pytest -q tests/test_plan_lock_docs.py tests/test_manifest_outcome_docs.py
   - uv run maid validate manifests/067-04-document-plan-lock-workflow.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/067-04-document-plan-lock-workflow.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-10T12:45:00Z"
+  summary: "Documented the plan-lock and red-phase-evidence workflow across repository docs, howto output, and Claude/Codex skill source payloads."
+  rationale: "Promoted the approved documentation child after siblings 067-01 through 067-03 landed, then kept the change to current-state documentation and source skill payloads without editing generated packaged copies."
+  lessons:
+    - lesson_type: validation
+      summary: "Documentation manifests that list contextual test files in files.read must include those tests in validate commands, or maid test can fail with E230 even when the new focused docs test passes."
+      tags:
+        - docs
+        - validate-command
+        - maid-test
+      paths:
+        - manifests/067-04-document-plan-lock-workflow.manifest.yaml
+        - tests/test_manifest_outcome_docs.py
+        - tests/test_plan_lock_docs.py
+    - lesson_type: promotion-cleanup
+      summary: "Promoted draft manifests should remove draft-only headers as well as changing metadata.status from draft to active."
+      tags:
+        - draft-promotion
+        - manifest-lifecycle
+      paths:
+        - manifests/067-04-document-plan-lock-workflow.manifest.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "First review found the promoted manifest still had a stale draft-kind header; it was removed and focused validation was rerun."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Final review reported no findings; residual risk noted that the already-started docs task could not produce fresh plan-lock red evidence for its own handoff."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_plan_lock_docs.py
+        - tests/test_manifest_outcome_docs.py
+      status: passed
+      summary: "Focused documentation tests passed: 7 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-04-document-plan-lock-workflow.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed on the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-04-document-plan-lock-workflow.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for declared artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and pre-existing E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 73 commands passing and pre-existing E118/E119 chain warnings."

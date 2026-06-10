@@ -183,4 +183,16 @@ Revise the manifest and tests if review finds blockers.
 
 ## Phase 8 — Present for Approval
 
-Present the manifest draft, affected files, declared artifacts, and validation status. Stop for user approval before any implementation begins.
+Present the manifest draft, affected files, declared artifacts, validation
+status, and red-phase result. Stop for user approval before any implementation
+begins.
+
+After the user approves the plan, end the planning loop by running:
+
+```bash
+maid plan lock manifests/<slug>.manifest.yaml
+```
+
+Use the approved manifest path. Do not hand off implementation until the plan
+lock exists, unless the user explicitly chooses a no-run lock with
+`maid plan lock --no-run` and accepts `red_evidence: null`.

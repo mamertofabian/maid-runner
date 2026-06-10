@@ -22,9 +22,12 @@ _TOPICS = {
         "land in manifests/drafts/ with metadata.needs_review: true.\n"
         "5. Validate the plan:\n"
         "   maid validate manifests/your-task.manifest.yaml --mode behavioral\n\n"
-        "6. Implement and verify:\n"
+        "6. End the approved planning loop with a plan lock:\n"
+        "   maid plan lock manifests/your-task.manifest.yaml\n\n"
+        "7. Implement and verify:\n"
         "   maid validate manifests/your-task.manifest.yaml\n"
         "   maid test --manifest manifests/your-task.manifest.yaml\n"
+        "   maid verify --require-plan-lock --require-red-evidence\n"
     ),
     "create": (
         "How to Create a Manifest\n"
@@ -44,8 +47,9 @@ _TOPICS = {
         "     - pytest tests/test_your_file.py -v\n\n"
         "3. Write tests first (TDD)\n"
         "4. Run: maid validate your-manifest.yaml --mode behavioral\n"
-        "5. Implement the code\n"
-        "6. Run: maid validate your-manifest.yaml\n"
+        "5. After approval, run: maid plan lock your-manifest.yaml\n"
+        "6. Implement the code\n"
+        "7. Run: maid validate your-manifest.yaml\n"
     ),
     "validate": (
         "How to Validate\n"
@@ -83,6 +87,7 @@ _TOPICS = {
         "Phase 1: Define goal and create manifest\n"
         "Phase 2: Write behavioral tests\n"
         "  - maid validate --mode behavioral\n"
+        "  - maid plan lock manifests/your-task.manifest.yaml\n"
         "Phase 3: Implement code to pass tests\n"
         "  - maid validate\n"
         "  - maid test\n"
@@ -90,6 +95,7 @@ _TOPICS = {
         "Phase 5: Integration verification\n"
         "  - maid validate (all manifests)\n"
         "  - maid test (all test commands)\n"
+        "  - maid verify --require-plan-lock --require-red-evidence\n"
     ),
     "commands": (
         "CLI Commands\n"
@@ -99,6 +105,14 @@ _TOPICS = {
         "  maid validate [manifest] --mode schema\n\n"
         "Run manifest validation commands:\n"
         "  maid test --manifest manifests/your-task.manifest.yaml\n\n"
+        "Seal and inspect approved plans:\n"
+        "  maid plan lock manifests/your-task.manifest.yaml\n"
+        "  maid plan revise manifests/your-task.manifest.yaml --reason '<text>'\n"
+        "  maid plan status manifests/your-task.manifest.yaml --json\n"
+        "  maid plan lock --no-run records red_evidence: null; pytest exit 1 "
+        "is valid red, exits 2/3/4/5 are invalid, and exit 0 is not red.\n\n"
+        "Run the implementation handoff gate with opt-in plan-lock enforcement:\n"
+        "  maid verify --require-plan-lock --require-red-evidence\n\n"
         "Create manifest drafts:\n"
         "  maid manifest create src/your_file.py --goal 'Describe the change' "
         '--artifacts \'[{"kind":"function","name":"your_function"}]\'\n\n'

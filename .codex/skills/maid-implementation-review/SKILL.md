@@ -157,9 +157,15 @@ For implementation review:
 Where practical, run:
 
 ```bash
+maid verify --require-plan-lock --require-red-evidence
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
+
+The `maid verify --require-plan-lock --require-red-evidence` command is the
+implementation handoff gate for the approved plan lock and captured red-phase
+evidence. Treat E700-E705 plan-lock failures as blockers unless the review
+packet explicitly states that opt-in enforcement is out of scope for the task.
 
 If the environment or project shape makes a command impractical, say so explicitly.
 

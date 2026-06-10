@@ -65,6 +65,7 @@ The development process is broken down into distinct phases, characterized by tw
         * It validates the draft manifest against the behavioral test code (using AST analysis) to ensure the plan is internally consistent.
         * If the task involves editing an existing file, it also validates the current implementation code against its entire manifest history (using the Merging Validator) to ensure the starting point is valid.
     * The architect refines both the manifest and the tests together until this validation passes and the plan is deemed complete.
+    * After the user approves the plan, the architect ends the planning loop by running `maid plan lock <manifest-path>`. The lock seals the approved manifest and its behavioral test files before implementation handoff.
 
 3.  **Phase 3: Implementation (Developer Agent)**
     Once the plan is finalized and committed, an automated system invokes a "Developer Agent" with the manifest. The agent's **Implementation Loop** is as follows:
@@ -72,9 +73,40 @@ The development process is broken down into distinct phases, characterized by tw
     * Write or modify the code based on the `goal` and its understanding of the tests.
     * The controlling script executes the `validationCommand` from the manifest.
     * If this **Behavioral Validation** fails, the error output is fed back into the agent's context for the next iteration. This loop continues until all tests pass.
+    * The implementation handoff gate runs `maid verify --require-plan-lock --require-red-evidence` to require the sealed plan and valid red-phase evidence for the manifest under review.
 
 4.  **Phase 4: Integration**
     Once the task is complete, the newly implemented code and its corresponding manifest are committed. Because the work was performed against a strict, test-verified manifest contract, it can be integrated with high confidence.
+
+##### **Plan Locks and Red-Phase Evidence**
+
+`maid plan lock <manifest-path>` creates a tamper-evident lock file under
+`.maid/plan-locks/<manifest-slug>.lock.json`. The lock records sha256 content
+hashes for the approved manifest and its behavioral test files, the creation
+timestamp, revision metadata, and red-phase evidence captured from the
+manifest's `validate:` commands.
+
+Red-phase evidence uses exit-code-only classification. For pytest commands,
+exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid
+because they represent usage, internal, interruption, or collection failures,
+and exit 0 means the tests already pass and are not red. MAID stores the final
+output tail for human inspection, but it does not parse text output to decide
+whether evidence is red. `maid plan lock --no-run` records
+`red_evidence: null`.
+
+Intentional plan changes use
+`maid plan revise <manifest-path> --reason "<text>"`. The reason is required
+and the revision re-baselines the manifest and behavioral test hashes. Use
+`maid plan status <manifest-path>` to inspect lock state, hash matches and
+mismatches, and red evidence in text or JSON form.
+
+Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
+--require-red-evidence` reports the contract-integrity errors E700 PLAN_LOCK_MISSING, E701
+BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
+MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, E704
+RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID. E702 applies
+when declared artifacts or behavioral test entries shrink relative to the
+locked manifest; additive manifest changes are legal.
 
 -----
 

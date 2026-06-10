@@ -98,7 +98,7 @@ MAID Runner section in `AGENTS.md`.
 |---------|---------|-------------|
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json` |
+| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--json` (status), `--project-root` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
@@ -141,6 +141,9 @@ maid validate manifests/add-auth.manifest.yaml --no-chain
 # Validate behavioral tests
 maid validate manifests/add-auth.manifest.yaml --mode behavioral
 
+# End the approved planning loop with a tamper-evident plan lock
+maid plan lock manifests/add-auth.manifest.yaml
+
 # Validate with coherence checks
 maid validate --coherence
 
@@ -155,6 +158,9 @@ maid test
 
 # Branch handoff gate for humans, CI, and AI agents
 maid verify --base-ref <parent-branch>
+
+# Implementation handoff gate requiring the approved plan lock and red phase
+maid verify --require-plan-lock --require-red-evidence
 
 # Brownfield onboarding: rank candidates before adding contracts
 maid bootstrap --rank --limit 20
@@ -171,6 +177,24 @@ maid validate --json
 maid audit supersessions --manifest-dir manifests --json
 maid audit supersessions --manifest-dir manifests --seal
 ```
+
+### Plan Locks And Red-Phase Evidence
+
+`maid plan lock <manifest>` seals the approved manifest and its behavioral test
+files after the planning loop passes behavioral validation and the user approves
+the plan. `maid plan revise <manifest> --reason "<text>"` records intentional
+plan changes with a required reason, and `maid plan status <manifest>` reports
+lock state, hash matches or mismatches, and red evidence.
+
+Red-phase evidence uses exit-code-only classification: pytest exit 1 is valid
+red, exits 2/3/4/5 are invalid, and exit 0 means the tests already pass and are
+not red. `maid plan lock --no-run` records `red_evidence: null`.
+
+Plan-lock enforcement is opt-in. The implementation handoff command
+`maid verify --require-plan-lock --require-red-evidence` reports E700
+PLAN_LOCK_MISSING, E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
+MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, E704
+RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID.
 
 ### CI/CD Integration
 

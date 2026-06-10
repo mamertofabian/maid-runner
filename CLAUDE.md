@@ -17,6 +17,16 @@ Confirm the high-level goal with user before proceeding.
 3. Run behavioral validation (checks that tests USE declared artifacts):
    `uv run maid validate manifests/<slug>.manifest.yaml --mode behavioral`
 4. Refine BOTH tests & manifest together until validation passes
+5. After user approval, seal the planning loop:
+   `uv run maid plan lock manifests/<slug>.manifest.yaml`
+
+`maid plan lock` records a tamper-evident lock for the approved manifest and
+its behavioral test files. Red-phase evidence is classified by exit-code-only
+semantics: pytest exit 1 is valid red, exits 2/3/4/5 are invalid, and exit 0
+means the tests already pass and are not red. `maid plan lock --no-run` records
+`red_evidence: null`. For intentional plan changes, use
+`maid plan revise manifests/<slug>.manifest.yaml --reason "<text>"` with a
+non-empty reason.
 
 ### Phase 3: Implementation
 1. Load ONLY files from manifest (`files.edit` + `files.read`)
@@ -45,10 +55,18 @@ Confirm the high-level goal with user before proceeding.
 5. If a non-release commit lands on `main` by mistake before it is pushed, preserve the commit on the intended branch first, then move local `main` back to the release base. Do not rewrite published history, push branches, or delete remote branches without explicit user approval.
 
 ### Phase 5: Review-Fix-Ready Loop
-1. Run `maid-implementation-review` or the repo-level `maid-implementation-reviewer` before handoff.
-2. Give the reviewer a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
-3. Fix valid findings, rerun focused validation, and re-review until the final verdict is `Ready to merge`.
-4. Do not report ready, merge-ready, or commit-ready while the latest review verdict is `Needs changes`, `Needs discussion`, blocked, or missing.
+1. Run the implementation handoff gate:
+   `uv run maid verify --require-plan-lock --require-red-evidence`
+2. Run `maid-implementation-review` or the repo-level `maid-implementation-reviewer` before handoff.
+3. Give the reviewer a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
+4. Fix valid findings, rerun focused validation, and re-review until the final verdict is `Ready to merge`.
+5. Do not report ready, merge-ready, or commit-ready while the latest review verdict is `Needs changes`, `Needs discussion`, blocked, or missing.
+
+Plan-lock enforcement is opt-in. The implementation handoff gate reports E700 PLAN_LOCK_MISSING, E701
+BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK,
+E703 PLAN_LOCK_STALE, E704 RED_PHASE_EVIDENCE_MISSING, and E705
+RED_PHASE_EVIDENCE_INVALID when `--require-plan-lock` and
+`--require-red-evidence` are supplied.
 
 ## MAID Skills Workflow
 
