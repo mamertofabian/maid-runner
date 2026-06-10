@@ -1,0 +1,134 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan edit-time manifest scope enforcement through agent hooks"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - anti-gaming
+    - scope-enforcement
+    - hooks
+    - agent-integration
+    - init-payloads
+  priority: medium
+description: |
+  Move manifest scope enforcement from handoff time to edit time. Today the
+  changed-scope gate (E114/E115) catches out-of-scope file changes only when
+  `maid verify` runs, after a less-capable model has already written the
+  out-of-scope code. Agent runtimes (Claude Code, Cursor, Codex) support
+  pre-tool-use hooks that can block a file write before it happens. This
+  epic ships a deterministic `maid hook` CLI that hook scripts call, plus
+  hook wiring in the `maid init` payloads, so an out-of-scope write is
+  rejected immediately with the manifest context the model needs to
+  self-correct.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. Active-task signal: scope checks need to know which manifest is the
+     current task contract. The resolution order is exactly: the
+     `MAID_ACTIVE_MANIFEST` environment variable if set; otherwise the
+     single-line file `.maid/active-manifest` containing a repo-relative
+     manifest path; otherwise no active task. `maid task start
+     <manifest-path>` writes `.maid/active-manifest` (rejecting paths
+     outside the project or nonexistent files), `maid task stop` removes
+     it, and `maid task status` prints the current value in text and
+     `--json`. Keep this command surface minimal; do not grow task state
+     beyond the single path.
+  2. Scope decision command: `maid hook scope-check --path <file-path>`
+     (also accepting a JSON object on stdin with a `path` field when
+     `--stdin` is passed, to match agent hook payloads). Decision logic:
+     if no active task is set, the decision is `allow` with reason
+     `no-active-task` under the default policy. If an active task exists,
+     load that manifest and decide `allow` when the path matches
+     `files.create`, `files.edit`, or `files.delete` entries, the
+     manifest's own path, its declared test files, or paths under
+     `manifests/drafts/`; decide `deny` otherwise with a reason naming the
+     active manifest and the closest declared scope entries. Output is a
+     single JSON object `{"decision": "allow"|"deny", "reason": ...,
+     "active_manifest": ...}` on stdout; exit code 0 for allow, 2 for deny,
+     1 for internal errors (which the default policy treats as allow so a
+     broken hook never bricks an editor). A `--strict` flag flips both the
+     no-active-task and internal-error outcomes to deny for locked-down
+     loops.
+  3. Performance budget: the hook path must answer in well under one second.
+     Reuse manifest loading directly; do not build the full chain for a
+     single-manifest scope answer. When the 064 daemon epic lands a
+     scope-check method, the hook command may route through the daemon with
+     fail-open fallback; until then, direct execution is the contract. Do
+     not block this epic on 064.
+  4. Payload wiring: the Claude Code payload adds a PreToolUse hook entry
+     (matching Write/Edit tool events) to the packaged `.claude` settings
+     that pipes the event JSON to `maid hook scope-check --stdin`. The
+     Cursor payload adds the equivalent `hooks.json` entry. Codex guidance
+     documents the same check as a pre-edit instruction because Codex hook
+     support differs; the AGENTS.md managed section explains the deny
+     semantics. All payloads must go through the existing
+     `_install_agent_payload` flow in `maid_runner/cli/commands/init.py`
+     and the packaged-distribution parity checks used by current payload
+     manifests.
+  5. The hook is advisory infrastructure, not a validation gate. It never
+     replaces `maid verify` changed-scope checks, which remain the
+     authoritative handoff evidence. No new error codes are added to
+     `ErrorCode` for hook decisions.
+
+  Planned child order:
+
+  1. `069-01-add-task-active-manifest-commands` - implement `maid task
+     start|stop|status` and the `.maid/active-manifest` file contract per
+     decision 1 in a new `maid_runner/cli/commands/task.py` with a small
+     core helper module `maid_runner/core/active_task.py`. Tests cover:
+     start with valid path, rejection of escaping/nonexistent paths, stop
+     idempotency, status with env-var override precedence, and JSON shape.
+  2. `069-02-add-hook-scope-check-command` - implement `maid hook
+     scope-check` per decision 2 in a new
+     `maid_runner/cli/commands/hook.py`, reusing manifest loading from
+     `maid_runner/core/manifest.py`. Tests cover: allow for declared
+     create/edit/delete paths, allow for manifest-own-path and drafts,
+     deny with named manifest for undeclared source paths, stdin JSON
+     parsing, no-active-task default allow, `--strict` deny flips, and
+     internal-error fail-open versus `--strict` fail-closed behavior.
+  3. `069-03-wire-hooks-into-init-payloads` - add the Claude and Cursor
+     hook configuration and the Codex guidance text to the packaged init
+     payloads per decision 4, including payload parity checks. Tests assert
+     the installed files contain the hook entries and that `maid init`
+     dry-run output names them.
+  4. `069-04-document-edit-time-scope-workflow` - documentation child:
+     README section, `docs/agent-skills.md` updates, and skill guidance so
+     MAID sessions start with `maid task start <manifest>` after promotion
+     and clear it at handoff; document the strict mode for autonomous
+     loops and the fact that verify remains the authoritative gate.
+
+  Children land in order; 069-02 depends on 069-01. If hook payload formats
+  for Claude and Cursor diverge enough to bloat 069-03, split per-tool
+  wiring into separate drafts before promotion.
+temptations:
+  - risk: "Do not let a broken hook block all editing by default."
+    instead: "Default policy fails open on internal errors and missing active task; reserve deny-on-error for the explicit --strict flag."
+  - risk: "Do not grow task state into a session or workflow database."
+    instead: "Keep .maid/active-manifest a single repo-relative path with start, stop, and status only."
+  - risk: "Do not treat hook decisions as validation evidence."
+    instead: "Keep maid verify changed-scope checks authoritative; the hook is fast advisory enforcement and adds no ErrorCode entries."
+  - risk: "Do not build full chain merging inside the hot hook path."
+    instead: "Load only the active manifest for the scope answer and keep the sub-second budget; daemon routing is a later optional acceleration."
+  - risk: "Do not hand-edit installed payload files outside the packaged flow."
+    instead: "Ship hook wiring through the existing init payload installation and parity-check mechanism."
+files:
+  create:
+    - path: manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _edit_time_scope_hooks_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for active-task tracking, the maid hook scope-check command, init payload hook wiring, and edit-time scope workflow docs."
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/worktree.py
+    - maid_runner/cli/commands/init.py
+    - maid_runner/cli/commands/_main.py
+    - docs/agent-skills.md
+    - manifests/drafts/064-00-daemon-first-agent-validation.epic.yaml
+validate:
+  - uv run maid validate manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml --mode schema --quiet

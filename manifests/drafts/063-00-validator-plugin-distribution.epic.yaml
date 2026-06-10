@@ -1,0 +1,138 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan entry-point validator plugin discovery and a conformance kit"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - validators
+    - plugin-architecture
+    - language-support
+    - ecosystem
+  priority: medium
+description: |
+  Let the ecosystem add language validators (Go, Rust, Java, C#, and others)
+  without this repository absorbing every parser's maintenance cost. The
+  in-tree TypeScript validator already spans thousands of lines across
+  implementation and behavioral collectors, and the roadmap deliberately
+  defers additional in-tree languages. `ValidatorRegistry.register()` exists
+  as a public extension point, but it only works for callers who import and
+  register classes manually inside their own process. There is no installable
+  distribution story, no discovery, and no way for a third-party validator to
+  prove it implements the contract correctly.
+
+  This epic adds Python entry-point-based discovery so `pip install
+  maid-validator-go` is sufficient for `maid validate` to handle `.go` files,
+  plus a conformance kit third-party authors run to verify their collector
+  honors MAID semantics (strict/permissive modes, public/private artifact
+  rules, behavioral reference identity, parse-error reporting).
+
+  Design constraints agreed for this epic:
+
+  1. Discovery must be deterministic and inspectable. Plugin load order,
+     extension-claim precedence, and conflicts between plugins and built-ins
+     are resolved by documented rules, never import side-effect timing.
+  2. Discovery must fail closed per file type but stay isolated per plugin: a
+     broken plugin produces a structured diagnostic naming the plugin and
+     leaves built-in validators fully functional. A plugin must never silently
+     shadow a built-in validator for an extension the built-in already claims.
+  3. The validator contract surface consumed by plugins (`BaseValidator`,
+     `CollectionResult`, registration semantics) becomes a documented public
+     API with semver discipline; breaking it requires a major version.
+  4. The conformance kit is evidence, not marketing: it must include
+     adversarial cases (private artifact leakage, wrong-identity behavioral
+     references, parse failures, empty files) so passing it means the plugin
+     cannot create false-green validation for its language.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. Entry-point group name: `maid_runner.validators`. Discovery happens
+     once at `ValidatorRegistry` initialization, ordered by distribution
+     name then entry-point name for determinism.
+  2. Built-in-wins rule: a plugin claiming an extension already claimed by
+     a built-in is registered as inactive for that extension and reported
+     with reserved code E903 VALIDATOR_PLUGIN_CONFLICT (warning severity).
+     Plugin import or registration failures are isolated and reported with
+     reserved code E902 VALIDATOR_PLUGIN_LOAD_FAILURE naming the
+     distribution; built-ins stay fully functional. Both codes join the
+     E9xx environment family in `maid_runner/core/result.py`; verify they
+     are still free before implementation and take the next free E9xx
+     value on collision, recording the change in the child description.
+  3. Kill switch: the `MAID_DISABLE_VALIDATOR_PLUGINS=1` environment
+     variable disables discovery entirely; `maid validators` still lists
+     skipped plugins with status `disabled`.
+  4. `maid validators` lives in `maid_runner/cli/commands/validators.py`.
+     Output columns: name, claimed extensions, source (`builtin` or
+     distribution name and version), status (`active`, `conflict`,
+     `error`, `disabled`), with `--json` parity and deterministic row
+     ordering (builtins first, then plugins by distribution name).
+  5. Conformance kit: new public subpackage `maid_runner/testing/` with
+     `maid_runner/testing/validator_conformance.py` exposing
+     `make_conformance_suite(validator_cls, fixtures)` that returns
+     parametrized pytest cases. The fixture contract requires, per
+     language: one source sample per supported artifact kind, a private
+     artifact sample, a behavioral test sample with correct identity, one
+     with wrong identity, an unparseable source sample, and an empty file.
+
+  Planned child order:
+
+  1. `063-01-add-entry-point-validator-discovery` - teach
+     `ValidatorRegistry` to discover validators from a dedicated entry-point
+     group (for example `maid_runner.validators`) at registry initialization,
+     with deterministic ordering, explicit built-in-wins precedence for
+     already-claimed extensions, structured per-plugin failure diagnostics,
+     and an environment/config switch to disable plugin loading entirely for
+     locked-down CI runs.
+  2. `063-02-add-maid-validators-cli-listing` - add a `maid validators`
+     command listing every active validator with claimed extensions, source
+     (built-in or distribution name and version), load status, and any load
+     errors, in text and `--json` forms, so users can audit exactly which code
+     parses their files.
+  3. `063-03-publish-validator-conformance-kit` - package an importable
+     pytest-based conformance suite (for example
+     `maid_runner.testing.validator_conformance`) that a plugin points at its
+     validator class plus language fixtures. The kit verifies collector
+     contract behavior: artifact kinds and identity fields, strict versus
+     permissive expectations, public/private rules, behavioral reference
+     identity, deterministic output, and parse-error result shapes.
+  4. `063-04-document-validator-plugin-authoring` - documentation child:
+     a plugin authoring guide covering the contract, entry-point packaging,
+     conformance kit usage, and the support boundary (plugins own their
+     parser quality; MAID Runner owns the contract), plus README and howto
+     updates pointing language requests at the plugin path.
+
+  Children 1 and 2 land in order; 3 and 4 may proceed in parallel after 1.
+  A reference plugin (for example a minimal Go validator) is intentionally
+  out of scope for this epic and should be planned as a separate repository
+  once the conformance kit exists.
+temptations:
+  - risk: "Do not start writing new in-tree language validators while building the plugin path."
+    instead: "Keep new languages out of tree; this epic ships discovery, auditability, the conformance kit, and docs only."
+  - risk: "Do not let plugins override built-in validators for extensions the built-ins already claim."
+    instead: "Enforce documented built-in-wins precedence with a structured conflict diagnostic so trusted parsing never changes silently on install."
+  - risk: "Do not swallow plugin import or registration errors."
+    instead: "Isolate each plugin load, report structured per-plugin diagnostics naming the distribution, and keep built-ins functional."
+  - risk: "Do not expose the entire internal validator module surface as public plugin API."
+    instead: "Document a minimal contract (BaseValidator, CollectionResult, registration) and hold only that surface to semver discipline."
+  - risk: "Do not ship a conformance kit that only tests happy paths."
+    instead: "Include adversarial cases proving a passing plugin cannot produce false-green validation for its language."
+files:
+  create:
+    - path: manifests/drafts/063-00-validator-plugin-distribution.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _validator_plugin_distribution_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for entry-point validator discovery, validator audit CLI, conformance kit, and plugin authoring docs."
+  read:
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/__init__.py
+    - maid_runner/cli/commands/_main.py
+    - docs/ROADMAP.md
+    - manifests/drafts/README.md
+validate:
+  - uv run maid validate manifests/drafts/063-00-validator-plugin-distribution.epic.yaml --mode schema --quiet

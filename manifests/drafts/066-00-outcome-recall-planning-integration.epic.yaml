@@ -1,0 +1,134 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan deterministic Outcome recall integration into the planning workflow"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - outcome-records
+    - recall
+    - learning
+    - maid-workflow
+    - agent-skills
+  priority: medium
+description: |
+  Close the loop the 047 Outcome wave opened. `maid learn`, `maid recall`, and
+  `maid insights` exist as deterministic commands over explicit Outcome
+  records, but using them during planning depends entirely on an agent or
+  human remembering to compose the right query. The institutional memory is
+  queryable yet not woven into the moment where it changes decisions: drafting
+  a new manifest. This epic makes recall a first-class planning input by
+  letting MAID derive recall queries from a draft manifest itself, and by
+  updating the distributed agent skill payloads so planning, implementation,
+  and review consult related Outcomes by default.
+
+  The 047 epic's non-AI contract is preserved unchanged: MAID Runner indexes,
+  recalls, and aggregates only explicit structured data. Query derivation from
+  a draft manifest is deterministic field extraction (paths, artifact names,
+  tags, validation commands), not inference. Related Outcomes remain planning
+  evidence only; they never replace a manifest's own behavioral tests,
+  declared artifacts, validation commands, or implementation review.
+
+  Design constraints agreed for this epic:
+
+  1. Derived queries are explainable: output must show which manifest fields
+     produced which query signals and why each result matched (path overlap,
+     artifact identity, tag match, validation-command similarity), reusing
+     the recall index's existing stable ranking and tie-breakers.
+  2. Stale-index behavior matches existing recall semantics: fail with the
+     stale-index error unless `--allow-stale-index` is passed; never silently
+     answer from stale data during planning.
+  3. Skill guidance changes are workflow text and packaged payloads only;
+     MAID Runner gains no AI dependency and no hidden behavior. Agents run
+     the same commands a human could run by hand.
+  4. Recall consultation is advisory in this epic. No done-gate or promotion
+     gate starts requiring recall evidence; enforcement, if ever wanted, is a
+     separate future contract after usage evidence accumulates.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. 066-01 extends `maid_runner/core/outcome_recall.py` and the flag
+     wiring in `maid_runner/cli/commands/recall.py`. `--for-manifest
+     <path>` derives query signals exactly from: declared file paths
+     (files.create, files.edit, files.delete), declared artifact names,
+     `metadata.tags`, and validate command tokens. Each derived signal
+     records which manifest field produced it, and that source appears in
+     both text and JSON output.
+  2. Result explanations name the match dimensions per result: path
+     overlap, artifact identity, tag match, and validation-command
+     similarity, reusing the existing recall ranking and tie-breakers
+     unchanged. No new ranking algorithm.
+  3. The planning report mode (066-02) is the flag `--plan-packet` on the
+     same command. Output is a deterministic compact block with fixed
+     section order: related manifests, outcome statuses, recurring lessons
+     touching the same paths, prior validation-command failures. Each
+     section shows at most 5 entries with the existing stable tie-breakers;
+     truncation is reported explicitly with the omitted count.
+  4. Skill guidance (066-03) and init payload sync (066-04) must quote the
+     exact commands shipped by 066-01/066-02 and add no new CLI behavior.
+
+  Planned child order:
+
+  1. `066-01-add-recall-for-manifest-query` - add `maid recall
+     --for-manifest <path>` (accepting drafts and active manifests) that
+     deterministically derives query signals from the manifest's declared
+     files, artifact names, tags, and validate commands, runs them against
+     the learned index, and reports ranked related Outcomes with per-result
+     match explanations in text and `--json`. Include behavioral tests for
+     signal extraction, ranking stability, empty-index behavior, and
+     stale-index failure.
+  2. `066-02-add-planning-recall-summary-output` - add a planning-oriented
+     report mode (`maid recall --for-manifest <path> --plan-packet`)
+     that renders a compact, deterministic summary block suitable
+     for inclusion in plan-review packets: related manifests, their outcome
+     statuses, recurring lessons touching the same paths, and prior
+     validation-command failures. Output ordering and truncation rules must
+     be explicit and tested.
+  3. `066-03-update-agent-skill-guidance-for-recall` - update the repo-local
+     and distributed Claude and Codex skill payloads so maid-planner recalls
+     related Outcomes before drafting, maid-implementer consults them when
+     choosing test and code patterns, and implementation review checks
+     whether a completed manifest needs a new or updated Outcome record. The
+     guidance must quote the exact supported commands from 066-01/066-02.
+  4. `066-04-sync-init-payloads-with-recall-workflow` - propagate the updated
+     skill guidance through `maid init --tool claude` and `maid init --tool
+     codex` payloads and their packaged-distribution parity checks, so new
+     MAID-enabled repositories receive the recall-integrated workflow.
+
+  Children land in order: the command surface (1, 2) must exist before skill
+  guidance (3) can quote it, and payload sync (4) follows guidance. If 066-01
+  cannot fit one implementation-sized draft, split signal derivation from CLI
+  reporting before promotion.
+temptations:
+  - risk: "Do not add AI inference, embeddings, or semantic similarity to query derivation or ranking."
+    instead: "Derive query signals by explicit field extraction and reuse the existing deterministic recall ranking with stable tie-breakers."
+  - risk: "Do not let recall results gate or modify validation outcomes."
+    instead: "Keep recall advisory planning evidence; validation, done gates, and promotion rules remain unchanged by this epic."
+  - risk: "Do not silently answer planning queries from a stale Outcome index."
+    instead: "Reuse the existing stale-index failure and require the explicit allow-stale-index opt-in."
+  - risk: "Do not put recall workflow knowledge only in agent skills."
+    instead: "Ship the capability as documented CLI behavior first, then have skill guidance quote the supported commands."
+  - risk: "Do not return unexplained ranked results that agents will treat as oracle output."
+    instead: "Report which manifest fields produced each query signal and why each result matched, in both text and JSON."
+files:
+  create:
+    - path: manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _outcome_recall_planning_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for manifest-derived Outcome recall queries, planning packet summaries, and recall-integrated agent skill guidance."
+  read:
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/outcome_recall.py
+    - maid_runner/core/outcome_insights.py
+    - maid_runner/cli/commands/recall.py
+    - maid_runner/cli/commands/learn.py
+    - docs/manifest-outcome-records.md
+    - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml --mode schema --quiet

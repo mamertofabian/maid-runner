@@ -1,0 +1,127 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan strict-by-default validation gates for the next major release"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - validation-trust
+    - hardening
+    - strict-defaults
+    - pytest-config
+    - major-release
+  priority: high
+description: |
+  Convert the landed anti-gaming hardening work into delivered trust by making
+  the strongest gates the default behavior of directory-wide `maid validate`,
+  and by closing the explicitly deferred pytest config coverage gap. Today,
+  identity-backed behavioral coverage and assertion enforcement exist behind
+  opt-in strict flags (030-06, 032-01 through 032-03), so a green default run
+  is weaker than the validator can actually prove. The hardening backlog's
+  final open item already names this closure: make strict identity coverage
+  and assertion enforcement the default in a major-version release.
+
+  This epic follows the repository's hardening constraints: every behavioral
+  gate change must be anchored to reproduced false-green paths already on
+  file, not speculative static analysis. The epic adds no new analyzers; it
+  changes defaults, adds migration tooling, and extends one existing guard to
+  config formats pytest documents as equivalent to the already-covered
+  `pyproject.toml` path.
+
+  Design constraints agreed for this epic:
+
+  1. Default changes ship in a major version. Until then, the strict behavior
+     is reachable through an explicit opt-in so projects can migrate early.
+  2. An escape hatch (`--legacy-gates` or equivalent) must exist in the major
+     release, must be visible in text and JSON output when active, and must be
+     documented as a migration aid, not a permanent mode.
+  3. Migration must be measurable before the flip: users need a command that
+     reports exactly which manifests and files would fail under strict
+     defaults, with structured error codes, before any default changes.
+  4. The pytest config guard extension must reproduce each bypass shape in a
+     throwaway project before the closure is implemented, matching the 044-01
+     procedure.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. 062-01 extends `maid_runner/core/_pytest_config_addopts.py`. Pytest
+     config discovery precedence to implement, first match wins:
+     `pytest.ini` (always wins when present), then `pyproject.toml`
+     `[tool.pytest.ini_options]`, then `tox.ini` `[pytest]`, then
+     `setup.cfg` `[tool:pytest]`. Only the effective file's addopts are
+     enforced; shadowed config files are ignored and must not produce
+     diagnostics.
+  2. Strict preview flag (062-02): `--strict-preview` on `maid validate`
+     and `maid verify`. JSON output gains a top-level
+     `"strict_preview": true` marker; text output prefixes the summary
+     line with `[strict-preview]`.
+  3. Migration delta (062-03): `--strict-delta` on `maid validate` runs the
+     default-gate evaluation and the strict-preview evaluation in one
+     process and reports only the diagnostics unique to the strict run,
+     grouped by manifest then file, in text and JSON (top-level key
+     `"strict_delta"`). The process exit code stays determined by the
+     default-gate result so CI adoption of the report is non-breaking.
+  4. Major flip (062-04): the strict gates become the default;
+     `--legacy-gates` restores prior behavior, prints a deprecation notice
+     on stderr, and marks JSON output with `"legacy_gates": true`. No
+     environment-variable escape hatch; the flag is the single opt-out.
+
+  Planned child order:
+
+  1. `062-01-extend-pytest-config-addopts-guard` - extend the reproduced
+     `pyproject.toml` `addopts` closure (044-01) to `pytest.ini`, `tox.ini`,
+     and `setup.cfg`, respecting pytest config file precedence so ignored
+     configs do not produce false positives. Each format gets a reproduced
+     bypass fixture and an adversarial test proving the old gaming path fails.
+  2. `062-02-add-strict-defaults-preview-mode` - add an explicit opt-in
+     (flag and/or `maid` config) that runs directory-wide `maid validate` and
+     `maid verify` with the intended future defaults: identity-backed
+     behavioral coverage, assertion enforcement, and coverage-miss errors.
+     Output must label the run as strict-preview in text and JSON.
+  3. `062-03-report-strict-migration-delta` - add a migration report that
+     compares current-default results against strict-preview results and
+     lists, per manifest and file, the diagnostics that would newly fail,
+     with stable error codes and locations. JSON output is required so CI can
+     track migration progress over time.
+  4. `062-04-flip-strict-defaults-in-major-release` - the major-version child:
+     make the strict gates the default, add the documented legacy escape
+     hatch, update README, troubleshooting, howto, and init payload guidance,
+     and add upgrade notes that map each newly failing error code to its
+     migration fix. This child must not land until 062-01 through 062-03 are
+     stable in a released minor version.
+
+  Children must land strictly in order. If 062-04 grows beyond one
+  implementation-sized draft, split the default flip from the documentation
+  and init payload refresh before promotion.
+temptations:
+  - risk: "Do not add new static analyzers or speculative gate logic while changing defaults."
+    instead: "Only flip defaults on gates that already exist and are backed by reproduced false-green evidence; route any new bypass ideas to the hardening backlog first."
+  - risk: "Do not flip strict defaults in a minor release or silently change green/red meaning."
+    instead: "Stage opt-in preview and migration reporting in minor releases, then change defaults only in the major version with explicit upgrade notes."
+  - risk: "Do not make the legacy escape hatch invisible or permanent."
+    instead: "Label legacy-gate runs in text and JSON output and document the hatch as a bounded migration aid."
+  - risk: "Do not extend the pytest config guard from documentation alone."
+    instead: "Reproduce each pytest.ini, tox.ini, and setup.cfg bypass in a throwaway project before implementing, and encode each reproduction as an adversarial test."
+  - risk: "Do not let config precedence handling produce false positives that erode trust in the gate."
+    instead: "Implement pytest's documented config discovery precedence so only the effective config file is enforced, with tests for shadowed configs."
+files:
+  create:
+    - path: manifests/drafts/062-00-strict-by-default-validation-gates.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _strict_default_gates_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for strict-by-default validation gates, migration reporting, and pytest config guard coverage."
+  read:
+    - maid_runner/core/_pytest_config_addopts.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/_test_runner_invocation.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/verify.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/062-00-strict-by-default-validation-gates.epic.yaml --mode schema --quiet

@@ -1,0 +1,138 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan artifact execution coverage and knockout gates against trivial tests"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - mutation
+    - coverage
+  priority: high
+description: |
+  Close the trivial-test and stub-implementation gaming vectors with
+  runtime-backed evidence. A less-capable model can satisfy today's AST
+  identity checks by writing tests that import and mention declared artifacts
+  but assert nothing meaningful, and can satisfy structural implementation
+  checks with stub bodies or hardcoded returns. The repository constraint
+  forbids broad custom static analysis for this class of problem, so this
+  epic uses two narrow runtime gates instead: execution coverage (did the
+  behavioral tests actually execute each declared artifact's body) and
+  artifact knockout (does breaking each declared artifact make at least one
+  test fail).
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. Scope is Python-only in this epic. TypeScript and Svelte knockout or
+     coverage are explicitly out of scope and require a future epic with
+     their own evidence; do not partially implement them here.
+  2. Execution coverage gate: opt-in `maid verify --artifact-coverage` (and
+     `maid validate --artifact-coverage`). Implementation runs the
+     manifest's pytest-based `validate:` commands with `coverage.py`
+     (`coverage run` / `--cov` with `--cov-report=json`), loads the JSON
+     report, maps each declared public function/method artifact to its body
+     line range using the Python AST (reuse parsing helpers already used by
+     `maid_runner/validators/_python_implementation.py`), and fails with
+     E710 ARTIFACT_NOT_EXECUTED_BY_TESTS when no body line of a declared
+     artifact was executed. Class artifacts pass if any declared method of
+     the class executed; attribute artifacts are excluded from this gate.
+     `coverage` becomes an optional dependency extra named `quality`; when
+     it is not installed and the flag is passed, fail closed with E307
+     VALIDATOR_NOT_AVAILABLE semantics naming the missing extra.
+  3. Knockout gate: opt-in `maid verify --knockout`. For each declared
+     public function or method artifact in the manifest's Python files, the
+     runner: verifies the target file has no uncommitted modifications via
+     the existing worktree helpers in `maid_runner/core/worktree.py` (refuse
+     with a structured error otherwise, overridable by `--knockout-allow-dirty`);
+     rewrites the artifact body in place to `raise NotImplementedError(
+     "maid-knockout")` using AST line spans for the replacement; runs the
+     manifest's `validate:` commands; restores the original file content from
+     an in-memory copy in a `finally` block and verifies the restored content
+     hash equals the original before reporting. If every validate command
+     still exits 0 with the artifact knocked out, fail with E711
+     ARTIFACT_KNOCKOUT_NOT_DETECTED naming the artifact and file. Harness
+     errors (restore failure, parse failure, command spawn failure) fail
+     closed with E712 KNOCKOUT_HARNESS_FAILURE; a restore failure must also
+     print the recovery instruction (git checkout of the named file).
+  4. Knockout cost control: `--knockout` runs artifacts sequentially and
+     deterministically in manifest declaration order; `--knockout-limit N`
+     bounds the number of artifacts tested (default unlimited); results
+     report per-artifact pass/fail with durations in text and JSON. No
+     parallelism in this epic.
+  5. New error codes reserved in `maid_runner/core/result.py` `ErrorCode`:
+     E710 ARTIFACT_NOT_EXECUTED_BY_TESTS, E711 ARTIFACT_KNOCKOUT_NOT_DETECTED,
+     E712 KNOCKOUT_HARNESS_FAILURE. Verify the codes are still free before
+     implementation; on collision take the next free E71x value and record
+     the change in the child manifest description.
+  6. Full mutation testing (mutmut or similar) is explicitly out of scope.
+     If knockout proves insufficient later, a separate epic must propose a
+     bounded mutation budget with fresh evidence.
+  7. Hardening-lane discipline applies: each child first reproduces its
+     gaming vector in a throwaway project (a test that imports an artifact
+     but asserts nothing; a stub body passing structural checks) and lands
+     the reproduction as an adversarial test.
+
+  Planned child order:
+
+  1. `068-01-add-artifact-execution-coverage-gate` - implement decision 2 in
+     a new `maid_runner/core/artifact_coverage.py` plus CLI flag wiring in
+     `maid_runner/cli/commands/validate.py` and
+     `maid_runner/cli/commands/verify.py`. Behavioral tests cover: a
+     trivial no-assert test triggering E710, a genuine test passing,
+     class-via-method pass rule, attribute exclusion, missing coverage extra
+     failing closed, and JSON output shape. Use a throwaway fixture project
+     under the test tree, mirroring existing validation fixtures.
+  2. `068-02-add-artifact-knockout-harness` - implement the knockout
+     rewrite/run/restore engine of decision 3 in a new
+     `maid_runner/core/knockout.py`, without CLI exposure. Tests cover:
+     body replacement correctness for functions, methods, async functions,
+     and decorated functions; restore-on-exception; restore hash
+     verification; dirty-worktree refusal; deterministic ordering.
+  3. `068-03-wire-knockout-into-verify` - add `--knockout`,
+     `--knockout-limit`, and `--knockout-allow-dirty` to `maid verify`,
+     emitting E711/E712 per decisions 3 and 4 with text and JSON parity.
+     Adversarial tests reproduce: hardcoded-return stub passing tests
+     normally but surviving knockout fails E711; honest implementation
+     passes; harness spawn failure fails E712 and restores the file.
+  4. `068-04-document-constraint-evidence-gates` - documentation child:
+     README, `docs/maid_specs.md`, troubleshooting entries for E710-E712,
+     and packaged skill guidance updates instructing review sessions to run
+     `maid verify --artifact-coverage --knockout` for high-risk changes.
+
+  Children land strictly in order. 068-02 and 068-03 are deliberately split
+  so the in-place file rewriting engine is fully tested before any CLI can
+  invoke it.
+temptations:
+  - risk: "Do not build static heuristics that guess whether a test body is meaningful."
+    instead: "Use only runtime evidence: executed coverage lines and knockout-induced test failures, per the repository's analyzer constraint."
+  - risk: "Do not extend knockout or coverage to TypeScript or Svelte in this epic."
+    instead: "Keep this epic Python-only; other languages need their own epic with their own rewrite-safety evidence."
+  - risk: "Do not mutate source files without a verified restore path."
+    instead: "Refuse dirty target files by default, restore in a finally block, verify restored content hashes, and fail closed with recovery instructions on any restore anomaly."
+  - risk: "Do not let missing optional dependencies silently skip the coverage gate."
+    instead: "When --artifact-coverage is requested without the quality extra installed, fail closed naming the missing dependency."
+  - risk: "Do not make these gates default-on in this epic."
+    instead: "Ship opt-in flags; default enforcement belongs to the 062 strict-by-default major-release decision after usage evidence."
+files:
+  create:
+    - path: manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _behavioral_constraint_evidence_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for artifact execution coverage and knockout gates that prove declared artifacts are behaviorally constrained by tests."
+  read:
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/core/worktree.py
+    - maid_runner/core/result.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/verify.py
+    - docs/plans/maid-validate-hardening-backlog.md
+validate:
+  - uv run maid validate manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml --mode schema --quiet

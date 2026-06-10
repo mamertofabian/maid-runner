@@ -1,0 +1,141 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan daemon-backed validation routing and daemon-resident caching"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - performance
+    - daemon
+    - maid-serve
+    - agent-loops
+    - caching
+  priority: medium
+description: |
+  Make the `maid serve` daemon the fast path for the tool's primary users:
+  AI agents and editor integrations running many validation calls in tight
+  loops. Today every `maid validate` invocation pays Python interpreter
+  startup, manifest chain discovery, and fresh parsing, even though the
+  daemon, in-process validation caches, and a benchmark harness all exist as
+  separate pieces. The performance backlog's standing rules apply: re-benchmark
+  before each optimization slice, keep validation evidence fail-closed, and
+  keep cross-invocation disk caches out until proven necessary. A
+  daemon-resident memory cache sidesteps the disk-cache invalidation policy
+  problem because cache lifetime is bounded by the daemon process and keyed
+  by content hashes.
+
+  Design constraints agreed for this epic:
+
+  1. Every slice is benchmark-gated. Each child must record before/after
+     timings with `maid benchmark` (or documented equivalent) in its outcome
+     evidence, and a slice that does not show a measurable win on a
+     representative project should be dropped, not merged.
+  2. Daemon routing never changes validation results. For identical inputs,
+     daemon-backed and direct execution must produce identical
+     `ValidationResult` content, error codes, and JSON output (duration
+     fields excluded). Divergence is a release-blocking bug.
+  3. Fail open to direct execution: a missing, stale, or version-mismatched
+     daemon must never fail or block a validation call under the default
+     routing mode; the CLI silently falls back and reports the routing
+     decision only in verbose/JSON diagnostics.
+  4. The daemon stays repo-bound with locked-down socket permissions, per the
+     existing `maid serve` security defaults. Routing must verify the daemon's
+     project root and package version match the caller before use.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. Routing flag (064-01): `--daemon auto|off|require` on `maid validate`,
+     default `off` in this epic. Health check before routing: connect to
+     the socket at `.maid/serve.sock`, call `ping`, and require the
+     response to report the same resolved project root and the same
+     `maid_runner` version as the client; any mismatch or connection
+     failure means silent fallback under `auto` and a structured failure
+     under `require`.
+  2. Equivalence contract: daemon-routed runs must produce JSON output
+     identical to direct runs except fields whose names contain
+     `duration`; the equivalence tests serialize both paths on the same
+     inputs and compare after stripping those fields.
+  3. Daemon cache (064-02): cache keys are sha256 content hashes of the
+     source or manifest bytes combined with the maid_runner version
+     string. The cache lives only in daemon process memory. The `ping`
+     response gains a `cache_stats` object (entries, hits, misses) for
+     observability and test assertions.
+  4. Protocol versioning (064-03): requests carry an integer
+     `protocol_version` (absent means 1). The daemon answers an
+     unsupported version with protocol-layer `ok: false` and code
+     `UNSUPPORTED_PROTOCOL_VERSION`, never undefined behavior.
+  5. Windows transport (064-04): localhost TCP bound to 127.0.0.1 with the
+     chosen ephemeral port written to `.maid/serve.port` and a random
+     token written to `.maid/serve.token` with file mode 0600; every TCP
+     request must carry the token; the Unix socket remains the default on
+     POSIX platforms.
+
+  Planned child order:
+
+  1. `064-01-route-cli-validate-through-daemon` - add opt-in daemon routing
+     to `maid validate` (`--daemon auto|off|require`, default `off` in this
+     child): when a healthy repo-bound daemon socket exists and versions
+     match, the CLI sends the request over the existing NDJSON protocol and
+     renders results identically to direct execution; otherwise it falls back
+     per the mode. Includes equivalence tests proving identical output for
+     daemon and direct paths.
+  2. `064-02-add-daemon-resident-validation-cache` - keep validated parse
+     and artifact-collection state alive between daemon requests, keyed by
+     content hash plus schema/package version, with invalidation tests
+     covering source edits, manifest edits, tsconfig changes, and daemon
+     restart. Cache scope mirrors the existing in-process caches; no disk
+     persistence.
+  3. `064-03-extend-daemon-protocol-for-verify` - extend the daemon protocol
+     with the verify-relevant methods agents actually loop on (verify stages
+     minus subprocess test execution, or a documented subset), preserving the
+     protocol's `ok`/`result` error layering and adding protocol version
+     negotiation so old clients fail with a structured error instead of
+     undefined behavior.
+  4. `064-04-add-windows-daemon-transport` - add a Windows-compatible
+     transport (named pipe, or localhost TCP bound to 127.0.0.1 with a
+     filesystem-permission-protected auth token) behind the same protocol,
+     with the Unix socket remaining the default elsewhere. This child may be
+     deferred if no Windows demand is evidenced; it should not block 064-01
+     through 064-03.
+  5. `064-05-benchmark-and-default-daemon-auto` - after 064-01/064-02 are
+     stable, publish benchmark evidence across representative projects and,
+     if wins are demonstrated, flip the routing default to `auto` with
+     documentation updates for agent skills, MCP guidance, and
+     `docs/maid-serve.md`.
+
+  Children 1 and 2 land in order and are the core value. Child 3 follows 1.
+  Child 5 must be last. Each child's draft must restate the benchmark gate in
+  its own validate/outcome expectations.
+temptations:
+  - risk: "Do not introduce cross-invocation disk caches in this epic."
+    instead: "Keep cache state daemon-resident and content-hash keyed so invalidation is bounded by process lifetime, matching the performance backlog's standing constraint."
+  - risk: "Do not let daemon-backed results diverge from direct execution, even in diagnostics."
+    instead: "Ship equivalence tests comparing full JSON output (excluding durations) for daemon and direct paths on the same inputs."
+  - risk: "Do not make the daemon a hard dependency or break single-shot CLI usage."
+    instead: "Default to fail-open fallback with the routing decision visible only in verbose and JSON diagnostics; reserve require-mode for callers that opt in."
+  - risk: "Do not weaken the daemon's repo-bound security posture for convenience."
+    instead: "Keep socket permission defaults, verify project root and version identity before routing, and protect any TCP transport with a local auth token."
+  - risk: "Do not merge optimization slices without fresh measurements."
+    instead: "Gate each child on before/after maid benchmark evidence recorded in its outcome, and drop slices that show no measurable win."
+files:
+  create:
+    - path: manifests/drafts/064-00-daemon-first-agent-validation.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _daemon_first_validation_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for daemon-backed CLI validation routing, daemon-resident caching, protocol extension, Windows transport, and benchmark-gated default flip."
+  read:
+    - maid_runner/daemon/server.py
+    - maid_runner/daemon/protocol.py
+    - maid_runner/daemon/handlers.py
+    - maid_runner/cli/commands/serve.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/core/benchmark.py
+    - docs/maid-serve.md
+    - docs/plans/maid-runner-performance-backlog.md
+validate:
+  - uv run maid validate manifests/drafts/064-00-daemon-first-agent-validation.epic.yaml --mode schema --quiet

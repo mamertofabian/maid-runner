@@ -1,0 +1,141 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan tamper-evident plan locks and red-phase runtime evidence"
+type: feature
+created: "2026-06-10"
+metadata:
+  status: planning
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Close the two most corrosive gaming vectors for less-capable implementer
+  models: weakening approved behavioral tests until broken code passes, and
+  silently renegotiating the manifest contract mid-task. Both are conventions
+  today ("tests are the contract", "manifest immutability") that a weak model
+  can ignore without any machine detecting it. This epic converts them into
+  machine-checked facts using the lock-file pattern already proven by
+  `.maid/legacy-grandfathered.lock` in `maid_runner/core/supersession_audit.py`.
+
+  Decisions already made for the implementer. Do not redesign these:
+
+  1. Lock storage: one JSON lock file per manifest at
+     `.maid/plan-locks/<manifest-slug>.lock.json`. Reuse the sha256 content
+     hash approach of `compute_manifest_hash` in
+     `maid_runner/core/supersession_audit.py`. Each lock records: manifest
+     path, manifest content hash, the manifest's behavioral test file paths
+     (from `files.read` entries that are test files plus declared test files)
+     with per-file content hashes, the lock creation UTC timestamp, a
+     monotonically increasing `revision` integer starting at 1, and a
+     `revisions` history list where each entry holds the prior hashes, the
+     revision timestamp, and a non-empty free-text `reason`.
+  2. CLI surface: a new `maid plan` command group with three subcommands.
+     `maid plan lock <manifest-path>` creates or refuses to overwrite a lock.
+     `maid plan revise <manifest-path> --reason "<text>"` re-locks with the
+     current hashes, appends to `revisions`, and requires a non-empty reason.
+     `maid plan status <manifest-path>` reports lock state, hash matches and
+     mismatches, and red evidence, in text and `--json`.
+  3. Red-phase evidence is captured by `maid plan lock` (and `revise`): it
+     runs the manifest's `validate:` commands and classifies the result by
+     process exit code only. Exit code 1 from pytest means tests ran and
+     failed, which is valid red evidence. Exit codes 2, 3, 4, or 5 mean
+     usage, internal, or collection errors and are NOT valid red evidence.
+     Exit code 0 means tests already pass; record `red: false`. Do not parse
+     pytest text output for classification; exit codes are the deterministic
+     boundary. Record per-command: the command string, exit code, the final
+     20 lines of combined output, and the derived red classification.
+     `maid plan lock --no-run` skips evidence capture and records
+     `red_evidence: null`.
+  4. Enforcement lives in `maid verify` and is opt-in at first
+     (`--require-plan-lock`), with strict-by-default deferred to the 062
+     major-release epic. When enforcement is on, for each active manifest
+     that has a lock: a behavioral test file whose current hash differs from
+     the locked hash without a recorded revision fails with E701; a manifest
+     whose declared artifacts or behavioral test set SHRANK relative to the
+     locked manifest content fails with E702 (additions are legal and do not
+     require revision); a manifest named by `--require-plan-lock` scope with
+     no lock at all fails with E700. A lock whose recorded manifest path no
+     longer exists fails with E703. Missing or invalid red evidence under
+     `--require-red-evidence` fails with E704 when `red_evidence` is null,
+     and E705 when evidence exists but classification is not valid red.
+  5. New error codes are reserved as the E7xx contract-integrity family in
+     `maid_runner/core/result.py` `ErrorCode`: E700 PLAN_LOCK_MISSING,
+     E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,
+     E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE,
+     E704 RED_PHASE_EVIDENCE_MISSING, E705 RED_PHASE_EVIDENCE_INVALID.
+     Verify E7xx is still unused before implementation; if a code collides by
+     then, take the next free E7xx value and record the change in the child
+     manifest description.
+  6. Hardening-lane discipline applies: each child must first reproduce its
+     gaming vector in a throwaway project (weakened test edit, removed
+     artifact, skipped red phase) and encode that reproduction as an
+     adversarial test proving the gate now fails closed.
+
+  Planned child order:
+
+  1. `067-01-add-plan-lock-storage-and-cli` - implement the lock data model
+     (load, save, hash computation, revision append) in a new
+     `maid_runner/core/plan_lock.py`, plus the `maid plan lock|revise|status`
+     CLI in a new `maid_runner/cli/commands/plan.py` registered in
+     `maid_runner/cli/commands/_main.py`. No enforcement yet. Behavioral
+     tests cover: lock creation, refusal to overwrite, revise with and
+     without reason, status JSON shape, corrupt lock file load failure, and
+     hash stability across runs.
+  2. `067-02-capture-red-phase-evidence-on-lock` - add validate-command
+     execution and exit-code classification to lock/revise per decision 3,
+     reusing the command execution helpers in
+     `maid_runner/core/_test_command_execution.py`. Tests cover: exit 1
+     recorded as red, exit 2 recorded as invalid, exit 0 recorded as not-red,
+     `--no-run` recording null evidence, and output-tail truncation.
+  3. `067-03-enforce-plan-lock-in-verify` - add `--require-plan-lock` and
+     `--require-red-evidence` to `maid verify` emitting E700 through E705 per
+     decision 4, with text and JSON output parity. Adversarial tests
+     reproduce: test weakened after lock fails E701; artifact deleted from
+     manifest after lock fails E702; legitimate additive manifest edit
+     passes; `maid plan revise` with reason clears E701.
+  4. `067-04-document-plan-lock-workflow` - documentation child: extend
+     CLAUDE.md workflow phases, `docs/maid_specs.md`, README, and the
+     howto content so the documented planning loop ends with
+     `maid plan lock` and implementation handoff runs
+     `maid verify --require-plan-lock --require-red-evidence`. Update the
+     packaged Claude and Codex skill payload guidance to quote those exact
+     commands.
+
+  Children must land strictly in order. If 067-01 grows past one
+  implementation-sized draft, split the core lock model from the CLI wiring
+  before promotion.
+temptations:
+  - risk: "Do not parse pytest text output to classify red-phase failures."
+    instead: "Classify by process exit code only, as specified in decision 3; record the output tail for humans without machine-interpreting it."
+  - risk: "Do not make plan-lock enforcement the default in this epic."
+    instead: "Ship opt-in flags here; the default flip belongs to the 062 strict-by-default major-release epic."
+  - risk: "Do not allow silent lock overwrites or empty revision reasons."
+    instead: "Refuse re-lock without revise, require a non-empty reason string, and append immutable revision history entries."
+  - risk: "Do not treat manifest additions as contract weakening."
+    instead: "Fail E702 only when declared artifacts or behavioral test entries shrink relative to the locked content."
+  - risk: "Do not implement enforcement before reproducing each gaming vector."
+    instead: "Each child first reproduces its bypass in a throwaway project and lands that reproduction as an adversarial test."
+files:
+  create:
+    - path: manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_red_phase_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for tamper-evident plan locks, red-phase runtime evidence, verify enforcement, and workflow documentation."
+  read:
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/result.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/verify.py
+    - docs/plans/maid-validate-hardening-backlog.md
+    - manifests/drafts/062-00-strict-by-default-validation-gates.epic.yaml
+validate:
+  - uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet
