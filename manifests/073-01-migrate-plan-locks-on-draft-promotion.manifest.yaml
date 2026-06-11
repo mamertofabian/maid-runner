@@ -1,0 +1,326 @@
+schema: "2"
+goal: "Migrate plan locks and self-referencing validate paths when promoting a draft manifest"
+type: feature
+created: "2026-06-12T05:45:00Z"
+metadata:
+  status: active
+  tags:
+    - plan-lock
+    - draft-promotion
+    - tooling-gap
+    - tamper-evidence
+  priority: high
+description: |
+  Close the promotion lock-migration gap recorded in incident
+  20260611-133856-maid-runner-plan-lock-hand-edit and re-confirmed by the
+  066-01 E702 repair during task 072-01: promoting a draft manifest from
+  manifests/drafts/ to manifests/ strands its tamper-evident plan lock.
+  The lock's manifest_path points at the deleted draft (E703), its
+  manifest_hash no longer matches (promote rewrites `created` and clears
+  draft status), and the draft's self-referencing validate commands keep
+  the dead drafts/ path. With no sanctioned migration, agents either
+  hand-edit the lock JSON (the rejected behavior in the incident) or
+  remember a manual `maid plan revise` afterward.
+
+  Contract changes:
+
+  1. `maid manifest promote` rewrites self-referencing validate-command
+     paths: occurrences of the draft's project-root-relative path inside
+     the manifest's `validate` entries are replaced with the promoted
+     path. This happens whether or not a lock exists — a promoted
+     manifest whose validate commands reference a deleted draft path is
+     broken regardless of locking.
+  2. When `.maid/plan-locks/<slug>.lock.json` exists and its recorded
+     manifest_path equals the draft's project-root-relative path, promote
+     migrates the lock through the sanctioned revision path: the existing
+     public `revise_plan_lock` appends a revision entry whose reason
+     records the promotion ("promoted <old> -> <new>"), preserves prior
+     hashes in history, re-hashes the promoted manifest, and keeps
+     created_at. Rationale: revise_plan_lock already implements honest
+     re-locking with immutable history; adding a parallel core migration
+     API would duplicate that contract, so the CLI composes the existing
+     core functions instead.
+  3. Red evidence is recaptured by default by running the promoted
+     manifest's validate commands via the existing public
+     capture_red_phase_evidence, matching `maid plan lock`/`revise`
+     behavior and the incident's chosen behavior (re-lock with fresh
+     genuine red evidence BEFORE implementation, while tests are still
+     red). `--no-run` skips capture and records red_evidence null,
+     mirroring `maid plan lock --no-run`. Evidence capture is lock-gated:
+     promoting an unlocked draft never runs validate commands, with or
+     without `--no-run`. Promote gains `--project-root` (default ".") to
+     resolve the lock directory, mirroring the plan subcommands.
+  4. Fail closed before mutating anything: a lock that exists but is
+     unreadable, or whose manifest_path does not match the draft being
+     promoted, aborts the promotion with exit 2 and leaves both the draft
+     and the lock untouched. Ordering on success: write the promoted
+     file, migrate the lock, then delete the draft; if lock migration
+     fails the promoted file is removed and the draft is kept, so there
+     is no window where the lock references a missing manifest.
+  5. The 066-01 failure mode (OTHER locked manifests referencing the
+     promoted draft path) is disclosed, not auto-fixed: promote scans
+     active manifests in the output directory for the old draft path and
+     prints a warning naming each one, directing the user to update the
+     reference and run `maid plan revise`. Auto-editing other locked
+     manifests would change locked contracts out-of-band — exactly what
+     tamper evidence exists to catch.
+  6. Documentation: docs/draft-manifest-workflow.md gains a "Plan Locks
+     at Promotion" section and CLAUDE.md's plan-lock paragraph states
+     that `maid manifest promote` migrates the promoted manifest's lock.
+     Doc assertions live in the new test file because
+     tests/test_plan_lock_docs.py is hash-locked by 067-05 and editing it
+     would fail E701.
+
+  This manifest is authored directly in manifests/ as the current task
+  contract (the direct-task flow used by 072-01); routing it through
+  manifests/drafts/ would hit the very gap it fixes.
+
+  Out of scope: auto-rewriting draft-path references inside other
+  manifests; changes to enforce_plan_locks semantics or error codes;
+  lock support for `maid manifest from-diff` drafts that were never
+  locked.
+temptations:
+  - risk: "Do not hand-build or hand-edit lock JSON payloads as the migration mechanism in the implementation."
+    instead: "Compose the public plan_lock API: PlanLock.load, revise_plan_lock, capture_red_phase_evidence, and PlanLock.save. Test fixtures may write broken or mismatched lock files only to simulate tampering scenarios."
+  - risk: "Do not migrate a lock whose manifest_path does not match the draft being promoted."
+    instead: "Compare the lock's recorded manifest_path to the draft's project-root-relative path and abort with exit 2 before moving any file."
+  - risk: "Do not auto-edit other manifests that reference the promoted draft path."
+    instead: "Scan active manifests in the output directory for the old path and print a warning naming each match; the user updates references and runs maid plan revise."
+  - risk: "Do not fabricate or copy forward red evidence during migration."
+    instead: "Recapture evidence by running the promoted manifest's validate commands through capture_red_phase_evidence, or record null under --no-run."
+  - risk: "Do not add doc assertions to tests/test_plan_lock_docs.py."
+    instead: "That file is hash-locked by 067-05; put promotion-migration doc assertions in the new test file."
+files:
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "A locked draft manifest is promoted with `maid manifest promote`."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The promoted manifest's validate commands reference the promoted path; the slug's plan lock is revised to the promoted path with prior hashes preserved in history and a promotion reason; red evidence is recaptured by default or null under --no-run; unreadable or mismatched locks abort with exit 2 leaving draft and lock untouched; other active manifests referencing the old draft path are named in a warning."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The manifest promote subparser accepts --no-run and --project-root (default '.') alongside its existing options."
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _promotion_lock_migration_doc_section
+          of: documentation
+          type: markdown section
+          description: "'Plan Locks at Promotion' section stating that promote migrates the promoted manifest's lock via the sanctioned revision path, recaptures red evidence by default, and warns about other manifests referencing the draft path."
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: _promotion_lock_migration_workflow_note
+          of: documentation
+          type: markdown section
+          description: "Plan-lock workflow paragraph states that `maid manifest promote` migrates the promoted manifest's plan lock."
+  create:
+    - path: tests/cli/test_manifest_promote_lock_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_promote_migrates_lock_to_promoted_path
+          source_scenario: "A draft with a revision-1 lock is promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The lock's manifest_path is the promoted project-relative path, manifest_hash matches the promoted file, revision is 2, and the appended revision entry preserves the prior manifest hash and records a promotion reason."
+        - kind: test_function
+          name: test_promote_rewrites_self_referencing_validate_paths
+          source_scenario: "A draft's validate commands reference its own manifests/drafts/ path."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The promoted manifest's validate commands reference the promoted manifests/ path and no drafts/ path remains, with or without a lock."
+        - kind: test_function
+          name: test_promote_recaptures_red_evidence_by_default
+          source_scenario: "A locked draft whose validate command exits 1 is promoted without --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The migrated lock records red_evidence with red true and exit-code-1 command evidence captured against the promoted manifest."
+        - kind: test_function
+          name: test_promote_no_run_records_null_red_evidence
+          source_scenario: "A locked draft is promoted with --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The migrated lock records red_evidence null while path, hash, and revision history are still migrated."
+        - kind: test_function
+          name: test_promote_refuses_mismatched_lock
+          source_scenario: "A lock exists for the slug but records a different manifest_path."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promote exits 2; the draft still exists, no promoted file is created, and the lock is unchanged."
+        - kind: test_function
+          name: test_promote_refuses_unreadable_lock
+          source_scenario: "The slug's lock file exists but contains invalid JSON."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promote exits 2 and neither the draft, the output location, nor the lock file is modified."
+        - kind: test_function
+          name: test_promote_rolls_back_when_lock_migration_fails
+          source_scenario: "Lock migration fails mid-promotion because a locked behavioral test file no longer exists when the lock is re-hashed."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promote exits 2, the promoted file is removed, the draft is kept, and the lock file is byte-for-byte unchanged."
+        - kind: test_function
+          name: test_promote_without_lock_keeps_existing_behavior
+          source_scenario: "An unlocked draft is promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion succeeds with exit 0 and no lock file is created."
+        - kind: test_function
+          name: test_promote_warns_about_other_manifests_referencing_draft_path
+          source_scenario: "Another active manifest in the output directory references the draft path being promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion succeeds and the output names the referencing manifest with guidance to update the reference and run maid plan revise."
+        - kind: test_function
+          name: test_promote_parser_accepts_no_run_and_project_root
+          source_scenario: "The promote subparser is invoked with the new options."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "`manifest promote <path> --no-run --project-root <dir>` parses with no_run True and project_root set; defaults are no_run False and project_root '.'."
+        - kind: test_function
+          name: test_promotion_lock_migration_docs_are_discoverable
+          source_scenario: "A reader checks the draft workflow doc and CLAUDE.md for promotion lock behavior."
+          actions:
+            - type: api_call
+              subject:
+                export: Path
+          expected:
+            behavior: "docs/draft-manifest-workflow.md contains a 'Plan Locks at Promotion' section and CLAUDE.md states that maid manifest promote migrates the promoted manifest's plan lock."
+  read:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_manifest_cmd.py
+    - tests/cli/test_plan_cmd.py
+    - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+    - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py
+  - uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-12T06:30:00Z"
+  summary: "maid manifest promote migrates the promoted manifest's plan lock through the sanctioned revision path, rewrites self-referencing validate-command paths, recaptures red evidence by default with a --no-run opt-out, fails closed on unreadable or mismatched locks with mid-migration rollback, and warns about other manifests still referencing the draft path."
+  rationale: "Closes the promotion lock-migration gap from incident 20260611-133856: promotion previously stranded the lock (stale path, hash mismatch, dead validate paths), leaving agents to choose between hand-editing lock JSON and remembering a manual post-promotion revise. Migration composes the existing public revise_plan_lock and capture_red_phase_evidence instead of adding a parallel core API, and other locked manifests are disclosed rather than auto-edited because silently rewriting locked contracts is what tamper evidence exists to catch."
+  lessons:
+    - lesson_type: design
+      summary: "Lock migration belongs inside the promotion transaction with fail-closed ordering (verify lock, write promoted file, migrate lock, delete draft, roll back on failure) so there is no window where a lock references a missing manifest."
+      tags:
+        - plan-lock
+        - draft-promotion
+        - fail-closed
+      paths:
+        - maid_runner/cli/commands/manifest.py
+    - lesson_type: validation
+      summary: "Listing reference-only test files in files.read makes them part of the manifest's discovered behavioral test set: E230 requires the validate commands to run them, and the plan lock hashes them, so read-context test files must either be run by validate commands or left out of files.read."
+      tags:
+        - files-read
+        - behavioral-tests
+        - plan-lock
+      paths:
+        - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+    - lesson_type: workflow
+      summary: "Post-implementation maid plan revise records not_red evidence and fails E705 for in-scope manifests, so post-lock manifest corrections must stay additive (validate-command additions, outcome capture) rather than re-locking; reviewer judged the additive edit honest because the locked contract snapshot already contained the affected test file."
+      tags:
+        - plan-lock
+        - red-phase
+        - task-window
+      paths:
+        - .maid/plan-locks/073-01-migrate-plan-locks-on-draft-promotion.lock.json
+  review_notes:
+    - source: maid-plan-reviewer
+      severity: warning
+      summary: "Plan review returned needs-revision: the contracted mid-migration rollback had no test (hollow-implementation risk) and a temptation contradicted the adversarial lock fixtures; both were fixed before plan lock."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Ready to merge; should-fix applied immediately (lock save moved inside the migration try so a failed save also rolls back); nits recorded on substring path rewriting, warning scan breadth, and an unannotated helper return type. The additive post-lock validate-command edit was judged honest, not gaming."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_manifest_promote_lock_cmd.py
+        - tests/cli/test_manifest_cmd.py
+        - tests/cli/test_plan_cmd.py
+      status: passed
+      summary: "All 54 focused CLI tests passed, including the 11 promotion lock-migration contract tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "The implementation handoff gate passed all stages with genuine red:true evidence for 073-01."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2518 passed and 5 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed after adding tests/cli/test_plan_cmd.py to the validate commands to clear E230."
+    - command:
+        - make
+        - lint
+      status: passed
+      summary: "Ruff checks and black formatting passed."

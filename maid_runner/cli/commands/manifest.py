@@ -159,11 +159,41 @@ def _cmd_promote(args: argparse.Namespace) -> int:
         print_error(f"Manifest schema validation failed: {schema_errors[0]}")
         return 2
 
+    project_root = Path(getattr(args, "project_root", "."))
+    old_rel = _project_relative(manifest_path, project_root)
+    new_rel = _project_relative(output_path, project_root)
+
+    lock_state = _load_promotion_lock(project_root, manifest_path, old_rel)
+    if isinstance(lock_state, str):
+        print_error(lock_state)
+        return 2
+
+    _rewrite_self_validate_paths(data, old_rel, new_rel)
     data["created"] = _current_utc_timestamp()
     _clear_inactive_metadata_status(data)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+
+    if lock_state is not None:
+        lock, lock_path = lock_state
+        migration_error = _migrate_promotion_lock(
+            lock,
+            lock_path,
+            output_path,
+            project_root,
+            old_rel,
+            new_rel,
+            no_run=bool(getattr(args, "no_run", False)),
+        )
+        if migration_error is not None:
+            output_path.unlink(missing_ok=True)
+            print_error(
+                f"Plan lock migration failed; promotion rolled back: {migration_error}"
+            )
+            return 2
+
     manifest_path.unlink()
+    _warn_about_draft_references(output_dir, output_path, old_rel)
 
     if args.json:
         print(
@@ -175,6 +205,107 @@ def _cmd_promote(args: argparse.Namespace) -> int:
     else:
         print(f"Promoted {manifest_path} -> {output_path}")
     return 0
+
+
+def _project_relative(path: Path, project_root: Path) -> str:
+    try:
+        return path.resolve().relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def _load_promotion_lock(project_root: Path, draft_path: Path, old_rel: str):
+    """Load the draft's plan lock; a string return is a fail-closed error."""
+    from maid_runner.core.manifest import slug_from_path
+    from maid_runner.core.plan_lock import (
+        PlanLock,
+        default_plan_lock_path,
+        _PlanLockLoadError,
+    )
+
+    lock_path = default_plan_lock_path(project_root, slug_from_path(draft_path))
+    if not lock_path.exists():
+        return None
+    try:
+        lock = PlanLock.load(lock_path)
+    except _PlanLockLoadError as exc:
+        return (
+            f"Plan lock at {lock_path} cannot be loaded ({exc.detail}); "
+            "refusing to promote a draft with a broken lock."
+        )
+    if lock.manifest_path != old_rel:
+        return (
+            f"Plan lock at {lock_path} records manifest_path "
+            f"'{lock.manifest_path}', not the draft being promoted "
+            f"('{old_rel}'); refusing to promote."
+        )
+    return lock, lock_path
+
+
+def _migrate_promotion_lock(
+    lock,
+    lock_path: Path,
+    output_path: Path,
+    project_root: Path,
+    old_rel: str,
+    new_rel: str,
+    *,
+    no_run: bool,
+) -> str | None:
+    """Re-lock the promoted manifest; a string return is the failure detail."""
+    from dataclasses import replace
+
+    from maid_runner.core.manifest import ManifestLoadError, ManifestSchemaError
+    from maid_runner.core.plan_lock import (
+        capture_red_phase_evidence,
+        revise_plan_lock,
+    )
+
+    reason = f"Migrated by maid manifest promote: {old_rel} -> {new_rel}"
+    try:
+        migrated = revise_plan_lock(lock, output_path, project_root, reason)
+        if not no_run:
+            migrated = replace(
+                migrated,
+                red_evidence=capture_red_phase_evidence(
+                    output_path, project_root
+                ).to_payload(),
+            )
+        migrated.save(lock_path)
+    except (ManifestLoadError, ManifestSchemaError, OSError, ValueError) as exc:
+        return str(exc)
+    return None
+
+
+def _rewrite_self_validate_paths(data: dict, old_rel: str, new_rel: str) -> None:
+    commands = data.get("validate")
+    if not isinstance(commands, list):
+        return
+    data["validate"] = [
+        command.replace(old_rel, new_rel) if isinstance(command, str) else command
+        for command in commands
+    ]
+
+
+def _warn_about_draft_references(
+    output_dir: Path, output_path: Path, old_rel: str
+) -> None:
+    import sys
+
+    for candidate in sorted(output_dir.glob("*.manifest.yaml")):
+        if candidate == output_path:
+            continue
+        try:
+            text = candidate.read_text()
+        except OSError:
+            continue
+        if old_rel in text:
+            print(
+                f"Warning: {candidate.name} references the promoted draft path "
+                f"{old_rel}; update the reference and run `maid plan revise` "
+                "for its lock.",
+                file=sys.stderr,
+            )
 
 
 def _cmd_from_diff(args: argparse.Namespace) -> int:

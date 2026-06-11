@@ -1,0 +1,82 @@
+{
+  "manifest_path": "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+  "manifest_hash": "sha256:22be0c84f81c65f5419339f4e7d74383ad7492ffe1b290fc885b23696da01b42",
+  "test_hashes": {
+    "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
+    "tests/cli/test_plan_cmd.py": "sha256:8cf4d791ed37ec3a7a01f21211c8d8881ade7a9fbaf4da8076de5c1a07822d3a",
+    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:c3ed96de91f46d1c70434960775b489f28b2808db6ce8d10ac9a953e3e0be966"
+  },
+  "created_at": "2026-06-11T21:47:18.911730+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-11T21:47:21.297620+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            encoding=\"utf-8\"\n        )\n        claude_md = (root / \"CLAUDE.md\").read_text(encoding=\"utf-8\")\n    \n>       assert \"Plan Locks at Promotion\" in workflow_doc\nE       AssertionError: assert 'Plan Locks at Promotion' in '# Draft Manifest Workflow\\n\\nDraft manifests are MAID planning inventory. Promoted manifests are active\\ncontracts.\\n...ake the known plan enumerable, reviewable, and machine-checkable before each\\npiece becomes an active MAID contract.\\n'\n\ntests/cli/test_manifest_promote_lock_cmd.py:257: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_migrates_lock_to_promoted_path\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_rewrites_self_referencing_validate_paths\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_recaptures_red_evidence_by_default\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_no_run_records_null_red_evidence\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_refuses_mismatched_lock\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_refuses_unreadable_lock\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_rolls_back_when_lock_migration_fails\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_warns_about_other_manifests_referencing_draft_path\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteParserOptions::test_promote_parser_accepts_no_run_and_project_root\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromotionLockMigrationDocs::test_promotion_lock_migration_docs_are_discoverable\n10 failed, 25 passed in 0.24s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:kind=attribute",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:of=documentation",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:type=markdown section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_migrates_lock_to_promoted_path",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_migrates_lock_to_promoted_path:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_no_run_records_null_red_evidence",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_no_run_records_null_red_evidence:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_parser_accepts_no_run_and_project_root",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_parser_accepts_no_run_and_project_root:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_recaptures_red_evidence_by_default",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_recaptures_red_evidence_by_default:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_mismatched_lock",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_mismatched_lock:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_unreadable_lock",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_unreadable_lock:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rewrites_self_referencing_validate_paths",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rewrites_self_referencing_validate_paths:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rolls_back_when_lock_migration_fails",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rolls_back_when_lock_migration_fails:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_warns_about_other_manifests_referencing_draft_path",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_warns_about_other_manifests_referencing_draft_path:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_without_lock_keeps_existing_behavior",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_without_lock_keeps_existing_behavior:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_manifest_cmd.py",
+      "tests/cli/test_manifest_promote_lock_cmd.py",
+      "tests/cli/test_plan_cmd.py"
+    ]
+  }
+}

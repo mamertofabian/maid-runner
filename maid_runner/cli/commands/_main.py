@@ -413,6 +413,8 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     pp = msub.add_parser("promote", help="Promote a draft manifest")
     pp.add_argument("manifest_path")
     pp.add_argument("--output-dir", default="manifests/")
+    pp.add_argument("--no-run", action="store_true", dest="no_run")
+    pp.add_argument("--project-root", default=".", dest="project_root")
     pp.add_argument("--json", action="store_true")
     fdp = msub.add_parser(
         "from-diff", help="Generate a draft manifest from git diff scope"

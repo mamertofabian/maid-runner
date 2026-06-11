@@ -26,7 +26,11 @@ semantics: pytest exit 1 is valid red, exits 2/3/4/5 are invalid, and exit 0
 means the tests already pass and are not red. `maid plan lock --no-run` records
 `red_evidence: null`. For intentional plan changes, use
 `maid plan revise manifests/<slug>.manifest.yaml --reason "<text>"` with a
-non-empty reason.
+non-empty reason. `maid manifest promote`
+migrates the promoted manifest's plan lock through the same revision path,
+rewrites self-referencing validate-command paths, recaptures red evidence
+unless `--no-run` is passed, and warns about other manifests that still
+reference the draft path.
 
 ### Phase 3: Implementation
 1. Load ONLY files from manifest (`files.edit` + `files.read`)

@@ -83,6 +83,35 @@ as a future work item. For the draft selected for implementation, the first
 work is to create or refine the behavioral tests, confirm the red phase, pass
 behavioral validation against the draft path, then promote it to `manifests/`.
 
+## Plan Locks at Promotion
+
+`maid manifest promote` migrates the promoted manifest's plan lock so
+promotion never strands tamper evidence. When `.maid/plan-locks/<slug>.lock.json`
+exists and records the draft being promoted, promote:
+
+- rewrites self-referencing validate-command paths in the manifest from the
+  drafts/ path to the promoted path (this happens for unlocked drafts too);
+- re-locks the promoted manifest through the sanctioned revision path: the
+  prior hashes are preserved in the lock's revision history and the revision
+  reason records the promotion;
+- recaptures red-phase evidence by running the promoted manifest's validate
+  commands, matching `maid plan lock`; pass `--no-run` to skip capture and
+  record null evidence. Evidence capture is lock-gated: promoting an unlocked
+  draft never runs validate commands;
+- resolves the lock directory from `--project-root` (default `.`), mirroring
+  the `maid plan` subcommands.
+
+Promotion fails closed: a lock that exists but is unreadable, or that records
+a different manifest path, aborts the promotion with exit code 2 and leaves
+the draft and the lock untouched. If lock migration fails mid-promotion, the
+promoted file is removed and the draft is kept.
+
+Promote does not edit other manifests. When another active manifest still
+references the promoted draft path (for example in `files.read`), promote
+prints a warning naming it; update that reference and run `maid plan revise`
+for its lock, since silently rewriting a locked manifest would defeat tamper
+evidence.
+
 ## From-Diff Authoring Loop
 
 `maid manifest from-diff` creates a draft manifest from an implemented change so
