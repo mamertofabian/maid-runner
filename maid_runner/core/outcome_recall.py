@@ -56,6 +56,19 @@ class ManifestRecallDerivation:
     query: OutcomeRecallQuery
 
 
+@dataclass(frozen=True)
+class PlanPacketSection:
+    title: str
+    entries: tuple[str, ...]
+    omitted_count: int
+
+
+@dataclass(frozen=True)
+class PlanPacket:
+    manifest_path: str
+    sections: tuple[PlanPacketSection, ...]
+
+
 def derive_recall_query(
     manifest_path: Union[str, Path],
     project_root: Union[str, Path] = ".",
@@ -189,6 +202,92 @@ def derive_recall_query(
         signals=tuple(signals),
         query=query,
     )
+
+
+def build_plan_packet(
+    index: OutcomeIndex,
+    derivation: ManifestRecallDerivation,
+    limit_per_section: int = 5,
+) -> PlanPacket:
+    matches = recall_outcomes(index, derivation.query, limit=len(index.records))
+    query_paths = {
+        _normalize_path(path, derivation.query.project_root)
+        for path in derivation.query.paths
+    }
+
+    related_entries = [
+        f"{match.record.manifest_slug} ({match.record.manifest_path})"
+        for match in matches
+    ]
+    status_entries = [
+        f"{match.record.manifest_slug}: {match.record.status}" for match in matches
+    ]
+    lesson_entries: list[str] = []
+    for match in matches:
+        for lesson in match.record.lessons:
+            lesson_paths = tuple(
+                _normalize_path(path, derivation.query.project_root)
+                for path in lesson.paths
+            )
+            overlapping_paths = tuple(
+                path for path in lesson_paths if path in query_paths
+            )
+            if overlapping_paths:
+                lesson_entries.append(
+                    f"{match.record.manifest_slug}: {lesson.summary} "
+                    f"(paths: {', '.join(overlapping_paths)})"
+                )
+
+    failed_validation_entries: list[str] = []
+    for match in matches:
+        for evidence in match.record.validation_evidence:
+            if evidence.status.lower() == "passed":
+                continue
+            failed_validation_entries.append(
+                f"{match.record.manifest_slug}: {evidence.status}: "
+                f"{' '.join(evidence.command)} - {evidence.summary}"
+            )
+
+    return PlanPacket(
+        manifest_path=derivation.manifest_path,
+        sections=(
+            _plan_packet_section(
+                "Related manifests",
+                related_entries,
+                limit_per_section,
+            ),
+            _plan_packet_section(
+                "Outcome statuses",
+                status_entries,
+                limit_per_section,
+            ),
+            _plan_packet_section(
+                "Recurring lessons touching the same paths",
+                lesson_entries,
+                limit_per_section,
+            ),
+            _plan_packet_section(
+                "Prior validation-command failures",
+                failed_validation_entries,
+                limit_per_section,
+            ),
+        ),
+    )
+
+
+def render_plan_packet(packet: PlanPacket) -> str:
+    lines = [f"Planning recall packet for {packet.manifest_path}", ""]
+    for section_index, section in enumerate(packet.sections):
+        if section_index:
+            lines.append("")
+        lines.append(f"{section.title}:")
+        if section.entries:
+            lines.extend(f"- {entry}" for entry in section.entries)
+        else:
+            lines.append("- none")
+        if section.omitted_count:
+            lines.append(f"... {section.omitted_count} more omitted")
+    return "\n".join(lines)
 
 
 def recall_outcomes(
@@ -423,6 +522,19 @@ def _values_for_dimension(
     dimension: str,
 ) -> tuple[str, ...]:
     return _unique(signal.value for signal in signals if signal.dimension == dimension)
+
+
+def _plan_packet_section(
+    title: str,
+    entries: list[str],
+    limit_per_section: int,
+) -> PlanPacketSection:
+    limit = max(0, limit_per_section)
+    return PlanPacketSection(
+        title=title,
+        entries=tuple(entries[:limit]),
+        omitted_count=max(0, len(entries) - limit),
+    )
 
 
 def _validate_command_tokens(command) -> tuple[str, ...]:

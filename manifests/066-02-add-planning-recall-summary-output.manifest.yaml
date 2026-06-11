@@ -4,7 +4,6 @@ goal: "Add the `--plan-packet` planning report mode to `maid recall --for-manife
 type: feature
 created: "2026-06-10T06:02:00Z"
 metadata:
-  status: draft
   epic: 066-00-outcome-recall-planning-integration.epic
   tags:
     - outcome-records
@@ -82,6 +81,50 @@ temptations:
   - risk: "Do not silently answer planning queries from a stale Outcome index."
     instead: "Reuse the existing stale-index failure and require the explicit --allow-stale-index opt-in."
 files:
+  create:
+    - path: tests/core/test_plan_packet.py
+      artifacts:
+        - kind: test_function
+          name: test_build_plan_packet_uses_fixed_sections_caps_and_stable_order
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage for deterministic plan-packet section construction, fixed order, truncation counts, and byte-stable rendering."
+        - kind: test_function
+          name: test_build_plan_packet_renders_empty_sections_explicitly
+          args: []
+          returns: None
+          description: "Behavioral coverage that empty packet sections remain visible and explicit."
+    - path: tests/cli/test_recall_plan_packet_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_recall_parser_accepts_plan_packet_and_dispatches
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Behavioral coverage for parser registration and dispatch of --plan-packet."
+        - kind: test_function
+          name: test_cmd_recall_plan_packet_outputs_text_and_json_sections
+          args:
+            - name: tmp_path
+              type: Path
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "Behavioral coverage for text and JSON plan-packet output carrying the same deterministic sections."
+        - kind: test_function
+          name: test_cmd_recall_plan_packet_requires_for_manifest_and_preserves_stale_index_failure
+          args:
+            - name: tmp_path
+              type: Path
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "Behavioral coverage for --plan-packet usage validation and stale-index semantics."
   edit:
     - path: maid_runner/core/outcome_recall.py
       artifacts:
@@ -184,12 +227,124 @@ files:
                 function: main
           expected:
             behavior: "The CLI dispatches to `maid_runner.cli.commands.recall.cmd_recall`."
+    - path: manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _references_active_066_02_manifest
+          of: manifest
+          type: yaml path reference
+          description: "Promotion maintenance updates 066-01's declared downstream 066-02 path from the deleted draft path to the active manifest path."
+    - path: manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _reads_active_066_02_manifest
+          of: manifest
+          type: yaml read reference
+          description: "The downstream 066-03 draft reads the promoted active 066-02 manifest path instead of the deleted 066-02 draft path."
   read:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
-    - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
     - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
     - maid_runner/core/outcomes.py
-    - tests/core/test_plan_packet.py
-    - tests/cli/test_recall_plan_packet_cmd.py
 validate:
   - uv run python -m pytest -q tests/core/test_plan_packet.py tests/cli/test_recall_plan_packet_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-06-10T23:20:26Z"
+  summary: "Added deterministic planning recall packets through `maid recall --for-manifest <path> --plan-packet`, including text and JSON output."
+  rationale: "Promoted the 066-02 draft and kept the packet advisory and traceable: sections are built from ranked Outcome index records, capped deterministically, and rendered without generated prose or new gating semantics."
+  lessons:
+    - lesson_type: implementation
+      summary: "Planning packet sections should be represented as structured data first, then rendered, so text and JSON output share ordering, truncation, and omitted-count behavior."
+      tags:
+        - recall
+        - planning-packet
+        - deterministic-output
+      paths:
+        - maid_runner/core/outcome_recall.py
+        - maid_runner/cli/commands/recall.py
+        - tests/core/test_plan_packet.py
+        - tests/cli/test_recall_plan_packet_cmd.py
+    - lesson_type: workflow
+      summary: "Promoting a child draft can require same-change maintenance of downstream draft references and prior active manifest references so repository-wide MAID validation does not retain deleted draft paths."
+      tags:
+        - draft-promotion
+        - manifest-maintenance
+        - maid-workflow
+      paths:
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+        - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+        - manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Independent read-only review reported no findings and gave a ready verdict."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Repository-wide `uv run maid test` remains blocked by an unrelated TypeScript module path resolver test outside this manifest's scope."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_packet.py
+        - tests/cli/test_recall_plan_packet_cmd.py
+      status: passed
+      summary: "Focused plan packet core and CLI tests passed: 5 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+        - --mode
+        - behavioral
+      status: passed
+      summary: "Behavioral validation passed for the promoted 066-02 manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for the promoted 066-02 manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+      status: passed
+      summary: "The manifest-declared test command passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/outcome_recall.py
+        - maid_runner/cli/commands/recall.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_plan_packet.py
+        - tests/cli/test_recall_plan_packet_cmd.py
+      status: passed
+      summary: "Ruff passed for the touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: failed
+      summary: "Repository-wide MAID test reached 72 passed commands and failed in an unrelated full pytest batch; first reproduced failure was tests/core/test_ts_module_paths.py::TestResolveTsImport::test_workspace_package_exports_resolve_to_workspace_source."

@@ -9,14 +9,20 @@ import sys
 
 from maid_runner.core.outcome_recall import (
     ManifestQuerySignal,
+    PlanPacket,
     OutcomeRecallQuery,
+    build_plan_packet,
     derive_recall_query,
     recall_outcomes,
+    render_plan_packet,
 )
 from maid_runner.core.outcomes import outcome_index_is_stale, read_outcome_index
 
 
 def cmd_recall(args: argparse.Namespace) -> int:
+    if getattr(args, "plan_packet", False) and not getattr(args, "for_manifest", None):
+        return _error("--plan-packet requires --for-manifest", args)
+
     index_path = Path(args.index)
     if not index_path.exists():
         return _error(f"Outcome index not found: {index_path}", args)
@@ -69,6 +75,14 @@ def cmd_recall(args: argparse.Namespace) -> int:
                 manifest_slugs=tuple(getattr(args, "manifest_slug", ()) or ()),
                 project_root=project_root,
             )
+        if getattr(args, "plan_packet", False):
+            assert derivation is not None
+            packet = build_plan_packet(index, derivation)
+            if getattr(args, "json", False):
+                print(json.dumps({"plan_packet": _plan_packet_to_dict(packet)}))
+            else:
+                print(render_plan_packet(packet))
+            return 0
         matches = recall_outcomes(
             index,
             query,
@@ -107,6 +121,20 @@ def cmd_recall(args: argparse.Namespace) -> int:
         for note in match.record.review_notes:
             print(f"  review: {note.source}/{note.severity}: {note.summary}")
     return 0
+
+
+def _plan_packet_to_dict(packet: PlanPacket) -> dict:
+    return {
+        "manifest_path": packet.manifest_path,
+        "sections": [
+            {
+                "entries": list(section.entries),
+                "omitted_count": section.omitted_count,
+                "title": section.title,
+            }
+            for section in packet.sections
+        ],
+    }
 
 
 def _match_to_dict(match) -> dict:
