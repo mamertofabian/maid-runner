@@ -60,6 +60,39 @@ def test_plan_lock_docs_describe_exit_code_classification_and_revise() -> None:
         assert required in combined_docs
 
 
+def test_plan_lock_docs_describe_task_window_scope_and_unreadable_locks() -> None:
+    combined_docs = "\n".join(
+        [
+            _read(CLAUDE_DOC),
+            _read(MAID_SPECS_DOC),
+            _read(README_DOC),
+        ]
+    )
+
+    for required in (
+        "task window",
+        "E706 PLAN_LOCK_UNREADABLE",
+    ):
+        assert required in combined_docs
+
+    specs = _read(MAID_SPECS_DOC)
+    assert "E700" in specs and "task window" in specs
+    assert "E704" in specs and "no plan lock" in specs
+    assert "E701" in specs and "regardless of" in specs
+
+
+def test_howto_commands_mention_task_window_scope(capsys) -> None:
+    assert cmd_howto(Namespace(topic="commands")) == 0
+    commands = capsys.readouterr().out
+    assert "task window" in commands
+
+
+def test_review_skill_payloads_treat_e700_to_e706_as_blockers() -> None:
+    for content in (_read(CLAUDE_REVIEW_SKILL), _read(CODEX_REVIEW_SKILL)):
+        assert "E700-E706" in content
+        assert "task window" in content
+
+
 def test_plan_lock_skill_payloads_quote_exact_commands() -> None:
     planner_payloads = [
         _read(CLAUDE_PLANNER_SKILL),

@@ -62,11 +62,17 @@ non-empty reason.
 4. Fix valid findings, rerun focused validation, and re-review until the final verdict is `Ready to merge`.
 5. Do not report ready, merge-ready, or commit-ready while the latest review verdict is `Needs changes`, `Needs discussion`, blocked, or missing.
 
-Plan-lock enforcement is opt-in. The implementation handoff gate reports E700 PLAN_LOCK_MISSING, E701
-BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK,
-E703 PLAN_LOCK_STALE, E704 RED_PHASE_EVIDENCE_MISSING, and E705
-RED_PHASE_EVIDENCE_INVALID when `--require-plan-lock` and
-`--require-red-evidence` are supplied.
+Plan-lock enforcement is opt-in. The implementation handoff gate scopes
+requirement errors to the task window: E700 PLAN_LOCK_MISSING, E704
+RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID apply to
+active manifests whose manifest file changed in the verify run. E704 also
+applies when an in-scope manifest has no plan lock under
+`--require-red-evidence`. Integrity errors are not scoped away: E701
+BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702
+MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK apply to every locked active manifest,
+E703 PLAN_LOCK_STALE applies to lock files that reference missing manifests,
+and E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
+unreadable, or malformed.
 
 ## MAID Skills Workflow
 

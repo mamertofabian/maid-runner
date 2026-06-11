@@ -1,0 +1,89 @@
+{
+  "manifest_path": "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
+  "manifest_hash": "sha256:09a489e6f2373dfb9a6c8ec6097f70c1b809e24fda6678be21e9c4bb68f5b71d",
+  "test_hashes": {
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:32c5e2551f171810cac52be57aeb4dc31b7d6272f1909bda05893a800dc77a89",
+    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+    "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:50ce56fca5b6d51ef788302470a530e7503d109e2bc467dc59051f46b2884adf",
+    "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
+  },
+  "created_at": "2026-06-10T23:05:23.305360+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-10T23:05:27.380965+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/test_plan_lock_docs.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_plan_lock_scope_enforcement.py::test_none_changed_paths_preserves_full_scope_enforcement\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_require_red_evidence_reports_e704_for_in_scope_manifest_without_lock\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_both_flags_report_e700_and_e704_for_in_scope_manifest_without_lock\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_out_of_scope_locked_manifest_with_tampered_test_still_fails_e701\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_out_of_scope_locked_manifest_with_null_evidence_passes_e704\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_out_of_scope_locked_manifest_with_invalid_evidence_passes_e705\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_in_scope_locked_manifest_with_invalid_evidence_fails_e705\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_corrupt_lock_reports_e706_regardless_of_scope\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_corrupt_lock_message_names_unreadable_lock\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_verify_since_baseline_scopes_e700_to_task_window_manifest\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_verify_since_baseline_scopes_committed_task_window_manifest\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_verify_without_baseline_scopes_to_worktree_changes\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_verify_clean_tree_passes_handoff_gate_despite_unlocked_history\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_cmd_verify_scopes_requirement_errors_with_since_baseline\nFAILED tests/cli/test_verify_plan_lock_scope_cmd.py::test_verify_json_reports_e706_for_corrupt_lock\nFAILED tests/core/test_plan_lock_enforcement.py::test_require_red_evidence_reports_missing_lock_as_missing_evidence\nFAILED tests/test_plan_lock_docs.py::test_plan_lock_docs_describe_task_window_scope_and_unreadable_locks\nFAILED tests/test_plan_lock_docs.py::test_howto_commands_mention_task_window_scope\nFAILED tests/test_plan_lock_docs.py::test_review_skill_payloads_treat_e700_to_e706_as_blockers\n21 failed, 24 passed in 1.95s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_plan_lock_scope_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_plan_lock_scope_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_plan_lock_scope_guidance:of=documentation",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_plan_lock_scope_guidance:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_plan_lock_scope_guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_plan_lock_scope_guidance:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_plan_lock_scope_guidance:of=documentation",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_plan_lock_scope_guidance:type=markdown section",
+      "CLAUDE.md:attribute:documentation._plan_lock_scope_workflow_note",
+      "CLAUDE.md:attribute:documentation._plan_lock_scope_workflow_note:kind=attribute",
+      "CLAUDE.md:attribute:documentation._plan_lock_scope_workflow_note:of=documentation",
+      "CLAUDE.md:attribute:documentation._plan_lock_scope_workflow_note:type=markdown section",
+      "README.md:attribute:documentation._plan_lock_scope_readme_note",
+      "README.md:attribute:documentation._plan_lock_scope_readme_note:kind=attribute",
+      "README.md:attribute:documentation._plan_lock_scope_readme_note:of=documentation",
+      "README.md:attribute:documentation._plan_lock_scope_readme_note:type=markdown section",
+      "docs/maid_specs.md:attribute:documentation._plan_lock_scope_spec_section",
+      "docs/maid_specs.md:attribute:documentation._plan_lock_scope_spec_section:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._plan_lock_scope_spec_section:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._plan_lock_scope_spec_section:type=markdown section",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE:type=str"
+    ],
+    "test_files": [
+      "tests/cli/test_verify_plan_lock_cmd.py",
+      "tests/cli/test_verify_plan_lock_scope_cmd.py",
+      "tests/core/test_plan_lock_enforcement.py",
+      "tests/core/test_plan_lock_scope_enforcement.py",
+      "tests/test_plan_lock_docs.py"
+    ]
+  }
+}

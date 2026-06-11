@@ -1,0 +1,371 @@
+schema: "2"
+goal: "Scope plan-lock requirement errors to task-window manifests and add E706 for unreadable locks"
+type: fix
+created: "2026-06-11T07:05:00Z"
+metadata:
+  status: active
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+    - validation-trust
+    - hardening
+    - anti-gaming
+    - plan-lock
+    - tdd-evidence
+  priority: high
+description: |
+  Close the three implementation-review findings recorded against epic 067:
+
+  1. Blocker — unsatisfiable handoff gate: `enforce_plan_locks` evaluates
+     every active manifest, so `maid verify --require-plan-lock
+     --require-red-evidence` fails with E700 for each pre-067 manifest
+     (229 in this repository), and lock backfill cannot help because
+     already-green manifests can only produce not-red evidence (E705) or
+     null evidence (E704). The documented Phase 5 handoff gate can never
+     pass.
+  2. Should-fix — E704 evasion asymmetry: under `--require-red-evidence`
+     alone, a manifest with no lock passes silently, so deleting a lock
+     file evades E704.
+  3. Should-fix — E703 semantics stretched: a present-but-corrupt lock is
+     reported as E703 PLAN_LOCK_STALE, whose documented meaning is "the
+     lock's recorded manifest path no longer exists".
+
+  Contract changes (rationale recorded per the review decision):
+
+  1. Requirement errors are scoped to the task window. E700, E704, and
+     E705 apply only to IN-SCOPE manifests. An active manifest is in scope
+     exactly when its own manifest file path is among the changed paths of
+     the verify run. Scope is the manifest file only — not declared
+     files.create/edit paths and not behavioral test paths — because
+     shared production files (for example
+     maid_runner/cli/commands/_main.py) and chained test files appear in
+     many historical manifests, and matching on them would re-create the
+     E700 storm this fix removes. MAID is manifest-first: work being
+     handed off always creates or edits its own manifest, so the manifest
+     file is the precise task-window marker.
+  2. Integrity errors are NEVER scoped away. E701
+     BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702
+     MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK are still checked for every
+     active manifest that has a lock, and E703 PLAN_LOCK_STALE is still
+     checked for every lock file, regardless of scope. Tamper evidence on
+     an existing lock stays machine-detectable even when the locked
+     manifest is not part of the current task.
+  3. `enforce_plan_locks` gains a keyword-only parameter
+     `changed_paths: Collection[str] | None = None`. `None` means "no
+     scope information" and preserves the previous behavior: every active
+     manifest is in scope (fail closed). Passing a collection of
+     project-relative paths narrows requirement errors to manifests whose
+     project-relative source path is in that collection. The parameter is
+     data, not I/O: the caller computes the changed set so the enforcement
+     function stays pure and testable (no git calls inside core logic).
+  4. The verify plan-lock stage computes `changed_paths` from existing
+     public worktree helpers: `resolve_changed_scope_baseline` plus
+     `changed_files_since` when a baseline (--since, --base-ref, or
+     metadata.maid_task_base) resolves, falling back to worktree
+     `changed_files` when no baseline resolves. If git metadata is
+     unavailable or scope computation fails for any reason, the stage
+     passes `changed_paths=None` and enforcement falls back to full scope.
+     Failure to compute scope can only make enforcement stricter, never
+     looser.
+  5. E704 covers the missing-lock case: an in-scope manifest with no lock
+     under `--require-red-evidence` fails E704 RED_PHASE_EVIDENCE_MISSING
+     (there is no red evidence), with a detail naming the missing lock.
+     When both flags are supplied and an in-scope manifest has no lock,
+     BOTH E700 and E704 are reported — each flag's requirement is
+     independently unmet, and reporting both keeps text and JSON output
+     honest about which opt-in failed.
+  6. A present-but-unreadable or corrupt lock file fails with the new code
+     E706 PLAN_LOCK_UNREADABLE (next free E7xx value, verified free in
+     maid_runner/core/result.py at planning time). The fail-closed
+     behavior is unchanged; only the code and message stop overloading
+     E703. E706 is an integrity error and is never scoped away.
+  7. Enforcement stays opt-in. No defaults flip; that belongs to the 062
+     strict-by-default epic.
+  8. Requirement-error locations reference the manifest path relative to
+     the project root rather than the process working directory, so scope
+     assertions and CI output are stable wherever maid runs from. This
+     also closes the cosmetic review note about `_manifest_location`
+     relativizing against `Path.cwd()`.
+
+  Documentation: CLAUDE.md, docs/maid_specs.md, README.md, the `maid
+  howto` topics, and the Claude/Codex maid-implementation-review skill
+  payload sources currently describe E700-E705 and repo-wide enforcement.
+  They are updated to state the task-window scope rule, the E704
+  missing-lock behavior, and E706, keeping present-tense current-state
+  style. Skill payload edits touch only the `.claude/skills` and
+  `.codex/skills` sources; `make sync-agent-payloads` regenerates the
+  packaged copies.
+
+  Behavioral test plan:
+
+  - tests/core/test_plan_lock_scope_enforcement.py (new): changed_paths
+    excluding an unlocked manifest suppresses E700/E704/E705;
+    changed_paths including the manifest path reports them;
+    changed_paths=None preserves full-scope enforcement; an out-of-scope
+    locked manifest with a tampered behavioral test still fails E701; an
+    out-of-scope locked manifest with null red evidence does not fail
+    E704; a corrupt lock fails E706 regardless of scope; both flags with
+    an in-scope unlocked manifest report both E700 and E704.
+  - tests/cli/test_verify_plan_lock_scope_cmd.py (new): in a real git
+    fixture, `maid verify --require-plan-lock --since <baseline>` fails
+    E700 only for the manifest added after the baseline, not for the
+    committed historical manifest without a lock — both while the new
+    task is uncommitted and after it is committed on a clean tree, so the
+    baseline-derived scope cannot be replaced by a worktree-only diff;
+    without any baseline the stage scopes to worktree changed files; on a
+    clean tree with `--since HEAD` the gate passes despite unlocked
+    historical manifests; in a non-git project the stage falls back to
+    full-scope enforcement and still fails E700; a corrupt lock reports
+    E706 in JSON output.
+  - tests/core/test_plan_lock_enforcement.py (edited): the prior
+    expectation that `--require-red-evidence` alone ignores a missing lock
+    flips to expect E704. This is the intentional contract change from
+    finding 2; the remaining cases in that file pin behavior that must
+    not change.
+  - tests/test_plan_lock_docs.py (edited): docs assertions extend to the
+    task-window scope rule, the E704 missing-lock meaning, and
+    E706 PLAN_LOCK_UNREADABLE.
+
+  Out of scope: flipping enforcement defaults (epic 062); changes to lock
+  creation, revision, or red-phase capture (067-01/067-02); the
+  E710-E712 constraint-evidence gates (068).
+temptations:
+  - risk: "Do not scope away tamper evidence on existing locks."
+    instead: "Keep E701/E702 checks for every active manifest with a lock and E703/E706 checks for every lock file; only the requirement errors E700/E704/E705 honor the task-window scope."
+  - risk: "Do not silently skip plan-lock enforcement when the changed scope cannot be computed."
+    instead: "Fall back to changed_paths=None, which enforces full scope; scope-computation failure may only make the gate stricter."
+  - risk: "Do not import private helpers from maid_runner/core/worktree.py into the verify stage."
+    instead: "Use the public resolve_changed_scope_baseline, changed_files_since, and changed_files functions and catch RuntimeError for the fallback chain."
+  - risk: "Do not keep reporting corrupt lock files as E703 PLAN_LOCK_STALE."
+    instead: "Report present-but-unreadable locks as E706 PLAN_LOCK_UNREADABLE with the same fail-closed behavior."
+  - risk: "Do not make plan-lock enforcement default-on while fixing its scope."
+    instead: "Leave --require-plan-lock and --require-red-evidence opt-in; the default flip belongs to the 062 epic."
+files:
+  edit:
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: PLAN_LOCK_UNREADABLE
+          of: ErrorCode
+          type: str
+          description: "E706: a plan lock file exists but is corrupt, unreadable, or malformed; fails closed."
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: enforce_plan_locks
+          args:
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: Path
+            - name: require_plan_lock
+              type: bool
+            - name: require_red_evidence
+              type: bool
+            - name: changed_paths
+              type: Collection[str] | None
+              default: None
+          returns: tuple[ValidationError, ...]
+          source_scenario: "maid verify computes the task-window changed paths and enforces plan locks against the active chain."
+          actions:
+            - type: api_call
+              subject:
+                function: enforce_plan_locks
+          expected:
+            behavior: "E700/E704/E705 apply only to manifests whose project-relative manifest path is in changed_paths (all manifests when changed_paths is None); an in-scope manifest with no lock under require_red_evidence fails E704; E701/E702 still apply to every locked active manifest and E703/E706 to every lock file regardless of scope; a corrupt lock reports E706."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid verify --require-plan-lock --require-red-evidence --since <ref>` runs in a git repository with historical unlocked manifests."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_verify
+          expected:
+            behavior: "The plan_lock stage derives changed paths from the --since/--base-ref/metadata baseline, falling back to worktree changed files, and to full-scope enforcement when git metadata is unavailable; requirement errors fire only for task-window manifests, in text and JSON output alike."
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_scope_workflow_note
+          of: documentation
+          type: markdown section
+          description: "Workflow guidance stating E700/E704/E705 apply to task-window manifests, E704 covers a missing lock, and E706 reports unreadable locks."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_scope_spec_section
+          of: documentation
+          type: markdown section
+          description: "Specification of task-window enforcement scope, unscoped integrity checks, the E704 missing-lock case, and E706 PLAN_LOCK_UNREADABLE."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _plan_lock_scope_readme_note
+          of: documentation
+          type: markdown section
+          description: "README enforcement notes covering the task-window scope rule and the E706 error code."
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "`maid howto commands` renders the verification command guidance."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_howto
+          expected:
+            behavior: "The commands topic states that plan-lock requirement errors apply to manifests changed in the task window."
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_review_plan_lock_scope_guidance
+          of: documentation
+          type: markdown section
+          description: "Claude review skill guidance treating E700-E706 plan-lock failures as blockers and stating the task-window scope."
+    - path: .codex/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_review_plan_lock_scope_guidance
+          of: documentation
+          type: markdown section
+          description: "Codex review skill guidance treating E700-E706 plan-lock failures as blockers and stating the task-window scope."
+  read:
+    - maid_runner/core/worktree.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/cli/commands/_format.py
+    - manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+    - tests/core/test_plan_lock_scope_enforcement.py
+    - tests/cli/test_verify_plan_lock_scope_cmd.py
+    - tests/core/test_plan_lock_enforcement.py
+    - tests/cli/test_verify_plan_lock_cmd.py
+    - tests/test_plan_lock_docs.py
+validate:
+  - uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/test_plan_lock_docs.py
+  - uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-11T13:38:56Z"
+  summary: "Scoped plan-lock requirement errors E700/E704/E705 to task-window manifests, made E704 cover the missing-lock case, and added E706 PLAN_LOCK_UNREADABLE for corrupt locks."
+  rationale: "Closed the epic 067 review findings so the documented implementation handoff gate is operable: `maid verify --require-plan-lock --require-red-evidence --since HEAD` passes on this repository with the in-scope 067-05 manifest locked with valid red evidence while untouched historical manifests stay out of requirement scope. Integrity errors E701/E702/E703/E706 remain unscoped, scope-computation failures fall back to full enforcement, and enforcement stays opt-in."
+  lessons:
+    - lesson_type: design
+      summary: "Requirement-error scope must match on the manifest's own changed file path only; matching on declared production or test paths would pull historical manifests back into scope through shared files and re-create the E700 storm."
+      tags:
+        - plan-lock
+        - enforcement-scope
+        - task-window
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_scope_enforcement.py
+    - lesson_type: validation
+      summary: "Scoped-gate CLI tests need a committed-baseline case; with only uncommitted fixtures a worktree-only diff is indistinguishable from the baseline-derived changed set and a hollow implementation passes."
+      tags:
+        - changed-scope
+        - behavioral-tests
+        - anti-gaming
+      paths:
+        - tests/cli/test_verify_plan_lock_scope_cmd.py
+    - lesson_type: workflow
+      summary: "Plan locks have no migration path for draft promotion: validate-command paths change when a draft moves to manifests/, so the lock was adjusted out-of-band to keep pre-implementation red evidence; a promotion-aware lock migration command is needed."
+      tags:
+        - plan-lock
+        - draft-promotion
+        - tooling-gap
+      paths:
+        - .maid/plan-locks/067-05-scope-plan-lock-enforcement-to-changed-manifests.lock.json
+        - manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml
+    - lesson_type: workflow
+      summary: "Post-implementation `maid plan revise` re-captures evidence as not-red and breaks the E705 gate for in-scope manifests; additive manifest edits such as outcome capture are legal under the lock contract without revision, so revise must be reserved for genuine pre-implementation plan changes."
+      tags:
+        - plan-lock
+        - red-phase
+        - outcome-records
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_enforcement.py
+  review_notes:
+    - source: maid-plan-reviewer
+      severity: warning
+      summary: "Plan review returned needs-revision because CLI tests could not distinguish the baseline-derived scope from a worktree-only diff; a committed-baseline test and a no-baseline worktree-fallback test were added and confirmed red."
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "Ready to merge with no blockers; should-fix recorded that the plan lock was hand-adjusted during draft promotion to preserve genuine pre-implementation red evidence, exposing the missing promotion-aware lock migration path."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Residual notes: the .maid/outcomes.json learn artifact was outside manifest scope and removed before handoff; packaged skill payload copies are build-generated and regenerated by make sync-agent-payloads."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock_scope_enforcement.py
+        - tests/cli/test_verify_plan_lock_scope_cmd.py
+        - tests/core/test_plan_lock_enforcement.py
+        - tests/cli/test_verify_plan_lock_cmd.py
+        - tests/test_plan_lock_docs.py
+      status: passed
+      summary: "Focused behavioral tests passed: 45 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for all declared artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "The implementation handoff gate passed all stages including plan_lock, with 067-05 in scope and historical manifests out of requirement scope."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 0 failed manifests and pre-existing advisory E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with all command entries passing."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2497 passed and 5 skipped."
+    - command:
+        - make
+        - lint
+      status: passed
+      summary: "Ruff checks passed on the full codebase."

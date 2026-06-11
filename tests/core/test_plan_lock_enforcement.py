@@ -97,7 +97,7 @@ def test_require_plan_lock_reports_missing_lock(tmp_path: Path) -> None:
     assert _codes(errors) == [ErrorCode.PLAN_LOCK_MISSING]
 
 
-def test_require_red_evidence_does_not_report_missing_lock_without_lock_scope(
+def test_require_red_evidence_reports_missing_lock_as_missing_evidence(
     tmp_path: Path,
 ) -> None:
     _write_project(tmp_path)
@@ -109,7 +109,7 @@ def test_require_red_evidence_does_not_report_missing_lock_without_lock_scope(
         require_red_evidence=True,
     )
 
-    assert errors == ()
+    assert _codes(errors) == [ErrorCode.RED_PHASE_EVIDENCE_MISSING]
 
 
 def test_behavioral_test_modified_after_lock_reports_e701(tmp_path: Path) -> None:

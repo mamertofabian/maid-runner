@@ -101,12 +101,16 @@ and the revision re-baselines the manifest and behavioral test hashes. Use
 mismatches, and red evidence in text or JSON form.
 
 Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
---require-red-evidence` reports the contract-integrity errors E700 PLAN_LOCK_MISSING, E701
-BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
-MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, E704
-RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID. E702 applies
-when declared artifacts or behavioral test entries shrink relative to the
-locked manifest; additive manifest changes are legal.
+--require-red-evidence` scopes requirement errors to the task window: E700
+PLAN_LOCK_MISSING, E704 RED_PHASE_EVIDENCE_MISSING, and E705
+RED_PHASE_EVIDENCE_INVALID apply to active manifests whose manifest file
+changed in the verify run. E704 also applies when an in-scope manifest has no plan lock
+under `--require-red-evidence`. Integrity errors apply regardless of task window
+scope: E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK apply to every locked active manifest,
+E703 PLAN_LOCK_STALE applies when a lock references a missing manifest, and
+E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
+unreadable, or malformed. E702 applies when declared artifacts or behavioral test entries
+shrink relative to the locked manifest; additive manifest changes are legal.
 
 -----
 

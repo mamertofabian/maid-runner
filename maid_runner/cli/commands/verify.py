@@ -230,6 +230,8 @@ def _run_verify_cached(
                 _plan_lock_stage(
                     root,
                     manifest_dir,
+                    since=since,
+                    base_ref=base_ref,
                     require_plan_lock=require_plan_lock,
                     require_red_evidence=require_red_evidence,
                 )
@@ -334,6 +336,8 @@ def _plan_lock_stage(
     root: Path,
     manifest_dir: str,
     *,
+    since: str | None,
+    base_ref: str | None,
     require_plan_lock: bool,
     require_red_evidence: bool,
 ) -> VerificationStageResult:
@@ -343,11 +347,13 @@ def _plan_lock_stage(
         from maid_runner.core.plan_lock import enforce_plan_locks
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        changed_paths = _plan_lock_changed_paths(root, chain, since, base_ref)
         errors = enforce_plan_locks(
             chain,
             root,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
+            changed_paths=changed_paths,
         )
         return VerificationStageResult(
             name="plan_lock",
@@ -357,6 +363,37 @@ def _plan_lock_stage(
         )
     except Exception as exc:
         return _error_stage("plan_lock", started, exc)
+
+
+def _plan_lock_changed_paths(
+    root: Path,
+    chain,
+    since: str | None,
+    base_ref: str | None,
+) -> tuple[str, ...] | None:
+    from maid_runner.core.worktree import (
+        changed_files,
+        changed_files_since,
+        resolve_changed_scope_baseline,
+    )
+
+    try:
+        baseline = resolve_changed_scope_baseline(chain, since=since, base_ref=base_ref)
+    except RuntimeError as exc:
+        if since or base_ref:
+            return None
+        error = getattr(exc, "error", None)
+        if getattr(error, "code", None) != ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED:
+            return None
+        try:
+            return changed_files(root)
+        except RuntimeError:
+            return None
+
+    try:
+        return changed_files_since(root, baseline)
+    except RuntimeError:
+        return None
 
 
 def _worktree_scope_stage(

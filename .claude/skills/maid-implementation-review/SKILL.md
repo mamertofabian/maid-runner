@@ -151,8 +151,11 @@ maid test --manifest manifests/<slug>.manifest.yaml
 
 The `maid verify --require-plan-lock --require-red-evidence` command is the
 implementation handoff gate for the approved plan lock and captured red-phase
-evidence. Treat E700-E705 plan-lock failures as blockers unless the review
+evidence. Treat E700-E706 plan-lock failures as blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.
+E700/E704/E705 requirement errors apply to manifests changed in the task window;
+E701/E702/E703/E706 integrity errors are blockers regardless of task window
+scope.
 
 If the environment or project shape makes a command impractical, say so explicitly.
 

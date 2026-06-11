@@ -113,6 +113,8 @@ _TOPICS = {
         "is valid red, exits 2/3/4/5 are invalid, and exit 0 is not red.\n\n"
         "Run the implementation handoff gate with opt-in plan-lock enforcement:\n"
         "  maid verify --require-plan-lock --require-red-evidence\n\n"
+        "  Plan-lock requirement errors apply to manifests changed in the "
+        "task window; integrity errors for existing locks still apply.\n\n"
         "Create manifest drafts:\n"
         "  maid manifest create src/your_file.py --goal 'Describe the change' "
         '--artifacts \'[{"kind":"function","name":"your_function"}]\'\n\n'

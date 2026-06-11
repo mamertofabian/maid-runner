@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import shlex
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -264,31 +265,57 @@ def enforce_plan_locks(
     project_root: Path,
     require_plan_lock: bool,
     require_red_evidence: bool,
+    *,
+    changed_paths: Collection[str] | None = None,
 ) -> "tuple[ValidationError, ...]":
     """Evaluate active manifests against their plan locks."""
     if not require_plan_lock and not require_red_evidence:
         return ()
 
     root = Path(project_root)
+    changed_path_set = _normalize_changed_paths(changed_paths)
     errors: list[ValidationError] = []
     loaded_lock_paths: set[Path] = set()
 
     for manifest in chain.active_manifests():
         lock_path = default_plan_lock_path(root, manifest.slug)
         loaded_lock_paths.add(lock_path)
+        in_scope = _manifest_in_changed_paths(manifest, root, changed_path_set)
         if not lock_path.exists():
-            if require_plan_lock:
-                errors.append(_lock_error(ErrorCode.PLAN_LOCK_MISSING, manifest))
+            if in_scope and require_plan_lock:
+                errors.append(
+                    _lock_error(
+                        ErrorCode.PLAN_LOCK_MISSING,
+                        manifest,
+                        root,
+                        detail=f"missing lock: {_project_relative_path(lock_path, root)}",
+                    )
+                )
+            if in_scope and require_red_evidence:
+                errors.append(
+                    _lock_error(
+                        ErrorCode.RED_PHASE_EVIDENCE_MISSING,
+                        manifest,
+                        root,
+                        detail=f"no plan lock at {_project_relative_path(lock_path, root)}",
+                    )
+                )
             continue
 
-        lock = _load_lock_or_error(lock_path)
+        lock = _load_lock_or_error(lock_path, root)
         if isinstance(lock, ValidationError):
             errors.append(lock)
             continue
 
         recorded_manifest = root / lock.manifest_path
         if not recorded_manifest.exists():
-            errors.append(_lock_error(ErrorCode.PLAN_LOCK_STALE, manifest))
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.PLAN_LOCK_STALE,
+                    message="PLAN_LOCK_STALE: lock references a missing manifest",
+                    location=Location(file=lock.manifest_path),
+                )
+            )
             continue
 
         errors.extend(_test_hash_errors(lock, manifest, root))
@@ -298,24 +325,25 @@ def enforce_plan_locks(
                 _lock_error(
                     ErrorCode.MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK,
                     manifest,
+                    root,
                     detail=weakening_detail,
                 )
             )
 
-        if require_red_evidence:
+        if in_scope and require_red_evidence:
             if lock.red_evidence is None:
                 errors.append(
-                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_MISSING, manifest)
+                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_MISSING, manifest, root)
                 )
             elif not _red_evidence_is_valid(lock.red_evidence):
                 errors.append(
-                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_INVALID, manifest)
+                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_INVALID, manifest, root)
                 )
 
     for lock_path in _plan_lock_files(root):
         if lock_path in loaded_lock_paths:
             continue
-        lock = _load_lock_or_error(lock_path)
+        lock = _load_lock_or_error(lock_path, root)
         if isinstance(lock, ValidationError):
             errors.append(lock)
             continue
@@ -329,6 +357,24 @@ def enforce_plan_locks(
             )
 
     return tuple(errors)
+
+
+def _normalize_changed_paths(
+    changed_paths: Collection[str] | None,
+) -> set[str] | None:
+    if changed_paths is None:
+        return None
+    return {str(path).replace("\\", "/") for path in changed_paths}
+
+
+def _manifest_in_changed_paths(
+    manifest: Manifest,
+    project_root: Path,
+    changed_paths: set[str] | None,
+) -> bool:
+    if changed_paths is None:
+        return True
+    return _manifest_location(manifest, project_root) in changed_paths
 
 
 def _behavioral_test_paths(manifest: Manifest) -> list[str]:
@@ -429,14 +475,16 @@ def _artifact_declarations(manifest: Manifest) -> set[str]:
     return declarations
 
 
-def _load_lock_or_error(lock_path: Path) -> PlanLock | ValidationError:
+def _load_lock_or_error(
+    lock_path: Path, project_root: Path
+) -> PlanLock | ValidationError:
     try:
         return PlanLock.load(lock_path)
     except (FileNotFoundError, _PlanLockLoadError) as exc:
         return ValidationError(
-            code=ErrorCode.PLAN_LOCK_STALE,
-            message=f"PLAN_LOCK_STALE: lock cannot be loaded: {exc}",
-            location=Location(file=str(lock_path)),
+            code=ErrorCode.PLAN_LOCK_UNREADABLE,
+            message=f"PLAN_LOCK_UNREADABLE: lock cannot be loaded: {exc}",
+            location=Location(file=_project_relative_path(lock_path, project_root)),
         )
 
 
@@ -458,6 +506,7 @@ def _test_hash_errors(
                 _lock_error(
                     ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,
                     manifest,
+                    project_root,
                     detail=f"behavioral test changed after lock: {rel}",
                 )
             )
@@ -523,6 +572,7 @@ def _plan_lock_files(project_root: Path) -> tuple[Path, ...]:
 def _lock_error(
     code: ErrorCode,
     manifest: Manifest,
+    project_root: Path,
     *,
     detail: str | None = None,
 ) -> ValidationError:
@@ -541,6 +591,9 @@ def _lock_error(
         ErrorCode.RED_PHASE_EVIDENCE_INVALID: (
             "RED_PHASE_EVIDENCE_INVALID: red-phase evidence is not valid red"
         ),
+        ErrorCode.PLAN_LOCK_UNREADABLE: (
+            "PLAN_LOCK_UNREADABLE: lock exists but cannot be loaded"
+        ),
     }
     message = messages[code]
     if detail:
@@ -548,13 +601,10 @@ def _lock_error(
     return ValidationError(
         code=code,
         message=message,
-        location=Location(file=_manifest_location(manifest)),
+        location=Location(file=_manifest_location(manifest, project_root)),
     )
 
 
-def _manifest_location(manifest: Manifest) -> str:
+def _manifest_location(manifest: Manifest, project_root: Path) -> str:
     path = Path(manifest.source_path)
-    try:
-        return path.relative_to(Path.cwd()).as_posix()
-    except ValueError:
-        return str(path)
+    return _project_relative_path(path, project_root)

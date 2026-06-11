@@ -191,10 +191,15 @@ red, exits 2/3/4/5 are invalid, and exit 0 means the tests already pass and are
 not red. `maid plan lock --no-run` records `red_evidence: null`.
 
 Plan-lock enforcement is opt-in. The implementation handoff command
-`maid verify --require-plan-lock --require-red-evidence` reports E700
-PLAN_LOCK_MISSING, E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
-MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, E704
-RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID.
+`maid verify --require-plan-lock --require-red-evidence` scopes requirement
+errors to the task window: E700 PLAN_LOCK_MISSING, E704
+RED_PHASE_EVIDENCE_MISSING, and E705 RED_PHASE_EVIDENCE_INVALID apply to active
+manifests whose manifest file changed in the verify run. E704 also applies when
+an in-scope manifest has no plan lock under `--require-red-evidence`. Integrity
+errors apply regardless of task-window scope: E701
+BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
+MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, and E706
+PLAN_LOCK_UNREADABLE.
 
 ### CI/CD Integration
 
