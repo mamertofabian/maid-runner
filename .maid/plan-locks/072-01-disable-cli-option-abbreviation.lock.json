@@ -1,0 +1,58 @@
+{
+  "manifest_path": "manifests/072-01-disable-cli-option-abbreviation.manifest.yaml",
+  "manifest_hash": "sha256:84808cdf2807ddd236baba7ca342cab72a2f40272ca77a4f62023f45dcc2ebc8",
+  "test_hashes": {
+    "tests/cli/test_main.py": "sha256:1f08e1221605b8a028da1398e4a3bae2dc899060cc57f0004532eef8587b9d67"
+  },
+  "created_at": "2026-06-11T14:21:53.020618+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-11T14:21:55.400314+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_main.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner.cli.commands._main import main\n    \n>       with pytest.raises(SystemExit) as exc_info:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'SystemExit'>\n\ntests/cli/test_main.py:565: Failed\n----------------------------- Captured stdout call -----------------------------\nVerify: FAIL\n  Duration: 2ms\n  FAIL schema\n    E112 Manifest directory not found: manifests/x.manifest.yaml\n      Location: manifests/x.manifest.yaml\n      Suggestion: Pass --allow-empty only when an empty manifest set is intentional.\n=========================== short test summary info ============================\nFAILED tests/cli/test_main.py::TestOptionAbbreviationRejected::test_verify_rejects_manifest_option_abbreviation\nFAILED tests/cli/test_main.py::TestOptionAbbreviationRejected::test_top_level_option_abbreviation_rejected\nFAILED tests/cli/test_main.py::TestOptionAbbreviationRejected::test_nested_subcommand_option_abbreviation_rejected\nFAILED tests/cli/test_main.py::TestOptionAbbreviationRejected::test_main_rejects_abbreviated_option_before_dispatch\n4 failed, 48 passed in 0.34s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "tests/cli/test_main.py:test_full_option_spellings_still_parse",
+      "tests/cli/test_main.py:test_full_option_spellings_still_parse:kind=test_function",
+      "tests/cli/test_main.py:test_main_rejects_abbreviated_option_before_dispatch",
+      "tests/cli/test_main.py:test_main_rejects_abbreviated_option_before_dispatch:kind=test_function",
+      "tests/cli/test_main.py:test_nested_subcommand_option_abbreviation_rejected",
+      "tests/cli/test_main.py:test_nested_subcommand_option_abbreviation_rejected:kind=test_function",
+      "tests/cli/test_main.py:test_top_level_option_abbreviation_rejected",
+      "tests/cli/test_main.py:test_top_level_option_abbreviation_rejected:kind=test_function",
+      "tests/cli/test_main.py:test_verify_rejects_manifest_option_abbreviation",
+      "tests/cli/test_main.py:test_verify_rejects_manifest_option_abbreviation:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_main.py"
+    ]
+  }
+}

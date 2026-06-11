@@ -497,6 +497,80 @@ class TestMissingCLIFlags:
         assert args.hide_private is True
 
 
+class TestOptionAbbreviationRejected:
+    """Abbreviated long-option prefixes must fail loudly (incident 20260611-141146)."""
+
+    def test_verify_rejects_manifest_option_abbreviation(self, capsys):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(
+                [
+                    "verify",
+                    "--require-plan-lock",
+                    "--require-red-evidence",
+                    "--manifest",
+                    "manifests/x.manifest.yaml",
+                ]
+            )
+
+        assert exc_info.value.code == 2
+        assert "--manifest" in capsys.readouterr().err
+
+    def test_top_level_option_abbreviation_rejected(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["validate", "--manifest-d", "custom/"])
+
+        assert exc_info.value.code == 2
+
+    def test_nested_subcommand_option_abbreviation_rejected(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        with pytest.raises(SystemExit) as plan_exc:
+            parser.parse_args(["plan", "lock", "manifests/x.manifest.yaml", "--no-r"])
+        with pytest.raises(SystemExit) as manifest_exc:
+            parser.parse_args(
+                ["manifest", "create", "src/app.py", "--goal", "Add app", "--dry"]
+            )
+
+        assert plan_exc.value.code == 2
+        assert manifest_exc.value.code == 2
+
+    def test_full_option_spellings_still_parse(self):
+        from maid_runner.cli.commands._main import build_parser
+
+        parser = build_parser()
+
+        verify_args = parser.parse_args(["verify", "--manifest-dir", "custom/"])
+        plan_args = parser.parse_args(
+            ["plan", "lock", "manifests/x.manifest.yaml", "--no-run"]
+        )
+        test_args = parser.parse_args(["test", "--manifest", "manifests/x.yaml"])
+
+        assert verify_args.manifest_dir == "custom/"
+        assert plan_args.no_run is True
+        assert test_args.manifest == "manifests/x.yaml"
+
+    def test_main_rejects_abbreviated_option_before_dispatch(self, capsys):
+        from maid_runner.cli.commands._main import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main(["verify", "--manifest", "manifests/x.manifest.yaml"])
+
+        assert exc_info.value.code == 2
+        captured = capsys.readouterr()
+        assert "--manifest" in captured.err
+        assert captured.out == ""
+
+
 class TestTestDefaults:
     def test_default_manifest_dir(self):
         from maid_runner.cli.commands._main import build_parser

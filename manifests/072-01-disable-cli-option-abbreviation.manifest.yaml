@@ -1,0 +1,199 @@
+schema: "2"
+goal: "Reject abbreviated CLI option prefixes so unsupported options fail loudly"
+type: fix
+created: "2026-06-11T14:20:00Z"
+metadata:
+  status: active
+  tags:
+    - cli
+    - parser
+    - fail-loud
+    - incident-fix
+  priority: high
+description: |
+  Fix for incident 20260611-141146-maid-verify-manifest-flag: `maid verify
+  --require-plan-lock --require-red-evidence --manifest <file>` was accepted
+  because argparse prefix abbreviation matched `--manifest` against
+  `--manifest-dir`. The manifest file path was interpreted as a manifest
+  directory, schema discovery failed with E112, and the command-shape mistake
+  was misdiagnosed as a validator defect. This produces false validation
+  evidence: an unsupported option spelling silently changes the meaning of a
+  verification command instead of failing.
+
+  Contract change: the `maid` CLI rejects abbreviated long-option prefixes for
+  the root parser and for every subcommand parser, including nested subcommand
+  families (plan, manifest, graph, chain, audit, serve). An unsupported long
+  option such as `verify --manifest` exits with argparse's standard usage
+  error (exit code 2) and names the rejected option on stderr, instead of
+  being treated as a prefix of a supported option. All registered full option
+  spellings, defaults, and suppressed compatibility aliases are unchanged.
+
+  Rationale — disabling abbreviation globally was chosen over special-casing
+  `verify --manifest` because the failure class is general: MAID subcommands
+  have similar but not identical manifest-selection flags (`test --manifest`
+  exists, `verify --manifest` does not), and agents overgeneralize from one
+  subcommand to another. Any prefix-abbreviated spelling is one rename away
+  from silently changing meaning, so explicit full spellings are required
+  everywhere. Implementation note recorded for the implementer: argparse
+  propagates the root parser's class to subparsers via the `parser_class`
+  default of `add_subparsers` (`type(self)`), so a single private
+  ArgumentParser subclass that forces `allow_abbrev=False` covers the root
+  parser and all nested subparsers without touching each `add_parser` call.
+
+  A repository-wide search confirmed no script, test, document, or skill
+  payload relies on abbreviated `maid` option spellings.
+
+  Out of scope: adding a `--manifest <file>` option to `verify` (manifest
+  selection for verify stays directory- and scope-based per 067-05); changes
+  to error-code semantics; the plan-lock promotion-migration gap recorded in
+  incident 20260611-133856 (separate tooling work).
+temptations:
+  - risk: "Do not special-case only the `verify --manifest` spelling."
+    instead: "Disable argparse prefix abbreviation for the root parser and every subparser through one shared parser class so every unsupported long option fails loudly."
+  - risk: "Do not pin argparse's full error message word-for-word in tests."
+    instead: "Assert the SystemExit code is 2 and that stderr names the rejected option; the exact phrasing belongs to argparse."
+  - risk: "Do not rename, remove, or stop suppressing existing options or compatibility aliases while changing abbreviation matching."
+    instead: "Keep every registered option spelling, default, and alias unchanged; only prefix matching of unregistered spellings changes."
+  - risk: "Do not pass allow_abbrev to each add_parser call by hand."
+    instead: "Force allow_abbrev=False in one parser class used for the root parser so add_subparsers propagates it to all nested parsers."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Return the MAID CLI parser with long-option prefix abbreviation disabled for the root parser and all nested subcommand parsers; registered option spellings, defaults, and aliases are unchanged."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "CLI entry point; abbreviated option spellings exit with argparse's usage error (SystemExit code 2) before any command handler runs."
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_rejects_manifest_option_abbreviation
+          source_scenario: "An agent runs the incident command shape `maid verify --require-plan-lock --require-red-evidence --manifest <file>` where verify defines --manifest-dir but not --manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Parsing exits with SystemExit code 2 and stderr names `--manifest`; the manifest file path is never accepted as a manifest directory."
+        - kind: test_function
+          name: test_top_level_option_abbreviation_rejected
+          source_scenario: "A prefix spelling of a registered option is passed to a top-level subcommand, e.g. `validate --manifest-d`."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Parsing exits with SystemExit code 2 instead of expanding the prefix to --manifest-dir."
+        - kind: test_function
+          name: test_nested_subcommand_option_abbreviation_rejected
+          source_scenario: "Prefix spellings are passed to nested subcommand families, e.g. `plan lock <manifest> --no-r` and `manifest create <file> --goal <goal> --dry`."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Nested parsers inherit the no-abbreviation behavior and exit with SystemExit code 2."
+        - kind: test_function
+          name: test_full_option_spellings_still_parse
+          source_scenario: "Full option spellings for the same commands are used: `verify --manifest-dir`, `plan lock --no-run`, `test --manifest`."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Full spellings parse to the same namespace values as before; disabling abbreviation does not change registered options."
+        - kind: test_function
+          name: test_main_rejects_abbreviated_option_before_dispatch
+          source_scenario: "The CLI entry point receives the incident command shape end to end."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "main raises SystemExit with code 2 from argument parsing; no command handler output is produced."
+  read:
+    - manifests/045-01-extract-cli-parser-registration.manifest.yaml
+    - maid_runner/cli/commands/serve.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_main.py
+  - uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-11T14:45:00Z"
+  summary: "Disabled argparse long-option prefix abbreviation across the maid CLI so unsupported spellings such as `verify --manifest` exit 2 with the rejected option named instead of silently parsing as --manifest-dir."
+  rationale: "Closes incident 20260611-141146-maid-verify-manifest-flag: prefix abbreviation turned a command-shape mistake into a misleading E112 and false validation evidence. One private ArgumentParser subclass forcing allow_abbrev=False on the root parser propagates to every nested subparser through the add_subparsers parser_class default, so no per-add_parser plumbing was needed and registered spellings, defaults, and compatibility aliases are unchanged."
+  lessons:
+    - lesson_type: design
+      summary: "argparse add_subparsers defaults parser_class to type(self), so one root parser subclass is sufficient to change parsing policy for all nested subcommand families; per-add_parser keyword plumbing is unnecessary and drift-prone."
+      tags:
+        - cli
+        - argparse
+        - fail-loud
+      paths:
+        - maid_runner/cli/commands/_main.py
+    - lesson_type: workflow
+      summary: "Promoting draft 066-02 edited the already-locked 066-01 manifest (a files-entry path reference moved from manifests/drafts/ to manifests/), tripping E702 for the whole repo handoff gate; the sanctioned repair is maid plan revise with an honest reason, and the promotion-aware lock migration gap from incident 20260611-133856 remains open tooling work."
+      tags:
+        - plan-lock
+        - draft-promotion
+        - tooling-gap
+      paths:
+        - .maid/plan-locks/066-01-add-recall-for-manifest-query.lock.json
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready to merge with no blockers; nits noted that the bare no-baseline verify gate still fails on pre-plan-lock historical manifests and that the revised 066-01 lock now carries not_red evidence, both downstream of pre-existing gaps outside this task."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_main.py
+      status: passed
+      summary: "All 52 CLI parser tests passed, including the 5 abbreviation-contract tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "The implementation handoff gate passed all stages including plan_lock with red:true evidence for 072-01."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2507 passed and 5 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with all command entries passing."
+    - command:
+        - make
+        - lint
+      status: passed
+      summary: "Ruff checks and black formatting passed with no changes."

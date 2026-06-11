@@ -6,8 +6,23 @@ import argparse
 import sys
 
 
+class _NoAbbrevArgumentParser(argparse.ArgumentParser):
+    """Parser that rejects long-option prefix abbreviations.
+
+    Subparsers created via add_subparsers default to the parent's class
+    (parser_class=type(self)), so using this class for the root parser
+    disables abbreviation for every nested subcommand parser as well.
+    Without this, `maid verify --manifest <file>` silently parsed as
+    `--manifest-dir <file>` (incident 20260611-141146).
+    """
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        kwargs["allow_abbrev"] = False
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = _NoAbbrevArgumentParser(
         prog="maid",
         description="MAID Runner - Manifest-driven AI Development validator",
     )
