@@ -127,6 +127,22 @@ created before the snapshot field existed skip the check until their next
 sanctioned re-save, and locks with `red_evidence: null` are owned by E704
 instead.
 
+The changed-scope baseline that defines the task window resolves from
+`--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
+`metadata.maid_task_base`. Because `maid_task_base` is a current-task
+declaration, metadata baselines are sourced only from active manifests whose
+own manifest file has uncommitted worktree changes — the manifests of the
+task in flight. Committed historical declarations are ignored, so completed
+tasks that declared different bases cannot poison bare resolution.
+Conflicting values among the considered worktree-changed manifests still
+fail closed with E116 CHANGED_SCOPE_BASELINE_INVALID, and when git state
+cannot be read every active manifest is considered: degraded environments
+only make resolution stricter. With no flags and no considered declaration,
+resolution raises E115 CHANGED_SCOPE_BASELINE_REQUIRED, which the plan-lock
+gate maps to the worktree changed-files fallback: on a clean tree the
+plan-lock stage passes with an empty task window while integrity errors
+still apply.
+
 -----
 
 #### **Core Components & Patterns**

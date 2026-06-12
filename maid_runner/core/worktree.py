@@ -10,6 +10,7 @@ from typing import Optional, Union
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
+from maid_runner.core.types import Manifest
 
 _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
 
@@ -97,7 +98,7 @@ def resolve_changed_scope_baseline(
 
     bases = {
         str(manifest.metadata.get("maid_task_base")).strip()
-        for manifest in chain.active_manifests()
+        for manifest in _baseline_metadata_manifests(chain)
         if isinstance(manifest.metadata, dict)
         and manifest.metadata.get("maid_task_base")
     }
@@ -121,6 +122,47 @@ def resolve_changed_scope_baseline(
             "or a remote branch."
         ),
     )
+
+
+def _baseline_metadata_manifests(chain: ManifestChain) -> "list[Manifest]":
+    """Active manifests whose metadata baselines count for resolution.
+
+    `maid_task_base` is a current-task declaration, so only manifests with
+    uncommitted worktree changes (the task in flight) are considered;
+    committed historical declarations would otherwise poison bare baseline
+    resolution forever once two completed tasks disagree. When git state
+    cannot be read, every active manifest is considered: degraded
+    environments keep the chain-wide behavior and only get stricter.
+    """
+    active = chain.active_manifests()
+    declaring = [
+        manifest
+        for manifest in active
+        if isinstance(manifest.metadata, dict)
+        and manifest.metadata.get("maid_task_base")
+    ]
+    if not declaring:
+        return active
+    project_root = getattr(chain, "_project_root", None)
+    if project_root is None:
+        return active
+    try:
+        changed = set(changed_files(project_root))
+    except RuntimeError:
+        return active
+    return [
+        manifest
+        for manifest in declaring
+        if _project_relative_manifest_path(manifest, Path(project_root)) in changed
+    ]
+
+
+def _project_relative_manifest_path(manifest: "Manifest", project_root: Path) -> str:
+    path = Path(manifest.source_path)
+    try:
+        return path.resolve().relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return _normalize_git_path(str(path))
 
 
 def changed_files_since(

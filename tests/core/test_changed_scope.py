@@ -258,6 +258,74 @@ validate:
     )
 
 
+def _conflicting_base_manifest(name: str, base: str) -> str:
+    return f"""schema: "2"
+goal: "{name.capitalize()}"
+metadata:
+  maid_task_base: {base}
+files:
+  create:
+    - path: src/{name}_owner.py
+      artifacts:
+        - kind: function
+          name: {name}_owner
+  read:
+    - src/{name}.py
+validate:
+  - pytest tests/test_{name}.py -v
+"""
+
+
+def test_committed_conflicting_task_bases_are_ignored(tmp_path):
+    _write_manifest(
+        tmp_path, "one.manifest.yaml", _conflicting_base_manifest("one", "one")
+    )
+    _write_manifest(
+        tmp_path, "two.manifest.yaml", _conflicting_base_manifest("two", "two")
+    )
+    _commit_all(tmp_path, "history")
+
+    with pytest.raises(Exception) as exc_info:
+        resolve_changed_scope_baseline(_chain(tmp_path))
+
+    assert exc_info.value.error.code == ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED
+
+
+def test_worktree_changed_manifest_task_base_resolves(tmp_path):
+    _write_manifest(
+        tmp_path, "one.manifest.yaml", _conflicting_base_manifest("one", "one")
+    )
+    _write_manifest(
+        tmp_path, "two.manifest.yaml", _conflicting_base_manifest("two", "two")
+    )
+    _commit_all(tmp_path, "history")
+    _write_manifest(
+        tmp_path,
+        "current.manifest.yaml",
+        _conflicting_base_manifest("current", "task-base"),
+    )
+
+    baseline = resolve_changed_scope_baseline(_chain(tmp_path))
+
+    assert baseline == ChangedScopeBaseline(source="metadata", commitish="task-base")
+
+
+def test_conflicting_worktree_changed_task_bases_fail_invalid(tmp_path):
+    _write_source(tmp_path, "src/seed.py", "def seed():\n    return 'seed'\n")
+    _commit_all(tmp_path, "seed")
+    _write_manifest(
+        tmp_path, "one.manifest.yaml", _conflicting_base_manifest("one", "one")
+    )
+    _write_manifest(
+        tmp_path, "two.manifest.yaml", _conflicting_base_manifest("two", "two")
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        resolve_changed_scope_baseline(_chain(tmp_path))
+
+    assert exc_info.value.error.code == ErrorCode.CHANGED_SCOPE_BASELINE_INVALID
+
+
 def test_resolve_changed_scope_baseline_prefers_explicit_since(tmp_path):
     _write_manifest(
         tmp_path,

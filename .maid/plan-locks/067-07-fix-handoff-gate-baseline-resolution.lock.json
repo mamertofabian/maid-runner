@@ -1,0 +1,84 @@
+{
+  "manifest_path": "manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml",
+  "manifest_hash": "sha256:53f5f9f439e8297f520835c531015ac6f45d95a7cf713d12561bd0d83cdb2e00",
+  "test_hashes": {
+    "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256:c3245c98694d6331f520a278f5db23fdbc8b0499c98926b3558223e97f4f330a",
+    "tests/core/test_changed_scope.py": "sha256:0daaac4eddd9f9a7c1d3ab0227cd42cfbade100075376931941231c005eb0f8e"
+  },
+  "created_at": "2026-06-12T21:19:55.352042+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:909d63d8f69c76e8f4054fa6ab598fe4e8fce7c08dac7dab868d014a36916fc5",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256:c3245c98694d6331f520a278f5db23fdbc8b0499c98926b3558223e97f4f330a",
+        "tests/core/test_changed_scope.py": "sha256:0daaac4eddd9f9a7c1d3ab0227cd42cfbade100075376931941231c005eb0f8e"
+      },
+      "revised_at": "2026-06-12T21:19:59.147253+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml -> manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-12T21:20:02.968935+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_changed_scope.py tests/cli/test_verify_handoff_baseline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "    \n        payload = json.loads(capsys.readouterr().out)\n        errors = _stage_errors(payload, \"plan_lock\")\n        assert exit_code == 1\n>       assert [error[\"code\"] for error in errors] == [\n            ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.value\n        ]\nE       AssertionError: assert ['E701', 'E700'] == ['E701']\nE         \nE         Left contains one more item: 'E700'\nE         Use -v to get more diff\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_verify_handoff_baseline_cmd.py:182: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_changed_scope.py::test_committed_conflicting_task_bases_are_ignored\nFAILED tests/core/test_changed_scope.py::test_worktree_changed_manifest_task_base_resolves\nFAILED tests/cli/test_verify_handoff_baseline_cmd.py::test_bare_handoff_gate_passes_on_clean_tree_with_stale_bases\nFAILED tests/cli/test_verify_handoff_baseline_cmd.py::test_bare_handoff_gate_scopes_to_worktree_during_task\nFAILED tests/cli/test_verify_handoff_baseline_cmd.py::test_integrity_errors_still_fire_on_clean_tree\n5 failed, 8 passed in 1.63s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "CLAUDE.md:attribute:documentation._handoff_gate_baseline_workflow_note",
+      "CLAUDE.md:attribute:documentation._handoff_gate_baseline_workflow_note:kind=attribute",
+      "CLAUDE.md:attribute:documentation._handoff_gate_baseline_workflow_note:of=documentation",
+      "CLAUDE.md:attribute:documentation._handoff_gate_baseline_workflow_note:type=markdown section",
+      "docs/maid_specs.md:attribute:documentation._metadata_baseline_resolution_spec",
+      "docs/maid_specs.md:attribute:documentation._metadata_baseline_resolution_spec:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._metadata_baseline_resolution_spec:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._metadata_baseline_resolution_spec:type=markdown section",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline:arg=base_ref:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline:arg=since:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline:kind=function",
+      "maid_runner/core/worktree.py:function:resolve_changed_scope_baseline:returns=ChangedScopeBaseline",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_bare_handoff_gate_passes_on_clean_tree_with_stale_bases",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_bare_handoff_gate_passes_on_clean_tree_with_stale_bases:kind=test_function",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_bare_handoff_gate_scopes_to_worktree_during_task",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_bare_handoff_gate_scopes_to_worktree_during_task:kind=test_function",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_integrity_errors_still_fire_on_clean_tree",
+      "tests/cli/test_verify_handoff_baseline_cmd.py:test_integrity_errors_still_fire_on_clean_tree:kind=test_function",
+      "tests/core/test_changed_scope.py:test_committed_conflicting_task_bases_are_ignored",
+      "tests/core/test_changed_scope.py:test_committed_conflicting_task_bases_are_ignored:kind=test_function",
+      "tests/core/test_changed_scope.py:test_conflicting_worktree_changed_task_bases_fail_invalid",
+      "tests/core/test_changed_scope.py:test_conflicting_worktree_changed_task_bases_fail_invalid:kind=test_function",
+      "tests/core/test_changed_scope.py:test_worktree_changed_manifest_task_base_resolves",
+      "tests/core/test_changed_scope.py:test_worktree_changed_manifest_task_base_resolves:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_verify_handoff_baseline_cmd.py",
+      "tests/core/test_changed_scope.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_changed_scope.py tests/cli/test_verify_handoff_baseline_cmd.py",
+      "uv run maid validate manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

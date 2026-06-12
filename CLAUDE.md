@@ -80,6 +80,15 @@ unreadable, or malformed, and E707 RED_EVIDENCE_COMMAND_MISMATCH applies when
 a lock's red-phase evidence command strings do not match the validate-command
 snapshot recorded at lock save time (spliced or hand-edited evidence).
 
+The gate resolves its task window from worktree-changed manifests:
+`metadata.maid_task_base` counts only when the declaring manifest itself has
+uncommitted changes, so stale baselines in committed historical manifests
+never poison resolution. On a clean tree the plan-lock stage passes with an
+empty task window (integrity errors still apply). While a task is in flight,
+pass `--base-ref <integration-branch>` (or `--since <commit>`) so the
+changed-scope stage also has its baseline; without a baseline the gate falls
+back to worktree changed files for plan-lock scoping only.
+
 ## MAID Skills Workflow
 
 When MAID skills are available, use them as the primary workflow:
