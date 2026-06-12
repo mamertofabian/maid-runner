@@ -57,8 +57,15 @@ instead of relying on private memory.
 
 For planning:
 
-- Run `maid learn` before `maid recall` when the Outcome index is missing or stale.
-- Review recalled Outcome lessons before drafting a new manifest.
+- Run `maid learn` before `maid recall` when the Outcome index is stale.
+- If the Outcome index is missing, run `maid learn` once. If no index is
+  created because no completed Outcome records exist, state that no advisory
+  history is available and skip recall.
+- `maid recall --for-manifest <draft>` is allowed only as a query builder for
+  related completed Outcome records; do not expect an unimplemented draft to
+  have its own Outcome record.
+- Review recalled Outcome lessons before drafting a new manifest when recall
+  results are available.
 - Use `maid insights` only as aggregate evidence for recurring lessons, not as
   generated narrative authority.
 - Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.

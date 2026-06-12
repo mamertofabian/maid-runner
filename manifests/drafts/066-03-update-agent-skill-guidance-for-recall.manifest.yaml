@@ -16,7 +16,8 @@ description: |
   Documentation child. Update the repo-local and distributed Claude and Codex
   skill payloads so the MAID workflow consults related Outcomes by default:
 
-  - maid-planner recalls related Outcomes BEFORE drafting a new manifest.
+  - maid-planner recalls related completed Outcomes before drafting a new
+    manifest when a learned Outcome index exists.
   - maid-implementer consults related Outcomes when choosing test and code
     patterns.
   - maid-implementation-review checks whether a completed manifest needs a
@@ -45,6 +46,11 @@ description: |
      fails by default, and the remedy is running `maid learn` (or, when a
      stale read is acceptable, passing `--allow-stale-index`); never to work
      around the failure another way.
+  5. Missing-index handling: the guidance must not imply that an unimplemented
+     draft should already have an Outcome record. Agents may run `maid learn`
+     once when `.maid/outcomes.json` is missing, but if no completed Outcome
+     records exist, they must report that no advisory history is available and
+     skip recall.
 
   Files touched mirror the 047-06 Outcome-guidance pattern: the repo-local
   Claude sources under `.claude/skills/`, the repo-local Codex copies under
@@ -92,7 +98,7 @@ files:
           name: _planner_manifest_recall_guidance
           of: skill
           type: markdown section
-          description: "Planner guidance to run `maid recall --for-manifest <path>` (and --plan-packet) on the draft before finalizing a new manifest."
+          description: "Planner guidance to use `maid recall --for-manifest <path>` (and --plan-packet) as an advisory query for related completed Outcomes when a learned index is available."
     - path: .claude/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
