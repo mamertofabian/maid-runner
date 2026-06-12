@@ -1,0 +1,311 @@
+schema: '2'
+goal: Cross-check red-evidence commands against the locked validate commands
+type: feature
+created: '2026-06-12T11:14:13Z'
+metadata:
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+  - validation-trust
+  - hardening
+  - anti-gaming
+  - plan-lock
+  - tdd-evidence
+  priority: high
+description: |
+  Implement the detection signal recorded in incident
+  20260611-133856-maid-runner-plan-lock-hand-edit: a plan lock whose
+  red_evidence command strings do not match the locked manifest's
+  validate commands is machine-detectable evidence splicing. In that
+  incident a lock was hand-edited during draft promotion and the spliced
+  red_evidence still referenced the deleted drafts/ path; a human
+  reviewer caught it only by noticing the path mismatch. 073-01 removed
+  the motive (promote now migrates locks), and this child adds the
+  detector so the same tampering fails closed instead of relying on
+  reviewer attention.
+
+  Decisions for the implementer. Do not redesign these:
+
+  1. Snapshot: `PlanLock.save` extends the existing `_manifest_contract`
+     payload with `validate_commands`, the locked manifest's validate
+     command strings in manifest order, captured from the manifest at
+     `lock.manifest_path` at save time. All sanctioned flows (`maid plan
+     lock`, `maid plan revise`, promote migration) save immediately
+     after evidence capture against the same manifest state, so honest
+     locks are always self-consistent.
+  2. Check: `enforce_plan_locks` gains an integrity check. For every
+     locked ACTIVE manifest whose lock has non-null red_evidence with a
+     commands list AND a contract snapshot containing
+     `validate_commands`, the multiset of
+     `red_evidence.commands[].command` strings must equal the snapshot's
+     `validate_commands`. A mismatch fails with the new error code.
+     Like E701/E702/E706, this is an integrity error: it is NEVER scoped
+     away by the task window and runs whenever either enforcement flag
+     (`--require-plan-lock` / `--require-red-evidence`) is on.
+  3. Error code: E707 RED_EVIDENCE_COMMAND_MISMATCH in
+     `maid_runner/core/result.py` `ErrorCode`. E700-E706 are taken;
+     verify E707 is still free at implementation time and take the next
+     free E7xx if not, recording the change here.
+  4. Legacy tolerance: locks whose contract snapshot lacks
+     `validate_commands` (every lock created before this child) skip the
+     check silently; they gain the field on their next sanctioned
+     re-save. Locks with `red_evidence: null` are out of this check's
+     scope (E704 owns that case).
+  5. Comparison is against the SNAPSHOT, not the current manifest.
+     Post-lock additive manifest edits (for example appending a test
+     file to a validate command, as 073-01 legally did) do not re-save
+     the lock and therefore still pass; contract shrinkage remains
+     E702's job. This check binds evidence to the validate commands that
+     produced it, nothing more.
+  6. Hardening-lane discipline (epic 067 decision 6): reproduce the
+     incident shape as an adversarial test — hand-splice evidence whose
+     command strings reference a drafts/ path into a lock whose snapshot
+     records the promoted commands, and prove the gate fails E707.
+
+  Constraint: tests/core/test_plan_lock_enforcement.py,
+  tests/core/test_plan_lock_scope_enforcement.py, and
+  tests/test_plan_lock_docs.py are hash-locked by the 067-05 plan lock.
+  All new tests and doc assertions go in the new test file; do not edit
+  those three files.
+
+  Documentation: docs/maid_specs.md extends the E7xx family table with
+  E707, and the CLAUDE.md plan-lock paragraph lists E707 among the
+  integrity errors that are never scoped away.
+
+  Promotion criteria: behavioral tests written and red, behavioral
+  validation passing against this draft path. Validate commands below
+  name planned test files; they exist only at promotion time.
+temptations:
+- risk: Do not compare evidence against the current manifest's validate commands.
+  instead: Compare against the validate_commands snapshot written at lock save time,
+    so legal post-lock additive manifest edits do not fail and only lock-record inconsistency
+    does.
+- risk: Do not fail legacy locks that predate the snapshot field.
+  instead: Skip the check when the contract snapshot lacks validate_commands; the
+    field appears on the next sanctioned re-save.
+- risk: Do not scope this check to the task window.
+  instead: 'Treat E707 like E701/E702/E706: evaluate every locked active manifest
+    regardless of changed_paths.'
+- risk: Do not edit the 067-05 hash-locked test files.
+  instead: Put all new enforcement tests and doc assertions in tests/core/test_plan_lock_evidence_integrity.py.
+files:
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: enforce_plan_locks
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: require_plan_lock
+        type: bool
+      - name: require_red_evidence
+        type: bool
+      - name: changed_paths
+        type: Collection[str] | None
+        default: None
+      returns: tuple[ValidationError, ...]
+      description: Additionally fails E707 when a lock's red_evidence command strings
+        do not match the validate_commands recorded in its contract snapshot; unscoped
+        like other integrity errors.
+    - kind: method
+      name: save
+      of: PlanLock
+      args:
+      - name: path
+        type: Path
+      returns: None
+      description: Writes validate_commands into the _manifest_contract snapshot alongside
+        artifacts and test_files.
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: RED_EVIDENCE_COMMAND_MISMATCH
+      of: ErrorCode
+      type: str
+      description: 'E707: red-phase evidence command strings do not match the locked
+        validate commands; indicates spliced or hand-edited evidence.'
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _e707_spec_section
+      of: documentation
+      type: markdown section
+      description: E7xx family documentation covering E707 semantics, snapshot comparison,
+        and legacy-lock tolerance.
+  - path: CLAUDE.md
+    artifacts:
+    - kind: attribute
+      name: _e707_workflow_note
+      of: documentation
+      type: markdown section
+      description: Plan-lock paragraph lists E707 among integrity errors that are
+        never scoped away.
+  create:
+  - path: tests/core/test_plan_lock_evidence_integrity.py
+    artifacts:
+    - kind: test_function
+      name: test_honest_lock_passes_evidence_command_check
+      source_scenario: A manifest is locked through maid plan lock and enforced without
+        modification.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E707 is reported for a lock whose evidence was captured from
+          the snapshotted validate commands.
+    - kind: test_function
+      name: test_spliced_draft_evidence_fails_e707
+      source_scenario: Evidence whose command strings reference the old drafts/ path
+        is hand-spliced into a lock whose snapshot records the promoted validate commands,
+        reproducing incident 20260611-133856.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: Enforcement fails with E707 naming the manifest, regardless of task-window
+          scope.
+    - kind: test_function
+      name: test_legacy_lock_without_snapshot_field_is_skipped
+      source_scenario: A pre-existing lock has a contract snapshot without validate_commands.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E707 is reported; the legacy lock is tolerated until its next
+          sanctioned re-save.
+    - kind: test_function
+      name: test_null_evidence_lock_is_not_checked_for_e707
+      source_scenario: A lock recorded with --no-run has red_evidence null.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E707 is not reported; missing evidence stays the domain of E704
+          under --require-red-evidence.
+    - kind: test_function
+      name: test_post_lock_additive_validate_edit_still_passes
+      source_scenario: After locking, the manifest's validate command gains an extra
+        test path without the lock being re-saved.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E707 is reported because the comparison binds evidence to the
+          snapshot, not the current manifest.
+    - kind: test_function
+      name: test_save_records_validate_commands_snapshot
+      source_scenario: A lock is saved for a manifest with validate commands.
+      actions:
+      - type: api_call
+        subject:
+          export: PlanLock
+      expected:
+        behavior: The persisted lock JSON's _manifest_contract contains validate_commands
+          matching the manifest's validate entries in order.
+    - kind: test_function
+      name: test_e707_docs_are_discoverable
+      source_scenario: A reader checks the specs and workflow docs for the E707 contract.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: docs/maid_specs.md documents E707 RED_EVIDENCE_COMMAND_MISMATCH
+          and CLAUDE.md lists it among unscoped integrity errors.
+  read:
+  - maid_runner/core/supersession_audit.py
+  - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+  - manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_plan_lock_evidence_integrity.py
+- uv run maid validate manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+  --mode behavioral --quiet
+- uv run maid validate manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+  --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-13T05:30:00Z"
+  summary: "PlanLock.save snapshots the manifest's validate command strings into _manifest_contract.validate_commands, and enforce_plan_locks fails E707 RED_EVIDENCE_COMMAND_MISMATCH when a lock's red-evidence command multiset does not match that snapshot. The check is an unscoped integrity error like E701/E702/E706, compares against the snapshot rather than the current manifest so post-lock additive validate edits stay legal, skips legacy locks without the snapshot field, and leaves null evidence to E704."
+  rationale: "Implements the detection signal from incident 20260611-133856: a hand-spliced lock whose red evidence still referenced the deleted drafts/ path was only caught by reviewer attention. 073-01 removed the motive by migrating locks on promotion; this child makes the same tampering machine-detectable and fail-closed. Snapshot comparison binds evidence to the commands that produced it without re-running anything, so default validation cost is one JSON key comparison per locked manifest."
+  lessons:
+    - lesson_type: workflow
+      summary: "Run make format on new behavioral test files before maid plan lock: black reformatting after the green phase changes the locked test hash and fails E701. Sanctioned recovery is to stash the implementation, run maid plan revise so recaptured red evidence is honestly red, then unstash; the resulting lock predates the validate_commands snapshot feature and is legacy-tolerated by its own E707 check until the next sanctioned re-save."
+      tags:
+        - plan-lock
+        - red-phase
+        - formatting
+      paths:
+        - .maid/plan-locks/067-06-cross-check-red-evidence-commands.lock.json
+        - tests/core/test_plan_lock_evidence_integrity.py
+    - lesson_type: design
+      summary: "Evidence-integrity checks should compare against state snapshotted at capture time, not current state: storing validate_commands in the lock's contract snapshot lets E707 catch spliced evidence while leaving legal post-lock additive manifest edits untouched, with contract shrinkage remaining E702's job."
+      tags:
+        - plan-lock
+        - anti-gaming
+        - snapshot-comparison
+      paths:
+        - maid_runner/core/plan_lock.py
+    - lesson_type: validation
+      summary: "Behavioral tests for a not-yet-existing ErrorCode member must reference the attribute inside test bodies, not at module level, so the red phase fails with exit 1 (test failures) instead of exit 2 (collection error), which red-evidence classification would reject as invalid."
+      tags:
+        - red-phase
+        - error-codes
+        - test-strategy
+      paths:
+        - tests/core/test_plan_lock_evidence_integrity.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready to merge with no required changes. P3 notes: deleting validate_commands from a lock snapshot bypasses E707 via the legacy-tolerance path (explicit manifest decision, closes as locks re-save); the lock JSON is read twice per manifest in enforce_plan_locks (negligible, private refactor candidate); non-dict entries in red_evidence.commands are filtered rather than treated as mismatches (malformed-lock territory adjacent to E706)."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock_evidence_integrity.py
+      status: passed
+      summary: "All 7 behavioral tests passed, including the adversarial spliced drafts/-path reproduction with an empty task window; the same suite failed 7/7 before implementation (valid red)."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Handoff gate passed with zero E7xx errors and genuine red:true evidence for 067-06; the bare gate without --since still storms E700/E704 due to the pre-existing baseline-resolution bug queued as 067-07."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2525 passed and 5 skipped, including the hash-locked plan-lock suites untouched per the 067-05 constraint."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed on the promoted path."
+    - command:
+        - make
+        - lint
+      status: passed
+      summary: "Ruff checks and black formatting passed."

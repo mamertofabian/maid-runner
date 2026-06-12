@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import shlex
+from collections import Counter
 from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -329,6 +330,16 @@ def enforce_plan_locks(
                     detail=weakening_detail,
                 )
             )
+        mismatch_detail = _red_evidence_command_mismatch_detail(lock_path, lock)
+        if mismatch_detail is not None:
+            errors.append(
+                _lock_error(
+                    ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH,
+                    manifest,
+                    root,
+                    detail=mismatch_detail,
+                )
+            )
 
         if in_scope and require_red_evidence:
             if lock.red_evidence is None:
@@ -444,6 +455,9 @@ def _manifest_contract(manifest: Manifest) -> dict:
     return {
         "artifacts": sorted(_artifact_declarations(manifest)),
         "test_files": sorted(_behavioral_test_paths(manifest)),
+        "validate_commands": [
+            shlex.join(command) for command in manifest.validate_commands
+        ],
     }
 
 
@@ -548,6 +562,36 @@ def _load_locked_contract(lock_path: Path) -> dict | None:
     return contract if isinstance(contract, dict) else None
 
 
+def _red_evidence_command_mismatch_detail(
+    lock_path: Path, lock: PlanLock
+) -> str | None:
+    """Detect spliced red evidence by comparing command strings.
+
+    Evidence is bound to the validate commands snapshotted into the lock at
+    save time, not to the current manifest: post-lock additive validate edits
+    stay legal. Locks without a snapshot field (created before the field
+    existed) and locks without command evidence are skipped.
+    """
+    evidence = lock.red_evidence
+    if not isinstance(evidence, dict):
+        return None
+    commands = evidence.get("commands")
+    if not isinstance(commands, list):
+        return None
+    contract = _load_locked_contract(lock_path)
+    if contract is None:
+        return None
+    snapshot = contract.get("validate_commands")
+    if not isinstance(snapshot, list):
+        return None
+    evidence_commands = [
+        command.get("command") for command in commands if isinstance(command, dict)
+    ]
+    if Counter(evidence_commands) != Counter(snapshot):
+        return "red evidence commands do not match the locked validate commands"
+    return None
+
+
 def _red_evidence_is_valid(evidence: dict) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
         return False
@@ -593,6 +637,10 @@ def _lock_error(
         ),
         ErrorCode.PLAN_LOCK_UNREADABLE: (
             "PLAN_LOCK_UNREADABLE: lock exists but cannot be loaded"
+        ),
+        ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH: (
+            "RED_EVIDENCE_COMMAND_MISMATCH: red-phase evidence command strings "
+            "do not match the locked validate commands"
         ),
     }
     message = messages[code]

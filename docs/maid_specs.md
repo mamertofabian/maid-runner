@@ -107,10 +107,25 @@ RED_PHASE_EVIDENCE_INVALID apply to active manifests whose manifest file
 changed in the verify run. E704 also applies when an in-scope manifest has no plan lock
 under `--require-red-evidence`. Integrity errors apply regardless of task window
 scope: E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK apply to every locked active manifest,
-E703 PLAN_LOCK_STALE applies when a lock references a missing manifest, and
+E703 PLAN_LOCK_STALE applies when a lock references a missing manifest,
 E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
-unreadable, or malformed. E702 applies when declared artifacts or behavioral test entries
-shrink relative to the locked manifest; additive manifest changes are legal.
+unreadable, or malformed, and E707 RED_EVIDENCE_COMMAND_MISMATCH applies when
+a lock's red-phase evidence command strings do not match the `validate_commands`
+snapshot recorded in the lock's manifest contract. E702 applies when declared
+artifacts or behavioral test entries shrink relative to the locked manifest;
+additive manifest changes are legal.
+
+E707 binds red-phase evidence to the validate commands that produced it.
+Sanctioned flows (`maid plan lock`, `maid plan revise`, and the promote
+migration) snapshot the manifest's validate command strings into the lock's
+`_manifest_contract.validate_commands` at save time, so honest locks are
+self-consistent. A lock whose `red_evidence` command multiset differs from
+that snapshot is spliced or hand-edited evidence and fails closed. The
+comparison targets the snapshot, not the current manifest: post-lock additive
+validate edits remain legal, and contract shrinkage stays E702's job. Locks
+created before the snapshot field existed skip the check until their next
+sanctioned re-save, and locks with `red_evidence: null` are owned by E704
+instead.
 
 -----
 

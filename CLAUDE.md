@@ -75,8 +75,10 @@ applies when an in-scope manifest has no plan lock under
 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702
 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK apply to every locked active manifest,
 E703 PLAN_LOCK_STALE applies to lock files that reference missing manifests,
-and E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
-unreadable, or malformed.
+E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
+unreadable, or malformed, and E707 RED_EVIDENCE_COMMAND_MISMATCH applies when
+a lock's red-phase evidence command strings do not match the validate-command
+snapshot recorded at lock save time (spliced or hand-edited evidence).
 
 ## MAID Skills Workflow
 

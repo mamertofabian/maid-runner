@@ -1,0 +1,97 @@
+{
+  "manifest_path": "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+  "manifest_hash": "sha256:f27ee44f44fc2bea040b5df26e4dabc5dc9f24f2454d4ba95c7e0454db5182b9",
+  "test_hashes": {
+    "tests/core/test_plan_lock_evidence_integrity.py": "sha256:206b8419f63b0e4fca3d70198b73ea27fdee58198d2f671d64e7fc36e176b36c"
+  },
+  "created_at": "2026-06-12T11:13:55.449277+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:df4877012ab6495d46edba4af3c420d279a94d4dc3874182587a9113e8e416e5",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256:48867b2f07a4f024dd415783fdb73583d1c3e72a8ce74ef09d7734698f5a569f"
+      },
+      "revised_at": "2026-06-12T11:14:13.566860+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/067-06-cross-check-red-evidence-commands.manifest.yaml -> manifests/067-06-cross-check-red-evidence-commands.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:f27ee44f44fc2bea040b5df26e4dabc5dc9f24f2454d4ba95c7e0454db5182b9",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256:48867b2f07a4f024dd415783fdb73583d1c3e72a8ce74ef09d7734698f5a569f"
+      },
+      "revised_at": "2026-06-12T11:20:36.332675+00:00",
+      "reason": "Re-baseline behavioral test hashes after black formatting; red evidence recaptured with implementation stashed"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-12T11:20:38.551043+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_evidence_integrity.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_e707_docs_are_discoverable() -> None:\n        root = Path(__file__).resolve().parents[2]\n    \n        specs_text = (root / \"docs\" / \"maid_specs.md\").read_text()\n        claude_text = (root / \"CLAUDE.md\").read_text()\n    \n>       assert \"E707\" in specs_text\nE       AssertionError: assert 'E707' in '### **MAID: The Manifest-driven AI Development Methodology**\\n\\n**Version:** 1.3\\n**Date:** October 30, 2025\\n\\n#### ...llows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.\\n'\n\ntests/core/test_plan_lock_evidence_integrity.py:224: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_honest_lock_passes_evidence_command_check\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_spliced_draft_evidence_fails_e707\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_legacy_lock_without_snapshot_field_is_skipped\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_null_evidence_lock_is_not_checked_for_e707\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_post_lock_additive_validate_edit_still_passes\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_save_records_validate_commands_snapshot\nFAILED tests/core/test_plan_lock_evidence_integrity.py::test_e707_docs_are_discoverable\n7 failed in 0.16s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-06-cross-check-red-evidence-commands.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-06-cross-check-red-evidence-commands.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "CLAUDE.md:attribute:documentation._e707_workflow_note",
+      "CLAUDE.md:attribute:documentation._e707_workflow_note:kind=attribute",
+      "CLAUDE.md:attribute:documentation._e707_workflow_note:of=documentation",
+      "CLAUDE.md:attribute:documentation._e707_workflow_note:type=markdown section",
+      "docs/maid_specs.md:attribute:documentation._e707_spec_section",
+      "docs/maid_specs.md:attribute:documentation._e707_spec_section:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._e707_spec_section:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._e707_spec_section:type=markdown section",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "maid_runner/core/plan_lock.py:method:PlanLock.save",
+      "maid_runner/core/plan_lock.py:method:PlanLock.save:arg=path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:method:PlanLock.save:kind=method",
+      "maid_runner/core/plan_lock.py:method:PlanLock.save:of=PlanLock",
+      "maid_runner/core/plan_lock.py:method:PlanLock.save:returns=None",
+      "maid_runner/core/result.py:attribute:ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH",
+      "maid_runner/core/result.py:attribute:ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.RED_EVIDENCE_COMMAND_MISMATCH:type=str",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_e707_docs_are_discoverable",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_e707_docs_are_discoverable:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_honest_lock_passes_evidence_command_check",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_honest_lock_passes_evidence_command_check:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_legacy_lock_without_snapshot_field_is_skipped",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_legacy_lock_without_snapshot_field_is_skipped:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_null_evidence_lock_is_not_checked_for_e707",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_null_evidence_lock_is_not_checked_for_e707:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_post_lock_additive_validate_edit_still_passes",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_post_lock_additive_validate_edit_still_passes:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_save_records_validate_commands_snapshot",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_save_records_validate_commands_snapshot:kind=test_function",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_spliced_draft_evidence_fails_e707",
+      "tests/core/test_plan_lock_evidence_integrity.py:test_spliced_draft_evidence_fails_e707:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_plan_lock_evidence_integrity.py"
+    ]
+  }
+}
