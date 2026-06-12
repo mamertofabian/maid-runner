@@ -1,0 +1,160 @@
+schema: "2"
+goal: "Preserve multiline manifest strings as literal blocks when promote rewrites YAML"
+type: fix
+created: "2026-06-13T07:10:00Z"
+metadata:
+  tags:
+    - manifest-promotion
+    - yaml-formatting
+    - developer-experience
+description: |
+  `maid manifest promote` rewrites the promoted manifest with PyYAML's
+  default emitter, which serializes multiline strings (most visibly
+  `description:`) as escaped double-quoted scalars full of `\n` escapes
+  and trailing-backslash line continuations, and turns non-ASCII
+  characters such as em dashes into `\uXXXX` escapes. The content
+  survives a YAML round trip, but the promoted file is unreadable and
+  un-reviewable, and both 067-06 and 067-07 needed manual post-promotion
+  reformatting.
+
+  Fix: dump through a manifest-specific SafeDumper that renders any
+  string containing a newline as a literal block scalar (`|`), emits
+  unicode characters literally (`allow_unicode`), and uses a wide
+  emitter width so long single-line strings are not wrapped with
+  backslash continuations. Strings that literal style cannot represent
+  exactly (for example lines with trailing whitespace) keep PyYAML's
+  quoted fallback so content is never altered. The helper is private
+  and is used by the promote and create file-write paths in
+  maid_runner/cli/commands/manifest.py.
+
+  Out of scope: `maid manifest from-diff` writes drafts through
+  maid_runner/core/manifest_from_diff.py with its own safe_dump call;
+  aligning it is follow-up work, not part of this fix.
+
+  Constraint: tests/cli/test_manifest_promote_lock_cmd.py and
+  tests/cli/test_manifest_cmd.py are hash-locked by the 073-01 plan
+  lock. All new tests go in the new test file.
+temptations:
+  - risk: "Do not normalize or strip string content to force literal style."
+    instead: "Request literal style and let PyYAML fall back to a quoted scalar when the content cannot be represented exactly; formatting may degrade but content never changes."
+  - risk: "Do not edit the 073-01 hash-locked promote test files."
+    instead: "Put all new YAML-style tests in tests/cli/test_manifest_promote_yaml_style_cmd.py."
+  - risk: "Do not rewrite the from-diff draft writer in this fix."
+    instead: "Keep the change scoped to the manifest.py dump sites; record from-diff alignment as follow-up."
+files:
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Promote (and create) write manifest YAML through a literal-block-preserving dumper: multiline strings render as block scalars, unicode stays literal, and long single-line strings are not backslash-wrapped."
+  create:
+    - path: tests/cli/test_manifest_promote_yaml_style_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_promote_renders_multiline_description_as_literal_block
+          source_scenario: "A draft with a multiline description containing an em dash is promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The promoted file renders the description as a literal block scalar with no escaped newlines and the em dash appears literally."
+        - kind: test_function
+          name: test_promote_round_trips_multiline_description_content
+          source_scenario: "A draft with a multiline description is promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The promoted manifest parses back with the description byte-identical to the draft's."
+        - kind: test_function
+          name: test_promote_does_not_wrap_long_strings_with_backslashes
+          source_scenario: "A draft with a long single-line temptation string that requires quoting is promoted."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "No line in the promoted file ends with a backslash continuation and the string parses back identical."
+  read:
+    - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_manifest_promote_yaml_style_cmd.py
+  - uv run maid validate manifests/fix-promote-multiline-yaml-style.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/fix-promote-multiline-yaml-style.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-13T07:55:00Z"
+  summary: "maid manifest promote and maid manifest create write manifest YAML through a private literal-block-preserving SafeDumper: strings containing newlines render as literal block scalars, unicode characters stay literal via allow_unicode, and a wide emitter width keeps long single-line strings from being wrapped with backslash continuations. Strings literal style cannot represent exactly keep PyYAML's quoted fallback, so content is never altered for formatting."
+  rationale: "Promote rewrote drafts with PyYAML's default emitter, which serialized multiline descriptions as escaped double-quoted scalars full of backslash-n markers, backslash line continuations, and uXXXX escapes for em dashes. Content survived the round trip but promoted manifests were unreadable and both 067-06 and 067-07 required manual post-promotion reformatting. Fixing the dumper at the manifest.py write sites removes the manual step; the from-diff draft writer in manifest_from_diff.py has its own safe_dump call and is recorded as follow-up rather than expanding this fix's scope."
+  lessons:
+    - lesson_type: design
+      summary: "When machine-rewriting human-authored files, the emitter must preserve authoring style for human-significant fields: request literal block style for multiline strings and let the emitter fall back to quoting when the content cannot be represented exactly, rather than normalizing content to fit the preferred style."
+      tags:
+        - yaml-formatting
+        - manifest-promotion
+        - content-fidelity
+      paths:
+        - maid_runner/cli/commands/manifest.py
+    - lesson_type: validation
+      summary: "A round-trip-equality test alone would have passed before the fix because PyYAML's escaped output still parses back identically; the behavioral contract needed rendering-style assertions (literal block marker present, no escaped newlines, no backslash line continuations) alongside the content-equality pin."
+      tags:
+        - behavioral-tests
+        - yaml-formatting
+        - test-strategy
+      paths:
+        - tests/cli/test_manifest_promote_yaml_style_cmd.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready to merge. Reviewer independently stress-tested the dumper (trailing-whitespace lines, missing final newline, leading spaces, tabs, control characters, CRLF, multiline dict keys, 5000-char lines): every case round-trips byte-identically and PyYAML falls back to quoted scalars whenever literal style cannot represent the content, so invalid YAML cannot be emitted; the per-call dumper subclass never mutates the global SafeDumper registry. P2 follow-up (not a blocker): write_text at the create/promote sites uses locale-default encoding, and with allow_unicode a non-UTF-8 locale would fail loud at promote time; an explicit utf-8 encoding belongs on both the write and read sides, and the read side lives in core/manifest.py outside this manifest's scope — record alongside the from-diff writer alignment."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_manifest_promote_yaml_style_cmd.py
+      status: passed
+      summary: "All 3 behavioral tests passed; the two rendering-style tests failed pre-implementation (valid red) and the content round-trip pin was green throughout."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed with 2534 passed and 5 skipped, including the 073-01 hash-locked promote suites untouched."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Handoff gate passed all stages with genuine red:true evidence for this manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed."
+    - command:
+        - make
+        - lint
+      status: passed
+      summary: "Ruff checks and black formatting passed."

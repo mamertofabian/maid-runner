@@ -29,6 +29,38 @@ def cmd_manifest(args: argparse.Namespace) -> int:
     return 2
 
 
+def _dump_manifest_yaml(data: dict) -> str:
+    """Render manifest YAML with human-reviewable string styles.
+
+    Multiline strings (descriptions, summaries) render as literal block
+    scalars instead of escaped double-quoted scalars, unicode characters
+    stay literal, and the wide emitter width keeps long single-line
+    strings from being wrapped with backslash continuations. PyYAML falls
+    back to a quoted scalar when literal style cannot represent a string
+    exactly (for example trailing whitespace on a line), so content is
+    never altered for the sake of formatting.
+    """
+    import yaml
+
+    class _ManifestYamlDumper(yaml.SafeDumper):
+        pass
+
+    def _represent_str(dumper: yaml.SafeDumper, value: str):
+        if "\n" in value:
+            return dumper.represent_scalar("tag:yaml.org,2002:str", value, style="|")
+        return dumper.represent_scalar("tag:yaml.org,2002:str", value)
+
+    _ManifestYamlDumper.add_representer(str, _represent_str)
+    return yaml.dump(
+        data,
+        Dumper=_ManifestYamlDumper,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+        width=4096,
+    )
+
+
 def _cmd_create(args: argparse.Namespace) -> int:
     from maid_runner.core.types import (
         ArtifactKind,
@@ -100,11 +132,7 @@ def _cmd_create(args: argparse.Namespace) -> int:
             print_error(f"Manifest already exists: {output_path}")
             return 2
 
-        import yaml
-
-        output_path.write_text(
-            yaml.dump(data, default_flow_style=False, sort_keys=False)
-        )
+        output_path.write_text(_dump_manifest_yaml(data))
         if args.json:
             print(json.dumps({"path": str(output_path)}, indent=2))
         else:
@@ -121,8 +149,6 @@ def _cmd_create(args: argparse.Namespace) -> int:
 
 
 def _cmd_promote(args: argparse.Namespace) -> int:
-    import yaml
-
     from maid_runner.core.manifest import (
         ManifestLoadError,
         load_manifest_raw,
@@ -172,7 +198,7 @@ def _cmd_promote(args: argparse.Namespace) -> int:
     data["created"] = _current_utc_timestamp()
     _clear_inactive_metadata_status(data)
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+    output_path.write_text(_dump_manifest_yaml(data))
 
     if lock_state is not None:
         lock, lock_path = lock_state
