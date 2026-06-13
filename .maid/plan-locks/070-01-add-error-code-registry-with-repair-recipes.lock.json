@@ -1,0 +1,115 @@
+{
+  "manifest_path": "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
+  "manifest_hash": "sha256:630603bcdf2eb00d499936d7c2aace00a764c944284b5055c3fea4230e0303ce",
+  "test_hashes": {
+    "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd"
+  },
+  "created_at": "2026-06-13T21:43:28.711525+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:486873f27c854af1f27084a31f5c96caacfd6f55a9e86dac37b41c616e36a8fa",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:05d69ac454f967f9bd20d9493cfbbc7b19575cd9d349f740cd5b8bb8d76e5ff9"
+      },
+      "revised_at": "2026-06-13T21:51:05.763917+00:00",
+      "reason": "refresh red evidence after severity coverage test"
+    },
+    {
+      "prior_manifest_hash": "sha256:486873f27c854af1f27084a31f5c96caacfd6f55a9e86dac37b41c616e36a8fa",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd"
+      },
+      "revised_at": "2026-06-13T22:14:31.216049+00:00",
+      "reason": "record implementation outcome"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-13T22:14:33.471371+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_diagnostics_registry.py",
+        "exit_code": 1,
+        "output_tail": "\ntests/core/test_diagnostics_registry.py:139: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\ncode = 'E303'\n\n    def get_rule(code: str) -> DiagnosticRule:\n>       raise KeyError(f\"Unknown diagnostic code: {code}\")\nE       KeyError: 'Unknown diagnostic code: E303'\n\nmaid_runner/core/diagnostics_registry.py:26: KeyError\n=========================== short test summary info ============================\nFAILED tests/core/test_diagnostics_registry.py::test_all_rules_cover_every_error_code_with_rule_metadata\nFAILED tests/core/test_diagnostics_registry.py::test_default_severity_matches_current_non_error_emitters\nFAILED tests/core/test_diagnostics_registry.py::test_type_mismatch_help_uri_does_not_point_to_signature_mismatch\nFAILED tests/core/test_diagnostics_registry.py::test_pinned_codes_have_structured_repair_recipes\nFAILED tests/core/test_diagnostics_registry.py::test_recipe_templates_render_with_actual_diagnostic_values\nFAILED tests/core/test_diagnostics_registry.py::test_codes_without_recipes_render_next_action_as_none\nFAILED tests/core/test_diagnostics_registry.py::test_implementation_failure_recipes_do_not_first_edit_tests_or_manifest\n7 failed, 1 passed in 0.11s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.code",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.code:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.code:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.code:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.default_severity",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.default_severity:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.default_severity:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.default_severity:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.description",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.description:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.description:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.description:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.help_uri",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.help_uri:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.help_uri:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.help_uri:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.next_action",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.next_action:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.next_action:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.next_action:type=RepairRecipe | None",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.short_description",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.short_description:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.short_description:of=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.short_description:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.instruction",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.instruction:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.instruction:of=RepairRecipe",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.instruction:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.kind",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.kind:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.kind:of=RepairRecipe",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.kind:type=str",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.target",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.target:kind=attribute",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.target:of=RepairRecipe",
+      "maid_runner/core/diagnostics_registry.py:attribute:RepairRecipe.target:type=str",
+      "maid_runner/core/diagnostics_registry.py:class:DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:class:DiagnosticRule:kind=class",
+      "maid_runner/core/diagnostics_registry.py:class:RepairRecipe",
+      "maid_runner/core/diagnostics_registry.py:class:RepairRecipe:kind=class",
+      "maid_runner/core/diagnostics_registry.py:function:all_rules",
+      "maid_runner/core/diagnostics_registry.py:function:all_rules:kind=function",
+      "maid_runner/core/diagnostics_registry.py:function:all_rules:returns=tuple[DiagnosticRule, ...]",
+      "maid_runner/core/diagnostics_registry.py:function:get_rule",
+      "maid_runner/core/diagnostics_registry.py:function:get_rule:arg=code:type=str:default=None",
+      "maid_runner/core/diagnostics_registry.py:function:get_rule:kind=function",
+      "maid_runner/core/diagnostics_registry.py:function:get_rule:returns=DiagnosticRule",
+      "maid_runner/core/diagnostics_registry.py:function:render_next_action",
+      "maid_runner/core/diagnostics_registry.py:function:render_next_action:arg=code:type=str:default=None",
+      "maid_runner/core/diagnostics_registry.py:function:render_next_action:arg=values:type=dict[str, str]:default=None",
+      "maid_runner/core/diagnostics_registry.py:function:render_next_action:kind=function",
+      "maid_runner/core/diagnostics_registry.py:function:render_next_action:returns=dict | None"
+    ],
+    "test_files": [
+      "tests/core/test_diagnostics_registry.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_diagnostics_registry.py",
+      "uv run maid validate manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
