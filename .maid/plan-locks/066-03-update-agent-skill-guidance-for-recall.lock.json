@@ -1,0 +1,95 @@
+{
+  "manifest_path": "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+  "manifest_hash": "sha256:12978858014cd676abde0473c863a62b1907250a1e9f1a71a912b474f301bf07",
+  "test_hashes": {
+    "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757"
+  },
+  "created_at": "2026-06-13T12:49:49.742134+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:0cd69189853135d8d6086c21cb498ebc54a38792f4f75fff4b70c54d7c65f50e",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:124520b958cb1c498a89d1c627db05dd7bb3666f0d8967103cc435055992cdc0"
+      },
+      "revised_at": "2026-06-13T12:55:39.495106+00:00",
+      "reason": "Refresh lock after review fixes to skill guidance tests and downstream scope."
+    },
+    {
+      "prior_manifest_hash": "sha256:d6ccf5a596b00f61f7ecb16077609fc48c2c79f701ea83cc613b7ad62050a125",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757"
+      },
+      "revised_at": "2026-06-13T12:58:44.632316+00:00",
+      "reason": "Refresh lock after adding completed Outcome record."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-13T12:58:44.886228+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_recall_skill_guidance.py",
+        "exit_code": 1,
+        "output_tail": "    ):\n        synced_workspace = _sync_distribution(tmp_path)\n    \n        for role, skill_paths in LOCAL_ROLE_SKILLS.items():\n            claude_source_path, codex_path = skill_paths\n            distributed_path = CLAUDE_DISTRIBUTED_SKILLS[role]\n            source_text = _read(claude_source_path)\n            codex_text = _read(codex_path)\n            distributed_text = _read(distributed_path, root=synced_workspace)\n    \n            anchor = ROLE_ANCHORS[role]\n>           assert anchor in source_text\nE           AssertionError: assert 'Manifest-Derived Outcome Recall' in '---\\nname: maid-planner\\ndescription: Plan a coding task as a machine-checkable MAID manifest instead of free-form ma..., unless the user explicitly chooses a no-run lock with\\n`maid plan lock --no-run` and accepts `red_evidence: null`.\\n'\n\ntests/test_recall_skill_guidance.py:149: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_recall_skill_guidance.py::test_manifest_recall_guidance_role_matrix_is_specific\nFAILED tests/test_recall_skill_guidance.py::test_manifest_recall_guidance_keeps_exact_command_surface\nFAILED tests/test_recall_skill_guidance.py::test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills\n3 failed in 0.08s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._implementation_review_outcome_record_check",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._implementation_review_outcome_record_check:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._implementation_review_outcome_record_check:of=skill",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._implementation_review_outcome_record_check:type=markdown section",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_manifest_recall_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_manifest_recall_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_manifest_recall_guidance:of=skill",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_manifest_recall_guidance:type=markdown section",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_manifest_recall_guidance",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_manifest_recall_guidance:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_manifest_recall_guidance:of=skill",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_manifest_recall_guidance:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_implementation_review_outcome_record_check",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_implementation_review_outcome_record_check:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_implementation_review_outcome_record_check:of=skill",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_implementation_review_outcome_record_check:type=markdown section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_manifest_recall_guidance",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_manifest_recall_guidance:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_manifest_recall_guidance:of=skill",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_manifest_recall_guidance:type=markdown section",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_manifest_recall_guidance",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_manifest_recall_guidance:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_manifest_recall_guidance:of=skill",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_manifest_recall_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_implementation_review_outcome_record_check",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_implementation_review_outcome_record_check:kind=attribute",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_implementation_review_outcome_record_check:of=skill",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_implementation_review_outcome_record_check:type=markdown section",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_manifest_recall_guidance",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_manifest_recall_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_manifest_recall_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_manifest_recall_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_manifest_recall_guidance",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_manifest_recall_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_manifest_recall_guidance:of=skill",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_manifest_recall_guidance:type=markdown section",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills:arg=tmp_path:type=Path:default=None",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills:kind=test_function",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills:returns=None",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_keeps_exact_command_surface",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_keeps_exact_command_surface:kind=test_function",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_keeps_exact_command_surface:returns=None",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_role_matrix_is_specific",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_role_matrix_is_specific:kind=test_function",
+      "tests/test_recall_skill_guidance.py:test_manifest_recall_guidance_role_matrix_is_specific:returns=None"
+    ],
+    "test_files": [
+      "tests/test_recall_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_recall_skill_guidance.py"
+    ]
+  }
+}

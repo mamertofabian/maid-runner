@@ -70,6 +70,28 @@ For planning:
   generated narrative authority.
 - Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.
 
+### Manifest-Derived Outcome Recall
+
+Before drafting an implementation-ready manifest, consult related completed
+Outcome records when a learned Outcome index is available:
+
+```bash
+maid recall --for-manifest <path>
+maid recall --for-manifest <path> --plan-packet
+```
+
+If the index is stale, the stale index fails by default. The remedy is to run
+`maid learn`, or pass `--allow-stale-index` only when a stale advisory read is
+acceptable. If `.maid/outcomes.json` is missing, run `maid learn` once; if no
+completed Outcome records exist, report that no advisory history is available
+and skip recall. The manifest path may be an unimplemented draft, but recall is
+only a query for related completed Outcome records, not a lookup for the
+draft's own Outcome.
+
+Recalled Outcomes are planning evidence only. They do not replace the new
+manifest's behavioral tests, declared artifacts, validation commands, or
+implementation review.
+
 ## Phase 2 — Ask Clarifying Questions
 
 - Ask at most 5 questions in one round.

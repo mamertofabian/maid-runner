@@ -1,10 +1,9 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Update Claude and Codex MAID skill guidance to consult manifest-derived Outcome recall"
 type: feature
 created: "2026-06-10T06:03:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 066-00-outcome-recall-planning-integration.epic
   tags:
     - agent-skills
@@ -91,6 +90,26 @@ temptations:
   - risk: "Do not update source skill files while leaving package distribution copies stale."
     instead: "Update source-of-truth skill files and the generated distribution files via the sync script, with isolated-workspace parity tests."
 files:
+  create:
+    - path: tests/test_recall_skill_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_recall_guidance_role_matrix_is_specific
+          args: []
+          returns: None
+          description: "Behavioral coverage that planner, implementer, and implementation-review skills contain role-specific manifest-derived Outcome recall guidance."
+        - kind: test_function
+          name: test_manifest_recall_guidance_keeps_exact_command_surface
+          args: []
+          returns: None
+          description: "Behavioral coverage that skill guidance quotes the exact shipped recall command forms and stale-index remedy without inventing new CLI behavior."
+        - kind: test_function
+          name: test_manifest_recall_guidance_is_synced_across_local_and_distributed_skills
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage that Claude source, Codex local copies, and generated package skill payloads carry the same recall guidance anchors after sync."
   edit:
     - path: .claude/skills/maid-planner/SKILL.md
       artifacts:
@@ -159,9 +178,75 @@ files:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
     - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
     - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+    - manifests/drafts/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
     - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - scripts/sync_claude_files.py
     - docs/agent-skills.md
-    - tests/test_recall_skill_guidance.py
 validate:
   - uv run python -m pytest -q tests/test_recall_skill_guidance.py
+outcome:
+  status: completed
+  completed_at: "2026-06-13T12:58:09Z"
+  summary: "Promoted 066-03 and updated Claude/Codex MAID skill guidance to consult manifest-derived Outcome recall with exact supported commands."
+  rationale: "The skill text now quotes only `maid recall --for-manifest <path>` and `maid recall --for-manifest <path> --plan-packet`, keeps recall advisory, documents stale and missing index handling, and verifies source/generated guidance through focused tests and isolated payload sync."
+  lessons:
+    - lesson_type: testing
+      summary: "Tests for generated but gitignored agent payloads should assert tracked source files directly and assert generated copies only from an isolated sync workspace, so clean checkouts do not depend on ignored local files."
+      tags:
+        - agent-skills
+        - generated-payloads
+        - test-reproducibility
+      paths:
+        - tests/test_recall_skill_guidance.py
+        - scripts/sync_claude_files.py
+    - lesson_type: workflow
+      summary: "Promoting a draft that is referenced by downstream drafts and prior active manifests requires same-change stale-reference cleanup plus plan-lock refresh for any touched active manifests."
+      tags:
+        - draft-promotion
+        - plan-locks
+        - manifest-maintenance
+      paths:
+        - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+        - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
+        - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+        - manifests/drafts/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+  review_notes:
+    - source: Fermat
+      severity: warning
+      summary: "First read-only review found clean-checkout test fragility for ignored generated payloads, undeclared 066-04 downstream maintenance scope, and stale/missing plan locks for touched 066-01/066-02 manifests; all were fixed before final validation."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_recall_skill_guidance.py
+      status: passed
+      summary: "Focused recall skill guidance tests passed after review fixes."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test runner passed 85 declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Baseline-scoped handoff verification passed schema, behavioral, coherence, file tracking, plan lock, worktree scope, changed scope, and tests."

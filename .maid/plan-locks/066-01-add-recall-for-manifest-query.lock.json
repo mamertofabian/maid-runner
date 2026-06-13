@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/066-01-add-recall-for-manifest-query.manifest.yaml",
-  "manifest_hash": "sha256:b9cc434319f1b7c5e4e1c3ed69fcb4c40d1a89d469bfcfd99a0570f4abe8f718",
+  "manifest_hash": "sha256:0368f411279c845f928ebae3668f8341098a68f19f09991cbb0e0feb39d8b271",
   "test_hashes": {
     "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
     "tests/cli/test_recall_for_manifest_cmd.py": "sha256:25a64f2e63c00c2cf1cc0a33701a687ae58ff2561901f27e65f89b4edbdcd6d2"
   },
   "created_at": "2026-06-10T13:46:29.020334+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:02d93f664179a382f7d0cce56d05aaaadffa848a97de8b11e980da12535fbc27",
@@ -88,17 +88,26 @@
       },
       "revised_at": "2026-06-11T14:27:03.464897+00:00",
       "reason": "Acknowledge the 066-02 draft promotion path change (manifests/drafts/066-02 -> manifests/066-02) committed in 799e658; the locked files entry moved with the promoted manifest and tripped E702. Post-implementation revision; no contract content changed."
+    },
+    {
+      "prior_manifest_hash": "sha256:b9cc434319f1b7c5e4e1c3ed69fcb4c40d1a89d469bfcfd99a0570f4abe8f718",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_recall_query.py": "sha256:b72ebe5478496cc0552f1537768cd182f43b119f8d8eaa5da8433446663c4d04",
+        "tests/cli/test_recall_for_manifest_cmd.py": "sha256:25a64f2e63c00c2cf1cc0a33701a687ae58ff2561901f27e65f89b4edbdcd6d2"
+      },
+      "revised_at": "2026-06-13T12:54:48.484945+00:00",
+      "reason": "Refresh lock after 066-03 promotion reference maintenance."
     }
   ],
   "red_evidence": {
-    "red": false,
-    "captured_at": "2026-06-11T14:27:03.747240+00:00",
+    "red": true,
+    "captured_at": "2026-06-13T12:54:48.842581+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/core/test_manifest_recall_query.py tests/cli/test_recall_for_manifest_cmd.py",
-        "exit_code": 0,
-        "output_tail": "...........                                                              [100%]\n11 passed in 0.12s",
-        "classification": "not_red"
+        "exit_code": 1,
+        "output_tail": "            cmd_recall(_args(index_path, for_manifest=str(bad_manifest), json_mode=True))\n            == 2\n        )\n        payload = json.loads(capsys.readouterr().out)\n>       assert str(bad_manifest) in payload[\"error\"]\nE       AssertionError: assert '/tmp/pytest-of-atomrem/pytest-12/test_cmd_recall_for_manifest_r2/bad.manifest.json' in 'temporary red evidence capture'\nE        +  where '/tmp/pytest-of-atomrem/pytest-12/test_cmd_recall_for_manifest_r2/bad.manifest.json' = str(PosixPath('/tmp/pytest-of-atomrem/pytest-12/test_cmd_recall_for_manifest_r2/bad.manifest.json'))\n\ntests/cli/test_recall_for_manifest_cmd.py:208: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_extracts_traceable_manifest_signals\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_rejects_manifest_without_query_signals\nFAILED tests/core/test_manifest_recall_query.py::test_derive_recall_query_resolves_relative_manifest_under_project_root\nFAILED tests/core/test_manifest_recall_query.py::test_manifest_derived_query_reuses_existing_recall_tie_breakers\nFAILED tests/core/test_manifest_recall_query.py::test_manifest_derived_query_returns_no_matches_for_empty_index\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_outputs_derived_signals_and_matches\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_preserves_stale_index_failure\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_reports_missing_and_empty_derivations\nFAILED tests/cli/test_recall_for_manifest_cmd.py::test_cmd_recall_for_manifest_reports_json_parse_errors_with_path\n9 failed, 2 passed in 0.17s",
+        "classification": "red"
       }
     ]
   },
@@ -152,14 +161,17 @@
       "manifests/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:kind=attribute",
       "manifests/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:of=manifest",
       "manifests/066-02-add-planning-recall-summary-output.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:type=yaml read reference",
-      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest",
-      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:kind=attribute",
-      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:of=manifest",
-      "manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:type=yaml read reference"
+      "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest",
+      "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:kind=attribute",
+      "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:of=manifest",
+      "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml:attribute:manifest._reads_active_066_01_manifest:type=yaml read reference"
     ],
     "test_files": [
       "tests/cli/test_recall_for_manifest_cmd.py",
       "tests/core/test_manifest_recall_query.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_manifest_recall_query.py tests/cli/test_recall_for_manifest_cmd.py"
     ]
   }
 }

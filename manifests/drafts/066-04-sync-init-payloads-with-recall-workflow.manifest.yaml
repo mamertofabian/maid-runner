@@ -157,7 +157,7 @@ files:
           description: "Package data covers the newly packaged Codex workflow skill files and agent metadata."
   read:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
-    - manifests/drafts/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+    - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
     - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
     - maid_runner/cli/commands/init.py

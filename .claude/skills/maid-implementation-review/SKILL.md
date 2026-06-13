@@ -139,6 +139,27 @@ For implementation review:
 - Do not mark work ready if Outcome claims are not backed by validation and review evidence.
 - Outcome records do not replace behavioral tests, declared scope, validation, or review.
 
+### Manifest Outcome Record Check
+
+After the review verdict is ready, check related completed Outcome records to
+decide whether this completed manifest needs a new or updated Outcome record:
+
+```bash
+maid recall --for-manifest <path>
+maid recall --for-manifest <path> --plan-packet
+```
+
+If the index is stale, the stale index fails by default. The remedy is to run
+`maid learn`, or pass `--allow-stale-index` only when a stale advisory read is
+acceptable. If `.maid/outcomes.json` is missing, run `maid learn` once; if no
+completed Outcome records exist, report that no advisory history is available
+and skip recall.
+
+Use related completed Outcome records to avoid duplicate or unsupported
+lessons. Outcome claims still need concrete validation and review evidence.
+Recalled Outcomes are planning evidence only. They do not replace behavioral
+tests, declared artifacts, validation commands, or implementation review.
+
 ## Phase 8 — Run Practical Validation
 
 Where practical, run:
