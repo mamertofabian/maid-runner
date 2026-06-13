@@ -18,6 +18,9 @@ from pathlib import Path
 
 
 CODEX_DISTRIBUTABLE_SKILLS = [
+    "maid-planner",
+    "maid-implementer",
+    "maid-implementation-review",
     "maid-runner-cleanup-and-refactor",
     "maid-runner-draft-implement",
     "maid-runner-performance-optimization",
@@ -216,6 +219,15 @@ def _codex_manifest(source_skills: Path, skill_names: list[str]) -> dict:
         "skills": {
             "distributable": skill_names,
             "descriptions": {
+                "maid-planner": (
+                    "Plan MAID changes with manifest-derived Outcome recall"
+                ),
+                "maid-implementer": (
+                    "Implement approved MAID manifests with Outcome recall context"
+                ),
+                "maid-implementation-review": (
+                    "Review MAID implementations and Outcome record needs"
+                ),
                 "maid-runner-cleanup-and-refactor": (
                     "Audit cleanup and refactor opportunities for maid-runner"
                 ),

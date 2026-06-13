@@ -4,7 +4,7 @@ goal: "Propagate recall-integrated skill guidance through maid init Claude and C
 type: feature
 created: "2026-06-10T06:04:00Z"
 metadata:
-  status: draft
+  status: active
   epic: 066-00-outcome-recall-planning-integration.epic
   tags:
     - agent-skills
@@ -85,6 +85,27 @@ temptations:
     instead: "Propagate guidance that quotes exactly the 066-01/066-02 command forms and add no new CLI behavior."
 files:
   create:
+    - path: tests/test_recall_payload_sync.py
+      artifacts:
+        - kind: test_function
+          name: test_recall_guidance_payload_sync_matches_sources
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage that isolated payload sync copies recall-integrated Claude and Codex workflow skill sources byte-for-byte."
+        - kind: test_function
+          name: test_codex_payload_manifest_lists_recall_workflow_skills_and_agents
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage that the generated Codex payload manifest lists the added workflow skills and their skill-local OpenAI agent metadata."
+        - kind: test_function
+          name: test_codex_recall_payload_package_data_covers_generated_files
+          args: []
+          returns: None
+          description: "Behavioral coverage that pyproject package-data globs include the generated Codex workflow skill files and agent metadata."
     - path: maid_runner/codex/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
@@ -165,4 +186,80 @@ files:
     - tests/test_claude_skill_distribution.py
     - tests/test_recall_payload_sync.py
 validate:
-  - uv run python -m pytest -q tests/test_recall_payload_sync.py
+  - uv run python -m pytest -q tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py tests/test_claude_skill_distribution.py
+outcome:
+  status: completed
+  completed_at: "2026-06-13T13:23:00Z"
+  summary: "Promoted 066-04 and synchronized the recall-integrated workflow skills into the packaged Codex init payload while verifying Claude and Codex payload parity."
+  rationale: "The sync script now distributes maid-planner, maid-implementer, and maid-implementation-review for Codex installs, regenerates the Codex payload manifest and skill-local agent metadata, and keeps the init command unchanged because payload installation is manifest-driven. Focused tests run the sync script in an isolated workspace so generated payload parity, exact recall command guidance, manifest entries, and package-data coverage are verified without relying on ignored local files."
+  lessons:
+    - lesson_type: workflow
+      summary: "When a draft implementation promotes a manifest that is referenced by prior active guidance, update stale draft-path references in the same change so recall and downstream planning point at the active contract."
+      tags:
+        - draft-promotion
+        - manifest-maintenance
+        - recall
+      paths:
+        - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+        - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+    - lesson_type: testing
+      summary: "Payload-sync tests should exercise the sync script in a temporary workspace and compare generated payload files to tracked sources byte-for-byte, which catches stale generated payloads without depending on repository-local generated state."
+      tags:
+        - agent-skills
+        - generated-payloads
+        - test-reproducibility
+      paths:
+        - tests/test_recall_payload_sync.py
+        - scripts/sync_claude_files.py
+  review_notes:
+    - source: Sartre
+      severity: info
+      summary: "Read-only implementation review found no actionable findings; the only residual gap was lack of a direct `maid init --tool codex` assertion for the newly distributed skills, which was judged non-blocking because existing init code installs manifest-declared payload files generically."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_recall_payload_sync.py
+        - tests/test_agent_payload_distribution.py
+        - tests/test_claude_skill_distribution.py
+      status: passed
+      summary: "Focused recall payload sync and distribution parity tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Promoted manifest implementation validation passed with advisory E307 warnings for non-Python generated payload artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test runner passed 85 declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Baseline-scoped handoff verification passed schema, behavioral, coherence, file tracking, plan lock, worktree scope, changed scope, and tests."

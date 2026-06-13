@@ -178,7 +178,7 @@ files:
     - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
     - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
     - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
-    - manifests/drafts/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+    - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
     - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - scripts/sync_claude_files.py
     - docs/agent-skills.md
@@ -209,7 +209,7 @@ outcome:
         - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
         - manifests/066-02-add-planning-recall-summary-output.manifest.yaml
         - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
-        - manifests/drafts/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+        - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
   review_notes:
     - source: Fermat
       severity: warning

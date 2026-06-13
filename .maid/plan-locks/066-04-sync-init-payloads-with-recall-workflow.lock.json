@@ -1,0 +1,103 @@
+{
+  "manifest_path": "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+  "manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
+  "test_hashes": {
+    "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+    "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+  },
+  "created_at": "2026-06-13T13:16:39.921655+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:7dffb970dd76a38d9f23617ae834dd50e4b682495b1bfa18a7aef124dac5567b",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+      },
+      "revised_at": "2026-06-13T13:26:16.389381+00:00",
+      "reason": "Record completed outcome and review evidence after implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+      },
+      "revised_at": "2026-06-13T13:27:18.341692+00:00",
+      "reason": "Recapture red evidence after outcome lock refresh"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-13T13:27:18.970019+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py tests/test_claude_skill_distribution.py",
+        "exit_code": 1,
+        "output_tail": "    \n        assert callable(sync_main)\n        synced_workspace = _sync_distribution(tmp_path)\n        manifest = json.loads(\n            _read(\"maid_runner/codex/manifest.json\", root=synced_workspace)\n        )\n    \n>       assert manifest[\"skills\"][\"distributable\"] == CODEX_DISTRIBUTABLE_SKILLS\nE       AssertionError: assert ['maid-runner...te-hardening'] == ['maid-planne...ization', ...]\nE         \nE         At index 0 diff: 'maid-runner-cleanup-and-refactor' != 'maid-planner'\nE         Right contains 3 more items, first extra item: 'maid-runner-performance-optimization'\nE         Use -v to get more diff\n\ntests/test_agent_payload_distribution.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_recall_payload_sync.py::test_recall_guidance_payload_sync_matches_sources\nFAILED tests/test_recall_payload_sync.py::test_codex_payload_manifest_lists_recall_workflow_skills_and_agents\nFAILED tests/test_agent_payload_distribution.py::test_codex_payload_manifest_matches_source_skills\n3 failed, 8 passed in 0.43s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_workflow_skills",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_workflow_skills:kind=attribute",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_workflow_skills:of=codex_payload",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_workflow_skills:type=json object",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_implementation_review_skill",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_implementation_review_skill:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_implementation_review_skill:of=codex_payload",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_implementation_review_skill:type=markdown document",
+      "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementation_review_agent_metadata",
+      "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementation_review_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementation_review_agent_metadata:of=codex_payload",
+      "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementation_review_agent_metadata:type=yaml document",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:codex_payload._distributed_codex_implementer_skill",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:codex_payload._distributed_codex_implementer_skill:kind=attribute",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:codex_payload._distributed_codex_implementer_skill:of=codex_payload",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:codex_payload._distributed_codex_implementer_skill:type=markdown document",
+      "maid_runner/codex/skills/maid-implementer/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementer_agent_metadata",
+      "maid_runner/codex/skills/maid-implementer/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementer_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-implementer/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementer_agent_metadata:of=codex_payload",
+      "maid_runner/codex/skills/maid-implementer/agents/openai.yaml:attribute:codex_payload._distributed_codex_implementer_agent_metadata:type=yaml document",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:codex_payload._distributed_codex_planner_skill",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:codex_payload._distributed_codex_planner_skill:kind=attribute",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:codex_payload._distributed_codex_planner_skill:of=codex_payload",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:codex_payload._distributed_codex_planner_skill:type=markdown document",
+      "maid_runner/codex/skills/maid-planner/agents/openai.yaml:attribute:codex_payload._distributed_codex_planner_agent_metadata",
+      "maid_runner/codex/skills/maid-planner/agents/openai.yaml:attribute:codex_payload._distributed_codex_planner_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-planner/agents/openai.yaml:attribute:codex_payload._distributed_codex_planner_agent_metadata:of=codex_payload",
+      "maid_runner/codex/skills/maid-planner/agents/openai.yaml:attribute:codex_payload._distributed_codex_planner_agent_metadata:type=yaml document",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_codex_workflow_skills",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_codex_workflow_skills:kind=attribute",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_codex_workflow_skills:of=pyproject",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_codex_workflow_skills:type=TOML package-data entry",
+      "scripts/sync_claude_files.py:function:main",
+      "scripts/sync_claude_files.py:function:main:kind=function",
+      "scripts/sync_claude_files.py:function:main:returns=None",
+      "tests/test_recall_payload_sync.py:test_codex_payload_manifest_lists_recall_workflow_skills_and_agents",
+      "tests/test_recall_payload_sync.py:test_codex_payload_manifest_lists_recall_workflow_skills_and_agents:arg=tmp_path:type=Path:default=None",
+      "tests/test_recall_payload_sync.py:test_codex_payload_manifest_lists_recall_workflow_skills_and_agents:kind=test_function",
+      "tests/test_recall_payload_sync.py:test_codex_payload_manifest_lists_recall_workflow_skills_and_agents:returns=None",
+      "tests/test_recall_payload_sync.py:test_codex_recall_payload_package_data_covers_generated_files",
+      "tests/test_recall_payload_sync.py:test_codex_recall_payload_package_data_covers_generated_files:kind=test_function",
+      "tests/test_recall_payload_sync.py:test_codex_recall_payload_package_data_covers_generated_files:returns=None",
+      "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources",
+      "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources:arg=tmp_path:type=Path:default=None",
+      "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources:kind=test_function",
+      "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources:returns=None"
+    ],
+    "test_files": [
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_claude_skill_distribution.py",
+      "tests/test_recall_payload_sync.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py tests/test_claude_skill_distribution.py"
+    ]
+  }
+}
