@@ -1,0 +1,99 @@
+{
+  "manifest_path": "manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml",
+  "manifest_hash": "sha256:f986ab5fe2462d61dcf3ed8f8a92677686692dce74bf33d2f1e19e9d010ea716",
+  "test_hashes": {
+    "tests/core/test_failure_packet.py": "sha256:3e698ed732debb5771273660fa83583fb609b6c2270654174096105e8c27c249",
+    "tests/cli/test_packet_flag.py": "sha256:2e14588a6e237f9498d2e6a41b7a41a79db582b404f4bc82167d9bd7e5a622ac"
+  },
+  "created_at": "2026-06-14T23:17:42.665484+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:2421baa503e958e9db07f96c8dac7c4a52b8c02a54331197b1cdaaae39ad6126",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256:3e698ed732debb5771273660fa83583fb609b6c2270654174096105e8c27c249",
+        "tests/cli/test_packet_flag.py": "sha256:2e14588a6e237f9498d2e6a41b7a41a79db582b404f4bc82167d9bd7e5a622ac"
+      },
+      "revised_at": "2026-06-14T23:20:15.891085+00:00",
+      "reason": "Recapture red evidence with a minimal non-working skeleton so pytest exits with behavioral failures instead of collection error."
+    },
+    {
+      "prior_manifest_hash": "sha256:2421baa503e958e9db07f96c8dac7c4a52b8c02a54331197b1cdaaae39ad6126",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256:3e698ed732debb5771273660fa83583fb609b6c2270654174096105e8c27c249",
+        "tests/cli/test_packet_flag.py": "sha256:2e14588a6e237f9498d2e6a41b7a41a79db582b404f4bc82167d9bd7e5a622ac"
+      },
+      "revised_at": "2026-06-14T23:48:29.004392+00:00",
+      "reason": "Update lock after adding additive outcome metadata; recapture valid red evidence with a temporary non-working skeleton."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-14T23:48:31.814768+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_failure_packet.py::test_build_failure_packet_includes_test_chain_errors\nFAILED tests/core/test_failure_packet.py::test_build_failure_packet_includes_verify_coherence_and_file_tracking_failures\nFAILED tests/core/test_failure_packet.py::test_build_failure_packet_orders_multi_manifest_failures_deterministically\nFAILED tests/core/test_failure_packet.py::test_build_failure_packet_uses_each_diagnostics_manifest_in_next_action\nFAILED tests/core/test_failure_packet.py::test_build_failure_packet_keeps_manifest_path_when_manifest_cannot_load\nFAILED tests/core/test_failure_packet.py::test_write_failure_packet_is_deterministic_and_clear_failure_packet_removes_stale_file\nFAILED tests/cli/test_packet_flag.py::test_build_parser_accepts_validate_and_verify_packet_options\nFAILED tests/cli/test_packet_flag.py::test_main_validate_packet_writes_failure_packet_and_preserves_exit_code\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_diagnostics_match_json_output_one_to_one\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_clears_stale_file_on_success\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_uses_default_path_when_option_has_no_value\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_includes_failing_validate_command_output_tail\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_write_failure_does_not_change_exit_code\nFAILED tests/cli/test_packet_flag.py::test_validate_coherence_failure_writes_packet\nFAILED tests/cli/test_packet_flag.py::test_validate_coherence_only_packet_clears_stale_file_on_success\nFAILED tests/cli/test_packet_flag.py::test_cmd_verify_writes_packet_for_failed_verify_run\nFAILED tests/cli/test_packet_flag.py::test_cmd_verify_packet_write_failure_does_not_change_exit_code\nFAILED tests/cli/test_packet_flag.py::test_cmd_verify_clears_stale_packet_on_success\nFAILED tests/cli/test_packet_flag.py::test_main_validate_packet_bytes_are_deterministic_for_same_failure\n22 failed, 1 passed in 0.56s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=command:type=list[str]:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=exit_code:type=int:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=test_results:type=BatchTestResult | None:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=validation:type=BatchValidationResult | ValidationResult | VerificationResult:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:returns=dict",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:returns=bool",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:arg=packet:type=dict:default=None",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_packet_flag.py",
+      "tests/core/test_failure_packet.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py",
+      "uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

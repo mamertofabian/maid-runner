@@ -125,6 +125,13 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--json", "--json-output", action="store_true"
     )  # --json-output is v1 compat alias
+    p.add_argument(
+        "--packet",
+        nargs="?",
+        const=".maid/last-failure-packet.json",
+        default=None,
+        help="Write a failure packet JSON file on validation failure",
+    )
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--watch", action="store_true")
     p.add_argument("--watch-all", action="store_true")
@@ -240,6 +247,13 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         "--require-red-evidence",
         action="store_true",
         help="Fail when plan locks lack valid red-phase evidence",
+    )
+    p.add_argument(
+        "--packet",
+        nargs="?",
+        const=".maid/last-failure-packet.json",
+        default=None,
+        help="Write a failure packet JSON file on verification failure",
     )
     p.add_argument("--json", action="store_true")
 
@@ -541,6 +555,7 @@ def _register_audit_parser(sub: argparse._SubParsersAction) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    args._maid_argv = list(sys.argv if argv is None else ["maid", *argv])
 
     if not args.command:
         parser.print_help()

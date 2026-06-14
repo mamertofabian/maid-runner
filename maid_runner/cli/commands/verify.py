@@ -66,10 +66,48 @@ def cmd_verify(args: argparse.Namespace) -> int:
             require_red_evidence=getattr(args, "require_red_evidence", False),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
-        return 0 if _result_success(result) else 1
+        exit_code = 0 if _result_success(result) else 1
+        return _finalize_packet(args, exit_code, result)
     except Exception as exc:
         print_error(str(exc), json_mode=getattr(args, "json", False))
         return 2
+
+
+def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:
+    packet_path = getattr(args, "packet", None)
+    if packet_path is None:
+        return exit_code
+
+    from maid_runner.core.failure_packet import (
+        build_failure_packet,
+        clear_failure_packet,
+        write_failure_packet,
+    )
+
+    if exit_code == 0:
+        try:
+            clear_failure_packet(packet_path)
+        except Exception as exc:
+            print_error(
+                f"Failed to clear failure packet at {packet_path}: {exc}",
+                json_mode=False,
+            )
+        return exit_code
+
+    try:
+        packet = build_failure_packet(
+            command=getattr(args, "_maid_argv", ["maid", "verify"]),
+            exit_code=exit_code,
+            project_root=".",
+            validation=result,
+        )
+        write_failure_packet(packet, packet_path)
+    except Exception as exc:
+        print_error(
+            f"Failed to prepare failure packet at {packet_path}: {exc}",
+            json_mode=False,
+        )
+    return exit_code
 
 
 def run_verify(

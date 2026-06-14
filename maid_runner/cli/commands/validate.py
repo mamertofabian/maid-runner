@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from maid_runner.cli.commands._format import (
@@ -29,7 +30,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             "--file-tracking is only supported for directory-wide validation",
             json_mode=getattr(args, "json", False),
         )
-        return 2
+        return _finalize_packet(args, 2, None, None)
 
     if args.watch or args.watch_all:
         return _run_watch(args)
@@ -81,10 +82,16 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
-                    return 1
+                    return _finalize_packet(
+                        args,
+                        1,
+                        _verification_packet_result(result, coherence=coherence),
+                        test_result,
+                    )
 
             tests_success = test_result is None or test_result.success
-            return 0 if result.success and tests_success else 1
+            exit_code = 0 if result.success and tests_success else 1
+            return _finalize_packet(args, exit_code, result, test_result)
         else:
             batch = engine.validate_all(
                 args.manifest_dir,
@@ -122,13 +129,82 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
-                    return 1
+                    return _finalize_packet(
+                        args,
+                        1,
+                        _verification_packet_result(batch, coherence=coherence),
+                        test_result,
+                    )
 
             tests_success = test_result is None or test_result.success
-            return 0 if batch.success and tests_success else 1
+            exit_code = 0 if batch.success and tests_success else 1
+            return _finalize_packet(args, exit_code, batch, test_result)
     except Exception as e:
         print_error(str(e), json_mode=args.json)
-        return 2
+        return _finalize_packet(args, 2, None, None)
+
+
+def _finalize_packet(args, exit_code: int, validation, test_result) -> int:
+    packet_path = getattr(args, "packet", None)
+    if packet_path is None:
+        return exit_code
+
+    from maid_runner.core.failure_packet import (
+        build_failure_packet,
+        clear_failure_packet,
+        write_failure_packet,
+    )
+
+    if exit_code == 0:
+        try:
+            clear_failure_packet(packet_path)
+        except Exception as exc:
+            print_error(
+                f"Failed to clear failure packet at {packet_path}: {exc}",
+                json_mode=False,
+            )
+        return exit_code
+    if exit_code != 1 or validation is None:
+        return exit_code
+
+    try:
+        packet = build_failure_packet(
+            command=getattr(args, "_maid_argv", ["maid", "validate"]),
+            exit_code=exit_code,
+            project_root=Path("."),
+            validation=validation,
+            test_results=test_result,
+        )
+        write_failure_packet(packet, packet_path)
+    except Exception as exc:
+        print_error(
+            f"Failed to prepare failure packet at {packet_path}: {exc}",
+            json_mode=False,
+        )
+    return exit_code
+
+
+def _verification_packet_result(validation=None, *, coherence=None):
+    from maid_runner.core.result import VerificationResult, VerificationStageResult
+
+    stages = []
+    if validation is not None:
+        stages.append(
+            VerificationStageResult(
+                name="validation",
+                success=getattr(validation, "success", False),
+                _validation=validation,
+            )
+        )
+    if coherence is not None:
+        stages.append(
+            VerificationStageResult(
+                name="coherence",
+                success=getattr(coherence, "success", False),
+                _coherence=coherence,
+            )
+        )
+    return VerificationResult(stages=tuple(stages))
 
 
 def run_validate_commands_for_result(
@@ -219,7 +295,13 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
     try:
         result = run_coherence(args.manifest_dir, args.json)
         print(format_coherence_result(result, json_mode=args.json))
-        return 0 if result.success else 1
+        exit_code = 0 if result.success else 1
+        return _finalize_packet(
+            args,
+            exit_code,
+            _verification_packet_result(coherence=result),
+            None,
+        )
     except Exception as e:
         print_error(str(e), json_mode=args.json)
         return 2
