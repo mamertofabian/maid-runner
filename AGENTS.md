@@ -23,6 +23,20 @@ Use Python 3.10+ with type hints for public APIs. Follow Black formatting and Ru
 
 This repository dogfoods MAID. For code changes, create or evolve the relevant manifest before implementation, add focused behavioral tests, then run behavioral and implementation validation for the touched manifest. Finish with `uv run maid validate`, `uv run maid test`, and the relevant pytest scope. Tests should assert observable behavior, include failure cases, and follow `docs/unit-testing-rules.md`.
 
+## MAID Plan-Lock Lifecycle
+
+For implementation-ready MAID work, the planning loop must end with an approved
+plan lock before implementation begins:
+
+1. Draft or evolve the manifest and focused behavioral tests.
+2. Confirm the red phase fails for the intended reason.
+3. Run behavioral validation for the manifest.
+4. After approval, run `uv run maid plan lock <manifest>`.
+5. Promote implementation drafts with `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml` so plan locks, self-referencing validate paths, and red evidence migrate through the sanctioned workflow. Do not manually move or copy draft manifests.
+6. Implement only within the promoted manifest scope.
+7. Run implementation validation, manifest tests, `uv run maid validate`, and `uv run maid test`.
+8. Before handoff, run `uv run maid verify --require-plan-lock --require-red-evidence` and treat plan-lock or red-evidence failures as workflow blockers rather than recreating evidence after implementation.
+
 ## Validator Hardening Constraints
 
 Do not build or extend custom static analyzers as the default answer to validator hardening, especially for Python control-flow or behavioral reachability. The abandoned 033 reachability hardening attempt showed that case-by-case AST interpretation causes large validator and test growth while still missing language edge cases. Prefer runtime-backed evidence, instrumentation, existing parser/compiler services, or a deliberately narrow syntactic rule with documented limits. If a hardening task starts requiring broad control-flow modeling, stop and propose a design direction before implementation.

@@ -1,0 +1,105 @@
+schema: "2"
+goal: "Align Codex and Claude agent guidance for plan-lock-aware draft promotion"
+type: fix
+created: "2026-06-15T05:55:00Z"
+metadata:
+  status: active
+  tags:
+    - agent-guidance
+    - plan-lock
+    - draft-promotion
+    - codex
+    - claude
+  priority: high
+description: |
+  Codex and Claude Code must be interchangeable for maid-runner MAID work.
+  The repo-level Codex instructions in AGENTS.md currently summarize the MAID
+  workflow without naming the plan-lock lifecycle, while CLAUDE.md already
+  documents `maid plan lock`, `maid manifest promote`, and the handoff
+  `maid verify --require-plan-lock --require-red-evidence` gate. Both
+  draft-implement skill copies also still describe manual draft moves even
+  though `maid manifest promote` is the sanctioned path that migrates plan
+  locks and recaptures red evidence.
+
+  Update AGENTS.md to carry the same operational lifecycle as CLAUDE.md at the
+  level Codex needs for repo-default behavior. Update both .codex and .claude
+  draft-implement skills so they require the same lock-aware promotion command
+  and stop on missing pre-promotion locks instead of manually moving files.
+  Guard the guidance with CI tests so the two tool payloads do not drift back
+  to incompatible promotion procedures.
+temptations:
+  - risk: "Do not fix only Codex guidance."
+    instead: "Update Codex and Claude skill guidance together so both tools follow the same promotion lifecycle."
+  - risk: "Do not preserve manual move/copy language as an acceptable default promotion procedure."
+    instead: "Name `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml` as the sanctioned path because it migrates plan locks and red evidence."
+  - risk: "Do not tell agents to create red evidence after implementation is already green."
+    instead: "Require an approved plan lock before promotion and instruct agents to stop and report a workflow gap if it is missing."
+files:
+  edit:
+    - path: AGENTS.md
+      artifacts:
+        - kind: attribute
+          name: _codex_plan_lock_promotion_lifecycle_guidance
+          of: documentation
+          type: markdown section
+          description: "Codex repo-level MAID lifecycle guidance names plan lock, sanctioned manifest promotion, and the opt-in handoff verify gate."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_lock_aware_promotion_guidance
+          of: skill
+          type: markdown section
+          description: "Codex draft implementation skill requires plan-lock-aware `maid manifest promote` instead of manual draft moves."
+    - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_draft_implement_lock_aware_promotion_guidance
+          of: skill
+          type: markdown section
+          description: "Claude draft implementation skill requires plan-lock-aware `maid manifest promote` instead of manual draft moves."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_lock_aware_promotion_guidance
+          of: codex_payload
+          type: markdown document
+          description: "Packaged Codex draft implementation skill mirrors the repo-local lock-aware promotion guidance."
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_agents_guidance_requires_plan_lock_promotion_lifecycle
+          source_scenario: "Codex reads repo-level AGENTS.md before implementing MAID work."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "AGENTS.md requires plan locking before implementation, sanctioned `maid manifest promote` for drafts, no manual draft moves, and the opt-in plan-lock handoff verify gate."
+        - kind: test_function
+          name: test_draft_implement_skill_requires_lock_aware_promotion_guidance
+          source_scenario: "Codex uses the repo-local draft implementation skill to promote a selected draft."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The Codex source and packaged skills match, require `uv run maid manifest promote`, require a pre-promotion plan lock, forbid manual move/copy promotion, and name the handoff verify gate."
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance
+          source_scenario: "Claude Code uses the repo-local draft implementation skill to promote a selected draft."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The Claude skill requires `uv run maid manifest promote`, requires a pre-promotion plan lock, forbids manual move/copy promotion, and names the handoff verify gate."
+  read:
+    - CLAUDE.md
+    - docs/draft-manifest-workflow.md
+    - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py
+  - uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode implementation --quiet

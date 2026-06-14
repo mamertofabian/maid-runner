@@ -863,6 +863,18 @@ class TestCodexMaidLoopRepoWiring(unittest.TestCase):
         for expected_text in maid_runner_draft_implement_skill_guidance:
             self.assertIn(expected_text, skill)
 
+    def test_agents_guidance_requires_plan_lock_promotion_lifecycle(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        agents_guidance = (root / "AGENTS.md").read_text(encoding="utf-8")
+
+        for expected_text in (
+            "uv run maid plan lock <manifest>",
+            "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml",
+            "Do not manually move or copy draft manifests",
+            "uv run maid verify --require-plan-lock --require-red-evidence",
+        ):
+            self.assertIn(expected_text, agents_guidance)
+
     def test_draft_manifest_workflow_docs_preserve_lifecycle_contract(self) -> None:
         root = Path(__file__).resolve().parents[2]
         workflow = (root / "docs/draft-manifest-workflow.md").read_text(
@@ -902,6 +914,27 @@ class TestCodexMaidLoopRepoWiring(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         for expected_text in selected_scope_guidance:
+            self.assertIn(expected_text, skill)
+
+    def test_draft_implement_skill_requires_lock_aware_promotion_guidance(
+        self,
+    ) -> None:
+        root = Path(__file__).resolve().parents[2]
+        skill = (root / ".codex/skills/maid-runner-draft-implement/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        distributed_skill = (
+            root / "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(skill, distributed_skill)
+
+        for expected_text in (
+            "uv run maid plan lock manifests/drafts/<slug>.manifest.yaml",
+            "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml",
+            "Do not manually move or copy draft manifests",
+            "uv run maid verify --require-plan-lock --require-red-evidence",
+        ):
             self.assertIn(expected_text, skill)
 
 

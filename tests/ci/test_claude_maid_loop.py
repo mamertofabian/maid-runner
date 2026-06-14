@@ -911,6 +911,22 @@ class TestClaudeMaidLoopRepoWiring(unittest.TestCase):
         for expected_text in selected_scope_guidance:
             self.assertIn(expected_text, skill)
 
+    def test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance(
+        self,
+    ) -> None:
+        skill = (
+            Path(__file__).resolve().parents[2]
+            / ".claude/skills/maid-runner-draft-implement/SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        for expected_text in (
+            "uv run maid plan lock manifests/drafts/<slug>.manifest.yaml",
+            "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml",
+            "Do not manually move or copy draft manifests",
+            "uv run maid verify --require-plan-lock --require-red-evidence",
+        ):
+            self.assertIn(expected_text, skill)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,90 @@
+{
+  "manifest_path": "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
+  "manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
+  "test_hashes": {
+    "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+    "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
+  },
+  "created_at": "2026-06-14T21:48:44.034717+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:f6e33ea2c76b5c106606a669ca22e2438817e6b92c45d1c3a89d52197e67192b",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:0534b80273cac7e92b160049d9c7b803f64a5e1aaa6ccde04a5ac7faebed2246",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
+      },
+      "revised_at": "2026-06-14T21:53:45.800045+00:00",
+      "reason": "Expand scope after implementation review found stale packaged Codex draft-implement payload"
+    },
+    {
+      "prior_manifest_hash": "sha256:7901eec0b8210d9d6f9122ee739c6ca698a378238d9bdd9cc837b4a690361832",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:a1a917e1d44c609b024a950e5b26607508b8a4c2a4819d39af246e63df1fadf6",
+        "tests/ci/test_codex_maid_loop.py": "sha256:0534b80273cac7e92b160049d9c7b803f64a5e1aaa6ccde04a5ac7faebed2246",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
+      },
+      "revised_at": "2026-06-14T21:55:42.172665+00:00",
+      "reason": "Move packaged Codex payload guard into owned Codex CI skill test to avoid older locked distribution test file"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-14T21:55:46.307911+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_draft_implement_skill_requires_lock_aware_promotion_guidance(\n        self,\n    ) -> None:\n        root = Path(__file__).resolve().parents[2]\n        skill = (root / \".codex/skills/maid-runner-draft-implement/SKILL.md\").read_text(\n            encoding=\"utf-8\"\n        )\n        distributed_skill = (\n            root / \"maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md\"\n        ).read_text(encoding=\"utf-8\")\n    \n>       self.assertEqual(skill, distributed_skill)\nE       AssertionError: '---\\[3519 chars]oved draft selected for implementation:\\n\\n1. [3842 chars]`.\\n' != '---\\[3519 chars]oved and implemented draft:\\n\\n1. Move `manife[2978 chars]`.\\n'\nE       Diff is 8031 characters long. Set self.maxDiff to None to see it.\n\ntests/ci/test_codex_maid_loop.py:930: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_codex_maid_loop.py::TestCodexMaidLoopRepoWiring::test_draft_implement_skill_requires_lock_aware_promotion_guidance\n1 failed, 57 passed in 0.09s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode implementation --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_lock_aware_promotion_guidance",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_lock_aware_promotion_guidance:kind=attribute",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_lock_aware_promotion_guidance:of=skill",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_lock_aware_promotion_guidance:type=markdown section",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_lock_aware_promotion_guidance",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_lock_aware_promotion_guidance:kind=attribute",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_lock_aware_promotion_guidance:of=skill",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_lock_aware_promotion_guidance:type=markdown section",
+      "AGENTS.md:attribute:documentation._codex_plan_lock_promotion_lifecycle_guidance",
+      "AGENTS.md:attribute:documentation._codex_plan_lock_promotion_lifecycle_guidance:kind=attribute",
+      "AGENTS.md:attribute:documentation._codex_plan_lock_promotion_lifecycle_guidance:of=documentation",
+      "AGENTS.md:attribute:documentation._codex_plan_lock_promotion_lifecycle_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_lock_aware_promotion_guidance",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_lock_aware_promotion_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_lock_aware_promotion_guidance:of=codex_payload",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_lock_aware_promotion_guidance:type=markdown document",
+      "tests/ci/test_claude_maid_loop.py:test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance",
+      "tests/ci/test_claude_maid_loop.py:test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance:kind=test_function",
+      "tests/ci/test_codex_maid_loop.py:test_agents_guidance_requires_plan_lock_promotion_lifecycle",
+      "tests/ci/test_codex_maid_loop.py:test_agents_guidance_requires_plan_lock_promotion_lifecycle:kind=test_function",
+      "tests/ci/test_codex_maid_loop.py:test_draft_implement_skill_requires_lock_aware_promotion_guidance",
+      "tests/ci/test_codex_maid_loop.py:test_draft_implement_skill_requires_lock_aware_promotion_guidance:kind=test_function"
+    ],
+    "test_files": [
+      "tests/ci/test_claude_maid_loop.py",
+      "tests/ci/test_codex_maid_loop.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py",
+      "uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml --mode implementation --quiet"
+    ]
+  }
+}

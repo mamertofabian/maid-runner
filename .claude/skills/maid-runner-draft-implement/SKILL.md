@@ -62,14 +62,33 @@ NEEDS_CHANGES instead of broadening scope.
 
 ## Promotion Procedure
 
-For each approved and implemented draft:
+For each approved draft selected for implementation:
 
-1. Move `manifests/drafts/<slug>.manifest.yaml` to
-   `manifests/<slug>.manifest.yaml`.
-2. Rewrite downstream promoted manifest `read:` references from
-   `manifests/drafts/<dependency>.manifest.yaml` to
-   `manifests/<dependency>.manifest.yaml`.
-3. Validate the promoted path, not only the draft path:
+1. Confirm the planning loop already created an approved plan lock before
+   promotion:
+
+```bash
+uv run maid plan lock manifests/drafts/<slug>.manifest.yaml
+```
+
+If the lock is missing after implementation has begun or tests are already
+green, stop and report a workflow gap. Do not create after-the-fact red
+evidence.
+
+2. Promote the draft with the sanctioned command so the lock, self-referencing
+   validate-command paths, and red evidence migrate together:
+
+```bash
+uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml
+```
+
+Do not manually move or copy draft manifests.
+
+3. If promotion warns that other active manifests still reference the draft
+   path, report the warning and handle those references through their own
+   approved manifest or plan-revision path. Do not broaden the selected draft
+   scope.
+4. Validate the promoted path, not only the draft path:
 
 ```bash
 maid validate manifests/<slug>.manifest.yaml --mode behavioral
@@ -79,10 +98,18 @@ maid validate
 maid test
 ```
 
-4. Confirm no stale references to the deleted draft path remain:
+5. Confirm no stale references to the deleted draft path remain:
 
 ```bash
 rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
+```
+
+6. Run the plan-lock handoff gate and treat E700/E704/E705 on the promoted
+   manifest as workflow blockers, not as evidence to fabricate after green
+   implementation:
+
+```bash
+uv run maid verify --require-plan-lock --require-red-evidence
 ```
 
 ## Implementation Rules
