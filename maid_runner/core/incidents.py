@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import json
+import posixpath
 from pathlib import Path
 from typing import Collection, Union
 
@@ -19,6 +20,37 @@ PATTERN_TAGS: tuple[str, ...] = (
     "runner-gaming",
     "false-done",
 )
+
+TEMPTATION_TEMPLATES: dict[str, tuple[str, str]] = {
+    "test-weakening": (
+        "Do not weaken, delete, or bypass behavioral assertions to make validation pass.",
+        "Preserve the approved behavioral contract and fix the implementation until the original assertions pass.",
+    ),
+    "trivial-test": (
+        "Do not satisfy the plan with tests that only import code or assert incidental details.",
+        "Write scenario-focused tests that exercise observable behavior and fail for the intended missing capability.",
+    ),
+    "stub-implementation": (
+        "Do not return canned, placeholder, or hard-coded success data to satisfy the tests.",
+        "Implement the declared behavior against real stored inputs and fail loudly on malformed data.",
+    ),
+    "contract-renegotiation": (
+        "Do not edit the manifest, lock, or tests during implementation to avoid a failing contract.",
+        "Stop for an explicit plan revision when the approved contract is wrong or incomplete.",
+    ),
+    "scope-escape": (
+        "Do not broaden the fix into adjacent files, features, or workflow changes outside this manifest.",
+        "Keep the implementation inside the declared artifacts and leave follow-up work to separate manifests.",
+    ),
+    "runner-gaming": (
+        "Do not game MAID gates with stale evidence, ignored failures, or manually rewritten validation artifacts.",
+        "Run the declared commands honestly and treat plan-lock, red-evidence, and review failures as blockers.",
+    ),
+    "false-done": (
+        "Do not report the work ready while tests, validation, review, or Outcome capture are missing or failing.",
+        "Finish the full validation and review loop, then record evidence-backed Outcome before handoff.",
+    ),
+}
 
 _RECORD_FIELDS = (
     "incident_version",
@@ -63,6 +95,16 @@ class DpoExportReport:
     exported_count: int
     skipped_count: int
     output_path: str
+
+
+@dataclass(frozen=True)
+class TemptationSuggestion:
+    """One advisory suggestion grouped by incident pattern tag."""
+
+    tag: str
+    incident_count: int
+    risk: str
+    instead: str
 
 
 def capture_incident(
@@ -212,6 +254,49 @@ def export_incidents_dpo(
     )
 
 
+def suggest_temptations(
+    incidents_dir: Union[str, Path],
+    paths: Collection[str],
+) -> "tuple[TemptationSuggestion, ...]":
+    requested_paths = {
+        normalized for path in paths if (normalized := _normalize_incident_path(path))
+    }
+    if not requested_paths:
+        return ()
+
+    tag_counts: dict[str, int] = {}
+    for stored in list_incidents(incidents_dir):
+        if not _record_touches_paths(stored.record, requested_paths):
+            continue
+        for tag in set(stored.record.pattern_tags):
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+    return tuple(
+        TemptationSuggestion(
+            tag=tag,
+            incident_count=count,
+            risk=TEMPTATION_TEMPLATES[tag][0],
+            instead=TEMPTATION_TEMPLATES[tag][1],
+        )
+        for tag, count in sorted(
+            tag_counts.items(), key=lambda item: (-item[1], item[0])
+        )
+    )
+
+
+def render_temptation_yaml(
+    suggestions: Collection[TemptationSuggestion],
+) -> str:
+    entries = [
+        {
+            "risk": suggestion.risk,
+            "instead": suggestion.instead,
+        }
+        for suggestion in suggestions
+    ]
+    return yaml.safe_dump(entries, sort_keys=False)
+
+
 def _write_record(
     path: Path, record: IncidentRecord, *, overwrite: bool = True
 ) -> None:
@@ -263,6 +348,35 @@ def _extract_gates(packet: dict) -> tuple[str, ...]:
         if code_text not in gates:
             gates.append(code_text)
     return tuple(gates)
+
+
+def _record_touches_paths(record: IncidentRecord, requested_paths: set[str]) -> bool:
+    diagnostics = record.packet.get("diagnostics", ())
+    if not isinstance(diagnostics, list):
+        return False
+    for diagnostic in diagnostics:
+        if not isinstance(diagnostic, dict):
+            continue
+        file_value = diagnostic.get("file")
+        if not isinstance(file_value, str):
+            continue
+        if _normalize_incident_path(file_value) in requested_paths:
+            return True
+    return False
+
+
+def _normalize_incident_path(path: str) -> str:
+    raw = path.strip().replace("\\", "/")
+    if not raw:
+        return ""
+    candidate = Path(raw)
+    if candidate.is_absolute():
+        try:
+            return candidate.resolve().relative_to(Path.cwd().resolve()).as_posix()
+        except (OSError, ValueError):
+            return candidate.as_posix()
+    normalized = posixpath.normpath(raw)
+    return "" if normalized == "." else normalized
 
 
 def _utc_timestamp() -> str:

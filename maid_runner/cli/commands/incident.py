@@ -11,6 +11,8 @@ from maid_runner.core.incidents import (
     capture_incident,
     export_incidents_dpo,
     list_incidents,
+    render_temptation_yaml,
+    suggest_temptations,
     update_incident,
 )
 
@@ -51,7 +53,19 @@ def cmd_incident(args: argparse.Namespace) -> int:
                 f"skipped {report.skipped_count}"
             )
             return 0
-        print("Usage: maid incident {capture,update,list,export} ...", file=sys.stderr)
+        if args.incident_command == "suggest-temptations":
+            suggestions = suggest_temptations(
+                ".maid/incidents", _split_paths(args.paths)
+            )
+            if args.json:
+                print(json.dumps([_suggestion_to_dict(item) for item in suggestions]))
+            else:
+                print(render_temptation_yaml(suggestions), end="")
+            return 0
+        print(
+            "Usage: maid incident {capture,update,list,export,suggest-temptations} ...",
+            file=sys.stderr,
+        )
         return 2
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -83,6 +97,10 @@ def _split_tags(tags: str) -> tuple[str, ...]:
     return tuple(tag.strip() for tag in tags.split(",") if tag.strip())
 
 
+def _split_paths(paths: str) -> tuple[str, ...]:
+    return tuple(path.strip() for path in paths.split(",") if path.strip())
+
+
 def _stored_to_dict(stored) -> dict:
     record = stored.record
     return {
@@ -96,4 +114,13 @@ def _stored_to_dict(stored) -> dict:
         "chosen_diff": record.chosen_diff,
         "pattern_tags": list(record.pattern_tags),
         "notes": record.notes,
+    }
+
+
+def _suggestion_to_dict(suggestion) -> dict:
+    return {
+        "tag": suggestion.tag,
+        "incident_count": suggestion.incident_count,
+        "risk": suggestion.risk,
+        "instead": suggestion.instead,
     }

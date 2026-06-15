@@ -1,0 +1,111 @@
+{
+  "manifest_path": "manifests/071-03-add-temptation-suggestions.manifest.yaml",
+  "manifest_hash": "sha256:7e1fe37feec589c7858bdf86947953863a4e0fcb9e4f7d742390af816e68508b",
+  "test_hashes": {
+    "tests/core/test_temptation_suggestions.py": "sha256:7a9c787d8737c7b6eb2bae497970d99e397838c4f8f48c1fae99c2a5e1d77d62",
+    "tests/cli/test_incident_suggest_cmd.py": "sha256:22facee002c8479b64fb8a2beca11f73c75456b8b9f84126e36ad28cb1c0ceaf"
+  },
+  "created_at": "2026-06-15T05:59:41.159975+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:0029265fe07e18b7e75ee1a8d82ee93e81f1c97d0f1ee4d32835b14b3eff1dda",
+      "prior_test_hashes": {
+        "tests/core/test_temptation_suggestions.py": "sha256:6ef36c5d0594a4b283b22e60907b1ca96cc4409b05698f2ce08209bf3c114810",
+        "tests/cli/test_incident_suggest_cmd.py": "sha256:112f03caf10010ac080dd43b260b0573c05f8dc008c9dc3945b66766036eb4c9"
+      },
+      "revised_at": "2026-06-15T05:59:46.307991+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/071-03-add-temptation-suggestions.manifest.yaml -> manifests/071-03-add-temptation-suggestions.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:6785f94fa3e618043f73d9082db9d1cb49718b16fa2377eb767a611fb1b820eb",
+      "prior_test_hashes": {
+        "tests/core/test_temptation_suggestions.py": "sha256:6ef36c5d0594a4b283b22e60907b1ca96cc4409b05698f2ce08209bf3c114810",
+        "tests/cli/test_incident_suggest_cmd.py": "sha256:112f03caf10010ac080dd43b260b0573c05f8dc008c9dc3945b66766036eb4c9"
+      },
+      "revised_at": "2026-06-15T06:01:38.348394+00:00",
+      "reason": "Correct module-level TEMPTATION_TEMPLATES artifact declaration after implementation validation; preserve pre-implementation red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:009eaa5da0db9cdb2088829f7d656d4f84b07bcf53a869ae7126d8bc46e2a14f",
+      "prior_test_hashes": {
+        "tests/core/test_temptation_suggestions.py": "sha256:7a9c787d8737c7b6eb2bae497970d99e397838c4f8f48c1fae99c2a5e1d77d62",
+        "tests/cli/test_incident_suggest_cmd.py": "sha256:22facee002c8479b64fb8a2beca11f73c75456b8b9f84126e36ad28cb1c0ceaf"
+      },
+      "revised_at": "2026-06-15T06:08:06.385206+00:00",
+      "reason": "Correct promoted manifest dependency path for active 071-01 incident storage manifest; preserve pre-implementation red evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T05:59:46.921753+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_temptation_suggestions.py tests/cli/test_incident_suggest_cmd.py",
+        "exit_code": 1,
+        "output_tail": "message = \"maid incident: error: argument incident_command: invalid choice: 'suggest-temptations' (choose from capture, update, list, export)\\n\"\n\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid incident [-h] {capture,update,list,export} ...\nmaid incident: error: argument incident_command: invalid choice: 'suggest-temptations' (choose from capture, update, list, export)\n=========================== short test summary info ============================\nFAILED tests/core/test_temptation_suggestions.py::test_suggest_temptations_filters_by_exact_normalized_diagnostic_path_and_orders_by_frequency_then_tag\nFAILED tests/core/test_temptation_suggestions.py::test_temptation_templates_cover_closed_vocabulary_and_render_schema_shape\nFAILED tests/core/test_temptation_suggestions.py::test_suggest_temptations_empty_store_returns_empty_tuple_and_explicit_empty_yaml\nFAILED tests/cli/test_incident_suggest_cmd.py::test_build_parser_registers_incident_suggest_temptations_options\nFAILED tests/cli/test_incident_suggest_cmd.py::test_incident_suggest_temptations_outputs_yaml_and_json\nFAILED tests/cli/test_incident_suggest_cmd.py::test_incident_suggest_temptations_empty_store_reports_explicit_empty_result\n6 failed in 0.45s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:kind=function",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:returns=int",
+      "maid_runner/core/incidents.py:attribute:TEMPTATION_TEMPLATES",
+      "maid_runner/core/incidents.py:attribute:TEMPTATION_TEMPLATES:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:TEMPTATION_TEMPLATES:type=dict[str, tuple[str, str]]",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.incident_count",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.incident_count:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.incident_count:of=TemptationSuggestion",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.incident_count:type=int",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.instead",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.instead:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.instead:of=TemptationSuggestion",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.instead:type=str",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.risk",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.risk:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.risk:of=TemptationSuggestion",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.risk:type=str",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.tag",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.tag:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.tag:of=TemptationSuggestion",
+      "maid_runner/core/incidents.py:attribute:TemptationSuggestion.tag:type=str",
+      "maid_runner/core/incidents.py:class:TemptationSuggestion",
+      "maid_runner/core/incidents.py:class:TemptationSuggestion:kind=class",
+      "maid_runner/core/incidents.py:function:render_temptation_yaml",
+      "maid_runner/core/incidents.py:function:render_temptation_yaml:arg=suggestions:type=Collection[TemptationSuggestion]:default=None",
+      "maid_runner/core/incidents.py:function:render_temptation_yaml:kind=function",
+      "maid_runner/core/incidents.py:function:render_temptation_yaml:returns=str",
+      "maid_runner/core/incidents.py:function:suggest_temptations",
+      "maid_runner/core/incidents.py:function:suggest_temptations:arg=incidents_dir:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:suggest_temptations:arg=paths:type=Collection[str]:default=None",
+      "maid_runner/core/incidents.py:function:suggest_temptations:kind=function",
+      "maid_runner/core/incidents.py:function:suggest_temptations:returns=tuple[TemptationSuggestion, ...]",
+      "tests/cli/test_incident_suggest_cmd.py:test_build_parser_registers_incident_suggest_temptations_options",
+      "tests/cli/test_incident_suggest_cmd.py:test_build_parser_registers_incident_suggest_temptations_options:kind=test_function",
+      "tests/cli/test_incident_suggest_cmd.py:test_incident_suggest_temptations_empty_store_reports_explicit_empty_result",
+      "tests/cli/test_incident_suggest_cmd.py:test_incident_suggest_temptations_empty_store_reports_explicit_empty_result:kind=test_function",
+      "tests/cli/test_incident_suggest_cmd.py:test_incident_suggest_temptations_outputs_yaml_and_json",
+      "tests/cli/test_incident_suggest_cmd.py:test_incident_suggest_temptations_outputs_yaml_and_json:kind=test_function",
+      "tests/core/test_temptation_suggestions.py:test_suggest_temptations_empty_store_returns_empty_tuple_and_explicit_empty_yaml",
+      "tests/core/test_temptation_suggestions.py:test_suggest_temptations_empty_store_returns_empty_tuple_and_explicit_empty_yaml:kind=test_function",
+      "tests/core/test_temptation_suggestions.py:test_suggest_temptations_filters_by_exact_normalized_diagnostic_path_and_orders_by_frequency_then_tag",
+      "tests/core/test_temptation_suggestions.py:test_suggest_temptations_filters_by_exact_normalized_diagnostic_path_and_orders_by_frequency_then_tag:kind=test_function",
+      "tests/core/test_temptation_suggestions.py:test_temptation_templates_cover_closed_vocabulary_and_render_schema_shape",
+      "tests/core/test_temptation_suggestions.py:test_temptation_templates_cover_closed_vocabulary_and_render_schema_shape:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_incident_suggest_cmd.py",
+      "tests/core/test_temptation_suggestions.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_temptation_suggestions.py tests/cli/test_incident_suggest_cmd.py"
+    ]
+  }
+}

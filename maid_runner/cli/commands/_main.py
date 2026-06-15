@@ -417,6 +417,12 @@ def _register_incident_parser(sub: argparse._SubParsersAction) -> None:
     export.add_argument("--format", choices=["dpo"], required=True)
     export.add_argument("--output", required=True)
 
+    suggest = isub.add_parser(
+        "suggest-temptations", help="Suggest advisory manifest temptations"
+    )
+    suggest.add_argument("--paths", required=True)
+    suggest.add_argument("--json", action="store_true")
+
 
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
