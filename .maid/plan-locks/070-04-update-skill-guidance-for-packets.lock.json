@@ -1,0 +1,88 @@
+{
+  "manifest_path": "manifests/070-04-update-skill-guidance-for-packets.manifest.yaml",
+  "manifest_hash": "sha256:0a27c1df69086e49a4b35ae388509b0ffe52ceabf8d71e872c71b02d05f9b853",
+  "test_hashes": {
+    "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+    "tests/test_packet_skill_guidance_docs.py": "sha256:7b2e397ee4ef8a60ee9591387b91f423c8ad5797790fa902bb9896254800a750"
+  },
+  "created_at": "2026-06-15T01:35:11.628331+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:14a7295fe40e6b744f320de4242a692507a71d5e3cf4ca7d22c307686c5fd0c5",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_packet_skill_guidance_docs.py": "sha256:7b2e397ee4ef8a60ee9591387b91f423c8ad5797790fa902bb9896254800a750"
+      },
+      "revised_at": "2026-06-15T01:35:16.152099+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/070-04-update-skill-guidance-for-packets.manifest.yaml -> manifests/070-04-update-skill-guidance-for-packets.manifest.yaml"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T01:35:18.437541+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_packet_skill_guidance_docs.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_packet_guidance_anchors_are_synced_to_distribution_copies() -> None:\n        skill_pairs = (\n            (CLAUDE_SKILL, CLAUDE_DIST_SKILL),\n            (CODEX_SKILL, CODEX_DIST_SKILL),\n        )\n    \n        for source, distribution in skill_pairs:\n            source_text = _read(source)\n            distribution_text = _read(distribution)\n            for anchor in PACKET_GUIDANCE_ANCHORS:\n>               assert anchor in source_text\nE               AssertionError: assert 'run validation gates with `--packet`' in '---\\nname: maid-implementer\\ndescription: Implement code against an approved MAID manifest. Loads only the declared f...all the work ready for commit or further\\nintegration when validation passes and the latest review verdict is ready.\\n'\n\ntests/test_packet_skill_guidance_docs.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_packet_skill_guidance_docs.py::test_readme_and_howto_describe_packet_flag\nFAILED tests/test_packet_skill_guidance_docs.py::test_skill_guidance_instructs_packet_driven_retries\nFAILED tests/test_packet_skill_guidance_docs.py::test_packet_guidance_anchors_are_synced_to_distribution_copies\n3 failed in 0.10s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:of=skill",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:type=markdown section",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:kind=attribute",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:of=skill",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:type=markdown section",
+      "README.md:attribute:documentation._failure_packet_flag_section",
+      "README.md:attribute:documentation._failure_packet_flag_section:kind=attribute",
+      "README.md:attribute:documentation._failure_packet_flag_section:of=documentation",
+      "README.md:attribute:documentation._failure_packet_flag_section:type=markdown section",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:type=markdown section",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:of=skill",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:type=markdown section",
+      "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies",
+      "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies:kind=test_function",
+      "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag",
+      "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag:kind=test_function",
+      "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries",
+      "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries:kind=test_function"
+    ],
+    "test_files": [
+      "tests/test_manifest_outcome_docs.py",
+      "tests/test_packet_skill_guidance_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_packet_skill_guidance_docs.py",
+      "uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/070-04-update-skill-guidance-for-packets.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

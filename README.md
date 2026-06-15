@@ -96,9 +96,9 @@ MAID Runner section in `AGENTS.md`.
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
-| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--watch`, `--watch-all` |
+| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json` |
+| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--json` (status), `--project-root` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
@@ -121,6 +121,26 @@ MAID Runner section in `AGENTS.md`.
 | `maid serve` | Run a long-lived validator daemon over a Unix socket | `--socket`, `--pidfile`, `--project-root`, `--client-timeout` |
 
 **Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
+
+### Failure Packets For Agent Retries
+
+Agent retry loops can run gates with packet output:
+
+```bash
+maid validate --packet
+maid verify --packet
+```
+
+Each packet-aware gate writes a failure packet only when the run fails with exit
+code 1. A passing packet-aware run writes no packet and removes any stale packet at that path, so agents cannot replay outdated failure state. Passing `--packet`
+without a path uses
+`.maid/last-failure-packet.json`.
+
+On failure, read the packet before retrying. It includes the failed command,
+exit code, project root, failed manifest excerpts, diagnostics with
+`next_action`, failed-command output tails, and environment versions. Retry
+loops should respect `next_action` kinds, stay within manifest scope, and stop
+at the documented attempt bound instead of silently weakening tests or manifests.
 
 Run `maid howto --section commands` for detailed usage and examples. For common
 failure modes, see [docs/troubleshooting.md](docs/troubleshooting.md) or run

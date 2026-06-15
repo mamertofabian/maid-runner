@@ -44,6 +44,20 @@ general MAID skills:
    red phase is meaningful.
 4. Restate the manifest `temptations` before editing.
 
+## Packet-Driven Retry Gates
+
+For implementer retries, run validation gates with `--packet`; for example,
+`maid validate --packet` and `maid verify --packet`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+
+Respect `next_action` exactly. Valid kinds include `edit-implementation`,
+`edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
+`escalate-human`; kinds that change tests or manifests route through explicit
+plan revision when the contract must change. Recipes never authorize weakening tests or manifests to silence errors, and they never authorize weakening tests or manifests as the first remedy for an implementation failure.
+
+Stop at the default 5 attempt bound. If the gate still fails, or the packet
+requests `escalate-human`, stop and escalate to a human with the final packet
+instead of looping, hiding the failure, or broadening scope.
+
 ## Outcome-Aware MAID Guidance
 
 Outcome records are deterministic manifest data, not agent-only memory. When

@@ -12,6 +12,8 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - Load the manifest first.
 - Implement only what the manifest declares.
 - `files.create` is Strict Mode. `files.edit` is Permissive Mode.
+- Implementer sessions run validation gates with `--packet`; for example,
+  `maid validate --packet` and `maid verify --packet`.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
 - NEVER modify code not listed in the manifest `files.create` or `files.edit`.
@@ -19,6 +21,19 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - NEVER modify behavioral tests unless the user explicitly approves changing the contract.
 - If implementation validation exposes a bad manifest, write `plan-revision.md` explaining the issue and stop. Do not force tests green by working around a bad plan.
 - If the manifest has `temptations`, restate the relevant risk/procedure pairs before editing and treat each `instead` as the working procedure.
+
+## Packet-Driven Retry Gates
+
+When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+
+Respect `next_action` exactly. Valid kinds include `edit-implementation`,
+`edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
+`escalate-human`; kinds that change tests or manifests route through explicit
+plan revision when the contract must change. Recipes never authorize weakening tests or manifests to silence errors, and they never authorize weakening tests or manifests as the first remedy for an implementation failure.
+
+Stop at the default 5 attempt bound. If the gate still fails, or the packet
+requests `escalate-human`, stop and escalate to a human with the final packet
+instead of looping, hiding the failure, or broadening scope.
 
 ## Phase 1 — Load the Manifest
 
