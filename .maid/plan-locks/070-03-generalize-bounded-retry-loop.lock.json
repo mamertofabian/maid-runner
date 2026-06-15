@@ -1,0 +1,221 @@
+{
+  "manifest_path": "manifests/070-03-generalize-bounded-retry-loop.manifest.yaml",
+  "manifest_hash": "sha256:e7a70e8083a4e7696306bf80edab8332f8ffea3bc2c1752dd0d390cba99ae707",
+  "test_hashes": {
+    "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+    "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82",
+    "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+  },
+  "created_at": "2026-06-15T00:36:01.997211+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:1c74c0152c6abe99676a44fc614ddb31b58c4d535c347d665514cc687e33eddc",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d",
+        "tests/ci/test_maid_loop_core.py": "sha256:1a82cc8466b4bb48a731aa75b3500e4e1c992d2776fcb4770863a43236ab4d76"
+      },
+      "revised_at": "2026-06-15T00:36:06.420100+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/070-03-generalize-bounded-retry-loop.manifest.yaml -> manifests/070-03-generalize-bounded-retry-loop.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d",
+        "tests/ci/test_maid_loop_core.py": "sha256:1a82cc8466b4bb48a731aa75b3500e4e1c992d2776fcb4770863a43236ab4d76"
+      },
+      "revised_at": "2026-06-15T00:45:01.930538+00:00",
+      "reason": "Capture valid red evidence after replacing missing-file red with behavioral assertion red"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d",
+        "tests/ci/test_maid_loop_core.py": "sha256:f62934059bc2b3818def0e074cb4d22a1d608849955ff092c0488daf23849ac1"
+      },
+      "revised_at": "2026-06-15T00:45:18.507079+00:00",
+      "reason": "Refresh lock hashes after restoring formatted behavioral tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d",
+        "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+      },
+      "revised_at": "2026-06-15T01:00:59.232999+00:00",
+      "reason": "Refresh lock hashes after packet retry loop coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:89c6831327ed18b91ebfe6e3c0dc49c04fbb42232cc69575ac6eccdbb9693ce0",
+        "tests/ci/test_claude_maid_loop.py": "sha256:f5b04348ea391ed3616e718e6c4aee754925909608202c3d74c9ee6c6facb50f",
+        "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+      },
+      "revised_at": "2026-06-15T01:09:24.559897+00:00",
+      "reason": "Recapture red evidence from missing retry failure packet handoff"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82",
+        "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+      },
+      "revised_at": "2026-06-15T01:10:03.696836+00:00",
+      "reason": "Refresh lock hashes after retry packet evidence and parser help fix"
+    },
+    {
+      "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82",
+        "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+      },
+      "revised_at": "2026-06-15T01:15:29.205701+00:00",
+      "reason": "Refresh lock hashes after Outcome capture"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T01:09:27.043984+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_maid_loop_core.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py",
+        "exit_code": 1,
+        "output_tail": "  session: session-1\n  status: READY\n  jsonl: .codex-automation/run-1.jsonl\n  stderr: .codex-automation/run-1.stderr.log\n  final: .codex-automation/run-1.final.md\nattempt 1: AUTOMATION_STATUS: READY\n\nCodex run summary:\n  exit: 0\n  session: session-2\n  status: READY\n  jsonl: .codex-automation/run-2.jsonl\n  stderr: .codex-automation/run-2.stderr.log\n  final: .codex-automation/run-2.final.md\nattempt 2: AUTOMATION_STATUS: READY\nAuto-commit enabled; committing READY packet without prompting.\nReached max pass count (1); stopping.\n=========================== short test summary info ============================\nFAILED tests/ci/test_codex_maid_loop.py::TestCodexMaidLoopRun::test_retry_pass_reads_failure_packet_for_next_attempt\n1 failed, 70 passed in 0.19s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_protocol_contract",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_protocol_contract:kind=attribute",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_protocol_contract:of=documentation",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_protocol_contract:type=markdown document",
+      "tests/ci/test_maid_loop_core.py:test_agent_retry_protocol_document_names_packet_cycle_and_escalation",
+      "tests/ci/test_maid_loop_core.py:test_agent_retry_protocol_document_names_packet_cycle_and_escalation:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_escalates_after_default_attempt_bound",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_escalates_after_default_attempt_bound:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_passes_packet_to_attempt_and_records_outcomes",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_passes_packet_to_attempt_and_records_outcomes:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_stops_immediately_when_gate_passes",
+      "tests/ci/test_maid_loop_core.py:test_bounded_retry_loop_stops_immediately_when_gate_passes:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_discovery_excludes_epic_drafts",
+      "tests/ci/test_maid_loop_core.py:test_discovery_excludes_epic_drafts:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_git_commit_helpers_delegate_through_public_commit_packet",
+      "tests/ci/test_maid_loop_core.py:test_git_commit_helpers_delegate_through_public_commit_packet:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_read_failure_packet_returns_dict_or_none",
+      "tests/ci/test_maid_loop_core.py:test_read_failure_packet_returns_dict_or_none:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_stage_commit_packet_files_rejects_unsafe_paths",
+      "tests/ci/test_maid_loop_core.py:test_stage_commit_packet_files_rejects_unsafe_paths:kind=test_function",
+      "tests/ci/test_maid_loop_core.py:test_status_and_commit_packet_parsing_preserves_existing_protocol",
+      "tests/ci/test_maid_loop_core.py:test_status_and_commit_packet_parsing_preserves_existing_protocol:kind=test_function",
+      "tools/claude_maid_loop.py:function:main",
+      "tools/claude_maid_loop.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "tools/claude_maid_loop.py:function:main:kind=function",
+      "tools/claude_maid_loop.py:function:main:returns=int",
+      "tools/codex_maid_loop.py:function:main",
+      "tools/codex_maid_loop.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "tools/codex_maid_loop.py:function:main:kind=function",
+      "tools/codex_maid_loop.py:function:main:returns=int",
+      "tools/maid_loop_core.py:attribute:CommitPacket.files",
+      "tools/maid_loop_core.py:attribute:CommitPacket.files:kind=attribute",
+      "tools/maid_loop_core.py:attribute:CommitPacket.files:of=CommitPacket",
+      "tools/maid_loop_core.py:attribute:CommitPacket.files:type=list[str]",
+      "tools/maid_loop_core.py:attribute:CommitPacket.message",
+      "tools/maid_loop_core.py:attribute:CommitPacket.message:kind=attribute",
+      "tools/maid_loop_core.py:attribute:CommitPacket.message:of=CommitPacket",
+      "tools/maid_loop_core.py:attribute:CommitPacket.message:type=str",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.attempts",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.attempts:kind=attribute",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.attempts:of=RetryLoopResult",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.attempts:type=int",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.escalated",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.escalated:kind=attribute",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.escalated:of=RetryLoopResult",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.escalated:type=bool",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.final_packet",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.final_packet:kind=attribute",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.final_packet:of=RetryLoopResult",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.final_packet:type=dict | None",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.success",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.success:kind=attribute",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.success:of=RetryLoopResult",
+      "tools/maid_loop_core.py:attribute:RetryLoopResult.success:type=bool",
+      "tools/maid_loop_core.py:class:CommitPacket",
+      "tools/maid_loop_core.py:class:CommitPacket:kind=class",
+      "tools/maid_loop_core.py:class:RetryLoopResult",
+      "tools/maid_loop_core.py:class:RetryLoopResult:kind=class",
+      "tools/maid_loop_core.py:function:ask_commit_approval",
+      "tools/maid_loop_core.py:function:ask_commit_approval:arg=pass_number:type=int:default=None",
+      "tools/maid_loop_core.py:function:ask_commit_approval:arg=status:type=str:default=None",
+      "tools/maid_loop_core.py:function:ask_commit_approval:kind=function",
+      "tools/maid_loop_core.py:function:ask_commit_approval:returns=bool",
+      "tools/maid_loop_core.py:function:commit_ready_changes",
+      "tools/maid_loop_core.py:function:commit_ready_changes:arg=packet:type=CommitPacket:default=None",
+      "tools/maid_loop_core.py:function:commit_ready_changes:arg=root:type=Path:default=None",
+      "tools/maid_loop_core.py:function:commit_ready_changes:kind=function",
+      "tools/maid_loop_core.py:function:commit_ready_changes:returns=int",
+      "tools/maid_loop_core.py:function:find_implementable_drafts",
+      "tools/maid_loop_core.py:function:find_implementable_drafts:arg=draft_dir:type=Path:default=None",
+      "tools/maid_loop_core.py:function:find_implementable_drafts:kind=function",
+      "tools/maid_loop_core.py:function:find_implementable_drafts:returns=list[Path]",
+      "tools/maid_loop_core.py:function:git_status_short",
+      "tools/maid_loop_core.py:function:git_status_short:arg=root:type=Path:default=None",
+      "tools/maid_loop_core.py:function:git_status_short:kind=function",
+      "tools/maid_loop_core.py:function:git_status_short:returns=str",
+      "tools/maid_loop_core.py:function:parse_automation_status",
+      "tools/maid_loop_core.py:function:parse_automation_status:arg=final_message:type=str:default=None",
+      "tools/maid_loop_core.py:function:parse_automation_status:kind=function",
+      "tools/maid_loop_core.py:function:parse_automation_status:returns=str | None",
+      "tools/maid_loop_core.py:function:parse_commit_packet",
+      "tools/maid_loop_core.py:function:parse_commit_packet:arg=final_message:type=str:default=None",
+      "tools/maid_loop_core.py:function:parse_commit_packet:kind=function",
+      "tools/maid_loop_core.py:function:parse_commit_packet:returns=CommitPacket | None",
+      "tools/maid_loop_core.py:function:read_failure_packet",
+      "tools/maid_loop_core.py:function:read_failure_packet:arg=path:type=Union[str, Path]:default=None",
+      "tools/maid_loop_core.py:function:read_failure_packet:kind=function",
+      "tools/maid_loop_core.py:function:read_failure_packet:returns=dict | None",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:arg=max_attempts:type=int:default=5",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:arg=packet_path:type=Union[str, Path]:default=None",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:arg=run_attempt:type=Callable[[dict | None], str]:default=None",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:arg=run_gate:type=Callable[[], int]:default=None",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:kind=function",
+      "tools/maid_loop_core.py:function:run_bounded_retry_loop:returns=RetryLoopResult",
+      "tools/maid_loop_core.py:function:stage_commit_packet_files",
+      "tools/maid_loop_core.py:function:stage_commit_packet_files:arg=files:type=list[str]:default=None",
+      "tools/maid_loop_core.py:function:stage_commit_packet_files:arg=root:type=Path:default=None",
+      "tools/maid_loop_core.py:function:stage_commit_packet_files:kind=function",
+      "tools/maid_loop_core.py:function:stage_commit_packet_files:returns=int"
+    ],
+    "test_files": [
+      "tests/ci/test_claude_maid_loop.py",
+      "tests/ci/test_codex_maid_loop.py",
+      "tests/ci/test_maid_loop_core.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_maid_loop_core.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py",
+      "uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

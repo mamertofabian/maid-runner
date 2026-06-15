@@ -1,4 +1,6 @@
 import argparse
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +24,26 @@ class TestClaudeMaidLoopDiscovery(unittest.TestCase):
 
 
 class TestClaudeMaidLoopCommand(unittest.TestCase):
+    def test_direct_script_dry_run_entrypoint_imports_shared_core(self) -> None:
+        process = subprocess.run(
+            [
+                sys.executable,
+                "tools/claude_maid_loop.py",
+                "--dry-run",
+                "--color",
+                "never",
+            ],
+            cwd=claude_maid_loop._ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=20,
+        )
+
+        self.assertEqual("", process.stderr)
+        self.assertEqual(0, process.returncode)
+        self.assertIn("Implementation command:", process.stdout)
+
     def test_build_implementation_command_uses_claude_print_stream_and_repo_skill(
         self,
     ) -> None:
@@ -236,6 +258,17 @@ class TestClaudeMaidLoopRenderer(unittest.TestCase):
 
 
 class TestClaudeMaidLoopRun(unittest.TestCase):
+    def setUp(self) -> None:
+        self._packet_gate_patch = mock.patch.object(
+            claude_maid_loop,
+            "_run_packet_gate",
+            return_value=0,
+        )
+        self.packet_gate = self._packet_gate_patch.start()
+
+    def tearDown(self) -> None:
+        self._packet_gate_patch.stop()
+
     def test_dirty_worktree_blocks_new_passes(self) -> None:
         self.assertTrue(callable(claude_maid_loop.git_status_short))
         self.assertTrue(callable(claude_maid_loop.run_claude_stream_command))
@@ -549,6 +582,96 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
         self.assertEqual(2, drafts.call_count)
         run_claude.assert_called_once()
 
+    def test_retry_pass_reads_failure_packet_for_next_attempt(self) -> None:
+        args = argparse.Namespace(
+            dry_run=False,
+            log_dir=None,
+            once=True,
+            max_passes=1,
+            claude="claude",
+            color="never",
+            model="sonnet",
+            effort="medium",
+            permission_mode="auto",
+            auto_commit=True,
+        )
+        first = claude_maid_loop.ClaudeRunResult(
+            args=["claude"],
+            returncode=0,
+            session_id="session-1",
+            final_message=(
+                "Done.\n"
+                "AUTOMATION_COMMIT_MESSAGE: feat: implement draft\n"
+                "AUTOMATION_COMMIT_FILES:\n"
+                "- tools/claude_maid_loop.py\n"
+                "AUTOMATION_STATUS: READY\n"
+            ),
+            stdout_jsonl_path=Path(".claude-automation/run-1.jsonl"),
+            stderr_path=Path(".claude-automation/run-1.stderr.log"),
+            final_message_path=Path(".claude-automation/run-1.final.md"),
+        )
+        second = claude_maid_loop.ClaudeRunResult(
+            args=["claude"],
+            returncode=0,
+            session_id="session-2",
+            final_message=first.final_message,
+            stdout_jsonl_path=Path(".claude-automation/run-2.jsonl"),
+            stderr_path=Path(".claude-automation/run-2.stderr.log"),
+            final_message_path=Path(".claude-automation/run-2.final.md"),
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            packet_path = Path(temp_dir) / "packet.json"
+
+            def gate(path: Path) -> int:
+                self.assertEqual(packet_path, path)
+                if not packet_path.exists():
+                    packet_path.write_text(
+                        '{"packet_version": 1, "diagnostics": [{"code": "E200"}]}',
+                        encoding="utf-8",
+                    )
+                    return 1
+                return 0
+
+            self.packet_gate.side_effect = gate
+            with (
+                mock.patch.object(
+                    claude_maid_loop,
+                    "_DEFAULT_PACKET_PATH",
+                    packet_path,
+                ),
+                mock.patch.object(
+                    claude_maid_loop, "git_status_short", return_value=""
+                ),
+                mock.patch.object(
+                    claude_maid_loop,
+                    "find_implementable_drafts",
+                    return_value=[
+                        Path("manifests/drafts/017-03-example.manifest.yaml")
+                    ],
+                ),
+                mock.patch.object(
+                    claude_maid_loop,
+                    "run_claude_stream_command",
+                    side_effect=[first, second],
+                ) as run_claude,
+                mock.patch.object(
+                    claude_maid_loop,
+                    "commit_ready_changes",
+                    return_value=0,
+                ),
+            ):
+                args.log_dir = temp_dir
+                code = claude_maid_loop.run_loop(args)
+
+        self.assertEqual(0, code)
+        self.assertEqual(2, run_claude.call_count)
+        first_command = run_claude.call_args_list[0].args[0]
+        second_command = run_claude.call_args_list[1].args[0]
+        self.assertNotIn("Failure packet for this retry attempt", first_command[-1])
+        self.assertIn("Failure packet for this retry attempt", second_command[-1])
+        self.assertIn('"code": "E200"', second_command[-1])
+
     def test_ready_pass_rejects_unselected_draft_promotions(self) -> None:
         args = argparse.Namespace(
             dry_run=False,
@@ -845,6 +968,8 @@ class TestClaudeMaidLoopRun(unittest.TestCase):
         help_text = parser.format_help()
 
         self.assertIn("--batch-size", help_text)
+        self.assertIn("bounded retry attempts", help_text)
+        self.assertNotIn("Maximum fresh Claude Code sessions", help_text)
         self.assertEqual(1, parser.parse_args([]).batch_size)
         self.assertEqual(2, parser.parse_args(["--batch-size", "2"]).batch_size)
 

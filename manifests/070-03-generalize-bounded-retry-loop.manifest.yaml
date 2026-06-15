@@ -1,0 +1,444 @@
+schema: '2'
+goal: Generalize the Codex and Claude loop tools into a shared packet-consuming bounded retry core with a documented protocol
+type: feature
+created: '2026-06-15T00:36:06Z'
+metadata:
+  epic: 070-00-structured-retry-packets
+  tags:
+  - agent-loops
+  - retry-protocol
+  - developer-experience
+  priority: high
+description: |
+  Refactor the shared logic of `tools/codex_maid_loop.py` and
+  `tools/claude_maid_loop.py` into a new shared module
+  `tools/maid_loop_core.py` that consumes failure packets (shipped by
+  sibling child 070-02, which must land first) instead of parsing gate
+  text output, and document the bounded retry protocol in a new
+  `docs/agent-retry-protocol.md`. Depends on 070-02 for the `--packet`
+  flag and packet schema.
+
+  Pinned decisions (from epic 070-00; do not redesign):
+
+  1. The retry protocol is a documented loop contract, not a new
+     orchestrator product. `docs/agent-retry-protocol.md` specifies: run
+     the gate; on failure read the packet; apply `next_action`-guided
+     fixes within manifest scope; re-run; with a bounded attempt count
+     (default 5) after which the loop stops and escalates to a human with
+     the final packet. The document also describes the packet schema
+     (the eight top-level keys pinned by 070-02: packet_version, command,
+     exit_code, project_root, manifest, diagnostics, test_output,
+     environment) and the escalation rules.
+  2. The reference implementation refactors the shared logic of
+     `tools/codex_maid_loop.py` and `tools/claude_maid_loop.py` to
+     consume packets instead of parsing text output. It is kept under
+     `tools/` (NOT the installed maid_runner package), with its behavior
+     covered by tests that stub the agent invocation.
+  3. Packet consumption: the loops run gates with `--packet`; after a
+     failed gate they read the packet JSON (default
+     `.maid/last-failure-packet.json`) and hand its content to the next
+     agent attempt, instead of scraping gate stdout. The
+     AUTOMATION_STATUS and AUTOMATION_COMMIT_MESSAGE/FILES markers in
+     agent final messages remain the outer agent protocol and are still
+     parsed from the agent's final message (that is agent output, not
+     gate output).
+  4. Bounded attempts: default 5. After the bound is reached without a
+     passing gate, the loop stops, logs per-attempt outcomes, and
+     escalates to a human with the final packet (path and content
+     surfaced in the escalation output).
+  5. Recipes never instruct contract weakening; the loop must not
+     reinterpret `next_action` kinds. `edit-tests` and `edit-manifest`
+     actions reach the agent only when the packet says so, and the
+     protocol document states that contract changes stay loud (plan
+     revision), never silent.
+
+  Shared logic to extract into tools/maid_loop_core.py (currently
+  duplicated near-identically in both loop tools): draft discovery
+  (find_implementable_drafts), automation status parsing
+  (parse_automation_status), commit packet parsing (parse_commit_packet
+  and the CommitPacket dataclass), git worktree status
+  (git_status_short), commit staging and committing
+  (stage_commit_packet_files, commit_ready_changes), and typed commit
+  approval (ask_commit_approval). New packet-aware pieces: reading the
+  failure packet (read_failure_packet) and the bounded retry driver
+  (run_bounded_retry_loop returning a RetryLoopResult). The two loop
+  tools keep their own agent command building and stream-event rendering
+  and import the shared core; their public `main` entry points and CLI
+  behavior must keep working.
+
+  Planning note: tests covering tools/ modules live under tests/ci/
+  in this repository (existing tests/ci/test_codex_maid_loop.py and
+  tests/ci/test_claude_maid_loop.py), so the new core's tests are
+  planned at tests/ci/test_maid_loop_core.py. The existing two test
+  files must keep passing after the refactor and are included in this
+  child's validate commands as the behavior-preservation check.
+
+  Planning note: the epic does not pin the retry driver's exact
+  signature. The most conservative reading is dependency injection so
+  tests can stub the agent: run_bounded_retry_loop takes a gate callable
+  (returns an exit code), an attempt callable (receives the parsed
+  packet dict or None and runs one agent pass), the packet path, and
+  max_attempts defaulting to 5, returning a RetryLoopResult with the
+  attempt count, success flag, escalation flag, and final packet.
+
+  Behavioral tests must cover (stubbing the agent invocation; no real
+  Codex/Claude processes): the loop stops immediately when the gate
+  passes on the first run; on gate failure the packet is read and its
+  dict is passed to the next attempt; a missing or unreadable packet
+  file yields None to the attempt callable without crashing the loop;
+  the loop stops at the attempt bound (default 5) and reports
+  escalated=True with the final packet; per-attempt outcomes are
+  logged/recorded; parse_automation_status and parse_commit_packet
+  behave identically to the current duplicated implementations
+  (including the last-packet-wins and malformed-packet-rejected cases);
+  and stage/commit helpers refuse invalid (absolute or parent-relative)
+  paths exactly as the current tools do. The retry protocol document is
+  asserted to specify the run-gate/read-packet/fix/re-run cycle, the
+  default bound of 5, and human escalation with the final packet.
+
+  Out of scope for this child: registry codes and recipes (070-01);
+  packet serialization and the --packet CLI flag (070-02); skill and
+  README guidance updates (070-04). No new maid CLI commands and no
+  orchestrator features beyond the documented loop contract.
+temptations:
+- risk: Do not build a general agent orchestrator inside maid-runner.
+  instead: Ship a documented loop contract plus a reference tool under tools/; orchestration products stay external per the roadmap boundary.
+- risk: Do not keep scraping gate text output for failure details.
+  instead: Run gates with --packet and consume the packet JSON; only agent final messages are parsed for the AUTOMATION markers.
+- risk: Do not let the loop retry forever or silently swallow the final failure.
+  instead: Stop at the bounded attempt count (default 5) and escalate to a human with the final packet.
+- risk: Do not move the loop tooling into the installed package.
+  instead: Keep the shared core and both loop tools under tools/, covered by tests that stub the agent invocation.
+files:
+  create:
+  - path: tools/maid_loop_core.py
+    artifacts:
+    - kind: class
+      name: CommitPacket
+      description: Parsed READY commit message and exact file list, shared by both loop tools.
+    - kind: attribute
+      name: message
+      of: CommitPacket
+      type: str
+    - kind: attribute
+      name: files
+      of: CommitPacket
+      type: list[str]
+    - kind: class
+      name: RetryLoopResult
+      description: 'Outcome of a bounded retry loop run: attempts used, success, escalation, and the final failure packet if any.'
+    - kind: attribute
+      name: attempts
+      of: RetryLoopResult
+      type: int
+    - kind: attribute
+      name: success
+      of: RetryLoopResult
+      type: bool
+    - kind: attribute
+      name: escalated
+      of: RetryLoopResult
+      type: bool
+    - kind: attribute
+      name: final_packet
+      of: RetryLoopResult
+      type: dict | None
+    - kind: function
+      name: find_implementable_drafts
+      args:
+      - name: draft_dir
+        type: Path
+      returns: list[Path]
+      description: Return sorted non-epic draft MAID manifests that remain to be implemented.
+    - kind: function
+      name: parse_automation_status
+      args:
+      - name: final_message
+        type: str
+      returns: str | None
+      description: Extract the final AUTOMATION_STATUS marker from an agent's final message.
+    - kind: function
+      name: parse_commit_packet
+      args:
+      - name: final_message
+        type: str
+      returns: CommitPacket | None
+      description: Extract the commit message and explicit file list from a READY final message; last complete packet wins.
+    - kind: function
+      name: git_status_short
+      args:
+      - name: root
+        type: Path
+      returns: str
+      description: Return `git status --short` output for worktree preflight.
+    - kind: function
+      name: stage_commit_packet_files
+      args:
+      - name: files
+        type: list[str]
+      - name: root
+        type: Path
+      returns: int
+      description: Stage the exact existing or tracked-deleted files named by a READY packet; refuse absolute or parent-relative paths.
+    - kind: function
+      name: commit_ready_changes
+      args:
+      - name: packet
+        type: CommitPacket
+      - name: root
+        type: Path
+      returns: int
+      description: Stage and commit a READY packet after approval.
+    - kind: function
+      name: ask_commit_approval
+      args:
+      - name: pass_number
+        type: int
+      - name: status
+        type: str
+      returns: bool
+      description: Require a per-pass typed approval before committing a READY packet.
+    - kind: function
+      name: read_failure_packet
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: dict | None
+      description: Read and parse the failure packet JSON written by a failed gate run; return None for a missing or unreadable packet.
+    - kind: function
+      name: run_bounded_retry_loop
+      args:
+      - name: run_gate
+        type: Callable[[], int]
+      - name: run_attempt
+        type: Callable[[dict | None], str]
+      - name: packet_path
+        type: Union[str, Path]
+      - name: max_attempts
+        type: int
+        default: '5'
+      returns: RetryLoopResult
+      description: 'Drive the documented loop contract: run gate, on failure read packet and hand it to the next attempt, re-run, stop and escalate with the final packet after max_attempts.'
+  - path: docs/agent-retry-protocol.md
+    artifacts:
+    - kind: attribute
+      name: _agent_retry_protocol_contract
+      of: documentation
+      type: markdown document
+      description: 'Loop contract specification: run gate with --packet, read packet on failure, apply next_action-guided fixes within manifest scope, re-run, bounded attempts (default 5), then human escalation with the final packet; includes the packet schema and escalation rules.'
+  - path: tests/ci/test_maid_loop_core.py
+    artifacts:
+    - kind: test_function
+      name: test_discovery_excludes_epic_drafts
+      source_scenario: The automation loop discovers implementable draft manifests before starting a pass.
+      actions:
+      - type: api_call
+        subject:
+          function: find_implementable_drafts
+      expected:
+        behavior: Only non-epic `.manifest.yaml` drafts are returned, sorted by path.
+    - kind: test_function
+      name: test_status_and_commit_packet_parsing_preserves_existing_protocol
+      source_scenario: An agent final message contains automation status and READY commit packet markers.
+      actions:
+      - type: api_call
+        subject:
+          function: parse_automation_status
+      - type: api_call
+        subject:
+          function: parse_commit_packet
+      expected:
+        behavior: The last valid AUTOMATION_STATUS is selected, the last complete commit packet wins, and malformed packets are rejected.
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_unsafe_paths
+      source_scenario: A READY packet names absolute or parent-relative paths.
+      actions:
+      - type: api_call
+        subject:
+          function: stage_commit_packet_files
+      expected:
+        behavior: The staging helper refuses unsafe paths without invoking git.
+    - kind: test_function
+      name: test_read_failure_packet_returns_dict_or_none
+      source_scenario: The retry loop reads the packet emitted by a failed MAID gate.
+      actions:
+      - type: api_call
+        subject:
+          function: read_failure_packet
+      expected:
+        behavior: Valid packet JSON is returned as a dict, while missing or unreadable packet files return None.
+    - kind: test_function
+      name: test_bounded_retry_loop_stops_immediately_when_gate_passes
+      source_scenario: The first MAID gate run passes before any agent retry is needed.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop returns success without invoking the attempt callable or reading stale packet state.
+    - kind: test_function
+      name: test_bounded_retry_loop_passes_packet_to_attempt_and_records_outcomes
+      source_scenario: A gate fails, writes a failure packet, then passes after the agent attempt consumes that packet.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop reads the packet, passes it to the next attempt callable, records per-attempt outcomes, and returns a successful RetryLoopResult.
+    - kind: test_function
+      name: test_bounded_retry_loop_escalates_after_default_attempt_bound
+      source_scenario: The MAID gate continues to fail after every retry attempt.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop stops after the default bound of five attempts and returns escalated=True with the final packet.
+    - kind: test_function
+      name: test_git_commit_helpers_delegate_through_public_commit_packet
+      source_scenario: A READY packet names safe repository-relative paths and commit approval is requested for a pass.
+      actions:
+      - type: api_call
+        subject:
+          function: git_status_short
+      - type: api_call
+        subject:
+          function: commit_ready_changes
+      - type: api_call
+        subject:
+          function: ask_commit_approval
+      expected:
+        behavior: Git helpers run in the supplied root, commit_ready_changes stages only packet files before committing, and typed approval accepts only `commit`.
+    - kind: test_function
+      name: test_agent_retry_protocol_document_names_packet_cycle_and_escalation
+      source_scenario: A maintainer reads the documented retry protocol.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The document specifies running gates with --packet, reading the packet, applying next_action-guided fixes, rerunning, defaulting to five attempts, and escalating to a human with the final packet.
+  edit:
+  - path: tools/codex_maid_loop.py
+    artifacts:
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+      description: Codex loop entry point keeps its CLI behavior while delegating shared logic to tools/maid_loop_core.py and consuming failure packets.
+  - path: tools/claude_maid_loop.py
+    artifacts:
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+      description: Claude loop entry point keeps its CLI behavior while delegating shared logic to tools/maid_loop_core.py and consuming failure packets.
+  read:
+  - maid_runner/core/failure_packet.py
+  - tests/ci/test_codex_maid_loop.py
+  - tests/ci/test_claude_maid_loop.py
+validate:
+- uv run python -m pytest -q tests/ci/test_maid_loop_core.py tests/ci/test_codex_maid_loop.py tests/ci/test_claude_maid_loop.py
+- uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/070-03-generalize-bounded-retry-loop.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Bounded retry orchestration was extracted into tools/maid_loop_core.py, documented in docs/agent-retry-protocol.md, and wired into the Codex and Claude MAID loops so failed gates emit packets that are passed into the next bounded retry attempt before human escalation."
+  rationale: "Structured failure packets only help weaker automation loops when the packet is read after a failed gate and included in the next attempt prompt. Sharing the retry, packet, status, commit-packet, and git helper logic keeps Codex and Claude behavior aligned while preserving their existing READY commit approval flow."
+  lessons:
+    - lesson_type: workflow
+      summary: "Red evidence should fail on the behavior introduced by the manifest; for retry-loop work, packet handoff failures are stronger evidence than intentionally wrong discovery expectations."
+      tags:
+        - plan-lock
+        - red-evidence
+        - retry-packets
+      paths:
+        - .maid/plan-locks/070-03-generalize-bounded-retry-loop.lock.json
+        - tests/ci/test_codex_maid_loop.py
+    - lesson_type: compatibility
+      summary: "Loop scripts executed directly from tools/ need import fallback coverage when shared code moves under the tools package."
+      tags:
+        - direct-entrypoint
+        - cli
+        - shared-core
+      paths:
+        - tools/codex_maid_loop.py
+        - tools/claude_maid_loop.py
+        - tests/ci/test_codex_maid_loop.py
+        - tests/ci/test_claude_maid_loop.py
+    - lesson_type: workflow
+      summary: "When shared test files are locked by another active manifest, refresh that manifest's lock hashes while preserving its red evidence after legitimate test additions."
+      tags:
+        - plan-lock
+        - shared-test-files
+      paths:
+        - .maid/plan-locks/073-02-align-agent-plan-lock-promotion-guidance.lock.json
+        - tests/ci/test_codex_maid_loop.py
+        - tests/ci/test_claude_maid_loop.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: blocking
+      summary: "Initial review found broken direct script imports and loop integration that did not consume the shared bounded retry core; both were fixed and covered by focused tests."
+    - source: maid-implementation-reviewer
+      severity: blocking
+      summary: "Follow-up review found behavior-weak red evidence and stale --max-passes help text; red evidence was recaptured from retry-packet handoff failure and parser help was updated with test coverage."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Final re-review found no actionable findings. The reviewer confirmed scope, retry behavior, docs, 073 lock refresh justification, and scoped plan-lock/red-evidence verification."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/ci/test_maid_loop_core.py
+        - tests/ci/test_codex_maid_loop.py
+        - tests/ci/test_claude_maid_loop.py
+      status: passed
+      summary: "Focused loop tests passed: 71 passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - tools/maid_loop_core.py
+        - tools/codex_maid_loop.py
+        - tools/claude_maid_loop.py
+        - tests/ci/test_maid_loop_core.py
+        - tests/ci/test_codex_maid_loop.py
+        - tests/ci/test_claude_maid_loop.py
+      status: passed
+      summary: "Ruff passed for touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed: 330 manifests, 244 passed, 0 failed, 86 skipped, with pre-existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide manifest tests passed: 95 commands, 0 failed, with pre-existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Scoped strict handoff gate passed after replacing red evidence and refreshing affected plan locks."

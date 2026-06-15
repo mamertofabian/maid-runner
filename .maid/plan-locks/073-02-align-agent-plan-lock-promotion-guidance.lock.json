@@ -2,11 +2,11 @@
   "manifest_path": "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
   "manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
   "test_hashes": {
-    "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
-    "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
+    "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+    "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82"
   },
   "created_at": "2026-06-14T21:48:44.034717+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:f6e33ea2c76b5c106606a669ca22e2438817e6b92c45d1c3a89d52197e67192b",
@@ -26,6 +26,24 @@
       },
       "revised_at": "2026-06-14T21:55:42.172665+00:00",
       "reason": "Move packaged Codex payload guard into owned Codex CI skill test to avoid older locked distribution test file"
+    },
+    {
+      "prior_manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:70422db1e0f0e186740a73468adcc2fd24bbf4a656b95168f92695bc790cd27d",
+        "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
+      },
+      "revised_at": "2026-06-15T01:01:30.954991+00:00",
+      "reason": "Refresh shared loop test hashes after packet retry coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:89c6831327ed18b91ebfe6e3c0dc49c04fbb42232cc69575ac6eccdbb9693ce0",
+        "tests/ci/test_claude_maid_loop.py": "sha256:f5b04348ea391ed3616e718e6c4aee754925909608202c3d74c9ee6c6facb50f"
+      },
+      "revised_at": "2026-06-15T01:10:03.894435+00:00",
+      "reason": "Refresh shared loop test hashes after retry help coverage"
     }
   ],
   "red_evidence": {

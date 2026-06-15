@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import subprocess
 import sys
 import threading
@@ -15,16 +14,41 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools.maid_loop_core import (
+        CommitPacket as _CoreCommitPacket,
+        ask_commit_approval as _core_ask_commit_approval,
+        commit_ready_changes as _core_commit_ready_changes,
+        find_implementable_drafts as _core_find_implementable_drafts,
+        git_status_short as _core_git_status_short,
+        parse_automation_status as _core_parse_automation_status,
+        parse_commit_packet as _core_parse_commit_packet,
+        run_bounded_retry_loop,
+        stage_commit_packet_files as _core_stage_commit_packet_files,
+    )
+except ModuleNotFoundError:
+    from maid_loop_core import (  # type: ignore[no-redef]
+        CommitPacket as _CoreCommitPacket,
+        ask_commit_approval as _core_ask_commit_approval,
+        commit_ready_changes as _core_commit_ready_changes,
+        find_implementable_drafts as _core_find_implementable_drafts,
+        git_status_short as _core_git_status_short,
+        parse_automation_status as _core_parse_automation_status,
+        parse_commit_packet as _core_parse_commit_packet,
+        run_bounded_retry_loop,
+        stage_commit_packet_files as _core_stage_commit_packet_files,
+    )
+
 
 _ROOT = Path(__file__).resolve().parents[1]
 _DRAFT_DIR = _ROOT / "manifests" / "drafts"
 _DEFAULT_LOG_ROOT = _ROOT / ".claude-automation" / "runs"
+_DEFAULT_PACKET_PATH = _ROOT / ".maid" / "last-failure-packet.json"
 _DEFAULT_MAX_PASSES = 100
 _DEFAULT_BATCH_SIZE = 1
 _DEFAULT_MODEL = "sonnet"
 _DEFAULT_EFFORT = "medium"
 _DEFAULT_PERMISSION_MODE = "auto"
-_AUTOMATION_STATUSES = {"READY", "NEEDS_CHANGES", "BLOCKED", "NO_DRAFTS"}
 _EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 _PERMISSION_MODES = {
     "default",
@@ -93,11 +117,27 @@ class CommitPacket:
     files: list[str]
 
 
+class _LoopAbort(Exception):
+    def __init__(self, returncode: int) -> None:
+        self.returncode = returncode
+
+
 def find_implementable_drafts(draft_dir: Path = _DRAFT_DIR) -> list[Path]:
     """Return non-epic draft MAID manifests that remain to be implemented."""
-    if not draft_dir.exists():
-        return []
-    return sorted(path for path in draft_dir.glob("*.manifest.yaml") if path.is_file())
+    return _core_find_implementable_drafts(draft_dir)
+
+
+def parse_automation_status(final_message: str) -> str | None:
+    """Extract the final AUTOMATION_STATUS marker from Claude Code output."""
+    return _core_parse_automation_status(final_message)
+
+
+def parse_commit_packet(final_message: str) -> CommitPacket | None:
+    """Extract a commit message and explicit file list from a READY message."""
+    packet = _core_parse_commit_packet(final_message)
+    if packet is None:
+        return None
+    return CommitPacket(message=packet.message, files=packet.files)
 
 
 def build_implementation_command(
@@ -106,6 +146,7 @@ def build_implementation_command(
     model: str = _DEFAULT_MODEL,
     effort: str = _DEFAULT_EFFORT,
     permission_mode: str = _DEFAULT_PERMISSION_MODE,
+    failure_packet: dict[str, Any] | None = None,
 ) -> list[str]:
     """Build a fresh `claude -p --verbose --output-format stream-json` command."""
     return [
@@ -120,7 +161,7 @@ def build_implementation_command(
         model,
         "--effort",
         effort,
-        _implementation_prompt(selected_drafts),
+        _implementation_prompt(selected_drafts, failure_packet=failure_packet),
     ]
 
 
@@ -169,147 +210,25 @@ def render_claude_stream_event(
     return ""
 
 
-def parse_automation_status(final_message: str) -> str | None:
-    """Extract the final AUTOMATION_STATUS marker from Claude Code output."""
-    matches = re.findall(r"(?im)^AUTOMATION_STATUS:\s*([A-Z_]+)\s*$", final_message)
-    for match in reversed(matches):
-        if match in _AUTOMATION_STATUSES:
-            return match
-    return None
-
-
-def parse_commit_packet(final_message: str) -> CommitPacket | None:
-    """Extract a commit message and explicit file list from a READY message."""
-    packets: list[CommitPacket] = []
-    lines = final_message.splitlines()
-    index = 0
-
-    while index < len(lines):
-        line = lines[index]
-        message_match = re.match(
-            r"(?i)^AUTOMATION_COMMIT_MESSAGE:\s*(.+?)\s*$",
-            line,
-        )
-        if message_match is None:
-            index += 1
-            continue
-
-        message = message_match.group(1).strip()
-        index += 1
-        while index < len(lines) and not re.match(
-            r"(?i)^AUTOMATION_COMMIT_(?:MESSAGE|FILES):",
-            lines[index],
-        ):
-            index += 1
-
-        if index >= len(lines) or not re.match(
-            r"(?i)^AUTOMATION_COMMIT_FILES:",
-            lines[index],
-        ):
-            continue
-
-        index += 1
-        files: list[str] = []
-        while index < len(lines):
-            stripped = lines[index].strip()
-            if not stripped.startswith("- "):
-                break
-            path = stripped[2:].strip()
-            if path:
-                files.append(path)
-            index += 1
-
-        if message and files:
-            packets.append(CommitPacket(message=message, files=files))
-
-    if not packets:
-        return None
-    return packets[-1]
-
-
 def git_status_short() -> str:
     """Return `git status --short` output for worktree preflight."""
-    process = subprocess.run(
-        ["git", "status", "--short"],
-        cwd=_ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if process.returncode != 0:
-        raise RuntimeError(process.stderr.strip() or "git status failed")
-    return process.stdout
+    return _core_git_status_short(_ROOT)
 
 
 def stage_commit_packet_files(files: list[str]) -> int:
     """Stage the exact existing or tracked-deleted files named by a packet."""
-    existing_files: list[str] = []
-    tracked_missing_files: list[str] = []
-    missing_untracked_files: list[str] = []
-    invalid_files: list[str] = []
-
-    for path in files:
-        if not _is_repo_relative_file_path(path):
-            invalid_files.append(path)
-            continue
-        absolute_path = _ROOT / path
-        if absolute_path.exists():
-            if absolute_path.is_file():
-                existing_files.append(path)
-            else:
-                invalid_files.append(path)
-        elif _git_path_is_tracked(path):
-            tracked_missing_files.append(path)
-        else:
-            missing_untracked_files.append(path)
-
-    if invalid_files or missing_untracked_files:
-        print("Refusing invalid commit packet file paths:", file=sys.stderr)
-        for path in invalid_files:
-            print(f"  - {path}", file=sys.stderr)
-        for path in missing_untracked_files:
-            print(f"  - {path}", file=sys.stderr)
-        return 1
-
-    if existing_files:
-        add_existing = _run_git(["add", "--", *existing_files])
-        if add_existing.returncode != 0:
-            return add_existing.returncode
-
-    if tracked_missing_files:
-        add_missing = _run_git(["add", "-A", "--", *tracked_missing_files])
-        if add_missing.returncode != 0:
-            return add_missing.returncode
-
-    return 0
+    return _core_stage_commit_packet_files(files, _ROOT)
 
 
 def ask_commit_approval(pass_number: int, status: str) -> bool:
     """Require a per-pass typed approval before committing a READY packet."""
-    if not sys.stdin.isatty():
-        print(
-            f"Pass {pass_number} reached {status}, but commit approval requires an interactive terminal.",
-            file=sys.stderr,
-        )
-        return False
-    answer = input(
-        f"Pass {pass_number} is {status}. Type 'commit' to approve this commit: "
-    )
-    return answer.strip().lower() == "commit"
+    return _core_ask_commit_approval(pass_number, status)
 
 
 def commit_ready_changes(packet: CommitPacket) -> int:
     """Stage and commit a READY packet after approval or opt-in auto-commit."""
-    print("Staging commit packet files:")
-    for path in packet.files:
-        print(f"  - {path}")
-
-    stage_returncode = stage_commit_packet_files(packet.files)
-    if stage_returncode != 0:
-        return stage_returncode
-
-    commit = _run_git(["commit", "-m", packet.message])
-    return commit.returncode
+    core_packet = _CoreCommitPacket(message=packet.message, files=packet.files)
+    return _core_commit_ready_changes(core_packet, _ROOT)
 
 
 def run_claude_stream_command(
@@ -420,37 +339,71 @@ def run_loop(args: argparse.Namespace) -> int:
         for draft in selected_drafts:
             print(f"  - {_rel(draft)}")
 
-        implement_jsonl, implement_stderr, implement_final = _pass_paths(
-            log_dir,
-            pass_number,
-            "implement",
-        )
-        implementation = run_claude_stream_command(
-            build_implementation_command(
-                claude=args.claude,
-                selected_drafts=selected_drafts,
-                model=args.model,
-                effort=args.effort,
-                permission_mode=args.permission_mode,
-            ),
-            stdout_jsonl_path=implement_jsonl,
-            stderr_path=implement_stderr,
-            final_message_path=implement_final,
-            color_enabled=color_enabled,
-        )
-        implementation_status = parse_automation_status(implementation.final_message)
-        _print_run_summary(implementation, implementation_status)
+        _clear_stale_packet(_DEFAULT_PACKET_PATH)
+        latest: dict[str, ClaudeRunResult | str | None] = {}
+        attempt_index = 0
 
-        if implementation.returncode != 0:
-            return implementation.returncode
-        if implementation_status == "NO_DRAFTS":
-            return 0
-        if implementation_status != "READY":
-            print(
-                "Implementation pass did not report AUTOMATION_STATUS: READY; stopping for manual review.",
-                file=sys.stderr,
+        def run_gate() -> int:
+            if "implementation" not in latest:
+                return 1
+            return _run_packet_gate(_DEFAULT_PACKET_PATH)
+
+        def run_attempt(failure_packet: dict | None) -> str:
+            nonlocal attempt_index
+            attempt_index += 1
+            implement_jsonl, implement_stderr, implement_final = _pass_paths(
+                log_dir,
+                pass_number,
+                f"implement-{attempt_index:02d}",
             )
+            implementation = run_claude_stream_command(
+                build_implementation_command(
+                    claude=args.claude,
+                    selected_drafts=selected_drafts,
+                    model=args.model,
+                    effort=args.effort,
+                    permission_mode=args.permission_mode,
+                    failure_packet=failure_packet,
+                ),
+                stdout_jsonl_path=implement_jsonl,
+                stderr_path=implement_stderr,
+                final_message_path=implement_final,
+                color_enabled=color_enabled,
+            )
+            implementation_status = parse_automation_status(
+                implementation.final_message
+            )
+            latest["implementation"] = implementation
+            latest["status"] = implementation_status
+            _print_run_summary(implementation, implementation_status)
+
+            if implementation.returncode != 0:
+                raise _LoopAbort(implementation.returncode)
+            if implementation_status == "NO_DRAFTS":
+                raise _LoopAbort(0)
+            if implementation_status != "READY":
+                print(
+                    "Implementation pass did not report AUTOMATION_STATUS: READY; stopping for manual review.",
+                    file=sys.stderr,
+                )
+                raise _LoopAbort(1)
+            return f"AUTOMATION_STATUS: {implementation_status}"
+
+        try:
+            retry_result = run_bounded_retry_loop(
+                run_gate=run_gate,
+                run_attempt=run_attempt,
+                packet_path=_DEFAULT_PACKET_PATH,
+            )
+        except _LoopAbort as exc:
+            return exc.returncode
+        if retry_result.escalated:
             return 1
+
+        implementation = latest.get("implementation")
+        implementation_status = latest.get("status")
+        if not isinstance(implementation, ClaudeRunResult):
+            return 0
 
         commit_packet = parse_commit_packet(implementation.final_message)
         if commit_packet is None:
@@ -547,7 +500,10 @@ Each READY pass uses typed commit approval unless `--auto-commit` is passed.
         "--max-passes",
         type=int,
         default=_DEFAULT_MAX_PASSES,
-        help=f"Maximum fresh Claude Code sessions to run (default: {_DEFAULT_MAX_PASSES})",
+        help=(
+            "Maximum draft implementation passes to run; each pass may make "
+            f"bounded retry attempts (default: {_DEFAULT_MAX_PASSES})"
+        ),
     )
     parser.add_argument(
         "--dry-run",
@@ -624,11 +580,23 @@ def _automation_env() -> dict[str, str]:
     return env
 
 
-def _implementation_prompt(selected_drafts: list[Path]) -> str:
+def _implementation_prompt(
+    selected_drafts: list[Path],
+    failure_packet: dict[str, Any] | None = None,
+) -> str:
     if selected_drafts:
         selected_lines = "\n".join(f"- {_rel(draft)}" for draft in selected_drafts)
     else:
         selected_lines = "- <none>"
+
+    packet_section = ""
+    if failure_packet is not None:
+        packet_section = (
+            "\nFailure packet for this retry attempt:\n"
+            "```json\n"
+            + json.dumps(failure_packet, indent=2, sort_keys=True)
+            + "\n```\n"
+        )
 
     return (
         _IMPLEMENTATION_PROMPT
@@ -643,6 +611,7 @@ Selected-scope requirements:
 - Do not create `manifests/<unselected>.manifest.yaml` files for unselected drafts.
 - If the selected draft cannot be implemented without a different draft first,
   report BLOCKED or NEEDS_CHANGES instead of expanding scope.
+{packet_section}
 """
     )
 
@@ -758,6 +727,41 @@ def _is_worktree_dirty(status_output: str) -> bool:
     return bool(status_output.strip())
 
 
+def _run_packet_gate(packet_path: Path = _DEFAULT_PACKET_PATH) -> int:
+    process = subprocess.run(
+        [
+            "uv",
+            "run",
+            "maid",
+            "verify",
+            "--require-plan-lock",
+            "--require-red-evidence",
+            "--since",
+            "HEAD",
+            "--packet",
+            str(packet_path),
+        ],
+        cwd=_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if process.stdout:
+        sys.stdout.write(process.stdout)
+    if process.stderr:
+        sys.stderr.write(process.stderr)
+    return process.returncode
+
+
+def _clear_stale_packet(packet_path: Path) -> None:
+    try:
+        packet_path.unlink()
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        print(f"Warning: could not remove stale failure packet {packet_path}: {exc}")
+
+
 def _run_git(args: list[str]) -> subprocess.CompletedProcess[str]:
     process = subprocess.run(
         ["git", *args],
@@ -771,24 +775,6 @@ def _run_git(args: list[str]) -> subprocess.CompletedProcess[str]:
     if process.stderr:
         sys.stderr.write(process.stderr)
     return process
-
-
-def _git_path_is_tracked(path: str) -> bool:
-    process = subprocess.run(
-        ["git", "ls-files", "--error-unmatch", "--", path],
-        cwd=_ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    return process.returncode == 0
-
-
-def _is_repo_relative_file_path(path: str) -> bool:
-    candidate = Path(path)
-    if candidate.is_absolute():
-        return False
-    return path not in {"", "."} and ".." not in candidate.parts
 
 
 def _include_matching_promoted_draft_deletions(
