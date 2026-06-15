@@ -34,6 +34,11 @@ description: |
      already used by `maid_runner/validators/_python_implementation.py`),
      and fails with E710 ARTIFACT_NOT_EXECUTED_BY_TESTS when no body line
      of a declared artifact was executed.
+     `maid validate <manifest> --artifact-coverage` runs the gate for the
+     selected manifest. Directory-wide `maid validate --artifact-coverage`
+     and `maid verify --artifact-coverage` run it for each active manifest
+     in deterministic manifest-chain order and fail the command when any
+     manifest's artifact-coverage report has errors.
   3. Class artifacts pass if any declared method of the class executed;
      attribute artifacts are excluded from this gate.
   4. `coverage` becomes an optional dependency extra named `quality` in
@@ -61,15 +66,20 @@ description: |
   errors), a `run_artifact_coverage` entry point taking the loaded
   manifest and project root, and a `coverage_is_available` probe used for
   the fail-closed missing-extra path. Text and JSON CLI output derive
-  from the report's `to_dict`.
+  from the report's `to_dict` through the existing CLI formatter module
+  (`maid_runner/cli/commands/_format.py`) so validation and verify output
+  stay structurally aligned.
 
   Behavioral tests must cover: a trivial no-assert test (imports the
   artifact, never executes its body) triggers E710; a genuine test
   executing the artifact body passes; a class artifact passes when any
   declared method of the class executed; attribute artifacts are excluded
   from the gate; a missing `quality` extra with the flag passed fails
-  closed with E307 semantics naming the extra; and the JSON output shape
-  reports per-artifact executed/not-executed findings.
+  closed with E307 semantics naming the extra (simulate this through the
+  coverage availability probe because the dev environment may already
+  have coverage installed); directory-wide verify runs the gate for every
+  active manifest; and the JSON output shape reports per-artifact
+  executed/not-executed findings.
 
   Out of scope for this child: the knockout engine and its E711/E712
   codes (068-02), knockout CLI wiring (068-03), documentation (068-04),
@@ -84,6 +94,8 @@ temptations:
     instead: "Keep the gate Python-only; other languages need their own epic with their own evidence."
   - risk: "Do not make the gate default-on in this epic."
     instead: "Ship the opt-in --artifact-coverage flag; default enforcement belongs to epic 062."
+  - risk: "Do not bolt artifact-coverage output directly into command handlers."
+    instead: "Route text and JSON rendering through maid_runner/cli/commands/_format.py so validate and verify output stay consistent."
 files:
   create:
     - path: maid_runner/core/artifact_coverage.py
@@ -172,6 +184,40 @@ files:
               type: argparse.Namespace
           returns: int
           description: "Verify honors the opt-in --artifact-coverage flag with text and JSON output."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_validation_result
+          args:
+            - name: result
+              type: ValidationResult
+            - name: json_mode
+              type: bool
+              default: "False"
+            - name: quiet
+              type: bool
+              default: "False"
+            - name: test_result
+              type: BatchTestResult | None
+              default: None
+            - name: tests_requested
+              type: bool
+              default: "False"
+            - name: artifact_coverage_report
+              type: ArtifactCoverageReport | None
+              default: None
+          returns: str
+          description: "Validation formatter includes artifact-coverage report details in text and JSON output when the opt-in gate is requested."
+        - kind: function
+          name: format_verify_result
+          args:
+            - name: result
+              type: VerificationResult
+            - name: json_mode
+              type: bool
+              default: "False"
+          returns: str
+          description: "Verify formatter renders artifact-coverage stages with per-artifact findings and structured E710/E307 errors in text and JSON."
     - path: maid_runner/cli/commands/_main.py
       artifacts:
         - kind: function
