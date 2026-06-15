@@ -42,6 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_recall_parser(sub)
     _register_insights_parser(sub)
     _register_benchmark_parser(sub)
+    _register_incident_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -393,6 +394,26 @@ def _positive_repeat_arg(value: str) -> int:
     return parsed
 
 
+def _register_incident_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("incident", help="Capture and inspect gaming incidents")
+    isub = p.add_subparsers(dest="incident_command")
+
+    capture = isub.add_parser("capture", help="Capture a caught gaming incident")
+    capture.add_argument("--manifest", required=True)
+    capture.add_argument("--packet", required=True)
+    capture.add_argument("--rejected-diff", required=True)
+    capture.add_argument("--tags", required=True)
+    capture.add_argument("--notes", default=None)
+
+    update = isub.add_parser("update", help="Attach the accepted fix diff")
+    update.add_argument("incident_path")
+    update.add_argument("--chosen-diff", required=True)
+
+    list_parser = isub.add_parser("list", help="List captured incidents")
+    list_parser.add_argument("--tag", default=None)
+    list_parser.add_argument("--json", action="store_true")
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -578,6 +599,7 @@ def main(argv: list[str] | None = None) -> int:
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
         "benchmark": "_cmd_benchmark",
+        "incident": "_cmd_incident",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -608,6 +630,7 @@ def main(argv: list[str] | None = None) -> int:
         recall as recall_mod,
         insights as insights_mod,
         benchmark as benchmark_mod,
+        incident as incident_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -632,6 +655,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,
+        "_cmd_incident": incident_mod.cmd_incident,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

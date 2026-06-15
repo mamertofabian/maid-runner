@@ -101,6 +101,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--json` (status), `--project-root` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
+| `maid incident capture\|update\|list` | Store and review caller-asserted gaming incident records | `capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list>`, `update <incident-path> --chosen-diff <path>`, `list --tag <tag> --json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
 | `maid bootstrap [directory]` | Bootstrap manifests for an existing project | `--output-dir`, `--exclude`, `--include-private`, `--dry-run`, `--json` |

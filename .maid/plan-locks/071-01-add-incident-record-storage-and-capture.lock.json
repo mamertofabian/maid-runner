@@ -1,0 +1,305 @@
+{
+  "manifest_path": "manifests/071-01-add-incident-record-storage-and-capture.manifest.yaml",
+  "manifest_hash": "sha256:327701dd6ba1dd5603ba95942ad11c74fa4dae14798582ed5336c4b96b713bf0",
+  "test_hashes": {
+    "tests/core/test_incidents.py": "sha256:9c82d105f388d051050c4ffa671a6f43fb9d31388b1b12d5f3ed1484eb4c062f",
+    "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+  },
+  "created_at": "2026-06-15T02:52:49.417217+00:00",
+  "revision": 21,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:71715a888515ed6530cffab65c22a83810cbca5949309fa1b8a0f8051db6583c",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:c20f80f3f56b423eca746567aab68f88b31a625bbf9602b6989dc317a7e0e79a",
+        "tests/cli/test_incident_cmd.py": "sha256:9693b5efee4ad73daec7bc688c539b5fd761eebd27e2bd9c1124ecc63c0ef781"
+      },
+      "revised_at": "2026-06-15T02:52:56.411913+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/071-01-add-incident-record-storage-and-capture.manifest.yaml -> manifests/071-01-add-incident-record-storage-and-capture.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:2aa300f11c74115a50d618d5e02d64e893e984f55a9c81684073eb87b9058b22",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:c20f80f3f56b423eca746567aab68f88b31a625bbf9602b6989dc317a7e0e79a",
+        "tests/cli/test_incident_cmd.py": "sha256:9693b5efee4ad73daec7bc688c539b5fd761eebd27e2bd9c1124ecc63c0ef781"
+      },
+      "revised_at": "2026-06-15T02:53:45.955734+00:00",
+      "reason": "Align behavioral tests with manifest-pinned filename slug and repo-relative CLI manifest storage before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:2aa300f11c74115a50d618d5e02d64e893e984f55a9c81684073eb87b9058b22",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:2cde732d3d090fd3209e5fa25f580aa6641a4b55677e15adc7a55230cf3ecf3e",
+        "tests/cli/test_incident_cmd.py": "sha256:265ad04df7b9ac323b40be277809ddc93c243fffa7ad011c8018b3b8d59bb6d6"
+      },
+      "revised_at": "2026-06-15T02:54:20.035783+00:00",
+      "reason": "Align behavioral test expectation with manifest-declared StoredIncident.path string type before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:2aa300f11c74115a50d618d5e02d64e893e984f55a9c81684073eb87b9058b22",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5106db9971b6901186c802e5235705adba19d4fdc19ca6af39689150c54e57c8",
+        "tests/cli/test_incident_cmd.py": "sha256:265ad04df7b9ac323b40be277809ddc93c243fffa7ad011c8018b3b8d59bb6d6"
+      },
+      "revised_at": "2026-06-15T02:58:41.824632+00:00",
+      "reason": "Correct module-level PATTERN_TAGS artifact identity before implementation validation"
+    },
+    {
+      "prior_manifest_hash": "sha256:76669124932e7c55424bba06f3b93f4e1683134d501b41a853656effd78dd014",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5106db9971b6901186c802e5235705adba19d4fdc19ca6af39689150c54e57c8",
+        "tests/cli/test_incident_cmd.py": "sha256:265ad04df7b9ac323b40be277809ddc93c243fffa7ad011c8018b3b8d59bb6d6"
+      },
+      "revised_at": "2026-06-15T03:01:00.516866+00:00",
+      "reason": "Align incident list CLI test with relative .maid/incidents store output before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:76669124932e7c55424bba06f3b93f4e1683134d501b41a853656effd78dd014",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5106db9971b6901186c802e5235705adba19d4fdc19ca6af39689150c54e57c8",
+        "tests/cli/test_incident_cmd.py": "sha256:a368237b5e767cc6b9504de655559ba845559fbd9d1d5e62e5e0930accc648fe"
+      },
+      "revised_at": "2026-06-15T03:03:36.237401+00:00",
+      "reason": "Refresh lock after formatter cleanup in incident behavioral tests before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:76669124932e7c55424bba06f3b93f4e1683134d501b41a853656effd78dd014",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5106db9971b6901186c802e5235705adba19d4fdc19ca6af39689150c54e57c8",
+        "tests/cli/test_incident_cmd.py": "sha256:c1839c468b201e16760fb540324aaf3656fa3657bcbaefbc98fc06ec57a482d3"
+      },
+      "revised_at": "2026-06-15T03:09:06.011834+00:00",
+      "reason": "Restructure incident tests so red evidence fails during test execution instead of collection"
+    },
+    {
+      "prior_manifest_hash": "sha256:76669124932e7c55424bba06f3b93f4e1683134d501b41a853656effd78dd014",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:d0a075808f5f8ef63e0da573ef4c19ebda77825476cb33c46421477fde01824c",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T03:15:05.167938+00:00",
+      "reason": "Add README command reference row required by registered command documentation test"
+    },
+    {
+      "prior_manifest_hash": "sha256:4a4b87aa4b033324d856dfbc71e52e5f4d7f2f9e31dd6d196bcb76825204d70f",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:d0a075808f5f8ef63e0da573ef4c19ebda77825476cb33c46421477fde01824c",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T03:23:07.450067+00:00",
+      "reason": "Address implementation review findings for duplicate incident capture and malformed stored gate lists"
+    },
+    {
+      "prior_manifest_hash": "sha256:4a4b87aa4b033324d856dfbc71e52e5f4d7f2f9e31dd6d196bcb76825204d70f",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:fbd0c734fcd8a0154c5a2bcac8861a1f523b3db11da3c2a724293055f37447d0",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T03:30:53.027834+00:00",
+      "reason": "Record partial outcome after implementation review with strict handoff blocked by E705 red-evidence recapture"
+    },
+    {
+      "prior_manifest_hash": "sha256:70a4b991ced9365ac120e118064b834e3f1ed59787ec42758e5d986287f248cd",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:fbd0c734fcd8a0154c5a2bcac8861a1f523b3db11da3c2a724293055f37447d0",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:13:00.174293+00:00",
+      "reason": "Recover valid red evidence after post-implementation revise captured a green tree"
+    },
+    {
+      "prior_manifest_hash": "sha256:70a4b991ced9365ac120e118064b834e3f1ed59787ec42758e5d986287f248cd",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:fbd0c734fcd8a0154c5a2bcac8861a1f523b3db11da3c2a724293055f37447d0",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:16:18.503933+00:00",
+      "reason": "Record completed outcome after strict handoff passed"
+    },
+    {
+      "prior_manifest_hash": "sha256:7be1898d224a768e647c5321835295a8fb778c360ef2a27e7f79ab701075e5e3",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:fbd0c734fcd8a0154c5a2bcac8861a1f523b3db11da3c2a724293055f37447d0",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:26:24.156220+00:00",
+      "reason": "Recapture valid red evidence after adding concurrent duplicate capture coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:7be1898d224a768e647c5321835295a8fb778c360ef2a27e7f79ab701075e5e3",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5aa9a3cc12118b7dc77fa638e56fbd9248b0a2358ea8c0d7d4d78663ea26d19c",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:30:10.302546+00:00",
+      "reason": "Refresh outcome evidence after review fixes"
+    },
+    {
+      "prior_manifest_hash": "sha256:7c2d8d9d007879b2f877f5fc427a72dd29032a678cec096890a920aa8bf00721",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:5aa9a3cc12118b7dc77fa638e56fbd9248b0a2358ea8c0d7d4d78663ea26d19c",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:35:38.745254+00:00",
+      "reason": "Recapture valid red evidence after adding strict incident_version coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:7c2d8d9d007879b2f877f5fc427a72dd29032a678cec096890a920aa8bf00721",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:da22234be37bd8bf46bc8fe3b87f196054e34f62e8b2068c66d889c9eea837e3",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:40:55.156541+00:00",
+      "reason": "Refresh outcome evidence after strict incident_version review fix"
+    },
+    {
+      "prior_manifest_hash": "sha256:7880586f88f78b6d0888e1c53d1b2ef8c0bf6fb8e83fed037007042fda65b62e",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:da22234be37bd8bf46bc8fe3b87f196054e34f62e8b2068c66d889c9eea837e3",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:47:10.427662+00:00",
+      "reason": "Add strict created timestamp coverage from implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:7880586f88f78b6d0888e1c53d1b2ef8c0bf6fb8e83fed037007042fda65b62e",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:1b33fe2a0ffc945c2f68a6fcc204dca75969134f30fb3a241d2759f9913ca7b7",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:48:57.243826+00:00",
+      "reason": "Refresh outcome evidence after created timestamp review fix"
+    },
+    {
+      "prior_manifest_hash": "sha256:5b8f135c3c012f91094ebf95870293bb946f624249f8bec44ad760be9dae262b",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:1b33fe2a0ffc945c2f68a6fcc204dca75969134f30fb3a241d2759f9913ca7b7",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:56:29.537777+00:00",
+      "reason": "Add malformed YAML path-wrapping coverage from implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:5b8f135c3c012f91094ebf95870293bb946f624249f8bec44ad760be9dae262b",
+      "prior_test_hashes": {
+        "tests/core/test_incidents.py": "sha256:9c82d105f388d051050c4ffa671a6f43fb9d31388b1b12d5f3ed1484eb4c062f",
+        "tests/cli/test_incident_cmd.py": "sha256:310d9efaf7b0cf0d969666f2b59bde82a0839bc8d1c2778512a49b071d4606fd"
+      },
+      "revised_at": "2026-06-15T04:57:52.349922+00:00",
+      "reason": "Refresh outcome evidence after malformed YAML review fix"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T04:56:29.946740+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_incidents.py tests/cli/test_incident_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            if not first:\n                if self.check_token(FlowEntryToken):\n                    self.get_token()\n                else:\n                    token = self.peek_token()\n>                   raise ParserError(\"while parsing a flow sequence\", self.marks[-1],\n                            \"expected ',' or ']', but got %r\" % token.id, token.start_mark)\nE                   yaml.parser.ParserError: while parsing a flow sequence\nE                     in \"<unicode string>\", line 1, column 1:\nE                       [unclosed\nE                       ^\nE                   expected ',' or ']', but got '<stream end>'\nE                     in \"<unicode string>\", line 1, column 10:\nE                       [unclosed\nE                                ^\n\n.venv/lib/python3.12/site-packages/yaml/parser.py:483: ParserError\n=========================== short test summary info ============================\nFAILED tests/core/test_incidents.py::test_read_incident_wraps_malformed_yaml_with_path\n1 failed, 19 passed in 0.21s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._incident_command_reference_row",
+      "README.md:attribute:documentation._incident_command_reference_row:kind=attribute",
+      "README.md:attribute:documentation._incident_command_reference_row:of=documentation",
+      "README.md:attribute:documentation._incident_command_reference_row:type=markdown table row",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:kind=function",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:returns=int",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.chosen_diff",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.chosen_diff:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.chosen_diff:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.chosen_diff:type=str | None",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.created",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.created:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.created:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.created:type=str",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.gates",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.gates:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.gates:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.gates:type=tuple[str, ...]",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.incident_version",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.incident_version:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.incident_version:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.incident_version:type=int",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.manifest",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.manifest:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.manifest:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.manifest:type=str",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.notes",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.notes:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.notes:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.notes:type=str | None",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.packet",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.packet:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.packet:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.packet:type=dict",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.pattern_tags",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.pattern_tags:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.pattern_tags:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.pattern_tags:type=tuple[str, ...]",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.rejected_diff",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.rejected_diff:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.rejected_diff:of=IncidentRecord",
+      "maid_runner/core/incidents.py:attribute:IncidentRecord.rejected_diff:type=str",
+      "maid_runner/core/incidents.py:attribute:PATTERN_TAGS",
+      "maid_runner/core/incidents.py:attribute:PATTERN_TAGS:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:PATTERN_TAGS:type=tuple[str, ...]",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.path",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.path:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.path:of=StoredIncident",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.path:type=str",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.record",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.record:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.record:of=StoredIncident",
+      "maid_runner/core/incidents.py:attribute:StoredIncident.record:type=IncidentRecord",
+      "maid_runner/core/incidents.py:class:IncidentRecord",
+      "maid_runner/core/incidents.py:class:IncidentRecord:kind=class",
+      "maid_runner/core/incidents.py:class:StoredIncident",
+      "maid_runner/core/incidents.py:class:StoredIncident:kind=class",
+      "maid_runner/core/incidents.py:function:capture_incident",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=created:type=str | None:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=incidents_dir:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=manifest:type=str:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=notes:type=str | None:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=packet:type=dict:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=pattern_tags:type=Collection[str]:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:arg=rejected_diff:type=str:default=None",
+      "maid_runner/core/incidents.py:function:capture_incident:kind=function",
+      "maid_runner/core/incidents.py:function:capture_incident:returns=Path",
+      "maid_runner/core/incidents.py:function:list_incidents",
+      "maid_runner/core/incidents.py:function:list_incidents:arg=incidents_dir:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:list_incidents:arg=tag:type=str | None:default=None",
+      "maid_runner/core/incidents.py:function:list_incidents:kind=function",
+      "maid_runner/core/incidents.py:function:list_incidents:returns=tuple[StoredIncident, ...]",
+      "maid_runner/core/incidents.py:function:read_incident",
+      "maid_runner/core/incidents.py:function:read_incident:arg=incident_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:read_incident:kind=function",
+      "maid_runner/core/incidents.py:function:read_incident:returns=IncidentRecord",
+      "maid_runner/core/incidents.py:function:update_incident",
+      "maid_runner/core/incidents.py:function:update_incident:arg=chosen_diff:type=str:default=None",
+      "maid_runner/core/incidents.py:function:update_incident:arg=incident_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:update_incident:kind=function",
+      "maid_runner/core/incidents.py:function:update_incident:returns=IncidentRecord"
+    ],
+    "test_files": [
+      "tests/cli/test_incident_cmd.py",
+      "tests/core/test_incidents.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_incidents.py tests/cli/test_incident_cmd.py"
+    ]
+  }
+}
