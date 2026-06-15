@@ -52,6 +52,9 @@ Automation reporting requirements:
   subagent_type="maid-implementation-reviewer". Pass the manifest path,
   changed files, current diff summary, and validation output explicitly instead
   of relying on hidden conversation context.
+- Capture Outcome after implementation review and before final handoff: update
+  the promoted manifest with an evidence-backed `outcome:` section before
+  reporting READY or emitting a commit packet. Do not report AUTOMATION_STATUS: READY when Outcome is missing unless the final message states a concrete not-applicable or blocked reason.
 - When READY, include a commit packet for the outer automation script:
   AUTOMATION_COMMIT_MESSAGE: <conventional commit message>
   AUTOMATION_COMMIT_FILES:

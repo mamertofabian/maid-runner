@@ -53,6 +53,9 @@ Automation reporting requirements:
   packet.
 - After each reviewer subagent result is consumed, call close_agent for that
   reviewer thread before spawning or reusing another reviewer.
+- Capture Outcome after implementation review and before final handoff: update
+  the promoted manifest with an evidence-backed `outcome:` section before
+  reporting READY or emitting a commit packet. Do not report AUTOMATION_STATUS: READY when Outcome is missing unless the final message states a concrete not-applicable or blocked reason.
 - When READY, include a commit packet for the outer automation script:
   AUTOMATION_COMMIT_MESSAGE: <conventional commit message>
   AUTOMATION_COMMIT_FILES:

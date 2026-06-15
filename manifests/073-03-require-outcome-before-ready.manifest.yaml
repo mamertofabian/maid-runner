@@ -1,0 +1,211 @@
+schema: "2"
+goal: "Require Outcome capture before agent READY handoff"
+type: fix
+created: "2026-06-15T06:20:00Z"
+metadata:
+  status: active
+  tags:
+    - agent-guidance
+    - outcome-records
+    - codex
+    - claude
+    - automation
+  priority: high
+description: |
+  Codex often completes promoted draft implementation passes without adding the
+  required `outcome:` section to the promoted manifest. The current Outcome
+  rule exists in docs and in the read-only implementation-review skill, but the
+  coordinator path that can edit files does not require it before reporting
+  READY. This leaves Outcome capture as advice to a reviewer instead of a
+  hard handoff condition for implementers and automation.
+
+  Add the requirement where it is operationally enforced: repo-level
+  AGENTS.md, both draft-implement skills, the packaged Codex draft-implement
+  payload, and both Codex/Claude loop prompts. READY must mean the promoted
+  manifest has an evidence-backed `outcome:` section after implementation
+  review and before final handoff, unless the final report explicitly states
+  why Outcome is out of scope or impossible.
+temptations:
+  - risk: "Do not leave Outcome capture only in the read-only implementation-review skill."
+    instead: "Put the required editing step in the draft-implement skills and automation prompts that decide whether READY can be reported."
+  - risk: "Do not update Codex guidance without updating Claude guidance."
+    instead: "Keep Codex and Claude repo-local draft-implement skills aligned, and keep the packaged Codex payload synced with the source skill."
+  - risk: "Do not let READY mean 'review passed but outcome is still missing'."
+    instead: "State that READY/commit readiness requires an evidence-backed `outcome:` record in the promoted manifest, or an explicit not-applicable/blocking reason."
+files:
+  edit:
+    - path: AGENTS.md
+      artifacts:
+        - kind: attribute
+          name: _outcome_before_handoff_guidance
+          of: documentation
+          type: markdown section
+          description: "Repo-level Codex guidance requires Outcome capture after implementation review and before final handoff."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_outcome_before_ready_guidance
+          of: skill
+          type: markdown section
+          description: "Codex draft implementation skill requires an evidence-backed `outcome:` section before AUTOMATION_STATUS READY."
+    - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_draft_implement_outcome_before_ready_guidance
+          of: skill
+          type: markdown section
+          description: "Claude draft implementation skill requires an evidence-backed `outcome:` section before AUTOMATION_STATUS READY."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_outcome_before_ready_guidance
+          of: codex_payload
+          type: markdown document
+          description: "Packaged Codex draft implementation skill mirrors the source Outcome-before-READY guidance."
+    - path: tools/codex_maid_loop.py
+      artifacts:
+        - kind: function
+          name: _implementation_prompt
+          description: "Codex loop prompt requires Outcome capture before READY and commit packet emission."
+    - path: tools/claude_maid_loop.py
+      artifacts:
+        - kind: function
+          name: _implementation_prompt
+          description: "Claude loop prompt requires Outcome capture before READY and commit packet emission."
+    - path: tests/ci/test_outcome_ready_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_agents_guidance_requires_outcome_capture_before_handoff
+          source_scenario: "Codex reads repo-level AGENTS.md while completing MAID-backed work."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "AGENTS.md requires adding an evidence-backed `outcome:` section to the promoted manifest after implementation review and before final handoff."
+        - kind: test_function
+          name: test_codex_draft_implement_skill_requires_outcome_before_ready
+          source_scenario: "Codex uses the repo-local draft implementation skill to complete a selected draft."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The Codex source and packaged skills match, require Outcome capture before AUTOMATION_STATUS READY, and forbid READY when Outcome is missing without an explicit blocking/not-applicable reason."
+        - kind: test_function
+          name: test_codex_loop_prompt_requires_outcome_before_ready
+          source_scenario: "The Codex loop starts a fresh implementation pass."
+          actions:
+            - type: api_call
+              subject:
+                function: build_implementation_command
+          expected:
+            behavior: "The generated prompt tells Codex that READY and commit packets require an evidence-backed `outcome:` section in the promoted manifest."
+        - kind: test_function
+          name: test_claude_draft_implement_skill_requires_outcome_before_ready
+          source_scenario: "Claude Code uses the repo-local draft implementation skill to complete a selected draft."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The Claude skill requires Outcome capture before AUTOMATION_STATUS READY and forbids READY when Outcome is missing without an explicit blocking/not-applicable reason."
+        - kind: test_function
+          name: test_claude_loop_prompt_requires_outcome_before_ready
+          source_scenario: "The Claude loop starts a fresh implementation pass."
+          actions:
+            - type: api_call
+              subject:
+                function: build_implementation_command
+          expected:
+            behavior: "The generated prompt tells Claude Code that READY and commit packets require an evidence-backed `outcome:` section in the promoted manifest."
+  read:
+    - docs/manifest-outcome-records.md
+    - docs/draft-manifest-workflow.md
+    - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+    - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_outcome_ready_guidance.py
+  - uv run maid validate manifests/073-03-require-outcome-before-ready.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/073-03-require-outcome-before-ready.manifest.yaml --mode implementation --quiet
+outcome:
+  status: completed
+  summary: "Outcome-before-READY guidance was added to repo AGENTS.md, Codex and Claude draft-implement skills, the packaged Codex payload, and both loop prompts; focused tests, manifest validation, manifest tests, and the baseline-scoped strict plan-lock/red-evidence handoff gate pass."
+  rationale: "Codex was forgetting promoted-manifest Outcome because the required editing step lived in read-only review guidance instead of the implementer/coordinator path that can edit manifests and decide READY. The change moves the rule into the operational surfaces used by both Codex and Claude, and the final plan lock preserves red evidence captured from a temporary red-phase test file while hashing the restored real behavioral test."
+  lessons:
+    - lesson_type: agent-guidance
+      summary: "Outcome capture must be required in implementer and automation-coordinator instructions, not only in read-only review instructions, because reviewers can detect the missing `outcome:` section but cannot reliably repair it."
+      tags:
+        - outcome
+        - codex
+        - claude
+        - ready-gate
+      paths:
+        - AGENTS.md
+        - .codex/skills/maid-runner-draft-implement/SKILL.md
+        - .claude/skills/maid-runner-draft-implement/SKILL.md
+        - tools/codex_maid_loop.py
+        - tools/claude_maid_loop.py
+    - lesson_type: workflow
+      summary: "Adding behavioral checks to already-locked shared CI files can invalidate older plan locks; use a dedicated test file for follow-up guidance contracts when older manifests own the shared test files."
+      tags:
+        - plan-lock
+        - behavioral-tests
+        - shared-test-files
+      paths:
+        - tests/ci/test_outcome_ready_guidance.py
+        - .maid/plan-locks/073-02-align-agent-plan-lock-promotion-guidance.lock.json
+    - lesson_type: workflow
+      summary: "When a post-green manifest correction accidentally drops red evidence, reconstruct a temporary red test state, capture red evidence, restore the real test file, then revise the lock hashes while preserving the captured red evidence."
+      tags:
+        - plan-lock
+        - red-evidence
+        - red-phase
+      paths:
+        - .maid/plan-locks/073-03-require-outcome-before-ready.lock.json
+        - tests/ci/test_outcome_ready_guidance.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: blocking
+      summary: "Needs changes: the scoped guidance and focused tests are aligned, but the manifest was missing a top-level Outcome record and the strict handoff gate failed with E704 because red evidence is missing."
+    - source: local-follow-up
+      severity: info
+      summary: "Added the Outcome record, reconstructed temporary red-phase evidence, restored the real behavioral test file, preserved the captured red evidence while updating final lock hashes, and verified the strict gate with `--since HEAD`."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/ci/test_outcome_ready_guidance.py
+      status: passed
+      summary: "Focused guidance tests passed: 5 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/073-03-require-outcome-before-ready.manifest.yaml
+      status: passed
+      summary: "All 3 manifest-declared commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation exited 0 with pre-existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Baseline-scoped strict handoff gate passed, including plan_lock, worktree_scope, changed_scope, and tests. Running the same command without a baseline now reaches PASS plan_lock and fails only with E115 because changed_scope requires --since, --base-ref, or metadata.maid_task_base."

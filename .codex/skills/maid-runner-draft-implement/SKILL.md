@@ -150,6 +150,17 @@ Fix valid findings, rerun focused validation, and re-review until ready. Fall
 back to local-only review only when the subagent tool is technically unavailable
 or the user explicitly disables subagents for that turn.
 
+## Outcome Capture
+
+Capture Outcome after implementation review and before final handoff. Once the
+latest review verdict is ready, update the promoted manifest with an
+evidence-backed `outcome:` section that records status, summary, rationale,
+review notes, validation evidence, and any lessons.
+
+Do not report READY when Outcome is missing. Use `AUTOMATION_STATUS: READY`
+only after the promoted manifest has the `outcome:` section, unless the final
+response explicitly reports why Outcome is not applicable or is blocked.
+
 ## Automation Reporting
 
 When this skill is invoked by `tools/codex_maid_loop.py`, end with exactly one
