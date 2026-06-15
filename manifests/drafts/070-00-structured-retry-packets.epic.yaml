@@ -1,149 +1,63 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan self-contained failure packets and a bounded agent retry protocol"
+goal: "Archive consumed structured retry packets epic"
 type: feature
 created: "2026-06-10"
 metadata:
-  status: planning
+  status: archived
   tags:
     - agent-loops
     - diagnostics
     - retry-protocol
     - developer-experience
     - anti-gaming
-  priority: high
+    - archive
+  priority: low
 description: |
-  Make honest iteration the path of least resistance for less-capable
-  implementer models. Weak models retry well when failure feedback is
-  explicit, self-contained, and machine-readable; they game when they must
-  interpret prose or re-derive context. Today a failed `maid validate` or
-  `maid verify` emits coded diagnostics, but the retrying agent must still
-  re-read the manifest, find the contract expectation, and guess the next
-  action. This epic adds a failure packet: one JSON document per failed run
-  containing everything needed to retry without re-exploring the repository,
-  plus repair recipes per error code and a documented bounded retry
-  protocol generalized from `tools/codex_maid_loop.py` and
-  `tools/claude_maid_loop.py`.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as:
 
-  Relationship to other epics: the 065 SARIF epic plans an error-code rule
-  registry (065-01). If 065-01 has landed when this epic starts, repair
-  recipes extend that registry. If it has not landed, child 070-01 of this
-  epic builds the registry first and 065-01 must then be re-scoped to reuse
-  it. The splitting agent must check which manifest exists at promotion
-  time and record the decision in the child manifest description. Packets
-  complement, not replace, the existing `--json` output contract.
+  - `070-01-add-error-code-registry-with-repair-recipes`
+  - `070-02-emit-failure-packets-from-validate-and-verify`
+  - `070-03-generalize-bounded-retry-loop`
+  - `070-04-update-skill-guidance-for-packets`
 
-  Decisions already made for the implementer. Do not redesign these:
+  The promoted children added the shared diagnostic rule registry with
+  structured `next_action` repair recipes, deterministic failure-packet
+  emission for `maid validate --packet` and `maid verify --packet`, shared
+  packet-consuming retry-loop helpers under `tools/`, the documented bounded
+  retry protocol, and packet-aware README, howto, Claude skill, and Codex skill
+  guidance.
 
-  1. Packet trigger and location: `maid validate --packet <path>` and
-     `maid verify --packet <path>` write a packet JSON file only when the
-     run fails (exit code 1). When the run passes, no packet file is
-     written and any pre-existing file at the path is removed so stale
-     packets cannot be replayed. Default packet path when the flag is
-     passed without a value: `.maid/last-failure-packet.json`.
-  2. Packet content, top-level keys exactly: `packet_version` (integer,
-     starts at 1), `command` (argv list), `exit_code`, `project_root`
-     (absolute path), `manifest` (per failed manifest: path, goal, type,
-     declared files with artifact lists, validate commands), `diagnostics`
-     (every error and warning with code, message, file, line where
-     available, suggestion, and `next_action`), `test_output` (per failed
-     validate command: command string, exit code, final 50 lines of
-     combined output), and `environment` (maid version, python version).
-     All lists deterministically ordered. No file contents beyond the
-     manifest excerpt and output tails; packets must stay small enough to
-     fit an agent prompt.
-  3. `next_action` is a structured repair recipe attached per diagnostic
-     code: an object with `kind` (one of `edit-implementation`,
-     `edit-tests`, `edit-manifest`, `run-command`, `revise-plan`,
-     `escalate-human`), `target` (file or command), and `instruction`
-     (imperative sentence template filled with the diagnostic's actual
-     file/artifact/command values). Recipes live in the error-code
-     registry beside code metadata. Initial recipe coverage is the
-     gaming-relevant and high-frequency codes: E200, E201, E210, E230,
-     E300, E301, E302, E303, E114, E115, plus the E7xx family if the 067
-     and 068 epics have landed. Codes without a recipe emit
-     `next_action: null`; never invent a generic recipe that could
-     instruct contract weakening.
-  4. Recipe safety rule: no `next_action` may instruct editing behavioral
-     tests or the manifest as the FIRST remedy for an implementation
-     failure. For codes where test or manifest edits are a legitimate fix
-     (for example E201 missing test file at planning time), the recipe
-     kind says so explicitly and names the plan-revision path
-     (`maid plan revise`) when the 067 epic is available, so contract
-     changes stay loud.
-  5. Retry protocol: a documented loop contract, not a new orchestrator
-     product. The document specifies: run gate, on failure read packet,
-     apply next_action-guided fixes within manifest scope, re-run, with a
-     bounded attempt count (default 5) after which the loop stops and
-     escalates to a human with the final packet. The reference
-     implementation refactors the shared logic of
-     `tools/codex_maid_loop.py` and `tools/claude_maid_loop.py` to consume
-     packets instead of parsing text output, kept under `tools/` (not the
-     installed package), with its behavior covered by tests that stub the
-     agent invocation.
-
-  Planned child order:
-
-  1. `070-01-add-error-code-registry-with-repair-recipes` - build or extend
-     the introspectable error-code registry (see relationship note above):
-     code, severity, short description, docs link, and optional
-     `next_action` recipe template per decision 3, in
-     `maid_runner/core/diagnostics_registry.py` (or the 065-01 module if it
-     exists). Tests assert every `ErrorCode` member is registered, recipe
-     templates render with sample diagnostic values, and the safety rule of
-     decision 4 holds (no first-remedy test/manifest edits for
-     implementation-failure codes; enforce with a unit test over the
-     recipe table).
-  2. `070-02-emit-failure-packets-from-validate-and-verify` - implement the
-     `--packet` flag and packet serialization per decisions 1 and 2 in a
-     new `maid_runner/core/failure_packet.py` plus CLI wiring. Tests
-     cover: packet written on failure with exact top-level keys, packet
-     absent and stale file removed on success, deterministic ordering,
-     output-tail truncation, multi-manifest batch failures, and packet
-     content matching the equivalent `--json` diagnostics one-to-one.
-  3. `070-03-generalize-bounded-retry-loop` - refactor the two existing
-     loop tools to a shared packet-consuming core per decision 5, with the
-     attempt bound, escalation output, and per-attempt logging; add
-     `docs/agent-retry-protocol.md` specifying the loop contract,
-     packet schema, and escalation rules.
-  4. `070-04-update-skill-guidance-for-packets` - documentation child:
-     packaged Claude and Codex skill guidance instructs implementer
-     sessions to run gates with `--packet`, read the packet on failure
-     instead of re-exploring, respect `next_action` kinds, and stop at the
-     attempt bound; README and howto updates describe the flag.
-
-  Children land in order; 070-02 depends on 070-01. If packet serialization
-  plus CLI wiring exceeds one implementation-sized draft, split the core
-  serializer from flag wiring before promotion.
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future failure-packet, diagnostic
+  recipe, or agent-retry work should start from a fresh scoped manifest after
+  the contracts, CLI behavior, documentation, and skill guidance added by the
+  070 children.
 temptations:
   - risk: "Do not create recipes that tell agents to weaken tests or manifests to make errors disappear."
-    instead: "Enforce the recipe safety rule with a unit test over the recipe table; contract changes must route through the loud plan-revision path."
+    instead: "Use the shipped diagnostics registry and preserve the repair-recipe safety tests from 070-01."
   - risk: "Do not replace or fork the existing --json output contract."
-    instead: "Packets are an additive view; assert one-to-one diagnostic parity between packet and JSON output in tests."
+    instead: "Keep failure packets as the additive sidecar view shipped by 070-02."
   - risk: "Do not build a general agent orchestrator inside maid-runner."
-    instead: "Ship a documented loop contract plus a reference tool under tools/; orchestration products stay external per the roadmap boundary."
+    instead: "Keep retry behavior to the documented protocol and reference tooling under tools/ from 070-03."
   - risk: "Do not let packets grow unbounded with file contents or full logs."
-    instead: "Cap output tails at 50 lines per command and include only manifest excerpts, keeping packets prompt-sized."
+    instead: "Preserve the prompt-sized manifest excerpts and 50-line output-tail cap shipped by 070-02."
   - risk: "Do not leave stale packets behind after a passing run."
-    instead: "Remove the packet file on success so a retry loop can never act on outdated failure state."
+    instead: "Preserve the clear-on-success behavior shipped by 070-02 so retry loops cannot act on outdated failure state."
 files:
-  create:
+  edit:
     - path: manifests/drafts/070-00-structured-retry-packets.epic.yaml
       artifacts:
         - kind: attribute
-          name: _structured_retry_packets_roadmap
+          name: _archived_structured_retry_packets_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for repair-recipe diagnostics, self-contained failure packets, a bounded retry protocol, and packet-aware skill guidance."
+          description: "Historical pointer for promoted child manifests 070-01 through 070-04."
   read:
-    - maid_runner/core/result.py
-    - maid_runner/cli/commands/validate.py
-    - maid_runner/cli/commands/verify.py
-    - maid_runner/cli/commands/_format.py
-    - tools/codex_maid_loop.py
-    - tools/claude_maid_loop.py
-    - manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml
-    - manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+    - manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml
+    - manifests/070-02-emit-failure-packets-from-validate-and-verify.manifest.yaml
+    - manifests/070-03-generalize-bounded-retry-loop.manifest.yaml
+    - manifests/070-04-update-skill-guidance-for-packets.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/070-00-structured-retry-packets.epic.yaml --mode schema --quiet

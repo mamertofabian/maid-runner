@@ -1,4 +1,3 @@
-# draft-kind: implementation
 schema: "2"
 goal: "Emit self-contained failure packets from `maid validate --packet` and `maid verify --packet`"
 type: feature
