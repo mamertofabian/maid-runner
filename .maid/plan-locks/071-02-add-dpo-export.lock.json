@@ -1,0 +1,117 @@
+{
+  "manifest_path": "manifests/071-02-add-dpo-export.manifest.yaml",
+  "manifest_hash": "sha256:04b8449e2cf942297b072d2ebbdd7b906f3b2ac3a0e36b81e72071a25a3bfbc1",
+  "test_hashes": {
+    "tests/core/test_incident_export.py": "sha256:42866c201ba4741662896a7d8236d2b17d9bd045bc46bb614110e22dda7e511d",
+    "tests/cli/test_incident_export_cmd.py": "sha256:13fa80f6b293fb33af7576cd1371352e271635e903ede04dc239e458d0c178f2"
+  },
+  "created_at": "2026-06-15T05:11:37.981811+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:e3c9d38dfa61a86e380bf314725973dece6d0b698ebf73fa24052a0467522c46",
+      "prior_test_hashes": {
+        "tests/core/test_incident_export.py": "sha256:42866c201ba4741662896a7d8236d2b17d9bd045bc46bb614110e22dda7e511d",
+        "tests/cli/test_incident_export_cmd.py": "sha256:10288008a814e0aeca8ed2b4fc46c4485f569d2e661154526919f5e590e96a02"
+      },
+      "revised_at": "2026-06-15T05:11:42.345434+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/071-02-add-dpo-export.manifest.yaml -> manifests/071-02-add-dpo-export.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:4027bfd9e5bf51d39670f6a33bb6cdb477cdba0f7947897d2736d39ea96d78bd",
+      "prior_test_hashes": {
+        "tests/core/test_incident_export.py": "sha256:42866c201ba4741662896a7d8236d2b17d9bd045bc46bb614110e22dda7e511d",
+        "tests/cli/test_incident_export_cmd.py": "sha256:10288008a814e0aeca8ed2b4fc46c4485f569d2e661154526919f5e590e96a02"
+      },
+      "revised_at": "2026-06-15T05:17:32.491776+00:00",
+      "reason": "Record validator-required direct cmd_incident artifact coverage in CLI export tests without changing the DPO export contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:4027bfd9e5bf51d39670f6a33bb6cdb477cdba0f7947897d2736d39ea96d78bd",
+      "prior_test_hashes": {
+        "tests/core/test_incident_export.py": "sha256:42866c201ba4741662896a7d8236d2b17d9bd045bc46bb614110e22dda7e511d",
+        "tests/cli/test_incident_export_cmd.py": "sha256:13fa80f6b293fb33af7576cd1371352e271635e903ede04dc239e458d0c178f2"
+      },
+      "revised_at": "2026-06-15T05:18:50.022753+00:00",
+      "reason": "Declare the export behavioral test files as created artifacts so worktree scope matches the implementation plan."
+    },
+    {
+      "prior_manifest_hash": "sha256:e1b9694d0776e373b5ac454a2b1fa674fe865a609abcb505dd0c8df6e8e14fdc",
+      "prior_test_hashes": {
+        "tests/core/test_incident_export.py": "sha256:42866c201ba4741662896a7d8236d2b17d9bd045bc46bb614110e22dda7e511d",
+        "tests/cli/test_incident_export_cmd.py": "sha256:13fa80f6b293fb33af7576cd1371352e271635e903ede04dc239e458d0c178f2"
+      },
+      "revised_at": "2026-06-15T05:28:05.153469+00:00",
+      "reason": "Capture post-review Outcome evidence for completed DPO export implementation."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T05:11:43.089504+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_incident_export.py tests/cli/test_incident_export_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            )\n>       assert \"dpo\" in capsys.readouterr().err\nE       assert 'dpo' in \"usage: maid incident [-h] {capture,update,list} ...\\nmaid incident: error: argument incident_command: invalid choice: 'export' (choose from capture, update, list)\\n\"\nE        +  where \"usage: maid incident [-h] {capture,update,list} ...\\nmaid incident: error: argument incident_command: invalid choice: 'export' (choose from capture, update, list)\\n\" = CaptureResult(out='', err=\"usage: maid incident [-h] {capture,update,list} ...\\nmaid incident: error: argument incident_command: invalid choice: 'export' (choose from capture, update, list)\\n\").err\nE        +    where CaptureResult(out='', err=\"usage: maid incident [-h] {capture,update,list} ...\\nmaid incident: error: argument incident_command: invalid choice: 'export' (choose from capture, update, list)\\n\") = readouterr()\nE        +      where readouterr = <_pytest.capture.CaptureFixture object at 0x708ea72b5cd0>.readouterr\n\ntests/cli/test_incident_export_cmd.py:119: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_incident_export.py::test_export_incidents_dpo_writes_jsonl_context_rejected_and_chosen\nFAILED tests/core/test_incident_export.py::test_export_incidents_dpo_skips_valid_records_without_chosen_diff\nFAILED tests/core/test_incident_export.py::test_export_incidents_dpo_orders_lines_like_incident_listing\nFAILED tests/core/test_incident_export.py::test_export_incidents_dpo_empty_or_absent_store_writes_zero_lines\nFAILED tests/core/test_incident_export.py::test_export_incidents_dpo_names_malformed_record_path\nFAILED tests/cli/test_incident_export_cmd.py::test_build_parser_registers_incident_export_options\nFAILED tests/cli/test_incident_export_cmd.py::test_incident_export_writes_dpo_jsonl_and_reports_counts\nFAILED tests/cli/test_incident_export_cmd.py::test_incident_export_empty_store_reports_zero_counts\nFAILED tests/cli/test_incident_export_cmd.py::test_incident_export_malformed_record_returns_error_with_path\nFAILED tests/cli/test_incident_export_cmd.py::test_incident_export_rejects_unknown_format_and_missing_output\n10 failed in 0.58s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:kind=function",
+      "maid_runner/cli/commands/incident.py:function:cmd_incident:returns=int",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.exported_count",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.exported_count:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.exported_count:of=DpoExportReport",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.exported_count:type=int",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.output_path",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.output_path:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.output_path:of=DpoExportReport",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.output_path:type=str",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.skipped_count",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.skipped_count:kind=attribute",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.skipped_count:of=DpoExportReport",
+      "maid_runner/core/incidents.py:attribute:DpoExportReport.skipped_count:type=int",
+      "maid_runner/core/incidents.py:class:DpoExportReport",
+      "maid_runner/core/incidents.py:class:DpoExportReport:kind=class",
+      "maid_runner/core/incidents.py:function:export_incidents_dpo",
+      "maid_runner/core/incidents.py:function:export_incidents_dpo:arg=incidents_dir:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:export_incidents_dpo:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/incidents.py:function:export_incidents_dpo:kind=function",
+      "maid_runner/core/incidents.py:function:export_incidents_dpo:returns=DpoExportReport",
+      "tests/cli/test_incident_export_cmd.py:test_build_parser_registers_incident_export_options",
+      "tests/cli/test_incident_export_cmd.py:test_build_parser_registers_incident_export_options:kind=test_function",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_empty_store_reports_zero_counts",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_empty_store_reports_zero_counts:kind=test_function",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_malformed_record_returns_error_with_path",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_malformed_record_returns_error_with_path:kind=test_function",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_rejects_unknown_format_and_missing_output",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_rejects_unknown_format_and_missing_output:kind=test_function",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_writes_dpo_jsonl_and_reports_counts",
+      "tests/cli/test_incident_export_cmd.py:test_incident_export_writes_dpo_jsonl_and_reports_counts:kind=test_function",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_empty_or_absent_store_writes_zero_lines",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_empty_or_absent_store_writes_zero_lines:kind=test_function",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_names_malformed_record_path",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_names_malformed_record_path:kind=test_function",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_orders_lines_like_incident_listing",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_orders_lines_like_incident_listing:kind=test_function",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_skips_valid_records_without_chosen_diff",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_skips_valid_records_without_chosen_diff:kind=test_function",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_writes_jsonl_context_rejected_and_chosen",
+      "tests/core/test_incident_export.py:test_export_incidents_dpo_writes_jsonl_context_rejected_and_chosen:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_incident_export_cmd.py",
+      "tests/core/test_incident_export.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_incident_export.py tests/cli/test_incident_export_cmd.py"
+    ]
+  }
+}

@@ -413,6 +413,10 @@ def _register_incident_parser(sub: argparse._SubParsersAction) -> None:
     list_parser.add_argument("--tag", default=None)
     list_parser.add_argument("--json", action="store_true")
 
+    export = isub.add_parser("export", help="Export incident training data")
+    export.add_argument("--format", choices=["dpo"], required=True)
+    export.add_argument("--output", required=True)
+
 
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,

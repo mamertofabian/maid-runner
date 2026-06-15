@@ -9,6 +9,7 @@ import sys
 
 from maid_runner.core.incidents import (
     capture_incident,
+    export_incidents_dpo,
     list_incidents,
     update_incident,
 )
@@ -42,7 +43,15 @@ def cmd_incident(args: argparse.Namespace) -> int:
                 for incident in incidents:
                     print(incident.path)
             return 0
-        print("Usage: maid incident {capture,update,list} ...", file=sys.stderr)
+        if args.incident_command == "export":
+            report = export_incidents_dpo(".maid/incidents", args.output)
+            print(
+                "Exported "
+                f"{report.exported_count} DPO pair(s), "
+                f"skipped {report.skipped_count}"
+            )
+            return 0
+        print("Usage: maid incident {capture,update,list,export} ...", file=sys.stderr)
         return 2
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

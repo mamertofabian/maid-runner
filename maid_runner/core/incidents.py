@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import json
 from pathlib import Path
 from typing import Collection, Union
 
@@ -53,6 +54,15 @@ class StoredIncident:
 
     path: str
     record: IncidentRecord
+
+
+@dataclass(frozen=True)
+class DpoExportReport:
+    """Deterministic export result with exported and skipped counts."""
+
+    exported_count: int
+    skipped_count: int
+    output_path: str
 
 
 def capture_incident(
@@ -165,6 +175,41 @@ def list_incidents(
         if tag is None or tag in record.pattern_tags:
             records.append(StoredIncident(path=str(path), record=record))
     return tuple(records)
+
+
+def export_incidents_dpo(
+    incidents_dir: Union[str, Path],
+    output_path: Union[str, Path],
+) -> DpoExportReport:
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    exported_count = 0
+    skipped_count = 0
+    lines: list[str] = []
+    for stored in list_incidents(Path(incidents_dir).resolve()):
+        record = stored.record
+        if record.chosen_diff is None:
+            skipped_count += 1
+            continue
+        lines.append(
+            json.dumps(
+                {
+                    "context": record.packet.get("diagnostics", []),
+                    "rejected": record.rejected_diff,
+                    "chosen": record.chosen_diff,
+                },
+                sort_keys=True,
+            )
+        )
+        exported_count += 1
+
+    output.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+    return DpoExportReport(
+        exported_count=exported_count,
+        skipped_count=skipped_count,
+        output_path=str(output),
+    )
 
 
 def _write_record(
