@@ -70,6 +70,7 @@ def _revise_args(
     reason: str,
     *,
     no_run: bool = False,
+    preserve_red_evidence: bool = False,
 ) -> SimpleNamespace:
     return SimpleNamespace(
         plan_command="revise",
@@ -77,6 +78,7 @@ def _revise_args(
         project_root=str(project_root),
         reason=reason,
         no_run=no_run,
+        preserve_red_evidence=preserve_red_evidence,
         json=False,
     )
 
@@ -106,6 +108,20 @@ class TestPlanNoRunParser:
         )
 
         assert args.no_run is True
+
+    def test_revise_parser_exposes_preserve_red_evidence(self) -> None:
+        args = build_parser().parse_args(
+            [
+                "plan",
+                "revise",
+                "manifests/demo-task.manifest.yaml",
+                "--reason",
+                "metadata correction after implementation",
+                "--preserve-red-evidence",
+            ]
+        )
+
+        assert args.preserve_red_evidence is True
 
 
 class TestCmdPlanLockRedEvidence:
@@ -174,3 +190,78 @@ class TestCmdPlanReviseRedEvidence:
 
         assert exit_code == 0
         assert _lock_record(tmp_path)["red_evidence"] is None
+
+    def test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_path = _write_project(tmp_path, exit_code=1)
+        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
+        original_evidence = _lock_record(tmp_path)["red_evidence"]
+        _set_validate_exit(tmp_path, exit_code=0)
+        manifest_path.write_text(
+            manifest_path.read_text().replace("Demo task", "Demo task metadata fix")
+        )
+
+        exit_code = cmd_plan_revise(
+            _revise_args(
+                manifest_path,
+                tmp_path,
+                "metadata-only correction; behavioral tests unchanged",
+                preserve_red_evidence=True,
+            )
+        )
+
+        assert exit_code == 0
+        record = _lock_record(tmp_path)
+        assert record["revision"] == 2
+        assert record["red_evidence"] == original_evidence
+        assert record["red_evidence"]["red"] is True
+        assert record["red_evidence"]["commands"][0]["classification"] == "red"
+
+    def test_revise_preserve_red_evidence_rejects_no_run_combination(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_path = _write_project(tmp_path, exit_code=1)
+        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
+        original_record = _lock_record(tmp_path)
+
+        exit_code = cmd_plan_revise(
+            _revise_args(
+                manifest_path,
+                tmp_path,
+                "conflicting preserve mode",
+                no_run=True,
+                preserve_red_evidence=True,
+            )
+        )
+
+        assert exit_code == 2
+        assert _lock_record(tmp_path) == original_record
+
+    def test_revise_preserve_red_evidence_rejects_existing_non_red_evidence(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_path = _write_project(tmp_path, exit_code=0)
+        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
+        original_record = _lock_record(tmp_path)
+
+        exit_code = cmd_plan_revise(
+            _revise_args(
+                manifest_path,
+                tmp_path,
+                "cannot preserve green evidence as red phase",
+                preserve_red_evidence=True,
+            )
+        )
+
+        assert exit_code == 2
+        assert _lock_record(tmp_path) == original_record
+
+
+class TestPlanLockRedEvidenceDocs:
+    def test_specs_describe_preserve_red_evidence_revise_option(self) -> None:
+        specs = Path("docs/maid_specs.md").read_text(encoding="utf-8")
+
+        assert "--preserve-red-evidence" in specs
+        assert "metadata-only" in specs
+        assert "valid red evidence" in specs

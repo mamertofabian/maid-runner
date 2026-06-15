@@ -93,6 +93,14 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
 
+    preserve_red_evidence = bool(getattr(args, "preserve_red_evidence", False))
+    if preserve_red_evidence and getattr(args, "no_run", False):
+        print_error(
+            "--preserve-red-evidence cannot be combined with --no-run.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+
     if not ctx.lock_path.exists():
         print_error(
             f"No plan lock to revise at {ctx.lock_path}. "
@@ -110,11 +118,22 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
 
+    if preserve_red_evidence and not _red_evidence_payload_is_valid(
+        existing.red_evidence
+    ):
+        print_error(
+            "--preserve-red-evidence requires existing valid red evidence.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+
     try:
         revised = revise_plan_lock(
             existing, ctx.manifest_path, ctx.project_root, reason
         )
-        if not getattr(args, "no_run", False):
+        if preserve_red_evidence:
+            revised = replace(revised, red_evidence=existing.red_evidence)
+        elif not getattr(args, "no_run", False):
             revised = replace(
                 revised,
                 red_evidence=capture_red_phase_evidence(
@@ -210,6 +229,21 @@ def _plan_input_errors() -> tuple[type[Exception], ...]:
     from maid_runner.core.manifest import ManifestLoadError, ManifestSchemaError
 
     return (ManifestLoadError, ManifestSchemaError, OSError, ValueError)
+
+
+def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
+    """Return whether an existing lock payload is valid red evidence."""
+    if not isinstance(evidence, dict) or evidence.get("red") is not True:
+        return False
+    commands = evidence.get("commands")
+    if not isinstance(commands, list):
+        return False
+    classifications = [
+        command.get("classification")
+        for command in commands
+        if isinstance(command, dict)
+    ]
+    return "red" in classifications and "invalid" not in classifications
 
 
 class _PlanContext:

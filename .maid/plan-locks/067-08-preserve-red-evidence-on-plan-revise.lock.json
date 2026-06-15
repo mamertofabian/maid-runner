@@ -1,0 +1,84 @@
+{
+  "manifest_path": "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+  "manifest_hash": "sha256:4b872602e6fe7194fba75bb285d04080ec576637d1a1a611a1fcc017aa67bd41",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664"
+  },
+  "created_at": "2026-06-15T03:53:32.227874+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:cd4c5a765eee5061ce9a83b6425474488b43534af0954b24205baff6074794bb",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664"
+      },
+      "revised_at": "2026-06-15T03:53:38.640521+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml -> manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:32835714f42d66319bb036bcc097f30e566648e3b41019dd293fa0548777af00",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664"
+      },
+      "revised_at": "2026-06-15T04:04:41.007068+00:00",
+      "reason": "Capture implementation outcome after ready review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T03:53:41.209033+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_red_evidence.py",
+        "exit_code": 1,
+        "output_tail": "Locked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-222/test_revise_preserve_red_evide2/.maid/plan-locks/demo-task.lock.json)\nRevised plan lock for 'demo-task' to revision 2 (/tmp/pytest-of-atomrem/pytest-222/test_revise_preserve_red_evide2/.maid/plan-locks/demo-task.lock.json)\n_ TestPlanLockRedEvidenceDocs.test_specs_describe_preserve_red_evidence_revise_option _\n\nself = <test_plan_cmd_red_evidence.TestPlanLockRedEvidenceDocs object at 0x745520e8af60>\n\n    def test_specs_describe_preserve_red_evidence_revise_option(self) -> None:\n        specs = Path(\"docs/maid_specs.md\").read_text(encoding=\"utf-8\")\n    \n>       assert \"--preserve-red-evidence\" in specs\nE       AssertionError: assert '--preserve-red-evidence' in '### **MAID: The Manifest-driven AI Development Methodology**\\n\\n**Version:** 1.3\\n**Date:** October 30, 2025\\n\\n#### ...llows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.\\n'\n\ntests/cli/test_plan_cmd_red_evidence.py:265: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestPlanNoRunParser::test_revise_parser_exposes_preserve_red_evidence\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestCmdPlanReviseRedEvidence::test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestCmdPlanReviseRedEvidence::test_revise_preserve_red_evidence_rejects_no_run_combination\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestCmdPlanReviseRedEvidence::test_revise_preserve_red_evidence_rejects_existing_non_red_evidence\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestPlanLockRedEvidenceDocs::test_specs_describe_preserve_red_evidence_revise_option\n5 failed, 7 passed in 0.34s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid_specs.md:attribute:documentation._preserve_red_evidence_plan_revise_note",
+      "docs/maid_specs.md:attribute:documentation._preserve_red_evidence_plan_revise_note:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._preserve_red_evidence_plan_revise_note:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._preserve_red_evidence_plan_revise_note:type=markdown paragraph",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_parser_exposes_preserve_red_evidence",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_parser_exposes_preserve_red_evidence:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_no_run_combination",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_no_run_combination:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_specs_describe_preserve_red_evidence_revise_option",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_specs_describe_preserve_red_evidence_revise_option:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_plan_cmd_red_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_cmd_red_evidence.py",
+      "uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

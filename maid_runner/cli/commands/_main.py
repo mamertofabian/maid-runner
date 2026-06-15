@@ -269,6 +269,11 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     rp.add_argument("manifest_path")
     rp.add_argument("--reason", default=None)
     rp.add_argument("--no-run", action="store_true", dest="no_run")
+    rp.add_argument(
+        "--preserve-red-evidence",
+        action="store_true",
+        dest="preserve_red_evidence",
+    )
     rp.add_argument("--project-root", default=".", dest="project_root")
     sp = psub.add_parser("status", help="Report plan lock state and hash matches")
     sp.add_argument("manifest_path")

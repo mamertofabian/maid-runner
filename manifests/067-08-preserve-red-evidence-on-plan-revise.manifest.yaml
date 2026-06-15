@@ -1,0 +1,246 @@
+schema: '2'
+goal: Preserve valid red evidence during metadata-only `maid plan revise` operations
+type: fix
+created: '2026-06-15T03:53:38Z'
+metadata:
+  epic: 067-00-plan-lock-and-red-phase-evidence
+  tags:
+  - validation-trust
+  - hardening
+  - plan-lock
+  - tdd-evidence
+  - incident-fix
+  priority: high
+description: |
+  Fix bug report 20260614-234916-maid-plan-revise-red-evidence: after a
+  manifest's behavioral tests have been implemented, `maid plan revise`
+  always either recaptures red evidence from the now-green tree or drops it
+  with `--no-run`. That makes a legitimate metadata-only manifest correction
+  fail the handoff gate with E705 or E704 even though the original lock had
+  valid red evidence.
+
+  Add an explicit `maid plan revise --preserve-red-evidence` mode for this
+  narrow workflow. The option re-baselines manifest/test hashes and appends the
+  revision reason exactly like normal revise, but it copies the existing lock's
+  red_evidence payload instead of running validate commands or nulling the
+  evidence. This is intentionally opt-in: default revise continues to recapture
+  evidence for pre-implementation plan changes.
+
+  Safety rules:
+
+  1. `--preserve-red-evidence` is valid only when the existing lock already
+     contains valid red evidence (`red: true`, at least one command classified
+     "red", and no command classified "invalid"). Existing green, invalid, or
+     null evidence is rejected and the lock file is left unchanged.
+  2. `--preserve-red-evidence` and `--no-run` are mutually exclusive. `--no-run`
+     means "record no evidence"; preserving evidence is a different, explicit
+     workflow.
+  3. The option does not bypass E707. `PlanLock.save` still snapshots the
+     current manifest validate commands, so preserving evidence after changing
+     validate command strings will remain detectable by the existing
+     RED_EVIDENCE_COMMAND_MISMATCH integrity check.
+  4. This child updates docs/maid_specs.md so the metadata-only revise path is
+     visible to agents and humans. Broader workflow skill-payload updates are
+     out of scope unless review finds the docs alone insufficient.
+
+  Rationale: preserving existing valid red evidence is safer than trying to
+  re-run old tests after implementation or fabricating a new red state. The
+  flag keeps the escape hatch loud and reviewable by requiring an explicit
+  revision reason and refusing non-red evidence.
+temptations:
+- risk: Do not make all plan revisions preserve evidence by default.
+  instead: Keep default revise as recapture; require the explicit --preserve-red-evidence flag for metadata-only post-implementation corrections.
+- risk: Do not preserve green, invalid, or missing evidence just because the user supplied the flag.
+  instead: Validate the existing red_evidence payload before building and saving the revised lock; leave the lock unchanged on rejection.
+- risk: Do not combine preserve mode with --no-run.
+  instead: Reject the mutually exclusive flags before modifying the lock.
+- risk: Do not disable E707 to make preserved evidence pass after validate command changes.
+  instead: Let the existing validate_commands snapshot and E707 check detect changed command strings; the preserve mode is for metadata-only corrections.
+files:
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Supports --preserve-red-evidence for metadata-only revisions by preserving existing valid red evidence, rejecting invalid evidence and the --no-run combination before saving.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: The maid plan revise parser exposes --preserve-red-evidence alongside --reason and --no-run.
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _preserve_red_evidence_plan_revise_note
+      of: documentation
+      type: markdown paragraph
+      description: Documents the metadata-only `maid plan revise --preserve-red-evidence` workflow, valid-red-evidence requirement, --no-run incompatibility, and E707 boundary.
+  - path: tests/cli/test_plan_cmd_red_evidence.py
+    artifacts:
+    - kind: test_function
+      name: test_revise_parser_exposes_preserve_red_evidence
+      source_scenario: A planner needs to update a plan lock after a metadata-only manifest correction without rerunning green tests.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: The plan revise parser accepts --preserve-red-evidence and sets preserve_red_evidence true.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change
+      source_scenario: A manifest was locked while tests were red, the implementation is now green, and the manifest text receives a metadata-only correction.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds, increments the revision, updates hashes, and preserves the original valid red_evidence payload.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_rejects_no_run_combination
+      source_scenario: A user supplies both --preserve-red-evidence and --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 and leaves the lock file unchanged.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_rejects_existing_non_red_evidence
+      source_scenario: The existing lock has green/not-red evidence rather than valid red evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 and leaves the lock file unchanged instead of preserving non-red evidence.
+    - kind: test_function
+      name: test_specs_describe_preserve_red_evidence_revise_option
+      source_scenario: A reader checks the MAID spec for the supported metadata-only plan-revise workflow.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: docs/maid_specs.md names --preserve-red-evidence, metadata-only revisions, and valid red evidence.
+  read:
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/result.py
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_cmd_red_evidence.py
+- uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-15T04:04:06Z"
+  summary: "Added `maid plan revise --preserve-red-evidence` so metadata-only lock revisions after implementation can update hashes while preserving prior valid red evidence."
+  rationale: "The bug report showed that default revise recaptured green evidence after implementation and --no-run dropped evidence entirely, causing E705 or E704 at handoff. The new explicit flag preserves only already-valid red evidence, rejects missing/green/invalid evidence and the --no-run combination, leaves default revise semantics unchanged, and keeps E707 intact by continuing to snapshot validate commands during lock save."
+  lessons:
+    - lesson_type: workflow
+      summary: "Outcome capture itself is a post-review metadata-only manifest correction; after adding an outcome section, use `maid plan revise --preserve-red-evidence` with an explicit reason so the lock hash updates without erasing the original red phase."
+      tags:
+        - plan-lock
+        - outcome
+        - red-phase
+      paths:
+        - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+        - .maid/plan-locks/067-08-preserve-red-evidence-on-plan-revise.lock.json
+    - lesson_type: validation
+      summary: "The supported preserve path must be explicit and fail closed: tests cover parser exposure, valid-red preservation after metadata changes, --no-run rejection, non-red rejection, and user-facing spec documentation."
+      tags:
+        - cli
+        - fail-closed
+        - tests
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Independent read-only reviewer reported no findings and verdict Ready to merge; reviewer reran focused pytest, implementation validation, and `maid verify --require-plan-lock --require-red-evidence --since HEAD`."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_cmd_red_evidence.py
+      status: passed
+      summary: "Focused behavioral test suite passed: 12 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for declared artifacts."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+      status: passed
+      summary: "Ruff passed on touched Python files."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+      status: passed
+      summary: "Black check passed on touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 332 manifests, 246 passed, 0 failed, 86 skipped, plus existing advisory E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed with 99 commands passed and 0 failed, plus existing advisory chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Explicit-baseline handoff gate passed; bare verify failed only with E115 because changed_scope requires --since, --base-ref, or metadata.maid_task_base."

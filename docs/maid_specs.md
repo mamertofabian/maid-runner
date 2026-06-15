@@ -100,6 +100,15 @@ and the revision re-baselines the manifest and behavioral test hashes. Use
 `maid plan status <manifest-path>` to inspect lock state, hash matches and
 mismatches, and red evidence in text or JSON form.
 
+For metadata-only corrections after implementation has already made the
+behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
+--preserve-red-evidence`. This preserves the existing valid red evidence while
+updating the manifest and behavioral test hashes. The option is rejected unless
+the existing lock already has valid red evidence, and it cannot be combined with
+`--no-run`. It does not bypass E707: changing validate command strings while
+preserving old evidence remains detectable by the locked `validate_commands`
+snapshot.
+
 Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
 --require-red-evidence` scopes requirement errors to the task window: E700
 PLAN_LOCK_MISSING, E704 RED_PHASE_EVIDENCE_MISSING, and E705
