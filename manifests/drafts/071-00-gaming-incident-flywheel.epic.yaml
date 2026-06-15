@@ -1,138 +1,62 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan deterministic gaming-incident capture and temptation suggestions"
+goal: "Archive consumed gaming-incident flywheel epic"
 type: feature
 created: "2026-06-10"
 metadata:
-  status: planning
+  status: archived
   tags:
     - anti-gaming
     - incidents
     - learning
     - temptations
     - dpo-data
+    - archive
   priority: low
 description: |
-  Turn caught gaming attempts into durable training and planning signal.
-  When the contract-integrity gates (067 plan lock, 068 knockout, existing
-  E2xx/E3xx hardening) catch a less-capable model gaming the workflow, that
-  event is currently lost unless a human invokes the maid-incident-logger
-  skill by hand. This epic adds a deterministic capture path: a failure
-  packet plus the offending diff becomes a structured incident record, and
-  recurring incident patterns surface as suggested `temptations` entries
-  for future manifests touching the same modules. Incident records are the
-  raw material for chosen/rejected pairs (DPO datasets) and for steering
-  weaker models away from repeat patterns.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as:
 
-  Dependency note for the splitting agent: this epic consumes the failure
-  packet format from epic 070 (070-02) and the recall integration surface
-  from epic 066. Child 071-01 must not be promoted before 070-02 is an
-  active implemented manifest. Verify this at promotion time and record it
-  in the child manifest description.
+  - `071-01-add-incident-record-storage-and-capture`
+  - `071-02-add-dpo-export`
+  - `071-03-add-temptation-suggestions`
+  - `071-04-update-incident-skill-guidance`
 
-  MAID's non-AI contract is preserved: capture, storage, indexing, and
-  aggregation handle only explicit structured data passed in by the caller.
-  No inference, classification models, or hidden summarization. A human or
-  agent decides that an event was a gaming attempt; MAID records and
-  retrieves the evidence deterministically.
+  The promoted children added deterministic gaming-incident YAML storage under
+  `.maid/incidents/`, the `maid incident capture|update|list` command surface,
+  DPO JSONL export for complete chosen/rejected pairs, advisory
+  `suggest-temptations` rendering from stored incident evidence, and
+  command-backed maid-incident-logger skill guidance.
 
-  Decisions already made for the implementer. Do not redesign these:
-
-  1. Storage: incident records are YAML files under `.maid/incidents/`,
-     named `<utc-timestamp>-<slug>.incident.yaml`. Each record has exactly:
-     `incident_version` (integer, starts at 1), `created` (UTC timestamp),
-     `manifest` (repo-relative path), `gates` (list of error codes that
-     fired, for example E701 or E711), `packet` (embedded copy of the
-     failure packet JSON from epic 070), `rejected_diff` (unified diff text
-     of the gamed attempt, supplied by the caller), `chosen_diff` (unified
-     diff of the eventually accepted fix, optional, added later via
-     update), `pattern_tags` (caller-supplied list from a documented closed
-     vocabulary: `test-weakening`, `trivial-test`, `stub-implementation`,
-     `contract-renegotiation`, `scope-escape`, `runner-gaming`,
-     `false-done`), and `notes` (free text, optional).
-  2. CLI surface: `maid incident capture --manifest <path> --packet <path>
-     --rejected-diff <path> --tags <comma-list> [--notes <text>]` validates
-     inputs (packet parses as JSON, tags from the closed vocabulary,
-     manifest exists) and writes the record; `maid incident update
-     <incident-path> --chosen-diff <path>` attaches the accepted fix;
-     `maid incident list [--tag <tag>] [--json]` reports records
-     deterministically ordered by timestamp. Reject unknown tags with a
-     usage error naming the vocabulary; do not auto-create tags.
-  3. Export for training data: `maid incident export --format dpo --output
-     <path>` emits a JSONL file where each line pairs `rejected_diff`
-     against `chosen_diff` with the packet diagnostics as context,
-     skipping records without a chosen diff and reporting the skip count.
-     The export is a dumb serializer; no filtering heuristics beyond
-     completeness.
-  4. Temptation suggestions stay deterministic and advisory: `maid incident
-     suggest-temptations --paths <comma-list> [--json]` aggregates incident
-     records whose packet diagnostics touch the given paths, groups by
-     `pattern_tags`, and renders ready-to-paste manifest `temptations`
-     entries using fixed text templates per tag (template table lives in
-     code beside the vocabulary). Output ordering: tag frequency
-     descending, then tag name. This is also where epic 066's recall
-     planning integration may later surface incidents; do not couple the
-     implementations, only the documentation.
-  5. The maid-incident-logger skill guidance is updated to call these
-     commands instead of hand-writing records, keeping skills as consumers
-     of deterministic CLI behavior.
-
-  Planned child order:
-
-  1. `071-01-add-incident-record-storage-and-capture` - implement the
-     record format, closed tag vocabulary, and `maid incident
-     capture|update|list` per decisions 1 and 2 in a new
-     `maid_runner/core/incidents.py` and
-     `maid_runner/cli/commands/incident.py`. Tests cover: capture happy
-     path, unknown tag rejection, malformed packet rejection, update
-     attaching chosen diff, list ordering and JSON shape, and timestamped
-     filename determinism with an injected clock.
-  2. `071-02-add-dpo-export` - implement `maid incident export` per
-     decision 3. Tests cover: JSONL line shape, incomplete-record
-     skipping with reported counts, deterministic ordering, and empty
-     store behavior.
-  3. `071-03-add-temptation-suggestions` - implement `maid incident
-     suggest-temptations` per decision 4 with the fixed per-tag template
-     table. Tests cover: path filtering against packet diagnostics,
-     frequency-then-name ordering, rendered YAML matching the manifest
-     schema's TemptationSpec shape, and empty-result output.
-  4. `071-04-update-incident-skill-guidance` - documentation child: rewrite
-     the repo-local and packaged maid-incident-logger skill guidance to
-     quote the new commands, document the capture workflow after a gate
-     catches a gaming attempt (capture with rejected diff, update with
-     chosen diff after the honest fix lands), and cross-link the 066
-     recall workflow for surfacing incidents during planning.
-
-  Children land strictly in order. Keep this epic last in the
-  weak-model-compliance sequence: it consumes gates and packets from 067,
-  068, and 070 and adds no enforcement of its own.
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future incident capture, DPO export,
+  temptation-suggestion, or incident skill guidance work should start from a
+  fresh scoped manifest after the contracts, CLI behavior, documentation, and
+  skill guidance added by the 071 children.
 temptations:
   - risk: "Do not add AI classification of whether an attempt was gaming."
-    instead: "Capture only caller-asserted incidents with explicit closed-vocabulary tags; MAID stores and retrieves deterministically."
+    instead: "Use the caller-asserted incident capture contract shipped by 071-01; MAID stores and retrieves explicit evidence deterministically."
   - risk: "Do not invent an open-ended tag taxonomy."
-    instead: "Enforce the documented closed vocabulary and reject unknown tags with a usage error; vocabulary changes require a manifest evolution."
-  - risk: "Do not embed full repository state in incident records."
-    instead: "Store the failure packet, the supplied diffs, tags, and notes only, keeping records portable and reviewable."
+    instead: "Preserve the closed vocabulary enforced by 071-01 and evolve it with a new manifest when it changes."
+  - risk: "Do not silently export incomplete or malformed incident records."
+    instead: "Preserve the 071-02 export behavior: skip valid records without chosen_diff with counts, and fail loudly on malformed records."
   - risk: "Do not turn temptation suggestions into automatic manifest edits."
-    instead: "Render ready-to-paste advisory entries; a human or planning agent decides what enters a manifest."
-  - risk: "Do not promote children before the failure-packet dependency exists."
-    instead: "Verify 070-02 is an active implemented manifest before promoting 071-01 and record that check in the child description."
+    instead: "Keep the 071-03 behavior advisory and deterministic; humans or planning agents decide what enters a manifest."
+  - risk: "Do not return the incident skill to hand-authored record files."
+    instead: "Keep the maid-incident-logger skill as a consumer of the deterministic `maid incident` commands shipped by 071-01 through 071-03."
 files:
-  create:
+  edit:
     - path: manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml
       artifacts:
         - kind: attribute
-          name: _gaming_incident_flywheel_roadmap
+          name: _archived_gaming_incident_flywheel_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for deterministic gaming-incident capture, DPO export, temptation suggestions, and incident skill guidance."
+          description: "Historical pointer for promoted child manifests 071-01 through 071-04."
   read:
-    - maid_runner/core/result.py
-    - maid_runner/cli/commands/_main.py
-    - maid_runner/schemas/manifest.v2.schema.json
-    - .claude/skills/maid-incident-logger/SKILL.md
-    - manifests/drafts/070-00-structured-retry-packets.epic.yaml
-    - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+    - manifests/071-01-add-incident-record-storage-and-capture.manifest.yaml
+    - manifests/071-02-add-dpo-export.manifest.yaml
+    - manifests/071-03-add-temptation-suggestions.manifest.yaml
+    - manifests/071-04-update-incident-skill-guidance.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml --mode schema --quiet
