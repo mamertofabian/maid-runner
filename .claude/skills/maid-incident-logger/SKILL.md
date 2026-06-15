@@ -5,90 +5,70 @@ description: Record curated MAID gaming or implementation-drift incidents as cho
 
 # MAID Incident Logger
 
-Create a human-curated incident record. Do not auto-infer that every mistake is DPO-worthy.
+Create a human-curated incident record through MAID's deterministic incident commands. A human or agent decides that an event was a gaming attempt; MAID records and retrieves the supplied evidence deterministically. No inference, classification models, or hidden summarization are involved.
 
-## Storage
+Incident records are YAML files under the repository-local `.maid/incidents/` directory. Do not hand-write incident files, invent metadata fields, or document any unshipped behavior. The skill guidance must add no new CLI behavior.
 
-Write incidents under:
+## Deterministic Incident Commands
 
-```text
-~/.maid/incidents/
+Use only the shipped command surface:
+
+```bash
+maid incident capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list> [--notes <text>]
+maid incident update <incident-path> --chosen-diff <path>
+maid incident list [--tag <tag>] [--json]
+maid incident export --format dpo --output <path>
+maid incident suggest-temptations --paths <comma-list> [--json]
 ```
 
-Use a filename like:
+## Capture Workflow
 
-```text
-YYYYMMDD-HHMMSS-<repo-or-topic>.md
+When a contract-integrity gate catches a gaming attempt, capture the incident immediately with the failure packet and rejected diff:
+
+```bash
+maid incident capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list> [--notes <text>]
 ```
 
-## Required Metadata
+Then update the same incident after the honest fix lands by attaching the chosen diff:
 
-Each incident must include:
+```bash
+maid incident update <incident-path> --chosen-diff <path>
+```
 
-- `schema: maid-incident.v1`
-- `timestamp`
-- `repo`
-- `manifest`
-- `llm_alias`
-- `model_details` when known
-- `incident_type`
-- `dpo_candidate`
+Use `maid incident list [--tag <tag>] [--json]` to inspect stored records. Use `maid incident export --format dpo --output <path>` only after records have chosen diffs. Use `maid incident suggest-temptations --paths <comma-list> [--json]` to surface deterministic advisory temptation entries for future manifests.
 
-Use the active model name or user-provided model alias for `llm_alias`. If unknown, write `unknown` rather than guessing.
+## Pattern Tags
 
-## Incident Body
+Use the closed pattern-tag vocabulary exactly:
 
-Record these sections:
+- `test-weakening`
+- `trivial-test`
+- `stub-implementation`
+- `contract-renegotiation`
+- `scope-escape`
+- `runner-gaming`
+- `false-done`
 
-- Rejected behavior: what the model did or proposed.
-- Chosen behavior: the preferred correction.
-- Why rejected: the architectural, testing, or MAID-contract reason.
-- Why chosen: why the clean path is preferable.
-- Visible context: what context was available to the model.
-- Notes: reviewer judgment, uncertainty, or follow-up hook ideas.
+Unknown tags are rejected as a usage error. Vocabulary changes require a manifest evolution.
+
+## Recall Planning Link
+
+This skill has a documentation-only cross-link to the 066 recall workflow. During planning, related completed Outcomes and incidents may be surfaced with:
+
+```bash
+maid recall --for-manifest <path>
+maid recall --for-manifest <path> --plan-packet
+```
+
+Recall results and incident suggestions are advisory planning evidence. They do not replace the current manifest's behavioral tests, declared scope, validation, or implementation review, and the incident and recall implementations stay independent.
 
 ## DPO Curation Rules
 
-Mark `dpo_candidate: true` only when:
+Mark an incident as DPO-worthy in notes or downstream review judgment only when:
 
 - the rejected and chosen paths solve the same immediate task
 - the chosen path was visible from the model's context
 - the rejected behavior is a recurring or likely recurring pattern
-- the preference is about architecture/process quality, not just a typo
+- the preference is about architecture or process quality, not just a typo
 
-Mark `dpo_candidate: false` when the model lacked necessary context, the task was ambiguous, or the issue was a one-off bug.
-
-## Template
-
-```markdown
----
-schema: maid-incident.v1
-timestamp: ""
-repo: ""
-manifest: ""
-llm_alias: ""
-model_details: ""
-incident_type: "private-access|schema-loosening|test-gaming|scope-drift|plan-drift|other"
-dpo_candidate: false
----
-
-# MAID Incident
-
-## Rejected Behavior
-
-
-## Chosen Behavior
-
-
-## Why Rejected
-
-
-## Why Chosen
-
-
-## Visible Context
-
-
-## Notes
-
-```
+Do not treat every mistake as DPO-worthy. When the model lacked necessary context, the task was ambiguous, or the issue was a one-off bug, capture only the deterministic evidence needed for review.

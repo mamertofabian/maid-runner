@@ -1,0 +1,78 @@
+{
+  "manifest_path": "manifests/071-04-update-incident-skill-guidance.manifest.yaml",
+  "manifest_hash": "sha256:3026993a8e1c0c4852bd1abad79c3c8f17e039816ed117591f8883a0f191bf16",
+  "test_hashes": {
+    "tests/test_incident_skill_guidance.py": "sha256:74a93d5ed5096de53e9ada47f12467fa62639439e652bbd6266cf04c3daef2c4"
+  },
+  "created_at": "2026-06-15T06:33:00.076637+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:afed01356e8dc025de7a9f2397606575894a0c3159a159a9da5236f8633c837a",
+      "prior_test_hashes": {
+        "tests/test_incident_skill_guidance.py": "sha256:b5da8ff2ab40654323c05bd1b4317b6fa3097aefb7b15bffc4d83edb9f7037fc"
+      },
+      "revised_at": "2026-06-15T06:33:06.795708+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/071-04-update-incident-skill-guidance.manifest.yaml -> manifests/071-04-update-incident-skill-guidance.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:354d90d52d30b5b851e786ed20ad6c7c57276838737c0adbaaa559fdcb698cfb",
+      "prior_test_hashes": {
+        "tests/test_incident_skill_guidance.py": "sha256:b5da8ff2ab40654323c05bd1b4317b6fa3097aefb7b15bffc4d83edb9f7037fc"
+      },
+      "revised_at": "2026-06-15T06:36:14.186827+00:00",
+      "reason": "Format incident guidance behavioral test after lock"
+    },
+    {
+      "prior_manifest_hash": "sha256:354d90d52d30b5b851e786ed20ad6c7c57276838737c0adbaaa559fdcb698cfb",
+      "prior_test_hashes": {
+        "tests/test_incident_skill_guidance.py": "sha256:74a93d5ed5096de53e9ada47f12467fa62639439e652bbd6266cf04c3daef2c4"
+      },
+      "revised_at": "2026-06-15T06:45:26.901836+00:00",
+      "reason": "Add implementation outcome after ready review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T06:33:07.030340+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_incident_skill_guidance.py",
+        "exit_code": 1,
+        "output_tail": "tmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-379/test_incident_logger_guidance_0')\n\n    def test_incident_logger_guidance_cross_links_recall_and_syncs_distribution(\n        tmp_path: Path,\n    ):\n        source_text = _read(SOURCE_SKILL)\n        synced_workspace = _sync_distribution(tmp_path)\n        distributed_text = _read(DISTRIBUTED_SKILL, root=synced_workspace)\n    \n        for anchor in GUIDANCE_ANCHORS:\n>           assert anchor in source_text\nE           AssertionError: assert '## Deterministic Incident Commands' in '---\\nname: maid-incident-logger\\ndescription: Record curated MAID gaming or implementation-drift incidents as chosen/...ehavior\\n\\n\\n## Chosen Behavior\\n\\n\\n## Why Rejected\\n\\n\\n## Why Chosen\\n\\n\\n## Visible Context\\n\\n\\n## Notes\\n\\n```\\n'\n\ntests/test_incident_skill_guidance.py:112: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_incident_skill_guidance.py::test_incident_logger_guidance_quotes_exact_command_surface\nFAILED tests/test_incident_skill_guidance.py::test_incident_logger_guidance_documents_capture_then_update_workflow\nFAILED tests/test_incident_skill_guidance.py::test_incident_logger_guidance_lists_closed_tag_vocabulary_exactly\nFAILED tests/test_incident_skill_guidance.py::test_incident_logger_guidance_cross_links_recall_and_syncs_distribution\n4 failed in 0.09s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-incident-logger/SKILL.md:attribute:skill._incident_logger_cli_workflow_guidance",
+      ".claude/skills/maid-incident-logger/SKILL.md:attribute:skill._incident_logger_cli_workflow_guidance:kind=attribute",
+      ".claude/skills/maid-incident-logger/SKILL.md:attribute:skill._incident_logger_cli_workflow_guidance:of=skill",
+      ".claude/skills/maid-incident-logger/SKILL.md:attribute:skill._incident_logger_cli_workflow_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-incident-logger/SKILL.md:attribute:skill._distributed_incident_logger_cli_workflow_guidance",
+      "maid_runner/claude/skills/maid-incident-logger/SKILL.md:attribute:skill._distributed_incident_logger_cli_workflow_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-incident-logger/SKILL.md:attribute:skill._distributed_incident_logger_cli_workflow_guidance:of=skill",
+      "maid_runner/claude/skills/maid-incident-logger/SKILL.md:attribute:skill._distributed_incident_logger_cli_workflow_guidance:type=markdown section",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_cross_links_recall_and_syncs_distribution",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_cross_links_recall_and_syncs_distribution:arg=tmp_path:type=Path:default=None",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_cross_links_recall_and_syncs_distribution:kind=test_function",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_cross_links_recall_and_syncs_distribution:returns=None",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_documents_capture_then_update_workflow",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_documents_capture_then_update_workflow:kind=test_function",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_documents_capture_then_update_workflow:returns=None",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_lists_closed_tag_vocabulary_exactly",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_lists_closed_tag_vocabulary_exactly:kind=test_function",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_lists_closed_tag_vocabulary_exactly:returns=None",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_quotes_exact_command_surface",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_quotes_exact_command_surface:kind=test_function",
+      "tests/test_incident_skill_guidance.py:test_incident_logger_guidance_quotes_exact_command_surface:returns=None"
+    ],
+    "test_files": [
+      "tests/test_incident_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_incident_skill_guidance.py"
+    ]
+  }
+}
