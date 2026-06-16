@@ -63,7 +63,9 @@ description: |
   maid-runner-draft-implement/SKILL.md` sources together with the
   packaged copies under `maid_runner/claude/skills/` and
   `maid_runner/codex/skills/` so distribution copies do not go stale
-  (see scripts/sync_claude_files.py).
+  (see scripts/sync_claude_files.py). Prefer regenerating or parity-checking
+  generated package copies through the sync script pattern used by 048-01
+  and 066-04; do not let source and distributed guidance drift.
 
   Behavioral tests must cover (documentation assertions via
   Path.read_text, following the tests/test_manifest_outcome_docs.py
@@ -84,7 +86,7 @@ temptations:
   - risk: "Do not document task state beyond the single active-manifest path."
     instead: "Describe only start, stop, and status over the single repo-relative path contract."
   - risk: "Do not update source skill files while leaving package distribution copies stale."
-    instead: "Update source-of-truth skill files and the packaged distribution copies together, with a test asserting shared guidance anchors."
+    instead: "Update source-of-truth skill files, regenerate or update packaged distribution copies through the established sync pattern, and assert shared guidance anchors."
 files:
   create:
     - path: tests/test_edit_time_scope_docs.py
@@ -164,7 +166,9 @@ files:
     - docs/draft-manifest-workflow.md
     - scripts/sync_claude_files.py
     - tests/test_manifest_outcome_docs.py
+    - tests/test_agent_payload_distribution.py
+    - tests/test_claude_skill_distribution.py
 validate:
-  - uv run python -m pytest -q tests/test_edit_time_scope_docs.py
+  - uv run python -m pytest -q tests/test_edit_time_scope_docs.py tests/test_agent_payload_distribution.py tests/test_claude_skill_distribution.py
   - uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode schema --quiet

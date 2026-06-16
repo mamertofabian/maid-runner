@@ -60,10 +60,19 @@ description: |
   the packaged hook configuration minimal and, if `.claude/settings.json`
   already exists in the target project, ensure the install preserves
   unrelated keys while guaranteeing the PreToolUse scope-check entry is
-  present. Test both the fresh-install and existing-settings cases. If
-  preserving existing settings requires more than a small, contained
-  merge step in init.py, stop and split per-tool wiring into separate
-  drafts before promotion, as the epic allows.
+  present. Test both the fresh-install and existing-settings cases. The
+  root settings file must be represented in the package payload manifest
+  so force-installs can prune only MAID-owned root payload files.
+
+  Packaging note: prior payload work (048-01 and 066-04) established that
+  package payload changes must keep source payloads, generated
+  `maid_runner/` resources, package-data globs, and isolated sync/parity
+  tests together. This child therefore updates `.claude/settings.json`,
+  `.cursor/hooks.json`, the sync script, generated package payload copies,
+  `pyproject.toml`, and the payload parity tests together. If the required
+  init merge logic or Cursor packaging grows beyond this narrow payload
+  scope, split per-tool wiring into separate drafts before promotion, as
+  the epic allows.
 
   Behavioral tests must cover: after `maid init --tool claude` the
   installed `.claude` settings contain a PreToolUse entry matching
@@ -86,8 +95,26 @@ temptations:
     instead: "Wire the default (non-strict) scope-check invocation in payloads; fail-open semantics on internal errors are part of the hook contract."
   - risk: "Do not treat hook decisions as validation evidence."
     instead: "Keep maid verify changed-scope checks authoritative; payload wiring is advisory enforcement only."
+  - risk: "Do not leave generated package payloads or package-data globs stale after adding hook files."
+    instead: "Update source payloads, sync script output, package-data patterns, and isolated parity tests in the same child."
+  - risk: "Do not clobber user-owned Claude settings while installing the hook."
+    instead: "Merge the packaged PreToolUse hook into existing .claude/settings.json while preserving unrelated keys."
 files:
   create:
+    - path: .claude/settings.json
+      artifacts:
+        - kind: attribute
+          name: _claude_source_pretooluse_scope_check_hook
+          of: configuration
+          type: json hooks configuration
+          description: "Source Claude Code settings entry registering a PreToolUse hook on Write/Edit tool events that pipes event JSON to maid hook scope-check --stdin."
+    - path: .cursor/hooks.json
+      artifacts:
+        - kind: attribute
+          name: _cursor_source_scope_check_hooks
+          of: configuration
+          type: json hooks configuration
+          description: "Source Cursor hooks.json entry piping pre-edit event JSON to maid hook scope-check --stdin."
     - path: maid_runner/claude/settings.json
       artifacts:
         - kind: attribute
@@ -109,6 +136,46 @@ files:
           of: configuration
           type: json hooks configuration
           description: "Packaged Cursor hooks.json entry piping pre-edit event JSON to maid hook scope-check --stdin."
+    - path: tests/cli/test_init_hook_payloads.py
+      artifacts:
+        - kind: test_function
+          name: test_init_claude_installs_scope_check_hook_settings
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Fresh Claude init installs .claude/settings.json with a PreToolUse Write/Edit hook that invokes maid hook scope-check --stdin."
+        - kind: test_function
+          name: test_init_claude_merges_existing_settings_without_clobbering
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Force Claude init preserves unrelated existing .claude/settings.json keys while ensuring the MAID PreToolUse scope-check hook is present."
+        - kind: test_function
+          name: test_init_cursor_installs_scope_check_hook_payload
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Cursor init installs .cursor/manifest.json and .cursor/hooks.json through the package payload flow without creating Claude or Codex assets."
+        - kind: test_function
+          name: test_init_hook_payload_dry_run_and_distribution_parity
+          args:
+            - name: tmp_path
+              type: Path
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Dry-run output names hook payload files and isolated sync/package-data parity checks cover Claude settings and Cursor hook resources."
   edit:
     - path: maid_runner/cli/commands/init.py
       artifacts:
@@ -118,14 +185,62 @@ files:
             - name: args
               type: argparse.Namespace
           returns: int
-          description: "maid init installs the Claude hook settings, the Cursor hooks payload for --tool cursor, and the Codex pre-edit scope-check guidance in the managed AGENTS.md section, all through _install_agent_payload; dry-run names the hook payload files."
+          description: "maid init installs the Claude hook settings with merge-preservation, the Cursor hooks payload for --tool cursor, and the Codex pre-edit scope-check guidance in the managed AGENTS.md section, all through _install_agent_payload; dry-run names the hook payload files."
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: main
+          args: []
+          returns: None
+          description: "The sync command copies Claude settings and Cursor hook payload sources into package resources alongside existing Claude and Codex payload resources."
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: _maid_runner_package_data_hook_payloads
+          of: tool.setuptools.package-data.maid_runner
+          type: TOML package-data entry
+          description: "Package data includes Claude settings and Cursor manifest/hooks resources required by hook-enabled init installs."
+    - path: Makefile
+      artifacts:
+        - kind: attribute
+          name: _agent_payload_sync_targets_include_cursor_hooks
+          of: makefile
+          type: make targets
+          description: "Payload sync and clean targets cover the Cursor package payload directory alongside Claude and Codex."
+    - path: .claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _claude_root_settings_payload_manifest
+          of: claude_payload
+          type: json object
+          description: "Claude source payload manifest declares settings.json as a MAID-owned root payload file for install and pruning."
+    - path: maid_runner/claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _distributed_claude_root_settings_payload_manifest
+          of: claude_payload
+          type: json object
+          description: "Generated Claude package manifest declares settings.json as a MAID-owned root payload file for install and pruning."
+    - path: tests/test_agent_payload_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_agent_payload_package_data_includes_claude_and_codex_assets
+          args: []
+          returns: None
+          description: "Package-data parity expands to include Claude settings and Cursor hook payload resources."
+        - kind: test_function
+          name: test_cursor_hook_payload_sync_matches_source
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Isolated payload sync creates a Cursor package manifest and hooks.json copy that match the source Cursor hook payload."
   read:
-    - maid_runner/claude/manifest.json
     - maid_runner/codex/manifest.json
     - maid_runner/cli/commands/_main.py
     - tests/cli/test_init_cmd.py
-    - tests/cli/test_init_hook_payloads.py
+    - tests/test_agent_payload_distribution.py
 validate:
-  - uv run python -m pytest -q tests/cli/test_init_hook_payloads.py tests/cli/test_init_cmd.py
+  - uv run python -m pytest -q tests/cli/test_init_hook_payloads.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py
   - uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode schema --quiet

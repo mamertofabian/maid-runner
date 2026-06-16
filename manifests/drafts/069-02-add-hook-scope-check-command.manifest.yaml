@@ -12,7 +12,8 @@ metadata:
     - hooks
   priority: medium
 description: |
-  Implement `maid hook scope-check` in a new
+  Implement `maid hook scope-check` through a small pure decision module
+  `maid_runner/core/scope_check.py` plus a new
   `maid_runner/cli/commands/hook.py`, registered in
   `maid_runner/cli/commands/_main.py`, reusing manifest loading from
   `maid_runner/core/manifest.py` and active-task resolution from
@@ -64,6 +65,16 @@ description: |
   how `maid_runner/core/manifest.py` already recognizes test paths. Do
   not expand this into general read-scope allowance: plain non-test
   `files.read` dependencies are NOT writable scope and must be denied.
+  Because the existing validate-command test-path extraction is private
+  inside `maid_runner/core/manifest.py`, this child exposes a narrow
+  public helper in `maid_runner/core/scope_check.py` rather than binding
+  the hook command to private manifest helpers.
+
+  Sequencing note: adding a new top-level CLI command trips the existing
+  command-documentation parity test in `tests/test_agent_payload_distribution.py`
+  unless README or ROADMAP mentions the registered command. This child includes
+  a minimal README CLI entry for `maid hook`; the fuller workflow guidance
+  remains in 069-04.
 
   Behavioral tests must cover: allow for paths declared in
   `files.create`, `files.edit`, and `files.delete`; allow for the active
@@ -91,8 +102,55 @@ temptations:
     instead: "Keep maid verify changed-scope checks authoritative; the hook is fast advisory enforcement and adds no ErrorCode entries."
   - risk: "Do not widen allow rules to all files.read dependencies."
     instead: "Allow only declared create/edit/delete paths, the manifest's own path, its declared test files, and manifests/drafts/ paths; deny everything else with a named reason."
+  - risk: "Do not couple the hook command to private manifest parser helpers."
+    instead: "Put the fast single-manifest scope calculation, including declared test path extraction, behind a small public core helper tested through the CLI behavior."
 files:
   create:
+    - path: maid_runner/core/scope_check.py
+      artifacts:
+        - kind: class
+          name: ScopeCheckDecision
+          description: "JSON-serializable allow/deny decision for one candidate path under the active manifest scope rules."
+        - kind: attribute
+          name: decision
+          of: ScopeCheckDecision
+          type: Literal['allow', 'deny']
+          description: "Whether the hook should allow or deny the candidate path."
+        - kind: attribute
+          name: reason
+          of: ScopeCheckDecision
+          type: str
+          description: "Machine-readable or concise human-readable reason for the decision."
+        - kind: attribute
+          name: active_manifest
+          of: ScopeCheckDecision
+          type: str | None
+          description: "Resolved active manifest path when one participated in the decision."
+        - kind: function
+          name: declared_scope_paths
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+          returns: set[str]
+          description: "Return the single-manifest allowed path set: create/edit/delete paths, manifest path, declared test files from files.read and validate commands, and draft-manifest paths."
+        - kind: function
+          name: scope_check_path
+          args:
+            - name: candidate_path
+              type: str
+            - name: active_manifest
+              type: str | None
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+            - name: strict
+              type: bool
+              default: "False"
+          returns: ScopeCheckDecision
+          description: "Load only the active manifest when present and decide whether the candidate path is allowed under the pinned hook scope rules."
     - path: maid_runner/cli/commands/hook.py
       artifacts:
         - kind: function
@@ -118,12 +176,20 @@ files:
               default: None
           returns: int
           description: "The CLI dispatches hook subcommands to maid_runner.cli.commands.hook.cmd_hook."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _maid_hook_cli_reference
+          of: documentation
+          type: markdown section
+          description: "Minimal CLI reference entry for the registered `maid hook` command group so command-doc parity remains green before the fuller 069-04 workflow docs land."
   read:
     - maid_runner/core/manifest.py
     - maid_runner/core/active_task.py
     - maid_runner/cli/commands/files.py
     - tests/cli/test_hook_cmd.py
+    - tests/test_agent_payload_distribution.py
 validate:
-  - uv run python -m pytest -q tests/cli/test_hook_cmd.py
+  - uv run python -m pytest -q tests/cli/test_hook_cmd.py tests/test_agent_payload_distribution.py
   - uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode schema --quiet

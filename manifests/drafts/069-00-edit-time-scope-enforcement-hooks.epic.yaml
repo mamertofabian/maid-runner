@@ -78,22 +78,37 @@ description: |
   1. `069-01-add-task-active-manifest-commands` - implement `maid task
      start|stop|status` and the `.maid/active-manifest` file contract per
      decision 1 in a new `maid_runner/cli/commands/task.py` with a small
-     core helper module `maid_runner/core/active_task.py`. Tests cover:
+     core helper module `maid_runner/core/active_task.py`. The helper must
+     expose both a path-only resolver and source-bearing status data so
+     `maid task status --json` does not duplicate env/file precedence
+     logic in the CLI. Include a minimal README command entry when the
+     top-level `task` command is registered so command-doc parity stays
+     green before the fuller docs child lands. Tests cover:
      start with valid path, rejection of escaping/nonexistent paths, stop
      idempotency, status with env-var override precedence, and JSON shape.
   2. `069-02-add-hook-scope-check-command` - implement `maid hook
      scope-check` per decision 2 in a new
-     `maid_runner/cli/commands/hook.py`, reusing manifest loading from
-     `maid_runner/core/manifest.py`. Tests cover: allow for declared
+     `maid_runner/cli/commands/hook.py`, with pure single-manifest
+     decision helpers in `maid_runner/core/scope_check.py` and manifest
+     loading from `maid_runner/core/manifest.py`. Do not bind the hook to
+     private manifest parser helpers for declared test-file discovery.
+     Include a minimal README command entry when the top-level `hook`
+     command is registered so command-doc parity stays green before the
+     fuller docs child lands. Tests cover: allow for declared
      create/edit/delete paths, allow for manifest-own-path and drafts,
      deny with named manifest for undeclared source paths, stdin JSON
      parsing, no-active-task default allow, `--strict` deny flips, and
      internal-error fail-open versus `--strict` fail-closed behavior.
   3. `069-03-wire-hooks-into-init-payloads` - add the Claude and Cursor
      hook configuration and the Codex guidance text to the packaged init
-     payloads per decision 4, including payload parity checks. Tests assert
-     the installed files contain the hook entries and that `maid init`
-     dry-run output names them.
+     payloads per decision 4, including payload parity checks. Keep source
+     payloads, generated `maid_runner/` resources, sync script behavior,
+     package-data globs, and install/merge behavior in scope together so
+     built packages include the hook resources. Tests assert the installed
+     files contain the hook entries, Claude settings merges preserve
+     unrelated user keys, Cursor hook payloads install through the packaged
+     flow, package-data covers the new resources, and `maid init` dry-run
+     output names them.
   4. `069-04-document-edit-time-scope-workflow` - documentation child:
      README section, `docs/agent-skills.md` updates, and skill guidance so
      MAID sessions start with `maid task start <manifest>` after promotion

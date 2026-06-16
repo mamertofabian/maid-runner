@@ -45,7 +45,9 @@ description: |
 
   Planning note: the epic does not pin the in-memory API of the core
   helper. The most conservative reading is a minimal function surface:
-  `resolve_active_manifest` (applies the pinned resolution order),
+  `get_active_manifest_status` (returns both the resolved path and the
+  resolution source for `maid task status --json`), `resolve_active_manifest`
+  (compatibility convenience returning only the resolved path),
   `start_active_task` (validates and writes the file, raising
   `ActiveTaskError` for escaping or nonexistent paths), and
   `stop_active_task` (idempotent removal returning whether a file was
@@ -53,6 +55,12 @@ description: |
   project-boundary checks used by `validate_manifest_paths` in
   `maid_runner/core/manifest.py` (reject absolute paths and paths that
   resolve outside the project root).
+
+  Sequencing note: adding a new top-level CLI command trips the existing
+  command-documentation parity test in `tests/test_agent_payload_distribution.py`
+  unless README or ROADMAP mentions the registered command. This child includes
+  a minimal README CLI entry for `maid task`; the fuller workflow guidance
+  remains in 069-04.
 
   Behavioral tests must cover: start with a valid repo-relative manifest
   path writes the single-line file; start rejects absolute, escaping
@@ -74,6 +82,8 @@ temptations:
     instead: "Keep maid verify changed-scope checks authoritative; add no ErrorCode entries for task state."
   - risk: "Do not accept escaping or nonexistent manifest paths into the active-task file."
     instead: "Reject absolute, parent-relative, and missing paths at maid task start, mirroring the project-boundary checks in maid_runner/core/manifest.py."
+  - risk: "Do not duplicate active-task source resolution in the CLI status handler."
+    instead: "Expose a small source-bearing status object from maid_runner/core/active_task.py and have the CLI render it in text or JSON."
 files:
   create:
     - path: maid_runner/core/active_task.py
@@ -81,6 +91,27 @@ files:
         - kind: class
           name: ActiveTaskError
           description: "Raised when maid task start receives a path outside the project or a nonexistent manifest file."
+        - kind: class
+          name: ActiveManifestStatus
+          description: "Resolved active-task pointer plus the source that supplied it."
+        - kind: attribute
+          name: path
+          of: ActiveManifestStatus
+          type: str | None
+          description: "Repo-relative active manifest path, or None when no active task is set."
+        - kind: attribute
+          name: source
+          of: ActiveManifestStatus
+          type: Literal['env', 'file', 'none']
+          description: "Source of the active manifest path: MAID_ACTIVE_MANIFEST, .maid/active-manifest, or no active task."
+        - kind: function
+          name: get_active_manifest_status
+          args:
+            - name: project_root
+              type: Union[str, Path]
+              default: "'.'"
+          returns: ActiveManifestStatus
+          description: "Apply the pinned resolution order and return both the active manifest path and source for status rendering."
         - kind: function
           name: resolve_active_manifest
           args:
@@ -132,12 +163,20 @@ files:
               default: None
           returns: int
           description: "The CLI dispatches task subcommands to maid_runner.cli.commands.task.cmd_task."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _maid_task_cli_reference
+          of: documentation
+          type: markdown section
+          description: "Minimal CLI reference entry for the registered `maid task` command group so command-doc parity remains green before the fuller 069-04 workflow docs land."
   read:
     - maid_runner/core/manifest.py
     - maid_runner/cli/commands/files.py
     - tests/core/test_active_task.py
     - tests/cli/test_task_cmd.py
+    - tests/test_agent_payload_distribution.py
 validate:
-  - uv run python -m pytest -q tests/core/test_active_task.py tests/cli/test_task_cmd.py
+  - uv run python -m pytest -q tests/core/test_active_task.py tests/cli/test_task_cmd.py tests/test_agent_payload_distribution.py
   - uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode schema --quiet
