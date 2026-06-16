@@ -96,9 +96,9 @@ MAID Runner section in `AGENTS.md`.
 
 | Command | Purpose | Key Options |
 |---------|---------|-------------|
-| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
+| `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--artifact-coverage`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--json` (status), `--project-root` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
 | `maid incident capture\|update\|list` | Store and review caller-asserted gaming incident records | `capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list>`, `update <incident-path> --chosen-diff <path>`, `list --tag <tag> --json` |
@@ -183,6 +183,10 @@ maid verify --base-ref <parent-branch>
 # Implementation handoff gate requiring the approved plan lock and red phase
 maid verify --require-plan-lock --require-red-evidence
 
+# Opt-in Python-only constraint evidence gates for high-risk review
+maid validate --artifact-coverage manifests/add-auth.manifest.yaml
+maid verify --artifact-coverage --knockout
+
 # Brownfield onboarding: rank candidates before adding contracts
 maid bootstrap --rank --limit 20
 
@@ -221,6 +225,25 @@ errors apply regardless of task-window scope: E701
 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK, E702
 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK, E703 PLAN_LOCK_STALE, and E706
 PLAN_LOCK_UNREADABLE.
+
+### Constraint Evidence Gates
+
+`maid verify --artifact-coverage` and `maid validate --artifact-coverage` run
+the manifest's pytest-based `validate:` commands under coverage.py and fail
+when a declared Python public function, method, or class body is never executed
+by the tests. The gate is opt-in and Python-only. Attribute artifacts are
+excluded, and a class passes when any declared method on the class executes.
+Install the optional quality extra with `maid-runner[quality]`; requesting the
+gate without that extra fails closed with `E307` semantics instead of silently
+skipping the evidence check.
+
+`maid verify --knockout` is an opt-in Python-only gate that replaces each
+declared public function or method body with
+`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
+commands, and restores the source file with hash verification. Use
+`--knockout-limit` to bound the number of artifacts tested and
+`--knockout-allow-dirty` when a reviewed workflow deliberately allows dirty
+target files. Knockout runs in manifest declaration order and is not full mutation testing; it checks one bounded failure mode rather than promising general mutation coverage.
 
 ### CI/CD Integration
 

@@ -136,6 +136,34 @@ created before the snapshot field existed skip the check until their next
 sanctioned re-save, and locks with `red_evidence: null` are owned by E704
 instead.
 
+##### **Constraint Evidence Gates**
+
+`maid verify --artifact-coverage` and `maid validate --artifact-coverage` are
+opt-in Python-only runtime evidence gates. They run the manifest's pytest-based
+`validate:` commands under coverage.py, load the JSON coverage report, map each
+declared public Python function or method artifact to its body line range, and
+fail with `E710 ARTIFACT_NOT_EXECUTED_BY_TESTS` when no body line of that
+artifact executes. Class artifacts pass when any declared method on the class
+executes. Attribute artifacts are excluded from this gate. The coverage support
+lives in the optional quality extra; install `maid-runner[quality]`. Requesting
+artifact coverage without the extra fails closed with `E307` semantics naming
+the missing validator dependency.
+
+`maid verify --knockout` is an opt-in Python-only gate that rewrites one
+declared public function or method artifact at a time to
+`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
+commands, and restores the original source content from an in-memory copy with
+hash verification. If all validate commands still exit 0 while the artifact is
+knocked out, MAID reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Harness
+failures such as parse errors, command spawn failures, or restore anomalies
+report `E712 KNOCKOUT_HARNESS_FAILURE` and include the named file so callers
+can recover the worktree state. Knockouts run sequentially in manifest
+declaration order; `--knockout-limit` bounds the artifact count, and
+`--knockout-allow-dirty` permits dirty target files for workflows that
+explicitly accept that risk. Knockout is not full mutation testing; it proves
+this single failure mode and does not promise broader mutmut-style mutation
+coverage.
+
 The changed-scope baseline that defines the task window resolves from
 `--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
 `metadata.maid_task_base`. Because `maid_task_base` is a current-task

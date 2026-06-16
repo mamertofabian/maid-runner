@@ -1,0 +1,102 @@
+{
+  "manifest_path": "manifests/068-04-document-constraint-evidence-gates.manifest.yaml",
+  "manifest_hash": "sha256:3cc6e333c3949b228f205b506df078bcc7cda9c5ef9bdaa9a2bda8a6d7637c5b",
+  "test_hashes": {
+    "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+    "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+  },
+  "created_at": "2026-06-16T02:36:39.360363+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:5f653dbec660e6d6241cfbdba0349cd81547fd4f43edf32ab88cbf2299813c77",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+      },
+      "revised_at": "2026-06-16T02:36:42.972665+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-04-document-constraint-evidence-gates.manifest.yaml -> manifests/068-04-document-constraint-evidence-gates.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:b63102e9cc17b19cd223e3cba7fe53071f2e261f1a6c427da89d93c01df73757",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+      },
+      "revised_at": "2026-06-16T02:40:32.178792+00:00",
+      "reason": "Include contextual outcome docs test in the 068-04 validate command so scoped test files are all exercised by maid test."
+    },
+    {
+      "prior_manifest_hash": "sha256:587cacaba74359114de9d9526d0ea26c01afa1a8f32016893b5e57b3e1999810",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+      },
+      "revised_at": "2026-06-16T02:49:44.135894+00:00",
+      "reason": "Capture implementation outcome after ready review while preserving the validated red-phase evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-16T02:40:34.652110+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py",
+        "exit_code": 1,
+        "output_tail": "        for code in (\"E710\", \"E711\", \"E712\"):\n>           assert f\"(`{code}`)\" in troubleshooting\nE           AssertionError: assert '(`E710`)' in '# Troubleshooting\\n\\nUse this guide when MAID Runner validation, testing, manifest chains, or agent\\nworkflows fail. ...planning evidence only; they do not replace behavioral\\ntests, declared scope, validation, or implementation review.\\n'\n\ntests/test_constraint_evidence_docs.py:37: AssertionError\n_________ test_review_skill_payloads_quote_constraint_evidence_command _________\n\n    def test_review_skill_payloads_quote_constraint_evidence_command() -> None:\n        for skill_path in (CLAUDE_REVIEW_SKILL, CODEX_REVIEW_SKILL):\n            skill = _read(skill_path)\n    \n>           assert \"`maid verify --artifact-coverage --knockout`\" in skill\nE           AssertionError: assert '`maid verify --artifact-coverage --knockout`' in '---\\nname: maid-implementation-review\\ndescription: Review an implementation produced from an approved MAID manifest....it\\nfound blockers.\\n\\nEnd with one explicit verdict:\\n\\n- `Ready to merge`\\n- `Needs changes`\\n- `Needs discussion`\\n'\n\ntests/test_constraint_evidence_docs.py:51: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_constraint_evidence_docs.py::test_constraint_evidence_docs_describe_opt_in_gates\nFAILED tests/test_constraint_evidence_docs.py::test_troubleshooting_covers_e710_through_e712\nFAILED tests/test_constraint_evidence_docs.py::test_review_skill_payloads_quote_constraint_evidence_command\n3 failed, 3 passed in 0.03s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_constraint_evidence_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_constraint_evidence_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_constraint_evidence_guidance:of=documentation",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_constraint_evidence_guidance:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_constraint_evidence_guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_constraint_evidence_guidance:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_constraint_evidence_guidance:of=documentation",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:documentation._codex_review_constraint_evidence_guidance:type=markdown section",
+      "README.md:attribute:documentation._constraint_evidence_readme_commands",
+      "README.md:attribute:documentation._constraint_evidence_readme_commands:kind=attribute",
+      "README.md:attribute:documentation._constraint_evidence_readme_commands:of=documentation",
+      "README.md:attribute:documentation._constraint_evidence_readme_commands:type=markdown section",
+      "docs/maid_specs.md:attribute:documentation._constraint_evidence_spec_section",
+      "docs/maid_specs.md:attribute:documentation._constraint_evidence_spec_section:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._constraint_evidence_spec_section:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._constraint_evidence_spec_section:type=markdown section",
+      "docs/troubleshooting.md:attribute:documentation._constraint_evidence_troubleshooting_entries",
+      "docs/troubleshooting.md:attribute:documentation._constraint_evidence_troubleshooting_entries:kind=attribute",
+      "docs/troubleshooting.md:attribute:documentation._constraint_evidence_troubleshooting_entries:of=documentation",
+      "docs/troubleshooting.md:attribute:documentation._constraint_evidence_troubleshooting_entries:type=markdown section",
+      "tests/test_constraint_evidence_docs.py:test_constraint_evidence_docs_describe_opt_in_gates",
+      "tests/test_constraint_evidence_docs.py:test_constraint_evidence_docs_describe_opt_in_gates:kind=test_function",
+      "tests/test_constraint_evidence_docs.py:test_review_skill_payloads_quote_constraint_evidence_command",
+      "tests/test_constraint_evidence_docs.py:test_review_skill_payloads_quote_constraint_evidence_command:kind=test_function",
+      "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712",
+      "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712:kind=test_function"
+    ],
+    "test_files": [
+      "tests/test_constraint_evidence_docs.py",
+      "tests/test_manifest_outcome_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py",
+      "uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

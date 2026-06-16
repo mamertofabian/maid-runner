@@ -183,6 +183,11 @@ maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
 
+For high-risk changes where runtime evidence matters, also run
+`maid verify --artifact-coverage --knockout`. Treat it as an opt-in
+Python-only review gate that checks declared artifacts are executed by tests
+and that breaking each declared function or method makes validation fail.
+
 The `maid verify --require-plan-lock --require-red-evidence` command is the
 implementation handoff gate for the approved plan lock and captured red-phase
 evidence. Treat E700-E706 plan-lock failures as blockers unless the review

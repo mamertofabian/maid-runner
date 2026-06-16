@@ -1,0 +1,273 @@
+schema: '2'
+goal: Document the artifact-coverage and knockout gates, E710-E712 troubleshooting, and review-session guidance
+type: feature
+created: '2026-06-16T02:36:42Z'
+metadata:
+  epic: 068-00-behavioral-constraint-evidence
+  tags:
+  - validation-trust
+  - coverage
+  - mutation
+  priority: high
+description: |
+  Documentation child for epic 068-00. Update the README,
+  `docs/maid_specs.md`, troubleshooting entries for E710-E712, and the
+  packaged skill guidance so review sessions are instructed to run
+  `maid verify --artifact-coverage --knockout` for high-risk changes.
+  This child depends on siblings 068-01 through 068-03, which must land
+  first.
+
+  Pinned decisions (from epic 068-00; restated so this child is
+  self-contained):
+
+  1. Both gates are Python-only and OPT-IN in this release. TypeScript
+     and Svelte are explicitly out of scope; default enforcement belongs
+     to the 062 strict-by-default major-release decision. Document the
+     flags as opt-in, not default.
+  2. Execution coverage gate (`maid verify --artifact-coverage`, also on
+     `maid validate`): runs the manifest's pytest-based `validate:`
+     commands under coverage.py with a JSON report, maps each declared
+     public function/method artifact to its body line range via the
+     Python AST, and fails with E710 ARTIFACT_NOT_EXECUTED_BY_TESTS when
+     no body line of a declared artifact was executed. Class artifacts
+     pass if any declared method of the class executed; attribute
+     artifacts are excluded. `coverage` is an optional dependency extra
+     named `quality`; running the flag without it installed fails closed
+     with E307 VALIDATOR_NOT_AVAILABLE semantics naming the missing extra
+     (document installing `maid-runner[quality]`).
+  3. Knockout gate (`maid verify --knockout`): per declared public
+     function/method artifact, verifies the target file is clean
+     (refusing dirty files unless `--knockout-allow-dirty`), rewrites the
+     artifact body in place to `raise NotImplementedError("maid-knockout")`,
+     runs the validate commands, and restores the original content from
+     an in-memory copy with hash verification. All commands still exiting
+     0 fails E711 ARTIFACT_KNOCKOUT_NOT_DETECTED naming the artifact and
+     file; harness errors fail E712 KNOCKOUT_HARNESS_FAILURE, and a
+     restore failure prints the git checkout recovery instruction.
+     Knockouts run sequentially and deterministically in manifest
+     declaration order; `--knockout-limit N` bounds the artifact count
+     (default unlimited); results report per-artifact pass/fail with
+     durations in text and JSON.
+  4. Troubleshooting entries follow the existing `docs/troubleshooting.md`
+     per-code section format and must cover E710 (the behavioral tests
+     never execute the artifact body; write a test that exercises it),
+     E711 (the tests do not constrain the artifact behavior; strengthen
+     assertions), and E712 (harness failure; check the named file,
+     recover dirty state with git checkout of the named file).
+  5. Skill payload sources live at `.claude/skills/<name>/SKILL.md` and
+     `.codex/skills/<name>/SKILL.md`; `make sync-agent-payloads` copies
+     them into the distributed package, so only the source directories
+     are edited here. Update `maid-implementation-review` in both payload
+     trees to instruct review sessions to run
+     `maid verify --artifact-coverage --knockout` for high-risk changes,
+     quoting that exact command.
+  6. Full mutation testing (mutmut or similar) is explicitly out of
+     scope for the epic; do not document knockout as mutation testing or
+     promise broader mutation support.
+
+  Follow the repository documentation standards: present tense, current
+  state only, no temporal markers ("NEW", "now available") and no
+  before/after comparisons.
+
+  Behavioral docs tests (pattern of tests/test_manifest_outcome_docs.py)
+  must verify: the README and specs document both opt-in flags with their
+  Python-only scope and the quality extra; the troubleshooting doc has
+  entries for E710, E711, and E712 including the git checkout recovery
+  instruction for E712; and both skill payload sources quote
+  `maid verify --artifact-coverage --knockout` for high-risk changes.
+
+  Out of scope for this child: any code or behavior change to the
+  coverage gate, knockout engine, or verify wiring (068-01 through
+  068-03); plan-lock workflow documentation (067-04).
+temptations:
+- risk: Do not document the gates as default-on or as full mutation testing.
+  instead: Describe --artifact-coverage and --knockout as opt-in Python-only gates; mutation testing is explicitly out of scope for the epic.
+- risk: Do not bury the missing-dependency behavior of the coverage gate.
+  instead: Document that the flag without the quality extra installed fails closed with E307 semantics and name the maid-runner[quality] install.
+- risk: Do not edit the generated maid_runner/claude or maid_runner/codex payload copies.
+  instead: Edit only the .claude/skills and .codex/skills sources; make sync-agent-payloads regenerates the packaged copies.
+files:
+  create:
+  - path: tests/test_constraint_evidence_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_constraint_evidence_docs_describe_opt_in_gates
+      source_scenario: The README and docs/maid_specs.md are rendered as repository markdown.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The docs describe --artifact-coverage and --knockout as opt-in Python-only verify gates, the quality dependency extra, and the knockout flags --knockout-limit and --knockout-allow-dirty.
+    - kind: test_function
+      name: test_troubleshooting_covers_e710_through_e712
+      source_scenario: docs/troubleshooting.md is rendered as repository markdown.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: Troubleshooting entries exist for E710, E711, and E712, including the git checkout recovery instruction for E712 restore failures.
+    - kind: test_function
+      name: test_review_skill_payloads_quote_constraint_evidence_command
+      source_scenario: The Claude and Codex maid-implementation-review skill payload sources are read.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: Both payload trees instruct review sessions to run `maid verify --artifact-coverage --knockout` for high-risk changes.
+  edit:
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _constraint_evidence_readme_commands
+      of: documentation
+      type: markdown section
+      description: README command table and notes covering the opt-in --artifact-coverage and --knockout verify gates and the quality extra.
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _constraint_evidence_spec_section
+      of: documentation
+      type: markdown section
+      description: Specification of the execution-coverage and knockout gates, their Python-only scope, and E710-E712 semantics.
+  - path: docs/troubleshooting.md
+    artifacts:
+    - kind: attribute
+      name: _constraint_evidence_troubleshooting_entries
+      of: documentation
+      type: markdown section
+      description: Per-code troubleshooting entries for E710, E711, and E712 including the git checkout recovery instruction.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_review_constraint_evidence_guidance
+      of: documentation
+      type: markdown section
+      description: Claude review skill guidance quoting maid verify --artifact-coverage --knockout for high-risk changes.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_review_constraint_evidence_guidance
+      of: documentation
+      type: markdown section
+      description: Codex review skill guidance quoting maid verify --artifact-coverage --knockout for high-risk changes.
+  read:
+  - manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml
+  - docs/draft-manifest-workflow.md
+  - tests/test_manifest_outcome_docs.py
+  - tests/test_constraint_evidence_docs.py
+validate:
+- uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py
+- uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/068-04-document-constraint-evidence-gates.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-16T02:49:06Z"
+  summary: "Documented the opt-in Python-only artifact-coverage and knockout gates in README and MAID specs, added E710-E712 troubleshooting entries, and updated Claude/Codex implementation-review skill sources to quote `maid verify --artifact-coverage --knockout` for high-risk changes."
+  rationale: "The documentation keeps the runtime evidence gates scoped to the epic decisions: opt-in, Python-only, coverage support via `maid-runner[quality]`, E307 fail-closed behavior for missing coverage support, E710-E712 troubleshooting, and knockout as a bounded failure-mode check rather than full mutation testing. Generated packaged skill copies remain untouched because the manifest scoped only the source payload trees."
+  lessons:
+    - lesson_type: workflow
+      summary: "A test file listed in `files.read` participates in the discovered behavioral test set; the manifest validate command must run every scoped test file or `maid test --manifest` fails with E230."
+      tags:
+        - maid-test
+        - validate-commands
+        - e230
+      paths:
+        - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+        - tests/test_constraint_evidence_docs.py
+        - tests/test_manifest_outcome_docs.py
+    - lesson_type: documentation
+      summary: "For documentation-only gates, focused substring tests are useful for required commands and error codes, but they leave residual prose-nuance risk for reviewer inspection."
+      tags:
+        - documentation-tests
+        - review
+      paths:
+        - tests/test_constraint_evidence_docs.py
+        - README.md
+        - docs/maid_specs.md
+        - docs/troubleshooting.md
+  review_notes:
+    - source: implementation-review-subagent-019ece53-9b06-7553-80d3-1de0bb487ea3
+      severity: info
+      summary: "Independent read-only review returned ready with no findings; residual risk noted that substring-based docs tests protect required terms and commands but not every nuance of prose."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_constraint_evidence_docs.py
+        - tests/test_manifest_outcome_docs.py
+      status: passed
+      summary: "Focused documentation tests passed: 6 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Promoted manifest behavioral validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+        - --mode
+        - schema
+        - --quiet
+      status: passed
+      summary: "Promoted manifest schema validation passed before outcome capture."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed for scoped docs and skill source files."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+      status: passed
+      summary: "Manifest test gate passed after revising the validate command to include both scoped test files: 3 commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository MAID validation passed: 340 manifests checked, 254 passed, 86 skipped; existing E118/E119 chain warnings remained."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID test gate passed: 107 commands passed, 0 failed, with existing chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff verify passed with explicit baseline, including plan_lock, worktree_scope, changed_scope, and tests; existing E118/E119/E307 warnings remained."

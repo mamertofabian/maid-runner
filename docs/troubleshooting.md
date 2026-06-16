@@ -279,7 +279,49 @@ Fix: Add the required import in code, preserving module identity. For complex
 TypeScript projects, confirm `tsconfig` paths and package exports resolve as
 expected.
 
-### 27. Coherence diagnostics appear
+### 27. Artifact is not executed by tests (`E710`)
+
+Symptom: `maid validate --artifact-coverage` or
+`maid verify --artifact-coverage` reports
+`E710 ARTIFACT_NOT_EXECUTED_BY_TESTS`.
+
+Likely cause: The behavioral tests never execute the artifact body. Importing,
+mentioning, or indirectly referencing a declared function or method is not
+runtime evidence that the artifact behavior is constrained.
+
+Fix: Write or update a focused behavioral test that calls the declared artifact
+through its normal public path and asserts observable behavior. Install
+`maid-runner[quality]` when artifact coverage is requested in an environment
+that does not include the optional coverage dependency.
+
+### 28. Knockout is not detected by tests (`E711`)
+
+Symptom: `maid verify --knockout` reports
+`E711 ARTIFACT_KNOCKOUT_NOT_DETECTED` for a declared artifact.
+
+Likely cause: The tests do not constrain the artifact behavior. MAID replaced
+the artifact body with `raise NotImplementedError("maid-knockout")`, but every
+validate command still exited 0.
+
+Fix: Strengthen the behavioral assertions so breaking the named artifact makes
+at least one declared validate command fail. Keep the gate opt-in and scoped to
+Python public function and method artifacts.
+
+### 29. Knockout harness failed (`E712`)
+
+Symptom: `maid verify --knockout` reports
+`E712 KNOCKOUT_HARNESS_FAILURE`.
+
+Likely cause: The knockout harness could not safely complete the rewrite,
+validate, or restore cycle for the named file. Common causes include parse
+failures, command spawn failures, dirty target files when
+`--knockout-allow-dirty` was not supplied, or a restore hash mismatch.
+
+Fix: Check the named file and rerun after correcting the harness failure. If a
+restore failure leaves the file dirty, recover it with
+`git checkout -- <file>`, then inspect the diff before retrying.
+
+### 30. Coherence diagnostics appear
 
 Symptom: `maid validate --coherence` reports coherence issues by severity and
 message.
@@ -291,7 +333,7 @@ Fix: Inspect the specific diagnostic, then use `maid graph query` or
 `maid coherence --json` to find the related manifests and artifacts before
 editing the contract.
 
-### 28. Acceptance test file is missing (`E500`)
+### 31. Acceptance test file is missing (`E500`)
 
 Symptom: Validation reports `E500`.
 
@@ -301,7 +343,7 @@ from the repository.
 Fix: Restore the acceptance test or correct the manifest reference. Acceptance
 tests should represent the external behavior expected from the task.
 
-### 29. Test function behavior mismatch (`E610`)
+### 32. Test function behavior mismatch (`E610`)
 
 Symptom: Validation warns that a declared test function's behavior does not
 match its manifest description.
@@ -313,7 +355,7 @@ Fix: Update the behavioral test to exercise the declared public artifact by
 exact identifier, or revise the manifest before approval if the declaration is
 wrong.
 
-### 30. Outcome recall is stale or empty
+### 33. Outcome recall is stale or empty
 
 Symptom: `maid recall` returns no useful results for a topic that should have
 prior outcomes.
