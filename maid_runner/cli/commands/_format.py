@@ -16,6 +16,7 @@ from maid_runner.core.result import (
 from maid_runner.coherence.result import CoherenceResult
 
 if TYPE_CHECKING:
+    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.bootstrap import BootstrapReport
     from maid_runner.core.supersession_audit import SupersessionViolation
 
@@ -60,17 +61,36 @@ def format_validation_result(
     quiet: bool = False,
     test_result: BatchTestResult | None = None,
     tests_requested: bool = False,
+    artifact_coverage_report: "ArtifactCoverageReport | None" = None,
 ) -> str:
     if json_mode:
-        if tests_requested or test_result is not None:
+        if (
+            tests_requested
+            or test_result is not None
+            or artifact_coverage_report is not None
+        ):
+            tests_success = (
+                test_result.success if test_result is not None else not tests_requested
+            )
+            artifact_coverage_success = (
+                artifact_coverage_report.success
+                if artifact_coverage_report is not None
+                else True
+            )
             return json.dumps(
                 {
-                    "success": result.success
-                    and (test_result.success if test_result is not None else False),
+                    "success": (
+                        result.success and tests_success and artifact_coverage_success
+                    ),
                     "validation": result.to_dict(),
                     "tests": (
                         _test_result_to_dict(test_result)
                         if test_result is not None
+                        else None
+                    ),
+                    "artifact_coverage": (
+                        artifact_coverage_report.to_dict()
+                        if artifact_coverage_report is not None
                         else None
                     ),
                 },
@@ -80,11 +100,21 @@ def format_validation_result(
 
     if quiet:
         if result.success:
-            return _append_test_result("", test_result, quiet=quiet)
+            output = _append_test_result("", test_result, quiet=quiet)
+            return _append_artifact_coverage_result(
+                output,
+                artifact_coverage_report,
+                quiet=quiet,
+            )
         lines = []
         for err in result.errors:
             lines.append(f"  {err.code.value} {err.message}")
-        return _append_test_result("\n".join(lines), test_result, quiet=quiet)
+        output = _append_test_result("\n".join(lines), test_result, quiet=quiet)
+        return _append_artifact_coverage_result(
+            output,
+            artifact_coverage_report,
+            quiet=quiet,
+        )
 
     lines = []
     symbol = "PASS" if result.success else "FAIL"
@@ -103,7 +133,12 @@ def format_validation_result(
         for w in result.warnings:
             lines.extend(_format_validation_error_lines(w, indent="    "))
 
-    return _append_test_result("\n".join(lines), test_result, quiet=quiet)
+    output = _append_test_result("\n".join(lines), test_result, quiet=quiet)
+    return _append_artifact_coverage_result(
+        output,
+        artifact_coverage_report,
+        quiet=quiet,
+    )
 
 
 def format_batch_result(
@@ -293,6 +328,40 @@ def _append_test_result(
     return f"{formatted_validation}\n\n{formatted_tests}"
 
 
+def _append_artifact_coverage_result(
+    formatted_validation: str,
+    report,
+    *,
+    quiet: bool,
+) -> str:
+    if report is None:
+        return formatted_validation
+    if quiet and report.success:
+        return formatted_validation
+    formatted_report = _format_artifact_coverage_report(report)
+    if not formatted_validation:
+        return formatted_report
+    return f"{formatted_validation}\n\n{formatted_report}"
+
+
+def _format_artifact_coverage_report(report) -> str:
+    status = "PASS" if report.success else "FAIL"
+    lines = [f"Artifact coverage: {status}"]
+    if getattr(report, "findings", ()):
+        lines.append(f"  Findings: {len(report.findings)}")
+        for finding in report.findings:
+            state = "executed" if finding.executed else "not executed"
+            name = finding.artifact_name
+            if finding.parent_class:
+                name = f"{finding.parent_class}.{name}"
+            lines.append(f"  {state}: {name} ({finding.file_path})")
+    if getattr(report, "errors", ()):
+        lines.append(f"  Errors ({len(report.errors)}):")
+        for error in report.errors:
+            lines.extend(_format_validation_error_lines(error, indent="    "))
+    return "\n".join(lines)
+
+
 def _format_validation_error_lines(error, *, indent: str) -> list[str]:
     lines = [f"{indent}{_format_validation_error_summary(error)}"]
     location = _format_validation_error_location(error)
@@ -380,6 +449,9 @@ def _verify_stage_details(stage) -> dict:
         return _test_result_to_dict(tests)
 
     errors = getattr(stage, "_errors", ())
+    artifact_report = _artifact_coverage_report_from_errors(errors)
+    if artifact_report is not None:
+        return artifact_report.to_dict()
     if errors:
         return {"errors": [_verify_error_to_dict(error) for error in errors]}
 
@@ -406,6 +478,9 @@ def _format_verify_stage_details(stage) -> str:
         return format_test_result(tests)
 
     errors = getattr(stage, "_errors", ())
+    artifact_report = _artifact_coverage_report_from_errors(errors)
+    if artifact_report is not None:
+        return _format_artifact_coverage_report(artifact_report)
     if errors:
         return "\n".join(_format_verify_error(error) for error in errors)
 
@@ -416,6 +491,15 @@ def _verify_error_to_dict(error) -> dict | str:
     if hasattr(error, "to_dict"):
         return error.to_dict()
     return str(error)
+
+
+def _artifact_coverage_report_from_errors(errors):
+    if len(errors) != 1:
+        return None
+    report = errors[0]
+    if hasattr(report, "findings") and hasattr(report, "errors"):
+        return report
+    return None
 
 
 def _format_verify_error(error) -> str:

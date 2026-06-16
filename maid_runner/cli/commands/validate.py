@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from maid_runner.cli.commands._format import (
+    _format_artifact_coverage_report,
     format_batch_result,
     format_coherence_result,
     format_validation_result,
@@ -63,6 +64,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 _apply_changed_scope_to_result(result, args)
             if result.success and getattr(args, "run_tests", False):
                 test_result = run_validate_commands_for_result(args.manifest_path)
+            artifact_coverage_report = None
+            if result.success and getattr(args, "artifact_coverage", False):
+                artifact_coverage_report = _run_artifact_coverage_for_manifest_path(
+                    args.manifest_path,
+                    Path("."),
+                )
             quiet = args.quiet and not (fail_on_warnings and result.warnings)
             output = format_validation_result(
                 result,
@@ -70,6 +77,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 quiet=quiet,
                 test_result=test_result,
                 tests_requested=getattr(args, "run_tests", False),
+                artifact_coverage_report=artifact_coverage_report,
             )
             if output:
                 if not (args.coherence and result.success and args.json):
@@ -90,7 +98,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
                     )
 
             tests_success = test_result is None or test_result.success
-            exit_code = 0 if result.success and tests_success else 1
+            artifact_coverage_success = (
+                artifact_coverage_report is None or artifact_coverage_report.success
+            )
+            exit_code = (
+                0
+                if result.success and tests_success and artifact_coverage_success
+                else 1
+            )
             return _finalize_packet(args, exit_code, result, test_result)
         else:
             batch = engine.validate_all(
@@ -112,12 +127,24 @@ def cmd_validate(args: argparse.Namespace) -> int:
             test_result = None
             if batch.success and getattr(args, "run_tests", False):
                 test_result = _run_validate_commands_for_batch(args.manifest_dir)
+            artifact_coverage_report = None
+            if batch.success and getattr(args, "artifact_coverage", False):
+                artifact_coverage_report = _run_artifact_coverage_for_manifest_dir(
+                    args.manifest_dir,
+                    Path("."),
+                )
             output = format_batch_result(
                 batch,
                 json_mode=args.json,
                 quiet=quiet,
                 test_result=test_result,
                 tests_requested=getattr(args, "run_tests", False),
+            )
+            output = _append_artifact_coverage_output(
+                output,
+                artifact_coverage_report,
+                json_mode=args.json,
+                quiet=quiet,
             )
             if not (args.coherence and batch.success and args.json):
                 print(output)
@@ -137,7 +164,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
                     )
 
             tests_success = test_result is None or test_result.success
-            exit_code = 0 if batch.success and tests_success else 1
+            artifact_coverage_success = (
+                artifact_coverage_report is None or artifact_coverage_report.success
+            )
+            exit_code = (
+                0
+                if batch.success and tests_success and artifact_coverage_success
+                else 1
+            )
             return _finalize_packet(args, exit_code, batch, test_result)
     except Exception as e:
         print_error(str(e), json_mode=args.json)
@@ -235,6 +269,52 @@ def run_validate_commands_for_result(
         )
 
     return run_manifest_tests(manifest_path, fail_fast=fail_fast)
+
+
+def _run_artifact_coverage_for_manifest_path(manifest_path: str, project_root: Path):
+    from maid_runner.core.artifact_coverage import run_artifact_coverage
+    from maid_runner.core.manifest import load_manifest
+
+    return run_artifact_coverage(load_manifest(manifest_path), project_root)
+
+
+def _run_artifact_coverage_for_manifest_dir(manifest_dir: str, project_root: Path):
+    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
+    from maid_runner.core.chain import get_cached_manifest_chain
+
+    chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
+    reports = [
+        _run_artifact_coverage_for_manifest_path(manifest.source_path, project_root)
+        for manifest in chain.active_manifests()
+    ]
+    findings = []
+    errors = []
+    for report in reports:
+        findings.extend(report.findings)
+        errors.extend(report.errors)
+    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+
+
+def _append_artifact_coverage_output(
+    output: str,
+    report,
+    *,
+    json_mode: bool,
+    quiet: bool,
+) -> str:
+    if report is None:
+        return output
+    if json_mode:
+        payload = json.loads(output)
+        payload["success"] = bool(payload.get("success")) and report.success
+        payload["artifact_coverage"] = report.to_dict()
+        return json.dumps(payload, indent=2)
+    if quiet and report.success:
+        return output
+    formatted = _format_artifact_coverage_report(report)
+    if not output:
+        return formatted
+    return f"{output}\n\n{formatted}"
 
 
 def _run_validate_commands_for_batch(

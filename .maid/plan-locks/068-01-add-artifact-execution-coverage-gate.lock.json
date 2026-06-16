@@ -1,0 +1,223 @@
+{
+  "manifest_path": "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+  "manifest_hash": "sha256:a15dff5fc9cd391ad5cf57f139fb92b300a89e946d4f2ae64682e995552e79c0",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256:35e52d1e7112f99a54d61adfd2b874a642482655a4ac1ddc906cfa154eb55aae",
+    "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+  },
+  "created_at": "2026-06-15T23:00:39.726478+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:042dcec41628bbf87c823a098dc3ec74db80cc36e9bbb972ff11b874de8b9038",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:f2a456a45fa35da9c5d3a9f9976b3a7d8ee4dc963274d8990bfe5a04965f0a96",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:1cde35af9ee06b33a4e7b64ab6b0ced6a45cb49827cd3f358105271eb480a6b2"
+      },
+      "revised_at": "2026-06-15T23:00:44.508653+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-01-add-artifact-execution-coverage-gate.manifest.yaml -> manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:f2a456a45fa35da9c5d3a9f9976b3a7d8ee4dc963274d8990bfe5a04965f0a96",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:1cde35af9ee06b33a4e7b64ab6b0ced6a45cb49827cd3f358105271eb480a6b2"
+      },
+      "revised_at": "2026-06-15T23:05:13.504470+00:00",
+      "reason": "Add explicit behavioral-test anchors for declared public artifacts without weakening artifact-coverage scenarios"
+    },
+    {
+      "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:f6c9eeb738f0b0b2d78c6817d3d6988cc7f2b555dec38872c0f8d6791fd39a16",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:f6b72dd7a90556b120f06eaa4e1973e55530b99c5c42853b283dda37580e54ea"
+      },
+      "revised_at": "2026-06-15T23:09:34.658801+00:00",
+      "reason": "Refresh lock after non-behavioral CLI test helper lint cleanup"
+    },
+    {
+      "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:f6c9eeb738f0b0b2d78c6817d3d6988cc7f2b555dec38872c0f8d6791fd39a16",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:17:36.137964+00:00",
+      "reason": "Address implementation review findings: require class artifacts to execute declared methods and declare uv.lock scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:5e0bb86aa23ae90965a24e2265fc4a2d14b5b3ec6147fde862a955290c055012",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:29:37.503805+00:00",
+      "reason": "Address re-review finding: reject import-only one-line function and method definitions"
+    },
+    {
+      "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:f688da35019792ed508fc7aa349cf44b7b9acabff85ac29524ebdc53d8ecbf55",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:42:02.595126+00:00",
+      "reason": "Address implementation review finding: executed one-line function and method bodies must pass while import-only definitions still fail"
+    },
+    {
+      "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:cd10e730befb4f29a7a14edb917868e661782b3f3fe8d696ca9af7846dec0f76",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:48:25.589392+00:00",
+      "reason": "Clean up artifact coverage internals after revision 7 while preserving behavior"
+    },
+    {
+      "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:cd10e730befb4f29a7a14edb917868e661782b3f3fe8d696ca9af7846dec0f76",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:55:06.092605+00:00",
+      "reason": "Address re-review finding: one-line import inside test must not satisfy execution coverage without a runtime call"
+    },
+    {
+      "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:35e52d1e7112f99a54d61adfd2b874a642482655a4ac1ddc906cfa154eb55aae",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-06-15T23:55:58.933021+00:00",
+      "reason": "Record same-line runtime call evidence in manifest contract"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-15T23:00:47.219003+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py",
+        "exit_code": 1,
+        "output_tail": "E       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,test,verify,plan,snapshot,snapshot-system,bootstrap,learn,recall,insights,benchmark,incident,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: unrecognized arguments: --artifact-coverage\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage.py::test_import_only_behavioral_test_reports_unexecuted_artifact\nFAILED tests/core/test_artifact_coverage.py::test_executed_function_artifact_passes\nFAILED tests/core/test_artifact_coverage.py::test_class_artifact_passes_when_declared_method_body_executes\nFAILED tests/core/test_artifact_coverage.py::test_attribute_artifacts_are_excluded_from_gate\nFAILED tests/core/test_artifact_coverage.py::test_missing_quality_extra_fails_closed\nFAILED tests/core/test_artifact_coverage.py::test_report_to_dict_includes_per_artifact_findings\nFAILED tests/cli/test_artifact_coverage_cmd.py::test_validate_parser_exposes_artifact_coverage_flag\nFAILED tests/cli/test_artifact_coverage_cmd.py::test_verify_parser_exposes_artifact_coverage_flag\nFAILED tests/cli/test_artifact_coverage_cmd.py::test_validate_json_includes_artifact_coverage_findings\nFAILED tests/cli/test_artifact_coverage_cmd.py::test_verify_directory_wide_artifact_coverage_stage_fails_unexecuted_artifact\n10 failed in 0.26s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 1,
+        "output_tail": "  E200 Artifact 'ArtifactCoverageFinding' not used in any test file\n  E200 Artifact 'artifact_kind' not used in any test file\n  E200 Artifact 'file_path' not used in any test file\n  E200 Artifact 'ArtifactCoverageReport' not used in any test file\n  E200 Artifact 'coverage_is_available' not used in any test file\n  E200 Artifact 'cmd_validate' not used in any test file\n  E200 Artifact 'cmd_verify' not used in any test file\n  E200 Artifact 'format_validation_result' not used in any test file\n  E200 Artifact 'format_verify_result' not used in any test file",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_validation_result",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=artifact_coverage_report:type=ArtifactCoverageReport | None:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=quiet:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=result:type=ValidationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=test_result:type=BatchTestResult | None:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=tests_requested:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:returns=str",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_kind",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_kind:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_kind:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_kind:type=str",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_name",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_name:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_name:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.artifact_name:type=str",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.executed",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.executed:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.executed:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.executed:type=bool",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.file_path",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.file_path:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.file_path:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.file_path:type=str",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.parent_class",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.parent_class:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.parent_class:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageFinding.parent_class:type=str | None",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:type=tuple[ValidationError, ...]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:type=tuple[ArtifactCoverageFinding, ...]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:type=bool",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageFinding:kind=class",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport:kind=class",
+      "maid_runner/core/artifact_coverage.py:function:coverage_is_available",
+      "maid_runner/core/artifact_coverage.py:function:coverage_is_available:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:coverage_is_available:returns=bool",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:returns=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageFinding.to_dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageFinding.to_dict:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageFinding.to_dict:of=ArtifactCoverageFinding",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageFinding.to_dict:returns=dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:returns=dict",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS:type=str",
+      "pyproject.toml:attribute:configuration._quality_optional_dependency_extra",
+      "pyproject.toml:attribute:configuration._quality_optional_dependency_extra:kind=attribute",
+      "pyproject.toml:attribute:configuration._quality_optional_dependency_extra:of=configuration",
+      "pyproject.toml:attribute:configuration._quality_optional_dependency_extra:type=toml optional-dependencies entry",
+      "uv.lock:attribute:configuration._quality_lockfile_resolution",
+      "uv.lock:attribute:configuration._quality_lockfile_resolution:kind=attribute",
+      "uv.lock:attribute:configuration._quality_lockfile_resolution:of=configuration",
+      "uv.lock:attribute:configuration._quality_lockfile_resolution:type=uv lockfile entry"
+    ],
+    "test_files": [
+      "tests/cli/test_artifact_coverage_cmd.py",
+      "tests/core/test_artifact_coverage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py",
+      "uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

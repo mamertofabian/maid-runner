@@ -64,6 +64,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
+            artifact_coverage=getattr(args, "artifact_coverage", False),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
         exit_code = 0 if _result_success(result) else 1
@@ -140,6 +141,7 @@ def _run_verify(
     test_jobs: int = 1,
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
+    artifact_coverage: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.chain import (
         _enter_manifest_chain_cache_scope,
@@ -164,6 +166,7 @@ def _run_verify(
             test_jobs=test_jobs,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
+            artifact_coverage=artifact_coverage,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -186,6 +189,7 @@ def _run_verify_cached(
     test_jobs: int = 1,
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
+    artifact_coverage: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -239,6 +243,11 @@ def _run_verify_cached(
         )
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
+
+        if artifact_coverage:
+            stages.append(_artifact_coverage_stage(root, manifest_dir))
+            if not _should_continue(stages[-1], fail_fast):
+                return _verification_result(stages, started)
 
         if _allow_empty_without_active_manifests(root, manifest_dir, allow_empty):
             skip_message = "Skipped because --allow-empty found no active manifests"
@@ -368,6 +377,24 @@ def _file_tracking_stage(
         )
     except Exception as exc:
         return _error_stage("file_tracking", started, exc)
+
+
+def _artifact_coverage_stage(root: Path, manifest_dir: str) -> VerificationStageResult:
+    started = time.monotonic()
+    try:
+        from maid_runner.cli.commands.validate import (
+            _run_artifact_coverage_for_manifest_dir,
+        )
+
+        report = _run_artifact_coverage_for_manifest_dir(manifest_dir, root)
+        return VerificationStageResult(
+            name="artifact_coverage",
+            success=report.success,
+            _duration_ms=_elapsed_ms(started),
+            _errors=(report,),
+        )
+    except Exception as exc:
+        return _error_stage("artifact_coverage", started, exc)
 
 
 def _plan_lock_stage(

@@ -1,0 +1,365 @@
+schema: '2'
+goal: Add the opt-in `--artifact-coverage` gate proving behavioral tests execute each declared artifact's body
+type: feature
+created: '2026-06-15T23:00:44Z'
+metadata:
+  epic: 068-00-behavioral-constraint-evidence
+  tags:
+  - validation-trust
+  - hardening
+  - anti-gaming
+  - coverage
+  priority: high
+description: |
+  Implement the execution-coverage gate in a new
+  `maid_runner/core/artifact_coverage.py` plus CLI flag wiring in
+  `maid_runner/cli/commands/validate.py` and
+  `maid_runner/cli/commands/verify.py`. The gate uses runtime evidence
+  only (executed coverage lines), never static heuristics about test
+  quality, per the repository's analyzer constraint.
+
+  Pinned decisions (from epic 068-00; do not redesign):
+
+  1. Scope is Python-only in this epic. TypeScript and Svelte coverage are
+     explicitly out of scope and require a future epic with their own
+     evidence; do not partially implement them here.
+  2. Execution coverage gate: opt-in `maid verify --artifact-coverage`
+     (and `maid validate --artifact-coverage`). Implementation runs the
+     manifest's pytest-based `validate:` commands with `coverage.py`
+     (`coverage run` / `--cov` with `--cov-report=json`), loads the JSON
+     report, maps each declared public function/method artifact to its
+     body line range using the Python AST (reuse the parsing helpers
+     already used by `maid_runner/validators/_python_implementation.py`),
+     and fails with E710 ARTIFACT_NOT_EXECUTED_BY_TESTS when no body line
+     of a declared artifact was executed.
+     `maid validate <manifest> --artifact-coverage` runs the gate for the
+     selected manifest. Directory-wide `maid validate --artifact-coverage`
+     and `maid verify --artifact-coverage` run it for each active manifest
+     in deterministic manifest-chain order and fail the command when any
+     manifest's artifact-coverage report has errors.
+  3. Class artifacts pass if any declared method of the class executed;
+     attribute artifacts are excluded from this gate.
+  4. `coverage` becomes an optional dependency extra named `quality` in
+     `pyproject.toml`. When it is not installed and the flag is passed,
+     fail closed with E307 VALIDATOR_NOT_AVAILABLE semantics naming the
+     missing extra (e.g. "install maid-runner[quality]"). Never silently
+     skip the gate when the dependency is missing.
+  5. The gate is opt-in in this epic; default enforcement belongs to the
+     062 strict-by-default major-release decision. Do not flip defaults.
+  6. New error code reserved in `maid_runner/core/result.py` `ErrorCode`:
+     E710 ARTIFACT_NOT_EXECUTED_BY_TESTS. E710 was verified free at
+     planning time (no E71x codes exist yet). Re-verify before
+     implementation; on collision take the next free E71x value and
+     record the change in this manifest description.
+  7. Hardening-lane discipline: first reproduce the gaming vector in a
+     throwaway project (a behavioral test that imports and mentions a
+     declared artifact but asserts nothing and never executes its body),
+     then land the reproduction as an adversarial behavioral test proving
+     the gate fails closed with E710. Use a throwaway fixture project
+     under the test tree, mirroring existing validation fixtures.
+
+  Planning note: the epic does not pin the public API of the new module.
+  The conservative choice is a structured report (`ArtifactCoverageReport`
+  of per-artifact `ArtifactCoverageFinding` entries plus structured
+  errors), a `run_artifact_coverage` entry point taking the loaded
+  manifest and project root, and a `coverage_is_available` probe used for
+  the fail-closed missing-extra path. Text and JSON CLI output derive
+  from the report's `to_dict` through the existing CLI formatter module
+  (`maid_runner/cli/commands/_format.py`) so validation and verify output
+  stay structurally aligned.
+
+  Implementation note from review: coverage line evidence is sufficient
+  for ordinary multi-line bodies, but Python one-line definitions put the
+  import-time definition and callable body on the same physical line. To
+  avoid both false positives (importing inside a test function) and false
+  negatives (actually calling a one-line body), the implementation uses a
+  runtime call-event trace only as the same-line disambiguator. This keeps
+  the gate runtime-evidence based and avoids static guesses about test
+  quality.
+
+  Behavioral tests must cover: a trivial no-assert test (imports the
+  artifact, never executes its body) triggers E710; a genuine test
+  executing the artifact body passes; a class artifact passes when any
+  declared method of the class executed; attribute artifacts are excluded
+  from the gate; a missing `quality` extra with the flag passed fails
+  closed with E307 semantics naming the extra (simulate this through the
+  coverage availability probe because the dev environment may already
+  have coverage installed); directory-wide verify runs the gate for every
+  active manifest; and the JSON output shape reports per-artifact
+  executed/not-executed findings.
+
+  Out of scope for this child: the knockout engine and its E711/E712
+  codes (068-02), knockout CLI wiring (068-03), documentation (068-04),
+  TypeScript/Svelte support, and full mutation testing (explicitly out of
+  scope for the whole epic).
+temptations:
+- risk: Do not build static heuristics that guess whether a test body is meaningful.
+  instead: Use runtime evidence from coverage.py executed lines, with runtime call-event evidence only to disambiguate same-line Python function/method bodies.
+- risk: Do not let a missing coverage dependency silently skip the gate.
+  instead: When --artifact-coverage is requested without the quality extra installed, fail closed with E307 semantics naming the missing extra.
+- risk: Do not extend the gate to TypeScript or Svelte in this epic.
+  instead: Keep the gate Python-only; other languages need their own epic with their own evidence.
+- risk: Do not make the gate default-on in this epic.
+  instead: Ship the opt-in --artifact-coverage flag; default enforcement belongs to epic 062.
+- risk: Do not bolt artifact-coverage output directly into command handlers.
+  instead: Route text and JSON rendering through maid_runner/cli/commands/_format.py so validate and verify output stay consistent.
+files:
+  create:
+  - path: maid_runner/core/artifact_coverage.py
+    artifacts:
+    - kind: class
+      name: ArtifactCoverageFinding
+      description: Per-artifact execution finding mapping a declared public function/method to whether any body line executed.
+    - kind: attribute
+      name: artifact_name
+      of: ArtifactCoverageFinding
+      type: str
+    - kind: attribute
+      name: artifact_kind
+      of: ArtifactCoverageFinding
+      type: str
+    - kind: attribute
+      name: parent_class
+      of: ArtifactCoverageFinding
+      type: str | None
+    - kind: attribute
+      name: file_path
+      of: ArtifactCoverageFinding
+      type: str
+    - kind: attribute
+      name: executed
+      of: ArtifactCoverageFinding
+      type: bool
+    - kind: method
+      name: to_dict
+      of: ArtifactCoverageFinding
+      args: []
+      returns: dict
+      description: JSON-serializable finding shape used by ArtifactCoverageReport.
+    - kind: class
+      name: ArtifactCoverageReport
+      description: Aggregate artifact-coverage result with structured findings and E710/E307 errors.
+    - kind: attribute
+      name: findings
+      of: ArtifactCoverageReport
+      type: tuple[ArtifactCoverageFinding, ...]
+    - kind: attribute
+      name: errors
+      of: ArtifactCoverageReport
+      type: tuple[ValidationError, ...]
+    - kind: attribute
+      name: success
+      of: ArtifactCoverageReport
+      type: bool
+    - kind: method
+      name: to_dict
+      of: ArtifactCoverageReport
+      args: []
+      returns: dict
+      description: JSON-serializable report shape used by CLI --json output.
+    - kind: function
+      name: coverage_is_available
+      args: []
+      returns: bool
+      description: Return whether the coverage.py dependency from the quality extra is importable.
+    - kind: function
+      name: run_artifact_coverage
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: ArtifactCoverageReport
+      description: Run the manifest's pytest-based validate commands under coverage.py, map declared public function/method artifacts to AST body line ranges, use runtime call evidence to disambiguate same-line Python bodies, and report E710 for artifacts with no executed body line.
+  edit:
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: ARTIFACT_NOT_EXECUTED_BY_TESTS
+      of: ErrorCode
+      type: str
+      description: 'E710: no body line of a declared public function/method artifact was executed by the behavioral tests.'
+  - path: maid_runner/cli/commands/validate.py
+    artifacts:
+    - kind: function
+      name: cmd_validate
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Validate honors the opt-in --artifact-coverage flag with text and JSON output.
+  - path: maid_runner/cli/commands/verify.py
+    artifacts:
+    - kind: function
+      name: cmd_verify
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Verify honors the opt-in --artifact-coverage flag with text and JSON output.
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_validation_result
+      args:
+      - name: result
+        type: ValidationResult
+      - name: json_mode
+        type: bool
+        default: 'False'
+      - name: quiet
+        type: bool
+        default: 'False'
+      - name: test_result
+        type: BatchTestResult | None
+        default: None
+      - name: tests_requested
+        type: bool
+        default: 'False'
+      - name: artifact_coverage_report
+        type: ArtifactCoverageReport | None
+        default: None
+      returns: str
+      description: Validation formatter includes artifact-coverage report details in text and JSON output when the opt-in gate is requested.
+    - kind: function
+      name: format_verify_result
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Verify formatter renders artifact-coverage stages with per-artifact findings and structured E710/E307 errors in text and JSON.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Validate and verify parsers expose the opt-in --artifact-coverage flag.
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+      description: Dispatch passes --artifact-coverage through to cmd_validate and cmd_verify.
+  - path: pyproject.toml
+    artifacts:
+    - kind: attribute
+      name: _quality_optional_dependency_extra
+      of: configuration
+      type: toml optional-dependencies entry
+      description: Optional dependency extra named quality providing coverage.py for the artifact-coverage gate.
+  - path: uv.lock
+    artifacts:
+    - kind: attribute
+      name: _quality_lockfile_resolution
+      of: configuration
+      type: uv lockfile entry
+      description: Lockfile resolution for the coverage.py dependency exposed by the quality optional extra.
+  read:
+  - maid_runner/validators/_python_implementation.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/_test_command_execution.py
+  - tests/core/test_artifact_coverage.py
+  - tests/cli/test_artifact_coverage_cmd.py
+validate:
+- uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py
+- uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-16T00:06:45Z"
+  summary: "Added the opt-in Python artifact execution-coverage gate for validate and verify. The gate runs pytest-based validate commands under coverage.py, reports per-artifact execution findings in text and JSON output, fails unexecuted declared function/method/class artifacts with E710, fails closed when the quality extra is missing, and handles one-line Python bodies with runtime call evidence so import-only tests cannot satisfy the gate."
+  rationale: "The existing behavioral validator could be gamed by tests that imported or mentioned declared artifacts without executing their bodies. Runtime coverage lines provide the normal evidence path, while Python same-line function and method bodies require runtime call-event evidence because line coverage cannot distinguish import-time definition from body execution on the same physical line."
+  lessons:
+    - lesson_type: validation-hardening
+      summary: "Class artifacts must not pass from class definition coverage alone; the gate should mark a class executed only when one of its declared method bodies executes."
+      tags:
+        - artifact-coverage
+        - class-artifacts
+        - runtime-evidence
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage.py
+    - lesson_type: validation-hardening
+      summary: "Coverage line evidence is ambiguous for one-line Python definitions. Same-line bodies need runtime call-event evidence, otherwise import-only tests inside a test function can look executed."
+      tags:
+        - artifact-coverage
+        - one-line-functions
+        - anti-gaming
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage.py
+    - lesson_type: workflow
+      summary: "Dependency lockfile changes are implementation scope and must be declared in the manifest when adding an optional extra."
+      tags:
+        - manifest-scope
+        - uv-lock
+        - optional-dependencies
+      paths:
+        - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+        - uv.lock
+  review_notes:
+    - source: implementation-review-subagent
+      severity: blocking
+      summary: "Initial review found class artifacts could pass from import-time class definition execution and uv.lock was outside manifest scope; both were fixed before final validation."
+    - source: implementation-review-subagent
+      severity: blocking
+      summary: "Follow-up reviews found the one-line body edge cases: declaration-line coverage caused import-only false positives, excluding the declaration line caused executed one-line false negatives, and dynamic test contexts still allowed imports inside test functions to pass. The final implementation uses runtime call events scoped to declared artifact files."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final read-only implementation review returned READY and reported no blocking findings; outcome could be added after review."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_artifact_coverage.py
+        - tests/cli/test_artifact_coverage_cmd.py
+      status: passed
+      summary: "Focused artifact coverage tests passed: 17 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+        - --mode
+        - implementation
+        - --artifact-coverage
+        - --quiet
+      status: passed
+      summary: "Implementation validation for 068-01 passed with the new artifact-coverage gate enabled."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --quiet
+      status: passed
+      summary: "Repository manifest validation passed with pre-existing E118/E119 advisory warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository manifest test run passed, including the 068-01 behavioral and schema commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff gate passed for revision 10 with plan lock, red evidence, worktree scope, changed scope, and tests passing; existing E307 advisory warnings remained for non-Python files including pyproject.toml and uv.lock."

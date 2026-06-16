@@ -89,6 +89,11 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         help="Run manifest validate commands after structural validation succeeds",
     )
     p.add_argument(
+        "--artifact-coverage",
+        action="store_true",
+        help="Run validate commands under coverage and require declared artifacts to execute",
+    )
+    p.add_argument(
         "--strict",
         action="store_true",
         help="Enable assertion checks, stub checks, and warning failure",
@@ -248,6 +253,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         "--require-red-evidence",
         action="store_true",
         help="Fail when plan locks lack valid red-phase evidence",
+    )
+    p.add_argument(
+        "--artifact-coverage",
+        action="store_true",
+        help="Run validate commands under coverage and require declared artifacts to execute",
     )
     p.add_argument(
         "--packet",
