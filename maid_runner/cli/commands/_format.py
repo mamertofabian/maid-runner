@@ -449,6 +449,9 @@ def _verify_stage_details(stage) -> dict:
         return _test_result_to_dict(tests)
 
     errors = getattr(stage, "_errors", ())
+    knockout_report = _knockout_report_from_errors(errors)
+    if knockout_report is not None:
+        return knockout_report.to_dict()
     artifact_report = _artifact_coverage_report_from_errors(errors)
     if artifact_report is not None:
         return artifact_report.to_dict()
@@ -478,6 +481,9 @@ def _format_verify_stage_details(stage) -> str:
         return format_test_result(tests)
 
     errors = getattr(stage, "_errors", ())
+    knockout_report = _knockout_report_from_errors(errors)
+    if knockout_report is not None:
+        return _format_knockout_report(knockout_report)
     artifact_report = _artifact_coverage_report_from_errors(errors)
     if artifact_report is not None:
         return _format_artifact_coverage_report(artifact_report)
@@ -500,6 +506,36 @@ def _artifact_coverage_report_from_errors(errors):
     if hasattr(report, "findings") and hasattr(report, "errors"):
         return report
     return None
+
+
+def _knockout_report_from_errors(errors):
+    if len(errors) != 1:
+        return None
+    report = errors[0]
+    if hasattr(report, "results") and hasattr(report, "errors"):
+        return report
+    return None
+
+
+def _format_knockout_report(report) -> str:
+    status = "PASS" if report.success else "FAIL"
+    lines = [f"Knockout: {status}"]
+    if getattr(report, "results", ()):
+        lines.append(f"  Results: {len(report.results)}")
+        for result in report.results:
+            state = "detected" if result.detected else "not detected"
+            name = result.artifact_name
+            if result.parent_class:
+                name = f"{result.parent_class}.{name}"
+            lines.append(
+                f"  {state}: {name} ({result.file_path}) "
+                f"Duration: {result.duration_ms:.0f}ms"
+            )
+    if getattr(report, "errors", ()):
+        lines.append(f"  Errors ({len(report.errors)}):")
+        for error in report.errors:
+            lines.extend(_format_validation_error_lines(error, indent="    "))
+    return "\n".join(lines)
 
 
 def _format_verify_error(error) -> str:

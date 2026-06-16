@@ -1,0 +1,220 @@
+schema: '2'
+goal: Wire the knockout engine into `maid verify` via `--knockout`, `--knockout-limit`, and `--knockout-allow-dirty`
+type: feature
+created: '2026-06-16T01:31:15Z'
+metadata:
+  epic: 068-00-behavioral-constraint-evidence
+  tags:
+  - validation-trust
+  - hardening
+  - anti-gaming
+  - mutation
+  priority: high
+description: |
+  Add `--knockout`, `--knockout-limit`, and `--knockout-allow-dirty` to
+  `maid verify`, emitting E711/E712 with text and JSON parity. This child
+  depends on sibling 068-02-add-artifact-knockout-harness (the engine in
+  `maid_runner/core/knockout.py` and the E711/E712 error codes), which
+  must land first. This child is wiring only: no changes to the engine's
+  rewrite/run/restore semantics.
+
+  Pinned decisions (from epic 068-00; do not redesign):
+
+  1. Scope is Python-only in this epic. TypeScript and Svelte knockout
+     are explicitly out of scope.
+  2. The knockout gate is opt-in: `maid verify --knockout`. Default
+     enforcement belongs to the 062 strict-by-default major-release
+     decision after usage evidence; do not flip defaults here.
+  3. Per declared public function or method artifact in the manifest's
+     Python files, the engine: verifies the target file has no
+     uncommitted modifications via the worktree helpers in
+     `maid_runner/core/worktree.py` (refuse with a structured error
+     otherwise, overridable by `--knockout-allow-dirty`); rewrites the
+     artifact body in place to `raise NotImplementedError("maid-knockout")`
+     using AST line spans; runs the manifest's `validate:` commands;
+     restores the original file content from an in-memory copy in a
+     `finally` block and verifies the restored content hash equals the
+     original before reporting.
+  4. If every validate command still exits 0 with the artifact knocked
+     out, the run fails with E711 ARTIFACT_KNOCKOUT_NOT_DETECTED naming
+     the artifact and file. Harness errors (restore failure, parse
+     failure, command spawn failure) fail closed with E712
+     KNOCKOUT_HARNESS_FAILURE; a restore failure must also print the
+     recovery instruction (git checkout of the named file).
+  5. Cost control: `--knockout` runs artifacts sequentially and
+     deterministically in manifest declaration order; `--knockout-limit N`
+     bounds the number of artifacts tested (default unlimited); results
+     report per-artifact pass/fail with durations in both text and JSON
+     output. No parallelism in this epic.
+  6. Hardening-lane discipline: first reproduce the gaming vector in a
+     throwaway project (a hardcoded-return stub that passes its trivial
+     tests normally), then land that reproduction as an adversarial
+     behavioral test proving `maid verify --knockout` fails it with E711.
+
+  Adversarial behavioral tests must reproduce: a hardcoded-return stub
+  passing its tests normally but surviving knockout fails E711 (named
+  artifact and file appear in the error); an honest implementation whose
+  tests genuinely constrain it passes; and a harness spawn failure fails
+  E712 while the target file content is restored. Also cover:
+  `--knockout-limit N` bounds the artifact count deterministically in
+  manifest declaration order; dirty-worktree refusal without
+  `--knockout-allow-dirty` and acceptance with it; per-artifact pass/fail
+  with durations present in both text and `--json` output with the same
+  error codes in both modes.
+
+  Out of scope for this child: the engine internals (068-02), the
+  execution-coverage gate and E710 (068-01), documentation (068-04),
+  TypeScript/Svelte support, parallel execution, and full mutation
+  testing (explicitly out of scope for the whole epic).
+temptations:
+- risk: Do not make the knockout gate default-on in this epic.
+  instead: Ship the opt-in --knockout flag; default enforcement belongs to epic 062 after usage evidence.
+- risk: Do not modify or fork the engine's rewrite/run/restore semantics while wiring the CLI.
+  instead: Call run_knockout from maid_runner/core/knockout.py as-is; this child is flag parsing, dispatch, and output formatting only.
+- risk: Do not let text and JSON verify output diverge on E711/E712 or per-artifact results.
+  instead: Emit the same structured errors and per-artifact durations in both output modes and assert parity in the behavioral tests.
+- risk: Do not wire the CLI before reproducing the gaming vector.
+  instead: First reproduce a hardcoded-return stub surviving its tests in a throwaway project, then land that reproduction as an adversarial test against maid verify --knockout.
+files:
+  edit:
+  - path: maid_runner/cli/commands/verify.py
+    artifacts:
+    - kind: function
+      name: cmd_verify
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Verify honors --knockout, --knockout-limit, and --knockout-allow-dirty, reporting per-artifact pass/fail with durations and E711/E712 in text and JSON.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Verify parser exposes --knockout, --knockout-limit N (default unlimited), and --knockout-allow-dirty.
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+      description: Verify dispatch passes the knockout flags through to cmd_verify.
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_verify_result
+      args:
+      - name: result
+        type: VerificationResult
+      returns: str
+      description: Verify formatter renders knockout stages with per-artifact pass/fail durations and structured E711/E712 errors in text and JSON.
+  read:
+  - maid_runner/core/knockout.py
+  - maid_runner/core/result.py
+  - tests/cli/test_verify_knockout_cmd.py
+validate:
+- uv run python -m pytest -q tests/cli/test_verify_knockout_cmd.py
+- uv run maid validate manifests/068-03-wire-knockout-into-verify.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/068-03-wire-knockout-into-verify.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-16T01:49:08Z"
+  summary: "Wired the existing Python artifact knockout engine into `maid verify` behind opt-in `--knockout`, with bounded `--knockout-limit`, dirty-worktree override, and text/JSON reporting for per-artifact detected/not-detected results and E711/E712 errors."
+  rationale: "The CLI integration keeps the engine's rewrite/run/restore semantics unchanged, runs the knockout stage only when requested, combines active-manifest reports deterministically, and renders the same structured report through text and JSON verify output. Positive-only limit parsing prevents a zero or negative limit from producing a successful no-op knockout stage."
+  lessons:
+    - lesson_type: validation
+      summary: "Cost-control limits that bound validation work must reject non-positive values; otherwise an opt-in hardening gate can pass while doing no work."
+      tags:
+        - knockout
+        - cli-arguments
+        - validation-trust
+      paths:
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_verify_knockout_cmd.py
+    - lesson_type: workflow
+      summary: "When behavioral fixture corrections are needed before implementation, revise the plan lock while the focused command is still red; preserve red evidence only for post-review metadata or lint-only changes that do not alter the contract."
+      tags:
+        - plan-lock
+        - red-evidence
+        - maid-workflow
+      paths:
+        - .maid/plan-locks/068-03-wire-knockout-into-verify.lock.json
+        - tests/cli/test_verify_knockout_cmd.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: warning
+      summary: "First read-only review found that zero or negative `--knockout-limit` values could make the knockout stage pass without testing artifacts; fixed by positive-integer parser validation and regression coverage."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Second read-only explorer re-review returned ready with no findings and independently reran the focused CLI knockout tests and implementation validation."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_verify_knockout_cmd.py
+      status: passed
+      summary: "Focused CLI knockout suite passed: 9 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-03-wire-knockout-into-verify.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-03-wire-knockout-into-verify.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Promoted manifest behavioral validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/068-03-wire-knockout-into-verify.manifest.yaml
+        - --mode
+        - schema
+        - --quiet
+      status: passed
+      summary: "Promoted manifest schema validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --no-changed-scope
+      status: passed
+      summary: "Strict handoff verify gate passed including plan_lock, worktree_scope, and tests; existing historical warnings remained."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --packet
+      status: passed
+      summary: "Repository MAID validation passed: 253 active manifests passed, 86 skipped, with existing E118/E119 chain warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID test gate passed: 105 commands passed, 0 failed, with existing historical chain warnings."

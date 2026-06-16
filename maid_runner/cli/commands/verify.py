@@ -65,6 +65,9 @@ def cmd_verify(args: argparse.Namespace) -> int:
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
             artifact_coverage=getattr(args, "artifact_coverage", False),
+            knockout=getattr(args, "knockout", False),
+            knockout_limit=getattr(args, "knockout_limit", None),
+            knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
         exit_code = 0 if _result_success(result) else 1
@@ -142,6 +145,9 @@ def _run_verify(
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     artifact_coverage: bool = False,
+    knockout: bool = False,
+    knockout_limit: int | None = None,
+    knockout_allow_dirty: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.chain import (
         _enter_manifest_chain_cache_scope,
@@ -167,6 +173,9 @@ def _run_verify(
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
             artifact_coverage=artifact_coverage,
+            knockout=knockout,
+            knockout_limit=knockout_limit,
+            knockout_allow_dirty=knockout_allow_dirty,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -190,6 +199,9 @@ def _run_verify_cached(
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     artifact_coverage: bool = False,
+    knockout: bool = False,
+    knockout_limit: int | None = None,
+    knockout_allow_dirty: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -246,6 +258,18 @@ def _run_verify_cached(
 
         if artifact_coverage:
             stages.append(_artifact_coverage_stage(root, manifest_dir))
+            if not _should_continue(stages[-1], fail_fast):
+                return _verification_result(stages, started)
+
+        if knockout:
+            stages.append(
+                _knockout_stage(
+                    root,
+                    manifest_dir,
+                    limit=knockout_limit,
+                    allow_dirty=knockout_allow_dirty,
+                )
+            )
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
 
@@ -395,6 +419,47 @@ def _artifact_coverage_stage(root: Path, manifest_dir: str) -> VerificationStage
         )
     except Exception as exc:
         return _error_stage("artifact_coverage", started, exc)
+
+
+def _knockout_stage(
+    root: Path,
+    manifest_dir: str,
+    *,
+    limit: int | None,
+    allow_dirty: bool,
+) -> VerificationStageResult:
+    started = time.monotonic()
+    try:
+        from maid_runner.core.chain import get_cached_manifest_chain
+        from maid_runner.core.knockout import KnockoutReport, run_knockout
+
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        remaining = limit
+        results = []
+        errors = []
+        for manifest in chain.active_manifests():
+            if remaining is not None and remaining <= 0:
+                break
+            report = run_knockout(
+                manifest,
+                root,
+                limit=remaining,
+                allow_dirty=allow_dirty,
+            )
+            results.extend(report.results)
+            errors.extend(report.errors)
+            if remaining is not None:
+                remaining -= max(len(report.results), len(report.errors))
+
+        report = KnockoutReport(results=tuple(results), errors=tuple(errors))
+        return VerificationStageResult(
+            name="knockout",
+            success=report.success,
+            _duration_ms=_elapsed_ms(started),
+            _errors=(report,),
+        )
+    except Exception as exc:
+        return _error_stage("knockout", started, exc)
 
 
 def _plan_lock_stage(

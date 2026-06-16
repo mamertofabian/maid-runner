@@ -260,6 +260,22 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Run validate commands under coverage and require declared artifacts to execute",
     )
     p.add_argument(
+        "--knockout",
+        action="store_true",
+        help="Knock out declared Python artifacts and require validate commands to fail",
+    )
+    p.add_argument(
+        "--knockout-limit",
+        type=_positive_jobs_arg,
+        default=None,
+        help="Limit the number of declared artifacts tested by --knockout",
+    )
+    p.add_argument(
+        "--knockout-allow-dirty",
+        action="store_true",
+        help="Allow --knockout to rewrite dirty target files",
+    )
+    p.add_argument(
         "--packet",
         nargs="?",
         const=".maid/last-failure-packet.json",
