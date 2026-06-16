@@ -1,0 +1,115 @@
+{
+  "manifest_path": "manifests/069-01-add-task-active-manifest-commands.manifest.yaml",
+  "manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
+  "test_hashes": {
+    "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+    "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+    "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
+  },
+  "created_at": "2026-06-16T23:12:19.331337+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:79d552f5a220850dcf71e86903756333c5a2a1506a52df9eda65b2c0ace60e83",
+      "prior_test_hashes": {
+        "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+        "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
+      },
+      "revised_at": "2026-06-16T23:12:24.738715+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-01-add-task-active-manifest-commands.manifest.yaml -> manifests/069-01-add-task-active-manifest-commands.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:bc224cbde6c7e0c9ab997f14f1ae8ef4c43ae1fb8b8643cfe42edd8dabb4f92e",
+      "prior_test_hashes": {
+        "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+        "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
+      },
+      "revised_at": "2026-06-16T23:22:32.501800+00:00",
+      "reason": "Record completed outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-16T23:12:27.603295+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_active_task.py tests/cli/test_task_cmd.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": ">       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,test,verify,plan,snapshot,snapshot-system,bootstrap,learn,recall,insights,benchmark,incident,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: argument command: invalid choice: 'task' (choose from validate, test, verify, plan, snapshot, snapshot-system, bootstrap, learn, recall, insights, benchmark, incident, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, audit)\n=========================== short test summary info ============================\nFAILED tests/core/test_active_task.py::test_start_active_task_writes_single_repo_relative_manifest_path\nFAILED tests/core/test_active_task.py::test_stop_active_task_removes_file_and_is_idempotent\nFAILED tests/core/test_active_task.py::test_environment_variable_overrides_file_status\nFAILED tests/cli/test_task_cmd.py::test_build_parser_registers_task_subcommands\nFAILED tests/cli/test_task_cmd.py::test_main_task_start_writes_active_manifest_file\nFAILED tests/cli/test_task_cmd.py::test_main_task_start_rejects_invalid_manifest_path\nFAILED tests/cli/test_task_cmd.py::test_main_task_stop_is_idempotent - System...\nFAILED tests/cli/test_task_cmd.py::test_cmd_task_status_json_shows_env_override_source\nFAILED tests/cli/test_task_cmd.py::test_main_task_status_reports_no_active_task\n9 failed, 8 passed in 0.60s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._maid_task_cli_reference",
+      "README.md:attribute:documentation._maid_task_cli_reference:kind=attribute",
+      "README.md:attribute:documentation._maid_task_cli_reference:of=documentation",
+      "README.md:attribute:documentation._maid_task_cli_reference:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/task.py:function:cmd_task",
+      "maid_runner/cli/commands/task.py:function:cmd_task:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/task.py:function:cmd_task:kind=function",
+      "maid_runner/cli/commands/task.py:function:cmd_task:returns=int",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.path",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.path:kind=attribute",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.path:of=ActiveManifestStatus",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.path:type=str | None",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.source",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.source:kind=attribute",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.source:of=ActiveManifestStatus",
+      "maid_runner/core/active_task.py:attribute:ActiveManifestStatus.source:type=Literal['env', 'file', 'none']",
+      "maid_runner/core/active_task.py:class:ActiveManifestStatus",
+      "maid_runner/core/active_task.py:class:ActiveManifestStatus:kind=class",
+      "maid_runner/core/active_task.py:class:ActiveTaskError",
+      "maid_runner/core/active_task.py:class:ActiveTaskError:kind=class",
+      "maid_runner/core/active_task.py:function:get_active_manifest_status",
+      "maid_runner/core/active_task.py:function:get_active_manifest_status:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/active_task.py:function:get_active_manifest_status:kind=function",
+      "maid_runner/core/active_task.py:function:get_active_manifest_status:returns=ActiveManifestStatus",
+      "maid_runner/core/active_task.py:function:resolve_active_manifest",
+      "maid_runner/core/active_task.py:function:resolve_active_manifest:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/active_task.py:function:resolve_active_manifest:kind=function",
+      "maid_runner/core/active_task.py:function:resolve_active_manifest:returns=str | None",
+      "maid_runner/core/active_task.py:function:start_active_task",
+      "maid_runner/core/active_task.py:function:start_active_task:arg=manifest_path:type=str:default=None",
+      "maid_runner/core/active_task.py:function:start_active_task:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/active_task.py:function:start_active_task:kind=function",
+      "maid_runner/core/active_task.py:function:start_active_task:returns=str",
+      "maid_runner/core/active_task.py:function:stop_active_task",
+      "maid_runner/core/active_task.py:function:stop_active_task:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/active_task.py:function:stop_active_task:kind=function",
+      "maid_runner/core/active_task.py:function:stop_active_task:returns=bool"
+    ],
+    "test_files": [
+      "tests/cli/test_task_cmd.py",
+      "tests/core/test_active_task.py",
+      "tests/test_agent_payload_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_active_task.py tests/cli/test_task_cmd.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

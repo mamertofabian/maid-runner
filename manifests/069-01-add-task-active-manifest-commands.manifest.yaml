@@ -1,0 +1,304 @@
+schema: '2'
+goal: Add `maid task start|stop|status` and the `.maid/active-manifest` active-task file contract
+type: feature
+created: '2026-06-16T23:12:24Z'
+metadata:
+  epic: 069-00-edit-time-scope-enforcement-hooks
+  tags:
+  - anti-gaming
+  - scope-enforcement
+  - hooks
+  priority: medium
+description: |
+  Implement the active-task signal that edit-time scope checks will consume:
+  a small core helper module `maid_runner/core/active_task.py` plus a
+  `maid task start|stop|status` CLI in a new
+  `maid_runner/cli/commands/task.py` registered in
+  `maid_runner/cli/commands/_main.py`. No scope decision logic in this
+  child: the `maid hook scope-check` command belongs to the sibling child
+  069-02-add-hook-scope-check-command.
+
+  Pinned decisions (from epic 069-00; do not redesign):
+
+  1. Active-task resolution order is exactly: the `MAID_ACTIVE_MANIFEST`
+     environment variable if set; otherwise the single-line file
+     `.maid/active-manifest` containing a repo-relative manifest path;
+     otherwise no active task.
+  2. `maid task start <manifest-path>` writes `.maid/active-manifest`,
+     rejecting paths outside the project (absolute paths, parent-relative
+     escapes) and nonexistent files. The stored value is the repo-relative
+     manifest path on a single line.
+  3. `maid task stop` removes `.maid/active-manifest` and is idempotent:
+     stopping when no active-task file exists succeeds without error.
+  4. `maid task status` prints the current value in text and `--json`
+     output, and the env-var precedence must be visible: when
+     `MAID_ACTIVE_MANIFEST` is set, status reports that value and
+     identifies the environment variable as the source (file value, if
+     any, is overridden).
+  5. Keep this command surface minimal; do not grow task state beyond the
+     single path. No session database, no history, no extra fields.
+  6. The active-task signal is advisory infrastructure for hooks, not a
+     validation gate. It adds no new `ErrorCode` entries, and `maid verify`
+     changed-scope checks remain the authoritative handoff evidence.
+
+  Planning note: the epic does not pin the in-memory API of the core
+  helper. The most conservative reading is a minimal function surface:
+  `get_active_manifest_status` (returns both the resolved path and the
+  resolution source for `maid task status --json`), `resolve_active_manifest`
+  (compatibility convenience returning only the resolved path),
+  `start_active_task` (validates and writes the file, raising
+  `ActiveTaskError` for escaping or nonexistent paths), and
+  `stop_active_task` (idempotent removal returning whether a file was
+  removed). Path containment should mirror the existing
+  project-boundary checks used by `validate_manifest_paths` in
+  `maid_runner/core/manifest.py` (reject absolute paths and paths that
+  resolve outside the project root).
+
+  Sequencing note: adding a new top-level CLI command trips the existing
+  command-documentation parity test in `tests/test_agent_payload_distribution.py`
+  unless README or ROADMAP mentions the registered command. This child includes
+  a minimal README CLI entry for `maid task`; the fuller workflow guidance
+  remains in 069-04.
+
+  Behavioral tests must cover: start with a valid repo-relative manifest
+  path writes the single-line file; start rejects absolute, escaping
+  (`../`), and nonexistent paths; stop removes the file and is a no-op
+  when the file is absent (idempotency); status resolution honors the
+  `MAID_ACTIVE_MANIFEST` env var over the file (env-var override
+  precedence); status with no env var and no file reports no active task;
+  and the `--json` output shape exposes the active manifest path and its
+  source.
+
+  Out of scope for this child: the `maid hook scope-check` decision logic
+  and JSON decision output (069-02); Claude/Cursor/Codex init payload
+  hook wiring (069-03); README, docs, and skill guidance for the
+  edit-time scope workflow (069-04).
+temptations:
+- risk: Do not grow task state into a session or workflow database.
+  instead: Keep .maid/active-manifest a single repo-relative path with start, stop, and status only.
+- risk: Do not treat the active-task signal as validation evidence.
+  instead: Keep maid verify changed-scope checks authoritative; add no ErrorCode entries for task state.
+- risk: Do not accept escaping or nonexistent manifest paths into the active-task file.
+  instead: Reject absolute, parent-relative, and missing paths at maid task start, mirroring the project-boundary checks in maid_runner/core/manifest.py.
+- risk: Do not duplicate active-task source resolution in the CLI status handler.
+  instead: Expose a small source-bearing status object from maid_runner/core/active_task.py and have the CLI render it in text or JSON.
+files:
+  create:
+  - path: maid_runner/core/active_task.py
+    artifacts:
+    - kind: class
+      name: ActiveTaskError
+      description: Raised when maid task start receives a path outside the project or a nonexistent manifest file.
+    - kind: class
+      name: ActiveManifestStatus
+      description: Resolved active-task pointer plus the source that supplied it.
+    - kind: attribute
+      name: path
+      of: ActiveManifestStatus
+      type: str | None
+      description: Repo-relative active manifest path, or None when no active task is set.
+    - kind: attribute
+      name: source
+      of: ActiveManifestStatus
+      type: Literal['env', 'file', 'none']
+      description: 'Source of the active manifest path: MAID_ACTIVE_MANIFEST, .maid/active-manifest, or no active task.'
+    - kind: function
+      name: get_active_manifest_status
+      args:
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      returns: ActiveManifestStatus
+      description: Apply the pinned resolution order and return both the active manifest path and source for status rendering.
+    - kind: function
+      name: resolve_active_manifest
+      args:
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      returns: str | None
+      description: 'Apply the pinned resolution order: MAID_ACTIVE_MANIFEST env var if set, else the single-line .maid/active-manifest file, else None.'
+    - kind: function
+      name: start_active_task
+      args:
+      - name: manifest_path
+        type: str
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      returns: str
+      description: Validate the manifest path is inside the project and exists, write it as the single line of .maid/active-manifest, and return the stored repo-relative path; raise ActiveTaskError otherwise.
+    - kind: function
+      name: stop_active_task
+      args:
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      returns: bool
+      description: Idempotently remove .maid/active-manifest; return True when a file was removed and False when none existed.
+  - path: maid_runner/cli/commands/task.py
+    artifacts:
+    - kind: function
+      name: cmd_task
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Dispatch maid task <subcommand> to start, stop, or status; status supports text and --json output with env-var precedence visible.
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Parser exposes a task command group with start <manifest-path>, stop, and status (--json) subcommands.
+    - kind: function
+      name: main
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+      description: The CLI dispatches task subcommands to maid_runner.cli.commands.task.cmd_task.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _maid_task_cli_reference
+      of: documentation
+      type: markdown section
+      description: Minimal CLI reference entry for the registered `maid task` command group so command-doc parity remains green before the fuller 069-04 workflow docs land.
+  read:
+  - maid_runner/core/manifest.py
+  - maid_runner/cli/commands/files.py
+  - tests/core/test_active_task.py
+  - tests/cli/test_task_cmd.py
+  - tests/test_agent_payload_distribution.py
+validate:
+- uv run python -m pytest -q tests/core/test_active_task.py tests/cli/test_task_cmd.py tests/test_agent_payload_distribution.py
+- uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/069-01-add-task-active-manifest-commands.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-16T23:21:50Z"
+  summary: "Added the active-task manifest pointer with `maid task start|stop|status`, backed by `.maid/active-manifest`, environment-variable precedence through `MAID_ACTIVE_MANIFEST`, and a source-bearing core status object for text and JSON CLI output."
+  rationale: "The implementation keeps the active-task signal deliberately small and advisory: it stores one repo-relative manifest path, rejects absolute, parent-relative, Windows-drive, escaping, and nonexistent start paths, centralizes env/file precedence in `maid_runner/core/active_task.py`, and leaves `maid verify` changed-scope and plan-lock gates as the authoritative handoff evidence."
+  lessons:
+    - lesson_type: validation
+      summary: "Plan-lock red evidence for a new CLI surface was made meaningful by adding focused behavioral tests plus minimal public-surface stubs before implementation, so the red phase failed on missing active-task behavior and parser registration instead of only import errors."
+      tags:
+        - plan-lock
+        - red-phase
+        - cli
+      paths:
+        - .maid/plan-locks/069-01-add-task-active-manifest-commands.lock.json
+        - tests/core/test_active_task.py
+        - tests/cli/test_task_cmd.py
+    - lesson_type: design
+      summary: "Active task state should remain a single advisory manifest path. Path containment and existence checks belong at `maid task start`, while status resolution should report source precedence without duplicating env/file logic in the CLI."
+      tags:
+        - active-task
+        - path-containment
+        - scope-enforcement
+      paths:
+        - maid_runner/core/active_task.py
+        - maid_runner/cli/commands/task.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Independent read-only explorer review found no findings and returned ready. Residual non-blocking gaps noted: `status --json` is not exercised through `main()` for file-source and no-active cases, and `stop_active_task()` is not stress-tested for concurrent deletion."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_active_task.py
+        - tests/cli/test_task_cmd.py
+        - tests/test_agent_payload_distribution.py
+      status: passed
+      summary: "Focused active-task and command-doc parity tests passed: 17 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/069-01-add-task-active-manifest-commands.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/069-01-add-task-active-manifest-commands.manifest.yaml
+        - --mode
+        - schema
+        - --quiet
+      status: passed
+      summary: "Schema validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/069-01-add-task-active-manifest-commands.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/core/active_task.py
+        - maid_runner/cli/commands/task.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_active_task.py
+        - tests/cli/test_task_cmd.py
+      status: passed
+      summary: "Focused Ruff checks passed for touched Python files."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/core/active_task.py
+        - maid_runner/cli/commands/task.py
+        - maid_runner/cli/commands/_main.py
+        - tests/core/test_active_task.py
+        - tests/cli/test_task_cmd.py
+      status: passed
+      summary: "Focused Black check passed after formatting active_task.py."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository MAID validation passed with existing E118/E119 chain warnings only."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test run passed: 109 commands passed, 0 failed, with existing chain warnings only."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Plan-lock/red-evidence handoff gate passed with existing E118/E119 and E307 warnings only."
