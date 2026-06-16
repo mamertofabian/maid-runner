@@ -1,0 +1,161 @@
+{
+  "manifest_path": "manifests/068-02-add-artifact-knockout-harness.manifest.yaml",
+  "manifest_hash": "sha256:a95d772dca6bcbe4f50fff625a5cb0609c6a60c88f9d2a86d179bfad178fe037",
+  "test_hashes": {
+    "tests/core/test_knockout.py": "sha256:5ea9343c75b576686bee96d45b0af324b7a6e44456984fd30b8b2f2aa4e8098e"
+  },
+  "created_at": "2026-06-16T00:26:59.381809+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:beb8cc2513e102d248ed7c48ef7eaa694312ce2134d66f2841e8bd27db9d6e5d",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:449aff11366b8d5536a21c83140cac6a6baeace27a1fe634200f2f49ff4fae70"
+      },
+      "revised_at": "2026-06-16T00:27:05.952164+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-02-add-artifact-knockout-harness.manifest.yaml -> manifests/068-02-add-artifact-knockout-harness.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:1c644441ed724601aca4b486cd31aeaae34b48951c5689118640d4e4dff1e080",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:449aff11366b8d5536a21c83140cac6a6baeace27a1fe634200f2f49ff4fae70"
+      },
+      "revised_at": "2026-06-16T00:33:10.998102+00:00",
+      "reason": "Format behavioral test with Black after promotion"
+    },
+    {
+      "prior_manifest_hash": "sha256:1c644441ed724601aca4b486cd31aeaae34b48951c5689118640d4e4dff1e080",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:fcd30b1f7a369b23ee986e1c7b02b9b84da82ec1c2a53a994b5353ffb6f48b76"
+      },
+      "revised_at": "2026-06-16T00:44:55.227943+00:00",
+      "reason": "Add reviewer-requested dirty worktree safety regressions"
+    },
+    {
+      "prior_manifest_hash": "sha256:1c644441ed724601aca4b486cd31aeaae34b48951c5689118640d4e4dff1e080",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:7d1219a02b2c86a460f365545effb82b98b4327045f84a148da7c0b16c030ad9"
+      },
+      "revised_at": "2026-06-16T00:53:56.143794+00:00",
+      "reason": "Add reviewer-requested project containment regressions"
+    },
+    {
+      "prior_manifest_hash": "sha256:1c644441ed724601aca4b486cd31aeaae34b48951c5689118640d4e4dff1e080",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:5ea9343c75b576686bee96d45b0af324b7a6e44456984fd30b8b2f2aa4e8098e"
+      },
+      "revised_at": "2026-06-16T01:03:22.853764+00:00",
+      "reason": "Record implementation outcome after ready review"
+    },
+    {
+      "prior_manifest_hash": "sha256:16fe17f4ccbbb3201e259bb91fda90a00e6a9e81787bfddfc9c951d536fa09c4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256:5ea9343c75b576686bee96d45b0af324b7a6e44456984fd30b8b2f2aa4e8098e"
+      },
+      "revised_at": "2026-06-16T01:06:18.351398+00:00",
+      "reason": "Correct outcome validation summary after final verify"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-16T00:27:08.341212+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_knockout_targets_methods_in_manifest_order(\n        monkeypatch,\n        tmp_path: Path,\n    ) -> None:\n>       from maid_runner.core import knockout\nE       ImportError: cannot import name 'knockout' from 'maid_runner.core' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/__init__.py)\n\ntests/core/test_knockout.py:294: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout.py::test_rewrite_artifact_body_replaces_supported_python_artifacts\nFAILED tests/core/test_knockout.py::test_knockout_reports_e711_when_validate_commands_still_pass\nFAILED tests/core/test_knockout.py::test_knockout_detects_failure_and_restores_source\nFAILED tests/core/test_knockout.py::test_knockout_restores_source_when_validate_run_raises\nFAILED tests/core/test_knockout.py::test_knockout_reports_restore_hash_mismatch_with_recovery_instruction\nFAILED tests/core/test_knockout.py::test_knockout_refuses_dirty_source_file_by_default\nFAILED tests/core/test_knockout.py::test_knockout_allow_dirty_override_runs_validate_commands\nFAILED tests/core/test_knockout.py::test_knockout_runs_in_manifest_order_and_respects_limit\nFAILED tests/core/test_knockout.py::test_knockout_targets_methods_in_manifest_order\n9 failed in 0.13s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.errors",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.errors:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.errors:of=KnockoutReport",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.errors:type=tuple[ValidationError, ...]",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.results",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.results:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.results:of=KnockoutReport",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.results:type=tuple[KnockoutResult, ...]",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.success",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.success:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.success:of=KnockoutReport",
+      "maid_runner/core/knockout.py:attribute:KnockoutReport.success:type=bool",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_kind",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_kind:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_kind:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_kind:type=str",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_name",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_name:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_name:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.artifact_name:type=str",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.detected",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.detected:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.detected:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.detected:type=bool",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.duration_ms",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.duration_ms:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.duration_ms:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.duration_ms:type=float",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.file_path",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.file_path:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.file_path:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.file_path:type=str",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.parent_class",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.parent_class:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.parent_class:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.parent_class:type=str | None",
+      "maid_runner/core/knockout.py:class:KnockoutReport",
+      "maid_runner/core/knockout.py:class:KnockoutReport:kind=class",
+      "maid_runner/core/knockout.py:class:KnockoutResult",
+      "maid_runner/core/knockout.py:class:KnockoutResult:kind=class",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=artifact_kind:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=artifact_name:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=parent_class:type=str | None:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=source:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:kind=function",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:returns=str",
+      "maid_runner/core/knockout.py:function:run_knockout",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout:returns=KnockoutReport",
+      "maid_runner/core/knockout.py:method:KnockoutReport.to_dict",
+      "maid_runner/core/knockout.py:method:KnockoutReport.to_dict:kind=method",
+      "maid_runner/core/knockout.py:method:KnockoutReport.to_dict:of=KnockoutReport",
+      "maid_runner/core/knockout.py:method:KnockoutReport.to_dict:returns=dict",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED:type=str",
+      "maid_runner/core/result.py:attribute:ErrorCode.KNOCKOUT_HARNESS_FAILURE",
+      "maid_runner/core/result.py:attribute:ErrorCode.KNOCKOUT_HARNESS_FAILURE:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.KNOCKOUT_HARNESS_FAILURE:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.KNOCKOUT_HARNESS_FAILURE:type=str"
+    ],
+    "test_files": [
+      "tests/core/test_knockout.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout.py",
+      "uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/068-02-add-artifact-knockout-harness.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
