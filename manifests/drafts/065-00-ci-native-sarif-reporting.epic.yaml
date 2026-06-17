@@ -1,132 +1,62 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Plan SARIF output and CI-native diagnostic reporting"
+goal: "Archive consumed CI-native SARIF reporting epic"
 type: feature
 created: "2026-06-10"
 metadata:
-  status: planning
+  status: archived
   tags:
     - ci-cd
     - sarif
     - reporting
     - github-actions
     - diagnostics
-  priority: medium
+    - archive
+  priority: low
 description: |
-  Surface MAID diagnostics where reviewers actually see them: inline on pull
-  requests. MAID Runner already emits structured, coded diagnostics (E1xx
-  chain, E2xx command integrity, E3xx implementation) with file locations and
-  suggestions, and ships reusable GitHub Actions workflows, but findings land
-  as job logs and JSON artifacts that reviewers must go digging for. SARIF
-  2.1.0 is the industry interchange format that GitHub code scanning, GitLab,
-  and other platforms render as inline annotations, so a SARIF serializer over
-  the existing result model converts validation evidence into review-time
-  visibility with no new analysis logic.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as:
 
-  This epic is a serialization and packaging layer only. It must not change
-  what the validator reports, weaken any gate, or fork the diagnostic model.
-  The existing `--json` contract remains the canonical machine output; SARIF
-  is a derived view.
+  - `065-01-add-error-code-rule-registry-export`
+  - `065-02-add-sarif-output-to-validate-and-verify`
+  - `065-03-wire-sarif-into-github-actions-templates`
+  - `065-04-document-ci-platform-sarif-consumption`
 
-  Design constraints agreed for this epic:
+  The promoted children exported the shared diagnostics registry through the
+  public package surfaces, added deterministic SARIF 2.1.0 output for
+  `maid validate --sarif` and `maid verify --sarif`, wired optional GitHub code
+  scanning upload into the reusable validation workflow, documented GitHub
+  permissions and private-repository constraints, and added platform
+  consumption guidance for GitLab conversion, Jenkins warnings-ng, and generic
+  CI pipelines.
 
-  1. One diagnostic model. SARIF rules are generated from the same error-code
-     registry the JSON output uses; every SARIF result must be traceable to
-     the equivalent JSON diagnostic (same code, message, location).
-  2. Deterministic output: identical validation results produce
-     byte-identical SARIF (excluding run-level timestamps, which should be
-     omitted or fixed where the spec allows), so SARIF files are testable
-     and diffable.
-  3. Stable rule identity: error codes become SARIF rule ids, with severity
-     mapping documented (internal severity error -> SARIF error, warning ->
-     SARIF warning, info/advisory -> SARIF note), so code-scanning alert
-     history stays stable across releases.
-  4. Exit-code behavior is unchanged: successful SARIF report generation
-     never alters pass/fail semantics, including under `--strict` or
-     advisory modes. A requested report path that cannot be written is a
-     visible output error, not a silent fallback.
-
-  Decisions already made for the implementer. Do not redesign these:
-
-  1. Registry module: `070-01-add-error-code-registry-with-repair-recipes`
-     has already shipped `maid_runner/core/diagnostics_registry.py`,
-     exposing `DiagnosticRule`, `RepairRecipe`, `get_rule(code)`,
-     `all_rules()`, and `render_next_action(code, values)`. 065-01 is now
-     the reconciliation child that exports the existing registry through
-     `maid_runner` and `maid_runner.core`; it must not recreate or fork the
-     module.
-  2. SARIF flag (065-02): `--sarif <path>` on `maid validate` and
-     `maid verify`. The report is written on both pass and fail so CI
-     uploads are unconditional. Successful report generation never changes
-     validation or verification gate exit codes; SARIF output I/O failures
-     fail loudly as report-write errors instead of being silently ignored.
-  3. Severity mapping: error diagnostics map to SARIF level `error`,
-     warnings to `warning`, advisory/info diagnostics to `note`. The
-     SARIF ruleId is the E-code; rule metadata comes from the registry;
-     results are sorted by file path, then line, then code; run-level
-     timestamp fields are omitted entirely.
-  4. SARIF version target is 2.1.0. Tests validate emitted documents
-     against the official SARIF 2.1.0 JSON schema vendored under the test
-     tree (do not fetch it at test time).
-
-  Planned child order:
-
-  1. `065-01-add-error-code-rule-registry-export` - export the existing
-     diagnostics registry shipped by 070-01 through the public
-     `maid_runner` and `maid_runner.core` import surfaces, while preserving
-     current registry behavior and tests. This is the compatibility
-     prerequisite that lets SARIF rules derive from the same registered code
-     surface as failure packets and JSON diagnostics.
-  2. `065-02-add-sarif-output-to-validate-and-verify` - add `--sarif <path>`
-     to `maid validate` and `maid verify`, serializing
-     batch and verify results to SARIF 2.1.0: tool metadata, rules from the
-     shipped diagnostics registry, results with physical locations (file,
-     line where available), severity mapping, and suggestion text as result
-     messages. Includes schema-validation of produced SARIF against the
-     official SARIF JSON schema in tests, plus determinism tests.
-  3. `065-03-wire-sarif-into-github-actions-templates` - update the reusable
-     workflow templates to optionally upload the SARIF report via
-     `github/codeql-action/upload-sarif`, so violations appear as PR
-     annotations through code scanning; document required permissions and
-     private-repo limitations.
-  4. `065-04-document-ci-platform-sarif-consumption` - documentation child:
-     extend docs/ci-cd-integration.md with SARIF consumption guidance for
-     GitLab (code quality/SAST report conversion), Jenkins (warnings-ng), and
-     generic pipelines, including which MAID error codes map to which
-     severities and how to gate on them.
-
-  Children land in order; 4 may start once 2 is stable. If 065-02 grows past
-  one implementation-sized draft, split the serializer library slice from the
-  CLI flag wiring before promotion.
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future SARIF, diagnostics-registry,
+  code-scanning, or CI platform reporting work should start from a fresh scoped
+  manifest after the contracts, CLI behavior, workflow templates, tests, and
+  documentation added by the 065 children.
 temptations:
-  - risk: "Do not fork or duplicate the diagnostic model to make SARIF emission easier."
-    instead: "Derive SARIF rules and results from the single registered error-code surface shipped by 070-01 and exported by 065-01 so JSON, failure packets, and SARIF cannot drift."
-  - risk: "Do not let successful report generation change validation semantics or gate exit codes."
-    instead: "Treat SARIF as a write-only derived view; assert in tests that pass/fail behavior is identical with and without the SARIF flag, while report I/O errors fail loudly."
-  - risk: "Do not emit nondeterministic SARIF that breaks diff-based tests and alert dedup."
-    instead: "Omit or fix volatile fields, define stable result ordering, and test byte-identical output for identical validation results."
-  - risk: "Do not invent ad-hoc severity levels per command."
-    instead: "Keep registry severities aligned to MAID Severity values and reuse one internal-severity-to-SARIF-level mapping across validate and verify."
-  - risk: "Do not hand-roll SARIF structure from blog examples."
-    instead: "Validate emitted reports against the official SARIF 2.1.0 JSON schema in the test suite."
+  - risk: "Do not fork or duplicate the diagnostic model for future SARIF or reporting work."
+    instead: "Preserve the single diagnostics registry surface exported by 065-01 and derive report metadata from it."
+  - risk: "Do not let report generation alter validation or verification gate semantics."
+    instead: "Keep SARIF as the derived review-time view shipped by 065-02; preserve command exit codes and `--json` as the canonical machine contract."
+  - risk: "Do not reintroduce nondeterministic SARIF output."
+    instead: "Preserve the stable result ordering and omitted run-level timestamps covered by 065-02."
+  - risk: "Do not duplicate GitHub-specific upload guidance in generic CI docs."
+    instead: "Keep GitHub upload details in docs/github-actions.md and keep platform guidance focused on non-GitHub consumers."
 files:
-  create:
+  edit:
     - path: manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml
       artifacts:
         - kind: attribute
-          name: _ci_native_sarif_reporting_roadmap
+          name: _archived_ci_native_sarif_reporting_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap for the diagnostic rule registry, SARIF 2.1.0 output, GitHub code-scanning wiring, and CI platform documentation."
+          description: "Historical pointer for promoted child manifests 065-01 through 065-04."
   read:
-    - maid_runner/core/result.py
-    - maid_runner/core/types.py
-    - maid_runner/cli/commands/validate.py
-    - maid_runner/cli/commands/verify.py
-    - maid_runner/cli/commands/_format.py
-    - docs/ci-cd-integration.md
-    - docs/github-actions.md
-    - docs/troubleshooting.md
+    - manifests/065-01-add-error-code-rule-registry-export.manifest.yaml
+    - manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml
+    - manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml
+    - manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml --mode schema --quiet
