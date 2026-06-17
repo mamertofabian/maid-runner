@@ -86,6 +86,39 @@ def test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref() -> Non
     assert 'exit "$VERIFY_EXIT"' in source
 
 
+def test_maid_validation_workflow_declares_sarif_upload_as_opt_in() -> None:
+    workflow = _workflow(VALIDATION_WORKFLOW)
+    inputs = workflow["on"]["workflow_call"]["inputs"]
+    validation_job = workflow["jobs"]["maid-validation"]
+
+    assert "_sarif_upload_wiring" in VALIDATION_WORKFLOW.read_text(encoding="utf-8")
+    assert inputs["upload-sarif"]["type"] == "boolean"
+    assert inputs["upload-sarif"]["default"] is False
+    assert validation_job["permissions"] == {"contents": "read"}
+    assert "security-events" not in validation_job["permissions"]
+
+
+def test_maid_validation_workflow_uploads_matching_sarif_report_when_enabled() -> None:
+    workflow = _workflow(VALIDATION_WORKFLOW)
+    validation_job = workflow["jobs"]["maid-validation"]
+    upload_job = workflow["jobs"]["upload-sarif"]
+    validation_runs = "\n".join(_run_steps(workflow, "maid-validation"))
+    validation_steps = validation_job["steps"]
+    upload_steps = upload_job["steps"]
+
+    assert 'SARIF_PATH=".maid/maid-verify.sarif"' in validation_runs
+    assert '--sarif "$SARIF_PATH"' in validation_runs
+    assert upload_job["needs"] == "maid-validation"
+    assert "always()" in upload_job["if"]
+    assert "inputs.upload-sarif" in upload_job["if"]
+    assert upload_job["permissions"]["security-events"] == "write"
+    assert validation_steps[-1]["with"]["path"] == ".maid/maid-verify.sarif"
+    assert "always()" in validation_steps[-1]["if"]
+    assert "inputs.upload-sarif" in validation_steps[-1]["if"]
+    assert "github/codeql-action/upload-sarif" in str(upload_steps)
+    assert upload_steps[-1]["with"]["sarif_file"] == ".maid/maid-verify.sarif"
+
+
 def test_maid_test_workflow_prepares_clean_checkout_assets() -> None:
     workflow = _workflow(TEST_WORKFLOW)
     names = _step_names(workflow, "maid-test")
@@ -135,6 +168,7 @@ def test_github_actions_docs_show_downstream_setup_and_reporting() -> None:
     guide = SETUP_DOC.read_text(encoding="utf-8")
 
     assert "_github_actions_setup_guide" in guide
+    assert "_sarif_upload_guidance" in guide
     assert (
         "uses: mamertofabian/maid-runner/.github/workflows/maid-validation.yml@main"
         in guide
@@ -154,3 +188,10 @@ def test_github_actions_docs_show_downstream_setup_and_reporting() -> None:
     assert ".maid/maid-test.json" in guide
     assert "$GITHUB_STEP_SUMMARY" in guide
     assert "coverage-command" in guide
+    assert "upload-sarif: true" in guide
+    assert "security-events: write" in guide
+    assert "actions: read" in guide
+    assert "contents: read" in guide
+    assert "GitHub Advanced Security" in guide
+    assert "private repositories" in guide
+    assert "failed validation" in guide

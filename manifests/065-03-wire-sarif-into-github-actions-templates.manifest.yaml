@@ -1,0 +1,210 @@
+schema: '2'
+goal: Wire optional SARIF upload into the reusable GitHub Actions workflow templates
+type: feature
+created: '2026-06-17T09:57:59Z'
+metadata:
+  epic: 065-00-ci-native-sarif-reporting
+  tags:
+  - ci-cd
+  - sarif
+  - github-actions
+  - reporting
+  priority: medium
+description: |
+  Update the reusable GitHub Actions workflow templates so consumers can
+  optionally upload the SARIF report produced by 065-02 via
+  `github/codeql-action/upload-sarif`, making MAID violations appear as
+  inline PR annotations through GitHub code scanning. Document the required
+  permissions and private-repository limitations. This child depends on
+  065-02 (`--sarif <path>` on `maid validate` and `maid verify`).
+
+  Pinned decisions from epic 065-00. Do not redesign these:
+
+  1. Upload mechanism: `github/codeql-action/upload-sarif`. The SARIF file
+     comes from the `--sarif <path>` flag added in 065-02; because that
+     flag writes the report on both pass and fail, the SARIF artifact and
+     code-scanning upload path must use `if: always()` so failing validation
+     still annotates the PR.
+  2. Exit-code behavior is unchanged: enabling SARIF upload must not
+     weaken the validation gate. The workflow's pass/fail outcome stays
+     exactly as today; the upload is an additional reporting step only.
+  3. SARIF remains a derived view: the templates keep producing and
+     uploading their existing JSON artifacts (`.maid/maid-verify.json`,
+     `.maid/maid-test.json`); SARIF upload is additive and opt-in.
+  4. Required permissions must be documented: uploading SARIF to code
+     scanning requires `security-events: write` (and `actions: read` /
+     `contents: read` for private repositories). Private-repo limitations
+     must be documented: code scanning on private repositories requires
+     GitHub Advanced Security; without it the upload step fails or is
+     unavailable, so the option must default to off.
+
+  Implementation shape (the reusable templates live in
+  `.github/workflows/` and are consumed via
+  `mamertofabian/maid-runner/.github/workflows/<name>.yml@<ref>` per
+  docs/github-actions.md; there are no separately packaged template
+  copies):
+
+  - `.github/workflows/maid-validation.yml`: add an opt-in `workflow_call`
+    input (e.g. `upload-sarif`, boolean, default false). When enabled, the
+    verify step passes `--sarif .maid/maid-verify.sarif`.
+  - Keep the existing validation job's default permission posture
+    (`contents: read`) unchanged when the input is off. Because GitHub
+    Actions job permissions are static rather than step-conditional, prefer
+    a separate gated SARIF upload job with `if: always() &&
+    inputs.upload-sarif`, `needs: maid-validation`, and the required
+    `security-events: write` permission. The validation job should publish
+    the SARIF file as an artifact with `if: always()` when upload is enabled;
+    the upload job downloads that artifact and runs
+    `github/codeql-action/upload-sarif`.
+  - `docs/github-actions.md`: document the new input, an example caller
+    snippet with the required `permissions` block, the unconditional
+    upload-on-failure behavior, and the private-repo/Advanced Security
+    limitation.
+
+  Edge cases and test expectations (extend the existing template tests in
+  tests/ci/test_github_actions_templates.py):
+
+  - With the input disabled (default), the rendered workflow contains no
+    behavioral change in the validation job: no --sarif flag is passed, no
+    SARIF artifact is required, and the validation job keeps `contents:
+    read` without `security-events: write`.
+  - The template declares the `upload-sarif` input with default false.
+  - The SARIF upload path references `github/codeql-action/upload-sarif`,
+    is gated on the input, runs after failed validation via `if: always()`,
+    and scopes `security-events: write` to the gated upload job rather than
+    the default validation job.
+  - The verify invocation under the input writes the SARIF path that the
+    upload step reads (paths must match).
+  - docs/github-actions.md documents `security-events: write` and the
+    private-repo limitation (docs assertions).
+
+  Planning note: the epic says "the reusable workflow templates" without
+  naming which; this draft conservatively wires SARIF only into
+  `maid-validation.yml`, the validation-gate template whose verify step
+  produces diagnostics, and leaves `maid-test.yml` (test execution
+  reporting) untouched. Planning note: docs/github-actions.md references
+  only `.github/workflows/` template paths, so no packaged template copies
+  need edits.
+
+  Out of scope: the SARIF serializer and CLI flag (065-02), the
+  diagnostics registry (065-01), and non-GitHub CI platform consumption
+  documentation for GitLab, Jenkins, and generic pipelines (065-04).
+temptations:
+- risk: Do not let report upload change validation semantics or weaken the gate.
+  instead: 'Keep the workflow''s pass/fail outcome untouched and add the upload as an opt-in, if: always() reporting step.'
+- risk: Do not enable SARIF upload by default and break private repositories without Advanced Security.
+  instead: 'Default the upload-sarif input to false and document the security-events: write permission and private-repo limitations.'
+- risk: Do not fork the templates or drop the existing JSON artifacts.
+  instead: Keep .maid/maid-verify.json artifact behavior intact and make SARIF strictly additive.
+files:
+  edit:
+  - path: .github/workflows/maid-validation.yml
+    artifacts:
+    - kind: attribute
+      name: _sarif_upload_wiring
+      of: workflow
+      type: github actions workflow section
+      description: 'Opt-in upload-sarif workflow_call input (default false) that adds --sarif output to the verify step, preserves the default validation job permissions when disabled, and uses an if: always() gated github/codeql-action/upload-sarif path with security-events: write only for upload.'
+  - path: docs/github-actions.md
+    artifacts:
+    - kind: attribute
+      name: _sarif_upload_guidance
+      of: documentation
+      type: markdown section
+      description: Documents the upload-sarif input, a caller example with the required permissions block, upload-on-failure behavior, and private-repo GitHub Advanced Security limitations.
+  read:
+  - docs/ci-cd-integration.md
+  - maid_runner/cli/commands/verify.py
+  - tests/ci/test_github_actions_templates.py
+validate:
+- uv run python -m pytest -q tests/ci/test_github_actions_templates.py
+- uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-17T10:19:10Z"
+  summary: "Wired opt-in SARIF upload into the reusable MAID validation workflow and documented the required GitHub code-scanning permissions and private-repository limitation."
+  rationale: "The workflow now keeps the validation gate semantics and default `contents: read` permission posture unchanged while adding an `upload-sarif` input that produces `.maid/maid-verify.sarif`, publishes it as an always-run artifact, and uploads it through a separate gated CodeQL SARIF job with `security-events: write`. Documentation makes the opt-in nature, upload-on-failure behavior, and GitHub Advanced Security caveat visible to downstream callers."
+  lessons:
+  - lesson_type: ci-workflow
+    summary: "When adding optional code-scanning upload to reusable workflows, keep the validating job's permissions unchanged and place elevated `security-events: write` scope on a separate gated upload job."
+    tags:
+    - github-actions
+    - sarif
+    - permissions
+    paths:
+    - .github/workflows/maid-validation.yml
+    - docs/github-actions.md
+  - lesson_type: workflow
+    summary: "Formatting behavioral tests after plan lock changes test hashes; for formatting-only refreshes after a valid red lock, use `maid plan revise --preserve-red-evidence` with an explicit reason."
+    tags:
+    - plan-lock
+    - red-evidence
+    - formatting
+    paths:
+    - tests/ci/test_github_actions_templates.py
+    - .maid/plan-locks/065-03-wire-sarif-into-github-actions-templates.lock.json
+  review_notes:
+  - source: Galileo
+    severity: blocking
+    summary: "First read-only review found stale `.maid/active-manifest` task state after implementation; it was removed with `uv run maid task stop` before re-review."
+  - source: Nash
+    severity: info
+    summary: "Second read-only review found no actionable findings and returned ready. Residual risk: `actionlint` was unavailable, so GitHub Actions runtime syntax was not independently linted beyond structural YAML tests."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/ci/test_github_actions_templates.py
+    status: passed
+    summary: "Focused GitHub Actions template and documentation tests passed: 8 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: "Promoted manifest implementation validation passed with expected E307 no-validator warnings for workflow YAML and Markdown docs."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - .
+    status: passed
+    summary: "Repository Black check passed after formatting the focused test file."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: "Repository-wide MAID validation passed: 349 manifests, 263 passed, 0 failed, 86 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 124 commands, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    - --packet
+    status: passed
+    summary: "Strict handoff verify passed with explicit upstream base ref, including plan_lock, worktree_scope, changed_scope, and tests. Running without a baseline reached PASS plan_lock and failed only because changed_scope requires --since, --base-ref, or metadata.maid_task_base."

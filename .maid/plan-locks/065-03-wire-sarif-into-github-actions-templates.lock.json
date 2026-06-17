@@ -1,0 +1,79 @@
+{
+  "manifest_path": "manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml",
+  "manifest_hash": "sha256:2b7b47a11eb21f3beb2a3ab3c74863710f5790f2d12da1ae4cb926f7cf1bb889",
+  "test_hashes": {
+    "tests/ci/test_github_actions_templates.py": "sha256:668e71848f4ba400666162816ddaaec8519153367a6d51c146e9acfdf680714d"
+  },
+  "created_at": "2026-06-17T09:57:53.660528+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d7ccaed95a2869b56fe143b38ecefdb01daebd90e71a95b5a0ed474829b0abf3",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256:c1a777270504b6d5345bdf59ead349b223a70396be173e60a264785c2d82382b"
+      },
+      "revised_at": "2026-06-17T09:57:59.224491+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-03-wire-sarif-into-github-actions-templates.manifest.yaml -> manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:110bc94a89b3051bc51d9ae9c0ea081137171b808b9951d212d5ec0e894ebb16",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256:c1a777270504b6d5345bdf59ead349b223a70396be173e60a264785c2d82382b"
+      },
+      "revised_at": "2026-06-17T10:06:47.817982+00:00",
+      "reason": "Black formatting refreshed behavioral test hash after valid red lock; SARIF assertions unchanged"
+    },
+    {
+      "prior_manifest_hash": "sha256:110bc94a89b3051bc51d9ae9c0ea081137171b808b9951d212d5ec0e894ebb16",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256:668e71848f4ba400666162816ddaaec8519153367a6d51c146e9acfdf680714d"
+      },
+      "revised_at": "2026-06-17T10:19:38.576744+00:00",
+      "reason": "Capture post-review Outcome section with validation and reviewer evidence"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T09:58:01.703899+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_github_actions_templates.py",
+        "exit_code": 1,
+        "output_tail": ">       upload_job = workflow[\"jobs\"][\"upload-sarif\"]\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'upload-sarif'\n\ntests/ci/test_github_actions_templates.py:106: KeyError\n_________ test_github_actions_docs_show_downstream_setup_and_reporting _________\n\n    def test_github_actions_docs_show_downstream_setup_and_reporting() -> None:\n        guide = SETUP_DOC.read_text(encoding=\"utf-8\")\n    \n        assert \"_github_actions_setup_guide\" in guide\n>       assert \"_sarif_upload_guidance\" in guide\nE       AssertionError: assert '_sarif_upload_guidance' in '# GitHub Actions\\n\\n<!-- _github_actions_setup_guide -->\\n\\nMAID Runner ships reusable GitHub Actions workflow templa....\\n\\n`maid-test.yml` also accepts:\\n\\n- `coverage-command`: Follow-up coverage command run after `maid test --json`.\\n'\n\ntests/ci/test_github_actions_templates.py:173: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_github_actions_templates.py::test_maid_validation_workflow_declares_sarif_upload_as_opt_in\nFAILED tests/ci/test_github_actions_templates.py::test_maid_validation_workflow_uploads_matching_sarif_report_when_enabled\nFAILED tests/ci/test_github_actions_templates.py::test_github_actions_docs_show_downstream_setup_and_reporting\n3 failed, 5 passed in 0.05s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/maid-validation.yml:attribute:workflow._sarif_upload_wiring",
+      ".github/workflows/maid-validation.yml:attribute:workflow._sarif_upload_wiring:kind=attribute",
+      ".github/workflows/maid-validation.yml:attribute:workflow._sarif_upload_wiring:of=workflow",
+      ".github/workflows/maid-validation.yml:attribute:workflow._sarif_upload_wiring:type=github actions workflow section",
+      "docs/github-actions.md:attribute:documentation._sarif_upload_guidance",
+      "docs/github-actions.md:attribute:documentation._sarif_upload_guidance:kind=attribute",
+      "docs/github-actions.md:attribute:documentation._sarif_upload_guidance:of=documentation",
+      "docs/github-actions.md:attribute:documentation._sarif_upload_guidance:type=markdown section"
+    ],
+    "test_files": [
+      "tests/ci/test_github_actions_templates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_github_actions_templates.py",
+      "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

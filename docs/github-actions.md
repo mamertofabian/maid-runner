@@ -57,6 +57,46 @@ The workflow writes `.maid/maid-verify.json`, uploads it as the
 `$GITHUB_STEP_SUMMARY`. A non-zero `maid verify` exit code fails the job, so the
 workflow can be used as a PR validation gate.
 
+### SARIF Code Scanning Upload
+
+<!-- _sarif_upload_guidance -->
+
+Set `upload-sarif: true` when the validation workflow should also upload a
+SARIF report to GitHub code scanning. The reusable workflow still fails or
+passes on the `maid verify` exit code; SARIF is an additional report generated
+from the same validation result. The SARIF artifact and code-scanning upload run
+with `if: always()`, so failed validation can still produce inline annotations.
+
+```yaml
+name: MAID Validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  maid-validation:
+    uses: mamertofabian/maid-runner/.github/workflows/maid-validation.yml@main
+    with:
+      python-version: "3.12"
+      install-command: uv sync --group dev
+      manifest-dir: manifests/
+      test-jobs: 2
+      upload-sarif: true
+```
+
+GitHub requires `security-events: write` for
+`github/codeql-action/upload-sarif`. For private repositories, the workflow also
+requires `actions: read` and `contents: read`, and code scanning for private
+repositories requires GitHub Advanced Security. Leave `upload-sarif` at its
+default `false` value when that permission or product access is not available.
+
 ## Test And Coverage Gate
 
 Use the test template when CI should run the manifest-declared test commands
@@ -108,6 +148,9 @@ Both templates accept:
 
 - `base-ref`: Explicit comparison base for `maid verify --base-ref`.
 - `extra-verify-args`: Extra flags for local policy, such as `--advisory`.
+- `upload-sarif`: Generate `.maid/maid-verify.sarif` and upload it to GitHub
+  code scanning through `github/codeql-action/upload-sarif`. Defaults to
+  `false`.
 
 `maid-test.yml` also accepts:
 
