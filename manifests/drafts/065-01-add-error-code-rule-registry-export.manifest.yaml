@@ -1,6 +1,6 @@
 # draft-kind: implementation
 schema: "2"
-goal: "Consolidate diagnostic error codes into an introspectable rule registry exported through the library API"
+goal: "Export the existing diagnostics registry through the public library APIs"
 type: feature
 created: "2026-06-10T05:01:00Z"
 metadata:
@@ -13,151 +13,91 @@ metadata:
     - diagnostics
   priority: medium
 description: |
-  Consolidate MAID Runner's diagnostic code surface (codes, default
-  severities, short and full descriptions, help links into
-  docs/troubleshooting.md) into one introspectable registry in core,
-  exported through the library API, with tests proving every emitted
-  diagnostic code is registered. This is the prerequisite that keeps SARIF
-  rules (065-02) and JSON diagnostics from drifting: both must derive from
-  this single registered error-code surface.
+  Reconcile epic 065 with the registry already delivered by
+  `070-01-add-error-code-registry-with-repair-recipes`. The current codebase
+  already has `maid_runner/core/diagnostics_registry.py`, including
+  `DiagnosticRule`, `RepairRecipe`, `get_rule(code)`, `all_rules()`, and
+  `render_next_action(code, values)`, with tests proving every `ErrorCode`
+  member in `maid_runner/core/result.py` has a registered rule.
 
-  Pinned decisions from epic 065-00. Do not redesign these:
+  This child no longer creates or redesigns that registry. Its remaining
+  implementation purpose is to expose the shipped registry through the public
+  library import surfaces used by integrations and later SARIF work:
+  `maid_runner` and `maid_runner.core`.
 
-  1. Module: `maid_runner/core/diagnostics_registry.py` exposing a
-     `DiagnosticRule` dataclass with fields code, default_severity,
-     short_description, description, and help_uri, plus `get_rule(code)`
-     and `all_rules()`.
-  2. A unit test asserts every `ErrorCode` member in
-     `maid_runner/core/result.py` has a registered rule. New error codes
-     added without a rule must fail that test.
-  3. Shared module with the 070 retry-packet epic: the 070 epic extends
-     this same module with repair recipes. Whichever child lands first
-     creates the module and the other extends it. If
-     `maid_runner/core/diagnostics_registry.py` already exists when this
-     child is implemented, extend it instead of recreating it, preserving
-     any existing public surface.
-  4. One diagnostic model: this registry is the single source for rule
-     identity and severity. The documented severity mapping (used by SARIF
-     in 065-02) is error -> error, warning -> warning, advisory/info ->
-     note. Error codes are stable rule ids; do not rename or renumber
-     codes in this child.
-  5. This epic is a serialization and packaging layer only: the registry
-     must not change what the validator reports, weaken any gate, or alter
-     the existing `--json` contract, which remains the canonical machine
-     output.
+  Pinned decisions after reconciling with active manifest 070-01. Do not
+  redesign these:
 
-  Implementation shape:
-
-  - `DiagnosticRule` is a frozen dataclass; `default_severity` records the
-    SARIF level for the code per the pinned mapping (one of "error",
-    "warning", "note").
-  - `get_rule(code)` accepts an `ErrorCode` member or its string value
-    (e.g. "E300") and returns the registered rule, failing loudly (KeyError
-    or equivalent) for unknown codes rather than synthesizing a placeholder.
-  - `all_rules()` returns all registered rules in deterministic order
-    (sorted by code) so derived outputs are stable.
-  - `help_uri` links into docs/troubleshooting.md (e.g. an anchor per code
-    or code family); use a stable URI scheme so code-scanning alert history
-    does not churn.
-  - Library export: `DiagnosticRule`, `get_rule`, and `all_rules` are added
-    to the `maid_runner` package exports in `maid_runner/__init__.py`
-    (import plus `__all__` entries), matching how other core symbols are
-    exported.
+  1. The registry source is `maid_runner/core/diagnostics_registry.py`,
+     created and covered by active manifest
+     `manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml`.
+     Preserve its existing public surface and recipe behavior.
+  2. `DiagnosticRule.default_severity` stores MAID's internal severity values
+     from `Severity` (`"error"`, `"warning"`, `"info"`), matching current
+     emitters. SARIF conversion maps `Severity.INFO` to SARIF level `"note"`
+     in 065-02; do not change registry severities to SARIF-specific values.
+  3. `get_rule(code)` currently accepts an `ErrorCode` member or string value
+     despite its narrow annotation, normalizes to the E-code string, and fails
+     loudly for unknown codes. Preserve that behavior.
+  4. `all_rules()` returns all registered rules in deterministic code order,
+     covering every `ErrorCode` member.
+  5. Library export only: add `DiagnosticRule`, `RepairRecipe`, `get_rule`,
+     `all_rules`, and `render_next_action` to the `maid_runner` and
+     `maid_runner.core` import surfaces. Do not alter validator behavior,
+     existing JSON output, failure-packet contents, or repair-recipe coverage.
 
   Edge cases and test expectations:
 
-  - Every `ErrorCode` member has a rule: iterate `ErrorCode` and assert
-    `get_rule(member)` succeeds with a non-empty short_description,
-    description, and help_uri, and a default_severity in
-    {"error", "warning", "note"}.
-  - `get_rule` with an unknown code string fails loudly.
-  - `get_rule` accepts both the enum member and its string value and
-    returns the same rule.
-  - `all_rules()` is deterministic: two calls return equal sequences
-    sorted by code.
-  - The registry symbols are importable from the top-level `maid_runner`
-    package.
+  - The existing diagnostics-registry tests continue to pass: every
+    `ErrorCode` is registered, unknown codes fail loudly, default severities
+    match current non-error emitters, recipe rendering remains opt-in, and
+    implementation-failure recipes do not first instruct test or manifest
+    edits.
+  - The top-level package exports `DiagnosticRule`, `RepairRecipe`,
+    `get_rule`, `all_rules`, and `render_next_action` from `maid_runner`.
+  - The core package exports the same symbols from `maid_runner.core`.
+  - Export tests assert the imported objects are the same objects provided by
+    `maid_runner.core.diagnostics_registry`, not wrappers or duplicated
+    metadata.
 
-  Planning note: the epic does not pin the `get_rule` failure type; the
-  conservative reading is a loud KeyError-style failure with the unknown
-  code in the message, never a placeholder rule. Planning note: the epic
-  does not pin help_uri format; the conservative reading is a relative
-  docs/troubleshooting.md anchor URI kept stable across releases.
+  Planning note: the previous version of this draft predated 070-01 and
+  declared `maid_runner/core/diagnostics_registry.py` as a created file. That
+  is stale and would collide with the active 070 manifest. This draft is now
+  intentionally scoped to package export wiring plus tests.
 
-  Out of scope: SARIF serialization and the --sarif flag (065-02), GitHub
-  Actions wiring (065-03), CI platform documentation (065-04), and repair
-  recipes (070 epic).
+  Out of scope: changing registry metadata or recipe coverage, SARIF
+  serialization and the --sarif flag (065-02), GitHub Actions wiring (065-03),
+  CI platform documentation (065-04), and retry-packet behavior from the 070
+  epic.
 temptations:
-  - risk: "Do not fork or duplicate the diagnostic model to make SARIF emission easier."
-    instead: "Make this registry the single registered error-code surface that both JSON diagnostics and future SARIF rules derive from."
-  - risk: "Do not invent ad-hoc severity levels per command."
-    instead: "Record one documented code-to-severity mapping (error->error, warning->warning, advisory/info->note) in the registry for reuse across validate and verify."
-  - risk: "Do not let new error codes ship without registry entries."
-    instead: "Assert in a unit test that every ErrorCode member in maid_runner/core/result.py has a registered rule."
+  - risk: "Do not recreate, move, or fork the diagnostics registry that 070-01 already shipped."
+    instead: "Import and re-export the existing symbols from maid_runner.core.diagnostics_registry."
+  - risk: "Do not change DiagnosticRule.default_severity from internal Severity values to SARIF-specific levels."
+    instead: "Keep registry severities as error/warning/info and perform the info->note mapping in the SARIF serializer."
+  - risk: "Do not broaden repair-recipe coverage while preparing SARIF work."
+    instead: "Leave render_next_action behavior and the 070-01 recipe safety tests unchanged."
 files:
-  create:
-    - path: maid_runner/core/diagnostics_registry.py
-      artifacts:
-        - kind: class
-          name: DiagnosticRule
-          description: "Frozen dataclass describing one diagnostic rule: code, default_severity, short_description, description, help_uri."
-        - kind: attribute
-          name: code
-          of: DiagnosticRule
-          type: str
-        - kind: attribute
-          name: default_severity
-          of: DiagnosticRule
-          type: str
-        - kind: attribute
-          name: short_description
-          of: DiagnosticRule
-          type: str
-        - kind: attribute
-          name: description
-          of: DiagnosticRule
-          type: str
-        - kind: attribute
-          name: help_uri
-          of: DiagnosticRule
-          type: str
-        - kind: function
-          name: get_rule
-          args:
-            - name: code
-              type: Union[str, ErrorCode]
-          returns: DiagnosticRule
-          source_scenario: "Callers look up rule metadata for an emitted diagnostic code."
-          actions:
-            - type: api_call
-              subject:
-                function: get_rule
-          expected:
-            behavior: "Returns the registered rule for an ErrorCode member or its string value, and fails loudly with the unknown code for unregistered codes instead of synthesizing a placeholder."
-        - kind: function
-          name: all_rules
-          args: []
-          returns: tuple[DiagnosticRule, ...]
-          source_scenario: "A serializer enumerates the full rule surface to build tool metadata."
-          actions:
-            - type: api_call
-              subject:
-                function: all_rules
-          expected:
-            behavior: "Returns every registered rule in deterministic order sorted by code, covering every ErrorCode member."
   edit:
     - path: maid_runner/__init__.py
       artifacts:
         - kind: attribute
           name: __all__
           type: list[str]
-          description: "Extended with DiagnosticRule, get_rule, and all_rules so the registry is exported through the library API."
+          description: "Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through the top-level library API."
+    - path: maid_runner/core/__init__.py
+      artifacts:
+        - kind: attribute
+          name: __all__
+          type: list[str]
+          description: "Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through maid_runner.core."
   read:
+    - maid_runner/core/diagnostics_registry.py
     - maid_runner/core/result.py
-    - maid_runner/core/types.py
     - docs/troubleshooting.md
     - tests/core/test_diagnostics_registry.py
+    - tests/integration/test_library_api.py
+    - manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml
 validate:
-  - uv run python -m pytest -q tests/core/test_diagnostics_registry.py
+  - uv run python -m pytest -q tests/core/test_diagnostics_registry.py tests/integration/test_library_api.py
   - uv run maid validate manifests/drafts/065-01-add-error-code-rule-registry-export.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/drafts/065-01-add-error-code-rule-registry-export.manifest.yaml --mode schema --quiet

@@ -26,17 +26,21 @@ description: |
 
   1. SARIF is produced with `--sarif <path>` on `maid validate` and
      `maid verify`. The report is written on both pass and fail, so CI
-     upload/publish steps can run unconditionally. Writing the report
-     never changes exit codes, including under `--strict` or advisory
-     modes; gating stays on the command's exit code, with SARIF as the
-     review-time view.
+     upload/publish steps can run unconditionally. Successful SARIF report
+     generation never changes validation or verification gate exit codes,
+     including under `--strict` or advisory modes; gating stays on the
+     command's exit code, with SARIF as the review-time view. An unwritable
+     requested SARIF output path is a visible report-output error, not a
+     silent fallback.
   2. Severity mapping (document the table): error diagnostics -> SARIF
      level `error`, warnings -> `warning`, advisory/info -> `note`. The
      SARIF ruleId is the E-code (E1xx chain, E2xx command integrity, E3xx
      implementation, plus the other registered families); rule metadata
      comes from the diagnostics registry
      (maid_runner/core/diagnostics_registry.py) and help links point into
-     docs/troubleshooting.md.
+     docs/troubleshooting.md. The registry stores internal MAID severities
+     (`error`, `warning`, `info`); the SARIF serializer maps `info` to
+     SARIF `note`.
   3. Determinism: identical validation results produce byte-identical
      SARIF (run-level timestamps are omitted; results are sorted by file
      path, then line, then code), so SARIF files are diffable and safe to
@@ -69,7 +73,8 @@ description: |
   - The docs name GitLab, Jenkins (warnings-ng), and generic pipeline
     guidance, and reference the --sarif flag on both validate and verify.
   - The docs state the error/warning/note severity mapping and that
-    writing SARIF never changes exit codes.
+    successful SARIF generation never changes validation or verify gate exit
+    codes.
   - The docs state the report is written on both pass and fail so uploads
     are unconditional.
   - The docs point GitHub-specific upload guidance at

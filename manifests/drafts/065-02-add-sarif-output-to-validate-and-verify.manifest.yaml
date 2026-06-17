@@ -14,22 +14,29 @@ metadata:
   priority: medium
 description: |
   Add `--sarif <path>` to `maid validate` and `maid verify`, serializing
-  batch validation results to SARIF 2.1.0: tool metadata, rules from the
-  065-01 diagnostics registry, results with physical locations (file, and
-  line where available), severity mapping, and suggestion text carried in
-  result messages. SARIF is a derived view over the existing result model;
-  the `--json` contract remains the canonical machine output.
+  batch validation and verify results to SARIF 2.1.0: tool metadata, rules
+  from the diagnostics registry shipped by 070-01 and exported by 065-01,
+  results with physical locations (file, and line where available), severity
+  mapping, and suggestion text carried in result messages. SARIF is a derived
+  view over the existing result model; the `--json` contract remains the
+  canonical machine output.
 
   Pinned decisions from epic 065-00. Do not redesign these:
 
   1. Flag: `--sarif <path>` on both `maid validate` and `maid verify`. The
      report is written on both pass and fail so CI uploads are
-     unconditional. Writing the report never changes exit codes,
-     including under `--strict` or advisory modes.
+     unconditional. When the report path is writable, writing the report
+     never changes validation or verification gate exit codes, including
+     under `--strict` or advisory modes. If the SARIF path cannot be
+     written, fail loudly as a report-output error instead of silently
+     dropping the requested report.
   2. Severity mapping: error diagnostics map to SARIF level `error`,
      warnings to `warning`, advisory/info diagnostics to `note`. The
-     mapping is the one documented in the 065-01 registry; do not invent
-     per-command severity levels.
+     mapping is derived from MAID's internal `Severity` values: error ->
+     `error`, warning -> `warning`, and info/advisory -> `note`. The
+     registry's `DiagnosticRule.default_severity` remains an internal MAID
+     severity (`error`, `warning`, `info`); do not mutate registry data into
+     SARIF-specific levels.
   3. Rule identity: the SARIF ruleId is the E-code (e.g. "E300"); rule
      metadata (short/full descriptions, help_uri) comes from
      `maid_runner/core/diagnostics_registry.py` via `get_rule`/`all_rules`.
@@ -51,13 +58,20 @@ description: |
     SARIF 2.1.0 dict (one run, tool driver "maid-runner" with the package
     version, rules from all_rules() or the subset referenced by results,
     results with physicalLocation from each diagnostic's file/line where
-    available, suggestion text appended to the result message);
+    available, suggestion text appended to the result message). For
+    VerificationResult, flatten validation-stage diagnostics plus
+    ValidationError-compatible stage errors; include coherence issues by
+    mapping them to the existing E4xx coherence ErrorCode family as the
+    failure-packet path already does, and include file-tracking diagnostics
+    with file locations rather than dropping non-validation stages.
     `write_sarif_report` serializes the dict to the output path with
     stable key order and a trailing newline so output is byte-stable.
   - `cmd_validate` and `cmd_verify` accept the parsed `--sarif` path and
     write the report after computing results, on both pass and fail,
-    without touching the return code; `build_parser` registers the flag on
-    both subparsers.
+    without touching the validation/verify return code when the write
+    succeeds; if the write fails, print a visible error and return a CLI
+    output failure instead of pretending the report exists. `build_parser`
+    registers the flag on both subparsers.
   - Diagnostics without a location are still emitted as results (no
     physicalLocation region) and sort before located results in a
     deterministic way (treat missing path/line as lowest).
@@ -73,18 +87,17 @@ description: |
   - No run-level timestamp fields appear anywhere in the document.
   - Severity mapping: an error-severity diagnostic yields level "error", a
     warning yields "warning", an advisory/info diagnostic yields "note".
-  - Exit codes: `maid validate --sarif out.sarif` and
-    `maid verify --sarif out.sarif` return exactly the same exit code as
-    the same invocation without the flag, on both passing and failing
-    inputs, and the report file exists in both cases.
+  - Exit codes: with a writable report path, `maid validate --sarif
+    out.sarif` and `maid verify --sarif out.sarif` return exactly the same
+    exit code as the same invocation without the flag, on both passing and
+    failing inputs, and the report file exists in both cases.
   - Every SARIF result's ruleId, message, and location are traceable to
     the corresponding JSON diagnostic on the same run.
   - An unwritable --sarif path fails loudly rather than silently dropping
     the report.
 
-  Planning note: the epic offered `--sarif <path>` or `--format sarif`;
-  this draft pins `--sarif <path>` per the epic's "Decisions already
-  made" section. Planning note: the vendored schema file
+  Planning note: this draft pins `--sarif <path>` per the epic's
+  "Decisions already made" section. Planning note: the vendored schema file
   tests/fixtures/sarif/sarif-schema-2.1.0.json is a test asset added
   alongside the behavioral tests (drafts do not create test assets), so it
   is referenced under files.read rather than files.create. Planning note:
@@ -93,19 +106,19 @@ description: |
   them together and should be split before promotion if review finds it
   too large.
 
-  Out of scope: the diagnostics registry itself (065-01, a prerequisite),
-  GitHub Actions template wiring and upload (065-03), CI platform
-  consumption documentation (065-04), and any change to what the validator
-  reports or to the canonical --json output.
+  Out of scope: changing diagnostics registry metadata or repair recipes
+  (070-01/065-01), GitHub Actions template wiring and upload (065-03), CI
+  platform consumption documentation (065-04), and any change to what the
+  validator reports or to the canonical --json output.
 temptations:
-  - risk: "Do not let report generation change validation semantics or exit codes."
-    instead: "Treat SARIF as a write-only derived view; assert in tests that pass/fail behavior is identical with and without the --sarif flag."
+  - risk: "Do not let successful report generation change validation semantics or gate exit codes."
+    instead: "Treat SARIF as a write-only derived view; assert in tests that pass/fail behavior is identical with and without the --sarif flag when the report path is writable, and assert unwritable paths fail visibly."
   - risk: "Do not emit nondeterministic SARIF that breaks diff-based tests and alert dedup."
     instead: "Omit run-level timestamps, sort results by file path then line then code, and test byte-identical output for identical validation results."
   - risk: "Do not hand-roll SARIF structure from blog examples."
     instead: "Validate emitted reports against the official SARIF 2.1.0 JSON schema vendored under tests/fixtures, never fetched at test time."
   - risk: "Do not fork the diagnostic model for SARIF emission."
-    instead: "Derive ruleIds, metadata, and severity from the 065-01 diagnostics registry so JSON and SARIF cannot drift."
+    instead: "Derive ruleIds and metadata from the shipped diagnostics registry and map internal Severity values to SARIF levels in one serializer helper."
 files:
   create:
     - path: maid_runner/core/sarif.py

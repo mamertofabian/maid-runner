@@ -39,25 +39,28 @@ description: |
      omitted or fixed where the spec allows), so SARIF files are testable
      and diffable.
   3. Stable rule identity: error codes become SARIF rule ids, with severity
-     mapping documented (errors -> error, warnings/advisory -> warning/note),
-     so code-scanning alert history stays stable across releases.
-  4. Exit-code behavior is unchanged: writing a SARIF report never alters
-     pass/fail semantics, including under `--strict` or advisory modes.
+     mapping documented (internal severity error -> SARIF error, warning ->
+     SARIF warning, info/advisory -> SARIF note), so code-scanning alert
+     history stays stable across releases.
+  4. Exit-code behavior is unchanged: successful SARIF report generation
+     never alters pass/fail semantics, including under `--strict` or
+     advisory modes. A requested report path that cannot be written is a
+     visible output error, not a silent fallback.
 
   Decisions already made for the implementer. Do not redesign these:
 
-  1. Registry module (065-01): `maid_runner/core/diagnostics_registry.py`
-     exposing a `DiagnosticRule` dataclass (code, default_severity,
-     short_description, description, help_uri) plus `get_rule(code)` and
-     `all_rules()`. A unit test asserts every `ErrorCode` member in
-     `maid_runner/core/result.py` has a registered rule. This is the same
-     module the 070 retry-packet epic extends with repair recipes;
-     whichever child lands first creates the module and the other extends
-     it.
+  1. Registry module: `070-01-add-error-code-registry-with-repair-recipes`
+     has already shipped `maid_runner/core/diagnostics_registry.py`,
+     exposing `DiagnosticRule`, `RepairRecipe`, `get_rule(code)`,
+     `all_rules()`, and `render_next_action(code, values)`. 065-01 is now
+     the reconciliation child that exports the existing registry through
+     `maid_runner` and `maid_runner.core`; it must not recreate or fork the
+     module.
   2. SARIF flag (065-02): `--sarif <path>` on `maid validate` and
      `maid verify`. The report is written on both pass and fail so CI
-     uploads are unconditional; writing the report never changes exit
-     codes.
+     uploads are unconditional. Successful report generation never changes
+     validation or verification gate exit codes; SARIF output I/O failures
+     fail loudly as report-write errors instead of being silently ignored.
   3. Severity mapping: error diagnostics map to SARIF level `error`,
      warnings to `warning`, advisory/info diagnostics to `note`. The
      SARIF ruleId is the E-code; rule metadata comes from the registry;
@@ -69,19 +72,19 @@ description: |
 
   Planned child order:
 
-  1. `065-01-add-error-code-rule-registry-export` - consolidate the
-     diagnostic code surface (codes, default severities, short and full
-     descriptions, help links into docs/troubleshooting.md) into one
-     introspectable registry in core, exported through the library API, with
-     tests proving every emitted diagnostic code is registered. This is the
-     prerequisite that keeps SARIF rules and JSON diagnostics from drifting.
+  1. `065-01-add-error-code-rule-registry-export` - export the existing
+     diagnostics registry shipped by 070-01 through the public
+     `maid_runner` and `maid_runner.core` import surfaces, while preserving
+     current registry behavior and tests. This is the compatibility
+     prerequisite that lets SARIF rules derive from the same registered code
+     surface as failure packets and JSON diagnostics.
   2. `065-02-add-sarif-output-to-validate-and-verify` - add `--sarif <path>`
-     (or `--format sarif`) to `maid validate` and `maid verify`, serializing
-     batch results to SARIF 2.1.0: tool metadata, rules from the 065-01
-     registry, results with physical locations (file, line where available),
-     severity mapping, and suggestion text as result messages. Includes
-     schema-validation of produced SARIF against the official SARIF JSON
-     schema in tests, plus determinism tests.
+     to `maid validate` and `maid verify`, serializing
+     batch and verify results to SARIF 2.1.0: tool metadata, rules from the
+     shipped diagnostics registry, results with physical locations (file,
+     line where available), severity mapping, and suggestion text as result
+     messages. Includes schema-validation of produced SARIF against the
+     official SARIF JSON schema in tests, plus determinism tests.
   3. `065-03-wire-sarif-into-github-actions-templates` - update the reusable
      workflow templates to optionally upload the SARIF report via
      `github/codeql-action/upload-sarif`, so violations appear as PR
@@ -98,13 +101,13 @@ description: |
   CLI flag wiring before promotion.
 temptations:
   - risk: "Do not fork or duplicate the diagnostic model to make SARIF emission easier."
-    instead: "Derive SARIF rules and results from the single registered error-code surface added in 065-01 so JSON and SARIF cannot drift."
-  - risk: "Do not let report generation change validation semantics or exit codes."
-    instead: "Treat SARIF as a write-only derived view; assert in tests that pass/fail behavior is identical with and without the SARIF flag."
+    instead: "Derive SARIF rules and results from the single registered error-code surface shipped by 070-01 and exported by 065-01 so JSON, failure packets, and SARIF cannot drift."
+  - risk: "Do not let successful report generation change validation semantics or gate exit codes."
+    instead: "Treat SARIF as a write-only derived view; assert in tests that pass/fail behavior is identical with and without the SARIF flag, while report I/O errors fail loudly."
   - risk: "Do not emit nondeterministic SARIF that breaks diff-based tests and alert dedup."
     instead: "Omit or fix volatile fields, define stable result ordering, and test byte-identical output for identical validation results."
   - risk: "Do not invent ad-hoc severity levels per command."
-    instead: "Document one error-code-to-SARIF-severity mapping in the registry and reuse it across validate and verify."
+    instead: "Keep registry severities aligned to MAID Severity values and reuse one internal-severity-to-SARIF-level mapping across validate and verify."
   - risk: "Do not hand-roll SARIF structure from blog examples."
     instead: "Validate emitted reports against the official SARIF 2.1.0 JSON schema in the test suite."
 files:

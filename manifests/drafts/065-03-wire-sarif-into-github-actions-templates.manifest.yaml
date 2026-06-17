@@ -24,9 +24,9 @@ description: |
 
   1. Upload mechanism: `github/codeql-action/upload-sarif`. The SARIF file
      comes from the `--sarif <path>` flag added in 065-02; because that
-     flag writes the report on both pass and fail, the upload step can run
-     unconditionally (use `if: always()` so failing validation still
-     annotates the PR).
+     flag writes the report on both pass and fail, the SARIF artifact and
+     code-scanning upload path must use `if: always()` so failing validation
+     still annotates the PR.
   2. Exit-code behavior is unchanged: enabling SARIF upload must not
      weaken the validation gate. The workflow's pass/fail outcome stays
      exactly as today; the upload is an additional reporting step only.
@@ -48,13 +48,16 @@ description: |
 
   - `.github/workflows/maid-validation.yml`: add an opt-in `workflow_call`
     input (e.g. `upload-sarif`, boolean, default false). When enabled, the
-    verify step passes `--sarif .maid/maid-verify.sarif`, and an
-    `if: always()` step uploads that file with
-    `github/codeql-action/upload-sarif`. The reusable workflow declares
-    the `security-events: write` permission needed for the upload (scoped
-    so the default permission posture is not broadened when the input is
-    off, or documented as caller-supplied permissions if workflow-call
-    permission inheritance requires it).
+    verify step passes `--sarif .maid/maid-verify.sarif`.
+  - Keep the existing validation job's default permission posture
+    (`contents: read`) unchanged when the input is off. Because GitHub
+    Actions job permissions are static rather than step-conditional, prefer
+    a separate gated SARIF upload job with `if: always() &&
+    inputs.upload-sarif`, `needs: maid-validation`, and the required
+    `security-events: write` permission. The validation job should publish
+    the SARIF file as an artifact with `if: always()` when upload is enabled;
+    the upload job downloads that artifact and runs
+    `github/codeql-action/upload-sarif`.
   - `docs/github-actions.md`: document the new input, an example caller
     snippet with the required `permissions` block, the unconditional
     upload-on-failure behavior, and the private-repo/Advanced Security
@@ -64,11 +67,14 @@ description: |
   tests/ci/test_github_actions_templates.py):
 
   - With the input disabled (default), the rendered workflow contains no
-    behavioral change: no --sarif flag, no upload step requirement.
+    behavioral change in the validation job: no --sarif flag is passed, no
+    SARIF artifact is required, and the validation job keeps `contents:
+    read` without `security-events: write`.
   - The template declares the `upload-sarif` input with default false.
-  - The SARIF upload step references `github/codeql-action/upload-sarif`,
-    is gated on the input, and runs with `if: always()` so failing
-    validation still uploads.
+  - The SARIF upload path references `github/codeql-action/upload-sarif`,
+    is gated on the input, runs after failed validation via `if: always()`,
+    and scopes `security-events: write` to the gated upload job rather than
+    the default validation job.
   - The verify invocation under the input writes the SARIF path that the
     upload step reads (paths must match).
   - docs/github-actions.md documents `security-events: write` and the
@@ -100,7 +106,7 @@ files:
           name: _sarif_upload_wiring
           of: workflow
           type: github actions workflow section
-          description: "Opt-in upload-sarif workflow_call input (default false) that adds --sarif output to the verify step and an if: always() github/codeql-action/upload-sarif step with the security-events: write permission."
+          description: "Opt-in upload-sarif workflow_call input (default false) that adds --sarif output to the verify step, preserves the default validation job permissions when disabled, and uses an if: always() gated github/codeql-action/upload-sarif path with security-events: write only for upload."
     - path: docs/github-actions.md
       artifacts:
         - kind: attribute
