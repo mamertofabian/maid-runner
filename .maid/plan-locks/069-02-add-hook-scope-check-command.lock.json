@@ -1,0 +1,138 @@
+{
+  "manifest_path": "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+  "manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
+  "test_hashes": {
+    "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+    "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
+  },
+  "created_at": "2026-06-16T23:38:48.527182+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:8a870f317a7f15384931a0acba16cea943679d8b440ed488b725e80b71e9905c",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_hook_cmd.py": "sha256:dafd286cb630992bd7efe3798944645a0c7684805e16eed57d21ff398e3133c0"
+      },
+      "revised_at": "2026-06-16T23:40:03.372030+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-02-add-hook-scope-check-command.manifest.yaml -> manifests/069-02-add-hook-scope-check-command.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_hook_cmd.py": "sha256:dafd286cb630992bd7efe3798944645a0c7684805e16eed57d21ff398e3133c0"
+      },
+      "revised_at": "2026-06-16T23:53:53.560898+00:00",
+      "reason": "Add direct declared-artifact references to hook behavioral tests without weakening the scope-check behavior assertions."
+    },
+    {
+      "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_hook_cmd.py": "sha256:de018249105050b06535c7f2e5d31296ade9ad33b03c4c4b2c7533d108663c0a"
+      },
+      "revised_at": "2026-06-17T00:01:56.388218+00:00",
+      "reason": "Strengthen hook scope tests for draft path traversal denial and cd-based validate-command test paths after implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_hook_cmd.py": "sha256:e7ec5d71e6568db415210a46194cbae6fa7c264ae547fd4e184bfc9bdc8e07b0"
+      },
+      "revised_at": "2026-06-17T00:08:52.954323+00:00",
+      "reason": "Strengthen hook internal-error tests for corrupt active-manifest resolution after implementation review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-16T23:40:06.621196+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_hook_cmd.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,test,verify,plan,task,snapshot,snapshot-system,bootstrap,learn,recall,insights,benchmark,incident,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: argument command: invalid choice: 'hook' (choose from validate, test, verify, plan, task, snapshot, snapshot-system, bootstrap, learn, recall, insights, benchmark, incident, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, audit)\n=========================== short test summary info ============================\nFAILED tests/cli/test_hook_cmd.py::test_build_parser_registers_hook_scope_check_subcommand\nFAILED tests/cli/test_hook_cmd.py::test_scope_check_allows_manifest_write_scope_manifest_and_drafts\nFAILED tests/cli/test_hook_cmd.py::test_scope_check_allows_declared_test_files_but_denies_plain_read_files\nFAILED tests/cli/test_hook_cmd.py::test_scope_check_accepts_stdin_json_path\nFAILED tests/cli/test_hook_cmd.py::test_scope_check_no_active_task_defaults_to_allow_and_strict_denies\nFAILED tests/cli/test_hook_cmd.py::test_scope_check_internal_errors_fail_open_by_default_and_fail_closed_strict\n6 failed, 4 passed in 0.69s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 1,
+        "output_tail": "  E200 Artifact 'ScopeCheckDecision' not used in any test file\n  E200 Artifact 'decision' not used in any test file\n  E200 Artifact 'reason' not used in any test file\n  E200 Artifact 'active_manifest' not used in any test file\n  E200 Artifact 'declared_scope_paths' not used in any test file\n  E200 Artifact 'scope_check_path' not used in any test file\n  E200 Artifact 'cmd_hook' not used in any test file",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._maid_hook_cli_reference",
+      "README.md:attribute:documentation._maid_hook_cli_reference:kind=attribute",
+      "README.md:attribute:documentation._maid_hook_cli_reference:of=documentation",
+      "README.md:attribute:documentation._maid_hook_cli_reference:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:kind=function",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:returns=int",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.active_manifest",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.active_manifest:kind=attribute",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.active_manifest:of=ScopeCheckDecision",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.active_manifest:type=str | None",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.decision",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.decision:kind=attribute",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.decision:of=ScopeCheckDecision",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.decision:type=Literal['allow', 'deny']",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.reason",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.reason:kind=attribute",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.reason:of=ScopeCheckDecision",
+      "maid_runner/core/scope_check.py:attribute:ScopeCheckDecision.reason:type=str",
+      "maid_runner/core/scope_check.py:class:ScopeCheckDecision",
+      "maid_runner/core/scope_check.py:class:ScopeCheckDecision:kind=class",
+      "maid_runner/core/scope_check.py:function:declared_scope_paths",
+      "maid_runner/core/scope_check.py:function:declared_scope_paths:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/scope_check.py:function:declared_scope_paths:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/scope_check.py:function:declared_scope_paths:kind=function",
+      "maid_runner/core/scope_check.py:function:declared_scope_paths:returns=set[str]",
+      "maid_runner/core/scope_check.py:function:scope_check_path",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=active_manifest:type=str | None:default=None",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=candidate_path:type=str:default=None",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=strict:type=bool:default=False",
+      "maid_runner/core/scope_check.py:function:scope_check_path:kind=function",
+      "maid_runner/core/scope_check.py:function:scope_check_path:returns=ScopeCheckDecision",
+      "tests/cli/test_hook_cmd.py:test_build_parser_registers_hook_scope_check_subcommand",
+      "tests/cli/test_hook_cmd.py:test_build_parser_registers_hook_scope_check_subcommand:kind=test_function",
+      "tests/cli/test_hook_cmd.py:test_scope_check_accepts_stdin_json_path",
+      "tests/cli/test_hook_cmd.py:test_scope_check_accepts_stdin_json_path:kind=test_function",
+      "tests/cli/test_hook_cmd.py:test_scope_check_allows_declared_test_files_but_denies_plain_read_files",
+      "tests/cli/test_hook_cmd.py:test_scope_check_allows_declared_test_files_but_denies_plain_read_files:kind=test_function",
+      "tests/cli/test_hook_cmd.py:test_scope_check_allows_manifest_write_scope_manifest_and_drafts",
+      "tests/cli/test_hook_cmd.py:test_scope_check_allows_manifest_write_scope_manifest_and_drafts:kind=test_function",
+      "tests/cli/test_hook_cmd.py:test_scope_check_internal_errors_fail_open_by_default_and_fail_closed_strict",
+      "tests/cli/test_hook_cmd.py:test_scope_check_internal_errors_fail_open_by_default_and_fail_closed_strict:kind=test_function",
+      "tests/cli/test_hook_cmd.py:test_scope_check_no_active_task_defaults_to_allow_and_strict_denies",
+      "tests/cli/test_hook_cmd.py:test_scope_check_no_active_task_defaults_to_allow_and_strict_denies:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_hook_cmd.py",
+      "tests/test_agent_payload_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_hook_cmd.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/069-02-add-hook-scope-check-command.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

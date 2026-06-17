@@ -36,6 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_verify_parser(sub)
     _register_plan_parser(sub)
     _register_task_parser(sub)
+    _register_hook_parser(sub)
     _register_snapshot_parser(sub)
     _register_snapshot_system_parser(sub)
     _register_bootstrap_parser(sub)
@@ -317,6 +318,15 @@ def _register_task_parser(sub: argparse._SubParsersAction) -> None:
     tsub.add_parser("stop", help="Clear the active task manifest")
     status = tsub.add_parser("status", help="Show the active task manifest")
     status.add_argument("--json", action="store_true")
+
+
+def _register_hook_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("hook", help="Run MAID agent hook helpers")
+    hsub = p.add_subparsers(dest="hook_command")
+    scope_check = hsub.add_parser("scope-check", help="Check active manifest scope")
+    scope_check.add_argument("--path", default=None)
+    scope_check.add_argument("--stdin", action="store_true")
+    scope_check.add_argument("--strict", action="store_true")
 
 
 def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
@@ -640,6 +650,7 @@ def main(argv: list[str] | None = None) -> int:
         "verify": "_cmd_verify",
         "plan": "_cmd_plan",
         "task": "_cmd_task",
+        "hook": "_cmd_hook",
         "snapshot": "_cmd_snapshot",
         "snapshot-system": "_cmd_snapshot_system",
         "bootstrap": "_cmd_bootstrap",
@@ -673,6 +684,7 @@ def main(argv: list[str] | None = None) -> int:
         verify as verify_mod,
         plan as plan_mod,
         task as task_mod,
+        hook as hook_mod,
         snapshot as snapshot_mod,
         bootstrap as bootstrap_mod,
         learn as learn_mod,
@@ -698,6 +710,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_verify": verify_mod.cmd_verify,
         "_cmd_plan": plan_mod.cmd_plan,
         "_cmd_task": task_mod.cmd_task,
+        "_cmd_hook": hook_mod.cmd_hook,
         "_cmd_snapshot": snapshot_mod.cmd_snapshot,
         "_cmd_snapshot_system": snapshot_mod.cmd_snapshot_system,
         "_cmd_bootstrap": bootstrap_mod.cmd_bootstrap,
