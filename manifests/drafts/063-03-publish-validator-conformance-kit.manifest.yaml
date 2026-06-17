@@ -47,9 +47,10 @@ description: |
     excluded from `generate_snapshot` output (no private leakage).
   - Behavioral reference identity: the correct-identity behavioral
     sample, run through `collect_behavioral_artifacts`, yields a
-    reference to the fixture's declared target artifact; the
-    wrong-identity sample must NOT yield a reference matching that
-    target (adversarial: a kit that passes both ways proves nothing).
+    reference to the fixture's declared target artifact by kind, name,
+    and optional parent; the wrong-identity sample must NOT yield a
+    reference matching that full target identity (adversarial: a kit that
+    passes both ways proves nothing).
   - Parse-error result shapes: the unparseable sample returns a
     `CollectionResult` with a non-empty `errors` list and no artifacts,
     without raising out of the collector.
@@ -69,8 +70,9 @@ description: |
     file extension samples use, e.g. ".go"), `artifact_samples` (mapping
     of artifact kind value to a `ConformanceArtifactSample` carrying the
     source text and the expected public artifact name and optional `of`
-    parent), `private_artifact_source`, `behavioral_target_name` (the
-    artifact name both behavioral samples are judged against),
+    parent), `private_artifact_source`, `behavioral_target_kind`,
+    `behavioral_target_name`, and `behavioral_target_of` (the full
+    artifact identity both behavioral samples are judged against),
     `behavioral_correct_source`, `behavioral_wrong_identity_source`,
     `unparseable_source`, and `empty_source`.
   - `make_conformance_suite` validates the fixture contract eagerly: a
@@ -165,9 +167,17 @@ files:
           of: ConformanceFixtures
           type: str
         - kind: attribute
+          name: behavioral_target_kind
+          of: ConformanceFixtures
+          type: str
+        - kind: attribute
           name: behavioral_target_name
           of: ConformanceFixtures
           type: str
+        - kind: attribute
+          name: behavioral_target_of
+          of: ConformanceFixtures
+          type: str | None
         - kind: attribute
           name: behavioral_correct_source
           of: ConformanceFixtures

@@ -1,6 +1,6 @@
 # draft-kind: implementation
 schema: "2"
-goal: "Teach ValidatorRegistry to discover third-party validators from the maid_runner.validators entry-point group with deterministic ordering, built-in-wins precedence, isolated failures, and a kill switch"
+goal: "Teach ValidatorRegistry to discover third-party validators from the maid_runner.validators entry-point group with deterministic ordering, built-in-wins precedence, isolated failures, validation-result diagnostics, and a kill switch"
 type: feature
 created: "2026-06-10T03:01:00Z"
 metadata:
@@ -58,6 +58,13 @@ description: |
   - The registry exposes the E902/E903 diagnostics as structured
     `ValidationError` values (warning severity) so callers can surface
     them in validation output without re-deriving plugin state.
+  - `ValidationEngine` surfaces registry plugin diagnostics without
+    re-running discovery: single-manifest behavioral and implementation
+    validation append E902/E903 values to the returned warnings, while
+    schema mode remains manifest-only. Directory-wide `validate_all`
+    reports those diagnostics once on the batch result (as warning
+    diagnostics) instead of duplicating them for every manifest. Existing
+    `fail_on_warnings` handling applies to these warnings.
   - Built-in-wins is applied per extension: a plugin claiming both an
     unclaimed extension (e.g. `.go`) and a built-in-claimed extension
     (e.g. `.py`) is registered for the unclaimed extension only, and its
@@ -95,6 +102,17 @@ description: |
     records show the skipped plugins with status disabled.
   - Discovery runs once at construction, not on each get()/has_validator
     call.
+  - Public registry lifecycle behavior remains coherent with the added
+    plugin state: `clone()` copies registered validators, validator
+    records, and diagnostics without sharing cached validator instances;
+    `clear()` removes validators, cached instances, records, and
+    diagnostics. Manual `register()` remains an explicit override API and
+    does not use plugin conflict rules.
+  - ValidationEngine.validate surfaces plugin diagnostics as warnings in
+    behavioral and implementation modes, does not surface them in schema
+    mode, and honors fail_on_warnings for plugin diagnostics.
+  - ValidationEngine.validate_all surfaces plugin diagnostics once for
+    the batch result rather than repeating the same warning per manifest.
 
   Planning notes: the epic pins the group name, ordering, precedence,
   codes, and kill switch, but not the record or diagnostic API names; this
@@ -102,10 +120,10 @@ description: |
   `validator_records()` method, and the `plugin_diagnostics()` method as
   below. Resolving same-extension conflicts between two plugins by
   deterministic discovery order with an E903 report is the conservative
-  extension of the built-in-wins rule and is recorded here. Where the
-  E902/E903 diagnostics surface inside `maid validate` output is left to
-  the CLI children; this child guarantees the structured diagnostics are
-  available from the registry.
+  extension of the built-in-wins rule and is recorded here. Surfacing
+  E902/E903 from `ValidationEngine` in this child keeps the diagnostics
+  on the same path as every `maid validate` caller; the 063-02 CLI child
+  remains an audit view, not the only reporting path.
 
   Out of scope: the `maid validators` CLI listing (063-02), the
   conformance kit (063-03), authoring documentation (063-04), and any new
@@ -153,6 +171,18 @@ files:
           returns: ValidatorRegistry
           description: "Construct the registry with built-ins, then discover maid_runner.validators entry points once with deterministic ordering, built-in-wins precedence, isolated failures, and the kill switch."
         - kind: method
+          name: clone
+          of: ValidatorRegistry
+          args: []
+          returns: ValidatorRegistry
+          description: "Copy registered validator classes, validator records, and plugin diagnostics while leaving cached validator instances isolated."
+        - kind: method
+          name: clear
+          of: ValidatorRegistry
+          args: []
+          returns: None
+          description: "Clear validator registrations, cached instances, validator records, and plugin diagnostics."
+        - kind: method
           name: validator_records
           of: ValidatorRegistry
           args: []
@@ -176,10 +206,31 @@ files:
           of: ErrorCode
           type: str
           description: "Reserved code E903 (warning severity): a plugin claimed an extension already claimed by a built-in or an earlier plugin."
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Union[Manifest, str, Path]
+          returns: ValidationResult
+          description: "Single-manifest behavioral and implementation validation appends registry plugin diagnostics as warnings, leaves schema mode manifest-only, and applies fail_on_warnings to plugin warnings."
+        - kind: method
+          name: validate_all
+          of: ValidationEngine
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: '"manifests/"'
+          returns: BatchValidationResult
+          description: "Directory-wide validation surfaces registry plugin diagnostics once on the batch result instead of duplicating them per manifest."
   read:
     - maid_runner/validators/base.py
     - maid_runner/validators/__init__.py
     - tests/validators/test_plugin_discovery.py
+    - tests/core/test_validate_plugin_diagnostics.py
 validate:
   - uv run python -m pytest tests/validators/test_plugin_discovery.py -v
+  - uv run python -m pytest tests/core/test_validate_plugin_diagnostics.py -v
   - uv run maid validate manifests/drafts/063-01-add-entry-point-validator-discovery.manifest.yaml --mode schema --quiet

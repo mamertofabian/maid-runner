@@ -83,8 +83,9 @@ description: |
      group (for example `maid_runner.validators`) at registry initialization,
      with deterministic ordering, explicit built-in-wins precedence for
      already-claimed extensions, structured per-plugin failure diagnostics,
-     and an environment/config switch to disable plugin loading entirely for
-     locked-down CI runs.
+     validation-result surfacing for those diagnostics, and an
+     environment/config switch to disable plugin loading entirely for locked-
+     down CI runs.
   2. `063-02-add-maid-validators-cli-listing` - add a `maid validators`
      command listing every active validator with claimed extensions, source
      (built-in or distribution name and version), load status, and any load
@@ -131,6 +132,8 @@ files:
     - maid_runner/validators/registry.py
     - maid_runner/validators/base.py
     - maid_runner/validators/__init__.py
+    - maid_runner/core/validate.py
+    - maid_runner/core/result.py
     - maid_runner/cli/commands/_main.py
     - docs/ROADMAP.md
     - manifests/drafts/README.md
