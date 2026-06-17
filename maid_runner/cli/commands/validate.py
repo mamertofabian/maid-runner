@@ -90,10 +90,15 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
+                    verification_result = _verification_packet_result(
+                        result, coherence=coherence
+                    )
+                    if not _write_sarif_report_if_requested(args, verification_result):
+                        return _finalize_packet(args, 2, None, None)
                     return _finalize_packet(
                         args,
                         1,
-                        _verification_packet_result(result, coherence=coherence),
+                        verification_result,
                         test_result,
                     )
 
@@ -106,6 +111,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 if result.success and tests_success and artifact_coverage_success
                 else 1
             )
+            if not _write_sarif_report_if_requested(args, result):
+                return _finalize_packet(args, 2, None, None)
             return _finalize_packet(args, exit_code, result, test_result)
         else:
             batch = engine.validate_all(
@@ -156,10 +163,15 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
+                    verification_result = _verification_packet_result(
+                        batch, coherence=coherence
+                    )
+                    if not _write_sarif_report_if_requested(args, verification_result):
+                        return _finalize_packet(args, 2, None, None)
                     return _finalize_packet(
                         args,
                         1,
-                        _verification_packet_result(batch, coherence=coherence),
+                        verification_result,
                         test_result,
                     )
 
@@ -172,10 +184,29 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 if batch.success and tests_success and artifact_coverage_success
                 else 1
             )
+            if not _write_sarif_report_if_requested(args, batch):
+                return _finalize_packet(args, 2, None, None)
             return _finalize_packet(args, exit_code, batch, test_result)
     except Exception as e:
         print_error(str(e), json_mode=args.json)
         return _finalize_packet(args, 2, None, None)
+
+
+def _write_sarif_report_if_requested(args, result) -> bool:
+    output_path = getattr(args, "sarif", None)
+    if not output_path:
+        return True
+    try:
+        from maid_runner.core.sarif import build_sarif_report, write_sarif_report
+
+        write_sarif_report(build_sarif_report(result), output_path)
+        return True
+    except Exception as exc:
+        print_error(
+            f"Failed to write SARIF report at {output_path}: {exc}",
+            json_mode=getattr(args, "json", False),
+        )
+        return False
 
 
 def _finalize_packet(args, exit_code: int, validation, test_result) -> int:
@@ -376,10 +407,13 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
         result = run_coherence(args.manifest_dir, args.json)
         print(format_coherence_result(result, json_mode=args.json))
         exit_code = 0 if result.success else 1
+        verification_result = _verification_packet_result(coherence=result)
+        if not _write_sarif_report_if_requested(args, verification_result):
+            return _finalize_packet(args, 2, None, None)
         return _finalize_packet(
             args,
             exit_code,
-            _verification_packet_result(coherence=result),
+            verification_result,
             None,
         )
     except Exception as e:

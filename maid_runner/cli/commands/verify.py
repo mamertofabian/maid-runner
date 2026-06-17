@@ -71,10 +71,29 @@ def cmd_verify(args: argparse.Namespace) -> int:
         )
         print(format_verify_result(result, json_mode=getattr(args, "json", False)))
         exit_code = 0 if _result_success(result) else 1
+        if not _write_sarif_report_if_requested(args, result):
+            return 2
         return _finalize_packet(args, exit_code, result)
     except Exception as exc:
         print_error(str(exc), json_mode=getattr(args, "json", False))
         return 2
+
+
+def _write_sarif_report_if_requested(args, result: VerificationResult) -> bool:
+    output_path = getattr(args, "sarif", None)
+    if not output_path:
+        return True
+    try:
+        from maid_runner.core.sarif import build_sarif_report, write_sarif_report
+
+        write_sarif_report(build_sarif_report(result), output_path)
+        return True
+    except Exception as exc:
+        print_error(
+            f"Failed to write SARIF report at {output_path}: {exc}",
+            json_mode=getattr(args, "json", False),
+        )
+        return False
 
 
 def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:

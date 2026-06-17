@@ -1,0 +1,118 @@
+{
+  "manifest_path": "manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml",
+  "manifest_hash": "sha256:c38121e93117b32bedcd41bf35117461275ee50b6fdec241d25667a14b782754",
+  "test_hashes": {
+    "tests/core/test_sarif.py": "sha256:489c9c7222d69d1b9007c0ac0a1ac8a6354e7d6e8c08a7412330d549e66a3930",
+    "tests/cli/test_sarif_flag.py": "sha256:3ced9b369c6dfa0c7f396c10d089900c30732cdc7a89a1e1ecf42607eb0e1edb"
+  },
+  "created_at": "2026-06-17T08:20:06.430089+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:65efddcbd6e27e44c81c974b831e2e056148707a906a07bb0dfb0aac9def710c",
+      "prior_test_hashes": {
+        "tests/core/test_sarif.py": "sha256:bed5f1b9cd4523c4c57e34723a2b6f32688fdc94686a2d9dd73e043d6bee2701",
+        "tests/cli/test_sarif_flag.py": "sha256:301e6fd7f4169ad8d1dd678d5fb116ba0de288cf032e9eb02f1d0129940fc3db"
+      },
+      "revised_at": "2026-06-17T08:20:17.704911+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml -> manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:c38121e93117b32bedcd41bf35117461275ee50b6fdec241d25667a14b782754",
+      "prior_test_hashes": {
+        "tests/core/test_sarif.py": "sha256:bed5f1b9cd4523c4c57e34723a2b6f32688fdc94686a2d9dd73e043d6bee2701",
+        "tests/cli/test_sarif_flag.py": "sha256:301e6fd7f4169ad8d1dd678d5fb116ba0de288cf032e9eb02f1d0129940fc3db"
+      },
+      "revised_at": "2026-06-17T08:22:02.487368+00:00",
+      "reason": "Correct SARIF CLI behavioral tests to patch ValidationEngine at its source import path before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:c38121e93117b32bedcd41bf35117461275ee50b6fdec241d25667a14b782754",
+      "prior_test_hashes": {
+        "tests/core/test_sarif.py": "sha256:bed5f1b9cd4523c4c57e34723a2b6f32688fdc94686a2d9dd73e043d6bee2701",
+        "tests/cli/test_sarif_flag.py": "sha256:789cbcd0956908378995270eebcb1260040f98ed339c652433c1051fc4dee50f"
+      },
+      "revised_at": "2026-06-17T08:24:26.023302+00:00",
+      "reason": "Align SARIF severity mapping test with manifest-required result ordering by asserting levels by ruleId"
+    },
+    {
+      "prior_manifest_hash": "sha256:c38121e93117b32bedcd41bf35117461275ee50b6fdec241d25667a14b782754",
+      "prior_test_hashes": {
+        "tests/core/test_sarif.py": "sha256:b111b91d51f0cef3ea5ecc39f0ff8362bc0cad97b8c912fd74b970e790c865de",
+        "tests/cli/test_sarif_flag.py": "sha256:789cbcd0956908378995270eebcb1260040f98ed339c652433c1051fc4dee50f"
+      },
+      "revised_at": "2026-06-17T08:42:05.252520+00:00",
+      "reason": "Add SARIF coverage for verify report object diagnostics and validate coherence-only output"
+    },
+    {
+      "prior_manifest_hash": "sha256:c38121e93117b32bedcd41bf35117461275ee50b6fdec241d25667a14b782754",
+      "prior_test_hashes": {
+        "tests/core/test_sarif.py": "sha256:d38bb87fa16b8ac2b7a060f419a76029f36f3ec1b0f138f59d112e4ea54245bf",
+        "tests/cli/test_sarif_flag.py": "sha256:734e4155c51dfa02875a4dc621eb3db763c2bd9cdf588026e26d7b0a692314ab"
+      },
+      "revised_at": "2026-06-17T08:43:20.054444+00:00",
+      "reason": "Format revised SARIF behavioral tests without changing behavior"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T08:42:07.888399+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_sarif.py tests/cli/test_sarif_flag.py",
+        "exit_code": 1,
+        "output_tail": "        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-atomrem/pytest-309/test_cmd_validate_coherence_on0/coherence.sarif'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError\n----------------------------- Captured stdout call -----------------------------\nCoherence: FAIL\n  Checks run: \n  Issues: 1 errors, 0 warnings\n  ERROR [src/coherence.py] Duplicate artifact\n=========================== short test summary info ============================\nFAILED tests/core/test_sarif.py::test_build_sarif_report_includes_verify_report_object_errors\nFAILED tests/cli/test_sarif_flag.py::test_cmd_validate_coherence_only_writes_sarif\n2 failed, 13 passed in 0.25s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/sarif.py:function:build_sarif_report",
+      "maid_runner/core/sarif.py:function:build_sarif_report:arg=result:type=Union[ValidationResult, BatchValidationResult, VerificationResult]:default=None",
+      "maid_runner/core/sarif.py:function:build_sarif_report:kind=function",
+      "maid_runner/core/sarif.py:function:build_sarif_report:returns=dict",
+      "maid_runner/core/sarif.py:function:sarif_level_for_severity",
+      "maid_runner/core/sarif.py:function:sarif_level_for_severity:arg=severity:type=Severity:default=None",
+      "maid_runner/core/sarif.py:function:sarif_level_for_severity:kind=function",
+      "maid_runner/core/sarif.py:function:sarif_level_for_severity:returns=str",
+      "maid_runner/core/sarif.py:function:write_sarif_report",
+      "maid_runner/core/sarif.py:function:write_sarif_report:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/sarif.py:function:write_sarif_report:arg=report:type=dict:default=None",
+      "maid_runner/core/sarif.py:function:write_sarif_report:kind=function",
+      "maid_runner/core/sarif.py:function:write_sarif_report:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_sarif_flag.py",
+      "tests/core/test_sarif.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_sarif.py tests/cli/test_sarif_flag.py",
+      "uv run maid validate manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/065-02-add-sarif-output-to-validate-and-verify.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -140,6 +140,11 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         help="Write a failure packet JSON file on validation failure",
     )
+    p.add_argument(
+        "--sarif",
+        default=None,
+        help="Write a SARIF 2.1.0 report to the given path",
+    )
     p.add_argument("--quiet", action="store_true")
     p.add_argument("--watch", action="store_true")
     p.add_argument("--watch-all", action="store_true")
@@ -283,6 +288,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         const=".maid/last-failure-packet.json",
         default=None,
         help="Write a failure packet JSON file on verification failure",
+    )
+    p.add_argument(
+        "--sarif",
+        default=None,
+        help="Write a SARIF 2.1.0 report to the given path",
     )
     p.add_argument("--json", action="store_true")
 
