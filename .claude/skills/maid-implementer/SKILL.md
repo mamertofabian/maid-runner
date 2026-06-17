@@ -108,6 +108,20 @@ For `files.edit`:
 - add the declared artifacts conservatively
 - preserve existing behavior unless the tests require change
 
+### Active Task Scope Guidance
+
+When implementing a promoted draft, run
+`maid task start manifests/<slug>.manifest.yaml` after promotion and before
+implementation edits so hook integrations can evaluate writes against the
+active manifest. At handoff, after implementation review and Outcome capture,
+run `maid task stop` to clear the pointer.
+
+Interactive editor sessions use the default fail-open policy: no active task
+and internal hook errors allow the edit. Locked-down autonomous loops should
+pass `--strict` to deny those outcomes. The hook is advisory edit-time
+infrastructure only. maid verify changed-scope checks remain the authoritative handoff evidence.
+Hook decisions do not replace validation or add `ErrorCode` entries.
+
 ## Phase 4 — Validate Implementation
 
 Run:

@@ -123,7 +123,10 @@ MAID Runner section in `AGENTS.md`.
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
 | `maid serve` | Run a long-lived validator daemon over a Unix socket | `--socket`, `--pidfile`, `--project-root`, `--client-timeout` |
 
-**Exit codes:** `0` = success, `1` = validation failure, `2` = usage error. Use `--quiet` for automation.
+**General exit codes:** `0` = success, `1` = validation failure or internal
+error, `2` = usage error. Command-specific contracts can define narrower meanings.
+For example, `maid hook scope-check` exits `2` for a denied scope decision.
+Use `--quiet` for automation.
 
 ### Failure Packets For Agent Retries
 
@@ -144,6 +147,54 @@ exit code, project root, failed manifest excerpts, diagnostics with
 `next_action`, failed-command output tails, and environment versions. Retry
 loops should respect `next_action` kinds, stay within manifest scope, and stop
 at the documented attempt bound instead of silently weakening tests or manifests.
+
+## Edit-Time Scope Enforcement
+
+MAID can expose the active implementation contract to editor and agent hooks so
+out-of-scope writes are rejected before handoff. After promoting a draft
+manifest, start the task pointer:
+
+```bash
+maid task start manifests/<slug>.manifest.yaml
+```
+
+At handoff, after implementation review and Outcome capture, clear the pointer
+idempotently:
+
+```bash
+maid task stop
+```
+
+The active task resolver uses `MAID_ACTIVE_MANIFEST` first, then the
+single-line `.maid/active-manifest` file written by `maid task start`, and then
+falls back to no active task. `maid task status --json` reports the resolved
+path and whether it came from the environment, the file, or no active task.
+
+Hook integrations call `maid hook scope-check --path <file-path>` or pipe an
+agent event object to `maid hook scope-check --stdin` with a JSON
+`{"path": "..."}` payload. The command prints one JSON decision object:
+
+```json
+{"decision": "allow"|"deny", "reason": "...", "active_manifest": "..."}
+```
+
+It exits with exit code 0 for allow, 2 for deny, and 1 for internal errors. With
+no active task, the default fail-open policy allows the write with reason
+`no-active-task`; broken hook execution also fails open so an interactive editor
+is not bricked. Locked-down autonomous loops should pass `--strict`, which
+turns both no-active-task and internal-error outcomes into denies.
+
+With an active task, the hook allows the manifest's `files.create`,
+`files.edit`, and `files.delete` paths, the active manifest file, declared test
+files, and paths under `manifests/drafts/`. Other paths are denied with a
+reason naming the active manifest and nearby declared scope entries. The hook
+is fast advisory infrastructure only: maid verify changed-scope checks remain
+the authoritative handoff evidence, and hook decisions do not add `ErrorCode`
+entries.
+
+Hook wiring is installed by `maid init` payloads. Claude receives PreToolUse settings for write/edit tool events.
+Cursor receives `hooks.json`, and Codex receives managed `AGENTS.md` guidance
+for the same pre-edit decision semantics.
 
 Run `maid howto --section commands` for detailed usage and examples. For common
 failure modes, see [docs/troubleshooting.md](docs/troubleshooting.md) or run

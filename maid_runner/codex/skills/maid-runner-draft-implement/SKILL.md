@@ -103,6 +103,19 @@ uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml
 
 Do not manually move or copy draft manifests.
 
+After promotion and before implementation edits, start the active task so hook
+integrations can check writes against the promoted contract:
+
+```bash
+uv run maid task start manifests/<slug>.manifest.yaml
+```
+
+Interactive editor sessions use the default fail-open policy: no active task
+and internal hook errors allow the edit. Locked-down autonomous loops should
+pass `--strict` to deny those outcomes. The hook is advisory edit-time
+infrastructure only. maid verify changed-scope checks remain the authoritative handoff evidence.
+Hook decisions do not replace validation or add `ErrorCode` entries.
+
 3. If promotion warns that other active manifests still reference the draft
    path, report the warning and handle those references through their own
    approved manifest or plan-revision path. Do not broaden the selected draft
@@ -174,6 +187,8 @@ review notes, validation evidence, and any lessons.
 Do not report READY when Outcome is missing. Use `AUTOMATION_STATUS: READY`
 only after the promoted manifest has the `outcome:` section, unless the final
 response explicitly reports why Outcome is not applicable or is blocked.
+After Outcome capture, run `uv run maid task stop` to clear the active task
+pointer before handoff.
 
 ## Automation Reporting
 

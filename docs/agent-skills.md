@@ -40,6 +40,27 @@ The canonical guidance is
 completion metadata, not a substitute for behavioral tests, declared artifacts,
 validation commands, supersession, or implementation review.
 
+## Edit-Time Scope Lifecycle
+
+Implementation sessions that start from a promoted draft should make the active
+manifest visible to hook integrations. Run this after `maid manifest promote`:
+`maid task start manifests/<slug>.manifest.yaml` before implementation edits.
+After implementation review and Outcome capture, run at handoff:
+`maid task stop` to clear the active task pointer.
+
+Editor hooks and managed agent payloads may call `maid hook scope-check` before
+write/edit operations. Interactive sessions use the default fail-open policy:
+missing active-task state and internal hook errors allow the edit so a broken
+hook does not block the editor. Locked-down autonomous loops should pass `--strict`
+to deny both no-active-task and internal-error outcomes.
+
+`maid init` installs the hook wiring through managed payloads. Claude PreToolUse settings handle write/edit tool events.
+Cursor `hooks.json` and Codex managed `AGENTS.md` guidance cover pre-edit scope
+checks.
+
+The hook is advisory edit-time infrastructure. maid verify changed-scope checks remain the authoritative handoff evidence.
+Hook decisions add no `ErrorCode` entries.
+
 ## Outcome-Aware Skill Lifecycle
 
 Outcome records are deterministic manifest data. They are learned and recalled
