@@ -13,7 +13,7 @@ metadata:
     - ecosystem
   priority: medium
 description: |
-  Let the ecosystem add language validators (Go, Rust, Java, C#, and others)
+  Let the ecosystem add language validators (Rust, Go, Java, C#, and others)
   without this repository absorbing every parser's maintenance cost. The
   in-tree TypeScript validator already spans thousands of lines across
   implementation and behavioral collectors, and the roadmap deliberately
@@ -24,7 +24,7 @@ description: |
   prove it implements the contract correctly.
 
   This epic adds Python entry-point-based discovery so `pip install
-  maid-validator-go` is sufficient for `maid validate` to handle `.go` files,
+  maid-validator-rust` is sufficient for `maid validate` to handle `.rs` files,
   plus a conformance kit third-party authors run to verify their collector
   honors MAID semantics (strict/permissive modes, public/private artifact
   rules, behavioral reference identity, parse-error reporting).
@@ -105,7 +105,7 @@ description: |
      updates pointing language requests at the plugin path.
 
   Children 1 and 2 land in order; 3 and 4 may proceed in parallel after 1.
-  A reference plugin (for example a minimal Go validator) is intentionally
+  A reference plugin (for example a minimal Rust validator) is intentionally
   out of scope for this epic and should be planned as a separate repository
   once the conformance kit exists.
 temptations:

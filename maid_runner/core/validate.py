@@ -113,6 +113,7 @@ class ValidationEngine:
         check_assertions: bool = False,
         fail_on_warnings: bool = False,
         include_chain_diagnostics: bool = True,
+        include_plugin_diagnostics: bool = True,
     ) -> ValidationResult:
         outermost = self._enter_validation_cache_scope()
         start = time.monotonic()
@@ -127,6 +128,7 @@ class ValidationEngine:
                 check_assertions=check_assertions,
                 fail_on_warnings=fail_on_warnings,
                 include_chain_diagnostics=include_chain_diagnostics,
+                include_plugin_diagnostics=include_plugin_diagnostics,
                 start=start,
             )
         finally:
@@ -144,6 +146,7 @@ class ValidationEngine:
         check_assertions: bool,
         fail_on_warnings: bool,
         include_chain_diagnostics: bool,
+        include_plugin_diagnostics: bool,
         start: float,
     ) -> ValidationResult:
         # Load manifest if path
@@ -226,6 +229,9 @@ class ValidationEngine:
         if manifest.acceptance is not None:
             errors.extend(self.validate_acceptance(manifest))
 
+        if include_plugin_diagnostics:
+            errors.extend(self._registry.plugin_diagnostics())
+
         duration = (time.monotonic() - start) * 1000
 
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
@@ -256,7 +262,7 @@ class ValidationEngine:
         chain_outermost = _enter_manifest_chain_cache_scope()
         outermost = self._enter_validation_cache_scope()
         try:
-            return _run_validate_all(
+            result = _run_validate_all(
                 project_root=self._project_root,
                 manifest_dir=manifest_dir,
                 mode=mode,
@@ -265,13 +271,24 @@ class ValidationEngine:
                 check_stubs=check_stubs,
                 check_assertions=check_assertions,
                 fail_on_warnings=fail_on_warnings,
-                validate_manifest=self.validate,
+                validate_manifest=self._validate_for_validate_all,
                 run_file_tracking=self.run_file_tracking,
                 chain_factory=_get_cached_manifest_chain_for_validate_all,
             )
+            if mode != ValidationMode.SCHEMA:
+                plugin_diagnostics = self._registry.plugin_diagnostics()
+                if plugin_diagnostics:
+                    result.chain_errors.extend(plugin_diagnostics)
+                    if fail_on_warnings:
+                        result.failed += 1
+            return result
         finally:
             self._exit_validation_cache_scope(outermost)
             _exit_manifest_chain_cache_scope(chain_outermost)
+
+    def _validate_for_validate_all(self, *args, **kwargs) -> ValidationResult:
+        kwargs["include_plugin_diagnostics"] = False
+        return self.validate(*args, **kwargs)
 
     def validation_cache_scope(self) -> AbstractContextManager[None]:
         @contextmanager

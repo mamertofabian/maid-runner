@@ -1,0 +1,321 @@
+schema: '2'
+goal: Teach ValidatorRegistry to discover third-party validators from the maid_runner.validators entry-point group with deterministic ordering, built-in-wins precedence, isolated failures, validation-result diagnostics, and a kill switch
+type: feature
+created: '2026-06-17T22:22:37Z'
+metadata:
+  epic: 063-00-validator-plugin-distribution
+  tags:
+  - validators
+  - plugin-architecture
+  - ecosystem
+  priority: medium
+description: |
+  Add Python entry-point-based validator discovery so `pip install
+  maid-validator-rust` is sufficient for `maid validate` to handle `.rs`
+  files. `ValidatorRegistry.register()` already exists as a public
+  extension point, but only for callers who import and register classes
+  manually in their own process; this child adds the installable
+  distribution story.
+
+  Pinned decisions (do not redesign):
+
+  - Entry-point group name: `maid_runner.validators`. Each entry point
+    resolves to a `BaseValidator` subclass.
+  - Discovery happens once at `ValidatorRegistry` initialization (when the
+    registry with built-in validators is constructed), never lazily per
+    file lookup. Discovered plugins are ordered by distribution name then
+    entry-point name for determinism; load order never depends on import
+    side-effect timing.
+  - Built-in-wins rule: a plugin claiming an extension already claimed by
+    a built-in is registered as inactive for that extension and reported
+    with reserved code E903 VALIDATOR_PLUGIN_CONFLICT (warning severity).
+    A plugin must never silently shadow a built-in validator.
+  - Plugin import or registration failures are isolated per plugin and
+    reported with reserved code E902 VALIDATOR_PLUGIN_LOAD_FAILURE naming
+    the distribution; built-in validators stay fully functional. A broken
+    plugin must never break discovery of other plugins.
+  - Both codes join the E9xx environment family in
+    `maid_runner/core/result.py`. As of this draft, E900 (INTERNAL_ERROR)
+    and E901 (UNSUPPORTED_LANGUAGE) are taken and E902/E903 are free;
+    re-verify before implementation and take the next free E9xx value on
+    collision, recording the change in this description.
+  - Kill switch: the `MAID_DISABLE_VALIDATOR_PLUGINS=1` environment
+    variable disables discovery entirely. Skipped plugins must still be
+    representable with status `disabled` so `maid validators` (063-02)
+    can list them.
+
+  Behavior specifics:
+
+  - The registry exposes structured records (consumed by the 063-02 CLI
+    child) covering built-ins and plugins: name, claimed extensions,
+    source (`builtin` or distribution name and version), status (one of
+    `active`, `conflict`, `error`, `disabled`), and an optional detail
+    message (the load error text or the conflicting extensions). Record
+    ordering is deterministic: built-ins first, then plugins by
+    distribution name.
+  - The registry exposes the E902/E903 diagnostics as structured
+    `ValidationError` values (warning severity) so callers can surface
+    them in validation output without re-deriving plugin state.
+  - `ValidationEngine` surfaces registry plugin diagnostics without
+    re-running discovery: single-manifest behavioral and implementation
+    validation append E902/E903 values to the returned warnings, while
+    schema mode remains manifest-only. Directory-wide `validate_all`
+    reports those diagnostics once on the batch result (as warning
+    diagnostics) instead of duplicating them for every manifest. Existing
+    `fail_on_warnings` handling applies to these warnings.
+  - Built-in-wins is applied per extension: a plugin claiming both an
+    unclaimed extension (e.g. `.rs`) and a built-in-claimed extension
+    (e.g. `.py`) is registered for the unclaimed extension only, and its
+    record carries status `conflict` with the conflicting extensions in
+    the detail field.
+  - Two plugins claiming the same unclaimed extension are resolved by the
+    deterministic discovery order (first registered wins); the loser is
+    reported with the same E903 conflict code naming both distributions.
+  - When `MAID_DISABLE_VALIDATOR_PLUGINS=1` is set, no entry points are
+    resolved or imported; records for skipped plugins use the entry-point
+    metadata only (no plugin code runs) with status `disabled`.
+  - `register()` keeps its existing manual-registration semantics
+    unchanged; discovery is additive.
+
+  Test expectations (behavioral tests in
+  tests/validators/test_plugin_discovery.py, written during planning of
+  this child; entry points are simulated by patching the
+  importlib.metadata entry-point lookup, never by installing real
+  distributions):
+
+  - With no plugins installed, the registry behaves exactly as today and
+    validator_records lists only built-ins, all active.
+  - A well-formed fake plugin claiming an unclaimed extension becomes
+    active for it and get() returns the plugin validator for that
+    extension.
+  - A fake plugin claiming `.py` is not registered for `.py`, the
+    built-in PythonValidator still handles `.py`, and plugin_diagnostics
+    contains an E903 warning naming the distribution and extension.
+  - A fake plugin whose import raises is isolated: other plugins and all
+    built-ins register normally, and plugin_diagnostics contains an E902
+    warning naming the distribution.
+  - Discovery order and record order are deterministic across repeated
+    construction with shuffled entry-point input order.
+  - With MAID_DISABLE_VALIDATOR_PLUGINS=1, no plugin code is imported and
+    records show the skipped plugins with status disabled.
+  - Discovery runs once at construction, not on each get()/has_validator
+    call.
+  - Public registry lifecycle behavior remains coherent with the added
+    plugin state: `clone()` copies registered validators, validator
+    records, and diagnostics without sharing cached validator instances;
+    `clear()` removes validators, cached instances, records, and
+    diagnostics. Manual `register()` remains an explicit override API and
+    does not use plugin conflict rules.
+  - ValidationEngine.validate surfaces plugin diagnostics as warnings in
+    behavioral and implementation modes, does not surface them in schema
+    mode, and honors fail_on_warnings for plugin diagnostics.
+  - ValidationEngine.validate_all surfaces plugin diagnostics once for
+    the batch result rather than repeating the same warning per manifest.
+
+  Planning notes: the epic pins the group name, ordering, precedence,
+  codes, and kill switch, but not the record or diagnostic API names; this
+  child conservatively declares `ValidatorRecord`, the
+  `validator_records()` method, and the `plugin_diagnostics()` method as
+  below. Resolving same-extension conflicts between two plugins by
+  deterministic discovery order with an E903 report is the conservative
+  extension of the built-in-wins rule and is recorded here. Surfacing
+  E902/E903 from `ValidationEngine` in this child keeps the diagnostics
+  on the same path as every `maid validate` caller; the 063-02 CLI child
+  remains an audit view, not the only reporting path.
+
+  Out of scope: the `maid validators` CLI listing (063-02), the
+  conformance kit (063-03), authoring documentation (063-04), and any new
+  in-tree language validator.
+temptations:
+- risk: Do not let plugins override built-in validators for extensions the built-ins already claim.
+  instead: Enforce documented built-in-wins precedence with a structured E903 conflict diagnostic so trusted parsing never changes silently on install.
+- risk: Do not swallow plugin import or registration errors.
+  instead: Isolate each plugin load, report a structured E902 diagnostic naming the distribution, and keep built-ins functional.
+- risk: Do not make discovery order depend on import side-effect timing or filesystem ordering.
+  instead: Sort discovered entry points by distribution name then entry-point name before registration.
+- risk: Do not start writing new in-tree language validators while building the plugin path.
+  instead: Ship discovery and auditability only; reference plugins live in separate repositories.
+files:
+  edit:
+  - path: maid_runner/validators/registry.py
+    artifacts:
+    - kind: class
+      name: ValidatorRecord
+      description: 'Inspectable record of one registered or skipped validator: name, claimed extensions, source, status, and optional detail.'
+    - kind: attribute
+      name: name
+      of: ValidatorRecord
+      type: str
+    - kind: attribute
+      name: extensions
+      of: ValidatorRecord
+      type: tuple[str, ...]
+    - kind: attribute
+      name: source
+      of: ValidatorRecord
+      type: str
+    - kind: attribute
+      name: status
+      of: ValidatorRecord
+      type: str
+    - kind: attribute
+      name: detail
+      of: ValidatorRecord
+      type: str | None
+    - kind: method
+      name: with_builtin_validators
+      of: ValidatorRegistry
+      args: []
+      returns: ValidatorRegistry
+      description: Construct the registry with built-ins, then discover maid_runner.validators entry points once with deterministic ordering, built-in-wins precedence, isolated failures, and the kill switch.
+    - kind: method
+      name: clone
+      of: ValidatorRegistry
+      args: []
+      returns: ValidatorRegistry
+      description: Copy registered validator classes, validator records, and plugin diagnostics while leaving cached validator instances isolated.
+    - kind: method
+      name: clear
+      of: ValidatorRegistry
+      args: []
+      returns: None
+      description: Clear validator registrations, cached instances, validator records, and plugin diagnostics.
+    - kind: method
+      name: validator_records
+      of: ValidatorRegistry
+      args: []
+      returns: tuple[ValidatorRecord, ...]
+      description: Deterministically ordered records for built-ins (first) and plugins (by distribution name), including conflict, error, and disabled entries.
+    - kind: method
+      name: plugin_diagnostics
+      of: ValidatorRegistry
+      args: []
+      returns: list[ValidationError]
+      description: Structured E902 VALIDATOR_PLUGIN_LOAD_FAILURE and E903 VALIDATOR_PLUGIN_CONFLICT warnings naming the affected distributions.
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: VALIDATOR_PLUGIN_LOAD_FAILURE
+      of: ErrorCode
+      type: str
+      description: 'Reserved code E902: a validator plugin failed to import or register; the distribution is named and built-ins stay functional.'
+    - kind: attribute
+      name: VALIDATOR_PLUGIN_CONFLICT
+      of: ErrorCode
+      type: str
+      description: 'Reserved code E903 (warning severity): a plugin claimed an extension already claimed by a built-in or an earlier plugin.'
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: method
+      name: validate
+      of: ValidationEngine
+      args:
+      - name: manifest
+        type: Union[Manifest, str, Path]
+      returns: ValidationResult
+      description: Single-manifest behavioral and implementation validation appends registry plugin diagnostics as warnings, leaves schema mode manifest-only, and applies fail_on_warnings to plugin warnings.
+    - kind: method
+      name: validate_all
+      of: ValidationEngine
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '"manifests/"'
+      returns: BatchValidationResult
+      description: Directory-wide validation surfaces registry plugin diagnostics once on the batch result instead of duplicating them per manifest.
+  read:
+  - maid_runner/validators/base.py
+  - maid_runner/validators/__init__.py
+  - tests/validators/test_plugin_discovery.py
+  - tests/core/test_validate_plugin_diagnostics.py
+validate:
+- uv run python -m pytest tests/validators/test_plugin_discovery.py -v
+- uv run python -m pytest tests/core/test_validate_plugin_diagnostics.py -v
+- uv run maid validate manifests/063-01-add-entry-point-validator-discovery.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: Entry-point validator plugin discovery now loads maid_runner.validators plugins once during built-in registry construction, records plugin state, preserves built-in precedence, isolates plugin failures, supports MAID_DISABLE_VALIDATOR_PLUGINS=1, and surfaces E902/E903 diagnostics through single and batch validation results.
+  rationale: The implementation keeps manual register() semantics unchanged while adding deterministic entry-point discovery ordered by distribution name then entry-point name. Built-ins and earlier plugin claims win extension conflicts; conflicting plugins still get inspectable records and warning diagnostics instead of silently shadowing trusted validators. ValidationEngine appends plugin diagnostics once on the relevant validation surface while leaving schema mode manifest-only.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_plugin_discovery.py
+    - tests/core/test_validate_plugin_diagnostics.py
+    - -q
+    status: passed
+    summary: Focused plugin discovery and validation diagnostic propagation tests passed with 16 scenarios.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/063-01-add-entry-point-validator-discovery.manifest.yaml
+    - --mode
+    - behavioral
+    - --quiet
+    status: passed
+    summary: Promoted manifest behavioral contract passed against the final tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/063-01-add-entry-point-validator-discovery.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: Promoted manifest implementation contract passed against declared artifacts.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed with 351 manifests, 265 passed, 0 failed, and 86 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 127 commands and 0 failed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: Strict verify passed after the active task pointer was cleared, including plan_lock, worktree_scope, changed_scope, and tests.
+  review_notes:
+  - source: independent-reviewer
+    severity: info
+    summary: Initial review found only the generated .maid/active-manifest pointer still present; no code-level findings.
+  - source: independent-reviewer
+    severity: info
+    summary: Re-review found no findings after running maid task stop; verdict ready.
+  lessons:
+  - lesson_type: workflow
+    summary: Tests for newly declared public symbols should avoid module-import collection failures so plan-lock red evidence records assertion-level behavioral failures rather than invalid pytest collection errors.
+    tags:
+    - plan-lock
+    - red-evidence
+    - tests
+    paths:
+    - tests/validators/test_plugin_discovery.py
+  - lesson_type: workflow
+    summary: After adding an outcome section or making no-behavior post-review metadata changes, refresh the plan lock with --preserve-red-evidence when the existing evidence is valid red.
+    tags:
+    - outcome
+    - plan-lock
+    paths:
+    - manifests/063-01-add-entry-point-validator-discovery.manifest.yaml
+  completed_at: '2026-06-17T22:47:31Z'

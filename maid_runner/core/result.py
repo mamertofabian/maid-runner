@@ -82,6 +82,8 @@ class ErrorCode(str, Enum):
 
     INTERNAL_ERROR = "E900"
     UNSUPPORTED_LANGUAGE = "E901"
+    VALIDATOR_PLUGIN_LOAD_FAILURE = "E902"
+    VALIDATOR_PLUGIN_CONFLICT = "E903"
 
 
 class Severity(str, Enum):

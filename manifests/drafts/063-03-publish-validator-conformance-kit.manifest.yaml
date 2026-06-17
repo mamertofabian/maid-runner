@@ -67,7 +67,7 @@ description: |
   Behavior specifics:
 
   - `ConformanceFixtures` is the fixture container: `extension` (the
-    file extension samples use, e.g. ".go"), `artifact_samples` (mapping
+    file extension samples use, e.g. ".rs"), `artifact_samples` (mapping
     of artifact kind value to a `ConformanceArtifactSample` carrying the
     source text and the expected public artifact name and optional `of`
     parent), `private_artifact_source`, `behavioral_target_kind`,

@@ -13,7 +13,7 @@ metadata:
   priority: medium
 description: |
   Write the plugin authoring guide so the ecosystem can add language
-  validators (Go, Rust, Java, C#, and others) without this repository
+  validators (Rust, Go, Java, C#, and others) without this repository
   absorbing every parser's maintenance cost, and point language requests
   at the plugin path instead of in-tree additions.
 
@@ -56,7 +56,7 @@ description: |
     for its language.
   - Support boundary: plugins own their parser quality; MAID Runner owns
     the contract. Language requests against this repository are answered
-    with the plugin path; a reference plugin (for example a minimal Go
+    with the plugin path; a reference plugin (for example a minimal Rust
     validator) lives in a separate repository, not in-tree.
 
   Content requirements:

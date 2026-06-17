@@ -1,0 +1,163 @@
+{
+  "manifest_path": "manifests/063-01-add-entry-point-validator-discovery.manifest.yaml",
+  "manifest_hash": "sha256:65b0d7ccd1d673aefcfbd457ffdd6a93638ff3650462c08421ef25e374cfbd3c",
+  "test_hashes": {
+    "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+    "tests/core/test_validate_plugin_diagnostics.py": "sha256:f4da37a0e3c03bd674e4fef322889305b63dfb2ba50e0f694330a291a6049651"
+  },
+  "created_at": "2026-06-17T22:22:30.437444+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:655be1672ed9ed3ba2cb51a1640b74538ff965521a76ae42697535870296776a",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:2e320e8152c717f7179fd48851e5c50a5237698914b9056cb10044c0422cb418",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:fc6c77912ed7570a14bc22549b512ecc3d9248105b44ef043e602fcd54d1eaee"
+      },
+      "revised_at": "2026-06-17T22:22:37.783070+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-01-add-entry-point-validator-discovery.manifest.yaml -> manifests/063-01-add-entry-point-validator-discovery.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:f1ffd99e850c24d15cacf206a2b1936032950ce3d95fc078e58743d8ef6ca985",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:2e320e8152c717f7179fd48851e5c50a5237698914b9056cb10044c0422cb418",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:fc6c77912ed7570a14bc22549b512ecc3d9248105b44ef043e602fcd54d1eaee"
+      },
+      "revised_at": "2026-06-17T22:28:11.678401+00:00",
+      "reason": "Refresh lock after formatting behavioral tests and replacing invalid collection-time red evidence with assertion-level red evidence"
+    },
+    {
+      "prior_manifest_hash": "sha256:f1ffd99e850c24d15cacf206a2b1936032950ce3d95fc078e58743d8ef6ca985",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:0a8aacaabf0cf67ea1b16f3413a842b182b20b3bfcb2630cca5faafe5da0c654",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:f4da37a0e3c03bd674e4fef322889305b63dfb2ba50e0f694330a291a6049651"
+      },
+      "revised_at": "2026-06-17T22:28:56.408934+00:00",
+      "reason": "Refresh lock after strengthening ValidatorRecord behavioral reference while preserving assertion-level red failures"
+    },
+    {
+      "prior_manifest_hash": "sha256:f1ffd99e850c24d15cacf206a2b1936032950ce3d95fc078e58743d8ef6ca985",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:91a053833b31dab644076c4fa47fecff22f38184e28d91d07bc86fdf9333a164",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:f4da37a0e3c03bd674e4fef322889305b63dfb2ba50e0f694330a291a6049651"
+      },
+      "revised_at": "2026-06-17T22:33:12.938728+00:00",
+      "reason": "Refresh lock after no-behavior cleanup of ValidatorRecord test reference"
+    },
+    {
+      "prior_manifest_hash": "sha256:f1ffd99e850c24d15cacf206a2b1936032950ce3d95fc078e58743d8ef6ca985",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:f4da37a0e3c03bd674e4fef322889305b63dfb2ba50e0f694330a291a6049651"
+      },
+      "revised_at": "2026-06-17T22:48:11.758398+00:00",
+      "reason": "Capture outcome metadata after ready implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:0081afda7f32e95343edb90e47097cbaef963a2d1aa297da7efab64beb97094e",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+        "tests/core/test_validate_plugin_diagnostics.py": "sha256:f4da37a0e3c03bd674e4fef322889305b63dfb2ba50e0f694330a291a6049651"
+      },
+      "revised_at": "2026-06-17T23:20:39.751053+00:00",
+      "reason": "Update plugin examples from Go to Rust in 063 planning text"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T22:28:57.151324+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_plugin_discovery.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        clone = registry.clone()\n    \n        assert clone.validator_records() == registry.validator_records()\n        assert clone.plugin_diagnostics() == registry.plugin_diagnostics()\n>       assert isinstance(clone.plugin_diagnostics()[0], ValidationError)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       IndexError: list index out of range\n\ntests/validators/test_plugin_discovery.py:369: IndexError\n=========================== short test summary info ============================\nFAILED tests/validators/test_plugin_discovery.py::test_well_formed_plugin_claiming_unclaimed_extension_becomes_active\nFAILED tests/validators/test_plugin_discovery.py::test_plugin_conflicting_with_builtin_does_not_replace_builtin\nFAILED tests/validators/test_plugin_discovery.py::test_plugin_import_failure_isolated_from_builtins_and_other_plugins\nFAILED tests/validators/test_plugin_discovery.py::test_discovery_and_record_order_are_deterministic\nFAILED tests/validators/test_plugin_discovery.py::test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers\nFAILED tests/validators/test_plugin_discovery.py::test_disable_environment_records_plugins_without_importing_them\nFAILED tests/validators/test_plugin_discovery.py::test_discovery_runs_once_at_construction\nFAILED tests/validators/test_plugin_discovery.py::test_clone_copies_records_and_diagnostics_without_sharing_instances\n========================= 8 failed, 2 passed in 0.14s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_validate_plugin_diagnostics.py -v",
+        "exit_code": 1,
+        "output_tail": "        _write_source_and_test(project, \"greet\")\n    \n        result = ValidationEngine(project_root=project).validate_all(\n            \"manifests\",\n            mode=ValidationMode.IMPLEMENTATION,\n            fail_on_warnings=True,\n        )\n    \n>       assert result.success is False\nE       AssertionError: assert True is False\nE        +  where True = BatchValidationResult(results=[ValidationResult(success=True, manifest_slug='greet', manifest_path='/tmp/pytest-of-atomrem/pytest-16/test_validate_all_fail_on_warn0/manifests/greet.manifest.yaml', mode=<ValidationMode.IMPLEMENTATION: 'implementation'>, errors=[], warnings=[], file_tracking=None, duration_ms=0.7380320002994267)], total_manifests=1, passed=1, failed=0, skipped=0, chain_errors=[], duration_ms=1.817393999772321).success\n\ntests/core/test_validate_plugin_diagnostics.py:232: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_validate_plugin_diagnostics.py::test_validate_surfaces_plugin_diagnostics_for_behavioral_validation\nFAILED tests/core/test_validate_plugin_diagnostics.py::test_validate_surfaces_plugin_diagnostics_for_implementation_validation\nFAILED tests/core/test_validate_plugin_diagnostics.py::test_validate_fail_on_warnings_applies_to_plugin_diagnostics\nFAILED tests/core/test_validate_plugin_diagnostics.py::test_validate_all_surfaces_plugin_diagnostics_once_for_batch\nFAILED tests/core/test_validate_plugin_diagnostics.py::test_validate_all_fail_on_warnings_applies_to_batch_plugin_diagnostics\n========================= 5 failed, 1 passed in 0.13s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/063-01-add-entry-point-validator-discovery.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_CONFLICT",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_CONFLICT:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_CONFLICT:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_CONFLICT:type=str",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_LOAD_FAILURE",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_LOAD_FAILURE:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_LOAD_FAILURE:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.VALIDATOR_PLUGIN_LOAD_FAILURE:type=str",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate:arg=manifest:type=Union[Manifest, str, Path]:default=None",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate:returns=ValidationResult",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_all",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_all:arg=manifest_dir:type=Union[str, Path]:default=\"manifests/\"",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_all:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_all:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_all:returns=BatchValidationResult",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.detail",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.detail:kind=attribute",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.detail:of=ValidatorRecord",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.detail:type=str | None",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.extensions",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.extensions:kind=attribute",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.extensions:of=ValidatorRecord",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.extensions:type=tuple[str, ...]",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.name",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.name:kind=attribute",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.name:of=ValidatorRecord",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.name:type=str",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.source",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.source:kind=attribute",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.source:of=ValidatorRecord",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.source:type=str",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.status",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.status:kind=attribute",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.status:of=ValidatorRecord",
+      "maid_runner/validators/registry.py:attribute:ValidatorRecord.status:type=str",
+      "maid_runner/validators/registry.py:class:ValidatorRecord",
+      "maid_runner/validators/registry.py:class:ValidatorRecord:kind=class",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clear",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clear:kind=method",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clear:of=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clear:returns=None",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clone",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clone:kind=method",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clone:of=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.clone:returns=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.plugin_diagnostics",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.plugin_diagnostics:kind=method",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.plugin_diagnostics:of=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.plugin_diagnostics:returns=list[ValidationError]",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.validator_records",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.validator_records:kind=method",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.validator_records:of=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.validator_records:returns=tuple[ValidatorRecord, ...]",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.with_builtin_validators",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.with_builtin_validators:kind=method",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.with_builtin_validators:of=ValidatorRegistry",
+      "maid_runner/validators/registry.py:method:ValidatorRegistry.with_builtin_validators:returns=ValidatorRegistry"
+    ],
+    "test_files": [
+      "tests/core/test_validate_plugin_diagnostics.py",
+      "tests/validators/test_plugin_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_plugin_discovery.py -v",
+      "uv run python -m pytest tests/core/test_validate_plugin_diagnostics.py -v",
+      "uv run maid validate manifests/063-01-add-entry-point-validator-discovery.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
