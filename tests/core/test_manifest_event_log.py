@@ -438,7 +438,7 @@ class TestDuplicateSequenceNumber:
 
 
 class TestCreatedTimestampDiagnostics:
-    def test_date_only_created_emits_imprecise_timestamp_warning(
+    def test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning(
         self, tmp_path: Path
     ) -> None:
         manifest_dir = tmp_path / "manifests"
@@ -455,7 +455,90 @@ class TestCreatedTimestampDiagnostics:
         diags = chain.diagnostics()
 
         warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert warnings == []
+
+    def test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "offset.manifest.yaml",
+            goal="offset",
+            created="2026-04-25T10:49:00+08:00",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert warnings == []
+
+    def test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "microsecond.manifest.yaml",
+            goal="microsecond",
+            created="2026-03-26T05:46:09.503497+00:00",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert warnings == []
+
+    def test_policy_date_only_created_still_emits_imprecise_timestamp_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "policy-date-only.manifest.yaml",
+            goal="policy date only",
+            created="2026-06-03",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
         assert len(warnings) == 1, f"Expected imprecise created warning: {diags}"
+
+    def test_offset_created_policy_boundary_uses_utc_instant(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "pre-policy-offset.manifest.yaml",
+            goal="pre policy offset",
+            created="2026-06-03T07:00:00+08:00",
+        )
+        _write_manifest(
+            manifest_dir,
+            "policy-offset.manifest.yaml",
+            goal="policy offset",
+            created="2026-06-03T08:00:00+08:00",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert len(warnings) == 1, f"Expected one policy warning: {diags}"
+        assert "policy-offset" in warnings[0].message
 
     def test_full_utc_created_timestamp_emits_no_imprecise_warning(
         self, tmp_path: Path
@@ -496,7 +579,7 @@ class TestCreatedTimestampDiagnostics:
         warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
         assert warnings == []
 
-    def test_duplicate_unsequenced_created_emits_ordering_warning(
+    def test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning(
         self, tmp_path: Path
     ) -> None:
         manifest_dir = tmp_path / "manifests"
@@ -521,8 +604,81 @@ class TestCreatedTimestampDiagnostics:
         duplicates = [
             d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
         ]
+        assert duplicates == []
+
+    def test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-04-25T10:49:00+08:00",
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-04-25T10:49:00+08:00",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        duplicates = [
+            d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
+        ]
+        assert duplicates == []
+
+    def test_policy_duplicate_created_still_emits_duplicate_unsequenced_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "a.manifest.yaml",
+            goal="first",
+            created="2026-06-03T00:00:00+00:00",
+        )
+        _write_manifest(
+            manifest_dir,
+            "b.manifest.yaml",
+            goal="second",
+            created="2026-06-03T00:00:00+00:00",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        duplicates = [
+            d for d in diags if d.code == ErrorCode.DUPLICATE_UNSEQUENCED_CREATED
+        ]
         assert len(duplicates) == 1, f"Expected duplicate created warning: {diags}"
         assert "falls back to slug" in duplicates[0].message
+
+    def test_unclassifiable_created_still_emits_imprecise_timestamp_warning(
+        self, tmp_path: Path
+    ) -> None:
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+
+        _write_manifest(
+            manifest_dir,
+            "unclassifiable.manifest.yaml",
+            goal="unclassifiable",
+            created="not-a-timestamp",
+        )
+
+        chain = ManifestChain(manifest_dir, tmp_path)
+        diags = chain.diagnostics()
+
+        warnings = [d for d in diags if d.code == ErrorCode.IMPRECISE_CREATED_TIMESTAMP]
+        assert len(warnings) == 1, f"Expected imprecise created warning: {diags}"
 
     def test_duplicate_created_is_not_ambiguous_when_sequence_numbers_exist(
         self, tmp_path: Path

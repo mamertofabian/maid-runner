@@ -1,0 +1,348 @@
+schema: '2'
+goal: Quiet legacy E118/E119 created-order warnings while preserving diagnostics for new ambiguous manifests.
+type: fix
+created: '2026-06-17T03:00:18Z'
+metadata:
+  tags:
+  - validation-noise
+  - manifest-chain
+  - created-timestamp
+  priority: high
+description: |
+  Normal repository health checks currently exit successfully but print 239
+  E118/E119 created-order advisory warnings from historical active manifests.
+  The warnings are structurally correct, but they now dominate every clean
+  `maid validate --quiet`, `maid test`, and verify handoff transcript. That
+  makes new chain diagnostics harder to see and forces every workflow report to
+  explain the same known historical baseline.
+
+  This draft narrows the created-order diagnostic policy to active unsequenced
+  manifests whose `created` value is at or after the UTC timestamp policy
+  adoption instant, 2026-06-03T00:00:00Z. Parseable earlier created values are
+  treated as legacy metadata and do not emit E118 or participate in E119
+  duplicate-created groups. New/future ambiguous manifests still warn:
+
+  - date-only or non-UTC created values at or after 2026-06-03T00:00:00Z still
+    emit E118;
+  - duplicate unsequenced created values at or after 2026-06-03T00:00:00Z still
+    emit E119;
+  - sequenced manifests remain exempt because sequence_number supplies order;
+  - malformed created strings that cannot be classified as legacy still warn
+    rather than disappearing silently.
+
+  Boundary rule: legacy classification uses a UTC instant, not the literal date
+  prefix. Date-only values are treated as midnight UTC for that date. Datetime
+  values with offsets or fractional seconds are parsed and normalized to UTC.
+  For example, `2026-06-03T07:00:00+08:00` is
+  `2026-06-02T23:00:00Z`, so it is pre-policy legacy metadata and should be
+  quiet. `2026-06-03T08:00:00+08:00` is exactly the policy instant and should
+  still warn when imprecise or duplicated.
+
+  The planned tests cover all real warning shapes observed in this repository:
+  date-only values, offset datetimes such as `2026-04-25T10:49:00+08:00`, and
+  fractional-second UTC datetimes such as `2026-03-26T05:46:09.503497+00:00`.
+
+  Evolution strategy: chain merge rather than structural supersession. The
+  public API shape of `ManifestChain.diagnostics()` is unchanged, no artifact is
+  removed, and the active verify behavior from 060 remains valid for future
+  E118/E119 diagnostics. This draft intentionally evolves the policy recorded
+  by 059 from "warn on every historical ambiguity" to "warn on actionable
+  post-policy ambiguity" because the all-history warning stream has become
+  operational noise in this repository.
+
+  Out of scope:
+
+  - editing historical manifest `created` values;
+  - adding sequence_number to old manifests;
+  - hiding E118/E119 globally or changing their severity;
+  - changing event-log ordering, which remains sequence_number, then created,
+    then slug.
+temptations:
+- risk: Do not edit the 239 historical manifests just to make validation output quiet.
+  instead: Change only the diagnostic policy and prove the historical values are treated as a legacy baseline.
+- risk: Do not suppress E118/E119 by code at the formatter or verify layer.
+  instead: Filter only legacy-created candidates before chain diagnostics are produced, so JSON and text output agree.
+- risk: Do not reintroduce a broad blind spot for malformed or future created values.
+  instead: Keep tests showing post-policy date-only, duplicate, and unclassifiable created values still warn.
+- risk: Do not change event ordering to solve warning noise.
+  instead: Leave slug fallback deterministic and only adjust whether legacy ambiguity is reported in normal health output.
+- risk: Do not implement legacy classification with date-only regex branches that miss offset or fractional-second historical values.
+  instead: Use one parse-to-UTC-instant classifier for date-only, offset datetime, and fractional-second UTC created values.
+files:
+  edit:
+  - path: maid_runner/core/chain.py
+    artifacts:
+    - kind: method
+      name: diagnostics
+      of: ManifestChain
+      args: []
+      returns: list[ValidationError]
+      description: Return normal chain diagnostics while omitting E118/E119 entries that come only from parseable pre-2026-06-03 legacy created values.
+  - path: tests/core/test_manifest_event_log.py
+    artifacts:
+    - kind: test_function
+      name: test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning
+      source_scenario: An active unsequenced manifest has a parseable date-only created value before 2026-06-03.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy manifest.
+    - kind: test_function
+      name: test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning
+      source_scenario: An active unsequenced manifest has a parseable offset datetime created value before 2026-06-03T00:00:00Z, such as 2026-04-25T10:49:00+08:00.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy offset datetime manifest.
+    - kind: test_function
+      name: test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning
+      source_scenario: An active unsequenced manifest has a parseable fractional-second UTC created value before 2026-06-03T00:00:00Z, such as 2026-03-26T05:46:09.503497+00:00.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy fractional-second UTC manifest.
+    - kind: test_function
+      name: test_policy_date_only_created_still_emits_imprecise_timestamp_warning
+      source_scenario: An active unsequenced manifest has a date-only created value on 2026-06-03 or later.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics reports IMPRECISE_CREATED_TIMESTAMP so future ambiguous metadata remains visible.
+    - kind: test_function
+      name: test_offset_created_policy_boundary_uses_utc_instant
+      source_scenario: 'Two active unsequenced manifests use offset datetimes around the policy instant: 2026-06-03T07:00:00+08:00 and 2026-06-03T08:00:00+08:00.'
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics treats 2026-06-03T07:00:00+08:00 as pre-policy legacy metadata and keeps it quiet, but reports IMPRECISE_CREATED_TIMESTAMP for 2026-06-03T08:00:00+08:00.
+    - kind: test_function
+      name: test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning
+      source_scenario: Two active unsequenced manifests share the same parseable created value before 2026-06-03.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics returns no DUPLICATE_UNSEQUENCED_CREATED warning for that legacy duplicate group.
+    - kind: test_function
+      name: test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning
+      source_scenario: Two active unsequenced manifests share the same parseable offset datetime created value before 2026-06-03T00:00:00Z.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics returns no DUPLICATE_UNSEQUENCED_CREATED warning for that legacy offset duplicate group.
+    - kind: test_function
+      name: test_policy_duplicate_created_still_emits_duplicate_unsequenced_warning
+      source_scenario: Two active unsequenced manifests share the same created value on 2026-06-03 or later.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics reports DUPLICATE_UNSEQUENCED_CREATED and keeps the slug fallback explanation.
+    - kind: test_function
+      name: test_unclassifiable_created_still_emits_imprecise_timestamp_warning
+      source_scenario: An active unsequenced manifest has an imprecise created value that cannot be parsed or classified as pre-policy legacy metadata.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: diagnostics reports IMPRECISE_CREATED_TIMESTAMP instead of silently treating the value as grandfathered.
+  - path: tests/cli/test_validate_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_validate_quiet_omits_pre_policy_created_chain_warnings
+      source_scenario: A valid fixture project has only pre-policy E118/E119 candidates covering date-only, offset datetime, fractional-second UTC datetime, and duplicate legacy created groups.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: main(['validate', '--quiet']) exits 0 and stdout contains no E118 or E119 lines for any grandfathered warning shape.
+    - kind: test_function
+      name: test_validate_quiet_keeps_policy_created_chain_warnings
+      source_scenario: A valid fixture project has a post-policy date-only or duplicate unsequenced created value.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: main(['validate', '--quiet']) exits 0 and still prints the actionable E118/E119 warning.
+  - path: tests/cli/test_verify_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_verify_legacy_manifest_warning_is_quiet_by_default
+      source_scenario: A verify fixture has a pre-policy created value plus an advisory missing-assertion warning.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: main(['verify', '--no-changed-scope']) still passes and reports the real missing-assertion warning without printing an E118 legacy-created warning.
+    - kind: test_function
+      name: test_verify_created_timestamp_chain_warning_is_advisory_by_default
+      source_scenario: A verify fixture has a post-policy date-only unsequenced created value.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: main(['verify', '--no-changed-scope']) passes by default and keeps the E118 advisory warning visible.
+    - kind: test_function
+      name: test_verify_duplicate_created_chain_warning_is_advisory_by_default
+      source_scenario: A verify fixture has duplicate post-policy unsequenced created values.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: main(['verify', '--no-changed-scope']) passes by default and keeps the E119 advisory warning visible with the slug fallback message.
+  read:
+  - manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml
+  - manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml
+  - manifests/060-01-keep-created-chain-warnings-advisory-in-verify.manifest.yaml
+  - maid_runner/core/result.py
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/_format.py
+  - maid_runner/cli/commands/validate.py
+  - maid_runner/cli/commands/verify.py
+validate:
+- uv run python -m pytest tests/core/test_manifest_event_log.py tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py -q
+- uv run maid validate manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml --mode schema --quiet
+- uv run maid validate --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-17T03:12:19Z"
+  summary: "Quieted historical E118/E119 created-order warning noise while preserving actionable diagnostics for post-policy and malformed created metadata."
+  rationale: "The implementation filters legacy created-order candidates inside ManifestChain diagnostics, before text or JSON formatting, by parsing date-only, offset datetime, and fractional-second datetime values to UTC instants and comparing them with the 2026-06-03T00:00:00Z policy cutoff. This keeps historical active manifests quiet without editing them, while post-policy imprecise or duplicate unsequenced created values and unclassifiable values continue to warn."
+  lessons:
+  - lesson_type: validation-policy
+    summary: "When grandfathering historical timestamp diagnostics, classify all real stored timestamp shapes through one UTC-instant parser instead of format-specific regex branches."
+    tags:
+    - manifest-chain
+    - created-timestamp
+    - validation-noise
+    paths:
+    - maid_runner/core/chain.py
+    - tests/core/test_manifest_event_log.py
+  - lesson_type: workflow-hardening
+    summary: "Formatting behavioral tests after plan lock changes test hashes, so use plan revise with preserved red evidence before strict verify."
+    tags:
+    - plan-lock
+    - red-evidence
+    - workflow
+    paths:
+    - .maid/plan-locks/072-01-quiet-legacy-created-chain-warnings.lock.json
+    - tests/cli/test_validate_cmd.py
+  review_notes:
+  - source: implementation-review-subagent
+    severity: info
+    summary: "Independent read-only review found no findings, confirmed the implementation filters at chain-diagnostic production time, and returned verdict Ready to merge."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_manifest_event_log.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+    - -q
+    status: failed
+    summary: "Red phase before production changes failed with 8 intended E118/E119 behavior failures and 194 passing tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml
+    - --mode
+    - behavioral
+    - --quiet
+    status: passed
+    summary: "Behavioral manifest validation passed after planned tests were added."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_manifest_event_log.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+    - -q
+    status: passed
+    summary: "Focused tests passed with 202 tests after implementation."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/chain.py
+    - tests/core/test_manifest_event_log.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+    status: passed
+    summary: "Focused Ruff check passed."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/core/chain.py
+    - tests/core/test_manifest_event_log.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_verify_cmd.py
+    status: passed
+    summary: "Focused Black check passed after formatting the validate CLI test file."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    status: passed
+    summary: "Repository validation passed with no E118/E119 output."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full MAID test gate passed with 114 commands passing."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict verify passed; schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests passed with existing E307/E310 warnings only."

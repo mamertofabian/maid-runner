@@ -171,6 +171,50 @@ def _write_run_tests_project(
     return manifest_path
 
 
+def _write_created_warning_manifest(
+    tmp_path: Path,
+    *,
+    slug: str,
+    created: str,
+    function_name: str,
+) -> None:
+    src_path = tmp_path / "src" / f"{function_name}.py"
+    test_path = tmp_path / "tests" / f"test_{function_name}.py"
+    src_path.parent.mkdir(exist_ok=True)
+    test_path.parent.mkdir(exist_ok=True)
+    src_path.write_text(
+        f"def {function_name}() -> str:\n    value = 'ok'\n    return value\n"
+    )
+    test_path.write_text(
+        f"from src.{function_name} import {function_name}\n\n"
+        f"def test_{function_name}():\n"
+        f"    assert {function_name}() == 'ok'\n"
+    )
+    manifest = {
+        "schema": "2",
+        "goal": f"Created warning fixture {slug}",
+        "type": "feature",
+        "created": created,
+        "files": {
+            "create": [
+                {
+                    "path": f"src/{function_name}.py",
+                    "artifacts": [
+                        {
+                            "kind": "function",
+                            "name": function_name,
+                            "returns": "str",
+                        }
+                    ],
+                }
+            ],
+            "read": [f"tests/test_{function_name}.py"],
+        },
+        "validate": [f"python -m pytest tests/test_{function_name}.py -q"],
+    }
+    (tmp_path / "manifests" / f"{slug}.manifest.yaml").write_text(yaml.dump(manifest))
+
+
 def _write_pyproject_pytest_addopts(tmp_path, addopts: str) -> None:
     (tmp_path / "pyproject.toml").write_text(
         textwrap.dedent(
@@ -2716,6 +2760,76 @@ class TestCmdValidateAll:
         os.chdir(project_dir)
         exit_code = main(["validate"])
         assert exit_code == 0
+
+    def test_validate_quiet_omits_pre_policy_created_chain_warnings(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="legacy-date-only",
+            created="2026-05-20",
+            function_name="legacy_date_only",
+        )
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="legacy-offset-one",
+            created="2026-04-25T10:49:00+08:00",
+            function_name="legacy_offset_one",
+        )
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="legacy-offset-two",
+            created="2026-04-25T10:49:00+08:00",
+            function_name="legacy_offset_two",
+        )
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="legacy-microsecond",
+            created="2026-03-26T05:46:09.503497+00:00",
+            function_name="legacy_microsecond",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--quiet"])
+
+        assert exit_code == 0
+        output = capsys.readouterr().out
+        assert "E118" not in output
+        assert "E119" not in output
+
+    def test_validate_quiet_keeps_policy_created_chain_warnings(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="policy-date-only",
+            created="2026-06-03",
+            function_name="policy_date_only",
+        )
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="policy-duplicate-one",
+            created="2026-06-03T00:00:00+00:00",
+            function_name="policy_duplicate_one",
+        )
+        _write_created_warning_manifest(
+            tmp_path,
+            slug="policy-duplicate-two",
+            created="2026-06-03T00:00:00+00:00",
+            function_name="policy_duplicate_two",
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(["validate", "--quiet"])
+
+        assert exit_code == 0
+        output = capsys.readouterr().out
+        assert "E118" in output
+        assert "E119" in output
 
     def test_validate_file_tracking_gate_returns_1_for_undeclared_source(
         self, project_dir, capsys

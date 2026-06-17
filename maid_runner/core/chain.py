@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Callable, Optional, Union
@@ -25,7 +26,27 @@ _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
 )
 _UTC_CREATED_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_DATE_ONLY_CREATED_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_CREATED_WARNING_POLICY_INSTANT = datetime(2026, 6, 3, tzinfo=timezone.utc)
 _ManifestDirSignature = tuple[tuple[str, int, int], ...]
+
+
+def _is_legacy_created_warning_baseline(created: str) -> bool:
+    instant = _created_utc_instant(created)
+    return instant is not None and instant < _CREATED_WARNING_POLICY_INSTANT
+
+
+def _created_utc_instant(created: str) -> datetime | None:
+    try:
+        if _DATE_ONLY_CREATED_RE.match(created):
+            parsed = datetime.fromisoformat(created).replace(tzinfo=timezone.utc)
+        else:
+            parsed = datetime.fromisoformat(created.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
 
 
 class ManifestChain:
@@ -477,6 +498,8 @@ class ManifestChain:
         for manifest in self.active_manifests():
             if manifest.sequence_number is not None or manifest.created is None:
                 continue
+            if _is_legacy_created_warning_baseline(manifest.created):
+                continue
             if _UTC_CREATED_TIMESTAMP_RE.match(manifest.created):
                 continue
             errors.append(
@@ -499,6 +522,8 @@ class ManifestChain:
         created_to_paths: dict[str, list[str]] = {}
         for manifest in self.active_manifests():
             if manifest.sequence_number is not None or manifest.created is None:
+                continue
+            if _is_legacy_created_warning_baseline(manifest.created):
                 continue
             created_to_slugs.setdefault(manifest.created, []).append(manifest.slug)
             created_to_paths.setdefault(manifest.created, []).append(

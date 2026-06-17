@@ -1,0 +1,143 @@
+{
+  "manifest_path": "manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml",
+  "manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+  "test_hashes": {
+    "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+    "tests/cli/test_validate_cmd.py": "sha256:8bd1fe8a9e55299d27ca505cb327cb19b2fa64eaf3e10a7f51c029c2370b2baf",
+    "tests/cli/test_verify_cmd.py": "sha256:a36ab6882ac557becb00a37ebaed1924b4391cc7e7ecf74804643fb9a3ad505a"
+  },
+  "created_at": "2026-06-17T03:00:03.061118+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:140eed0b7817ce7f44c1a7a42bf7945ac82a75dcf8adcdfbb92ec7eb2f2db9d2",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:aaea325dfb28ab2bd2184d406602ec64a442e7658183bdf1a1d99e75dca9e629",
+        "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
+      },
+      "revised_at": "2026-06-17T03:00:18.976578+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/072-01-quiet-legacy-created-chain-warnings.manifest.yaml -> manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:fc2d04ca8f2456fa9d85fd71ec4a0e912fa1e29a0c6c1373e7cb7685c40e038a",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:aaea325dfb28ab2bd2184d406602ec64a442e7658183bdf1a1d99e75dca9e629",
+        "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
+      },
+      "revised_at": "2026-06-17T03:03:27.749836+00:00",
+      "reason": "Format behavioral tests after plan lock"
+    },
+    {
+      "prior_manifest_hash": "sha256:fc2d04ca8f2456fa9d85fd71ec4a0e912fa1e29a0c6c1373e7cb7685c40e038a",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:8bd1fe8a9e55299d27ca505cb327cb19b2fa64eaf3e10a7f51c029c2370b2baf",
+        "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
+      },
+      "revised_at": "2026-06-17T03:13:19.923195+00:00",
+      "reason": "Capture implementation outcome after ready review"
+    },
+    {
+      "prior_manifest_hash": "sha256:8efa8d03a3a8f3abb1ae29fb8e4104c0645aa26f20f236adb93380e976f5757b",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:8bd1fe8a9e55299d27ca505cb327cb19b2fa64eaf3e10a7f51c029c2370b2baf",
+        "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
+      },
+      "revised_at": "2026-06-17T03:42:31.669985+00:00",
+      "reason": "Rename legacy verify quietness test for clarity"
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:705047d3c4afa72f39ef698e6c268ef185cc62dbd0b87431b40b9e1305e1b4b7",
+        "tests/cli/test_validate_cmd.py": "sha256:8bd1fe8a9e55299d27ca505cb327cb19b2fa64eaf3e10a7f51c029c2370b2baf",
+        "tests/cli/test_verify_cmd.py": "sha256:f91f379742f56d6fd3ed48ca9c5c2a5a5a31ee2255255674b0b5b45b2160d9e9"
+      },
+      "revised_at": "2026-06-17T03:43:43.270108+00:00",
+      "reason": "Keep historical test artifact as non-collected compatibility shim"
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:705047d3c4afa72f39ef698e6c268ef185cc62dbd0b87431b40b9e1305e1b4b7",
+        "tests/cli/test_validate_cmd.py": "sha256:8bd1fe8a9e55299d27ca505cb327cb19b2fa64eaf3e10a7f51c029c2370b2baf",
+        "tests/cli/test_verify_cmd.py": "sha256:a36ab6882ac557becb00a37ebaed1924b4391cc7e7ecf74804643fb9a3ad505a"
+      },
+      "revised_at": "2026-06-17T03:45:12.136900+00:00",
+      "reason": "Apply repo-wide Black formatting before amended handoff"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T03:00:29.850646+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_manifest_event_log.py tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py -q",
+        "exit_code": 1,
+        "output_tail": "E         'E118' is contained here:\nE           ioral\nE               E118 Manifest 'verify-legacy-no-assertions' uses created '2026-05-16'; active manifests should use a full UTC timestamp like 2026-06-03T07:41:32Z when sequence_number is absent.\nE         ?     ++++\nE                 Location: /tmp/pytest-of-atomrem/pytest-93/test_verify_legacy_manifest_wa0/manifests/verify-legacy-no-assertions.manifest.yaml\nE               WARN verify-legacy-no-assertions...\nE         \nE         ...Full output truncated (9 lines hidden), use '-vv' to show\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_verify_cmd.py:341: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_offset_created_policy_boundary_uses_utc_instant\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning\nFAILED tests/core/test_manifest_event_log.py::TestCreatedTimestampDiagnostics::test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning\nFAILED tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_quiet_omits_pre_policy_created_chain_warnings\nFAILED tests/cli/test_verify_cmd.py::test_verify_legacy_manifest_warning_is_advisory_by_default\n8 failed, 194 passed in 5.43s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate --quiet",
+        "exit_code": 0,
+        "output_tail": "E119 Duplicate created value '2026-04-25T10:49:00+08:00' among unsequenced active manifests: fix-coherence-warning-noise, fix-graph-api-constant-artifacts, fix-python-reexport-constant-kinds. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-04-26' among unsequenced active manifests: add-chain-log-cli, add-chain-log-query-flags, add-chain-replay-cli, add-chain-replay-preview, add-event-log-conflict-diagnostics, add-event-log-query-api, add-manifest-event-log, add-semantic-reference-index, add-semantic-reference-index-svelte, add-semantic-reference-index-typescript. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-06' among unsequenced active manifests: add-typescript-compiler-backed-identity-resolution, add-typescript-mjs-cjs-barrel-identity, add-typescript-tsconfig-extends-identity, add-typescript-tsconfig-path-alias-identity, batch-compatible-maid-test-command-groups, characterize-typescript-namespace-reexport-identity, characterize-typescript-package-import-identity, close-typescript-artifact-extraction-gaps, close-typescript-artifact-extraction-gaps-2, extend-typescript-barrel-reexport-identity, replace-svelte-regex-script-extraction, replace-typescript-reexport-identity-scanner, restore-maid-test-auto-batch. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-07' among unsequenced active manifests: add-claude-maid-skill-repo-install, add-typescript-annotated-function-return-extraction, add-typescript-computed-property-artifact-extraction, add-typescript-type-alias-target-extraction, fix-claude-skill-only-distribution, fix-publish-workflow-npm-dependencies, fix-typescript-compiler-resolution-cache. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-09' among unsequenced active manifests: 017-01-characterize-package-tsconfig-extends, 017-02-characterize-package-export-shapes, 017-03-preserve-third-party-package-boundary, 017-04-typescript-decorator-metadata-boundary, 017-05-typescript-computed-and-source-location-boundaries, 017-07-python-parser-replacement-boundaries, 017-08-graph-query-parser-replacement-boundary, 018-02-codex-maid-loop-auto-commit, fix-typescript-validation-and-test-performance. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-10' among unsequenced active manifests: 019-01-claude-maid-loop-automation, 020-01-claude-loop-stream-json-verbose, 021-01-claude-loop-promoted-draft-deletion, 022-01-claude-loop-task-event-rendering, 023-01-maid-loop-selected-draft-scope, document-draft-manifest-workflow. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-12' among unsequenced active manifests: 024-01-maid-loop-commit-packet-completeness, 025-01-characterize-angular-typescript-artifacts, 025-02-characterize-angular-required-imports-and-routes, 025-03-add-angular-component-companion-file-tracking, 025-04-document-angular-support-boundaries, 026-01-restore-schema-validation-mode, 027-01-characterize-react-typescript-artifacts, 027-02-add-react-wrapped-component-extraction, 027-03-characterize-react-required-imports-and-testing-library, 027-04-add-react-snapshot-companion-file-tracking, 027-05-document-react-support-boundaries. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-13' among unsequenced active manifests: 028-03-extract-test-function-contract-validation, 028-05-extract-tsconfig-jsonc-and-path-alias-loader, 028-06-split-typescript-implementation-artifact-collector, 028-07-split-typescript-behavioral-reference-collector, 028-08-simplify-graph-query-facade-and-parser, 029-01-extract-typescript-parse-session, 029-02-move-typescript-implementation-collector-module, 029-03-move-typescript-behavioral-collector-module, 029-04-move-python-implementation-collector-module, 029-05-extract-typescript-export-scanner, 029-06-extract-graph-traversal-algorithms. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-16' among unsequenced active manifests: 030-04-reject-duplicate-yaml-keys, 030-08-add-validate-run-tests-gate, 030-10-add-maid-verify-done-gate. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-17' among unsequenced active manifests: 031-01-restore-integration-fixture-coverage, 032-02-require-test-runner-validate-commands, 032-03-make-verify-strict-by-default, fix-maid-test-redundant-command-pruning, format-black-drift-test-files. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-19' among unsequenced active manifests: 034-01-cache-manifest-chain-per-cli-invocation, 034-02-share-source-ast-across-validation-phases, 034-03-cache-test-artifact-tables-across-manifests, 035-01-characterize-validation-engine, 035-02-extract-shared-parse-error-handling, 036-01-maid-serve-validator-daemon, fix-django-dotted-validate-test-targets. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-20' among unsequenced active manifests: 037-01-add-task-baseline-changed-scope-gate, 038-01-add-lean-behavioral-coverage-characterization, 038-02-add-lean-required-import-characterization, 038-03-add-lean-file-scope-characterization, 038-04-add-lean-strict-mode-characterization, 038-05-add-lean-validate-all-chain-characterization, 038-06-extract-validate-all-orchestration, 038-07-extract-file-tracking-helper, 038-08-extract-behavioral-validation-helper, 038-09-extract-implementation-validation-runner, 038-10-extract-implementation-test-coverage-helper, 038-11-extract-removed-artifacts-helper, 038-12-extract-test-assertions-helper, 038-13-extract-test-runner-invocation-helper, 038-14-extract-test-command-targets-helper, 038-15-extract-django-test-targets-helper, 038-16-extract-command-integrity-test-discovery, 038-17-extract-pytest-command-normalization, 038-18-extract-vitest-command-normalization, 038-19-extract-test-command-batching, 038-20-extract-maid-validate-command-cache, 038-21-extract-test-command-execution, 038-22-extract-python-behavioral-class-scope, 038-23-extract-python-behavioral-function-scope, 038-24-extract-python-behavioral-expression-scope, 038-25-extract-python-behavioral-lazy-module-alias-scope. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-21' among unsequenced active manifests: 038-26-extract-python-behavioral-module-alias-events, 038-27-extract-python-behavioral-reference-recorder, 038-28-extract-python-behavioral-keyword-reference-recording, 038-29-extract-python-behavioral-import-reference-recording, 038-30-extract-python-behavioral-bound-reference-recording, 038-31-extract-python-behavioral-attribute-reference-recording, 038-32-extract-python-behavioral-call-attribute-reference-recording, 038-33-extract-python-behavioral-test-function-reference-recording, 038-34-extract-python-behavioral-function-definition-visitor, 038-35-extract-python-behavioral-assignment-value-effects. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-23' among unsequenced active manifests: 039-01-speed-up-pnpm-vitest-and-typescript-validation, fix-package-runner-dir-exec-detection. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-24' among unsequenced active manifests: 040-23-retire-interim-file-status-tracking-anchors, 040-24-retire-interim-required-import-anchor, 040-25-retire-empty-manifest-discovery-legacy-cases, 040-26-retire-batch-behavioral-validation-legacy-case, 040-27-retire-file-tracking-fail-gate-legacy-case, 040-28-retire-typescript-generic-type-parameter-legacy-case, 040-29-retire-python-identity-e200-legacy-cases, 040-30-retire-implementation-mode-basic-legacy-cases, 040-31-retire-abstract-stub-legacy-cases, 040-32-retire-test-discovery-coverage-legacy-cases, 040-33-retire-strict-warning-policy-legacy-cases, 040-34-retire-compiler-backed-required-import-legacy-cases, 040-35-retire-identity-backed-coverage-legacy-cases, 040-36-retire-js-ts-import-scanner-legacy-cases, 040-37-retire-worktree-scope-legacy-cases, 040-38-retire-typescript-private-module-local-legacy-cases, 040-39-retire-manifest-path-containment-legacy-cases, 040-40-retire-test-validate-e200-legacy-file. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-25' among unsequenced active manifests: 041-01-cache-assertion-checks-and-test-discovery, 041-02-batch-typescript-compiler-resolution, 041-03-share-verify-validation-cache-scope, 042-01-base-validator-default-hook-verify-warnings. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-29' among unsequenced active manifests: 043-01-retire-grandfathered-chain-noise, 043-02-enforce-active-manifest-lifecycle-status, 043-03-archive-consumed-draft-epics, 043-04-cache-typescript-compiler-project-for-import-resolution, 043-05-recognize-uv-run-options-for-test-command-integrity, 044-01-reject-pytest-config-selector-addopts, 045-01-extract-cli-parser-registration, 045-02-extract-test-runner-stream-orchestration, 046-01-parallelize-independent-maid-test-command-groups. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-30' among unsequenced active manifests: 047-01-add-manifest-outcome-schema, 047-02-add-outcome-workflow-docs-and-review-guidance, 047-03-add-maid-learn-outcome-index, 047-04-add-maid-recall-outcome-search, 047-05-add-maid-insights-outcome-aggregation, 047-06-add-outcome-aware-agent-skill-guidance, fix-watchdog-missing-test-deterministic. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-05-31' among unsequenced active manifests: 032-issue-github-actions-workflow-templates, 048-01-refresh-init-codex-payload-and-command-docs, 048-01-surface-validation-context-in-text-output, 049-01-add-local-benchmark-harness, 049-01-modernize-package-license-metadata, 049-02-correct-codex-skill-health-probes, 050-01-fix-daemon-pidfile-claim-race, 050-02-add-init-outcome-draft-guidance. Event order falls back to slug for this tie.\nE119 Duplicate created value '2026-06-01' among unsequenced active manifests: fix-github-actions-clean-checkout-maid-gates, issue-038-ci-cd-integration-guides. Event order falls back to slug for this tie.",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain.py:method:ManifestChain.diagnostics",
+      "maid_runner/core/chain.py:method:ManifestChain.diagnostics:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.diagnostics:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.diagnostics:returns=list[ValidationError]",
+      "tests/cli/test_validate_cmd.py:test_validate_quiet_keeps_policy_created_chain_warnings",
+      "tests/cli/test_validate_cmd.py:test_validate_quiet_keeps_policy_created_chain_warnings:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_quiet_omits_pre_policy_created_chain_warnings",
+      "tests/cli/test_validate_cmd.py:test_validate_quiet_omits_pre_policy_created_chain_warnings:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_created_timestamp_chain_warning_is_advisory_by_default",
+      "tests/cli/test_verify_cmd.py:test_verify_created_timestamp_chain_warning_is_advisory_by_default:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_duplicate_created_chain_warning_is_advisory_by_default",
+      "tests/cli/test_verify_cmd.py:test_verify_duplicate_created_chain_warning_is_advisory_by_default:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_legacy_manifest_warning_is_quiet_by_default",
+      "tests/cli/test_verify_cmd.py:test_verify_legacy_manifest_warning_is_quiet_by_default:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_offset_created_policy_boundary_uses_utc_instant",
+      "tests/core/test_manifest_event_log.py:test_offset_created_policy_boundary_uses_utc_instant:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_policy_date_only_created_still_emits_imprecise_timestamp_warning",
+      "tests/core/test_manifest_event_log.py:test_policy_date_only_created_still_emits_imprecise_timestamp_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_policy_duplicate_created_still_emits_duplicate_unsequenced_warning",
+      "tests/core/test_manifest_event_log.py:test_policy_duplicate_created_still_emits_duplicate_unsequenced_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning",
+      "tests/core/test_manifest_event_log.py:test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning:kind=test_function",
+      "tests/core/test_manifest_event_log.py:test_unclassifiable_created_still_emits_imprecise_timestamp_warning",
+      "tests/core/test_manifest_event_log.py:test_unclassifiable_created_still_emits_imprecise_timestamp_warning:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_validate_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/core/test_manifest_event_log.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_manifest_event_log.py tests/cli/test_validate_cmd.py tests/cli/test_verify_cmd.py -q",
+      "uv run maid validate manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml --mode schema --quiet",
+      "uv run maid validate --quiet"
+    ]
+  }
+}
