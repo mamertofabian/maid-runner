@@ -33,3 +33,4 @@ maid_agents/.claude/tdd-guard/data/test.json
 
 .maid/serve.sock
 .maid/serve.pid
+.maid/outcomes.json
