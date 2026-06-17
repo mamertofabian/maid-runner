@@ -1,0 +1,258 @@
+schema: '2'
+goal: Document local Outcome index refresh after Outcome capture
+type: fix
+created: '2026-06-17T09:20:52Z'
+metadata:
+  tags:
+  - outcome-records
+  - learning
+  - recall
+  - agent-guidance
+  priority: medium
+description: |
+  Add the missing lifecycle step after an evidence-backed `outcome:` section is
+  captured: refresh the generated local Outcome index with `uv run maid learn`
+  so the just-completed manifest can inform subsequent `maid recall` calls.
+
+  The 047 and 066 Outcome recall work already documents running `maid learn`
+  when the index is missing or stale before recall. This change covers the
+  other side of the loop: after post-review Outcome capture, agents and init
+  payloads should refresh `.maid/outcomes.json` as advisory local state for the
+  next planning or implementation pass.
+
+  The refresh must remain advisory and local. `.maid/outcomes.json` is
+  generated, ignored, and not committed. A learn refresh failure should be
+  reported, but it must not block handoff unless recall or insights are
+  required by the current task.
+temptations:
+- risk: Do not turn the generated Outcome index into a committed artifact or readiness gate.
+  instead: State that `.maid/outcomes.json` is generated and ignored, and that refresh failures are advisory unless recall or insights are required.
+- risk: Do not update only the review skill and leave the implementer/coordinator path stale.
+  instead: Update repo guidance, draft-implement skills, implementation-review skills, and generated package copies together.
+- risk: Do not leave fresh repositories initialized with stale Outcome guidance.
+  instead: Update the `maid init` generated MAID section and cover it through a focused init-output test.
+files:
+  create:
+  - path: tests/test_outcome_learn_refresh_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_outcome_capture_guidance_refreshes_learned_index
+      args: []
+      returns: None
+      source_scenario: Repo guidance, Outcome docs, draft implementation skills, review skills, and generated payload copies describe post-review Outcome capture.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: Each guidance surface tells agents to run `uv run maid learn` after Outcome capture, describes `.maid/outcomes.json` as generated/ignored, and treats refresh failure as advisory unless recall or insights are required.
+    - kind: test_function
+      name: test_codex_draft_implement_payload_matches_source_after_refresh_guidance
+      args: []
+      returns: None
+      source_scenario: The Codex draft-implement skill source receives the Outcome refresh guidance.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The packaged Codex draft-implement skill remains byte-for-byte aligned with the repo-local source.
+    - kind: test_function
+      name: test_claude_review_payload_gets_refresh_guidance_from_sync
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      source_scenario: The Claude implementation-review skill source receives the Outcome refresh guidance.
+      actions:
+      - type: api_call
+        subject:
+          function: subprocess.run
+      expected:
+        behavior: An isolated payload sync produces a generated Claude implementation-review skill that includes the post-Outcome `maid learn` refresh guidance.
+    - kind: test_function
+      name: test_init_guidance_refreshes_learned_index
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A repository runs `maid init --tool codex` or `maid init --tool claude`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated `AGENTS.md` and `CLAUDE.md` MAID sections include the same post-Outcome `maid learn` refresh guidance.
+  edit:
+  - path: AGENTS.md
+    artifacts:
+    - kind: attribute
+      name: _outcome_learn_refresh_after_capture_guidance
+      of: documentation
+      type: markdown paragraph
+      description: Repo-level MAID handoff guidance refreshes the local Outcome index after Outcome capture.
+  - path: docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _outcome_learn_refresh_after_capture_docs
+      of: documentation
+      type: markdown paragraph
+      description: Outcome workflow documentation describes refreshing the generated local index after Outcome capture.
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      source_scenario: A user initializes a repository with `maid init --tool claude` or `maid init --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_init
+      expected:
+        behavior: The generated MAID section tells the user to run `uv run maid learn` after Outcome capture while keeping `.maid/outcomes.json` generated and ignored.
+  - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_draft_implement_outcome_learn_refresh_guidance
+      of: skill
+      type: markdown paragraph
+      description: Claude draft implementation skill refreshes the local Outcome index after Outcome capture.
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_draft_implement_outcome_learn_refresh_guidance
+      of: skill
+      type: markdown paragraph
+      description: Codex draft implementation skill refreshes the local Outcome index after Outcome capture.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _distributed_codex_draft_implement_outcome_learn_refresh_guidance
+      of: codex_payload
+      type: markdown paragraph
+      description: Packaged Codex draft implementation skill mirrors the source Outcome refresh guidance.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_review_outcome_learn_refresh_guidance
+      of: skill
+      type: markdown paragraph
+      description: Claude review skill reminds the handoff path to refresh the local Outcome index after Outcome capture.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_review_outcome_learn_refresh_guidance
+      of: skill
+      type: markdown paragraph
+      description: Codex review skill reminds the handoff path to refresh the local Outcome index after Outcome capture.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _distributed_codex_review_outcome_learn_refresh_guidance
+      of: codex_payload
+      type: markdown paragraph
+      description: Packaged Codex review skill mirrors the source Outcome refresh guidance.
+  read:
+  - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+  - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
+  - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+  - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+  - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+  - scripts/sync_claude_files.py
+validate:
+- uv run python -m pytest -q tests/test_outcome_learn_refresh_guidance.py
+- uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode implementation --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-17T09:40:00Z"
+  summary: "Documented the post-Outcome `uv run maid learn` refresh step across repo guidance, Outcome docs, MAID skills, generated Codex payloads, and `maid init` output."
+  rationale: "The 047 and 066 learn/recall contracts already explained refreshing a stale or missing index before recall, but the completed-work lifecycle did not refresh the ignored local index after a new `outcome:` record was written. This change closes that advisory loop without turning `.maid/outcomes.json` into a committed artifact or readiness gate."
+  lessons:
+  - lesson_type: workflow
+    summary: "After adding or updating a completed manifest Outcome, refresh the generated local Outcome index with `uv run maid learn` so subsequent recall can see the new record; keep `.maid/outcomes.json` ignored and advisory."
+    tags:
+    - outcome-records
+    - learning
+    - recall
+    paths:
+    - AGENTS.md
+    - docs/manifest-outcome-records.md
+    - .codex/skills/maid-runner-draft-implement/SKILL.md
+    - .claude/skills/maid-runner-draft-implement/SKILL.md
+  - lesson_type: testing
+    summary: "Guidance tests for generated but ignored Claude payloads should run the sync script in an isolated workspace instead of reading repository-local generated copies."
+    tags:
+    - generated-payloads
+    - test-reproducibility
+    paths:
+    - tests/test_outcome_learn_refresh_guidance.py
+    - scripts/sync_claude_files.py
+  review_notes:
+  - source: Bernoulli
+    severity: info
+    summary: "Independent read-only implementation review found no actionable findings and returned ready; residual risk was limited to relying on the main validation packet for the full `maid test` run."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_outcome_learn_refresh_guidance.py
+    status: passed
+    summary: "Focused Outcome refresh guidance tests passed: 4 passed."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/ci/test_outcome_ready_guidance.py
+    - tests/test_manifest_outcome_docs.py
+    - tests/cli/test_init_cmd.py
+    - tests/test_recall_skill_guidance.py
+    - tests/test_recall_payload_sync.py
+    status: passed
+    summary: "Related Outcome, init, recall guidance, and payload sync regression tests passed: 27 passed."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/cli/commands/init.py
+    - tests/test_outcome_learn_refresh_guidance.py
+    status: passed
+    summary: "Ruff passed for touched Python and test files."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 348 manifests and 0 failures."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 122 commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict handoff gate passed with plan-lock/red-evidence checks. Advisory warnings remained: long-standing E307/E310 warning categories plus expected E307 warnings for this documentation/skill-guidance manifest's markdown and payload files that have no implementation validator."

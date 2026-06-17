@@ -1,0 +1,146 @@
+{
+  "manifest_path": "manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml",
+  "manifest_hash": "sha256:04e7e04be4e861a69235c103b1356410cb0d8617bb8ac4656445bbdfb668a87d",
+  "test_hashes": {
+    "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309"
+  },
+  "created_at": "2026-06-17T09:20:39.727593+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:4b5fd6a9ebfb135895bba0481e1bf188b385ccceb38867b2b2bd26b3a4ff8d35",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:f192339625fe7daa619779f70c5a8bd629fb1b616dab8a546f612047e4f314fd"
+      },
+      "revised_at": "2026-06-17T09:20:52.387091+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/074-01-refresh-outcome-index-after-capture.manifest.yaml -> manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:93d660ebbc3bb3961d8a72509cd8d6ff162fdbafc2afca958026731441407618",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:f192339625fe7daa619779f70c5a8bd629fb1b616dab8a546f612047e4f314fd"
+      },
+      "revised_at": "2026-06-17T09:25:49.896710+00:00",
+      "reason": "Expose the existing Outcome refresh assertion directly in the behavioral test body so MAID E210 can validate the contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:93d660ebbc3bb3961d8a72509cd8d6ff162fdbafc2afca958026731441407618",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:03872d25d12051999789bcff2e22d3faaf929a6870c1b4fae79bca2f19fe69cb"
+      },
+      "revised_at": "2026-06-17T09:27:13.589596+00:00",
+      "reason": "Recapture red evidence against the final behavioral test while one Outcome refresh guidance surface is temporarily missing the required phrase."
+    },
+    {
+      "prior_manifest_hash": "sha256:93d660ebbc3bb3961d8a72509cd8d6ff162fdbafc2afca958026731441407618",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:03872d25d12051999789bcff2e22d3faaf929a6870c1b4fae79bca2f19fe69cb"
+      },
+      "revised_at": "2026-06-17T09:32:37.593176+00:00",
+      "reason": "Adjust the guidance test to verify ignored generated Claude payloads through isolated sync instead of reading repository-local generated files directly."
+    },
+    {
+      "prior_manifest_hash": "sha256:57cb2ca1cdc69206da7e56e8eaa064e3aa139101f4c1da4dc2741d695497b40d",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309"
+      },
+      "revised_at": "2026-06-17T09:37:29.212431+00:00",
+      "reason": "Record the post-review Outcome section while preserving the approved red-phase evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:e666da7ec11043facd2bfc48254debe8aa2b662f9e7e38db1111a8f1f05fb733",
+      "prior_test_hashes": {
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309"
+      },
+      "revised_at": "2026-06-17T09:50:03.223078+00:00",
+      "reason": "Correct Outcome validation wording to distinguish existing advisory warning categories from this manifest's expected documentation-file E307 warnings."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T09:27:18.045035+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_outcome_learn_refresh_guidance.py",
+        "exit_code": 1,
+        "output_tail": "F..                                                                      [100%]\n=================================== FAILURES ===================================\n____________ test_outcome_capture_guidance_refreshes_learned_index _____________\n\n    def test_outcome_capture_guidance_refreshes_learned_index() -> None:\n        for guidance_file in OUTCOME_CAPTURE_GUIDANCE_FILES:\n            guidance_text = _read(guidance_file)\n>           assert \"After Outcome capture, run `uv run maid learn`\" in guidance_text\nE           AssertionError: assert 'After Outcome capture, run `uv run maid learn`' in '# Repository Guidelines\\n\\n## Project Structure & Module Organization\\n\\n`maid_runner/` contains the Python package a... the full MAID workflow, but verify accuracy against current files. Do not commit or push without explicit approval.\\n'\n\ntests/test_outcome_learn_refresh_guidance.py:38: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_outcome_learn_refresh_guidance.py::test_outcome_capture_guidance_refreshes_learned_index\n1 failed, 2 passed in 0.12s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode implementation --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_outcome_learn_refresh_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_outcome_learn_refresh_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_outcome_learn_refresh_guidance:of=skill",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_outcome_learn_refresh_guidance:type=markdown paragraph",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_outcome_learn_refresh_guidance",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_outcome_learn_refresh_guidance:kind=attribute",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_outcome_learn_refresh_guidance:of=skill",
+      ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_outcome_learn_refresh_guidance:type=markdown paragraph",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_outcome_learn_refresh_guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_outcome_learn_refresh_guidance:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_outcome_learn_refresh_guidance:of=skill",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_outcome_learn_refresh_guidance:type=markdown paragraph",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_outcome_learn_refresh_guidance",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_outcome_learn_refresh_guidance:kind=attribute",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_outcome_learn_refresh_guidance:of=skill",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_outcome_learn_refresh_guidance:type=markdown paragraph",
+      "AGENTS.md:attribute:documentation._outcome_learn_refresh_after_capture_guidance",
+      "AGENTS.md:attribute:documentation._outcome_learn_refresh_after_capture_guidance:kind=attribute",
+      "AGENTS.md:attribute:documentation._outcome_learn_refresh_after_capture_guidance:of=documentation",
+      "AGENTS.md:attribute:documentation._outcome_learn_refresh_after_capture_guidance:type=markdown paragraph",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learn_refresh_after_capture_docs",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learn_refresh_after_capture_docs:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learn_refresh_after_capture_docs:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learn_refresh_after_capture_docs:type=markdown paragraph",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_review_outcome_learn_refresh_guidance",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_review_outcome_learn_refresh_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_review_outcome_learn_refresh_guidance:of=codex_payload",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:codex_payload._distributed_codex_review_outcome_learn_refresh_guidance:type=markdown paragraph",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_outcome_learn_refresh_guidance",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_outcome_learn_refresh_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_outcome_learn_refresh_guidance:of=codex_payload",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:codex_payload._distributed_codex_draft_implement_outcome_learn_refresh_guidance:type=markdown paragraph",
+      "tests/test_outcome_learn_refresh_guidance.py:test_claude_review_payload_gets_refresh_guidance_from_sync",
+      "tests/test_outcome_learn_refresh_guidance.py:test_claude_review_payload_gets_refresh_guidance_from_sync:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_claude_review_payload_gets_refresh_guidance_from_sync:kind=test_function",
+      "tests/test_outcome_learn_refresh_guidance.py:test_claude_review_payload_gets_refresh_guidance_from_sync:returns=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_codex_draft_implement_payload_matches_source_after_refresh_guidance",
+      "tests/test_outcome_learn_refresh_guidance.py:test_codex_draft_implement_payload_matches_source_after_refresh_guidance:kind=test_function",
+      "tests/test_outcome_learn_refresh_guidance.py:test_codex_draft_implement_payload_matches_source_after_refresh_guidance:returns=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_init_guidance_refreshes_learned_index",
+      "tests/test_outcome_learn_refresh_guidance.py:test_init_guidance_refreshes_learned_index:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_init_guidance_refreshes_learned_index:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_init_guidance_refreshes_learned_index:kind=test_function",
+      "tests/test_outcome_learn_refresh_guidance.py:test_init_guidance_refreshes_learned_index:returns=None",
+      "tests/test_outcome_learn_refresh_guidance.py:test_outcome_capture_guidance_refreshes_learned_index",
+      "tests/test_outcome_learn_refresh_guidance.py:test_outcome_capture_guidance_refreshes_learned_index:kind=test_function",
+      "tests/test_outcome_learn_refresh_guidance.py:test_outcome_capture_guidance_refreshes_learned_index:returns=None"
+    ],
+    "test_files": [
+      "tests/test_outcome_learn_refresh_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_outcome_learn_refresh_guidance.py",
+      "uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml --mode implementation --quiet"
+    ]
+  }
+}

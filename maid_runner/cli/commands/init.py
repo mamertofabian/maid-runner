@@ -287,6 +287,11 @@ def _render_draft_outcome_guidance() -> str:
         "abandoned MAID work. The Outcome must cite "
         "concrete validation evidence and review notes; it does not replace "
         "behavioral tests, declared artifacts, validation commands, or "
-        "implementation review. See `docs/draft-manifest-workflow.md` and "
+        "implementation review. After Outcome capture, run `uv run maid learn` "
+        "to refresh the local `.maid/outcomes.json` advisory index for "
+        "subsequent recall. `.maid/outcomes.json` is generated and ignored; "
+        "do not commit it. If `maid learn` fails, report the refresh failure "
+        "as advisory unless recall or insights are required for the current "
+        "task. See `docs/draft-manifest-workflow.md` and "
         "`docs/manifest-outcome-records.md`."
     )

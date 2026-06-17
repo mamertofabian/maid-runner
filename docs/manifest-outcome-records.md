@@ -100,6 +100,11 @@ The command boundary is important. These commands may rank, group, filter, and
 report explicit records, but they must not invent missing lessons, summarize
 private conversation state, call AI services, or hide stale index data.
 
+After Outcome capture, run `uv run maid learn` to
+refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
+`.maid/outcomes.json` is generated and ignored; do not commit it. If
+`maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
+
 ## Practical Uses
 
 ### Planning Recall Packet
