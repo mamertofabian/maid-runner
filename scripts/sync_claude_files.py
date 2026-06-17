@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Sync Claude and Codex integration files for package distribution.
+"""Sync Claude, Codex, and Cursor integration files for package distribution.
 
-This script copies manifest-declared Claude agents, commands, and skills plus
-repo-owned Codex skills to maid_runner/ for inclusion in the PyPI package.
-The source .claude/ and .codex/ directories are used for active development,
-while maid_runner/claude/ and maid_runner/codex/ are generated for distribution.
+This script copies manifest-declared Claude agents, commands, skills, and
+settings plus repo-owned Codex skills and Cursor hooks to maid_runner/ for
+inclusion in the PyPI package. The source .claude/, .codex/, and .cursor/
+directories are used for active development, while maid_runner/claude/,
+maid_runner/codex/, and maid_runner/cursor/ are generated for distribution.
 
 Usage:
     python scripts/sync_claude_files.py
@@ -39,6 +40,10 @@ def _claude_dest_root() -> Path:
 
 def _codex_dest_root() -> Path:
     return _project_root() / "maid_runner" / "codex"
+
+
+def _cursor_dest_root() -> Path:
+    return _project_root() / "maid_runner" / "cursor"
 
 
 def _load_claude_manifest() -> dict:
@@ -197,6 +202,23 @@ def _sync_manifest() -> None:
     print(f"✓ Synced manifest.json to {dest_manifest}")
 
 
+def _sync_claude_settings() -> None:
+    """Copy .claude/settings.json to maid_runner/claude/settings.json."""
+    project_root = _project_root()
+    source_settings = project_root / ".claude" / "settings.json"
+    dest_settings = _claude_dest_root() / "settings.json"
+
+    if not source_settings.exists():
+        print(
+            f"⚠️  Warning: Source settings not found: {source_settings}. Skipping Claude settings sync."
+        )
+        return
+
+    dest_settings.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_settings, dest_settings)
+    print(f"✓ Synced settings.json to {dest_settings}")
+
+
 def _codex_skill_agent_paths(source_skills: Path, skill_names: list[str]) -> list[str]:
     agent_paths: list[str] = []
     for skill_name in skill_names:
@@ -281,18 +303,53 @@ def sync_codex_payload() -> None:
     print(f"✓ Synced Codex manifest.json to {dest_root / 'manifest.json'}")
 
 
+def sync_cursor_payload() -> None:
+    """Copy repo-owned .cursor/hooks.json to maid_runner/cursor/."""
+    project_root = _project_root()
+    source_hooks = project_root / ".cursor" / "hooks.json"
+    dest_root = _cursor_dest_root()
+
+    if not source_hooks.exists():
+        print(
+            f"⚠️  Warning: Source Cursor hooks not found: {source_hooks}. Skipping Cursor sync."
+        )
+        return
+
+    _replace_directory(dest_root)
+    shutil.copy2(source_hooks, dest_root / "hooks.json")
+    manifest = {
+        "root": {
+            "distributable": ["hooks.json"],
+            "descriptions": {
+                "hooks.json": (
+                    "Cursor hook configuration that runs MAID scope checks "
+                    "before write/edit tool events"
+                )
+            },
+        }
+    }
+    (dest_root / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+    print(f"✓ Synced Cursor hooks.json to {dest_root / 'hooks.json'}")
+    print(f"✓ Synced Cursor manifest.json to {dest_root / 'manifest.json'}")
+
+
 def main() -> None:
     """Main entry point - orchestrate the full sync process."""
     print("=" * 60)
-    print("Syncing Claude and Codex integration files for package distribution")
+    print(
+        "Syncing Claude, Codex, and Cursor integration files for package distribution"
+    )
     print("=" * 60)
     print()
 
     _sync_manifest()
+    _sync_claude_settings()
     sync_agents()
     sync_commands()
     sync_skills()
     sync_codex_payload()
+    sync_cursor_payload()
 
     print()
     print("=" * 60)

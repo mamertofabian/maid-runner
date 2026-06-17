@@ -13,6 +13,7 @@ from pathlib import Path
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
 _MAID_SECTION_END = "<!-- END MAID RUNNER -->"
 _PAYLOAD_PATH_PREFIXES = {
+    "root": "",
     "agents": "agents",
     "commands": "commands",
     "skills": "skills",
@@ -25,6 +26,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     config_file = Path(".maidrc.yaml")
     install_claude = args.tool in {"auto", "claude"}
     install_codex = args.tool == "codex"
+    install_cursor = args.tool == "cursor"
 
     if not args.force:
         if manifest_dir.exists() and config_file.exists():
@@ -41,6 +43,8 @@ def cmd_init(args: argparse.Namespace) -> int:
             _print_agent_dry_run("claude", ".claude", "CLAUDE.md")
         if install_codex:
             _print_agent_dry_run("codex", ".codex", "AGENTS.md")
+        if install_cursor:
+            _print_agent_dry_run("cursor", ".cursor", None)
         return 0
 
     manifest_dir.mkdir(exist_ok=True)
@@ -58,6 +62,8 @@ def cmd_init(args: argparse.Namespace) -> int:
         _install_agent_payload(Path.cwd(), "claude", ".claude", "CLAUDE.md")
     if install_codex:
         _install_agent_payload(Path.cwd(), "codex", ".codex", "AGENTS.md")
+    if install_cursor:
+        _install_agent_payload(Path.cwd(), "cursor", ".cursor", None)
 
     print(f"Initialized MAID in {Path.cwd()}")
     print(f"  Created: {manifest_dir}/")
@@ -68,6 +74,8 @@ def cmd_init(args: argparse.Namespace) -> int:
     if install_codex:
         print("  Updated: .codex/")
         print("  Updated: AGENTS.md")
+    if install_cursor:
+        print("  Updated: .cursor/")
     return 0
 
 
@@ -99,14 +107,15 @@ def _walk_resource_files(root, prefix: Path):
             yield from _walk_resource_files(child, child_path)
 
 
-def _print_agent_dry_run(tool: str, target_dir: str, guidance_file: str) -> None:
+def _print_agent_dry_run(tool: str, target_dir: str, guidance_file: str | None) -> None:
     for _, relative_path in _payload_files(tool):
         print(f"Would create: {target_dir}/{relative_path.as_posix()}")
-    print(f"Would update: {guidance_file}")
+    if guidance_file is not None:
+        print(f"Would update: {guidance_file}")
 
 
 def _install_agent_payload(
-    project_root: Path, tool: str, target_dir_name: str, guidance_file_name: str
+    project_root: Path, tool: str, target_dir_name: str, guidance_file_name: str | None
 ) -> None:
     target_dir = project_root / target_dir_name
     payload_files = list(_payload_files(tool))
@@ -117,7 +126,13 @@ def _install_agent_payload(
     for source_file, relative_path in payload_files:
         destination = target_dir / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(source_file.read_bytes())
+        if tool == "claude" and relative_path == Path("settings.json"):
+            _merge_claude_settings(destination, json.loads(source_file.read_text()))
+        else:
+            destination.write_bytes(source_file.read_bytes())
+
+    if guidance_file_name is None:
+        return
 
     if tool == "claude":
         section = _render_claude_md_section(manifest)
@@ -159,8 +174,31 @@ def _manifest_payload_paths(manifest: dict) -> set[str]:
     paths: set[str] = set()
     for section, prefix in _PAYLOAD_PATH_PREFIXES.items():
         for name in manifest.get(section, {}).get("distributable", []):
-            paths.add(f"{prefix}/{name}")
+            paths.add(f"{prefix}/{name}" if prefix else str(name))
     return paths
+
+
+def _merge_claude_settings(destination: Path, packaged_settings: dict) -> None:
+    if destination.exists():
+        existing_settings = json.loads(destination.read_text())
+        if not isinstance(existing_settings, dict):
+            raise ValueError(
+                f"Existing Claude settings must be a JSON object: {destination}"
+            )
+    else:
+        existing_settings = {}
+
+    merged = dict(existing_settings)
+    merged_hooks = dict(merged.get("hooks", {}))
+    packaged_hooks = packaged_settings.get("hooks", {})
+    for hook_name, packaged_entries in packaged_hooks.items():
+        existing_entries = list(merged_hooks.get(hook_name, []))
+        for packaged_entry in packaged_entries:
+            if packaged_entry not in existing_entries:
+                existing_entries.append(packaged_entry)
+        merged_hooks[hook_name] = existing_entries
+    merged["hooks"] = merged_hooks
+    destination.write_text(json.dumps(merged, indent=2) + "\n")
 
 
 def _prune_empty_agent_parents(path: Path, target_dir: Path) -> None:
@@ -227,6 +265,10 @@ def _render_agents_md_section(manifest: dict) -> str:
         "`maid-runner-*` skills, implement approved drafts with "
         "`maid-runner-draft-implement`, and keep validation-hardening work "
         "inside `maid-validate-hardening`.\n\n"
+        "Before editing a file during an active MAID task, run "
+        "`maid hook scope-check --path <file>` and treat exit code 2 as "
+        "out-of-scope. This pre-edit hook check is advisory and does not "
+        "replace `maid verify` changed-scope validation.\n\n"
         f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"

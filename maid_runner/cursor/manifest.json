@@ -1,0 +1,10 @@
+{
+  "root": {
+    "distributable": [
+      "hooks.json"
+    ],
+    "descriptions": {
+      "hooks.json": "Cursor hook configuration that runs MAID scope checks before write/edit tool events"
+    }
+  }
+}

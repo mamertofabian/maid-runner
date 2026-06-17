@@ -1,4 +1,12 @@
 {
+  "root": {
+    "distributable": [
+      "settings.json"
+    ],
+    "descriptions": {
+      "settings.json": "Claude Code settings that run MAID scope checks before write/edit tool events"
+    }
+  },
   "agents": {
     "distributable": [
       "maid-implementation-reviewer.md"

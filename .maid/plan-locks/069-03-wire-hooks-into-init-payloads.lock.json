@@ -1,0 +1,165 @@
+{
+  "manifest_path": "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+  "manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+  "test_hashes": {
+    "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+    "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+    "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+  },
+  "created_at": "2026-06-17T01:56:53.748596+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d0584dbd7d9ca6e15ca940fd9bf8c31bce1a7af70d53da3a78f8859ec8d222fe",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+        "tests/test_agent_payload_distribution.py": "sha256:cccf9100c89a479d0d8572c8f6d8b76277956a84617c4ae1cacc9e771a861a2c",
+        "tests/cli/test_init_hook_payloads.py": "sha256:10d67eef77aa66b8fa439cd0020915db03607b94f96821db94859b3c6c0b2a3f"
+      },
+      "revised_at": "2026-06-17T01:56:58.467840+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-03-wire-hooks-into-init-payloads.manifest.yaml -> manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+        "tests/test_agent_payload_distribution.py": "sha256:cccf9100c89a479d0d8572c8f6d8b76277956a84617c4ae1cacc9e771a861a2c",
+        "tests/cli/test_init_hook_payloads.py": "sha256:10d67eef77aa66b8fa439cd0020915db03607b94f96821db94859b3c6c0b2a3f"
+      },
+      "revised_at": "2026-06-17T01:57:47.378853+00:00",
+      "reason": "Align Cursor payload parity tests with declared source hooks file and generated package manifest before implementation."
+    },
+    {
+      "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+        "tests/test_agent_payload_distribution.py": "sha256:6219592c55ef457d538ed384268acfd9af26c469e9c9a51cf9fbb97023054394",
+        "tests/cli/test_init_hook_payloads.py": "sha256:1e4b9a3c1fe1d05a22b130ad3e46e7de16a49bda1075bf42b92a1f39cc89c01e"
+      },
+      "revised_at": "2026-06-17T02:01:55.679196+00:00",
+      "reason": "Refresh locked behavioral test hashes after formatter-only changes; preserve pre-implementation red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+        "tests/test_agent_payload_distribution.py": "sha256:6219592c55ef457d538ed384268acfd9af26c469e9c9a51cf9fbb97023054394",
+        "tests/cli/test_init_hook_payloads.py": "sha256:5256b8c68f33b6bd88375b324b1955bd7afacd9e35ffc06730589cc54ab8e11b"
+      },
+      "revised_at": "2026-06-17T02:03:10.844023+00:00",
+      "reason": "Move hook payload package-data parity assertions into the 069-03 test file to avoid modifying older locked shared behavioral tests; preserve pre-implementation red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:a5d574b96d3d1f62f420ba12cdbcac96f08faf1840b7aec18078bf57361d988a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:9a6089803232e00801b0dc2c658cbfac64f92c9db9b82b9cbd24b68bbcc1f8f1",
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+      },
+      "revised_at": "2026-06-17T02:10:42.285848+00:00",
+      "reason": "Capture completed Outcome after ready implementation review; preserve pre-implementation red evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T01:57:50.232755+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_hook_payloads.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "                if _WINDOWS and i == 0:\n                    file_size = st.st_size\n    \n        if not follow_symlinks and _islink(src):\n            os.symlink(os.readlink(src), dst)\n        else:\n>           with open(src, 'rb') as fsrc:\n                 ^^^^^^^^^^^^^^^\nE           FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/maid-runner/.cursor/hooks.json'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/shutil.py:260: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_hook_payloads.py::test_init_claude_installs_scope_check_hook_settings\nFAILED tests/cli/test_init_hook_payloads.py::test_init_claude_merges_existing_settings_without_clobbering\nFAILED tests/cli/test_init_hook_payloads.py::test_init_cursor_installs_scope_check_hook_payload\nFAILED tests/cli/test_init_hook_payloads.py::test_init_hook_payload_dry_run_and_distribution_parity\nFAILED tests/test_agent_payload_distribution.py::test_codex_payload_manifest_matches_source_skills\nFAILED tests/test_agent_payload_distribution.py::test_agent_payload_package_data_includes_claude_and_codex_assets\nFAILED tests/test_agent_payload_distribution.py::test_cursor_hook_payload_sync_matches_source\n7 failed, 15 passed in 0.42s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/manifest.json:attribute:claude_payload._claude_root_settings_payload_manifest",
+      ".claude/manifest.json:attribute:claude_payload._claude_root_settings_payload_manifest:kind=attribute",
+      ".claude/manifest.json:attribute:claude_payload._claude_root_settings_payload_manifest:of=claude_payload",
+      ".claude/manifest.json:attribute:claude_payload._claude_root_settings_payload_manifest:type=json object",
+      ".claude/settings.json:attribute:configuration._claude_source_pretooluse_scope_check_hook",
+      ".claude/settings.json:attribute:configuration._claude_source_pretooluse_scope_check_hook:kind=attribute",
+      ".claude/settings.json:attribute:configuration._claude_source_pretooluse_scope_check_hook:of=configuration",
+      ".claude/settings.json:attribute:configuration._claude_source_pretooluse_scope_check_hook:type=json hooks configuration",
+      ".cursor/hooks.json:attribute:configuration._cursor_source_scope_check_hooks",
+      ".cursor/hooks.json:attribute:configuration._cursor_source_scope_check_hooks:kind=attribute",
+      ".cursor/hooks.json:attribute:configuration._cursor_source_scope_check_hooks:of=configuration",
+      ".cursor/hooks.json:attribute:configuration._cursor_source_scope_check_hooks:type=json hooks configuration",
+      "Makefile:attribute:makefile._agent_payload_sync_targets_include_cursor_hooks",
+      "Makefile:attribute:makefile._agent_payload_sync_targets_include_cursor_hooks:kind=attribute",
+      "Makefile:attribute:makefile._agent_payload_sync_targets_include_cursor_hooks:of=makefile",
+      "Makefile:attribute:makefile._agent_payload_sync_targets_include_cursor_hooks:type=make targets",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._distributed_claude_root_settings_payload_manifest",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._distributed_claude_root_settings_payload_manifest:kind=attribute",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._distributed_claude_root_settings_payload_manifest:of=claude_payload",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._distributed_claude_root_settings_payload_manifest:type=json object",
+      "maid_runner/claude/settings.json:attribute:configuration._claude_pretooluse_scope_check_hook",
+      "maid_runner/claude/settings.json:attribute:configuration._claude_pretooluse_scope_check_hook:kind=attribute",
+      "maid_runner/claude/settings.json:attribute:configuration._claude_pretooluse_scope_check_hook:of=configuration",
+      "maid_runner/claude/settings.json:attribute:configuration._claude_pretooluse_scope_check_hook:type=json hooks configuration",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/cursor/hooks.json:attribute:configuration._cursor_scope_check_hooks",
+      "maid_runner/cursor/hooks.json:attribute:configuration._cursor_scope_check_hooks:kind=attribute",
+      "maid_runner/cursor/hooks.json:attribute:configuration._cursor_scope_check_hooks:of=configuration",
+      "maid_runner/cursor/hooks.json:attribute:configuration._cursor_scope_check_hooks:type=json hooks configuration",
+      "maid_runner/cursor/manifest.json:attribute:configuration._cursor_payload_manifest",
+      "maid_runner/cursor/manifest.json:attribute:configuration._cursor_payload_manifest:kind=attribute",
+      "maid_runner/cursor/manifest.json:attribute:configuration._cursor_payload_manifest:of=configuration",
+      "maid_runner/cursor/manifest.json:attribute:configuration._cursor_payload_manifest:type=json payload manifest",
+      "pyproject.toml:attribute:tool.setuptools.package-data.maid_runner._maid_runner_package_data_hook_payloads",
+      "pyproject.toml:attribute:tool.setuptools.package-data.maid_runner._maid_runner_package_data_hook_payloads:kind=attribute",
+      "pyproject.toml:attribute:tool.setuptools.package-data.maid_runner._maid_runner_package_data_hook_payloads:of=tool.setuptools.package-data.maid_runner",
+      "pyproject.toml:attribute:tool.setuptools.package-data.maid_runner._maid_runner_package_data_hook_payloads:type=TOML package-data entry",
+      "scripts/sync_claude_files.py:function:main",
+      "scripts/sync_claude_files.py:function:main:kind=function",
+      "scripts/sync_claude_files.py:function:main:returns=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_installs_scope_check_hook_settings",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_installs_scope_check_hook_settings:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_installs_scope_check_hook_settings:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_installs_scope_check_hook_settings:kind=test_function",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_installs_scope_check_hook_settings:returns=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_merges_existing_settings_without_clobbering",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_merges_existing_settings_without_clobbering:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_merges_existing_settings_without_clobbering:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_merges_existing_settings_without_clobbering:kind=test_function",
+      "tests/cli/test_init_hook_payloads.py:test_init_claude_merges_existing_settings_without_clobbering:returns=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_cursor_installs_scope_check_hook_payload",
+      "tests/cli/test_init_hook_payloads.py:test_init_cursor_installs_scope_check_hook_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_cursor_installs_scope_check_hook_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_cursor_installs_scope_check_hook_payload:kind=test_function",
+      "tests/cli/test_init_hook_payloads.py:test_init_cursor_installs_scope_check_hook_payload:returns=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:kind=test_function",
+      "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_hook_payloads.py",
+      "tests/test_agent_payload_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_hook_payloads.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
