@@ -76,6 +76,33 @@ def test_ci_cd_integration_guide_includes_working_examples() -> None:
     assert "uv run maid verify --no-changed-scope --json" in examples
 
 
+def test_ci_cd_integration_guide_documents_sarif_platform_consumption() -> None:
+    guide = _read(GUIDE)
+    lower_guide = guide.lower()
+
+    assert "## SARIF Platform Consumption" in guide
+    assert "GitLab does not natively render SARIF" in guide
+    assert "Jenkins warnings-ng" in guide
+    assert "generic pipelines" in lower_guide
+    assert "uv run maid validate --sarif" in guide
+    assert "uv run maid verify --sarif" in guide
+
+    for phrase in (
+        "error diagnostics -> SARIF level `error`",
+        "warnings -> `warning`",
+        "advisory/info -> `note`",
+        "successful SARIF report generation never changes validation or verification gate exit codes",
+        "written on both pass and fail",
+        "uploads can run unconditionally",
+        "SARIF is a derived review-time view",
+        "`--json` output remains the canonical machine contract",
+    ):
+        assert phrase in guide
+
+    assert "docs/github-actions.md" in guide
+    assert "upload-sarif: true" not in guide
+
+
 def test_ci_cd_integration_guide_documents_troubleshooting_and_best_practices() -> None:
     guide = _read(GUIDE)
 

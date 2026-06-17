@@ -56,6 +56,131 @@ workflow writes `.maid/maid-test.json` and uploads `coverage.xml` when present.
 Pin MAID Runner and workflow references to exact release tags after the
 templates are released when your repository needs immutable CI behavior.
 
+## SARIF Platform Consumption
+
+<!-- _sarif_platform_consumption_guidance -->
+
+MAID can also write SARIF 2.1.0 reports for CI systems that render or publish
+static-analysis findings. Use `uv run maid validate --sarif .maid/maid.sarif`
+or `uv run maid verify --sarif .maid/maid-verify.sarif` beside the existing
+JSON commands. The report is written on both pass and fail. CI uploads can run unconditionally, and successful SARIF report generation never changes validation or verification gate exit codes.
+Keep the command exit code as the primary gate. The `--json` output remains the canonical machine contract; SARIF is a derived review-time view.
+
+If a requested SARIF path cannot be written, MAID reports that output failure
+visibly instead of silently falling back. Identical validation results produce
+byte-identical SARIF because run-level timestamps are omitted and results are
+sorted by file path, line, and code.
+
+GitHub-specific code scanning upload setup lives in
+[`docs/github-actions.md`](github-actions.md). The guidance below covers GitLab,
+Jenkins warnings-ng, and generic pipelines.
+
+| MAID diagnostics | SARIF level | Rule ids | Recommended gate |
+| --- | --- | --- | --- |
+| error diagnostics -> SARIF level `error` | `error` | E1xx chain, E2xx command integrity, E3xx implementation, and other registered error rules | Block the stage through the MAID command exit code; optional SARIF consumers may also fail on `error` results. |
+| warnings -> `warning` | `warning` | Registered warning rules from the diagnostics registry | Surface in merge request or build review, but do not treat as the primary pass/fail gate unless your local policy requires it. |
+| advisory/info -> `note` | `note` | Registered info/advisory rules from the diagnostics registry | Inform reviewers without blocking. |
+
+SARIF `ruleId` values are MAID E-codes. Rule metadata comes from
+`maid_runner/core/diagnostics_registry.py`, and help links point into
+[`docs/troubleshooting.md`](troubleshooting.md). The registry stores internal
+MAID severities as `error`, `warning`, and `info`; the SARIF serializer maps
+internal `info` to SARIF `note`.
+
+### GitLab SARIF Conversion
+
+GitLab does not natively render SARIF. Convert the MAID SARIF report to either
+GitLab code quality or SAST JSON, then publish that converted file as a
+`codequality` or `sast` artifact so findings can annotate merge requests. The
+conversion command depends on the converter you standardize on; keep it pinned
+in your project rather than relying on an unversioned global tool.
+
+```yaml
+# .gitlab-ci.yml
+maid:sarif:
+  image: python:3.12
+  stage: validate
+  before_script:
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - uv sync --group dev
+    - mkdir -p .maid
+  script:
+    - uv run maid validate --sarif .maid/maid-validate.sarif
+    - uv run maid verify --base-ref "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main}" --sarif .maid/maid-verify.sarif
+  after_script:
+    - ./ci/convert-maid-sarif-to-gitlab-codequality .maid/maid-verify.sarif > .maid/gl-code-quality-report.json
+  artifacts:
+    when: always
+    paths:
+      - .maid/maid-validate.sarif
+      - .maid/maid-verify.sarif
+      - .maid/gl-code-quality-report.json
+    reports:
+      codequality: .maid/gl-code-quality-report.json
+```
+
+For SAST dashboards, convert to GitLab's SAST report schema and publish it under
+`artifacts:reports:sast` instead. Keep the MAID command exit code as the job
+gate; the converted report is for review visibility.
+
+### Jenkins SARIF Publishing
+
+The Jenkins warnings-ng plugin consumes SARIF directly. Write the report with
+`--sarif`, then record it in a `post { always { ... } }` block so failed MAID
+validation still publishes findings.
+
+```groovy
+// Jenkinsfile
+pipeline {
+  agent any
+
+  stages {
+    stage('MAID verify') {
+      steps {
+        sh '''
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          uv sync --group dev
+          mkdir -p .maid
+          BASE_BRANCH="${CHANGE_TARGET:-main}"
+          git fetch --no-tags --depth=1 origin "$BASE_BRANCH"
+          uv run maid verify --base-ref "origin/$BASE_BRANCH" --sarif .maid/maid-verify.sarif
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      recordIssues tools: [sarif(pattern: '.maid/maid-verify.sarif')]
+      archiveArtifacts artifacts: '.maid/maid-verify.sarif', allowEmptyArchive: true
+    }
+  }
+}
+```
+
+### Generic Pipelines
+
+For generic pipelines, the report is plain JSON conforming to SARIF 2.1.0. Gate
+primarily on the MAID command exit code. Use SARIF checks only as additional
+policy, for example when a platform upload step succeeds but you also want an
+explicit result-level assertion:
+
+```bash
+mkdir -p .maid
+uv run maid verify --base-ref "${MAID_BASE_REF:-origin/main}" --sarif .maid/maid-verify.sarif
+
+if jq -e '.runs[].results[]? | select(.level == "error")' .maid/maid-verify.sarif >/dev/null; then
+  echo "MAID SARIF contains error-level results"
+  exit 1
+fi
+```
+
+That `jq` check is a secondary policy guard. Prefer `maid verify --json` or
+`maid validate --json` when another tool needs a stable machine-readable MAID
+contract instead of review annotations.
+
 ## GitLab CI
 
 GitLab merge request pipelines expose the target branch through

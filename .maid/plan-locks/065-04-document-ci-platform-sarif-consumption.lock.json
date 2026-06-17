@@ -1,0 +1,67 @@
+{
+  "manifest_path": "manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml",
+  "manifest_hash": "sha256:6677c79e89ba8504488c834ff7ef4b50caa7e3d0e5ca4f4ef2f14b6bb935f5ac",
+  "test_hashes": {
+    "tests/test_ci_cd_integration_docs.py": "sha256:1013b96739724ce9f1a3934ac12d34dc69804490bdac4f037b3b3eaf0a61fef8"
+  },
+  "created_at": "2026-06-17T14:00:51.123230+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:696c95a83ea4b74fa782ba4a097a1641ad63d79186db32758ac6490f1452811d",
+      "prior_test_hashes": {
+        "tests/test_ci_cd_integration_docs.py": "sha256:1013b96739724ce9f1a3934ac12d34dc69804490bdac4f037b3b3eaf0a61fef8"
+      },
+      "revised_at": "2026-06-17T14:01:01.981376+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-04-document-ci-platform-sarif-consumption.manifest.yaml -> manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:6b30e7ab3a136740d14cc94409ee194fec991bc382b528d308a9c6981e441cfb",
+      "prior_test_hashes": {
+        "tests/test_ci_cd_integration_docs.py": "sha256:1013b96739724ce9f1a3934ac12d34dc69804490bdac4f037b3b3eaf0a61fef8"
+      },
+      "revised_at": "2026-06-17T14:16:35.155327+00:00",
+      "reason": "Capture implementation review outcome."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T14:01:04.332745+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_ci_cd_integration_docs.py",
+        "exit_code": 1,
+        "output_tail": "..F..                                                                    [100%]\n=================================== FAILURES ===================================\n______ test_ci_cd_integration_guide_documents_sarif_platform_consumption _______\n\n    def test_ci_cd_integration_guide_documents_sarif_platform_consumption() -> None:\n        guide = _read(GUIDE)\n        lower_guide = guide.lower()\n    \n>       assert \"## SARIF Platform Consumption\" in guide\nE       AssertionError: assert '## SARIF Platform Consumption' in '# CI/CD Integration\\n\\n<!-- _ci_cd_integration_guide -->\\n\\nUse this guide to wire MAID Runner into CI systems as a r...e `--no-changed-scope` for full active-manifest\\n  validation, or supply a known release baseline with `--base-ref`.\\n'\n\ntests/test_ci_cd_integration_docs.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_ci_cd_integration_docs.py::test_ci_cd_integration_guide_documents_sarif_platform_consumption\n1 failed, 4 passed in 0.02s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/ci-cd-integration.md:attribute:documentation._sarif_platform_consumption_guidance",
+      "docs/ci-cd-integration.md:attribute:documentation._sarif_platform_consumption_guidance:kind=attribute",
+      "docs/ci-cd-integration.md:attribute:documentation._sarif_platform_consumption_guidance:of=documentation",
+      "docs/ci-cd-integration.md:attribute:documentation._sarif_platform_consumption_guidance:type=markdown section"
+    ],
+    "test_files": [
+      "tests/test_ci_cd_integration_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_ci_cd_integration_docs.py",
+      "uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

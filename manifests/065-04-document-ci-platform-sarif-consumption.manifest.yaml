@@ -1,0 +1,210 @@
+schema: '2'
+goal: Document SARIF consumption guidance for GitLab, Jenkins, and generic CI pipelines
+type: feature
+created: '2026-06-17T14:01:01Z'
+metadata:
+  epic: 065-00-ci-native-sarif-reporting
+  tags:
+  - ci-cd
+  - sarif
+  - reporting
+  - documentation
+  priority: medium
+description: |
+  Documentation child of epic 065-00. Extend docs/ci-cd-integration.md with
+  SARIF consumption guidance for platforms beyond GitHub: GitLab (code
+  quality / SAST report conversion), Jenkins (warnings-ng), and generic
+  pipelines, including which MAID error codes map to which severities and
+  how to gate on them. This child may start once 065-02 (`--sarif <path>`
+  on `maid validate` and `maid verify`) is stable; 065-03 covers the
+  GitHub-specific wiring and is not repeated here.
+
+  Pinned decisions from epic 065-00 that this documentation must state
+  accurately. Do not contradict or redesign these:
+
+  1. SARIF is produced with `--sarif <path>` on `maid validate` and
+     `maid verify`. The report is written on both pass and fail, so CI
+     upload/publish steps can run unconditionally. Successful SARIF report
+     generation never changes validation or verification gate exit codes,
+     including under `--strict` or advisory modes; gating stays on the
+     command's exit code, with SARIF as the review-time view. An unwritable
+     requested SARIF output path is a visible report-output error, not a
+     silent fallback.
+  2. Severity mapping (document the table): error diagnostics -> SARIF
+     level `error`, warnings -> `warning`, advisory/info -> `note`. The
+     SARIF ruleId is the E-code (E1xx chain, E2xx command integrity, E3xx
+     implementation, plus the other registered families); rule metadata
+     comes from the diagnostics registry
+     (maid_runner/core/diagnostics_registry.py) and help links point into
+     docs/troubleshooting.md. The registry stores internal MAID severities
+     (`error`, `warning`, `info`); the SARIF serializer maps `info` to
+     SARIF `note`.
+  3. Determinism: identical validation results produce byte-identical
+     SARIF (run-level timestamps are omitted; results are sorted by file
+     path, then line, then code), so SARIF files are diffable and safe to
+     cache or compare between pipeline runs.
+  4. The SARIF target version is 2.1.0, and the `--json` output remains
+     the canonical machine contract; SARIF is a derived view. Platform
+     guidance must not suggest parsing SARIF where `--json` is the better
+     integration surface.
+
+  Documentation content to add to docs/ci-cd-integration.md:
+
+  - GitLab: GitLab does not natively render SARIF; document conversion to
+    the GitLab code quality / SAST report format (an example conversion
+    step in .gitlab-ci.yml) and how to publish it as a
+    `codequality`/`sast` artifact so findings annotate merge requests.
+  - Jenkins: the warnings-ng plugin consumes SARIF directly; document a
+    pipeline snippet using recordIssues with the sarif parser on the
+    report written by --sarif.
+  - Generic pipelines: the report is plain JSON conforming to SARIF 2.1.0;
+    document gating recipes, e.g. failing a stage when the report contains
+    any result with level "error" (jq example), while reiterating that
+    the command exit code is the primary gate.
+  - Severity/gating table: which MAID error-code families map to which
+    SARIF levels and recommended gating (block on error, surface warning,
+    inform on note).
+
+  Edge cases and test expectations (extend the existing docs test
+  tests/test_ci_cd_integration_docs.py):
+
+  - The docs name GitLab, Jenkins (warnings-ng), and generic pipeline
+    guidance, and reference the --sarif flag on both validate and verify.
+  - The docs state the error/warning/note severity mapping and that
+    successful SARIF generation never changes validation or verify gate exit
+    codes.
+  - The docs state the report is written on both pass and fail so uploads
+    are unconditional.
+  - The docs point GitHub-specific upload guidance at
+    docs/github-actions.md (065-03) instead of duplicating it.
+
+  Planning note: this is a documentation-only child; no production code
+  changes. The epic pins no specific GitLab conversion tool; the docs
+  describe the conversion approach and an example without endorsing a
+  single third-party converter version.
+
+  Out of scope: the diagnostics registry (065-01), the SARIF serializer
+  and CLI flag (065-02), and the GitHub Actions template wiring and its
+  permissions documentation (065-03).
+temptations:
+- risk: Do not document SARIF as a replacement for the canonical --json contract or the exit-code gate.
+  instead: Present SARIF as a derived review-time view, keep --json as the canonical machine output, and gate primarily on command exit codes.
+- risk: Do not invent ad-hoc severity levels per platform.
+  instead: Document the single registry-backed mapping (error->error, warning->warning, advisory/info->note) and reuse it in every platform recipe.
+- risk: Do not duplicate GitHub-specific upload guidance in the platform docs.
+  instead: Link GitHub consumers to docs/github-actions.md and keep this child focused on GitLab, Jenkins, and generic pipelines.
+files:
+  edit:
+  - path: docs/ci-cd-integration.md
+    artifacts:
+    - kind: attribute
+      name: _sarif_platform_consumption_guidance
+      of: documentation
+      type: markdown section
+      description: SARIF consumption guidance for GitLab conversion, Jenkins warnings-ng, and generic pipelines, with the error-code-to-severity mapping table and gating recipes.
+  read:
+  - docs/github-actions.md
+  - docs/troubleshooting.md
+  - maid_runner/core/diagnostics_registry.py
+  - tests/test_ci_cd_integration_docs.py
+validate:
+- uv run python -m pytest -q tests/test_ci_cd_integration_docs.py
+- uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-17T14:15:52Z"
+  summary: "Documented SARIF consumption guidance for GitLab, Jenkins warnings-ng, and generic CI pipelines."
+  rationale: "The CI/CD guide now treats SARIF as a derived review-time view while keeping MAID command exit codes and `--json` as the canonical machine gate. It documents pass/fail SARIF report generation, deterministic SARIF output, registry-backed severity mapping, GitLab code quality/SAST conversion, Jenkins warnings-ng ingestion, and generic `jq` policy checks without duplicating GitHub-specific upload setup from docs/github-actions.md."
+  lessons:
+  - lesson_type: documentation
+    summary: "Platform SARIF guidance should state the gate boundary explicitly: upload or publish SARIF unconditionally for review visibility, but keep MAID command exit codes and `--json` as the machine contract."
+    tags:
+    - sarif
+    - ci-cd
+    - documentation
+    paths:
+    - docs/ci-cd-integration.md
+    - tests/test_ci_cd_integration_docs.py
+  - lesson_type: workflow
+    summary: "For documentation-only MAID children, focused docs assertions can provide meaningful red evidence when they fail on the missing heading or pinned guidance before the markdown is added."
+    tags:
+    - plan-lock
+    - red-evidence
+    - documentation-tests
+    paths:
+    - tests/test_ci_cd_integration_docs.py
+    - .maid/plan-locks/065-04-document-ci-platform-sarif-consumption.lock.json
+  review_notes:
+  - source: Nash
+    severity: info
+    summary: "Independent read-only implementation review found no P0/P1 findings and returned Ready to merge; it confirmed the declared docs artifact, scope, red evidence, stale draft reference check, and SARIF contract fidelity."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_ci_cd_integration_docs.py
+    status: passed
+    summary: "Focused CI/CD documentation tests passed: 5 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml
+    - --mode
+    - behavioral
+    - --quiet
+    status: passed
+    summary: "Promoted manifest behavioral validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml
+    - --mode
+    - schema
+    - --quiet
+    status: passed
+    summary: "Promoted manifest schema validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/065-04-document-ci-platform-sarif-consumption.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Promoted manifest implementation validation passed with the expected E307 markdown no-validator warning hidden by quiet output."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 350 manifests, 264 passed, 0 failed, 86 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 126 commands, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict handoff verify passed with an explicit changed-scope baseline; plan_lock, worktree_scope, changed_scope, and tests all passed. Running the same gate without a baseline reached PASS plan_lock and failed only with E115 changed-scope baseline required."
