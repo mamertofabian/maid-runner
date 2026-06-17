@@ -1,0 +1,269 @@
+schema: '2'
+goal: Export the existing diagnostics registry through the public library APIs
+type: feature
+created: '2026-06-17T07:31:53Z'
+metadata:
+  epic: 065-00-ci-native-sarif-reporting
+  tags:
+  - ci-cd
+  - sarif
+  - reporting
+  - diagnostics
+  priority: medium
+description: |
+  Reconcile epic 065 with the registry already delivered by
+  `070-01-add-error-code-registry-with-repair-recipes`. The current codebase
+  already has `maid_runner/core/diagnostics_registry.py`, including
+  `DiagnosticRule`, `RepairRecipe`, `get_rule(code)`, `all_rules()`, and
+  `render_next_action(code, values)`, with tests proving every `ErrorCode`
+  member in `maid_runner/core/result.py` has a registered rule.
+
+  This child no longer creates or redesigns that registry. Its remaining
+  implementation purpose is to expose the shipped registry through the public
+  library import surfaces used by integrations and later SARIF work:
+  `maid_runner` and `maid_runner.core`.
+
+  Pinned decisions after reconciling with active manifest 070-01. Do not
+  redesign these:
+
+  1. The registry source is `maid_runner/core/diagnostics_registry.py`,
+     created and covered by active manifest
+     `manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml`.
+     Preserve its existing public surface and recipe behavior.
+  2. `DiagnosticRule.default_severity` stores MAID's internal severity values
+     from `Severity` (`"error"`, `"warning"`, `"info"`), matching current
+     emitters. SARIF conversion maps `Severity.INFO` to SARIF level `"note"`
+     in 065-02; do not change registry severities to SARIF-specific values.
+  3. `get_rule(code)` currently accepts an `ErrorCode` member or string value
+     despite its narrow annotation, normalizes to the E-code string, and fails
+     loudly for unknown codes. Preserve that behavior.
+  4. `all_rules()` returns all registered rules in deterministic code order,
+     covering every `ErrorCode` member.
+  5. Library export only: add `DiagnosticRule`, `RepairRecipe`, `get_rule`,
+     `all_rules`, and `render_next_action` to the `maid_runner` and
+     `maid_runner.core` import surfaces. Do not alter validator behavior,
+     existing JSON output, failure-packet contents, or repair-recipe coverage.
+
+  Edge cases and test expectations:
+
+  - The existing diagnostics-registry tests continue to pass: every
+    `ErrorCode` is registered, unknown codes fail loudly, default severities
+    match current non-error emitters, recipe rendering remains opt-in, and
+    implementation-failure recipes do not first instruct test or manifest
+    edits.
+  - The top-level package exports `DiagnosticRule`, `RepairRecipe`,
+    `get_rule`, `all_rules`, and `render_next_action` from `maid_runner`.
+  - The core package exports the same symbols from `maid_runner.core`.
+  - Export tests assert the imported objects are the same objects provided by
+    `maid_runner.core.diagnostics_registry`, not wrappers or duplicated
+    metadata.
+
+  Planning note: the previous version of this draft predated 070-01 and
+  declared `maid_runner/core/diagnostics_registry.py` as a created file. That
+  is stale and would collide with the active 070 manifest. This draft is now
+  intentionally scoped to package export wiring plus tests.
+
+  Out of scope: changing registry metadata or recipe coverage, SARIF
+  serialization and the --sarif flag (065-02), GitHub Actions wiring (065-03),
+  CI platform documentation (065-04), and retry-packet behavior from the 070
+  epic.
+temptations:
+- risk: Do not recreate, move, or fork the diagnostics registry that 070-01 already shipped.
+  instead: Import and re-export the existing symbols from maid_runner.core.diagnostics_registry.
+- risk: Do not change DiagnosticRule.default_severity from internal Severity values to SARIF-specific levels.
+  instead: Keep registry severities as error/warning/info and perform the info->note mapping in the SARIF serializer.
+- risk: Do not broaden repair-recipe coverage while preparing SARIF work.
+  instead: Leave render_next_action behavior and the 070-01 recipe safety tests unchanged.
+files:
+  edit:
+  - path: maid_runner/__init__.py
+    artifacts:
+    - kind: attribute
+      name: __all__
+      type: list[str]
+      description: Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through the top-level library API.
+    - kind: class
+      name: DiagnosticRule
+      description: Re-export of maid_runner.core.diagnostics_registry.DiagnosticRule through the top-level library API.
+    - kind: class
+      name: RepairRecipe
+      description: Re-export of maid_runner.core.diagnostics_registry.RepairRecipe through the top-level library API.
+    - kind: function
+      name: get_rule
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.get_rule through the top-level library API.
+    - kind: function
+      name: all_rules
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.all_rules through the top-level library API.
+    - kind: function
+      name: render_next_action
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.render_next_action through the top-level library API.
+  - path: maid_runner/core/__init__.py
+    artifacts:
+    - kind: attribute
+      name: __all__
+      type: list[str]
+      description: Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through maid_runner.core.
+    - kind: class
+      name: DiagnosticRule
+      description: Re-export of maid_runner.core.diagnostics_registry.DiagnosticRule through maid_runner.core.
+    - kind: class
+      name: RepairRecipe
+      description: Re-export of maid_runner.core.diagnostics_registry.RepairRecipe through maid_runner.core.
+    - kind: function
+      name: get_rule
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.get_rule through maid_runner.core.
+    - kind: function
+      name: all_rules
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.all_rules through maid_runner.core.
+    - kind: function
+      name: render_next_action
+      args: []
+      description: Re-export of maid_runner.core.diagnostics_registry.render_next_action through maid_runner.core.
+  - path: docs/reference/api.rst
+    artifacts:
+    - kind: attribute
+      name: _public_api_autosummary_diagnostics_registry_exports
+      of: documentation
+      type: reStructuredText autosummary entries
+      description: Adds the diagnostics registry re-export symbols to the public API autosummary so docs continue to mirror maid_runner.__all__.
+  read:
+  - maid_runner/core/diagnostics_registry.py
+  - maid_runner/core/result.py
+  - docs/troubleshooting.md
+  - tests/core/test_diagnostics_registry.py
+  - tests/integration/test_library_api.py
+  - manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_diagnostics_registry.py tests/integration/test_library_api.py
+- uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-17T07:57:00Z"
+  summary: "Exported the existing diagnostics registry through the public maid_runner and maid_runner.core APIs, including DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action. The registry implementation, severities, and repair recipes were left unchanged, and the public API autosummary was updated to keep docs aligned with maid_runner.__all__."
+  rationale: "Later SARIF work can now derive diagnostic rule metadata from the same public registry surface used by failure packets and library integrations, without forking the diagnostic model or changing validator behavior."
+  lessons:
+    - lesson_type: workflow
+      summary: "The draft's original behavioral tests were already green, so the plan lock first captured not-red evidence. Adding direct public export identity assertions before implementation produced genuine red evidence for the missing __all__ exports."
+      tags:
+        - plan-lock
+        - red-phase
+        - public-api
+      paths:
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+    - lesson_type: validation
+      summary: "Python __init__.py re-exports are collected as public class/function artifacts, not just __all__ strings. The manifest needed to declare DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action on both public import surfaces."
+      tags:
+        - implementation-validation
+        - re-exports
+        - public-api
+      paths:
+        - maid_runner/__init__.py
+        - maid_runner/core/__init__.py
+        - manifests/065-01-add-error-code-rule-registry-export.manifest.yaml
+    - lesson_type: validation
+      summary: "Adding a new validate command after red evidence triggered E707, and listing an extra test file without running it triggered E230. Keep this manifest's validate commands tied to the red-backed export tests while relying on the owning API-reference manifest and full maid test for docs autosummary coverage."
+      tags:
+        - plan-lock
+        - validate-commands
+        - documentation
+      paths:
+        - docs/reference/api.rst
+        - tests/test_api_reference_docs.py
+        - manifests/052-01-add-sphinx-api-reference.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review returned needs changes because .maid/active-manifest was still present after maid task start. Fixed by running uv run maid task stop and verifying the local active-manifest file was cleared."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final re-review found no actionable findings. Residual risk was low and limited to docs/reference/api.rst coverage being owned by manifest 052 and full maid test rather than this manifest's focused validate command."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_diagnostics_registry.py
+        - tests/integration/test_library_api.py
+      status: passed
+      summary: "35 passed; registry behavior and public export identity tests passed."
+    - command:
+        - uv
+        - run
+        - --group
+        - docs
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_api_reference_docs.py
+      status: passed
+      summary: "5 passed; API reference autosummary matches maid_runner.__all__."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/065-01-add-error-code-rule-registry-export.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Promoted manifest behavioral validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/065-01-add-error-code-rule-registry-export.manifest.yaml
+        - --mode
+        - schema
+        - --quiet
+      status: passed
+      summary: "Promoted manifest schema validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/065-01-add-error-code-rule-registry-export.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Promoted manifest implementation validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Handoff gate passed with plan lock, red evidence, worktree scope, changed scope, and tests all passing."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --packet
+      status: passed
+      summary: "Full validation passed: 346 manifests, 260 passed, 0 failed, 86 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full manifest test suite passed: 118 commands, 118 passed, 0 failed."

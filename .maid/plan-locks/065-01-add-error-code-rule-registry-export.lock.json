@@ -1,0 +1,144 @@
+{
+  "manifest_path": "manifests/065-01-add-error-code-rule-registry-export.manifest.yaml",
+  "manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+  "test_hashes": {
+    "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+    "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
+  },
+  "created_at": "2026-06-17T07:27:27.229629+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:72fdc8361baae89130e36e6e7f5bc5e82930e5f56f29264e9dce909f6c6b5650"
+      },
+      "revised_at": "2026-06-17T07:31:32.240535+00:00",
+      "reason": "Add missing public diagnostics export assertions before implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:5c175046c17058bb34d53bf36ad36043948a88eb1ebcceee8a440d8490a89bca"
+      },
+      "revised_at": "2026-06-17T07:31:53.173341+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-01-add-error-code-rule-registry-export.manifest.yaml -> manifests/065-01-add-error-code-rule-registry-export.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:34a9242afdb1e66bf703bf28eb9cdc7519112b8c940a9f10db2bcfd77ded27aa",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:5c175046c17058bb34d53bf36ad36043948a88eb1ebcceee8a440d8490a89bca"
+      },
+      "revised_at": "2026-06-17T07:34:04.583245+00:00",
+      "reason": "Declare diagnostics registry re-export artifacts and direct behavioral references"
+    },
+    {
+      "prior_manifest_hash": "sha256:927c5147f61d47503d9a5f22854e69cea80d41328f99ffaaf01067487e6de3b2",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
+      },
+      "revised_at": "2026-06-17T07:38:09.111937+00:00",
+      "reason": "Include API reference autosummary update required by new public exports"
+    },
+    {
+      "prior_manifest_hash": "sha256:ee8fed42937667943873a165f6a5ff5fd48e94837913b97a88d36a7aa2283811",
+      "prior_test_hashes": {
+        "tests/test_api_reference_docs.py": "sha256:1333ef86482988dd08dae3bf5be0651cf37d3078cfe310a51294e6f146686eec",
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
+      },
+      "revised_at": "2026-06-17T07:44:27.362199+00:00",
+      "reason": "Keep red-backed validate commands while retaining docs autosummary scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:46eb7134cfa8733444bef8e339cdf64a567610b6a6811aa795a39e466a9bc979",
+      "prior_test_hashes": {
+        "tests/test_api_reference_docs.py": "sha256:1333ef86482988dd08dae3bf5be0651cf37d3078cfe310a51294e6f146686eec",
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
+      },
+      "revised_at": "2026-06-17T07:45:22.017116+00:00",
+      "reason": "Keep API reference docs coverage in owning manifest while preserving export red evidence"
+    },
+    {
+      "prior_manifest_hash": "sha256:e02daa6edf039a366b41335e9527603862743a22f29a1b2373a0fc4f01d4156b",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
+      },
+      "revised_at": "2026-06-17T07:57:45.210802+00:00",
+      "reason": "Capture completed outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T07:31:55.697241+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_diagnostics_registry.py tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner.core import diagnostics_registry\n    \n        expected_exports = {\n            \"DiagnosticRule\",\n            \"RepairRecipe\",\n            \"get_rule\",\n            \"all_rules\",\n            \"render_next_action\",\n        }\n    \n>       assert expected_exports.issubset(maid_runner.__all__)\nE       AssertionError: assert False\nE        +  where False = <built-in method issubset of set object at 0x71d41aaee960>(['__version__', 'validate', 'validate_all', 'generate_snapshot', 'ValidationEngine', 'load_manifest', ...])\nE        +    where <built-in method issubset of set object at 0x71d41aaee960> = {'DiagnosticRule', 'RepairRecipe', 'all_rules', 'get_rule', 'render_next_action'}.issubset\nE        +    and   ['__version__', 'validate', 'validate_all', 'generate_snapshot', 'ValidationEngine', 'load_manifest', ...] = <module 'maid_runner' from '/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/__init__.py'>.__all__\n\ntests/integration/test_library_api.py:117: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_diagnostics_registry_exports_reuse_core_registry_objects\n1 failed, 34 passed in 0.14s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/reference/api.rst:attribute:documentation._public_api_autosummary_diagnostics_registry_exports",
+      "docs/reference/api.rst:attribute:documentation._public_api_autosummary_diagnostics_registry_exports:kind=attribute",
+      "docs/reference/api.rst:attribute:documentation._public_api_autosummary_diagnostics_registry_exports:of=documentation",
+      "docs/reference/api.rst:attribute:documentation._public_api_autosummary_diagnostics_registry_exports:type=reStructuredText autosummary entries",
+      "maid_runner/__init__.py:attribute:__all__",
+      "maid_runner/__init__.py:attribute:__all__:kind=attribute",
+      "maid_runner/__init__.py:attribute:__all__:type=list[str]",
+      "maid_runner/__init__.py:class:DiagnosticRule",
+      "maid_runner/__init__.py:class:DiagnosticRule:kind=class",
+      "maid_runner/__init__.py:class:RepairRecipe",
+      "maid_runner/__init__.py:class:RepairRecipe:kind=class",
+      "maid_runner/__init__.py:function:all_rules",
+      "maid_runner/__init__.py:function:all_rules:kind=function",
+      "maid_runner/__init__.py:function:get_rule",
+      "maid_runner/__init__.py:function:get_rule:kind=function",
+      "maid_runner/__init__.py:function:render_next_action",
+      "maid_runner/__init__.py:function:render_next_action:kind=function",
+      "maid_runner/core/__init__.py:attribute:__all__",
+      "maid_runner/core/__init__.py:attribute:__all__:kind=attribute",
+      "maid_runner/core/__init__.py:attribute:__all__:type=list[str]",
+      "maid_runner/core/__init__.py:class:DiagnosticRule",
+      "maid_runner/core/__init__.py:class:DiagnosticRule:kind=class",
+      "maid_runner/core/__init__.py:class:RepairRecipe",
+      "maid_runner/core/__init__.py:class:RepairRecipe:kind=class",
+      "maid_runner/core/__init__.py:function:all_rules",
+      "maid_runner/core/__init__.py:function:all_rules:kind=function",
+      "maid_runner/core/__init__.py:function:get_rule",
+      "maid_runner/core/__init__.py:function:get_rule:kind=function",
+      "maid_runner/core/__init__.py:function:render_next_action",
+      "maid_runner/core/__init__.py:function:render_next_action:kind=function"
+    ],
+    "test_files": [
+      "tests/core/test_diagnostics_registry.py",
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_diagnostics_registry.py tests/integration/test_library_api.py",
+      "uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/065-01-add-error-code-rule-registry-export.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

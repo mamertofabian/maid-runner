@@ -101,6 +101,46 @@ class TestPublicAPIImports:
         assert ValidationError is not None
         assert ValidationResult is not None
 
+    def test_diagnostics_registry_exports_reuse_core_registry_objects(self):
+        import maid_runner
+        import maid_runner.core as core_api
+        from maid_runner import (
+            DiagnosticRule,
+            RepairRecipe,
+            all_rules,
+            get_rule,
+            render_next_action,
+        )
+        from maid_runner.core import (
+            DiagnosticRule as CoreDiagnosticRule,
+            RepairRecipe as CoreRepairRecipe,
+            all_rules as core_all_rules,
+            get_rule as core_get_rule,
+            render_next_action as core_render_next_action,
+        )
+        from maid_runner.core import diagnostics_registry
+
+        expected_exports = {
+            "DiagnosticRule",
+            "RepairRecipe",
+            "get_rule",
+            "all_rules",
+            "render_next_action",
+        }
+
+        assert expected_exports.issubset(maid_runner.__all__)
+        assert expected_exports.issubset(core_api.__all__)
+        assert DiagnosticRule is diagnostics_registry.DiagnosticRule
+        assert RepairRecipe is diagnostics_registry.RepairRecipe
+        assert get_rule is diagnostics_registry.get_rule
+        assert all_rules is diagnostics_registry.all_rules
+        assert render_next_action is diagnostics_registry.render_next_action
+        assert CoreDiagnosticRule is diagnostics_registry.DiagnosticRule
+        assert CoreRepairRecipe is diagnostics_registry.RepairRecipe
+        assert core_get_rule is diagnostics_registry.get_rule
+        assert core_all_rules is diagnostics_registry.all_rules
+        assert core_render_next_action is diagnostics_registry.render_next_action
+
     def test_validator_imports(self):
         from maid_runner import (
             BaseValidator,

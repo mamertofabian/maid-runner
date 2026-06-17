@@ -52,6 +52,13 @@ from maid_runner.core.result import (
     TestRunResult,
     BatchTestResult,
 )
+from maid_runner.core.diagnostics_registry import (
+    DiagnosticRule,
+    RepairRecipe,
+    get_rule,
+    all_rules,
+    render_next_action,
+)
 from maid_runner.validators.registry import ValidatorRegistry, UnsupportedLanguageError
 from maid_runner.validators.base import BaseValidator, FoundArtifact, CollectionResult
 
@@ -99,6 +106,11 @@ __all__ = [
     "FileTrackingEntry",
     "TestRunResult",
     "BatchTestResult",
+    "DiagnosticRule",
+    "RepairRecipe",
+    "get_rule",
+    "all_rules",
+    "render_next_action",
     # Validators
     "ValidatorRegistry",
     "UnsupportedLanguageError",

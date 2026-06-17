@@ -46,6 +46,13 @@ from maid_runner.core.result import (
     TestRunResult,
     BatchTestResult,
 )
+from maid_runner.core.diagnostics_registry import (
+    DiagnosticRule,
+    RepairRecipe,
+    get_rule,
+    all_rules,
+    render_next_action,
+)
 
 __all__ = [
     "BootstrapFileResult",
@@ -81,4 +88,9 @@ __all__ = [
     "FileTrackingEntry",
     "TestRunResult",
     "BatchTestResult",
+    "DiagnosticRule",
+    "RepairRecipe",
+    "get_rule",
+    "all_rules",
+    "render_next_action",
 ]

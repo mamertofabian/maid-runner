@@ -41,6 +41,11 @@ Public Exports
    FileTrackingEntry
    TestRunResult
    BatchTestResult
+   DiagnosticRule
+   RepairRecipe
+   get_rule
+   all_rules
+   render_next_action
    ValidatorRegistry
    UnsupportedLanguageError
    BaseValidator
