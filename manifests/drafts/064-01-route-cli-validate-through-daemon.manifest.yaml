@@ -13,18 +13,23 @@ metadata:
     - agent-loops
   priority: medium
 description: |
-  Route `maid validate` through a running `maid serve` daemon when the caller
-  opts in, so AI agents and editor integrations looping on validation stop
-  paying Python interpreter startup per call. This child adds the routing
-  flag, the daemon client, the health check, and the equivalence tests. It
-  does not add caching (064-02), verify-over-daemon (064-03), a Windows
-  transport (064-04), or any default change (064-05).
+  Route single-manifest `maid validate <manifest>` calls through a running
+  `maid serve` daemon when the caller opts in, so AI agents and editor
+  integrations looping on validation stop paying Python interpreter startup
+  per call. This child adds the routing flag, the daemon client, the health
+  check, result rehydration, and the equivalence tests. It does not add
+  directory-wide `validate_all` routing, caching (064-02), verify-over-daemon
+  (064-03), a Windows transport (064-04), or any default change (064-05).
 
   Pinned decisions from epic 064-00. Do not redesign these:
 
-  1. Routing flag: `--daemon auto|off|require` on `maid validate`, default
-     `off` in this child (and this epic; only 064-05 may flip the default to
-     `auto`, and only after benchmark evidence).
+  1. Routing flag: `--daemon auto|off|require` on single-manifest
+     `maid validate <manifest>` calls, default `off` in this child (and
+     this epic; only 064-05 may flip the default to `auto`, and only after
+     benchmark evidence). Directory-wide `maid validate` without a manifest
+     remains direct in `off` and `auto`; `require` returns a structured
+     unsupported-mode failure until a later child explicitly adds
+     daemon-backed `validate_all`.
   2. Health check before routing: connect to the socket at `.maid/serve.sock`,
      call `ping`, and require the response to report the same resolved
      project root and the same `maid_runner` version as the client. Any
@@ -40,10 +45,10 @@ description: |
      bug.
   4. Fail open to direct execution: a missing, stale, or version-mismatched
      daemon must never fail or block a validation call under `auto`; the CLI
-     silently falls back and reports the routing decision only in
-     verbose/JSON diagnostics. `require` mode is for callers that opt in to
-     a hard dependency and gets a structured, non-zero failure when the
-     daemon is unavailable or incompatible.
+     silently falls back without changing normal validation output. `require`
+     mode is for callers that opt in to a hard dependency and gets a
+     structured, non-zero failure when the daemon is unavailable,
+     incompatible, or asked to route an unsupported validation shape.
   5. Security posture: the daemon stays repo-bound with locked-down socket
      permissions per the existing `maid serve` defaults. Routing must verify
      the daemon's project root and package version match the caller before
@@ -59,10 +64,12 @@ description: |
   - New module `maid_runner/daemon/client.py` holds the client side:
     `ping_daemon` (NDJSON ping over the Unix socket), `daemon_matches_client`
     (compares the ping payload's resolved project root and version against
-    the caller's), `validate_via_daemon` (sends a `validate` request and
-    returns the result dict, raising `DaemonUnavailableError` on connection
-    or protocol failure), and the `DaemonUnavailableError` exception used by
-    `require` mode.
+    the caller's), `validation_result_from_daemon_payload` (rehydrates the
+    daemon's `ValidationResult.to_dict()` payload for existing CLI
+    formatters), `validate_via_daemon` (sends a `validate` request and
+    returns a `ValidationResult`, raising `DaemonUnavailableError` on
+    connection or protocol failure), and the `DaemonUnavailableError`
+    exception used by `require` mode.
   - `cmd_validate` consults the `--daemon` mode: `off` keeps today's direct
     path untouched; `auto` tries the health check and routes on success,
     falling back silently otherwise; `require` routes or fails with a
@@ -84,6 +91,12 @@ description: |
     direct `--json` output after recursively stripping every field whose
     name contains `duration` (e.g. `duration_ms`); exit codes are equal for
     both passing and failing manifests.
+  - Strict validation flags (`--strict`, `--check-assertions`,
+    `--check-stubs`, and `--fail-on-warnings`) are passed through to the
+    daemon request and preserve direct-path warning/failure behavior.
+  - Directory-wide `maid validate --daemon auto` falls back to direct
+    validation; directory-wide `--daemon require` exits non-zero with a
+    structured unsupported-mode message.
   - `--daemon off` (default) never touches the socket.
 
   Planning note: the epic does not name the client module; this draft pins
@@ -148,6 +161,19 @@ files:
           expected:
             behavior: "Returns true only when the ping payload reports the same resolved project root and the same maid_runner version as the client."
         - kind: function
+          name: validation_result_from_daemon_payload
+          args:
+            - name: payload
+              type: dict
+          returns: ValidationResult
+          source_scenario: "A daemon validate response is rendered through the same CLI formatter as direct execution."
+          actions:
+            - type: api_call
+              subject:
+                function: validation_result_from_daemon_payload
+          expected:
+            behavior: "Reconstructs a ValidationResult with errors, warnings, mode, manifest identity, file-tracking data, and duration so existing direct-path formatters, SARIF writing, and post-validation gates can consume it."
+        - kind: function
           name: validate_via_daemon
           args:
             - name: socket_path
@@ -163,17 +189,26 @@ files:
             - name: manifest_dir
               type: str
               default: "'manifests/'"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
             - name: timeout_s
               type: float
               default: "30.0"
-          returns: dict
+          returns: ValidationResult
           source_scenario: "A validate request is sent over the NDJSON protocol to a healthy daemon."
           actions:
             - type: api_call
               subject:
                 function: validate_via_daemon
           expected:
-            behavior: "Returns the daemon's validate result dict matching direct execution JSON (duration fields excluded) and raises DaemonUnavailableError on connection or protocol failure."
+            behavior: "Returns a rehydrated ValidationResult matching direct execution JSON (duration fields excluded), passes strictness flags through to the daemon, and raises DaemonUnavailableError on connection or protocol failure."
   edit:
     - path: maid_runner/daemon/handlers.py
       artifacts:
@@ -204,7 +239,7 @@ files:
               subject:
                 function: cmd_validate
           expected:
-            behavior: "off never touches the socket; auto routes through a healthy matching daemon and silently falls back to direct execution otherwise; require routes or returns a structured non-zero failure; rendered output and exit codes match direct execution."
+            behavior: "off never touches the socket; auto routes single-manifest validation through a healthy matching daemon and silently falls back to direct execution otherwise; require routes or returns a structured non-zero failure; unsupported directory-wide routing remains direct under auto and fails under require; rendered output and exit codes match direct execution."
     - path: maid_runner/cli/commands/_main.py
       artifacts:
         - kind: function

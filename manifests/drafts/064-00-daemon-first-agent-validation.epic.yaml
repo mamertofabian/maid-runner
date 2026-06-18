@@ -38,30 +38,36 @@ description: |
      fields excluded). Divergence is a release-blocking bug.
   3. Fail open to direct execution: a missing, stale, or version-mismatched
      daemon must never fail or block a validation call under the default
-     routing mode; the CLI silently falls back and reports the routing
-     decision only in verbose/JSON diagnostics.
+     routing mode; the CLI silently falls back without changing normal
+     validation output. Any future routing diagnostics must stay out of the
+     equivalence-tested JSON payload unless an explicit diagnostic mode is
+     added.
   4. The daemon stays repo-bound with locked-down socket permissions, per the
      existing `maid serve` security defaults. Routing must verify the daemon's
      project root and package version match the caller before use.
 
   Decisions already made for the implementer. Do not redesign these:
 
-  1. Routing flag (064-01): `--daemon auto|off|require` on `maid validate`,
-     default `off` in this epic. Health check before routing: connect to
-     the socket at `.maid/serve.sock`, call `ping`, and require the
-     response to report the same resolved project root and the same
-     `maid_runner` version as the client; any mismatch or connection
-     failure means silent fallback under `auto` and a structured failure
-     under `require`.
+  1. Routing flag (064-01): `--daemon auto|off|require` on single-manifest
+     `maid validate <manifest>` calls, default `off` in this epic.
+     Directory-wide validation remains on the direct path in 064-01 unless
+     a later child explicitly adds daemon support for `validate_all`.
+     Health check before routing: connect to the socket at
+     `.maid/serve.sock`, call `ping`, and require the response to report the
+     same resolved project root and the same `maid_runner` version as the
+     client; any mismatch or connection failure means silent fallback under
+     `auto` and a structured failure under `require`.
   2. Equivalence contract: daemon-routed runs must produce JSON output
      identical to direct runs except fields whose names contain
      `duration`; the equivalence tests serialize both paths on the same
      inputs and compare after stripping those fields.
-  3. Daemon cache (064-02): cache keys are sha256 content hashes of the
-     source or manifest bytes combined with the maid_runner version
-     string. The cache lives only in daemon process memory. The `ping`
-     response gains a `cache_stats` object (entries, hits, misses) for
-     observability and test assertions.
+  3. Daemon cache (064-02): reuse the existing in-process validation caches
+     by keeping a daemon-owned validation cache scope alive across daemon
+     requests. Cache identity remains content-fingerprint based and bounded
+     by the daemon process plus the running `maid_runner` version; do not
+     add a parallel full-result cache that can bypass validation or drift
+     from the direct path. The `ping` response gains a `cache_stats` object
+     (entries, hits, misses) for observability and test assertions.
   4. Protocol versioning (064-03): requests carry an integer
      `protocol_version` (absent means 1). The daemon answers an
      unsupported version with protocol-layer `ok: false` and code
@@ -75,18 +81,19 @@ description: |
   Planned child order:
 
   1. `064-01-route-cli-validate-through-daemon` - add opt-in daemon routing
-     to `maid validate` (`--daemon auto|off|require`, default `off` in this
-     child): when a healthy repo-bound daemon socket exists and versions
-     match, the CLI sends the request over the existing NDJSON protocol and
-     renders results identically to direct execution; otherwise it falls back
-     per the mode. Includes equivalence tests proving identical output for
-     daemon and direct paths.
-  2. `064-02-add-daemon-resident-validation-cache` - keep validated parse
-     and artifact-collection state alive between daemon requests, keyed by
-     content hash plus schema/package version, with invalidation tests
-     covering source edits, manifest edits, tsconfig changes, and daemon
-     restart. Cache scope mirrors the existing in-process caches; no disk
-     persistence.
+     to single-manifest `maid validate <manifest>` (`--daemon
+     auto|off|require`, default `off` in this child): when a healthy
+     repo-bound daemon socket exists and versions match, the CLI sends the
+     request over the existing NDJSON protocol and renders results
+     identically to direct execution; otherwise it falls back per the mode.
+     Includes equivalence tests proving identical output for daemon and
+     direct paths. Directory-wide validation stays direct in this child.
+  2. `064-02-add-daemon-resident-validation-cache` - keep the existing
+     validation parse and artifact-collection caches alive between daemon
+     requests, with invalidation tests covering source edits, manifest
+     edits, tsconfig changes, and daemon restart. Cache scope mirrors the
+     existing in-process caches; no disk persistence and no full-result
+     cache that bypasses validation.
   3. `064-03-extend-daemon-protocol-for-verify` - extend the daemon protocol
      with the verify-relevant methods agents actually loop on (verify stages
      minus subprocess test execution, or a documented subset), preserving the

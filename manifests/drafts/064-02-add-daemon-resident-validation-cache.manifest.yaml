@@ -1,6 +1,6 @@
 # draft-kind: implementation
 schema: "2"
-goal: "Add a daemon-resident validation cache keyed by content hash plus maid_runner version"
+goal: "Keep validation caches alive across daemon validate requests"
 type: feature
 created: "2026-06-10T04:02:00Z"
 metadata:
@@ -13,19 +13,20 @@ metadata:
     - caching
   priority: medium
 description: |
-  Keep validated parse and artifact-collection state alive between daemon
-  requests so repeated `validate` calls in agent loops stop re-parsing
-  unchanged sources and manifests. The cache lives only in daemon process
-  memory; this child adds the cache module, wires it into the daemon's
-  validate handler, and exposes cache statistics through `ping`.
+  Keep the existing validation parse and artifact-collection caches alive
+  between daemon requests so repeated `validate` calls in agent loops stop
+  re-parsing unchanged sources and manifests. The cache lives only in daemon
+  process memory; this child adds the cache-scope module, wires it into the
+  daemon's validate handler, and exposes cache statistics through `ping`.
 
   Pinned decisions from epic 064-00. Do not redesign these:
 
-  1. Cache keys are sha256 content hashes of the source or manifest bytes
-     combined with the maid_runner version string. Keying by content hash
-     (not mtime or path alone) means an edited file always misses, and
-     combining with the package version means an upgraded daemon never
-     serves stale results from an older validator.
+  1. Reuse the existing validation cache scope in
+     `ValidationEngine.validation_cache_scope()` instead of adding a
+     parallel full-result cache. The existing artifact, test-discovery,
+     Python AST, and TypeScript caches are content/signature keyed; keeping
+     their scope alive inside one daemon process gives cross-request reuse
+     without bypassing validation.
   2. The cache lives only in daemon process memory. No disk persistence in
      this epic: a daemon restart starts from an empty cache. This sidesteps
      the disk-cache invalidation policy problem because cache lifetime is
@@ -35,7 +36,8 @@ description: |
   4. Cache scope mirrors the existing in-process caches (parse and
      artifact-collection state); it must not introduce new cacheable
      surfaces beyond what direct execution already caches within a single
-     process.
+     process, and it must not short-circuit validation by returning a
+     previously serialized `ValidationResult`.
   5. Daemon routing never changes validation results: for identical inputs,
      cached and uncached daemon responses must produce identical
      `ValidationResult` content, error codes, and JSON output (duration
@@ -48,13 +50,15 @@ description: |
 
   Implementation shape:
 
-  - New module `maid_runner/daemon/cache.py` holds `ValidationCache`
-    (in-memory store with get/put/stats/clear and hit/miss counters) and
+  - New module `maid_runner/daemon/cache.py` holds
+    `DaemonValidationCacheScope` (daemon-owned `ValidationEngine` plus a
+    long-lived validation cache scope and request hit/miss counters) and
     `content_cache_key` (sha256 of content bytes combined with the
-    maid_runner version string).
-  - `handle_validate` consults the cache for parse/artifact-collection
-    state keyed by the content of the files involved; any content change
-    produces a different key, so invalidation is automatic.
+    maid_runner version string for daemon-level request identity and tests).
+  - `handle_validate` delegates validation through the daemon cache scope so
+    existing parse/artifact/test-discovery caches stay alive across daemon
+    requests; any source, manifest, or tsconfig content change must still be
+    observed by the existing content/signature checks.
   - `handle_ping` adds `cache_stats` (entries, hits, misses) to its payload.
 
   Edge cases and test expectations (invalidation tests are required by the
@@ -70,8 +74,8 @@ description: |
     hits, zero misses).
   - Repeated identical request: second response is byte-identical to the
     first (duration fields excluded) and `cache_stats.hits` increases.
-  - Different maid_runner version string produces different keys (unit test
-    via content_cache_key).
+  - Different maid_runner version string produces different daemon request
+    identity keys (unit test via content_cache_key).
 
   Planning note: the epic does not name the cache module; this draft pins
   it to `maid_runner/daemon/cache.py`. Planning note: the epic does not
@@ -86,9 +90,9 @@ description: |
   cache anywhere in this epic.
 temptations:
   - risk: "Do not introduce cross-invocation disk caches in this epic."
-    instead: "Keep cache state daemon-resident and content-hash keyed so invalidation is bounded by process lifetime, matching the performance backlog's standing constraint."
+    instead: "Keep cache state daemon-resident, reuse the existing content/signature-keyed validation caches, and bound lifetime to the daemon process."
   - risk: "Do not let cached results diverge from uncached or direct execution."
-    instead: "Key strictly on sha256 content hash plus maid_runner version and assert byte-identical JSON (durations excluded) for cache hits in tests."
+    instead: "Reuse the existing validation cache scope, keep validation running for every request, and assert byte-identical JSON (durations excluded) for repeated daemon validations."
   - risk: "Do not merge this optimization slice without fresh measurements."
     instead: "Record before/after uv run maid benchmark evidence for repeated daemon validation in the outcome and drop the slice if it shows no measurable win."
 files:
@@ -96,62 +100,64 @@ files:
     - path: maid_runner/daemon/cache.py
       artifacts:
         - kind: class
-          name: ValidationCache
-          description: "In-memory daemon-resident cache for parse and artifact-collection state with hit/miss accounting."
+          name: DaemonValidationCacheScope
+          description: "Daemon-owned ValidationEngine and long-lived validation cache scope with request-level hit/miss accounting."
         - kind: method
-          name: get
-          of: ValidationCache
+          name: validate
+          of: DaemonValidationCacheScope
           args:
-            - name: key
+            - name: manifest_path
               type: str
-          returns: Any | None
-          source_scenario: "A daemon request looks up previously validated state for unchanged content."
+            - name: mode
+              type: str
+              default: "'implementation'"
+            - name: use_chain
+              type: bool
+              default: "True"
+            - name: manifest_dir
+              type: str
+              default: "'manifests/'"
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: dict
+          source_scenario: "A daemon request validates a manifest while keeping existing validation caches alive across requests."
           actions:
             - type: api_call
               subject:
-                function: ValidationCache.get
+                function: DaemonValidationCacheScope.validate
           expected:
-            behavior: "Returns the cached value and counts a hit when the key exists; returns None and counts a miss otherwise."
-        - kind: method
-          name: put
-          of: ValidationCache
-          args:
-            - name: key
-              type: str
-            - name: value
-              type: Any
-          returns: None
-          source_scenario: "A daemon request stores freshly computed state for reuse."
-          actions:
-            - type: api_call
-              subject:
-                function: ValidationCache.put
-          expected:
-            behavior: "Stores the value under the content-hash key so identical follow-up requests hit the cache."
+            behavior: "Runs validation inside the daemon-owned validation cache scope, returns the same result dict as direct execution (duration fields excluded), records repeated identical request identity as a hit, and still observes changed source, manifest, or tsconfig content."
         - kind: method
           name: stats
-          of: ValidationCache
+          of: DaemonValidationCacheScope
           args: []
           returns: dict
           source_scenario: "The ping handler reports cache observability counters."
           actions:
             - type: api_call
               subject:
-                function: ValidationCache.stats
+                function: DaemonValidationCacheScope.stats
           expected:
             behavior: "Returns a dict with entries, hits, and misses counters reflecting cache activity since daemon start."
         - kind: method
           name: clear
-          of: ValidationCache
+          of: DaemonValidationCacheScope
           args: []
           returns: None
           source_scenario: "Tests or daemon lifecycle code resets cache state."
           actions:
             - type: api_call
               subject:
-                function: ValidationCache.clear
+                function: DaemonValidationCacheScope.clear
           expected:
-            behavior: "Empties the cache and resets entry counts so a restarted daemon observes zero entries."
+            behavior: "Clears the daemon-owned validation cache scope and resets entry counts so a restarted daemon observes zero entries."
         - kind: function
           name: content_cache_key
           args:
@@ -166,7 +172,7 @@ files:
               subject:
                 function: content_cache_key
           expected:
-            behavior: "Returns a stable key combining the sha256 hex digest of the content with the maid_runner version string; different content or different version yields different keys."
+            behavior: "Returns a stable key combining the sha256 hex digest of the content with the maid_runner version string for daemon-level request identity; different content or different version yields different keys."
   edit:
     - path: maid_runner/daemon/handlers.py
       artifacts:
@@ -182,7 +188,7 @@ files:
               subject:
                 function: handle_validate
           expected:
-            behavior: "The second response is identical to the first (duration fields excluded) with a cache hit recorded; the third response reflects the edited content via a cache miss."
+            behavior: "Delegates through DaemonValidationCacheScope; the second response is identical to the first (duration fields excluded) with a cache hit recorded; the third response reflects the edited content via a cache miss."
         - kind: function
           name: handle_ping
           args:
@@ -199,6 +205,8 @@ files:
   read:
     - maid_runner/daemon/server.py
     - maid_runner/daemon/protocol.py
+    - maid_runner/core/_artifact_collection_cache.py
+    - maid_runner/core/ts_module_paths.py
     - maid_runner/core/validate.py
     - maid_runner/core/benchmark.py
     - tests/daemon/test_daemon_cache.py
