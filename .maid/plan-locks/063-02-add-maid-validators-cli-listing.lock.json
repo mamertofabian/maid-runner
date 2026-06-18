@@ -1,0 +1,149 @@
+{
+  "manifest_path": "manifests/063-02-add-maid-validators-cli-listing.manifest.yaml",
+  "manifest_hash": "sha256:474833d7d23127f6f9ba0996e7d26cc2fcfe83363f82cf66fe0794e51cf66888",
+  "test_hashes": {
+    "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+  },
+  "created_at": "2026-06-17T23:26:20.039255+00:00",
+  "revision": 11,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:b91be8d97547b274e2c6d99340a326278dda40d2949ac9d9c76c3d161c6a2b42",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+        "tests/cli/test_validators_cmd.py": "sha256:10ea29fd767c4fc5c7edc0c597abeae288e8c14712fbd385b9344e34fbe23ade"
+      },
+      "revised_at": "2026-06-17T23:26:24.415028+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-02-add-maid-validators-cli-listing.manifest.yaml -> manifests/063-02-add-maid-validators-cli-listing.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:83cec934d50efeb80bfaf8c74d454c4c2ed731bf792d913c5be7b7ececbf8a79",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+        "tests/cli/test_validators_cmd.py": "sha256:10ea29fd767c4fc5c7edc0c597abeae288e8c14712fbd385b9344e34fbe23ade"
+      },
+      "revised_at": "2026-06-17T23:28:07.383367+00:00",
+      "reason": "Include the declared plugin-discovery behavioral test file in the focused validate command so maid test covers every declared test dependency."
+    },
+    {
+      "prior_manifest_hash": "sha256:4518e109200e65fbd2af9affee4a2f12aa4cee7bda4ea1d6327012f6c4b5641c",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:fad7a6154767ab55358965d2825e8aa211eea04ca129d9f9488e922eb7d4e152",
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:29:08.952057+00:00",
+      "reason": "Remove contextual plugin-discovery test from files.read because it is reference material, not a behavioral target changed or required by this CLI listing contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:6bdefb4cce374cfa718523ea973ab727368ff6c6834ebc78e2c63196a76d4f55",
+      "prior_test_hashes": {
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:34:39.368254+00:00",
+      "reason": "Declare the minimal README CLI reference row required by existing parser-command documentation parity after registering maid validators."
+    },
+    {
+      "prior_manifest_hash": "sha256:cb586c54a03553b9fd411059c162df8f28656b5dcaf2e8db3c76f86294062c4d",
+      "prior_test_hashes": {
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:46:54.253176+00:00",
+      "reason": "Add the parser-command documentation parity test to the manifest validation command after declaring the README CLI reference row."
+    },
+    {
+      "prior_manifest_hash": "sha256:a205234ff2300b6d617f87422078e7a175d2ac44bd3235526a5b0b46d9b334c6",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:52:45.029337+00:00",
+      "reason": "Add README CLI reference coverage and docs parity validation after implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:5dfeacb3548bcbc98fa526fbe60a9eeaeaf76df5ba39f97fcb826a9755965160",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:54:13.481859+00:00",
+      "reason": "Restore validators CLI manifest to implementation-only scope; move README docs parity to a separate contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:6bdefb4cce374cfa718523ea973ab727368ff6c6834ebc78e2c63196a76d4f55",
+      "prior_test_hashes": {
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-17T23:59:05.590021+00:00",
+      "reason": "Declare README CLI reference row in the validators CLI manifest while preserving the original validator-listing red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:e226c801986f1c04f87e379cbaa9ce24bf38a8207de37f4964f3db907786eb9c",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-18T00:00:01.236809+00:00",
+      "reason": "Keep README CLI reference in the validators CLI manifest without changing the locked validator-listing red command."
+    },
+    {
+      "prior_manifest_hash": "sha256:cb586c54a03553b9fd411059c162df8f28656b5dcaf2e8db3c76f86294062c4d",
+      "prior_test_hashes": {
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-06-18T00:09:42.519812+00:00",
+      "reason": "Capture completed implementation outcome after READY implementation review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-17T23:26:25.083636+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_validators_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "message = \"maid: error: argument command: invalid choice: 'validators' (choose from validate, test, verify, plan, task, hook, sn...sights, benchmark, incident, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, audit)\\n\"\n\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,test,verify,plan,task,hook,snapshot,snapshot-system,bootstrap,learn,recall,insights,benchmark,incident,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: argument command: invalid choice: 'validators' (choose from validate, test, verify, plan, task, hook, snapshot, snapshot-system, bootstrap, learn, recall, insights, benchmark, incident, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, audit)\n=========================== short test summary info ============================\nFAILED tests/cli/test_validators_cmd.py::test_validators_parser_accepts_text_and_json_and_main_dispatches\nFAILED tests/cli/test_validators_cmd.py::test_cmd_validators_lists_builtin_records_first\nFAILED tests/cli/test_validators_cmd.py::test_validators_json_matches_text_rows_for_plugin_statuses\nFAILED tests/cli/test_validators_cmd.py::test_validators_lists_disabled_plugins_without_loading_them\n============================== 4 failed in 0.35s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/063-02-add-maid-validators-cli-listing.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._maid_validators_cli_reference",
+      "README.md:attribute:documentation._maid_validators_cli_reference:kind=attribute",
+      "README.md:attribute:documentation._maid_validators_cli_reference:of=documentation",
+      "README.md:attribute:documentation._maid_validators_cli_reference:type=markdown table row",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/validators.py:function:cmd_validators",
+      "maid_runner/cli/commands/validators.py:function:cmd_validators:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validators.py:function:cmd_validators:kind=function",
+      "maid_runner/cli/commands/validators.py:function:cmd_validators:returns=int",
+      "tests/cli/test_validators_cmd.py:test_cmd_validators_lists_builtin_records_first",
+      "tests/cli/test_validators_cmd.py:test_cmd_validators_lists_builtin_records_first:kind=test_function",
+      "tests/cli/test_validators_cmd.py:test_validators_json_matches_text_rows_for_plugin_statuses",
+      "tests/cli/test_validators_cmd.py:test_validators_json_matches_text_rows_for_plugin_statuses:kind=test_function",
+      "tests/cli/test_validators_cmd.py:test_validators_lists_disabled_plugins_without_loading_them",
+      "tests/cli/test_validators_cmd.py:test_validators_lists_disabled_plugins_without_loading_them:kind=test_function",
+      "tests/cli/test_validators_cmd.py:test_validators_parser_accepts_text_and_json_and_main_dispatches",
+      "tests/cli/test_validators_cmd.py:test_validators_parser_accepts_text_and_json_and_main_dispatches:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_validators_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_validators_cmd.py -v",
+      "uv run maid validate manifests/063-02-add-maid-validators-cli-listing.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

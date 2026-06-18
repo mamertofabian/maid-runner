@@ -32,6 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     _register_validate_parser(sub)
+    _register_validators_parser(sub)
     _register_test_parser(sub)
     _register_verify_parser(sub)
     _register_plan_parser(sub)
@@ -48,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
+
+
+def _register_validators_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("validators", help="List discovered validators")
+    p.add_argument("--json", action="store_true")
 
 
 def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
@@ -656,6 +662,7 @@ def main(argv: list[str] | None = None) -> int:
 
     dispatch = {
         "validate": "_cmd_validate",
+        "validators": "_cmd_validators",
         "test": "_cmd_test",
         "verify": "_cmd_verify",
         "plan": "_cmd_plan",
@@ -690,6 +697,7 @@ def main(argv: list[str] | None = None) -> int:
     # Lazy import command handlers
     from maid_runner.cli.commands import (
         validate as validate_mod,
+        validators as validators_mod,
         test as test_mod,
         verify as verify_mod,
         plan as plan_mod,
@@ -716,6 +724,7 @@ def main(argv: list[str] | None = None) -> int:
 
     handlers = {
         "_cmd_validate": validate_mod.cmd_validate,
+        "_cmd_validators": validators_mod.cmd_validators,
         "_cmd_test": test_mod.cmd_test,
         "_cmd_verify": verify_mod.cmd_verify,
         "_cmd_plan": plan_mod.cmd_plan,
