@@ -1,0 +1,426 @@
+schema: '2'
+goal: Publish an importable pytest-based conformance kit that third-party validator plugins run to prove their collector honors MAID semantics
+type: feature
+created: '2026-06-18T00:26:19Z'
+metadata:
+  epic: 063-00-validator-plugin-distribution
+  tags:
+  - validators
+  - plugin-architecture
+  - language-support
+  - ecosystem
+  priority: medium
+description: |
+  Give third-party validator authors a way to prove their collector
+  implements the MAID contract correctly. The kit is evidence, not
+  marketing: it must include adversarial cases (private artifact leakage,
+  wrong-identity behavioral references, parse failures, empty files) so
+  passing it means the plugin cannot create false-green validation for its
+  language.
+
+  Pinned decisions (do not redesign):
+
+  - New public subpackage `maid_runner/testing/` with
+    `maid_runner/testing/validator_conformance.py` exposing
+    `make_conformance_suite(validator_cls, fixtures)` that returns
+    parametrized pytest cases.
+  - The fixture contract requires, per language: one source sample per
+    supported artifact kind, a private artifact sample, a behavioral test
+    sample with correct identity, one with wrong identity, an unparseable
+    source sample, and an empty file.
+  - The validator contract surface the kit exercises (`BaseValidator`,
+    `CollectionResult`, registration semantics) is the documented public
+    plugin API; the kit must consume only that surface, never internal
+    validator modules, so it stays valid under the API's semver
+    discipline.
+
+  What the suite verifies (collector contract behavior, all derived from
+  the epic):
+
+  - Artifact kinds and identity fields: each artifact-kind sample, run
+    through `collect_implementation_artifacts`, yields an artifact with
+    the expected kind, name, and `of` parent declared by the fixture.
+  - Public/private rules: the private artifact sample yields only
+    artifacts whose `is_private` is true, and those artifacts are
+    excluded from `generate_snapshot` output (no private leakage).
+  - Behavioral reference identity: the correct-identity behavioral
+    sample, run through `collect_behavioral_artifacts`, yields a
+    reference to the fixture's declared target artifact by kind, name,
+    and optional parent; the wrong-identity sample must NOT yield a
+    reference matching that full target identity (adversarial: a kit that
+    passes both ways proves nothing).
+  - Parse-error result shapes: the unparseable sample returns a
+    `CollectionResult` with a non-empty `errors` list and no artifacts,
+    without raising out of the collector.
+  - Empty file: the empty sample returns an empty artifact list without
+    errors or exceptions.
+  - Deterministic output: collecting the same sample twice yields equal
+    results (same artifacts in the same order).
+  - Strict versus permissive expectations: collected artifacts carry the
+    exact identity fields (kind, name, of) the validation engine needs
+    for strict (files.create exact-match) and permissive (files.edit
+    contains-at-least) comparison, so the same collector output supports
+    both modes.
+
+  Behavior specifics:
+
+  - `ConformanceFixtures` is the fixture container: `extension` (the
+    file extension samples use, e.g. ".rs"), `artifact_samples` (mapping
+    of artifact kind value to a `ConformanceArtifactSample` carrying the
+    source text and the expected public artifact name and optional `of`
+    parent), `private_artifact_source`, `behavioral_target_kind`,
+    `behavioral_target_name`, and `behavioral_target_of` (the full
+    artifact identity both behavioral samples are judged against),
+    `behavioral_correct_source`, `behavioral_wrong_identity_source`,
+    `unparseable_source`, and `empty_source`.
+  - `make_conformance_suite` validates the fixture contract eagerly: a
+    fixtures object missing any required sample fails suite construction
+    with a clear message naming the missing piece, so authors cannot
+    accidentally skip the adversarial cases.
+  - The returned suite is self-contained pytest material: a plugin's test
+    module assigns the return value to a module-level name and pytest
+    collects and runs the parametrized cases with no other glue.
+  - The kit is proven against the in-tree Python validator: the built-in
+    must pass the full suite, and deliberately broken collector doubles
+    (leaking privates, accepting wrong-identity references, swallowing
+    parse errors) must fail the corresponding cases.
+
+  Test expectations (behavioral tests in
+  tests/validators/test_validator_conformance.py, written during planning
+  of this child):
+
+  - make_conformance_suite with PythonValidator and complete Python
+    fixtures produces cases that all pass.
+  - A fixtures object missing a required sample (e.g. no wrong-identity
+    behavioral sample) fails suite construction with a message naming
+    the missing piece.
+  - A broken validator double that reports private artifacts as public
+    fails the public/private case.
+  - A broken validator double that matches the wrong-identity behavioral
+    sample fails the behavioral-identity case.
+  - A broken validator double that raises (or returns no errors) on the
+    unparseable sample fails the parse-error case.
+  - The suite runs entirely through the public BaseValidator /
+    CollectionResult surface (no internal validator imports in the kit).
+
+  Planning notes: the epic pins the subpackage, module, function name,
+  and fixture contract, but not the fixture container type, its field
+  names, or the exact return type of make_conformance_suite; this child
+  conservatively declares `ConformanceFixtures` and
+  `ConformanceArtifactSample` dataclasses as above and returns a pytest
+  test class (`type`) that pytest collects when assigned a module-level
+  name. Eager fixture-contract validation at suite construction is a
+  conservative reading of "the fixture contract requires" and is
+  recorded here.
+
+  Out of scope: discovery mechanics (063-01), the maid validators CLI
+  (063-02), authoring documentation (063-04), and any reference plugin
+  (a separate repository once this kit exists).
+temptations:
+- risk: Do not ship a conformance kit that only tests happy paths.
+  instead: Include adversarial cases (private leakage, wrong-identity behavioral references, parse failures, empty files) proving a passing plugin cannot produce false-green validation.
+- risk: Do not let the kit reach into internal validator modules.
+  instead: Consume only the documented public contract (BaseValidator, CollectionResult, registration semantics) so the kit honors the API's semver discipline.
+- risk: Do not let authors silently skip required fixture samples.
+  instead: Fail suite construction eagerly with a message naming the missing fixture piece.
+- risk: Do not start writing new in-tree language validators to exercise the kit.
+  instead: Prove the kit against the existing built-in Python validator and deliberately broken collector doubles.
+files:
+  create:
+  - path: maid_runner/testing/__init__.py
+    artifacts:
+    - kind: function
+      name: make_conformance_suite
+      description: Public re-export of maid_runner.testing.validator_conformance.make_conformance_suite.
+  - path: maid_runner/testing/validator_conformance.py
+    artifacts:
+    - kind: class
+      name: ConformanceArtifactSample
+      description: One language source sample plus the public artifact identity it is expected to yield.
+    - kind: attribute
+      name: source
+      of: ConformanceArtifactSample
+      type: str
+    - kind: attribute
+      name: expected_name
+      of: ConformanceArtifactSample
+      type: str
+    - kind: attribute
+      name: expected_of
+      of: ConformanceArtifactSample
+      type: str | None
+    - kind: class
+      name: ConformanceFixtures
+      description: 'Per-language fixture contract: per-kind samples, private sample, correct- and wrong-identity behavioral samples, unparseable source, and empty file.'
+    - kind: attribute
+      name: extension
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: artifact_samples
+      of: ConformanceFixtures
+      type: Mapping[str, ConformanceArtifactSample]
+    - kind: attribute
+      name: private_artifact_source
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: behavioral_target_kind
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: behavioral_target_name
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: behavioral_target_of
+      of: ConformanceFixtures
+      type: str | None
+    - kind: attribute
+      name: behavioral_correct_source
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: behavioral_wrong_identity_source
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: unparseable_source
+      of: ConformanceFixtures
+      type: str
+    - kind: attribute
+      name: empty_source
+      of: ConformanceFixtures
+      type: str
+    - kind: function
+      name: make_conformance_suite
+      args:
+      - name: validator_cls
+        type: type[BaseValidator]
+      - name: fixtures
+        type: ConformanceFixtures
+      returns: type
+      description: Return a pytest test class of parametrized conformance cases verifying artifact kinds and identity, public/private rules, behavioral reference identity, deterministic output, and parse-error result shapes; fails eagerly when the fixture contract is incomplete.
+  - path: tests/validators/test_validator_conformance.py
+    artifacts:
+    - kind: test_function
+      name: test_testing_package_reexports_make_conformance_suite
+      source_scenario: A plugin author imports the conformance suite factory from the public maid_runner.testing package.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: maid_runner.testing.make_conformance_suite is the public re-export of the validator_conformance factory.
+    - kind: test_function
+      name: test_make_conformance_suite_requires_wrong_identity_sample
+      source_scenario: A plugin author omits the adversarial wrong-identity behavioral sample from the fixture contract.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: Suite construction fails with a clear message naming behavioral_wrong_identity_source.
+    - kind: test_function
+      name: test_make_conformance_suite_requires_supported_fixture_extension
+      source_scenario: A plugin author passes fixtures whose extension is not advertised by the validator class.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: Suite construction fails with a clear message naming extension so the kit exercises validator registration semantics.
+    - kind: test_function
+      name: test_make_conformance_suite_requires_empty_source_to_be_empty
+      source_scenario: A plugin author supplies a non-empty source string for the empty-file sample.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: Suite construction fails with a clear message naming empty_source so validators must prove actual empty-file behavior.
+    - kind: test_function
+      name: test_make_conformance_suite_requires_core_artifact_kind_samples
+      source_scenario: A plugin author supplies only one artifact-kind sample and omits other core MAID artifact kinds.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: Suite construction fails with a clear message naming the missing artifact_samples entry.
+    - kind: test_function
+      name: test_broken_validator_reporting_private_artifact_as_public_fails_private_case
+      source_scenario: A broken collector reports a private implementation artifact as public.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated public/private conformance case fails instead of allowing private leakage.
+    - kind: test_function
+      name: test_broken_validator_returning_string_kind_fails_identity_case
+      source_scenario: A broken collector returns plain string artifact kinds instead of ArtifactKind enum values.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated identity conformance case fails before a plugin can pass with runtime-incompatible artifact kinds.
+    - kind: test_function
+      name: test_broken_validator_returning_private_string_kind_fails_private_case
+      source_scenario: A broken collector returns a private artifact whose kind is a plain string rather than an ArtifactKind enum value.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated private-artifact conformance case fails even when privacy and snapshot assertions would otherwise pass.
+    - kind: test_function
+      name: test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case
+      source_scenario: A broken behavioral collector returns the correct target identity plus an extra artifact whose kind is a plain string.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated behavioral conformance case fails even when the target identity is also present.
+    - kind: test_function
+      name: test_broken_validator_accepting_wrong_identity_fails_behavioral_case
+      source_scenario: A broken behavioral collector returns the target identity even for the wrong-identity sample.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated wrong-identity conformance case fails.
+    - kind: test_function
+      name: test_broken_validator_swallowing_parse_errors_fails_parse_error_case
+      source_scenario: A broken collector returns no parse errors for an unparseable sample.
+      actions:
+      - type: api_call
+        subject:
+          export: make_conformance_suite
+      expected:
+        behavior: The generated parse-error conformance case fails.
+  read:
+  - maid_runner/validators/base.py
+  - maid_runner/validators/python.py
+  - maid_runner/validators/registry.py
+validate:
+- uv run python -m pytest tests/validators/test_validator_conformance.py -v
+- uv run maid validate manifests/063-03-publish-validator-conformance-kit.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: |
+    The validator conformance kit is now importable from maid_runner.testing
+    and publishes pytest-collectable cases that third-party validator plugins
+    can run against their BaseValidator subclass and language fixtures.
+  rationale: |
+    The implementation keeps the kit on the public plugin contract surface:
+    BaseValidator, CollectionResult, FoundArtifact, ArtifactKind, and
+    generate_snapshot. The suite eagerly rejects incomplete fixtures,
+    mismatched supported extensions, non-empty empty-file samples, missing
+    core artifact samples, and runtime-incompatible artifact kinds, then
+    tests identity, privacy, behavioral references, parse errors, empty
+    files, and deterministic collection against the built-in Python validator
+    and adversarial broken doubles.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_validator_conformance.py
+    - -v
+    status: passed
+    summary: Focused conformance tests passed with 28 scenarios, including generated PythonValidator suite cases and adversarial broken validator doubles.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/063-03-publish-validator-conformance-kit.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: Manifest implementation validation passed for the promoted conformance-kit manifest.
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/testing
+    - tests/validators/test_validator_conformance.py
+    status: passed
+    summary: Focused lint check passed.
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/testing
+    - tests/validators/test_validator_conformance.py
+    status: passed
+    summary: Focused formatting check passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: Full MAID validation passed with 353 manifests, 267 passed, 0 failed, and 86 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    - --packet
+    status: passed
+    summary: Strict verify passed with schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests green.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 129 commands and 0 failed.
+  review_notes:
+  - source: independent-reviewer
+    severity: warning
+    summary: Initial review found invalid red evidence from a collection ImportError plus missing fixture validation for supported extensions and exact empty_source; the plan was revised with valid failing tests before implementation fixes.
+  - source: independent-reviewer
+    severity: warning
+    summary: Follow-up review found string artifact kinds could pass and that core artifact-kind sample coverage was incomplete; the plan was revised with adversarial tests before enforcing ArtifactKind and required core samples.
+  - source: independent-reviewer
+    severity: warning
+    summary: Final pre-ready review found ArtifactKind validation only covered identity-matched artifacts; the plan was revised and the suite now validates every artifact returned by successful collectors.
+  - source: independent-reviewer
+    severity: info
+    summary: Final read-only implementation review reported no findings and verdict ready.
+  lessons:
+  - lesson_type: workflow
+    summary: A pytest collection ImportError from a missing public package is not valid red evidence for this plan-lock gate; prefer red tests that collect and fail on the intended behavioral assertion.
+    tags:
+    - plan-lock
+    - red-evidence
+    - pytest
+    paths:
+    - tests/validators/test_validator_conformance.py
+    - .maid/plan-locks/063-03-publish-validator-conformance-kit.lock.json
+  - lesson_type: validation
+    summary: Validator conformance checks must inspect every returned artifact, not only artifacts used for identity matching, because downstream MAID code assumes FoundArtifact.kind is an ArtifactKind enum.
+    tags:
+    - validators
+    - conformance
+    - artifact-kind
+    paths:
+    - maid_runner/testing/validator_conformance.py
+    - tests/validators/test_validator_conformance.py
+  completed_at: '2026-06-18T01:15:00Z'

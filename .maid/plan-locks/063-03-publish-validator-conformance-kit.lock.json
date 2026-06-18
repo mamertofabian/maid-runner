@@ -1,0 +1,173 @@
+{
+  "manifest_path": "manifests/063-03-publish-validator-conformance-kit.manifest.yaml",
+  "manifest_hash": "sha256:fe3edc844695f86f00d3acb3cd453a8de8da260c8728a021fd104860341f70e7",
+  "test_hashes": {
+    "tests/validators/test_validator_conformance.py": "sha256:66d530ce47066c4ab49e67eab02d719540359263a5cb8e80c2307be4973919b4"
+  },
+  "created_at": "2026-06-18T00:26:14.065562+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9d40edc08e1106514f1cef2259c0a4c1eafbf2b03cc5dd40d726fb71a9ad293d",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:2fdca76135087281fb276cee9006f876907a72ea47eafafb0f92209aa74183f2"
+      },
+      "revised_at": "2026-06-18T00:26:19.110671+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-03-publish-validator-conformance-kit.manifest.yaml -> manifests/063-03-publish-validator-conformance-kit.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:21b0c940e0840e91828ea872a7d75543a6bf426be18fd9ea8a71132afa12b5d6",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:2fdca76135087281fb276cee9006f876907a72ea47eafafb0f92209aa74183f2"
+      },
+      "revised_at": "2026-06-18T00:36:00.066426+00:00",
+      "reason": "Address implementation review findings for validator extension registration semantics and exact empty-file fixture coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:50c2adbcd234bb366aac16996033a1c91448a7c993d75883cdea7bf001903308",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:1b67340753f9da182f21fb8076f61074b483adf9ec65d9ff9f4a6f4757f22691"
+      },
+      "revised_at": "2026-06-18T00:47:32.867194+00:00",
+      "reason": "Address implementation review findings for ArtifactKind enum enforcement and required core artifact sample coverage"
+    },
+    {
+      "prior_manifest_hash": "sha256:8550d1803fb8781085816ac382f049326a78a838ae6055de9f7dc60e6608ac3d",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:0d9d5b5edfceba4875453693ef46a1afd6601beab902c0c6e7f49254120bd4f2"
+      },
+      "revised_at": "2026-06-18T00:48:36.589623+00:00",
+      "reason": "Refresh lock after formatting review-driven behavioral tests without changing behavior"
+    },
+    {
+      "prior_manifest_hash": "sha256:8550d1803fb8781085816ac382f049326a78a838ae6055de9f7dc60e6608ac3d",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:2182d11b8ccc78f27f0f7b783a3b6300d3099b4ba0b7b9f88c6a801cde0c5e50"
+      },
+      "revised_at": "2026-06-18T01:00:38.663848+00:00",
+      "reason": "Address implementation review finding that all returned artifacts must use ArtifactKind enum values"
+    },
+    {
+      "prior_manifest_hash": "sha256:386e0c0ef34dc422e3605bae920ca5f06cd407722f125b8c9ad173ecc75907b7",
+      "prior_test_hashes": {
+        "tests/validators/test_validator_conformance.py": "sha256:66d530ce47066c4ab49e67eab02d719540359263a5cb8e80c2307be4973919b4"
+      },
+      "revised_at": "2026-06-18T01:11:05.020343+00:00",
+      "reason": "Capture completed Outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T01:00:39.161530+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_validator_conformance.py -v",
+        "exit_code": 1,
+        "output_tail": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'AssertionError'>\n\ntests/validators/test_validator_conformance.py:230: Failed\n_ test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case _\n\n    def test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case():\n        suite = make_conformance_suite(\n            _ExtraBehavioralStringKindValidator, _python_fixtures()\n        )\n    \n>       with pytest.raises(AssertionError, match=\"ArtifactKind\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'AssertionError'>\n\ntests/validators/test_validator_conformance.py:239: Failed\n=========================== short test summary info ============================\nFAILED tests/validators/test_validator_conformance.py::test_broken_validator_returning_private_string_kind_fails_private_case\nFAILED tests/validators/test_validator_conformance.py::test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case\n========================= 2 failed, 26 passed in 0.12s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/063-03-publish-validator-conformance-kit.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/testing/__init__.py:function:make_conformance_suite",
+      "maid_runner/testing/__init__.py:function:make_conformance_suite:kind=function",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_name",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_name:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_name:of=ConformanceArtifactSample",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_name:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_of",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_of:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_of:of=ConformanceArtifactSample",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.expected_of:type=str | None",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.source:of=ConformanceArtifactSample",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceArtifactSample.source:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.artifact_samples",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.artifact_samples:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.artifact_samples:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.artifact_samples:type=Mapping[str, ConformanceArtifactSample]",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_correct_source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_correct_source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_correct_source:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_correct_source:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_kind",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_kind:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_kind:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_kind:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_name",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_name:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_name:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_name:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_of",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_of:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_of:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_target_of:type=str | None",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_wrong_identity_source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_wrong_identity_source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_wrong_identity_source:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.behavioral_wrong_identity_source:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.empty_source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.empty_source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.empty_source:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.empty_source:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.extension",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.extension:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.extension:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.extension:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.private_artifact_source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.private_artifact_source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.private_artifact_source:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.private_artifact_source:type=str",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.unparseable_source",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.unparseable_source:kind=attribute",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.unparseable_source:of=ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:attribute:ConformanceFixtures.unparseable_source:type=str",
+      "maid_runner/testing/validator_conformance.py:class:ConformanceArtifactSample",
+      "maid_runner/testing/validator_conformance.py:class:ConformanceArtifactSample:kind=class",
+      "maid_runner/testing/validator_conformance.py:class:ConformanceFixtures",
+      "maid_runner/testing/validator_conformance.py:class:ConformanceFixtures:kind=class",
+      "maid_runner/testing/validator_conformance.py:function:make_conformance_suite",
+      "maid_runner/testing/validator_conformance.py:function:make_conformance_suite:arg=fixtures:type=ConformanceFixtures:default=None",
+      "maid_runner/testing/validator_conformance.py:function:make_conformance_suite:arg=validator_cls:type=type[BaseValidator]:default=None",
+      "maid_runner/testing/validator_conformance.py:function:make_conformance_suite:kind=function",
+      "maid_runner/testing/validator_conformance.py:function:make_conformance_suite:returns=type",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_accepting_wrong_identity_fails_behavioral_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_accepting_wrong_identity_fails_behavioral_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_reporting_private_artifact_as_public_fails_private_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_reporting_private_artifact_as_public_fails_private_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_extra_behavioral_string_kind_fails_behavioral_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_private_string_kind_fails_private_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_private_string_kind_fails_private_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_string_kind_fails_identity_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_returning_string_kind_fails_identity_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_swallowing_parse_errors_fails_parse_error_case",
+      "tests/validators/test_validator_conformance.py:test_broken_validator_swallowing_parse_errors_fails_parse_error_case:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_core_artifact_kind_samples",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_core_artifact_kind_samples:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_empty_source_to_be_empty",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_empty_source_to_be_empty:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_supported_fixture_extension",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_supported_fixture_extension:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_wrong_identity_sample",
+      "tests/validators/test_validator_conformance.py:test_make_conformance_suite_requires_wrong_identity_sample:kind=test_function",
+      "tests/validators/test_validator_conformance.py:test_testing_package_reexports_make_conformance_suite",
+      "tests/validators/test_validator_conformance.py:test_testing_package_reexports_make_conformance_suite:kind=test_function"
+    ],
+    "test_files": [
+      "tests/validators/test_validator_conformance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_validator_conformance.py -v",
+      "uv run maid validate manifests/063-03-publish-validator-conformance-kit.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
