@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import json
 import signal
 import socket
 import stat
@@ -22,6 +23,12 @@ from maid_runner.daemon.protocol import (
     parse_request,
     render_response,
 )
+from maid_runner.daemon.transport import (
+    TcpTransportInfo,
+    generate_token,
+    token_is_valid,
+    write_tcp_runtime_files,
+)
 
 
 _DEFAULT_TIMEOUT_S = 30.0
@@ -29,6 +36,7 @@ _MAX_FRAME_BYTES = 1 * 1024 * 1024
 _ACCEPT_POLL_S = 0.5
 _SOCKET_DIR_MODE = 0o700
 _SOCKET_FILE_MODE = 0o600
+_TCP_HOST = "127.0.0.1"
 
 
 def check_stale_pidfile(pidfile_path: Path) -> bool:
@@ -95,10 +103,11 @@ def _prepare_runtime_directory(directory: Path) -> None:
     if not stat.S_ISDIR(st.st_mode):
         raise RuntimeError(f"runtime path {directory} exists but is not a directory")
 
-    if st.st_uid != os.geteuid():
+    current_uid = _current_effective_uid()
+    if current_uid is not None and st.st_uid != current_uid:
         raise RuntimeError(
             f"runtime directory {directory} is owned by uid {st.st_uid}, "
-            f"refusing to use it (expected uid {os.geteuid()})"
+            f"refusing to use it (expected uid {current_uid})"
         )
 
     if st.st_mode & (stat.S_IRWXG | stat.S_IRWXO):
@@ -107,6 +116,13 @@ def _prepare_runtime_directory(directory: Path) -> None:
             f"(mode {oct(st.st_mode & 0o777)}); refusing to use it. "
             f"Run `chmod 700 {directory}` and retry."
         )
+
+
+def _current_effective_uid() -> int | None:
+    geteuid = getattr(os, "geteuid", None)
+    if geteuid is None:
+        return None
+    return int(geteuid())
 
 
 def _clear_existing_socket(socket_path: Path) -> None:
@@ -188,11 +204,16 @@ class Server:
         pidfile_path: Path,
         client_timeout_s: float = _DEFAULT_TIMEOUT_S,
         project_root: Path | str = ".",
+        transport: str = "unix",
     ) -> None:
+        if transport not in {"unix", "tcp"}:
+            raise ValueError("transport must be 'unix' or 'tcp'")
         self.socket_path: Path = Path(socket_path)
         self.pidfile_path: Path = Path(pidfile_path)
         self.client_timeout_s: float = float(client_timeout_s)
         self.project_root: Path = Path(project_root).resolve()
+        self.transport: str = transport
+        self._tcp_info: TcpTransportInfo | None = None
         self._listening: socket.socket | None = None
         self._running: bool = False
         self._pidfile_owned: bool = False
@@ -209,17 +230,15 @@ class Server:
             )
         self._pidfile_owned = True
 
-        _clear_existing_socket(self.socket_path)
+        if self.transport == "unix":
+            _clear_existing_socket(self.socket_path)
 
         _handlers.configure_context(self.project_root)
 
-        prev_umask = os.umask(0o077)
-        try:
-            listening = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            listening.bind(str(self.socket_path))
-            os.chmod(str(self.socket_path), _SOCKET_FILE_MODE)
-        finally:
-            os.umask(prev_umask)
+        if self.transport == "tcp":
+            listening = self._bind_tcp_listener()
+        else:
+            listening = self._bind_unix_listener()
 
         listening.listen(16)
         listening.settimeout(_ACCEPT_POLL_S)
@@ -261,11 +280,19 @@ class Server:
             except OSError:
                 pass
             self._listening = None
-        if self.socket_path.exists():
+        if self.transport == "unix" and self.socket_path.exists():
             try:
                 self.socket_path.unlink()
             except OSError:
                 pass
+        if self.transport == "tcp":
+            for name in ("serve.port", "serve.token"):
+                path = self.socket_path.parent / name
+                if path.exists():
+                    try:
+                        path.unlink()
+                    except OSError:
+                        pass
         if self._pidfile_owned and self.pidfile_path.exists():
             try:
                 self.pidfile_path.unlink()
@@ -334,6 +361,10 @@ class Server:
         self._client_threads = []
 
     def _dispatch(self, line: str) -> Response:
+        token_error = self._tcp_token_error(line)
+        if token_error is not None:
+            return token_error
+
         try:
             request = parse_request(line)
         except UnsupportedProtocolVersionError as exc:
@@ -366,6 +397,49 @@ class Server:
 
         return Response(id=request.id, ok=True, result=result, error=None)
 
+    def _bind_unix_listener(self) -> socket.socket:
+        prev_umask = os.umask(0o077)
+        try:
+            listening = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            listening.bind(str(self.socket_path))
+            os.chmod(str(self.socket_path), _SOCKET_FILE_MODE)
+        finally:
+            os.umask(prev_umask)
+        return listening
+
+    def _bind_tcp_listener(self) -> socket.socket:
+        token = generate_token()
+        listening = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            listening.bind((_TCP_HOST, 0))
+            host, port = listening.getsockname()[:2]
+            self._tcp_info = TcpTransportInfo(host=host, port=int(port), token=token)
+            write_tcp_runtime_files(self.socket_path.parent, int(port), token)
+            return listening
+        except Exception:
+            listening.close()
+            raise
+
+    def _tcp_token_error(self, line: str) -> Response | None:
+        if self.transport != "tcp":
+            return None
+        expected = self._tcp_info.token if self._tcp_info is not None else ""
+        try:
+            payload = json.loads(line)
+        except (ValueError, TypeError):
+            return None
+        if not isinstance(payload, dict):
+            return None
+        request_id = payload.get("id")
+        response_id = request_id if isinstance(request_id, str) else ""
+        if token_is_valid(payload.get("token"), expected):
+            return None
+        return error_response(
+            response_id,
+            code="BAD_TOKEN",
+            message="missing or invalid TCP transport token",
+        )
+
     def _signal_shutdown(self, signum, frame) -> None:
         del signum, frame
         self._running = False
@@ -381,6 +455,7 @@ def serve(
     pidfile_path: Path,
     client_timeout_s: float,
     project_root: Path | str = ".",
+    transport: str = "unix",
 ) -> int:
     """Top-level entrypoint: construct a Server, start it, and return a process exit code.
 
@@ -390,7 +465,13 @@ def serve(
     socket_path = Path(socket_path)
     pidfile_path = Path(pidfile_path)
 
-    server = Server(socket_path, pidfile_path, client_timeout_s, project_root)
+    server = Server(
+        socket_path,
+        pidfile_path,
+        client_timeout_s,
+        project_root,
+        transport=transport,
+    )
     try:
         server.start()
     except RuntimeError as exc:

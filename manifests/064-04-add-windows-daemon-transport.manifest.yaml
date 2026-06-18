@@ -1,0 +1,431 @@
+schema: '2'
+goal: Add a token-protected localhost TCP transport so the daemon works on Windows
+type: feature
+created: '2026-06-18T05:19:55Z'
+metadata:
+  epic: 064-00-daemon-first-agent-validation
+  tags:
+  - performance
+  - daemon
+  - maid-serve
+  priority: medium
+description: |
+  Add a Windows-compatible transport for the `maid serve` daemon behind the
+  same NDJSON protocol, so daemon-first validation is not POSIX-only. The
+  epic allowed either a named pipe or localhost TCP; the pinned decision is
+  localhost TCP with a filesystem-permission-protected auth token. The Unix
+  socket remains the default on POSIX platforms. This child may be deferred
+  if no Windows demand is evidenced; it must not block protocol work, and it
+  must be revised before promotion because 064-01 was abandoned.
+
+  Pinned decisions from epic 064-00. Do not redesign these:
+
+  1. Transport: localhost TCP bound to 127.0.0.1 only. The chosen ephemeral
+     port is written to `.maid/serve.port` and a random token is written to
+     `.maid/serve.token` with file mode 0600.
+  2. Every TCP request must carry the token; requests without a valid token
+     are rejected with a protocol-layer `ok: false` error and are never
+     dispatched to handlers.
+  3. The Unix socket remains the default on POSIX platforms. TCP is opt-in
+     there and the default only where Unix sockets are unavailable.
+  4. Security posture is not weakened for convenience: the daemon stays
+     repo-bound, runtime files keep the locked-down permission defaults
+     (0700 runtime directory, 0600 files), and the token is the
+     filesystem-permission-protected secret that substitutes for Unix
+     socket file permissions.
+  5. Client identity checks still apply over TCP when a direct daemon client
+     exists: clients verify the daemon's resolved project root and maid_runner
+     version via ping before use. This draft must not assume the abandoned
+     064-01 CLI routing client exists.
+  6. Benchmark gate: this slice is benchmark-gated. Record before/after
+     `uv run maid benchmark` (or documented equivalent) evidence in the
+     outcome confirming TCP transport overhead does not erase the daemon
+     win on a representative project; a slice without a measurable win is
+     dropped, not merged.
+
+  Implementation shape:
+
+  - New module `maid_runner/daemon/transport.py` holds the TCP runtime-file
+    contract: `TcpTransportInfo` (host, port, token), `generate_token`
+    (cryptographically random token), `write_tcp_runtime_files` (writes
+    `.maid/serve.port` and `.maid/serve.token`, token file mode 0600),
+    `read_tcp_runtime_files` (client-side load, failing loudly when files
+    are missing or malformed), and `token_is_valid` (constant-time token
+    comparison).
+  - `maid_runner/daemon/server.py`: `Server` and `serve` accept a
+    `transport` selector (default `unix`); under `tcp` the server binds
+    127.0.0.1 on an ephemeral port, writes the runtime files, and requires
+    a valid token field on every request line before dispatch.
+  - `maid_runner/cli/commands/serve.py`: `register_serve_subparser` gains a
+    `--transport unix|tcp` option (default `unix`) and `cmd_serve` passes
+    it through.
+  - `docs/maid-serve.md`: document `--transport`, the TCP runtime files,
+    and the top-level TCP `token` request field.
+  - `tests/daemon/test_tcp_transport.py`: direct protocol tests cover the
+    TCP helper functions, CLI option wiring, TCP server token enforcement,
+    Unix-default preservation, and TCP/direct daemon equivalence without
+    relying on the abandoned 064-01 CLI routing client.
+  - Planning note after 064-01 abandonment: the prior assumption that
+    `maid_runner/daemon/client.py` exists from 064-01 is no longer valid.
+    Before promotion, revise this draft so any transport client artifact is
+    declared by this child or by a new prerequisite that demonstrates a
+    measurable win without per-call CLI startup.
+
+  Edge cases and test expectations:
+
+  - TCP server binds 127.0.0.1 only (assert the bound address; no
+    0.0.0.0).
+  - `.maid/serve.token` is created with mode 0600 and `.maid/serve.port`
+    contains the actual bound port.
+  - A TCP request with a missing or wrong token gets a protocol-layer
+    `ok: false` error and no handler runs.
+  - A TCP request with the correct token round-trips ping and validate
+    identically to the Unix socket path (duration fields excluded).
+  - Stale runtime files (no listener on the recorded port) fail loudly for
+    direct daemon clients rather than silently returning fake data. Any
+    fail-open CLI behavior must be replanned separately because 064-01 was
+    abandoned.
+  - On POSIX, starting the daemon without --transport still uses the Unix
+    socket and writes no TCP runtime files.
+
+  Planning note: the epic offered named pipe or TCP; the pinned epic
+  decision selects TCP, so this draft declares no named-pipe work.
+  Planning note: the epic does not specify the token request field name;
+  the conservative reading is a top-level `token` field on each NDJSON
+  request line, checked before method dispatch. Planning note: this child
+  is deferrable per the epic and must not block remaining cache/protocol work.
+  Planning
+  note: the repo already has a `tests/daemon/` domain directory, so the
+  planned tests live there. Planning note after 064-01 abandonment: this draft
+  no longer declares `maid_runner/daemon/client.py`; before promotion, any
+  transport client artifact must be created by this child or by a new
+  prerequisite that demonstrates a measurable win without per-call CLI startup.
+
+  Out of scope: CLI validate routing (064-01), the daemon cache (064-02),
+  verify methods and protocol versioning (064-03), default-mode flip and
+  docs (064-05), and any non-loopback or multi-user transport.
+temptations:
+- risk: Do not weaken the daemon's repo-bound security posture for convenience.
+  instead: Bind 127.0.0.1 only, protect the token file with mode 0600, require the token on every TCP request, and keep verifying project root and version identity before routing.
+- risk: Do not make TCP the default where Unix sockets work.
+  instead: Keep the Unix socket as the POSIX default and make TCP opt-in via --transport.
+- risk: Do not fork the protocol per transport.
+  instead: Serve the same NDJSON protocol over both transports and prove round-trip equivalence in tests.
+- risk: Do not merge this slice without fresh measurements.
+  instead: Record before/after uv run maid benchmark evidence showing TCP overhead does not erase the daemon win, and drop the slice otherwise.
+files:
+  create:
+  - path: maid_runner/daemon/transport.py
+    artifacts:
+    - kind: class
+      name: TcpTransportInfo
+      description: 'Resolved TCP transport identity for one daemon: loopback host, bound port, and auth token.'
+    - kind: attribute
+      name: host
+      of: TcpTransportInfo
+      type: str
+    - kind: attribute
+      name: port
+      of: TcpTransportInfo
+      type: int
+    - kind: attribute
+      name: token
+      of: TcpTransportInfo
+      type: str
+    - kind: function
+      name: generate_token
+      args: []
+      returns: str
+      source_scenario: A TCP daemon generates its per-process auth secret at startup.
+      actions:
+      - type: api_call
+        subject:
+          function: generate_token
+      expected:
+        behavior: Returns a cryptographically random token; successive calls return distinct values.
+    - kind: function
+      name: write_tcp_runtime_files
+      args:
+      - name: runtime_dir
+        type: Union[str, Path]
+      - name: port
+        type: int
+      - name: token
+        type: str
+      returns: None
+      source_scenario: A TCP daemon publishes its port and token for local clients.
+      actions:
+      - type: api_call
+        subject:
+          function: write_tcp_runtime_files
+      expected:
+        behavior: Writes .maid/serve.port with the bound port and .maid/serve.token with file mode 0600 inside the runtime directory.
+    - kind: function
+      name: read_tcp_runtime_files
+      args:
+      - name: runtime_dir
+        type: Union[str, Path]
+      returns: TcpTransportInfo
+      source_scenario: A client loads the daemon's TCP identity before connecting.
+      actions:
+      - type: api_call
+        subject:
+          function: read_tcp_runtime_files
+      expected:
+        behavior: Returns host 127.0.0.1 with the recorded port and token, and fails loudly when the runtime files are missing or malformed.
+    - kind: function
+      name: token_is_valid
+      args:
+      - name: provided
+        type: Optional[str]
+      - name: expected
+        type: str
+      returns: bool
+      source_scenario: The server checks the token field of an inbound TCP request.
+      actions:
+      - type: api_call
+        subject:
+          function: token_is_valid
+      expected:
+        behavior: Returns true only for an exact constant-time match; missing or wrong tokens return false.
+  - path: tests/daemon/test_tcp_transport.py
+    artifacts:
+    - kind: test_function
+      name: test_generate_token_returns_distinct_nonempty_tokens
+    - kind: test_function
+      name: test_write_tcp_runtime_files_records_port_and_owner_only_token
+    - kind: test_function
+      name: test_read_tcp_runtime_files_fails_loudly_for_missing_or_malformed_files
+    - kind: test_function
+      name: test_token_is_valid_requires_exact_constant_time_match
+    - kind: test_function
+      name: test_serve_parser_accepts_transport_choice_defaulting_to_unix
+    - kind: test_function
+      name: test_cmd_serve_forwards_transport_selection
+    - kind: test_function
+      name: test_tcp_server_binds_loopback_and_requires_token_before_dispatch
+    - kind: test_function
+      name: test_tcp_request_with_valid_token_round_trips_ping_and_validate
+    - kind: test_function
+      name: test_tcp_server_starts_when_geteuid_is_unavailable
+    - kind: test_function
+      name: test_tcp_shutdown_preserves_socket_path_placeholder
+    - kind: test_function
+      name: test_unix_transport_remains_default_and_writes_no_tcp_runtime_files
+    - kind: test_function
+      name: test_maid_serve_docs_describe_tcp_transport_and_token
+  edit:
+  - path: maid_runner/daemon/server.py
+    artifacts:
+    - kind: class
+      name: Server
+      description: Accepts a transport selector; under tcp binds 127.0.0.1 on an ephemeral port, writes runtime files, and rejects requests without a valid token before dispatch.
+    - kind: attribute
+      name: transport
+      of: Server
+      type: str
+      description: Records the selected daemon transport so startup, request authorization, and cleanup follow the unix or tcp path.
+    - kind: function
+      name: serve
+      args:
+      - name: socket_path
+        type: Path
+      - name: pidfile_path
+        type: Path
+      - name: client_timeout_s
+        type: float
+      - name: project_root
+        type: Path | str
+        default: '''.'''
+      - name: transport
+        type: str
+        default: '''unix'''
+      returns: int
+      source_scenario: The daemon entrypoint starts with transport unix on POSIX and transport tcp for Windows-compatible use.
+      actions:
+      - type: api_call
+        subject:
+          function: serve
+      expected:
+        behavior: unix keeps today's Unix-socket behavior with no TCP runtime files; tcp serves the same NDJSON protocol over loopback TCP with token enforcement.
+  - path: maid_runner/cli/commands/serve.py
+    artifacts:
+    - kind: function
+      name: register_serve_subparser
+      args:
+      - name: subparsers
+        type: argparse._SubParsersAction
+      returns: argparse.ArgumentParser
+      source_scenario: A user runs maid serve --transport tcp.
+      actions:
+      - type: api_call
+        subject:
+          function: register_serve_subparser
+      expected:
+        behavior: The serve subparser accepts --transport with choices unix and tcp, defaulting to unix.
+    - kind: function
+      name: cmd_serve
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      source_scenario: The serve handler forwards the chosen transport to the daemon entrypoint.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_serve
+      expected:
+        behavior: Passes the transport selection through to serve so TCP startup publishes runtime files and Unix startup is unchanged.
+  - path: docs/maid-serve.md
+    artifacts:
+    - kind: attribute
+      name: _tcp_transport_protocol_documentation
+      of: documentation
+      type: markdown section
+      description: Documents --transport unix|tcp, TCP runtime files, and the required top-level token field on TCP requests.
+  read:
+  - maid_runner/daemon/protocol.py
+  - maid_runner/daemon/handlers.py
+  - maid_runner/core/benchmark.py
+validate:
+- uv run python -m pytest -q tests/daemon/test_tcp_transport.py
+- uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-18T05:55:32Z"
+  summary: "Added token-protected localhost TCP support for `maid serve` while keeping Unix sockets as the default transport."
+  rationale: "The daemon now accepts `transport=\"tcp\"`, binds only 127.0.0.1 on an ephemeral port, writes owner-only `.maid/serve.port` and `.maid/serve.token` runtime files, and rejects TCP requests without the top-level token before handler dispatch. The existing Unix socket path remains the default and keeps its socket cleanup semantics, while TCP startup avoids POSIX-only UID APIs when they are unavailable."
+  lessons:
+  - lesson_type: portability
+    summary: "A Windows-compatibility slice must audit shared startup helpers for POSIX-only APIs, not only the newly added socket type."
+    tags:
+    - daemon
+    - windows
+    - tcp
+    paths:
+    - maid_runner/daemon/server.py
+    - tests/daemon/test_tcp_transport.py
+  - lesson_type: cleanup
+    summary: "TCP mode should treat the Unix socket path as a runtime-directory anchor only; shutdown must not delete that path unless Unix mode actually owns a socket file there."
+    tags:
+    - daemon
+    - transport
+    - cleanup
+    paths:
+    - maid_runner/daemon/server.py
+    - tests/daemon/test_tcp_transport.py
+  - lesson_type: workflow
+    summary: "Review-driven behavioral test edits after promotion require `maid plan revise --preserve-red-evidence` so strict handoff gates see current test hashes without losing red evidence."
+    tags:
+    - maid
+    - plan-lock
+    - review-loop
+    paths:
+    - .maid/plan-locks/064-04-add-windows-daemon-transport.lock.json
+    - tests/daemon/test_tcp_transport.py
+  review_notes:
+  - source: Aquinas
+    severity: warning
+    summary: "Initial implementation review found TCP startup still used POSIX-only `os.geteuid`, TCP shutdown could delete a placeholder socket path, the plan lock hash was stale after formatting, docs omitted the new `transport` argument, and outcome was pending. All findings were fixed."
+  - source: Kierkegaard
+    severity: warning
+    summary: "Second review found only the generated `.maid/active-manifest` task pointer remained as out-of-scope local state; it was cleared with `uv run maid task stop`."
+  - source: Schrodinger
+    severity: info
+    summary: "Final independent read-only re-review returned ready with no findings after confirming active task cleanup, plan lock status, focused tests, focused manifest tests, and strict verify."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/daemon/test_tcp_transport.py
+    status: passed
+    summary: "Focused TCP transport tests passed: 12 passed."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/daemon/transport.py
+    - maid_runner/daemon/server.py
+    - maid_runner/cli/commands/serve.py
+    - tests/daemon/test_tcp_transport.py
+    status: passed
+    summary: "Black check passed for touched daemon transport/server, serve CLI, and TCP tests."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/daemon
+    - maid_runner/cli/commands/serve.py
+    - tests/daemon/test_tcp_transport.py
+    status: passed
+    summary: "Ruff passed for touched daemon modules, serve CLI command, and TCP tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Focused implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - status
+    - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+    status: passed
+    summary: "Plan lock revision 3 matched the manifest and TCP test hash, with red evidence recorded."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/daemon
+    status: passed
+    summary: "Daemon test suite passed after TCP regression fixes: 76 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 357 manifests, 271 passed, 0 failed, 86 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 136 commands, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict handoff verify passed including plan_lock, worktree_scope, changed_scope, and tests; existing E307/E310 repository advisories remained warnings."
+  - command:
+    - uv
+    - run
+    - python
+    - -c
+    - tcp daemon validation benchmark
+    status: passed
+    summary: "Benchmark equivalent over 10 schema-validation iterations showed TCP daemon validate average 1.540ms versus one-shot CLI schema validate average 160.183ms on the same temporary manifest."

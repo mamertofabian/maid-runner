@@ -1,0 +1,145 @@
+{
+  "manifest_path": "manifests/064-04-add-windows-daemon-transport.manifest.yaml",
+  "manifest_hash": "sha256:2774ccea159beb9a0c5df15e37695404658e3f12170f003768cfc9784032226c",
+  "test_hashes": {
+    "tests/daemon/test_tcp_transport.py": "sha256:587d63d7ef4513fe9cd1ccb9bca3abb4866d0631605516e1d951a08d45fec84e"
+  },
+  "created_at": "2026-06-18T05:19:36.223570+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:36b9921f56c02980fd8b10a8038a75b3dce28da64af2f2cd7685ffc4348c8a23",
+      "prior_test_hashes": {
+        "tests/daemon/test_tcp_transport.py": "sha256:267e2f96529067d967f8637fd47dc7b381a56f3e2927e26d9197ee4dd83f4175"
+      },
+      "revised_at": "2026-06-18T05:19:55.292881+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/064-04-add-windows-daemon-transport.manifest.yaml -> manifests/064-04-add-windows-daemon-transport.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:6eaabe18532242e19fca69ff77ccf2c29322cddcc6a5b564b65fcd45bb2e0cf5",
+      "prior_test_hashes": {
+        "tests/daemon/test_tcp_transport.py": "sha256:267e2f96529067d967f8637fd47dc7b381a56f3e2927e26d9197ee4dd83f4175"
+      },
+      "revised_at": "2026-06-18T05:34:55.525157+00:00",
+      "reason": "Review fixes added TCP portability and shutdown-preservation regression coverage"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T05:20:07.937043+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/daemon/test_tcp_transport.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_maid_serve_docs_describe_tcp_transport_and_token():\n        docs = Path(\"docs/maid-serve.md\").read_text()\n    \n>       assert \"--transport\" in docs\nE       AssertionError: assert '--transport' in '# `maid serve` \u2014 Validator Daemon\\n\\nA long-lived local daemon that exposes the maid-runner validator over a Unix\\nso... or CI fan-out across separate checkouts, the plain\\n`maid validate` CLI is simpler and avoids the daemon lifecycle.\\n'\n\ntests/daemon/test_tcp_transport.py:277: AssertionError\n=========================== short test summary info ============================\nFAILED tests/daemon/test_tcp_transport.py::test_generate_token_returns_distinct_nonempty_tokens\nFAILED tests/daemon/test_tcp_transport.py::test_write_tcp_runtime_files_records_port_and_owner_only_token\nFAILED tests/daemon/test_tcp_transport.py::test_read_tcp_runtime_files_fails_loudly_for_missing_or_malformed_files\nFAILED tests/daemon/test_tcp_transport.py::test_token_is_valid_requires_exact_constant_time_match\nFAILED tests/daemon/test_tcp_transport.py::test_serve_parser_accepts_transport_choice_defaulting_to_unix\nFAILED tests/daemon/test_tcp_transport.py::test_cmd_serve_forwards_transport_selection\nFAILED tests/daemon/test_tcp_transport.py::test_unix_transport_remains_default_and_writes_no_tcp_runtime_files\nFAILED tests/daemon/test_tcp_transport.py::test_maid_serve_docs_describe_tcp_transport_and_token\nERROR tests/daemon/test_tcp_transport.py::test_tcp_server_binds_loopback_and_requires_token_before_dispatch\nERROR tests/daemon/test_tcp_transport.py::test_tcp_request_with_valid_token_round_trips_ping_and_validate\n8 failed, 2 errors in 10.18s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid-serve.md:attribute:documentation._tcp_transport_protocol_documentation",
+      "docs/maid-serve.md:attribute:documentation._tcp_transport_protocol_documentation:kind=attribute",
+      "docs/maid-serve.md:attribute:documentation._tcp_transport_protocol_documentation:of=documentation",
+      "docs/maid-serve.md:attribute:documentation._tcp_transport_protocol_documentation:type=markdown section",
+      "maid_runner/cli/commands/serve.py:function:cmd_serve",
+      "maid_runner/cli/commands/serve.py:function:cmd_serve:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/serve.py:function:cmd_serve:kind=function",
+      "maid_runner/cli/commands/serve.py:function:cmd_serve:returns=int",
+      "maid_runner/cli/commands/serve.py:function:register_serve_subparser",
+      "maid_runner/cli/commands/serve.py:function:register_serve_subparser:arg=subparsers:type=argparse._SubParsersAction:default=None",
+      "maid_runner/cli/commands/serve.py:function:register_serve_subparser:kind=function",
+      "maid_runner/cli/commands/serve.py:function:register_serve_subparser:returns=argparse.ArgumentParser",
+      "maid_runner/daemon/server.py:attribute:Server.transport",
+      "maid_runner/daemon/server.py:attribute:Server.transport:kind=attribute",
+      "maid_runner/daemon/server.py:attribute:Server.transport:of=Server",
+      "maid_runner/daemon/server.py:attribute:Server.transport:type=str",
+      "maid_runner/daemon/server.py:class:Server",
+      "maid_runner/daemon/server.py:class:Server:kind=class",
+      "maid_runner/daemon/server.py:function:serve",
+      "maid_runner/daemon/server.py:function:serve:arg=client_timeout_s:type=float:default=None",
+      "maid_runner/daemon/server.py:function:serve:arg=pidfile_path:type=Path:default=None",
+      "maid_runner/daemon/server.py:function:serve:arg=project_root:type=Path | str:default='.'",
+      "maid_runner/daemon/server.py:function:serve:arg=socket_path:type=Path:default=None",
+      "maid_runner/daemon/server.py:function:serve:arg=transport:type=str:default='unix'",
+      "maid_runner/daemon/server.py:function:serve:kind=function",
+      "maid_runner/daemon/server.py:function:serve:returns=int",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.host",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.host:kind=attribute",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.host:of=TcpTransportInfo",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.host:type=str",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.port",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.port:kind=attribute",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.port:of=TcpTransportInfo",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.port:type=int",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.token",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.token:kind=attribute",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.token:of=TcpTransportInfo",
+      "maid_runner/daemon/transport.py:attribute:TcpTransportInfo.token:type=str",
+      "maid_runner/daemon/transport.py:class:TcpTransportInfo",
+      "maid_runner/daemon/transport.py:class:TcpTransportInfo:kind=class",
+      "maid_runner/daemon/transport.py:function:generate_token",
+      "maid_runner/daemon/transport.py:function:generate_token:kind=function",
+      "maid_runner/daemon/transport.py:function:generate_token:returns=str",
+      "maid_runner/daemon/transport.py:function:read_tcp_runtime_files",
+      "maid_runner/daemon/transport.py:function:read_tcp_runtime_files:arg=runtime_dir:type=Union[str, Path]:default=None",
+      "maid_runner/daemon/transport.py:function:read_tcp_runtime_files:kind=function",
+      "maid_runner/daemon/transport.py:function:read_tcp_runtime_files:returns=TcpTransportInfo",
+      "maid_runner/daemon/transport.py:function:token_is_valid",
+      "maid_runner/daemon/transport.py:function:token_is_valid:arg=expected:type=str:default=None",
+      "maid_runner/daemon/transport.py:function:token_is_valid:arg=provided:type=Optional[str]:default=None",
+      "maid_runner/daemon/transport.py:function:token_is_valid:kind=function",
+      "maid_runner/daemon/transport.py:function:token_is_valid:returns=bool",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files:arg=port:type=int:default=None",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files:arg=runtime_dir:type=Union[str, Path]:default=None",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files:arg=token:type=str:default=None",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files:kind=function",
+      "maid_runner/daemon/transport.py:function:write_tcp_runtime_files:returns=None",
+      "tests/daemon/test_tcp_transport.py:test_cmd_serve_forwards_transport_selection",
+      "tests/daemon/test_tcp_transport.py:test_cmd_serve_forwards_transport_selection:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_generate_token_returns_distinct_nonempty_tokens",
+      "tests/daemon/test_tcp_transport.py:test_generate_token_returns_distinct_nonempty_tokens:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_maid_serve_docs_describe_tcp_transport_and_token",
+      "tests/daemon/test_tcp_transport.py:test_maid_serve_docs_describe_tcp_transport_and_token:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_read_tcp_runtime_files_fails_loudly_for_missing_or_malformed_files",
+      "tests/daemon/test_tcp_transport.py:test_read_tcp_runtime_files_fails_loudly_for_missing_or_malformed_files:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_serve_parser_accepts_transport_choice_defaulting_to_unix",
+      "tests/daemon/test_tcp_transport.py:test_serve_parser_accepts_transport_choice_defaulting_to_unix:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_tcp_request_with_valid_token_round_trips_ping_and_validate",
+      "tests/daemon/test_tcp_transport.py:test_tcp_request_with_valid_token_round_trips_ping_and_validate:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_tcp_server_binds_loopback_and_requires_token_before_dispatch",
+      "tests/daemon/test_tcp_transport.py:test_tcp_server_binds_loopback_and_requires_token_before_dispatch:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_tcp_server_starts_when_geteuid_is_unavailable",
+      "tests/daemon/test_tcp_transport.py:test_tcp_server_starts_when_geteuid_is_unavailable:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_tcp_shutdown_preserves_socket_path_placeholder",
+      "tests/daemon/test_tcp_transport.py:test_tcp_shutdown_preserves_socket_path_placeholder:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_token_is_valid_requires_exact_constant_time_match",
+      "tests/daemon/test_tcp_transport.py:test_token_is_valid_requires_exact_constant_time_match:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_unix_transport_remains_default_and_writes_no_tcp_runtime_files",
+      "tests/daemon/test_tcp_transport.py:test_unix_transport_remains_default_and_writes_no_tcp_runtime_files:kind=test_function",
+      "tests/daemon/test_tcp_transport.py:test_write_tcp_runtime_files_records_port_and_owner_only_token",
+      "tests/daemon/test_tcp_transport.py:test_write_tcp_runtime_files_records_port_and_owner_only_token:kind=test_function"
+    ],
+    "test_files": [
+      "tests/daemon/test_tcp_transport.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/daemon/test_tcp_transport.py",
+      "uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/064-04-add-windows-daemon-transport.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

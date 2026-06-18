@@ -43,6 +43,12 @@ def register_serve_subparser(
         dest="project_root",
         help="Project root the daemon is bound to (default: current directory)",
     )
+    parser.add_argument(
+        "--transport",
+        choices=("unix", "tcp"),
+        default="unix",
+        help="Daemon transport: unix socket or localhost TCP (default: unix)",
+    )
     return parser
 
 
@@ -54,5 +60,6 @@ def cmd_serve(args: argparse.Namespace) -> int:
     pidfile_path = Path(getattr(args, "pidfile", _DEFAULT_PIDFILE))
     client_timeout_s = float(getattr(args, "client_timeout", _DEFAULT_TIMEOUT_S))
     project_root = getattr(args, "project_root", ".")
+    transport = getattr(args, "transport", "unix")
 
-    return _serve(socket_path, pidfile_path, client_timeout_s, project_root)
+    return _serve(socket_path, pidfile_path, client_timeout_s, project_root, transport)

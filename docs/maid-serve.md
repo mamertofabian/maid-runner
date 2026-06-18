@@ -1,7 +1,7 @@
 # `maid serve` — Validator Daemon
 
 A long-lived local daemon that exposes the maid-runner validator over a Unix
-socket. Designed for AI agents, editor integrations, and tight TDD loops that
+socket or token-protected localhost TCP. Designed for AI agents, editor integrations, and tight TDD loops that
 issue many validate calls per task. Each call avoids the Python interpreter
 and import cost, which typically saves on the order of 100 ms per request.
 
@@ -16,6 +16,9 @@ maid serve --socket /run/maid/agent.sock \
            --pidfile /run/maid/agent.pid \
            --project-root /workspace/myrepo \
            --client-timeout 30
+
+# Windows-compatible localhost TCP transport
+maid serve --transport tcp
 ```
 
 Stop with `SIGTERM` or `SIGINT`. The listening socket closes, the pidfile and
@@ -29,16 +32,18 @@ socket file are removed, and in-flight client threads are joined.
 | `--pidfile` | `.maid/serve.pid` | PID file path |
 | `--project-root` | `.` | Repository the daemon binds to. All `manifest_path` values are resolved under this root. |
 | `--client-timeout` | `30.0` | Per-client read timeout in seconds |
+| `--transport` | `unix` | Transport selector: `unix|tcp`. TCP binds `127.0.0.1`, writes `.maid/serve.port` and `.maid/serve.token`, and requires the token on every request. |
 
 ## Protocol
 
-NDJSON over a Unix domain socket. One JSON request per line, one JSON
-response per line. A single connection can carry many requests in sequence.
+NDJSON over a Unix domain socket or localhost TCP. One JSON request per line,
+one JSON response per line. A single connection can carry many requests in
+sequence.
 
 ### Request
 
 ```json
-{"id": "<correlation>", "method": "validate|ping|verify", "protocol_version": 1, "params": { ... }}
+{"id": "<correlation>", "method": "validate|ping|verify", "protocol_version": 1, "token": "<tcp-token>", "params": { ... }}
 ```
 
 - `id` (string, required): echoed back in the response so clients can
@@ -47,6 +52,9 @@ response per line. A single connection can carry many requests in sequence.
 - `protocol_version` (integer, optional): request protocol version. Omitted
   means version `1`. Unsupported versions return `ok: false` with
   `UNSUPPORTED_PROTOCOL_VERSION` and the request id echoed.
+- `token` (string, required only for TCP): top-level token read from
+  `.maid/serve.token`. Missing or invalid TCP tokens return `ok: false` with
+  `BAD_TOKEN` before method dispatch.
 - `params`: method-specific object (may be empty for `ping`).
 
 ### Response
@@ -68,7 +76,7 @@ Request-layer failure:
 - `ok: false` means the request was rejected by the protocol or handler
   layer. Codes: `MISSING_PARAM`, `BAD_MODE`, `PATH_ESCAPE`, `UNKNOWN_METHOD`,
   `UNSUPPORTED_PROTOCOL_VERSION`, `PROTOCOL_ERROR`, `HANDLER_ERROR`,
-  `FRAME_TOO_LARGE`.
+  `FRAME_TOO_LARGE`, `BAD_TOKEN`.
 - `ok: true` with `result.success: false` means the validator ran and
   reported errors against the manifest.
 
@@ -124,6 +132,9 @@ the same JSON shape as `maid verify --json` for the stages the daemon runs.
   group/world bits are refused with a clear error message.
 - Socket file `chmod` to `0600` immediately after `bind()`, with `umask
   0o077` set during bind to close the race window.
+- TCP transport binds only `127.0.0.1`. The daemon writes `.maid/serve.port`
+  and `.maid/serve.token` under the runtime directory; both files are owner
+  only, and every TCP request must carry the token before any handler runs.
 - Pidfile claimed atomically via `O_CREAT | O_EXCL`. Stale pidfiles whose
   PID is no longer running are removed and replaced; live PIDs cause startup
   to exit non-zero with a clear error.
@@ -159,8 +170,8 @@ from maid_runner.daemon import (
 )
 ```
 
-- `serve(socket_path, pidfile_path, client_timeout_s, project_root=".")` is
-  the top-level entry point. Returns a process exit code.
+- `serve(socket_path, pidfile_path, client_timeout_s, project_root=".",
+  transport="unix")` is the top-level entry point. Returns a process exit code.
 - `Server` is the underlying class if you need to embed the daemon in another
   process.
 - `DaemonRequestError(code, message)` is the contract handlers use to
