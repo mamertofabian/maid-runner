@@ -1,0 +1,86 @@
+{
+  "manifest_path": "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+  "manifest_hash": "sha256:2bd28fa5bcc7d954064b505bbb58d71197d180896756386d225653f13d264e4d",
+  "test_hashes": {
+    "tests/test_validator_plugin_docs.py": "sha256:c1fefdb33f0330a2320f3fdd97e93a5d02a75f9bd43acdde5fcb1c3171449800"
+  },
+  "created_at": "2026-06-18T01:22:08.220834+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:73859f06e2a96dcaac546323a0c1e53e5d4e6179100e1af298303d49e71bc288",
+      "prior_test_hashes": {
+        "tests/test_validator_plugin_docs.py": "sha256:581a8b7a68dac6fdf4e8acba53614535ba6582cdfbf8c61a021ed3e672aeb499"
+      },
+      "revised_at": "2026-06-18T01:22:11.875675+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-04-document-validator-plugin-authoring.manifest.yaml -> manifests/063-04-document-validator-plugin-authoring.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:34bbb7e4138e54b51b7c8650405e6438feef340f1cc3d3cc95e3b4b00601016f",
+      "prior_test_hashes": {
+        "tests/test_validator_plugin_docs.py": "sha256:581a8b7a68dac6fdf4e8acba53614535ba6582cdfbf8c61a021ed3e672aeb499"
+      },
+      "revised_at": "2026-06-18T01:28:54.476455+00:00",
+      "reason": "Preserve red evidence after Black formatting of the locked docs test without changing assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:34bbb7e4138e54b51b7c8650405e6438feef340f1cc3d3cc95e3b4b00601016f",
+      "prior_test_hashes": {
+        "tests/test_validator_plugin_docs.py": "sha256:c1fefdb33f0330a2320f3fdd97e93a5d02a75f9bd43acdde5fcb1c3171449800"
+      },
+      "revised_at": "2026-06-18T01:38:50.515294+00:00",
+      "reason": "Capture post-review Outcome metadata after implementation review without changing the locked behavioral contract"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T01:22:12.344904+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/test_validator_plugin_docs.py -v",
+        "exit_code": 1,
+        "output_tail": "\ncapsys = <_pytest.capture.CaptureFixture object at 0x725141843110>\n\n    def test_language_support_entrypoints_route_requests_to_plugin_path(capsys) -> None:\n        readme = _read(README)\n        howto = _read(HOWTO)\n        roadmap = _read(ROADMAP)\n        result = cmd_howto(SimpleNamespace(topic=\"commands\"))\n        howto_output = capsys.readouterr().out\n    \n        for content in (readme, howto, roadmap):\n>           assert \"docs/validator-plugin-authoring.md\" in content\nE           assert 'docs/validator-plugin-authoring.md' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)\\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)\\n\\nA tool-agnostic validation framework and Python library for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with declarative YAML manifests, ensuring architectural integrity in AI-assisted development. Integrates with [ArchSpec](https://archspec.dev) for spec-to-code pipelines.\\n\\n**[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**\\n\\n> [Full AI Compiler workflow guide](docs/ai-compiler-workflow.md)\\n\\n## Why MAID Runner?\\n\\nLLMs generate code based on statistical likelihood, optimizing for \"plausibility\" rather than architectural soundness. Without intervention, this leads to \"AI Slop\" -- code that is syntactically valid but architecturally chaotic.\\n\\n**MAID Runner enforces three-stream validation:**\\n- **Acceptance (WHAT)**: Immutable tests from specifications define syste...\u2500\u2500 schemas/             # JSON Schema (v1, v2)\\n\u251c\u2500\u2500 examples/                # Example scripts\\n\u2514\u2500\u2500 .claude/                 # Claude Code configuration\\n```\\n\\n## Testing\\n\\n```bash\\nuv run python -m pytest tests/ -v                    # All tests\\nuv run python -m pytest tests/core/ -v               # Core tests\\nuv run python -m pytest tests/validators/ -v          # Validator tests\\nmaid test                                            # MAID validation commands\\n```\\n\\n## Requirements\\n\\n- Python 3.10+\\n- Core: `jsonschema`, `pyyaml`\\n- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS and Angular `.ts` support), `tree-sitter-svelte` (Svelte support)\\n- Dev: `black`, `ruff`, `mypy`, `pytest`\\n\\n## Contributing\\n\\nThis project dogfoods MAID methodology. All changes require:\\n1. A manifest in `manifests/`\\n2. Behavioral tests in `tests/`\\n3. Passing structural validation\\n4. Passing behavioral tests\\n\\nUse `manifests/drafts/` for mutable planned work that has not been promoted\\ninto the active manifest chain yet.\\n\\nSee [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/test_validator_plugin_docs.py:74: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_validator_plugin_docs.py::test_validator_plugin_authoring_guide_documents_contract_and_runtime_rules\nFAILED tests/test_validator_plugin_docs.py::test_validator_plugin_authoring_guide_states_support_boundary_and_semver\nFAILED tests/test_validator_plugin_docs.py::test_language_support_entrypoints_route_requests_to_plugin_path\n============================== 3 failed in 0.13s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/063-04-document-validator-plugin-authoring.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._validator_plugins_readme_section",
+      "README.md:attribute:documentation._validator_plugins_readme_section:kind=attribute",
+      "README.md:attribute:documentation._validator_plugins_readme_section:of=documentation",
+      "README.md:attribute:documentation._validator_plugins_readme_section:type=markdown section",
+      "docs/ROADMAP.md:attribute:documentation._language_support_plugin_pointer",
+      "docs/ROADMAP.md:attribute:documentation._language_support_plugin_pointer:kind=attribute",
+      "docs/ROADMAP.md:attribute:documentation._language_support_plugin_pointer:of=documentation",
+      "docs/ROADMAP.md:attribute:documentation._language_support_plugin_pointer:type=markdown section",
+      "docs/validator-plugin-authoring.md:attribute:documentation._validator_plugin_authoring_guide",
+      "docs/validator-plugin-authoring.md:attribute:documentation._validator_plugin_authoring_guide:kind=attribute",
+      "docs/validator-plugin-authoring.md:attribute:documentation._validator_plugin_authoring_guide:of=documentation",
+      "docs/validator-plugin-authoring.md:attribute:documentation._validator_plugin_authoring_guide:type=markdown document",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+      "tests/test_validator_plugin_docs.py:test_language_support_entrypoints_route_requests_to_plugin_path",
+      "tests/test_validator_plugin_docs.py:test_language_support_entrypoints_route_requests_to_plugin_path:kind=test_function",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_documents_contract_and_runtime_rules",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_documents_contract_and_runtime_rules:kind=test_function",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_states_support_boundary_and_semver",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_states_support_boundary_and_semver:kind=test_function"
+    ],
+    "test_files": [
+      "tests/test_validator_plugin_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/test_validator_plugin_docs.py -v",
+      "uv run maid validate manifests/063-04-document-validator-plugin-authoring.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -31,6 +31,14 @@ This transforms AI from a "Junior Developer" requiring reactive code review into
 | **TypeScript/JS** | `.ts`, `.tsx`, `.js`, `.jsx` | tree-sitter | Classes, interfaces, type aliases, enums, namespaces, generics, JSX/TSX; React and Angular through TypeScript-backed parsing |
 | **Svelte** | `.svelte` | tree-sitter | Components, props, exports, script blocks, reactive statements |
 
+### Validator Plugins
+
+For language requests, use the validator plugin path instead of adding new
+in-tree parsers to this repository. See
+[docs/validator-plugin-authoring.md](docs/validator-plugin-authoring.md) for the
+plugin contract, `maid_runner.validators` entry-point packaging, conformance
+kit usage, `maid validators` audit command, and support boundary.
+
 ## Quick Start
 
 ```bash

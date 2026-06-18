@@ -169,7 +169,9 @@ These areas remain possible future work, but they are not the active v2 core
 roadmap unless a dedicated spec promotes them:
 
 - Editor/LSP integrations.
-- Additional language validators such as Go, Rust, Java, or C#.
+- Additional language support through external validator plugin packages.
+  Use the plugin path in `docs/validator-plugin-authoring.md` rather than
+  adding new in-tree validators by default.
 - Cross-repository validation.
 - General AI agent orchestration and natural-language product workflows.
 - Long-lived daemon adoption beyond the current `maid serve` validator socket.

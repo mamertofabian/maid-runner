@@ -1,0 +1,266 @@
+schema: '2'
+goal: 'Document validator plugin authoring: the public contract, entry-point packaging, conformance kit usage, and the support boundary'
+type: feature
+created: '2026-06-18T01:22:11Z'
+metadata:
+  epic: 063-00-validator-plugin-distribution
+  tags:
+  - validators
+  - plugin-architecture
+  - ecosystem
+  priority: medium
+description: |
+  Write the plugin authoring guide so the ecosystem can add language
+  validators (Rust, Go, Java, C#, and others) without this repository
+  absorbing every parser's maintenance cost, and point language requests
+  at the plugin path instead of in-tree additions.
+
+  Pinned decisions to transcribe into the documentation (the guide must
+  state all of these; do not redesign them):
+
+  - Entry-point packaging: plugins register under the entry-point group
+    `maid_runner.validators`; `pip install <plugin>` is sufficient for
+    `maid validate` to handle the plugin's extensions. Discovery happens
+    once at `ValidatorRegistry` initialization, ordered by distribution
+    name then entry-point name for determinism.
+  - Built-in-wins rule: a plugin claiming an extension already claimed by
+    a built-in is registered as inactive for that extension and reported
+    with reserved code E903 VALIDATOR_PLUGIN_CONFLICT (warning severity).
+    Plugin import or registration failures are isolated and reported with
+    reserved code E902 VALIDATOR_PLUGIN_LOAD_FAILURE naming the
+    distribution; built-ins stay fully functional. Behavioral and
+    implementation validation surface these diagnostics as warnings;
+    schema validation remains manifest-only.
+  - Kill switch: `MAID_DISABLE_VALIDATOR_PLUGINS=1` disables discovery
+    entirely; `maid validators` still lists skipped plugins with status
+    `disabled`. Users audit which code parses their files with
+    `maid validators` (columns: name, claimed extensions, source, status;
+    `--json` parity).
+  - Public contract: the validator surface consumed by plugins
+    (`BaseValidator`, `CollectionResult`, registration semantics) is a
+    documented public API with semver discipline; breaking it requires a
+    major version of MAID Runner. Everything else under
+    `maid_runner/validators/` is internal.
+  - Conformance kit usage: authors point
+    `maid_runner.testing.validator_conformance.make_conformance_suite`
+    at their validator class plus language fixtures. The fixture contract
+    requires, per language: one source sample per supported artifact
+    kind, a private artifact sample, a behavioral test sample with
+    correct identity, one with wrong identity, an unparseable source
+    sample, an empty file, and behavioral target identity fields
+    (`behavioral_target_kind`, `behavioral_target_name`, and
+    `behavioral_target_of`). Passing the kit is the evidence bar for a
+    plugin: it proves the collector cannot create false-green validation
+    for its language.
+  - Support boundary: plugins own their parser quality; MAID Runner owns
+    the contract. Language requests against this repository are answered
+    with the plugin path; a reference plugin (for example a minimal Rust
+    validator) lives in a separate repository, not in-tree.
+
+  Content requirements:
+
+  - New guide `docs/validator-plugin-authoring.md` covering: the contract
+    surface and its semver discipline, how to implement a BaseValidator
+    subclass (implementation and behavioral collection, parse-error
+    result shapes, public/private rules), pyproject entry-point
+    packaging with a worked example for the `maid_runner.validators`
+    group, conformance kit usage with a worked fixtures example, the
+    built-in-wins and failure-isolation rules with the E902/E903 codes,
+    the kill switch, auditing with `maid validators`, and the support
+    boundary.
+  - README gains a short validator-plugins section pointing language
+    requests at the guide.
+  - The `maid howto` topic text gains plugin-path guidance so CLI users
+    asking about new language support are pointed at the guide.
+  - docs/ROADMAP.md language-support guidance points at the plugin path
+    instead of implying future in-tree languages.
+
+  Test expectations (docs tests in tests/test_validator_plugin_docs.py,
+  written during planning of this child, 047-02 pattern with
+  Path.read_text assertions):
+
+  - The guide exists and names the maid_runner.validators entry-point
+    group, the built-in-wins rule, the E902 and E903 codes, the
+    validation-warning surfacing behavior, the
+    MAID_DISABLE_VALIDATOR_PLUGINS kill switch, make_conformance_suite,
+    and every element of the fixture contract including
+    behavioral_target_kind, behavioral_target_name, and
+    behavioral_target_of.
+  - The guide states the support boundary (plugins own parser quality;
+    MAID Runner owns the contract) and the semver discipline of the
+    public contract surface.
+  - README and the howto topic text point language requests at the
+    guide's plugin path.
+
+  Planning note: the epic pins README and howto updates; "howto" is read
+  as the `maid howto` topic text in `maid_runner/cli/commands/howto.py`.
+  The ROADMAP pointer is included because the epic's read list names
+  docs/ROADMAP.md and the epic goal is to route language requests at the
+  plugin path; this is recorded as a conservative scope reading.
+
+  Out of scope: discovery implementation (063-01), the maid validators
+  command implementation (063-02), the conformance kit implementation
+  (063-03), and any reference plugin repository. This child may proceed
+  in parallel with 063-03 after 063-01 lands, but its documented claims
+  must match the landed behavior before promotion.
+temptations:
+- risk: Do not expose the entire internal validator module surface as public plugin API in the docs.
+  instead: Document the minimal contract (BaseValidator, CollectionResult, registration semantics) and state that only that surface carries semver discipline.
+- risk: Do not document aspirational behavior that the landed children do not implement.
+  instead: Transcribe the pinned discovery, precedence, diagnostic, and kill-switch rules exactly and verify them against the landed 063-01 through 063-03 behavior.
+- risk: Do not soften the conformance kit into optional guidance.
+  instead: Document passing the kit, including its adversarial cases, as the evidence bar for a conforming plugin.
+files:
+  create:
+  - path: docs/validator-plugin-authoring.md
+    artifacts:
+    - kind: attribute
+      name: _validator_plugin_authoring_guide
+      of: documentation
+      type: markdown document
+      description: 'Canonical plugin authoring guide: contract surface and semver discipline, entry-point packaging, conformance kit usage, discovery and precedence rules, kill switch, auditing, and the support boundary.'
+  - path: tests/test_validator_plugin_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_validator_plugin_authoring_guide_documents_contract_and_runtime_rules
+      source_scenario: The validator plugin authoring guide is read as repository markdown.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The guide names the public plugin contract, entry-point group, built-in-wins rule, E902/E903 diagnostics, warning surfacing, kill switch, auditing command, and conformance kit fixture contract.
+    - kind: test_function
+      name: test_validator_plugin_authoring_guide_states_support_boundary_and_semver
+      source_scenario: The guide explains ownership and compatibility boundaries for third-party validator plugins.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The guide states that plugins own parser quality, MAID Runner owns the contract, and breaking the public validator surface requires a major version.
+    - kind: test_function
+      name: test_language_support_entrypoints_route_requests_to_plugin_path
+      source_scenario: Primary repository docs and CLI howto text are read as repository files.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      - type: api_call
+        subject:
+          function: cmd_howto
+      expected:
+        behavior: README, maid howto topic text, and roadmap language-support guidance point language requests at docs/validator-plugin-authoring.md and the validator plugin path.
+  edit:
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _validator_plugins_readme_section
+      of: documentation
+      type: markdown section
+      description: README section pointing language requests at the validator plugin path and the authoring guide.
+  - path: maid_runner/cli/commands/howto.py
+    artifacts:
+    - kind: function
+      name: cmd_howto
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Howto topic text points new-language requests at the validator plugin authoring guide.
+  - path: docs/ROADMAP.md
+    artifacts:
+    - kind: attribute
+      name: _language_support_plugin_pointer
+      of: documentation
+      type: markdown section
+      description: Roadmap language-support guidance routed through the plugin path instead of in-tree validators.
+  read:
+  - maid_runner/validators/base.py
+  - maid_runner/validators/registry.py
+validate:
+- uv run python -m pytest tests/test_validator_plugin_docs.py -v
+- uv run maid validate manifests/063-04-document-validator-plugin-authoring.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: Documented validator plugin authoring and routed language-support requests to the external plugin path.
+  rationale: The guide now records the landed plugin discovery, diagnostic, audit, conformance, and support-boundary behavior from 063-01 through 063-03; focused docs tests, full MAID gates, and independent implementation review passed.
+  lessons:
+  - lesson_type: documentation
+    summary: Validator plugin docs should keep the public contract narrow, name the E902/E903 operational diagnostics, and make the conformance kit the evidence bar rather than optional guidance.
+    tags:
+    - validators
+    - plugin-architecture
+    - documentation
+    paths:
+    - docs/validator-plugin-authoring.md
+    - tests/test_validator_plugin_docs.py
+  - lesson_type: workflow
+    summary: Formatting a locked behavioral test can require a plan-lock revision with preserved red evidence when assertions do not change.
+    tags:
+    - plan-lock
+    - red-evidence
+    - workflow
+    paths:
+    - .maid/plan-locks/063-04-document-validator-plugin-authoring.lock.json
+    - tests/test_validator_plugin_docs.py
+  review_notes:
+  - source: implementation-review-subagent
+    severity: info
+    summary: Independent read-only review returned Ready with no findings; residual risk noted that docs tests are mostly substring-based and do not execute the markdown code example.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/test_validator_plugin_docs.py
+    - -v
+    status: passed
+    summary: Focused validator plugin documentation tests passed with three scenarios covering guide content and README/howto/roadmap routing.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/063-04-document-validator-plugin-authoring.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: Manifest implementation validation passed with expected E307 no-validator warnings for markdown documentation files.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/063-04-document-validator-plugin-authoring.manifest.yaml
+    status: passed
+    summary: Manifest-declared validation commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 354 manifests with no failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed 130 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - HEAD
+    status: passed
+    summary: Handoff verify gate passed with explicit changed-scope baseline; existing repository warnings remained warning-only.
