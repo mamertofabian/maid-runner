@@ -8,16 +8,22 @@ from pathlib import Path
 from typing import Any, Union
 
 from maid_runner.__version__ import __version__
+from maid_runner.daemon.cache import DaemonValidationCacheScope
 from maid_runner.daemon.protocol import DaemonRequestError
 
 
 _START_TIME = time.monotonic()
 _DAEMON_CONTEXT: dict = {"project_root": "."}
+_VALIDATION_CACHE_SCOPE: DaemonValidationCacheScope | None = None
 
 
 def configure_context(project_root: Union[str, Path]) -> None:
     """Bind the daemon to a startup project_root. Client-supplied values are ignored."""
+    global _VALIDATION_CACHE_SCOPE
+    if _VALIDATION_CACHE_SCOPE is not None:
+        _VALIDATION_CACHE_SCOPE._close_scope()
     _DAEMON_CONTEXT["project_root"] = str(Path(project_root).resolve())
+    _VALIDATION_CACHE_SCOPE = None
 
 
 def handle_ping(params: dict) -> dict:
@@ -27,6 +33,7 @@ def handle_ping(params: dict) -> dict:
         "pid": os.getpid(),
         "version": __version__,
         "uptime_s": round(time.monotonic() - _START_TIME, 3),
+        "cache_stats": _validation_cache_scope().stats(),
     }
 
 
@@ -39,7 +46,6 @@ def handle_validate(params: dict) -> dict:
     and traversals outside the root are rejected.
     """
     from maid_runner.core.types import ValidationMode
-    from maid_runner.core.validate import ValidationEngine
 
     manifest_path = params.get("manifest_path")
     if not isinstance(manifest_path, str) or not manifest_path:
@@ -65,18 +71,15 @@ def handle_validate(params: dict) -> dict:
     use_chain = not bool(params.get("no_chain", False))
     manifest_dir = params.get("manifest_dir", "manifests/")
 
-    engine = ValidationEngine(project_root=str(project_root))
-    result = engine.validate(
+    return _validation_cache_scope().validate(
         str(resolved_manifest),
-        mode=mode,
+        mode=mode.value,
         use_chain=use_chain,
         manifest_dir=manifest_dir,
         check_assertions=bool(params.get("check_assertions", False)),
         check_stubs=bool(params.get("check_stubs", False)),
         fail_on_warnings=bool(params.get("fail_on_warnings", False)),
     )
-
-    return _result_to_dict(result, manifest_path)
 
 
 def _resolve_within_root(manifest_path: str, project_root: Path) -> Path | None:
@@ -124,3 +127,12 @@ HANDLERS: dict = {
     "validate": handle_validate,
     "ping": handle_ping,
 }
+
+
+def _validation_cache_scope() -> DaemonValidationCacheScope:
+    global _VALIDATION_CACHE_SCOPE
+    if _VALIDATION_CACHE_SCOPE is None:
+        _VALIDATION_CACHE_SCOPE = DaemonValidationCacheScope(
+            project_root=_DAEMON_CONTEXT["project_root"]
+        )
+    return _VALIDATION_CACHE_SCOPE

@@ -1,0 +1,129 @@
+{
+  "manifest_path": "manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml",
+  "manifest_hash": "sha256:1324b3f40f917532d0195d07fdd1c8c050d9986173041ab85c0f0fdb6273710a",
+  "test_hashes": {
+    "tests/daemon/test_daemon_cache.py": "sha256:72c61e110567bc4a1818a6d0e25a2bd249881b48f3c708d166afbffd87da4f2a"
+  },
+  "created_at": "2026-06-18T03:38:02.108324+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9386f1a82d1ad2de09a9bc7f0f5571897bc1d7f4110433db45dde1990205223a",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_cache.py": "sha256:77f460a49913d17744ee9e254450017afa27f42344585d2f9e3b004696f0d707"
+      },
+      "revised_at": "2026-06-18T03:38:08.042956+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/064-02-add-daemon-resident-validation-cache.manifest.yaml -> manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:f857d4875b2ad7fc4180ec2fbce6c965e1c9b12d67c6b8a27631620cafe8a9f3",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_cache.py": "sha256:77f460a49913d17744ee9e254450017afa27f42344585d2f9e3b004696f0d707"
+      },
+      "revised_at": "2026-06-18T03:40:05.988948+00:00",
+      "reason": "Declare the new daemon cache behavioral test file as a created test artifact instead of a read-only dependency."
+    },
+    {
+      "prior_manifest_hash": "sha256:8452fbbd23edc03b6611194d66346cce04232c811d729073a6d7bec8e954b40b",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_cache.py": "sha256:16fcc6b28bdef2a3df329bf98904e751ba725feb80973220fd7a8fcd8a2d262e"
+      },
+      "revised_at": "2026-06-18T03:51:46.242630+00:00",
+      "reason": "Re-lock after correcting daemon cache tests to fail during execution instead of collection."
+    },
+    {
+      "prior_manifest_hash": "sha256:8452fbbd23edc03b6611194d66346cce04232c811d729073a6d7bec8e954b40b",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_cache.py": "sha256:72c61e110567bc4a1818a6d0e25a2bd249881b48f3c708d166afbffd87da4f2a"
+      },
+      "revised_at": "2026-06-18T04:06:20.056107+00:00",
+      "reason": "Re-lock after post-review Outcome capture; implementation contract and behavioral tests are unchanged."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T03:51:48.825178+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/daemon/test_daemon_cache.py",
+        "exit_code": 1,
+        "output_tail": "project_root = PosixPath('/tmp/pytest-of-atomrem/pytest-214/test_configure_context_resets_0/a')\n\n    def configure_context(project_root: Union[str, Path]) -> None:\n        \"\"\"Bind the daemon to a startup project_root. Client-supplied values are ignored.\"\"\"\n        global _VALIDATION_CACHE_SCOPE\n        if _VALIDATION_CACHE_SCOPE is not None:\n>           _VALIDATION_CACHE_SCOPE._close_scope()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           AttributeError: 'DaemonValidationCacheScope' object has no attribute '_close_scope'\n\nmaid_runner/daemon/handlers.py:24: AttributeError\n=========================== short test summary info ============================\nFAILED tests/daemon/test_daemon_cache.py::test_content_cache_key_includes_content_and_version\nFAILED tests/daemon/test_daemon_cache.py::test_scope_records_hit_for_repeated_identical_validate_request\nFAILED tests/daemon/test_daemon_cache.py::test_scope_observes_manifest_edit_as_new_request_identity\nFAILED tests/daemon/test_daemon_cache.py::test_scope_observes_source_edit_and_revalidates_result\nFAILED tests/daemon/test_daemon_cache.py::test_scope_observes_tsconfig_edit_as_new_request_identity\nFAILED tests/daemon/test_daemon_cache.py::test_handlers_share_cache_scope_and_ping_reports_stats\nFAILED tests/daemon/test_daemon_cache.py::test_configure_context_resets_cache_like_daemon_restart\n7 failed, 1 passed in 0.12s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/daemon/cache.py:class:DaemonValidationCacheScope",
+      "maid_runner/daemon/cache.py:class:DaemonValidationCacheScope:kind=class",
+      "maid_runner/daemon/cache.py:function:content_cache_key",
+      "maid_runner/daemon/cache.py:function:content_cache_key:arg=content:type=bytes:default=None",
+      "maid_runner/daemon/cache.py:function:content_cache_key:arg=version:type=str:default=None",
+      "maid_runner/daemon/cache.py:function:content_cache_key:kind=function",
+      "maid_runner/daemon/cache.py:function:content_cache_key:returns=str",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.clear",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.clear:kind=method",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.clear:of=DaemonValidationCacheScope",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.clear:returns=None",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.stats",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.stats:kind=method",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.stats:of=DaemonValidationCacheScope",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.stats:returns=dict",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_assertions:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_stubs:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=fail_on_warnings:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_dir:type=str:default='manifests/'",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_path:type=str:default=None",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=mode:type=str:default='implementation'",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=use_chain:type=bool:default=True",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:kind=method",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:of=DaemonValidationCacheScope",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:returns=dict",
+      "maid_runner/daemon/handlers.py:function:handle_ping",
+      "maid_runner/daemon/handlers.py:function:handle_ping:arg=params:type=dict:default=None",
+      "maid_runner/daemon/handlers.py:function:handle_ping:kind=function",
+      "maid_runner/daemon/handlers.py:function:handle_ping:returns=dict",
+      "maid_runner/daemon/handlers.py:function:handle_validate",
+      "maid_runner/daemon/handlers.py:function:handle_validate:arg=params:type=dict:default=None",
+      "maid_runner/daemon/handlers.py:function:handle_validate:kind=function",
+      "maid_runner/daemon/handlers.py:function:handle_validate:returns=dict",
+      "tests/daemon/test_daemon_cache.py:test_clear_resets_scope_entries_and_counters",
+      "tests/daemon/test_daemon_cache.py:test_clear_resets_scope_entries_and_counters:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_configure_context_resets_cache_like_daemon_restart",
+      "tests/daemon/test_daemon_cache.py:test_configure_context_resets_cache_like_daemon_restart:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_content_cache_key_includes_content_and_version",
+      "tests/daemon/test_daemon_cache.py:test_content_cache_key_includes_content_and_version:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_handlers_share_cache_scope_and_ping_reports_stats",
+      "tests/daemon/test_daemon_cache.py:test_handlers_share_cache_scope_and_ping_reports_stats:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_manifest_edit_as_new_request_identity",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_manifest_edit_as_new_request_identity:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_source_edit_and_revalidates_result",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_source_edit_and_revalidates_result:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_tsconfig_edit_as_new_request_identity",
+      "tests/daemon/test_daemon_cache.py:test_scope_observes_tsconfig_edit_as_new_request_identity:kind=test_function",
+      "tests/daemon/test_daemon_cache.py:test_scope_records_hit_for_repeated_identical_validate_request",
+      "tests/daemon/test_daemon_cache.py:test_scope_records_hit_for_repeated_identical_validate_request:kind=test_function"
+    ],
+    "test_files": [
+      "tests/daemon/test_daemon_cache.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/daemon/test_daemon_cache.py",
+      "uv run maid validate manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
