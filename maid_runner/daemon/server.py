@@ -17,6 +17,7 @@ from maid_runner.daemon.protocol import (
     DaemonRequestError,
     ProtocolError,
     Response,
+    UnsupportedProtocolVersionError,
     error_response,
     parse_request,
     render_response,
@@ -335,6 +336,12 @@ class Server:
     def _dispatch(self, line: str) -> Response:
         try:
             request = parse_request(line)
+        except UnsupportedProtocolVersionError as exc:
+            return error_response(
+                exc.request_id,
+                code="UNSUPPORTED_PROTOCOL_VERSION",
+                message=str(exc),
+            )
         except ProtocolError as exc:
             return error_response("", code="PROTOCOL_ERROR", message=str(exc))
 

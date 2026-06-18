@@ -38,12 +38,15 @@ response per line. A single connection can carry many requests in sequence.
 ### Request
 
 ```json
-{"id": "<correlation>", "method": "validate|ping", "params": { ... }}
+{"id": "<correlation>", "method": "validate|ping|verify", "protocol_version": 1, "params": { ... }}
 ```
 
 - `id` (string, required): echoed back in the response so clients can
   correlate.
-- `method`: `validate` or `ping`.
+- `method`: `validate`, `ping`, or `verify`.
+- `protocol_version` (integer, optional): request protocol version. Omitted
+  means version `1`. Unsupported versions return `ok: false` with
+  `UNSUPPORTED_PROTOCOL_VERSION` and the request id echoed.
 - `params`: method-specific object (may be empty for `ping`).
 
 ### Response
@@ -64,7 +67,8 @@ Request-layer failure:
 
 - `ok: false` means the request was rejected by the protocol or handler
   layer. Codes: `MISSING_PARAM`, `BAD_MODE`, `PATH_ESCAPE`, `UNKNOWN_METHOD`,
-  `PROTOCOL_ERROR`, `HANDLER_ERROR`, `FRAME_TOO_LARGE`.
+  `UNSUPPORTED_PROTOCOL_VERSION`, `PROTOCOL_ERROR`, `HANDLER_ERROR`,
+  `FRAME_TOO_LARGE`.
 - `ok: true` with `result.success: false` means the validator ran and
   reported errors against the manifest.
 
@@ -75,7 +79,7 @@ Request-layer failure:
 | Field | Type | Description |
 |-------|------|-------------|
 | Params | `{}` | None required |
-| Result | `{"pid": int, "version": str, "uptime_s": float}` | Liveness payload |
+| Result | `{"pid": int, "version": str, "uptime_s": float, "cache_stats": object}` | Liveness and daemon validation cache payload |
 
 ### `validate`
 
@@ -93,6 +97,26 @@ Mirrors `maid validate --json`. The result is `ValidationResult.to_dict()`.
 
 Any client-supplied `project_root` in `params` is ignored. The daemon
 validates only inside the project root it was started with.
+
+### `verify`
+
+Runs the daemon-supported subset of `maid verify --json`. The daemon executes
+the validation, coherence, and file-tracking stages inside the startup
+`--project-root`, mirrors verify defaults for warning strictness and fail-fast
+behavior, and reports the subprocess `tests` stage as skipped instead of
+running test commands in the daemon process.
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `manifest_dir` | `string` | `"manifests/"` | Manifest directory resolved under `--project-root`. Absolute paths or `..` traversals outside the root are rejected with `PATH_ESCAPE`. |
+| `allow_empty` | `bool` | `false` | Match `maid verify --allow-empty`; when no active manifests exist, daemon-supported stages after validation are reported as skipped. |
+| `check_assertions` | `bool` | `true` | Behavioral assertion checks |
+| `check_stubs` | `bool` | `true` | Implementation stub checks |
+| `fail_fast` | `bool` | `true` | Stop after the first failing daemon-supported stage |
+| `fail_on_warnings` | `bool` | `true` | Treat blocking warnings as verify failures |
+
+Any client-supplied `project_root` in `params` is ignored. The response uses
+the same JSON shape as `maid verify --json` for the stages the daemon runs.
 
 ## Security defaults
 

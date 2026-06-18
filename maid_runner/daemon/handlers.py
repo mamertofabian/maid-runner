@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from pathlib import Path
@@ -82,6 +83,139 @@ def handle_validate(params: dict) -> dict:
     )
 
 
+def handle_verify(params: dict) -> dict:
+    """Run the daemon-supported verify subset and return its JSON result dict."""
+    from maid_runner.cli.commands._format import format_verify_result
+    from maid_runner.cli.commands.verify import (
+        _allow_empty_without_active_manifests,
+        _coherence_stage,
+        _file_tracking_stage,
+        _skipped_stage,
+        _should_continue,
+        _validation_stage,
+        _verification_result,
+    )
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    manifest_dir = params.get("manifest_dir", "manifests/")
+    if not isinstance(manifest_dir, str) or not manifest_dir:
+        raise DaemonRequestError("MISSING_PARAM", "'manifest_dir' must be a string")
+
+    project_root = Path(_DAEMON_CONTEXT["project_root"]).resolve()
+    resolved_manifest_dir = _resolve_within_root(manifest_dir, project_root)
+    if resolved_manifest_dir is None:
+        raise DaemonRequestError(
+            "PATH_ESCAPE",
+            f"manifest_dir '{manifest_dir}' escapes daemon project root",
+        )
+
+    verify_manifest_dir = (
+        str(resolved_manifest_dir) if Path(manifest_dir).is_absolute() else manifest_dir
+    )
+    allow_empty = bool(params.get("allow_empty", False))
+    check_assertions = bool(params.get("check_assertions", True))
+    check_stubs = bool(params.get("check_stubs", True))
+    fail_fast = bool(params.get("fail_fast", True))
+    fail_on_warnings = bool(params.get("fail_on_warnings", True))
+
+    started = time.monotonic()
+    engine = ValidationEngine(project_root=str(project_root))
+    stages = []
+
+    with engine.validation_cache_scope():
+        stages.append(
+            _validation_stage(
+                "schema",
+                engine,
+                verify_manifest_dir,
+                ValidationMode.SCHEMA,
+                project_root=project_root,
+                allow_empty=allow_empty,
+                fail_on_warnings=fail_on_warnings,
+            )
+        )
+        if not _should_continue(stages[-1], fail_fast):
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        stages.append(
+            _validation_stage(
+                "behavioral",
+                engine,
+                verify_manifest_dir,
+                ValidationMode.BEHAVIORAL,
+                project_root=project_root,
+                allow_empty=allow_empty,
+                check_assertions=check_assertions,
+                fail_on_warnings=fail_on_warnings,
+            )
+        )
+        if not _should_continue(stages[-1], fail_fast):
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        stages.append(
+            _validation_stage(
+                "implementation",
+                engine,
+                verify_manifest_dir,
+                ValidationMode.IMPLEMENTATION,
+                project_root=project_root,
+                allow_empty=allow_empty,
+                check_stubs=check_stubs,
+                fail_on_warnings=fail_on_warnings,
+            )
+        )
+        if not _should_continue(stages[-1], fail_fast):
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        if _allow_empty_without_active_manifests(
+            project_root,
+            verify_manifest_dir,
+            allow_empty,
+        ):
+            skip_message = "Skipped because --allow-empty found no active manifests"
+            stages.append(_skipped_stage("coherence", skip_message))
+            stages.append(_skipped_stage("file_tracking", skip_message))
+            stages.append(_skipped_stage("tests", skip_message))
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        stages.append(_coherence_stage(project_root, verify_manifest_dir))
+        if not _should_continue(stages[-1], fail_fast):
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        stages.append(_file_tracking_stage(project_root, verify_manifest_dir, engine))
+        if not _should_continue(stages[-1], fail_fast):
+            return json.loads(
+                format_verify_result(
+                    _verification_result(stages, started), json_mode=True
+                )
+            )
+        stages.append(
+            _skipped_stage(
+                "tests",
+                "Skipped because daemon verify excludes subprocess test execution",
+            )
+        )
+
+    result = _verification_result(stages, started)
+    return json.loads(format_verify_result(result, json_mode=True))
+
+
 def _resolve_within_root(manifest_path: str, project_root: Path) -> Path | None:
     candidate = Path(manifest_path)
     if not candidate.is_absolute():
@@ -126,6 +260,7 @@ def _error_to_dict(err: Any) -> dict:
 HANDLERS: dict = {
     "validate": handle_validate,
     "ping": handle_ping,
+    "verify": handle_verify,
 }
 
 

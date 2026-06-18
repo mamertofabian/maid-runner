@@ -1,0 +1,138 @@
+{
+  "manifest_path": "manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml",
+  "manifest_hash": "sha256:56759e814dab68764cdd92fba3237b8311fde7abd35c810919e72caef4f1e311",
+  "test_hashes": {
+    "tests/daemon/test_daemon_protocol_version.py": "sha256:3b5dae487ab4bf99d16f4068336397b39e8cde669a4343f6e1dae390dce6aeb7",
+    "tests/daemon/test_daemon_verify.py": "sha256:bdff8d2cb88e833cc8a9a12dec999d2c98247ab2e6f1717c4d539e3ff4089374"
+  },
+  "created_at": "2026-06-18T04:14:13.793630+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:5626d115386565f252153a62d942b092dd822cf3849e7eea37f426780f2d562b",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_protocol_version.py": "sha256:551708c32d33eae7c105f1f4946d7b160936159f22f71dc7e8321a39c33deac3",
+        "tests/daemon/test_daemon_verify.py": "sha256:127bc4233e15dacce4edfad0f151be39c461b5be6722bd18975e824aed481923"
+      },
+      "revised_at": "2026-06-18T04:14:20.648421+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/064-03-extend-daemon-protocol-for-verify.manifest.yaml -> manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:ebd5708a32d3e3ebebaccac9823fc7cad2c7a3da4348ee0752d537775f7919ee",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_protocol_version.py": "sha256:551708c32d33eae7c105f1f4946d7b160936159f22f71dc7e8321a39c33deac3",
+        "tests/daemon/test_daemon_verify.py": "sha256:127bc4233e15dacce4edfad0f151be39c461b5be6722bd18975e824aed481923"
+      },
+      "revised_at": "2026-06-18T04:16:24.388701+00:00",
+      "reason": "Re-lock after declaring UnsupportedProtocolVersionError attributes and adding direct behavioral assertions; implementation behavior is unchanged."
+    },
+    {
+      "prior_manifest_hash": "sha256:5bcd53f18904dd1bae9b9c04353b35d90741e160dfb56283aa41446fe957dd0f",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_protocol_version.py": "sha256:6d6059b6bd0ada4847328bea06edca96c791bc1bf571cb4895e2f36b7061c35f",
+        "tests/daemon/test_daemon_verify.py": "sha256:127bc4233e15dacce4edfad0f151be39c461b5be6722bd18975e824aed481923"
+      },
+      "revised_at": "2026-06-18T04:49:16.135607+00:00",
+      "reason": "Address implementation review findings by strengthening protocol-version and verify-equivalence behavioral tests without weakening the approved contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:5bcd53f18904dd1bae9b9c04353b35d90741e160dfb56283aa41446fe957dd0f",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_protocol_version.py": "sha256:49a28d4bd3c689173a78ec8d236d70f273eca3f2bcf6054e48f577ff8daa34eb",
+        "tests/daemon/test_daemon_verify.py": "sha256:3109ab11620fb9084c96c475d15606d2e26ee153e45c6fbd9e01ea96a17f0c11"
+      },
+      "revised_at": "2026-06-18T04:58:14.541640+00:00",
+      "reason": "Address second implementation review findings by adding allow-empty equivalence behavior and documenting daemon verify protocol additions."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T04:14:23.378358+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/daemon/test_daemon_protocol_version.py tests/daemon/test_daemon_verify.py",
+        "exit_code": 1,
+        "output_tail": "    \n>       assert response[\"id\"] == \"v1\"\nE       AssertionError: assert '' == 'v1'\nE         \nE         - v1\n\ntests/daemon/test_daemon_verify.py:182: AssertionError\n=========================== short test summary info ============================\nFAILED tests/daemon/test_daemon_protocol_version.py::test_parse_request_defaults_absent_protocol_version_to_one\nFAILED tests/daemon/test_daemon_protocol_version.py::test_parse_request_accepts_supported_protocol_version\nFAILED tests/daemon/test_daemon_protocol_version.py::test_parse_request_rejects_non_integer_protocol_version\nFAILED tests/daemon/test_daemon_protocol_version.py::test_parse_request_raises_specific_error_for_unsupported_protocol_version\nFAILED tests/daemon/test_daemon_protocol_version.py::test_server_dispatch_reports_unsupported_protocol_version_with_request_id\nFAILED tests/daemon/test_daemon_protocol_version.py::test_parse_request_allows_verify_method\nFAILED tests/daemon/test_daemon_verify.py::test_handle_verify_reports_validation_coherence_file_tracking_and_skipped_tests\nFAILED tests/daemon/test_daemon_verify.py::test_handle_verify_matches_direct_verify_subset_json_excluding_durations\nFAILED tests/daemon/test_daemon_verify.py::test_handle_verify_rejects_manifest_dir_path_escape\nFAILED tests/daemon/test_daemon_verify.py::test_handle_verify_ignores_client_supplied_project_root\nFAILED tests/daemon/test_daemon_verify.py::test_verify_request_round_trips_over_daemon_socket\n11 failed in 0.13s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid-serve.md:attribute:documentation._daemon_verify_protocol_documentation",
+      "docs/maid-serve.md:attribute:documentation._daemon_verify_protocol_documentation:kind=attribute",
+      "docs/maid-serve.md:attribute:documentation._daemon_verify_protocol_documentation:of=documentation",
+      "docs/maid-serve.md:attribute:documentation._daemon_verify_protocol_documentation:type=markdown section",
+      "maid_runner/daemon/handlers.py:function:handle_verify",
+      "maid_runner/daemon/handlers.py:function:handle_verify:arg=params:type=dict:default=None",
+      "maid_runner/daemon/handlers.py:function:handle_verify:kind=function",
+      "maid_runner/daemon/handlers.py:function:handle_verify:returns=dict",
+      "maid_runner/daemon/protocol.py:attribute:Request.protocol_version",
+      "maid_runner/daemon/protocol.py:attribute:Request.protocol_version:kind=attribute",
+      "maid_runner/daemon/protocol.py:attribute:Request.protocol_version:of=Request",
+      "maid_runner/daemon/protocol.py:attribute:Request.protocol_version:type=int",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.request_id",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.request_id:kind=attribute",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.request_id:of=UnsupportedProtocolVersionError",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.request_id:type=str",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.version",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.version:kind=attribute",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.version:of=UnsupportedProtocolVersionError",
+      "maid_runner/daemon/protocol.py:attribute:UnsupportedProtocolVersionError.version:type=int",
+      "maid_runner/daemon/protocol.py:class:UnsupportedProtocolVersionError",
+      "maid_runner/daemon/protocol.py:class:UnsupportedProtocolVersionError:base=ProtocolError",
+      "maid_runner/daemon/protocol.py:class:UnsupportedProtocolVersionError:kind=class",
+      "maid_runner/daemon/protocol.py:function:parse_request",
+      "maid_runner/daemon/protocol.py:function:parse_request:arg=line:type=str:default=None",
+      "maid_runner/daemon/protocol.py:function:parse_request:kind=function",
+      "maid_runner/daemon/protocol.py:function:parse_request:returns=Request",
+      "maid_runner/daemon/server.py:class:Server",
+      "maid_runner/daemon/server.py:class:Server:kind=class",
+      "tests/daemon/test_daemon_protocol_version.py:test_maid_serve_docs_describe_verify_protocol_version_and_error_code",
+      "tests/daemon/test_daemon_protocol_version.py:test_maid_serve_docs_describe_verify_protocol_version_and_error_code:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_accepts_supported_protocol_version",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_accepts_supported_protocol_version:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_allows_verify_method",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_allows_verify_method:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_defaults_absent_protocol_version_to_one",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_defaults_absent_protocol_version_to_one:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_raises_specific_error_for_unsupported_protocol_version",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_raises_specific_error_for_unsupported_protocol_version:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_rejects_non_integer_protocol_version",
+      "tests/daemon/test_daemon_protocol_version.py:test_parse_request_rejects_non_integer_protocol_version:kind=test_function",
+      "tests/daemon/test_daemon_protocol_version.py:test_server_dispatch_reports_unsupported_protocol_version_with_request_id",
+      "tests/daemon/test_daemon_protocol_version.py:test_server_dispatch_reports_unsupported_protocol_version_with_request_id:kind=test_function",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_ignores_client_supplied_project_root",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_ignores_client_supplied_project_root:kind=test_function",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_matches_direct_verify_subset_json_excluding_durations",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_matches_direct_verify_subset_json_excluding_durations:kind=test_function",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_rejects_manifest_dir_path_escape",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_rejects_manifest_dir_path_escape:kind=test_function",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_reports_validation_coherence_file_tracking_and_skipped_tests",
+      "tests/daemon/test_daemon_verify.py:test_handle_verify_reports_validation_coherence_file_tracking_and_skipped_tests:kind=test_function",
+      "tests/daemon/test_daemon_verify.py:test_verify_request_round_trips_over_daemon_socket",
+      "tests/daemon/test_daemon_verify.py:test_verify_request_round_trips_over_daemon_socket:kind=test_function"
+    ],
+    "test_files": [
+      "tests/daemon/test_daemon_protocol_version.py",
+      "tests/daemon/test_daemon_verify.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/daemon/test_daemon_protocol_version.py tests/daemon/test_daemon_verify.py",
+      "uv run maid validate manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -7,11 +7,24 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 
-_ALLOWED_METHODS = ("validate", "ping")
+_SUPPORTED_PROTOCOL_VERSION = 1
+_ALLOWED_METHODS = ("validate", "ping", "verify")
 
 
 class ProtocolError(Exception):
     """Raised when an inbound line cannot be parsed as a valid Request."""
+
+
+class UnsupportedProtocolVersionError(ProtocolError):
+    """Raised when a request carries a protocol version this daemon cannot serve."""
+
+    def __init__(self, version: int, request_id: str) -> None:
+        self.version = version
+        self.request_id = request_id
+        super().__init__(
+            f"unsupported protocol_version {version}; supported: "
+            f"{_SUPPORTED_PROTOCOL_VERSION}"
+        )
 
 
 class DaemonRequestError(Exception):
@@ -36,6 +49,7 @@ class Request:
     id: str
     method: str
     params: dict
+    protocol_version: int = _SUPPORTED_PROTOCOL_VERSION
 
 
 @dataclass
@@ -62,6 +76,12 @@ def parse_request(line: str) -> Request:
     if not isinstance(request_id, str) or not request_id:
         raise ProtocolError("missing or empty 'id' field")
 
+    protocol_version = payload.get("protocol_version", _SUPPORTED_PROTOCOL_VERSION)
+    if type(protocol_version) is not int:
+        raise ProtocolError("'protocol_version' must be an integer")
+    if protocol_version != _SUPPORTED_PROTOCOL_VERSION:
+        raise UnsupportedProtocolVersionError(protocol_version, request_id)
+
     method = payload.get("method")
     if not isinstance(method, str) or method not in _ALLOWED_METHODS:
         raise ProtocolError(
@@ -74,7 +94,12 @@ def parse_request(line: str) -> Request:
     if not isinstance(params, dict):
         raise ProtocolError("'params' must be a JSON object")
 
-    return Request(id=request_id, method=method, params=params)
+    return Request(
+        id=request_id,
+        method=method,
+        params=params,
+        protocol_version=protocol_version,
+    )
 
 
 def render_response(response: Response) -> str:
