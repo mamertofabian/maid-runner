@@ -16,8 +16,10 @@ description: |
   Extend the `maid serve` NDJSON protocol with the verify-relevant methods
   agents actually loop on, and add protocol version negotiation so old
   clients fail with a structured error instead of undefined behavior. This
-  child follows 064-01 (CLI routing) and preserves the protocol's existing
-  `ok`/`result` error layering: protocol-layer failures surface as
+  child no longer follows 064-01 because that CLI routing slice was abandoned;
+  before promotion it must be revised around direct daemon-protocol clients
+  rather than the dropped `--daemon` CLI path. It preserves the protocol's
+  existing `ok`/`result` error layering: protocol-layer failures surface as
   `ok: false` with a structured error code, while validation outcomes
   surface inside `result` (e.g. `result.success: false`).
 
@@ -87,10 +89,10 @@ description: |
   to the pinned error code. Planning note: the repo already has a
   `tests/daemon/` domain directory, so the planned tests live there.
 
-  Out of scope: CLI routing of `maid verify` through the daemon (a later
-  decision; 064-01 covers only `maid validate` routing), daemon-resident
+  Out of scope: CLI routing of `maid verify` through the daemon, daemon-resident
   caching (064-02), Windows transport (064-04), and default-mode flip with
-  docs (064-05).
+  docs (064-05). Any future CLI routing must be replanned because 064-01 was
+  abandoned after failing its benchmark gate.
 temptations:
   - risk: "Do not let unsupported protocol versions produce undefined behavior or silent downgrade."
     instead: "Answer unsupported versions with protocol-layer ok: false and code UNSUPPORTED_PROTOCOL_VERSION, and treat an absent protocol_version as exactly version 1."
@@ -154,6 +156,12 @@ files:
     - docs/maid-serve.md
     - tests/daemon/test_daemon_protocol_version.py
     - tests/daemon/test_daemon_verify.py
+# Planning note after 064-01 abandonment: this draft still references
+# `maid_runner/daemon/client.py`, but that module was not kept because CLI
+# subprocess routing failed the benchmark gate. Before promotion, revise this
+# draft so any daemon client artifact is declared in `files.create` or
+# `files.edit` and benchmarked through an integration path that avoids
+# per-call CLI startup.
 validate:
   - uv run python -m pytest -q tests/daemon/test_daemon_protocol_version.py tests/daemon/test_daemon_verify.py
   - uv run maid validate manifests/drafts/064-03-extend-daemon-protocol-for-verify.manifest.yaml --mode behavioral --quiet

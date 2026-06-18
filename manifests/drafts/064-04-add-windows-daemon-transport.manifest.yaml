@@ -17,8 +17,8 @@ description: |
   epic allowed either a named pipe or localhost TCP; the pinned decision is
   localhost TCP with a filesystem-permission-protected auth token. The Unix
   socket remains the default on POSIX platforms. This child may be deferred
-  if no Windows demand is evidenced; it must not block 064-01 through
-  064-03.
+  if no Windows demand is evidenced; it must not block protocol work, and it
+  must be revised before promotion because 064-01 was abandoned.
 
   Pinned decisions from epic 064-00. Do not redesign these:
 
@@ -35,9 +35,10 @@ description: |
      (0700 runtime directory, 0600 files), and the token is the
      filesystem-permission-protected secret that substitutes for Unix
      socket file permissions.
-  5. Routing identity checks from 064-01 still apply over TCP: clients
-     verify the daemon's resolved project root and maid_runner version via
-     ping before use.
+  5. Client identity checks still apply over TCP when a direct daemon client
+     exists: clients verify the daemon's resolved project root and maid_runner
+     version via ping before use. This draft must not assume the abandoned
+     064-01 CLI routing client exists.
   6. Benchmark gate: this slice is benchmark-gated. Record before/after
      `uv run maid benchmark` (or documented equivalent) evidence in the
      outcome confirming TCP transport overhead does not erase the daemon
@@ -60,9 +61,11 @@ description: |
   - `maid_runner/cli/commands/serve.py`: `register_serve_subparser` gains a
     `--transport unix|tcp` option (default `unix`) and `cmd_serve` passes
     it through.
-  - `maid_runner/daemon/client.py` (from 064-01): `ping_daemon` and
-    `validate_via_daemon` can connect over TCP using the runtime files and
-    attach the token to each request.
+  - Planning note after 064-01 abandonment: the prior assumption that
+    `maid_runner/daemon/client.py` exists from 064-01 is no longer valid.
+    Before promotion, revise this draft so any transport client artifact is
+    declared by this child or by a new prerequisite that demonstrates a
+    measurable win without per-call CLI startup.
 
   Edge cases and test expectations:
 
@@ -74,9 +77,10 @@ description: |
     `ok: false` error and no handler runs.
   - A TCP request with the correct token round-trips ping and validate
     identically to the Unix socket path (duration fields excluded).
-  - Stale runtime files (no listener on the recorded port) cause client
-    fallback behavior identical to a missing Unix socket: silent fallback
-    under auto, structured failure under require.
+  - Stale runtime files (no listener on the recorded port) fail loudly for
+    direct daemon clients rather than silently returning fake data. Any
+    fail-open CLI behavior must be replanned separately because 064-01 was
+    abandoned.
   - On POSIX, starting the daemon without --transport still uses the Unix
     socket and writes no TCP runtime files.
 
@@ -85,9 +89,13 @@ description: |
   Planning note: the epic does not specify the token request field name;
   the conservative reading is a top-level `token` field on each NDJSON
   request line, checked before method dispatch. Planning note: this child
-  is deferrable per the epic and must not block 064-01..064-03. Planning
+  is deferrable per the epic and must not block remaining cache/protocol work.
+  Planning
   note: the repo already has a `tests/daemon/` domain directory, so the
-  planned tests live there.
+  planned tests live there. Planning note after 064-01 abandonment: this draft
+  no longer declares `maid_runner/daemon/client.py`; before promotion, any
+  transport client artifact must be created by this child or by a new
+  prerequisite that demonstrates a measurable win without per-call CLI startup.
 
   Out of scope: CLI validate routing (064-01), the daemon cache (064-02),
   verify methods and protocol versioning (064-03), default-mode flip and
@@ -233,51 +241,6 @@ files:
                 function: cmd_serve
           expected:
             behavior: "Passes the transport selection through to serve so TCP startup publishes runtime files and Unix startup is unchanged."
-    - path: maid_runner/daemon/client.py
-      artifacts:
-        - kind: function
-          name: ping_daemon
-          args:
-            - name: socket_path
-              type: Union[str, Path]
-            - name: timeout_s
-              type: float
-              default: "5.0"
-          returns: dict
-          source_scenario: "A client pings a TCP daemon using the published runtime files."
-          actions:
-            - type: api_call
-              subject:
-                function: ping_daemon
-          expected:
-            behavior: "Connects over TCP with the token attached when TCP runtime files identify the daemon, keeps Unix socket behavior otherwise, and raises DaemonUnavailableError for stale or unreachable transports."
-        - kind: function
-          name: validate_via_daemon
-          args:
-            - name: socket_path
-              type: Union[str, Path]
-            - name: manifest_path
-              type: str
-            - name: mode
-              type: str
-              default: "'implementation'"
-            - name: use_chain
-              type: bool
-              default: "True"
-            - name: manifest_dir
-              type: str
-              default: "'manifests/'"
-            - name: timeout_s
-              type: float
-              default: "30.0"
-          returns: dict
-          source_scenario: "A validate request is routed to a TCP daemon."
-          actions:
-            - type: api_call
-              subject:
-                function: validate_via_daemon
-          expected:
-            behavior: "Returns results identical to the Unix-socket path (duration fields excluded) and attaches the auth token to every TCP request."
   read:
     - maid_runner/daemon/protocol.py
     - maid_runner/daemon/handlers.py
