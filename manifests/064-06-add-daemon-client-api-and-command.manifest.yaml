@@ -1,0 +1,380 @@
+schema: '2'
+goal: Add a reusable daemon protocol client and diagnostic CLI command for `maid serve`
+type: feature
+created: '2026-06-18T07:37:52Z'
+metadata:
+  epic: 064-00-daemon-first-agent-validation
+  tags:
+  - daemon
+  - maid-serve
+  - agent-loops
+  - client
+  priority: medium
+description: |
+  Add the missing ergonomic client layer for `maid serve` without reviving the
+  abandoned 064-01 `maid validate --daemon auto|off|require` design. The
+  performance path is a reusable Python client that long-lived agents,
+  editors, MCP servers, or future in-process integrations can import and keep
+  in memory while speaking the daemon protocol directly. A small `maid daemon`
+  CLI command is included only as a diagnostic/manual tool; it must not be
+  presented as the performance solution because it still pays per-call CLI
+  startup.
+
+  Pinned decisions from the 064 outcomes:
+
+  1. Do not add automatic `maid validate` routing in this slice. 064-01 showed
+     that per-call client CLI startup erased the measurable win.
+  2. Preserve daemon/direct result semantics. The client returns the daemon's
+     `result` payload unchanged when `ok: true`, and raises a structured
+     client error when `ok: false` instead of hiding protocol failures.
+  3. Support both current transports: Unix socket by default when available,
+     and token-protected TCP through `.maid/serve.port` and `.maid/serve.token`.
+  4. Keep protocol versioning explicit. Every client request includes
+     `protocol_version: 1`; TCP requests also include the top-level `token`.
+  5. Document this as the building block for long-lived integrations, not as
+     acceleration for `maid test` or subprocess-heavy final gates.
+
+  Implementation shape:
+
+  - `maid_runner/daemon/client.py` defines the public client API:
+    `DaemonEndpoint`, `DaemonClientError`, `resolve_daemon_endpoint`, and
+    `DaemonClient` with `request`, `ping`, `validate`, and `verify` helpers.
+  - `maid_runner/cli/commands/daemon.py` defines a diagnostic `maid daemon`
+    command with `ping`, `validate`, and `verify` subcommands. It shares the
+    client API and prints JSON when requested.
+  - `maid_runner/cli/commands/_main.py` registers the new command through
+    `build_parser`.
+  - `docs/maid-serve.md` documents direct long-lived client usage, endpoint
+    resolution, and the limits: daemon verify is useful for the in-process
+    validation/coherence/file-tracking loop, while full `maid test` remains a
+    subprocess gate.
+
+  This child is implementation-ready once its behavioral tests are red for the
+  intended reason and `maid validate --mode behavioral` passes. It is not a
+  default-routing or benchmark/default-flip slice.
+temptations:
+- risk: Do not reintroduce `maid validate --daemon auto|off|require` or claim per-call CLI routing as the performance path.
+  instead: Expose a reusable client API for long-lived integrations and keep the CLI command diagnostic/manual.
+- risk: 'Do not silently fall back to direct validation when the daemon is missing or returns `ok: false`.'
+  instead: Fail loudly with `DaemonClientError` carrying the daemon error code and message.
+- risk: Do not omit `protocol_version` or TCP token fields because tests use local sockets.
+  instead: Assert the exact outbound NDJSON payload for Unix and TCP requests.
+- risk: Do not promise daemon acceleration for `maid test`.
+  instead: Document that subprocess test execution remains outside daemon acceleration and reserve full gates for handoff.
+- risk: Do not add a client-side result cache.
+  instead: Let the daemon-owned cache remain the single cache boundary and return server responses unchanged.
+files:
+  create:
+  - path: maid_runner/daemon/client.py
+    artifacts:
+    - kind: class
+      name: DaemonEndpoint
+      description: Immutable connection details for one daemon transport endpoint.
+    - kind: attribute
+      name: transport
+      of: DaemonEndpoint
+      type: str
+    - kind: attribute
+      name: socket_path
+      of: DaemonEndpoint
+      type: Optional[Path]
+    - kind: attribute
+      name: host
+      of: DaemonEndpoint
+      type: Optional[str]
+    - kind: attribute
+      name: port
+      of: DaemonEndpoint
+      type: Optional[int]
+    - kind: attribute
+      name: token
+      of: DaemonEndpoint
+      type: Optional[str]
+    - kind: class
+      name: DaemonClientError
+      description: 'Structured client-side exception for daemon transport failures or daemon `ok: false` responses.'
+    - kind: attribute
+      name: code
+      of: DaemonClientError
+      type: str
+    - kind: attribute
+      name: message
+      of: DaemonClientError
+      type: str
+    - kind: function
+      name: resolve_daemon_endpoint
+      args:
+      - name: runtime_dir
+        type: Union[str, Path]
+        default: '''.maid'''
+      - name: socket_path
+        type: Union[str, Path]
+        default: '''.maid/serve.sock'''
+      - name: transport
+        type: str
+        default: '''auto'''
+      returns: DaemonEndpoint
+      source_scenario: A long-lived agent wants to discover the daemon endpoint for the current repository.
+      actions:
+      - type: api_call
+        subject:
+          function: resolve_daemon_endpoint
+      expected:
+        behavior: Resolves Unix socket endpoints by default when available, resolves token-protected TCP runtime files when requested, and fails loudly when the requested endpoint is unavailable or malformed.
+    - kind: class
+      name: DaemonClient
+      description: Reusable daemon protocol client for long-lived integrations.
+    - kind: method
+      name: request
+      of: DaemonClient
+      args:
+      - name: method
+        type: str
+      - name: params
+        type: Optional[dict]
+        default: None
+      returns: dict
+      source_scenario: A client sends a daemon protocol request over Unix or TCP transport.
+      actions:
+      - type: api_call
+        subject:
+          method: request
+      expected:
+        behavior: Sends one NDJSON request with protocol_version 1, includes the TCP token only for TCP endpoints, returns the response result for ok true, and raises DaemonClientError for ok false or malformed transport state.
+    - kind: method
+      name: ping
+      of: DaemonClient
+      args: []
+      returns: dict
+      source_scenario: A client checks daemon identity and cache stats before using it.
+      actions:
+      - type: api_call
+        subject:
+          method: ping
+      expected:
+        behavior: Sends the ping method with empty params and returns the daemon result payload unchanged.
+    - kind: method
+      name: validate
+      of: DaemonClient
+      args:
+      - name: manifest_path
+        type: str
+      - name: mode
+        type: str
+        default: '''implementation'''
+      returns: dict
+      source_scenario: A long-lived agent asks the daemon to validate one manifest without spawning another CLI process.
+      actions:
+      - type: api_call
+        subject:
+          method: validate
+      expected:
+        behavior: Sends the validate method with manifest_path and mode params and returns the daemon validation payload unchanged.
+    - kind: method
+      name: verify
+      of: DaemonClient
+      args:
+      - name: manifest_dir
+        type: str
+        default: '''manifests/'''
+      - name: allow_empty
+        type: bool
+        default: 'False'
+      returns: dict
+      source_scenario: A long-lived agent asks the daemon for the in-process verify subset during an edit loop.
+      actions:
+      - type: api_call
+        subject:
+          method: verify
+      expected:
+        behavior: Sends the verify method with manifest_dir and allow_empty params and returns the daemon verify subset payload unchanged.
+  - path: maid_runner/cli/commands/daemon.py
+    artifacts:
+    - kind: function
+      name: register_daemon_subparser
+      args:
+      - name: subparsers
+        type: argparse._SubParsersAction
+      returns: argparse.ArgumentParser
+      source_scenario: A user runs `maid daemon ping --transport tcp --json` to inspect a running daemon.
+      actions:
+      - type: api_call
+        subject:
+          function: register_daemon_subparser
+      expected:
+        behavior: Registers daemon ping, validate, and verify subcommands with transport, runtime-dir, socket, timeout, and json options.
+    - kind: function
+      name: cmd_daemon
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      source_scenario: A user invokes the diagnostic daemon client command.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_daemon
+      expected:
+        behavior: Resolves the endpoint, dispatches the requested daemon client helper, prints JSON when requested, returns 0 on success, and returns 2 with a structured error payload for daemon client failures.
+  - path: tests/daemon/test_daemon_client.py
+    artifacts:
+    - kind: test_function
+      name: test_resolve_daemon_endpoint_uses_unix_socket_by_default
+    - kind: test_function
+      name: test_resolve_daemon_endpoint_loads_tcp_runtime_files
+    - kind: test_function
+      name: test_daemon_client_request_sends_protocol_version_and_tcp_token
+    - kind: test_function
+      name: test_daemon_client_raises_structured_error_for_request_failure
+    - kind: test_function
+      name: test_daemon_client_ping_validate_and_verify_helpers_send_expected_params
+    - kind: test_function
+      name: test_daemon_client_connects_to_unix_socket
+    - kind: test_function
+      name: test_daemon_client_docs_describe_long_lived_protocol_usage
+  - path: tests/cli/test_daemon_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_daemon_parser_exposes_ping_validate_and_verify_subcommands
+    - kind: test_function
+      name: test_cmd_daemon_prints_json_payload_for_success
+    - kind: test_function
+      name: test_cmd_daemon_returns_nonzero_for_request_error
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      source_scenario: A user runs a top-level `maid daemon` diagnostic command.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: The top-level parser includes the daemon command and delegates to the daemon subparser registration.
+  - path: docs/maid-serve.md
+    artifacts:
+    - kind: attribute
+      name: _daemon_client_usage_documentation
+      of: documentation
+      type: markdown section
+      description: Documents DaemonClient, resolve_daemon_endpoint, long-lived direct protocol usage, the diagnostic `maid daemon` command, and the limits around `maid test`.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _daemon_command_cli_reference
+      of: documentation
+      type: markdown section
+      description: Documents the diagnostic `maid daemon` top-level command in the CLI reference and daemon usage notes.
+  read:
+  - maid_runner/daemon/protocol.py
+  - maid_runner/daemon/transport.py
+  - maid_runner/daemon/server.py
+  - maid_runner/daemon/handlers.py
+  - maid_runner/cli/commands/serve.py
+  - manifests/064-02-add-daemon-resident-validation-cache.manifest.yaml
+  - manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml
+  - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/daemon/test_daemon_client.py tests/cli/test_daemon_cmd.py
+- uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-18T08:08:13Z"
+  summary: "Added a reusable daemon client API plus the diagnostic maid daemon ping|validate|verify command, with Unix-socket and token-protected TCP endpoint resolution, explicit protocol_version requests, structured DaemonClientError failures, and documentation that keeps long-lived integrations distinct from per-call CLI acceleration."
+  rationale: "The missing ergonomic daemon path was a reusable in-process client, not automatic maid validate routing. This implementation lets agents, editors, MCP servers, and future integrations keep a DaemonClient in memory while preserving daemon result semantics and failing loudly when the daemon is unavailable or returns ok:false. The CLI command is deliberately diagnostic/manual because it still pays Python startup cost per call."
+  lessons:
+    - lesson_type: workflow
+      summary: "A new top-level CLI command must include README command-reference coverage in the manifest scope; the distribution command-doc test exposed that omission, so the plan lock was revised with preserved red evidence before final validation."
+      tags:
+        - cli-registration
+        - docs-consistency
+        - plan-lock
+      paths:
+        - README.md
+        - maid_runner/cli/commands/_main.py
+        - tests/test_agent_payload_distribution.py
+    - lesson_type: design
+      summary: "Daemon acceleration belongs on long-lived client integrations rather than per-call CLI routing; diagnostic commands are useful for inspection, but the performance path must avoid repeated CLI process startup."
+      tags:
+        - daemon
+        - agent-loops
+        - performance-boundary
+      paths:
+        - maid_runner/daemon/client.py
+        - maid_runner/cli/commands/daemon.py
+        - docs/maid-serve.md
+    - lesson_type: validation
+      summary: "Protocol clients should assert the exact outbound wire envelope, including protocol_version and TCP token placement, so local Unix-socket tests cannot accidentally hide TCP authentication or versioning drift."
+      tags:
+        - daemon-protocol
+        - tcp-transport
+        - behavioral-tests
+      paths:
+        - maid_runner/daemon/client.py
+        - tests/daemon/test_daemon_client.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Ready with no findings. Reviewer confirmed changed files stayed within manifest scope, no maid validate --daemon routing was added, no fallback to direct validation exists, TCP token and protocol_version are sent, and documentation presents the CLI as diagnostic rather than the performance path."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/daemon/test_daemon_client.py
+        - tests/cli/test_daemon_cmd.py
+      status: passed
+      summary: "Focused daemon client and CLI tests passed after the intended red phase."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_main.py
+        - tests/daemon/test_daemon_client.py
+        - tests/cli/test_daemon_cmd.py
+      status: passed
+      summary: "62 parser and daemon command tests passed."
+    - command:
+        - uv
+        - run
+        - pytest
+        - -q
+        - tests/daemon
+        - tests/cli
+      status: passed
+      summary: "663 daemon and CLI tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository manifest validation passed for 358 manifests with 272 passed and 86 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test sweep passed: 138 command groups, 0 failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff gate passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests; only existing warning-style E307/E310 diagnostics were reported."

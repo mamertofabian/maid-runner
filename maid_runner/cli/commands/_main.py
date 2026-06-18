@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_insights_parser(sub)
     _register_benchmark_parser(sub)
     _register_incident_parser(sub)
+    _register_daemon_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
@@ -487,6 +488,12 @@ def _register_incident_parser(sub: argparse._SubParsersAction) -> None:
     suggest.add_argument("--json", action="store_true")
 
 
+def _register_daemon_parser(sub: argparse._SubParsersAction) -> None:
+    from maid_runner.cli.commands.daemon import register_daemon_subparser
+
+    register_daemon_subparser(sub)
+
+
 def _register_manifest_graph_chain_audit_parsers(
     sub: argparse._SubParsersAction,
 ) -> None:
@@ -676,6 +683,7 @@ def main(argv: list[str] | None = None) -> int:
         "insights": "_cmd_insights",
         "benchmark": "_cmd_benchmark",
         "incident": "_cmd_incident",
+        "daemon": "_cmd_daemon",
         "manifest": "_cmd_manifest",
         "manifests": "_cmd_manifests",
         "files": "_cmd_files",
@@ -710,6 +718,7 @@ def main(argv: list[str] | None = None) -> int:
         insights as insights_mod,
         benchmark as benchmark_mod,
         incident as incident_mod,
+        daemon as daemon_mod,
         init as init_mod,
         manifest as manifest_mod,
         files as files_mod,
@@ -738,6 +747,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_insights": insights_mod.cmd_insights,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,
         "_cmd_incident": incident_mod.cmd_incident,
+        "_cmd_daemon": daemon_mod.cmd_daemon,
         "_cmd_manifest": manifest_mod.cmd_manifest,
         "_cmd_manifests": files_mod.cmd_manifests,
         "_cmd_files": files_mod.cmd_files,

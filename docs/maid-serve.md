@@ -168,49 +168,46 @@ from maid_runner.daemon import (
     ProtocolError,
     DaemonRequestError,
 )
+from maid_runner.daemon.client import (
+    DaemonClient,
+    DaemonClientError,
+    resolve_daemon_endpoint,
+)
 ```
 
 - `serve(socket_path, pidfile_path, client_timeout_s, project_root=".",
   transport="unix")` is the top-level entry point. Returns a process exit code.
 - `Server` is the underlying class if you need to embed the daemon in another
   process.
+- `resolve_daemon_endpoint(runtime_dir=".maid", socket_path=".maid/serve.sock",
+  transport="auto")` discovers the local Unix socket or token-protected TCP
+  runtime files.
+- `DaemonClient(endpoint).ping()`, `.validate(...)`, and `.verify(...)` are the
+  public long-lived client API for agents and editor integrations.
+- `DaemonClientError(code, message)` reports transport failures and daemon
+  `ok: false` responses without falling back to direct validation.
 - `DaemonRequestError(code, message)` is the contract handlers use to
   signal request-layer failures. The dispatcher converts it to an `ok: false`
   response.
 
-## Example client
+## Long-Lived Client
 
 ```python
-import json
-import socket
+from maid_runner.daemon.client import DaemonClient, resolve_daemon_endpoint
 
 
-def call(socket_path, payload):
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.connect(socket_path)
-    s.sendall((json.dumps(payload) + "\n").encode())
-    buf = b""
-    while b"\n" not in buf:
-        buf += s.recv(65536)
-    s.close()
-    return json.loads(buf.split(b"\n", 1)[0])
+endpoint = resolve_daemon_endpoint(transport="auto")
+client = DaemonClient(endpoint)
 
-
-print(call(".maid/serve.sock", {
-    "id": "1",
-    "method": "ping",
-    "params": {},
-}))
-
-print(call(".maid/serve.sock", {
-    "id": "2",
-    "method": "validate",
-    "params": {
-        "manifest_path": "manifests/add-auth.manifest.yaml",
-        "mode": "behavioral",
-    },
-}))
+print(client.ping())
+print(client.validate("manifests/add-auth.manifest.yaml", mode="behavioral"))
+print(client.verify("manifests/", allow_empty=False))
 ```
+
+`maid daemon ping|validate|verify` exposes the same client as a diagnostic CLI
+for humans and scripts checking a running daemon. It still starts a fresh CLI
+process for each call, so it is not the performance path that long-lived agents
+and editor integrations should use.
 
 ## When to use it
 
@@ -221,3 +218,6 @@ print(call(".maid/serve.sock", {
 
 For one-shot validation or CI fan-out across separate checkouts, the plain
 `maid validate` CLI is simpler and avoids the daemon lifecycle.
+`maid test` remains a subprocess command runner; use the daemon for the
+in-process validation and verify subset during edit loops, then run full
+`maid test` and strict `maid verify` before handoff.

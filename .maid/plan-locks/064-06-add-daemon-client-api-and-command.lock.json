@@ -1,0 +1,168 @@
+{
+  "manifest_path": "manifests/064-06-add-daemon-client-api-and-command.manifest.yaml",
+  "manifest_hash": "sha256:36d1d9e7ecd9faf9c4ca066f9c95dbe8f518b0ac46ecb083e7b5eeb589467854",
+  "test_hashes": {
+    "tests/daemon/test_daemon_client.py": "sha256:1d98d172147f312842ebb84debce3811622fc22ab41012d0ce61241ce89df7fa",
+    "tests/cli/test_daemon_cmd.py": "sha256:c8d2951eb894917b156ba6f562dd5cbddaa26e4ecadae3d51025b10215487f5f"
+  },
+  "created_at": "2026-06-18T07:37:50.226187+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:6a6b8df3b0dd285c6af7f51880629ce56c6a061ae39d394420ce035b0c859f79",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_client.py": "sha256:1d98d172147f312842ebb84debce3811622fc22ab41012d0ce61241ce89df7fa",
+        "tests/cli/test_daemon_cmd.py": "sha256:c8d2951eb894917b156ba6f562dd5cbddaa26e4ecadae3d51025b10215487f5f"
+      },
+      "revised_at": "2026-06-18T07:37:53.005884+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/064-06-add-daemon-client-api-and-command.manifest.yaml -> manifests/064-06-add-daemon-client-api-and-command.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:67d8e17ae81d678b61c34512912be29ff1cbf7d802fcf365efcca7693af87920",
+      "prior_test_hashes": {
+        "tests/daemon/test_daemon_client.py": "sha256:1d98d172147f312842ebb84debce3811622fc22ab41012d0ce61241ce89df7fa",
+        "tests/cli/test_daemon_cmd.py": "sha256:c8d2951eb894917b156ba6f562dd5cbddaa26e4ecadae3d51025b10215487f5f"
+      },
+      "revised_at": "2026-06-18T07:50:39.583384+00:00",
+      "reason": "Add README command reference required for new top-level daemon diagnostic command"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-18T07:37:55.578294+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/daemon/test_daemon_client.py tests/cli/test_daemon_cmd.py",
+        "exit_code": 1,
+        "output_tail": "monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71d9eb83a8d0>\ncapsys = <_pytest.capture.CaptureFixture object at 0x71d9eb838f20>\n\n    def test_cmd_daemon_returns_nonzero_for_request_error(monkeypatch, capsys):\n>       from maid_runner.cli.commands import daemon as daemon_cmd\nE       ImportError: cannot import name 'daemon' from 'maid_runner.cli.commands' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/cli/commands/__init__.py)\n\ntests/cli/test_daemon_cmd.py:95: ImportError\n=========================== short test summary info ============================\nFAILED tests/daemon/test_daemon_client.py::test_resolve_daemon_endpoint_uses_unix_socket_by_default\nFAILED tests/daemon/test_daemon_client.py::test_resolve_daemon_endpoint_loads_tcp_runtime_files\nFAILED tests/daemon/test_daemon_client.py::test_daemon_client_request_sends_protocol_version_and_tcp_token\nFAILED tests/daemon/test_daemon_client.py::test_daemon_client_raises_structured_error_for_request_failure\nFAILED tests/daemon/test_daemon_client.py::test_daemon_client_ping_validate_and_verify_helpers_send_expected_params\nFAILED tests/daemon/test_daemon_client.py::test_daemon_client_connects_to_unix_socket\nFAILED tests/daemon/test_daemon_client.py::test_daemon_client_docs_describe_long_lived_protocol_usage\nFAILED tests/cli/test_daemon_cmd.py::test_daemon_parser_exposes_ping_validate_and_verify_subcommands\nFAILED tests/cli/test_daemon_cmd.py::test_cmd_daemon_prints_json_payload_for_success\nFAILED tests/cli/test_daemon_cmd.py::test_cmd_daemon_returns_nonzero_for_request_error\n10 failed in 0.13s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._daemon_command_cli_reference",
+      "README.md:attribute:documentation._daemon_command_cli_reference:kind=attribute",
+      "README.md:attribute:documentation._daemon_command_cli_reference:of=documentation",
+      "README.md:attribute:documentation._daemon_command_cli_reference:type=markdown section",
+      "docs/maid-serve.md:attribute:documentation._daemon_client_usage_documentation",
+      "docs/maid-serve.md:attribute:documentation._daemon_client_usage_documentation:kind=attribute",
+      "docs/maid-serve.md:attribute:documentation._daemon_client_usage_documentation:of=documentation",
+      "docs/maid-serve.md:attribute:documentation._daemon_client_usage_documentation:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/daemon.py:function:cmd_daemon",
+      "maid_runner/cli/commands/daemon.py:function:cmd_daemon:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/daemon.py:function:cmd_daemon:kind=function",
+      "maid_runner/cli/commands/daemon.py:function:cmd_daemon:returns=int",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:arg=subparsers:type=argparse._SubParsersAction:default=None",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:kind=function",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:returns=argparse.ArgumentParser",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.code",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.code:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.code:of=DaemonClientError",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.code:type=str",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.message",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.message:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.message:of=DaemonClientError",
+      "maid_runner/daemon/client.py:attribute:DaemonClientError.message:type=str",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.host",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.host:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.host:of=DaemonEndpoint",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.host:type=Optional[str]",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.port",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.port:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.port:of=DaemonEndpoint",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.port:type=Optional[int]",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.socket_path",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.socket_path:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.socket_path:of=DaemonEndpoint",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.socket_path:type=Optional[Path]",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.token",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.token:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.token:of=DaemonEndpoint",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.token:type=Optional[str]",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.transport",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.transport:kind=attribute",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.transport:of=DaemonEndpoint",
+      "maid_runner/daemon/client.py:attribute:DaemonEndpoint.transport:type=str",
+      "maid_runner/daemon/client.py:class:DaemonClient",
+      "maid_runner/daemon/client.py:class:DaemonClient:kind=class",
+      "maid_runner/daemon/client.py:class:DaemonClientError",
+      "maid_runner/daemon/client.py:class:DaemonClientError:kind=class",
+      "maid_runner/daemon/client.py:class:DaemonEndpoint",
+      "maid_runner/daemon/client.py:class:DaemonEndpoint:kind=class",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint:arg=runtime_dir:type=Union[str, Path]:default='.maid'",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint:arg=socket_path:type=Union[str, Path]:default='.maid/serve.sock'",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint:arg=transport:type=str:default='auto'",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint:kind=function",
+      "maid_runner/daemon/client.py:function:resolve_daemon_endpoint:returns=DaemonEndpoint",
+      "maid_runner/daemon/client.py:method:DaemonClient.ping",
+      "maid_runner/daemon/client.py:method:DaemonClient.ping:kind=method",
+      "maid_runner/daemon/client.py:method:DaemonClient.ping:of=DaemonClient",
+      "maid_runner/daemon/client.py:method:DaemonClient.ping:returns=dict",
+      "maid_runner/daemon/client.py:method:DaemonClient.request",
+      "maid_runner/daemon/client.py:method:DaemonClient.request:arg=method:type=str:default=None",
+      "maid_runner/daemon/client.py:method:DaemonClient.request:arg=params:type=Optional[dict]:default=None",
+      "maid_runner/daemon/client.py:method:DaemonClient.request:kind=method",
+      "maid_runner/daemon/client.py:method:DaemonClient.request:of=DaemonClient",
+      "maid_runner/daemon/client.py:method:DaemonClient.request:returns=dict",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate:arg=manifest_path:type=str:default=None",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate:arg=mode:type=str:default='implementation'",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate:kind=method",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate:of=DaemonClient",
+      "maid_runner/daemon/client.py:method:DaemonClient.validate:returns=dict",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify:arg=allow_empty:type=bool:default=False",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify:arg=manifest_dir:type=str:default='manifests/'",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify:kind=method",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify:of=DaemonClient",
+      "maid_runner/daemon/client.py:method:DaemonClient.verify:returns=dict",
+      "tests/cli/test_daemon_cmd.py:test_cmd_daemon_prints_json_payload_for_success",
+      "tests/cli/test_daemon_cmd.py:test_cmd_daemon_prints_json_payload_for_success:kind=test_function",
+      "tests/cli/test_daemon_cmd.py:test_cmd_daemon_returns_nonzero_for_request_error",
+      "tests/cli/test_daemon_cmd.py:test_cmd_daemon_returns_nonzero_for_request_error:kind=test_function",
+      "tests/cli/test_daemon_cmd.py:test_daemon_parser_exposes_ping_validate_and_verify_subcommands",
+      "tests/cli/test_daemon_cmd.py:test_daemon_parser_exposes_ping_validate_and_verify_subcommands:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_connects_to_unix_socket",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_connects_to_unix_socket:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_docs_describe_long_lived_protocol_usage",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_docs_describe_long_lived_protocol_usage:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_ping_validate_and_verify_helpers_send_expected_params",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_ping_validate_and_verify_helpers_send_expected_params:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_raises_structured_error_for_request_failure",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_raises_structured_error_for_request_failure:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_request_sends_protocol_version_and_tcp_token",
+      "tests/daemon/test_daemon_client.py:test_daemon_client_request_sends_protocol_version_and_tcp_token:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_resolve_daemon_endpoint_loads_tcp_runtime_files",
+      "tests/daemon/test_daemon_client.py:test_resolve_daemon_endpoint_loads_tcp_runtime_files:kind=test_function",
+      "tests/daemon/test_daemon_client.py:test_resolve_daemon_endpoint_uses_unix_socket_by_default",
+      "tests/daemon/test_daemon_client.py:test_resolve_daemon_endpoint_uses_unix_socket_by_default:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_daemon_cmd.py",
+      "tests/daemon/test_daemon_client.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/daemon/test_daemon_client.py tests/cli/test_daemon_cmd.py",
+      "uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/064-06-add-daemon-client-api-and-command.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

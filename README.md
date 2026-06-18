@@ -131,6 +131,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
 | `maid serve` | Run a long-lived validator daemon over a Unix socket | `--socket`, `--pidfile`, `--project-root`, `--client-timeout` |
+| `maid daemon ping\|validate\|verify` | Diagnostic client for a running daemon | `--transport auto\|unix\|tcp`, `--runtime-dir`, `--socket`, `--timeout`, `--json` |
 
 **General exit codes:** `0` = success, `1` = validation failure or internal
 error, `2` = usage error. Command-specific contracts can define narrower meanings.
@@ -588,6 +589,13 @@ root, locked-down socket permissions.
 ```bash
 maid serve --socket .maid/serve.sock --pidfile .maid/serve.pid
 ```
+
+Use `maid_runner.daemon.client.DaemonClient` with
+`resolve_daemon_endpoint()` for long-lived agent or editor integrations. The
+`maid daemon ping|validate|verify` command is a diagnostic wrapper around that
+client for checking a running daemon from the shell; it still starts a fresh
+CLI process for each call, so it is not the daemon performance path for tight
+loops.
 
 See [`docs/maid-serve.md`](docs/maid-serve.md) for protocol, methods,
 security defaults, and example client.
