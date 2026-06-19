@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-06-19
+
+### Added
+- **Daemon validation workflow** — Added daemon-resident validation caching, verify protocol support, TCP transport, and a diagnostic daemon client command.
+- **Validator plugin distribution** — Added entry-point validator discovery, validator listing, a conformance kit, and plugin authoring guidance.
+- **Release and CI diagnostics** — Added SARIF output for validate and verify, GitHub Actions SARIF integration, error-code registry export, and CI consumption guidance.
+- **MAID workflow gates** — Added plan locks, red-phase evidence checks, artifact coverage and knockout gates, edit-time scope hooks, active task commands, and structured retry/failure packets.
+- **Incident and recall tooling** — Added incident capture/export/suggestions plus manifest recall and planning packet support for agent workflows.
+
+### Fixed
+- **Workflow readiness enforcement** — Required Outcome capture before ready handoff and refreshed Outcome learning guidance after capture.
+- **CLI and manifest safety** — Rejected abbreviated CLI option prefixes, preserved red evidence during plan revision, migrated plan locks during draft promotion, and preserved multiline YAML style on promote.
+
 ## [2.16.3] - 2026-06-03
 
 ### Fixed
@@ -1037,6 +1050,9 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.17.0]: https://github.com/mamertofabian/maid-runner/compare/v2.16.3...v2.17.0
+[2.16.3]: https://github.com/mamertofabian/maid-runner/compare/v2.16.2...v2.16.3
+[2.16.2]: https://github.com/mamertofabian/maid-runner/compare/v2.16.1...v2.16.2
 [2.16.1]: https://github.com/mamertofabian/maid-runner/compare/v2.16.0...v2.16.1
 [2.16.0]: https://github.com/mamertofabian/maid-runner/compare/v2.15.0...v2.16.0
 [2.15.0]: https://github.com/mamertofabian/maid-runner/compare/v2.14.0...v2.15.0
