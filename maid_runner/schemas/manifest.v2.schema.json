@@ -41,6 +41,10 @@
           "type": "array",
           "items": { "type": "string" }
         },
+        "scope": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ScopeSpec" }
+        },
         "delete": {
           "type": "array",
           "items": { "$ref": "#/definitions/DeleteSpec" }
@@ -152,6 +156,7 @@
             { "required": ["create"] },
             { "required": ["edit"] },
             { "required": ["delete"] },
+            { "required": ["scope"] },
             { "required": ["snapshot"] }
           ]
         }
@@ -294,6 +299,21 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "Required import modules/symbols that must appear in this file"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeSpec": {
+      "type": "object",
+      "required": ["path", "reason"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": false

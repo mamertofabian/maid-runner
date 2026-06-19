@@ -30,6 +30,7 @@ from maid_runner.core.types import (
     OutcomeStatus,
     OutcomeValidationEvidence,
     RemovedArtifactSpec,
+    ScopeSpec,
     TaskType,
     TemptationSpec,
     TestFunctionDetails,
@@ -177,6 +178,8 @@ def _iter_manifest_declared_paths(
         paths.append(("files.edit", fs.path))
     for fs in manifest.files_snapshot:
         paths.append(("files.snapshot", fs.path))
+    for ss in manifest.files_scope:
+        paths.append(("files.scope", ss.path))
     for path in manifest.files_read:
         paths.append(("files.read", path))
     for ds in manifest.files_delete:
@@ -425,6 +428,9 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         _parse_file_spec(f, FileMode.EDIT) for f in files.get("edit", [])
     )
     files_read = tuple(files.get("read", []))
+    files_scope = tuple(
+        ScopeSpec(path=s["path"], reason=s["reason"]) for s in files.get("scope", [])
+    )
     files_delete = tuple(
         DeleteSpec(path=d["path"], reason=d.get("reason"))
         for d in files.get("delete", [])
@@ -453,6 +459,7 @@ def _parse_manifest(data: dict, path: Path) -> Manifest:
         files_create=files_create,
         files_edit=files_edit,
         files_read=files_read,
+        files_scope=files_scope,
         files_delete=files_delete,
         files_snapshot=files_snapshot,
         schema_version=data.get("schema", "2"),
@@ -628,6 +635,14 @@ def _manifest_to_dict(manifest: Manifest) -> dict:
         files["edit"] = [_file_spec_to_dict(fs) for fs in manifest.files_edit]
     if manifest.files_read:
         files["read"] = list(manifest.files_read)
+    if manifest.files_scope:
+        files["scope"] = [
+            {
+                "path": ss.path,
+                "reason": ss.reason,
+            }
+            for ss in manifest.files_scope
+        ]
     if manifest.files_delete:
         files["delete"] = [
             {"path": ds.path, **({"reason": ds.reason} if ds.reason else {})}

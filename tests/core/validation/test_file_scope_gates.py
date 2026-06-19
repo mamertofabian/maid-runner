@@ -6,6 +6,7 @@ import pytest
 
 from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, FileTrackingStatus
+from maid_runner.core.types import FileMode
 from maid_runner.core.validate import ValidationEngine
 from maid_runner.core.worktree import (
     changed_files,
@@ -212,6 +213,7 @@ validate:
     errors = validate_worktree_scope(project, manifest_chain(project))
 
     assert "src/dep.py" in scope_error_files(errors)
+    assert "files.scope" in errors[0].suggestion
 
 
 def test_worktree_scope_reports_changed_production_file_outside_manifest_scope(project):
@@ -262,6 +264,74 @@ validate:
     assert validate_worktree_scope(project, manifest_chain(project)) == []
 
 
+def test_worktree_scope_allows_changed_svelte_file_in_files_scope(project):
+    write_manifest(
+        project,
+        "wire-route.manifest.yaml",
+        """schema: "2"
+goal: "Wire Svelte route"
+files:
+  create:
+    - path: src/lib/language.ts
+      artifacts:
+        - kind: function
+          name: defaultStudyLanguage
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: "Route-local state and handlers are covered through route behavior tests."
+validate:
+  - pytest tests/test_language.py -q
+""",
+    )
+    write_source(
+        project,
+        "src/lib/language.ts",
+        "export function defaultStudyLanguage() { return 'tl'; }\n",
+    )
+    write_source(
+        project,
+        "src/routes/settings/+page.svelte",
+        '<script lang="ts">let selected = "tl";</script>\n',
+    )
+    subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+
+    errors = validate_worktree_scope(project, manifest_chain(project))
+
+    assert scope_error_files(errors) == set()
+
+
+def test_manifest_chain_treats_scope_only_file_as_writable_not_read_only(project):
+    write_manifest(
+        project,
+        "wire-route.manifest.yaml",
+        """schema: "2"
+goal: "Wire Svelte route"
+files:
+  create:
+    - path: src/lib/language.ts
+      artifacts:
+        - kind: function
+          name: defaultStudyLanguage
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: "Route-local state and handlers are covered through route behavior tests."
+  read:
+    - src/routes/articles/[id]/+page.svelte
+validate:
+  - pytest tests/test_language.py -q
+""",
+    )
+
+    chain = manifest_chain(project)
+
+    assert [
+        m.slug for m in chain.manifests_for_file("src/routes/settings/+page.svelte")
+    ] == ["wire-route"]
+    assert chain.file_mode_for("src/routes/settings/+page.svelte") == FileMode.SCOPE
+    assert "src/routes/settings/+page.svelte" in chain.all_tracked_paths()
+    assert "src/routes/settings/+page.svelte" not in chain.all_read_only_paths()
+
+
 def test_worktree_scope_reports_rename_source_outside_writable_scope(project):
     write_manifest(
         project,
@@ -294,6 +364,47 @@ validate:
     assert "src/old.py" in paths
     assert "src/old.py" in scope_error_files(errors)
     assert "src/new.py" not in scope_error_files(errors)
+
+
+def test_changed_scope_allows_changed_svelte_file_in_files_scope(project):
+    write_manifest(
+        project,
+        "wire-route.manifest.yaml",
+        """schema: "2"
+goal: "Wire Svelte route"
+files:
+  create:
+    - path: src/lib/language.ts
+      artifacts:
+        - kind: function
+          name: defaultStudyLanguage
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: "Route-local state and handlers are covered through route behavior tests."
+validate:
+  - pytest tests/test_language.py -q
+""",
+    )
+    write_source(
+        project,
+        "src/lib/language.ts",
+        "export function defaultStudyLanguage() { return 'tl'; }\n",
+    )
+    write_source(
+        project,
+        "src/routes/settings/+page.svelte",
+        '<script lang="ts">let selected = "en";</script>\n',
+    )
+    baseline = commit_all(project)
+    write_source(
+        project,
+        "src/routes/settings/+page.svelte",
+        '<script lang="ts">let selected = "tl";</script>\n',
+    )
+
+    errors = validate_changed_scope(project, manifest_chain(project), since=baseline)
+
+    assert scope_error_files(errors) == set()
 
 
 def test_worktree_scope_includes_test_files_only_when_requested(project):

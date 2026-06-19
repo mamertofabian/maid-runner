@@ -512,6 +512,37 @@ class TestManifest:
         )
         assert "src/engine.py" in m.all_writable_paths
 
+    def test_scope_only_paths_are_writable_referenced_but_not_file_specs(self):
+        from maid_runner.core import types as core_types
+
+        m = Manifest(
+            slug="scope-only",
+            source_path="/test.yaml",
+            goal="Wire route",
+            validate_commands=(("pytest",),),
+            files_scope=(
+                core_types.ScopeSpec(
+                    path="src/routes/settings/+page.svelte",
+                    reason="Route wiring is covered behaviorally.",
+                ),
+            ),
+        )
+
+        assert "src/routes/settings/+page.svelte" in m.all_writable_paths
+        assert "src/routes/settings/+page.svelte" in m.all_referenced_paths
+        assert m.file_spec_for("src/routes/settings/+page.svelte") is None
+        assert m.artifacts_for("src/routes/settings/+page.svelte") == ()
+        assert all(
+            spec.path != "src/routes/settings/+page.svelte" for spec in m.all_file_specs
+        )
+
+    def test_file_mode_includes_scope_value(self):
+        from maid_runner.core import types as core_types
+
+        SCOPE = core_types.FileMode.SCOPE.value
+
+        assert SCOPE == "scope"
+
     def test_is_superseded_by_raises(self, simple_manifest):
         with pytest.raises(NotImplementedError):
             _ = simple_manifest.is_superseded_by

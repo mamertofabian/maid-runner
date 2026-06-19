@@ -295,6 +295,9 @@ class ManifestChain:
             for fs in m.all_file_specs:
                 if fs.path == path:
                     modes.add(fs.mode)
+            for ss in m.files_scope:
+                if ss.path == path:
+                    modes.add(FileMode.SCOPE)
             for ds in m.files_delete:
                 if ds.path == path:
                     modes.add(FileMode.DELETE)
@@ -302,12 +305,13 @@ class ManifestChain:
         if not modes:
             return None
 
-        # Strictest wins: CREATE > SNAPSHOT > DELETE > EDIT > READ
+        # Strictest wins: CREATE > SNAPSHOT > DELETE > EDIT > SCOPE > READ
         priority = [
             FileMode.CREATE,
             FileMode.SNAPSHOT,
             FileMode.DELETE,
             FileMode.EDIT,
+            FileMode.SCOPE,
             FileMode.READ,
         ]
         for mode in priority:

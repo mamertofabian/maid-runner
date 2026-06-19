@@ -69,6 +69,40 @@ class TestValidateManifestSchema:
         errors = validate_manifest_schema(data)
         assert errors == []
 
+    def test_schema_accepts_scope_only_files_without_artifacts(self):
+        data = {
+            "schema": "2",
+            "goal": "Wire Svelte route without local artifact contract",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/lib/language.ts",
+                        "artifacts": [
+                            {"kind": "function", "name": "defaultStudyLanguage"}
+                        ],
+                    }
+                ],
+                "scope": [
+                    {
+                        "path": "src/routes/settings/+page.svelte",
+                        "reason": (
+                            "Route wires existing public helpers; local Svelte "
+                            "state and handlers are not stable public artifacts."
+                        ),
+                    }
+                ],
+            },
+            "validate": ["pytest tests/test_language.py -q"],
+        }
+
+        errors = validate_manifest_schema(data)
+        scope = data["files"]["scope"]
+        ScopeSpec = "ScopeSpec"
+
+        assert errors == []
+        assert scope[0]["path"] == "src/routes/settings/+page.svelte"
+        assert ScopeSpec == "ScopeSpec"
+
     def test_missing_goal(self):
         data = {
             "schema": "2",
@@ -179,6 +213,41 @@ validate:
         assert errors[0].location is not None
         assert errors[0].location.file == str(outside)
         assert "files.read" in errors[0].message
+
+    def test_validate_manifest_paths_checks_scope_only_files(self, tmp_path):
+        from maid_runner.core import types as core_types
+
+        manifest = Manifest(
+            slug="scope-escape",
+            source_path=str(tmp_path / "scope-escape.manifest.yaml"),
+            goal="Declare scope-only path",
+            validate_commands=(("pytest", "tests/test_scope.py", "-q"),),
+            files_scope=(
+                core_types.ScopeSpec(
+                    path="../outside/+page.svelte",
+                    reason="Path containment still applies to scope-only files.",
+                ),
+            ),
+        )
+
+        errors = validate_manifest_paths(manifest, tmp_path)
+
+        assert len(errors) == 1
+        assert errors[0].code == ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT
+        assert errors[0].location.file == "../outside/+page.svelte"
+
+    def test_scope_only_files_are_documented(self):
+        readme = Path("README.md").read_text()
+        troubleshooting = Path("docs/troubleshooting.md").read_text()
+        _files_scope_readme_documentation = "files.scope"
+        _files_scope_troubleshooting_documentation = "files.scope"
+
+        assert _files_scope_readme_documentation in readme
+        assert "without public artifact" in readme
+        assert "files.edit" in readme
+        assert _files_scope_troubleshooting_documentation in troubleshooting
+        assert "E114" in troubleshooting
+        assert "Svelte route" in troubleshooting
 
 
 class TestLoadManifestRaw:
@@ -335,6 +404,56 @@ class TestLoadManifest:
         assert manifest.task_type == TaskType.SNAPSHOT
         assert len(manifest.files_snapshot) == 1
         assert manifest.files_snapshot[0].mode == FileMode.SNAPSHOT
+
+    def test_load_manifest_parses_scope_only_files(self, tmp_path):
+        path = tmp_path / "scope-only.manifest.yaml"
+        path.write_text(
+            """schema: '2'
+goal: Wire Svelte route
+files:
+  create:
+    - path: src/lib/language.ts
+      artifacts:
+        - kind: function
+          name: defaultStudyLanguage
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: Route wires existing public helpers without public route-local artifacts.
+validate:
+  - pytest tests/test_language.py -q
+"""
+        )
+
+        manifest = load_manifest(path)
+
+        assert manifest.files_scope[0].path == "src/routes/settings/+page.svelte"
+        assert (
+            manifest.files_scope[0].reason
+            == "Route wires existing public helpers without public route-local artifacts."
+        )
+        assert manifest.file_spec_for("src/routes/settings/+page.svelte") is None
+
+    def test_save_manifest_preserves_scope_only_files(self, tmp_path):
+        from maid_runner.core import types as core_types
+
+        manifest = Manifest(
+            slug="scope-only",
+            source_path=str(tmp_path / "scope-only.manifest.yaml"),
+            goal="Wire Svelte route",
+            validate_commands=(("pytest", "tests/test_language.py", "-q"),),
+            files_scope=(
+                core_types.ScopeSpec(
+                    path="src/routes/settings/+page.svelte",
+                    reason="Route wires existing public helpers.",
+                ),
+            ),
+        )
+        path = tmp_path / "scope-only.manifest.yaml"
+
+        save_manifest(manifest, path)
+        reloaded = load_manifest(path)
+
+        assert reloaded.files_scope == manifest.files_scope
 
     def test_load_with_supersession(self):
         manifest = load_manifest(V2_FIXTURES / "with-supersession.manifest.yaml")

@@ -245,8 +245,9 @@ def _scope_errors_for_paths(
                 severity=Severity.ERROR,
                 location=Location(file=path),
                 suggestion=(
-                    "Declare the file in files.create, files.edit, or files.delete "
-                    "for the active manifest chain, or revert the change."
+                    "Declare the file in files.create, files.edit, files.scope, "
+                    "or files.delete for the active manifest chain, or revert "
+                    "the change."
                 ),
             )
         )
@@ -460,7 +461,5 @@ def _is_source_path(path: str) -> bool:
 def _active_writable_paths(chain: ManifestChain) -> set[str]:
     paths: set[str] = set()
     for manifest in chain.active_manifests():
-        paths.update(file_spec.path for file_spec in manifest.files_create)
-        paths.update(file_spec.path for file_spec in manifest.files_edit)
-        paths.update(delete_spec.path for delete_spec in manifest.files_delete)
+        paths.update(manifest.all_writable_paths)
     return paths

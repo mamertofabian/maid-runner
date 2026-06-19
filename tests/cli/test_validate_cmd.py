@@ -2927,6 +2927,64 @@ class TestCmdValidateAll:
         assert "E114" in include_output
         assert "tests/test_greet.py" in include_output
 
+    def test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests(
+        self, tmp_path, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        (tmp_path / "manifests").mkdir()
+        (tmp_path / "src" / "lib").mkdir(parents=True)
+        (tmp_path / "src" / "routes" / "settings").mkdir(parents=True)
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "src" / "lib" / "language.ts").write_text(
+            "export function defaultStudyLanguage() { return 'tl'; }\n"
+        )
+        (tmp_path / "src" / "routes" / "settings" / "+page.svelte").write_text(
+            '<script lang="ts">let selected = "tl";</script>\n'
+        )
+        (tmp_path / "tests" / "test_language.py").write_text(
+            "def test_route_wiring_marker():\n    assert True\n"
+        )
+        (tmp_path / "manifests" / "wire-route.manifest.yaml").write_text(
+            """schema: "2"
+goal: "Wire Svelte route"
+files:
+  create:
+    - path: src/lib/language.ts
+      artifacts:
+        - kind: function
+          name: defaultStudyLanguage
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: "Route-local state and handlers are covered through route behavior tests."
+  read:
+    - tests/test_language.py
+validate:
+  - pytest tests/test_language.py -q
+"""
+        )
+        _commit_all(tmp_path, "baseline")
+        (tmp_path / "src" / "routes" / "settings" / "+page.svelte").write_text(
+            '<script lang="ts">let selected = "tl"; let ready = true;</script>\n'
+        )
+
+        os.chdir(tmp_path)
+        exit_code = main(
+            [
+                "validate",
+                "manifests/wire-route.manifest.yaml",
+                "--mode",
+                "schema",
+                "--worktree-scope",
+                "--include-tests",
+            ]
+        )
+
+        output = capsys.readouterr().out
+        assert exit_code == 0
+        assert "E114" not in output
+        assert "src/routes/settings/+page.svelte" not in output
+
     def test_validate_changed_scope_returns_1_for_changed_read_only_file(
         self, project_dir, capsys
     ):

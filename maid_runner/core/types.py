@@ -37,6 +37,7 @@ class FileMode(str, Enum):
     CREATE = "create"
     EDIT = "edit"
     READ = "read"
+    SCOPE = "scope"
     DELETE = "delete"
     SNAPSHOT = "snapshot"
 
@@ -187,6 +188,12 @@ class DeleteSpec:
 
 
 @dataclass(frozen=True)
+class ScopeSpec:
+    path: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class RemovedArtifactSpec:
     kind: ArtifactKind
     name: str
@@ -204,6 +211,7 @@ class Manifest:
     files_create: tuple[FileSpec, ...] = ()
     files_edit: tuple[FileSpec, ...] = ()
     files_read: tuple[str, ...] = ()
+    files_scope: tuple[ScopeSpec, ...] = ()
     files_delete: tuple[DeleteSpec, ...] = ()
     files_snapshot: tuple[FileSpec, ...] = ()
     schema_version: str = "2"
@@ -231,6 +239,7 @@ class Manifest:
         paths |= {fs.path for fs in self.files_edit}
         paths |= {ds.path for ds in self.files_delete}
         paths |= {fs.path for fs in self.files_snapshot}
+        paths |= {ss.path for ss in self.files_scope}
         return paths
 
     @property

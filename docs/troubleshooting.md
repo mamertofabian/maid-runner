@@ -90,8 +90,11 @@ Likely cause: A changed file is not declared by the active manifest chain as a
 writable or tracked file for the current task.
 
 Fix: Either add the file to the approved manifest scope before editing it, or
-remove unrelated local changes from the task branch. Use `maid files` to inspect
-file tracking status.
+remove unrelated local changes from the task branch. Use `files.scope` when the
+changed file is intentionally writable but has no stable public artifact
+contract, such as Svelte route wiring covered through behavioral tests instead
+of route-local state or private handlers. Use `maid files` to inspect file
+tracking status.
 
 ### 9. Changed-scope baseline is required (`E115`)
 

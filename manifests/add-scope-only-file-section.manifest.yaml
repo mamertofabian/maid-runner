@@ -1,0 +1,450 @@
+schema: '2'
+goal: Add scope-only writable manifest files for Svelte route wiring
+type: fix
+created: '2026-06-19T10:09:02Z'
+metadata:
+  tags:
+  - manifest-schema
+  - worktree-scope
+  - svelte
+  - brownfield
+  priority: high
+description: |
+  Add a schema-supported `files.scope` section for changed files that are
+  intentionally writable for a task but do not expose a stable public artifact
+  contract. This fixes Svelte route and prop-only component wiring tasks where
+  strict worktree-scope correctly requires write permission, but declaring
+  route-local `$state` variables, private handlers, or props as public
+  artifacts is invalid and causes behavioral E200 failures.
+
+  `files.scope` entries are writable for worktree-scope, changed-scope,
+  edit-time scope checks, and file tracking. They are not implementation
+  artifact contracts, are not included in `Manifest.all_file_specs`, and do
+  not weaken the existing `files.edit` requirement that artifact-bearing edits
+  declare at least one public artifact. Each scope-only entry must carry a
+  non-empty `reason` so the manifest records why artifact validation is not the
+  right contract for that changed file.
+temptations:
+- risk: Do not loosen `files.edit[].artifacts` to allow empty artifact lists.
+  instead: Add a separate `files.scope` section with path and reason fields, leaving artifact-bearing edit contracts strict.
+- risk: Do not make files.scope a second read-only context section.
+  instead: Include files.scope paths in writable scope, tracked paths, path containment checks, and file mode resolution.
+- risk: Do not add Svelte route-local variables or component props to the Svelte validator as public artifacts.
+  instead: Use route/component behavioral tests plus files.scope for write permission when no stable public artifact exists.
+- risk: Do not let scope-only files satisfy implementation artifact checks.
+  instead: Keep files.scope outside Manifest.all_file_specs and merged artifact collection.
+files:
+  edit:
+  - path: maid_runner/schemas/manifest.v2.schema.json
+    artifacts:
+    - kind: attribute
+      name: scope
+      of: files
+      type: array of ScopeSpec
+      description: Optional writable scope-only manifest file declarations with path and reason.
+    - kind: attribute
+      name: ScopeSpec
+      of: MAID Manifest v2 schema
+      type: object
+      description: Schema definition requiring path and reason for scope-only writable files.
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: class
+      name: ScopeSpec
+      description: Scope-only writable file declaration with a path and rationale.
+    - kind: attribute
+      name: path
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: SCOPE
+      of: FileMode
+      type: str
+    - kind: attribute
+      name: files_scope
+      of: Manifest
+      type: tuple[ScopeSpec, ...]
+    - kind: attribute
+      name: all_writable_paths
+      of: Manifest
+      type: set[str]
+      description: Includes create, edit, delete, snapshot, and scope-only paths.
+    - kind: attribute
+      name: all_referenced_paths
+      of: Manifest
+      type: set[str]
+      description: Includes writable and read-only paths, including scope-only paths.
+  - path: maid_runner/core/manifest.py
+    artifacts:
+    - kind: function
+      name: validate_manifest_schema
+      args:
+      - name: data
+        type: dict
+      - name: schema_version
+        type: str
+        default: '2'
+      returns: list[str]
+    - kind: function
+      name: validate_manifest_paths
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Union[str, Path]
+      returns: list[ValidationError]
+    - kind: function
+      name: load_manifest
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: Manifest
+    - kind: function
+      name: save_manifest
+      args:
+      - name: manifest
+        type: Manifest
+      - name: path
+        type: Union[str, Path]
+      returns: None
+  - path: maid_runner/core/chain.py
+    artifacts:
+    - kind: method
+      name: manifests_for_file
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[Manifest]
+    - kind: method
+      name: file_mode_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileMode]
+    - kind: method
+      name: all_tracked_paths
+      of: ManifestChain
+      args: []
+      returns: set[str]
+    - kind: method
+      name: all_read_only_paths
+      of: ManifestChain
+      args: []
+      returns: set[str]
+  - path: maid_runner/core/worktree.py
+    artifacts:
+    - kind: function
+      name: validate_worktree_scope
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: chain
+        type: ManifestChain
+      - name: include_tests
+        type: bool
+        default: 'False'
+      returns: list[ValidationError]
+    - kind: function
+      name: validate_changed_scope
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: chain
+        type: ManifestChain
+      - name: since
+        type: Optional[str]
+        default: None
+      - name: base_ref
+        type: Optional[str]
+        default: None
+      - name: include_tests
+        type: bool
+        default: 'False'
+      returns: list[ValidationError]
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _files_scope_readme_documentation
+      of: documentation
+      type: markdown
+      description: README guidance for files.scope as writable scope without public artifact contracts.
+  - path: docs/troubleshooting.md
+    artifacts:
+    - kind: attribute
+      name: _files_scope_troubleshooting_documentation
+      of: documentation
+      type: markdown
+      description: Troubleshooting guidance for using files.scope to resolve E114 on route wiring without private artifacts.
+  - path: tests/core/test_manifest.py
+    artifacts:
+    - kind: test_function
+      name: test_schema_accepts_scope_only_files_without_artifacts
+    - kind: test_function
+      name: test_load_manifest_parses_scope_only_files
+    - kind: test_function
+      name: test_save_manifest_preserves_scope_only_files
+    - kind: test_function
+      name: test_validate_manifest_paths_checks_scope_only_files
+    - kind: test_function
+      name: test_scope_only_files_are_documented
+  - path: tests/core/test_types.py
+    artifacts:
+    - kind: test_function
+      name: test_scope_only_paths_are_writable_referenced_but_not_file_specs
+    - kind: test_function
+      name: test_file_mode_includes_scope_value
+  - path: tests/core/validation/test_file_scope_gates.py
+    artifacts:
+    - kind: test_function
+      name: test_worktree_scope_allows_changed_svelte_file_in_files_scope
+    - kind: test_function
+      name: test_manifest_chain_treats_scope_only_file_as_writable_not_read_only
+    - kind: test_function
+      name: test_changed_scope_allows_changed_svelte_file_in_files_scope
+  - path: tests/cli/test_validate_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests
+  read:
+  - docs/maid-serve.md
+  - maid_runner/core/_file_tracking.py
+  - maid_runner/core/scope_check.py
+  - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+  - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_manifest.py tests/core/test_types.py tests/core/validation/test_file_scope_gates.py tests/cli/test_validate_cmd.py
+outcome:
+  status: completed
+  summary: |
+    Added `files.scope` as a writable scope-only manifest section for changed
+    files that should participate in scope gates without declaring public
+    artifacts, covering Svelte route-wiring and prop-only component edits.
+  rationale: |
+    The implementation keeps artifact-bearing edit contracts strict while
+    adding a separate `ScopeSpec` model, schema definition, parser/serializer
+    support, path containment, manifest-chain tracking, worktree-scope and
+    changed-scope behavior, and user-facing documentation. Scope-only paths are
+    included in writable scope through `Manifest.all_writable_paths` but remain
+    outside `Manifest.all_file_specs`, so they cannot satisfy implementation
+    artifact checks.
+  lessons:
+  - lesson_type: manifest-scope-modeling
+    summary: |
+      Svelte route-wiring tasks need a writable manifest scope primitive that
+      does not force private route-local state, handlers, or props into public
+      artifact contracts.
+    tags:
+    - svelte
+    - worktree-scope
+    - manifest-schema
+    paths:
+    - maid_runner/schemas/manifest.v2.schema.json
+    - maid_runner/core/types.py
+    - maid_runner/core/worktree.py
+  - lesson_type: plan-lock-maintenance
+    summary: |
+      Behavioral tests shared with older active manifests can require preserved
+      red-evidence lock revisions for those manifests before strict verify can
+      pass.
+    tags:
+    - plan-lock
+    - red-evidence
+    paths:
+    - tests/cli/test_validate_cmd.py
+    - .maid/plan-locks/072-01-quiet-legacy-created-chain-warnings.lock.json
+  - lesson_type: external-reproduction
+    summary: |
+      The tower-recall Svelte route report reproduced E114 while route and
+      component files stayed in `files.read`; moving those same dirty Svelte
+      paths to `files.scope` made schema worktree-scope validation pass, and a
+      temporary scope-only tower-recall manifest passed implementation
+      worktree-scope validation against the same changed files.
+    tags:
+    - svelte
+    - worktree-scope
+    - external-repo
+    paths:
+    - maid_runner/core/worktree.py
+    - tests/core/validation/test_file_scope_gates.py
+  review_notes:
+  - source: implementation-review-subagent
+    severity: ready
+    summary: |
+      Reviewer Cicero reported no code-level blockers, confirmed `files.scope`
+      is writable/tracked while staying outside `all_file_specs`, and returned
+      Ready to merge.
+  - source: implementation-review-subagent
+    severity: ready
+    summary: |
+      Reviewer Socrates reported no findings after the E114 diagnostic update,
+      confirmed the message-only change did not alter gate behavior, and
+      verified the added assertion covers the read-only rejection path.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_manifest.py
+    - tests/core/test_types.py
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/cli/test_validate_cmd.py
+    status: passed
+    summary: Focused scope-only manifest and worktree tests passed, 256 passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/core/test_manifest.py
+    - tests/core/test_types.py
+    - tests/cli/test_validate_cmd.py
+    status: passed
+    summary: Post-diagnostic focused regression run passed, 256 passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - daemon
+    - validate
+    - manifests/add-scope-only-file-section.manifest.yaml
+    - --mode
+    - behavioral
+    - --json
+    status: passed
+    summary: Daemon behavioral validation passed with no errors.
+  - command:
+    - uv
+    - run
+    - maid
+    - daemon
+    - validate
+    - manifests/add-scope-only-file-section.manifest.yaml
+    - --mode
+    - implementation
+    - --json
+    status: passed
+    summary: Daemon implementation validation passed with expected E307 warnings for JSON and Markdown files.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/add-scope-only-file-section.manifest.yaml
+    - --mode
+    - implementation
+    - --worktree-scope
+    - --include-tests
+    status: passed
+    summary: Direct implementation validation and worktree-scope gate passed with expected E307 warnings.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/add-scope-only-file-section.manifest.yaml
+    - --mode
+    - implementation
+    - --worktree-scope
+    - --include-tests
+    status: passed
+    summary: Post-diagnostic implementation validation and worktree-scope gate passed with expected E307 warnings.
+  - command:
+    - ./scripts/maid
+    - validate
+    - manifests/tagalog-default-study-language.manifest.yaml
+    - --mode
+    - schema
+    - --worktree-scope
+    - --include-tests
+    status: passed
+    summary: In an isolated tower-recall worktree using a fresh local maid-runner build, moving the reported dirty Svelte paths from files.read to files.scope made schema worktree-scope validation pass.
+  - command:
+    - ./scripts/maid
+    - validate
+    - manifests/tmp-scope-only-svelte-routing.manifest.yaml
+    - --mode
+    - implementation
+    - --worktree-scope
+    - --include-tests
+    status: passed
+    summary: Temporary tower-recall scope-only Svelte manifest passed implementation worktree-scope validation against the same dirty route/component files.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/add-scope-only-file-section.manifest.yaml
+    status: passed
+    summary: Manifest validate command passed.
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - maid_runner/core/worktree.py
+    - tests/core/test_manifest.py
+    - tests/core/test_types.py
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/cli/test_validate_cmd.py
+    status: passed
+    summary: Ruff passed for changed Python implementation and tests.
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - maid_runner/core/worktree.py
+    - tests/core/test_manifest.py
+    - tests/core/test_types.py
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/cli/test_validate_cmd.py
+    status: passed
+    summary: Black check passed for changed Python implementation and tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 359 manifests with 273 passed, 0 failed, and 86 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed, 138 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --worktree-scope
+    - --changed-scope
+    - --since
+    - HEAD
+    - --include-tests
+    status: passed
+    summary: Strict verify passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests with existing repository warnings only.
+  completed_at: '2026-06-19T10:35:41Z'

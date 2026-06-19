@@ -1,0 +1,209 @@
+{
+  "manifest_path": "manifests/add-scope-only-file-section.manifest.yaml",
+  "manifest_hash": "sha256:a2c609595afe4d738f0c88bb09af7268d266ce1a6571e6f957539f1013d96930",
+  "test_hashes": {
+    "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+    "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
+    "tests/core/validation/test_file_scope_gates.py": "sha256:576fd1e16f4e5b175e3852800b5bf13133dccdd8fadd0de942cc8e4a562beb71",
+    "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
+  },
+  "created_at": "2026-06-19T10:08:55.108489+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:cfa1a62865c2d3412f9e972c10089d7f8ddfdc49eadf160a1988273f74d13a3f",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:4579a7a62d1cd3fd091fc900a3ad59b2966be001da46d1020db17b8078288414",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:e13a924a0ad02a22a92bbbec4a268fdc419b194bc8930b3040c8f20f9da339b8",
+        "tests/cli/test_validate_cmd.py": "sha256:4b80d70e1c97f37439a4a6c9b75cd389200334c9a3cb647c51dadd4dfd229095"
+      },
+      "revised_at": "2026-06-19T10:09:02.491351+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-scope-only-file-section.manifest.yaml -> manifests/add-scope-only-file-section.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:4579a7a62d1cd3fd091fc900a3ad59b2966be001da46d1020db17b8078288414",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:e13a924a0ad02a22a92bbbec4a268fdc419b194bc8930b3040c8f20f9da339b8",
+        "tests/cli/test_validate_cmd.py": "sha256:4b80d70e1c97f37439a4a6c9b75cd389200334c9a3cb647c51dadd4dfd229095"
+      },
+      "revised_at": "2026-06-19T10:10:54.055236+00:00",
+      "reason": "Correct CLI worktree-scope fixture to dirty only the scope-only Svelte route after baseline commit"
+    },
+    {
+      "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:4579a7a62d1cd3fd091fc900a3ad59b2966be001da46d1020db17b8078288414",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:e13a924a0ad02a22a92bbbec4a268fdc419b194bc8930b3040c8f20f9da339b8",
+        "tests/cli/test_validate_cmd.py": "sha256:ae72084c4215fd7c7e9abe75e266c0269d5f55c55d86e1c28287115d5c114af0"
+      },
+      "revised_at": "2026-06-19T10:11:33.203361+00:00",
+      "reason": "Preserve red evidence after formatting behavioral test files"
+    },
+    {
+      "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:0f609fa5e6b8f53575019e46c6a86823d3977593817f82a6253412ede41e78c4",
+        "tests/cli/test_validate_cmd.py": "sha256:ae72084c4215fd7c7e9abe75e266c0269d5f55c55d86e1c28287115d5c114af0"
+      },
+      "revised_at": "2026-06-19T10:12:16.932119+00:00",
+      "reason": "Preserve red evidence after lint-only cleanup in CLI behavioral test"
+    },
+    {
+      "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:0f609fa5e6b8f53575019e46c6a86823d3977593817f82a6253412ede41e78c4",
+        "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
+      },
+      "revised_at": "2026-06-19T10:31:44.557265+00:00",
+      "reason": "Preserve red evidence after asserting E114 suggestion mentions files.scope"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-19T10:09:06.694048+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_manifest.py tests/core/test_types.py tests/core/validation/test_file_scope_gates.py tests/cli/test_validate_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            )\n    \n            output = capsys.readouterr().out\n>           assert exit_code == 0\nE           assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_validate_cmd.py:2983: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest.py::TestValidateManifestSchema::test_schema_accepts_scope_only_files_without_artifacts\nFAILED tests/core/test_manifest.py::TestValidateManifestPaths::test_validate_manifest_paths_checks_scope_only_files\nFAILED tests/core/test_manifest.py::TestValidateManifestPaths::test_scope_only_files_are_documented\nFAILED tests/core/test_manifest.py::TestLoadManifest::test_load_manifest_parses_scope_only_files\nFAILED tests/core/test_manifest.py::TestLoadManifest::test_save_manifest_preserves_scope_only_files\nFAILED tests/core/test_types.py::TestManifest::test_scope_only_paths_are_writable_referenced_but_not_file_specs\nFAILED tests/core/test_types.py::TestManifest::test_file_mode_includes_scope_value\nFAILED tests/core/validation/test_file_scope_gates.py::test_worktree_scope_allows_changed_svelte_file_in_files_scope\nFAILED tests/core/validation/test_file_scope_gates.py::test_manifest_chain_treats_scope_only_file_as_writable_not_read_only\nFAILED tests/core/validation/test_file_scope_gates.py::test_changed_scope_allows_changed_svelte_file_in_files_scope\nFAILED tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests\n11 failed, 245 passed in 3.97s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._files_scope_readme_documentation",
+      "README.md:attribute:documentation._files_scope_readme_documentation:kind=attribute",
+      "README.md:attribute:documentation._files_scope_readme_documentation:of=documentation",
+      "README.md:attribute:documentation._files_scope_readme_documentation:type=markdown",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:kind=attribute",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:of=documentation",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:type=markdown",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:returns=set[str]",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:returns=set[str]",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:arg=path:type=str:default=None",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:returns=Optional[FileMode]",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:arg=path:type=str:default=None",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:returns=list[Manifest]",
+      "maid_runner/core/manifest.py:function:load_manifest",
+      "maid_runner/core/manifest.py:function:load_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:load_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:load_manifest:returns=Manifest",
+      "maid_runner/core/manifest.py:function:save_manifest",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:save_manifest:returns=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:returns=list[ValidationError]",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=schema_version:type=str:default=2",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:returns=list[str]",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:kind=attribute",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:of=FileMode",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:type=str",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:type=set[str]",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:type=set[str]",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:type=tuple[ScopeSpec, ...]",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:kind=attribute",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:of=ScopeSpec",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:type=str",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:kind=attribute",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:of=ScopeSpec",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:type=str",
+      "maid_runner/core/types.py:class:ScopeSpec",
+      "maid_runner/core/types.py:class:ScopeSpec:kind=class",
+      "maid_runner/core/worktree.py:function:validate_changed_scope",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=base_ref:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=since:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:kind=function",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:returns=list[ValidationError]",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:kind=function",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:returns=list[ValidationError]",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:of=MAID Manifest v2 schema",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:type=object",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:of=files",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:type=array of ScopeSpec",
+      "tests/cli/test_validate_cmd.py:test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests",
+      "tests/cli/test_validate_cmd.py:test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests:kind=test_function",
+      "tests/core/test_manifest.py:test_load_manifest_parses_scope_only_files",
+      "tests/core/test_manifest.py:test_load_manifest_parses_scope_only_files:kind=test_function",
+      "tests/core/test_manifest.py:test_save_manifest_preserves_scope_only_files",
+      "tests/core/test_manifest.py:test_save_manifest_preserves_scope_only_files:kind=test_function",
+      "tests/core/test_manifest.py:test_schema_accepts_scope_only_files_without_artifacts",
+      "tests/core/test_manifest.py:test_schema_accepts_scope_only_files_without_artifacts:kind=test_function",
+      "tests/core/test_manifest.py:test_scope_only_files_are_documented",
+      "tests/core/test_manifest.py:test_scope_only_files_are_documented:kind=test_function",
+      "tests/core/test_manifest.py:test_validate_manifest_paths_checks_scope_only_files",
+      "tests/core/test_manifest.py:test_validate_manifest_paths_checks_scope_only_files:kind=test_function",
+      "tests/core/test_types.py:test_file_mode_includes_scope_value",
+      "tests/core/test_types.py:test_file_mode_includes_scope_value:kind=test_function",
+      "tests/core/test_types.py:test_scope_only_paths_are_writable_referenced_but_not_file_specs",
+      "tests/core/test_types.py:test_scope_only_paths_are_writable_referenced_but_not_file_specs:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_changed_scope_allows_changed_svelte_file_in_files_scope",
+      "tests/core/validation/test_file_scope_gates.py:test_changed_scope_allows_changed_svelte_file_in_files_scope:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_manifest_chain_treats_scope_only_file_as_writable_not_read_only",
+      "tests/core/validation/test_file_scope_gates.py:test_manifest_chain_treats_scope_only_file_as_writable_not_read_only:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope",
+      "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_validate_cmd.py",
+      "tests/core/test_manifest.py",
+      "tests/core/test_types.py",
+      "tests/core/validation/test_file_scope_gates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_manifest.py tests/core/test_types.py tests/core/validation/test_file_scope_gates.py tests/cli/test_validate_cmd.py"
+    ]
+  }
+}

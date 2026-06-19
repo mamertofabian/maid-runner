@@ -195,8 +195,8 @@ is not bricked. Locked-down autonomous loops should pass `--strict`, which
 turns both no-active-task and internal-error outcomes into denies.
 
 With an active task, the hook allows the manifest's `files.create`,
-`files.edit`, and `files.delete` paths, the active manifest file, declared test
-files, and paths under `manifests/drafts/`. Other paths are denied with a
+`files.edit`, `files.scope`, and `files.delete` paths, the active manifest file,
+declared test files, and paths under `manifests/drafts/`. Other paths are denied with a
 reason naming the active manifest and nearby declared scope entries. The hook
 is fast advisory infrastructure only: maid verify changed-scope checks remain
 the authoritative handoff evidence, and hook decisions do not add `ErrorCode`
@@ -360,9 +360,12 @@ When `maid verify` runs without `--since`, `--base-ref`, or an unambiguous
 a reliable branch-origin fact after rebases and merges, and a default commit
 count can miss task changes, so the baseline must be real evidence supplied by
 the caller or manifest. `files.read` never grants write permission; changed
-source files must be declared in `files.create`, `files.edit`, or
-`files.delete`. Use `--include-tests` when the handoff should also enforce
-changed test files.
+source files must be declared in `files.create`, `files.edit`, `files.scope`,
+or `files.delete`. Use `files.scope` for changed route-wiring or prop-only
+files without public artifact contracts, including Svelte route files whose
+behavior is covered through tests but whose local state and handlers should not
+be declared as public artifacts. Use `--include-tests` when the handoff should
+also enforce changed test files.
 
 Use `--worktree-scope` for fast live checks of uncommitted local changes. Use
 `maid verify` for branch handoff because changed-scope checks committed,
@@ -430,6 +433,7 @@ V1 JSON manifests are auto-converted when loaded.
 |------|-------|----------|
 | **Strict** | `files.create` | Implementation must EXACTLY match declared artifacts |
 | **Permissive** | `files.edit` | Implementation must CONTAIN declared artifacts |
+| **Scope-only** | `files.scope` | File is writable for scope gates without public artifact validation |
 
 ### Artifact Kinds
 
