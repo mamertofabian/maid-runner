@@ -1,0 +1,275 @@
+schema: "2"
+goal: "Add a `maid skills install` command that installs the user-level maid-onboard skill, packaged from this repo but excluded from per-repo init distribution."
+type: feature
+created: "2026-06-22T13:30:00Z"
+description: |
+  The maid-onboard skill bootstraps any repo to full MAID. It is a USER-LEVEL
+  skill (invoked from any repo to set that repo up), not a per-repo skill, so it
+  must never be installed by `maid init`. This change makes maid-runner the
+  source of truth for maid-onboard, packages it, and delivers it to user-level
+  via a new command that works for clone, pip, and uvx users alike.
+
+  Design decisions (rationale):
+  - Delivery is a `maid skills install` command (default --user), not symlinks
+    from a clone: a packaged command works for users with no checkout (pip/uvx),
+    is cross-platform, and is versioned/re-runnable. `--link` symlinks to the
+    packaged source for a dev loop, falling back to copy when symlinks are
+    unavailable (e.g., unprivileged Windows) so it never fails silently.
+  - The onboard skill is a third payload category: packaged + user-level
+    installable, but NOT in the per-repo distributable lists. It lives in a
+    dedicated packaged tree `maid_runner/user_skills/` so `maid init` (which
+    installs the per-repo `maid_runner/<tool>/skills` payloads and honors
+    skills.distributable) never installs it. Source of truth is the repo's
+    `.claude/skills/maid-onboard` and `.codex/skills/maid-onboard`, synced into
+    `maid_runner/user_skills/{claude,codex}/maid-onboard` for packaging.
+  - Install policy is separated from mechanism and fully injectable:
+    `install_onboard_skill(target_root, payload_root, link)` takes both roots as
+    arguments. The CLI resolves the user home and packaged payload at the
+    composition root (`cmd_skills`) and passes them in, so tests install into a
+    tmp directory without touching the real ~/.claude or ~/.codex.
+  - The onboard SKILL.md content becomes install-style-aware (adapts to a
+    repo-local `scripts/maid` wrapper, plain uvx, or a project dependency, and
+    recommends the uvx-wrapper pattern for fresh repos). That markdown content is
+    delivered in the same change.
+temptations:
+  - risk: "Do not call Path.home() or importlib.resources inside install_onboard_skill; that makes it untestable and couples policy to the environment."
+    instead: "Take target_root and payload_root as parameters; resolve home and the packaged payload only in cmd_skills (the composition root)."
+  - risk: "Do not let maid-onboard leak into the per-repo init payload by placing it in maid_runner/<tool>/skills or the distributable lists."
+    instead: "Package it under maid_runner/user_skills/ only, and assert in tests that maid-onboard is absent from the generated claude and codex init distributable manifests."
+  - risk: "Do not make --link hard-fail on platforms without symlink support."
+    instead: "Attempt the symlink, and on OSError/NotImplementedError fall back to copying with a clear message; cover the copy path behavior in tests."
+  - risk: "Do not duplicate the onboard skill content by hand across packaged trees."
+    instead: "Keep the repo .claude/.codex source as truth and generate maid_runner/user_skills via sync_user_skills in scripts/sync_claude_files.py."
+files:
+  create:
+    - path: maid_runner/core/skill_install.py
+      artifacts:
+        - kind: function
+          name: install_onboard_skill
+          args:
+            - name: target_root
+              type: Path
+            - name: payload_root
+              type: Path
+            - name: link
+              type: bool
+          returns: list[str]
+          description: "Install the maid-onboard skill from payload_root into target_root/.claude and target_root/.codex; copy by default, symlink when link is true (copy fallback if unsupported). Returns the POSIX-relative paths written under target_root."
+    - path: maid_runner/cli/commands/skills.py
+      artifacts:
+        - kind: function
+          name: cmd_skills
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Dispatch `maid skills` subcommands; for `install`, resolve the user home (or --target-root) and the packaged user_skills payload and call install_onboard_skill."
+    - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_user_onboard_claude_skill
+          of: user_skills_payload
+          type: markdown document
+          description: "Generated package copy of the install-style-aware maid-onboard Claude skill for user-level install."
+    - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_user_onboard_codex_skill
+          of: user_skills_payload
+          type: markdown document
+          description: "Generated package copy of the maid-onboard Codex skill for user-level install."
+    - path: maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _packaged_user_onboard_codex_agent_metadata
+          of: user_skills_payload
+          type: yaml document
+          description: "Generated package copy of the maid-onboard Codex skill-local OpenAI agent metadata."
+    - path: .claude/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _source_user_onboard_claude_skill
+          of: repo_skill_source
+          type: markdown document
+          description: "Repo source of the install-style-aware maid-onboard Claude skill."
+    - path: .codex/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _source_user_onboard_codex_skill
+          of: repo_skill_source
+          type: markdown document
+          description: "Repo source of the maid-onboard Codex skill."
+    - path: .codex/skills/maid-onboard/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _source_user_onboard_codex_agent_metadata
+          of: repo_skill_source
+          type: yaml document
+          description: "Repo source of the maid-onboard Codex skill-local OpenAI agent metadata."
+    - path: tests/cli/test_skills_install.py
+      artifacts:
+        - kind: test_function
+          name: test_install_onboard_skill_copies_claude_and_codex_payload
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "install_onboard_skill copies the claude SKILL.md and the codex SKILL.md + agents/openai.yaml into target_root."
+        - kind: test_function
+          name: test_install_onboard_skill_link_creates_symlink
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "install_onboard_skill with link=True creates a symlink for the installed skill (or a regular file when symlinks are unsupported)."
+        - kind: test_function
+          name: test_install_onboard_skill_is_idempotent
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Running install_onboard_skill twice succeeds and leaves the payload present."
+        - kind: test_function
+          name: test_skills_install_command_installs_to_target_root
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "`maid skills install --target-root <dir>` returns 0 and installs the onboard skill; cmd_skills is the handler."
+        - kind: test_function
+          name: test_sync_user_skills_packages_onboard_skill
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "sync_user_skills copies the repo .claude/.codex maid-onboard source into maid_runner/user_skills for packaging."
+        - kind: test_function
+          name: test_install_onboard_skill_link_falls_back_to_copy_when_unsupported
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "When symlink creation fails, install_onboard_skill copies the file instead (copy fallback)."
+        - kind: test_function
+          name: test_skills_install_command_reports_copy_fallback
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          description: "`maid skills install --link` reports a copy fallback (not 'Linked') when symlinks are unavailable."
+        - kind: test_function
+          name: test_install_onboard_skill_requires_both_tool_payloads
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "install_onboard_skill raises FileNotFoundError when the payload is missing a tool's skill source (fail loud, no partial install)."
+        - kind: test_function
+          name: test_install_onboard_skill_prunes_stale_files
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Reinstalling removes stale files left under the destination skill directory by an older payload."
+        - kind: test_function
+          name: test_onboard_skill_absent_from_per_repo_init_distributable
+          args: []
+          returns: None
+          description: "maid-onboard is not listed in the generated claude or codex init distributable manifests, so maid init never installs it per-repo."
+  edit:
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_user_skills
+          args: []
+          returns: None
+          description: "Copy repo .claude/skills/maid-onboard and .codex/skills/maid-onboard sources into maid_runner/user_skills/{claude,codex}/maid-onboard for packaging."
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: _maid_runner_package_data_user_skills
+          of: pyproject
+          type: TOML package-data entry
+          description: "Package-data globs that include the generated user_skills onboard payload (SKILL.md and agent metadata)."
+  read:
+    - README.md
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/init.py
+    - maid_runner/cli/commands/task.py
+    - maid_runner/claude/manifest.json
+    - maid_runner/codex/manifest.json
+validate:
+  - uv run python -m pytest -q tests/cli/test_skills_install.py
+outcome:
+  status: completed
+  completed_at: "2026-06-22T14:30:00Z"
+  summary: "Added `maid skills install` (default --user, with --link and --target-root) which installs the user-level maid-onboard skill into ~/.claude and ~/.codex from a packaged maid_runner/user_skills payload. The onboard skill is maintained in-repo, packaged, made install-style-aware, and excluded from the per-repo init distributable so `maid init` never installs it. install_onboard_skill takes injected target/payload roots, requires both tool payloads (fail loud), resets each destination skill dir for convergent reinstalls, and copy-falls-back when symlinks are unavailable; the CLI reports the fallback accurately."
+  rationale: "Delivery is a packaged command, not symlinks, so it works for clone, pip, and uvx users and is cross-platform and versioned. The onboard skill is a third payload category (packaged + user-level installable, not per-repo distributable), packaged under maid_runner/user_skills via sync_user_skills and kept out of the claude/codex distributable lists. Policy is separated from the composition root (install_onboard_skill takes both roots) so it is testable without touching the real home directory."
+  lessons:
+    - lesson_type: design
+      summary: "A user-level (machine-wide) skill needs a distinct packaged tree and an explicit install command; reusing the per-repo init payload would have leaked it into every repo. The install honors the same distributable discipline init now enforces."
+      tags:
+        - cli
+        - packaging
+        - user-skills
+      paths:
+        - maid_runner/cli/commands/skills.py
+        - maid_runner/core/skill_install.py
+        - scripts/sync_claude_files.py
+    - lesson_type: testing
+      summary: "Independent review caught fail-quiet gaps (silent --link fallback report, partial-payload success, non-convergent reinstall) that green tests missed; regression tests now force symlink failure, missing payload, and stale-file pruning."
+      tags:
+        - review
+        - fail-loud
+        - regression-tests
+      paths:
+        - tests/cli/test_skills_install.py
+  review_notes:
+    - source: codex-independent-reviewer
+      severity: info
+      summary: "Round 1 (reviewer Euler) returned Needs changes with 3 P2 findings: misleading --link report, partial-payload success, non-convergent reinstall. All three were fixed with regression tests. Round 2 (reviewer Raman) returned Ready to merge with no findings, confirming the onboard skill stays out of the per-repo init distributable and injected roots are preserved."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_skills_install.py
+      status: passed
+      summary: "10 behavioral tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Whole-codebase MAID validation passed: 275 passed, 0 failed, 86 superseded."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+      status: passed
+      summary: "Full test suite passed: 2857 passed, 5 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --no-changed-scope
+      status: passed
+      summary: "Handoff gate passed all stages including plan_lock with preserved red evidence."

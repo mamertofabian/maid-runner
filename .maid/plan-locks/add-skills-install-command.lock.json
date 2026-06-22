@@ -1,0 +1,135 @@
+{
+  "manifest_path": "manifests/add-skills-install-command.manifest.yaml",
+  "manifest_hash": "sha256:14f3057152f60c4f1b8085d23e7de7fff6f049ead1bd60a360290594d42a2f74",
+  "test_hashes": {
+    "tests/cli/test_skills_install.py": "sha256:23814d8fda9b5cd7b5a36f84a70a38707483c3efe1794ec7466328031e4561b1"
+  },
+  "created_at": "2026-06-22T06:25:19.337496+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:4bd206ee1bb3f23c63fc6b22293e98a5f21938383032e356c3839b77a048a6e0",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf",
+        "tests/cli/test_skills_install.py": "sha256:970bc5d35c8fd2f3dc789fff3487d6c5527f2fbd741573463fba875d6583e270"
+      },
+      "revised_at": "2026-06-22T06:34:54.352864+00:00",
+      "reason": "Drop convention-only test files from files.read; they are not dependencies of this feature and caused the validate command to be flagged for not running them. Re-seal with the corrected scope; preserve original red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:7137ac611ab68fb9ffb196cd8a8987d9efaf7faa45f7e91c9f653e6d43a92400",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256:970bc5d35c8fd2f3dc789fff3487d6c5527f2fbd741573463fba875d6583e270"
+      },
+      "revised_at": "2026-06-22T06:49:35.927913+00:00",
+      "reason": "Review-fix iteration: add regression tests and fixes for --link copy-fallback reporting, fail-loud on partial payload, and convergent reinstall (stale-file pruning). Re-seal with updated test hashes; preserve original red evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-22T06:25:19.609569+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_skills_install.py",
+        "exit_code": 1,
+        "output_tail": "E       ModuleNotFoundError: No module named 'maid_runner.cli.commands.skills'\n\ntests/cli/test_skills_install.py:96: ModuleNotFoundError\n_________________ test_sync_user_skills_packages_onboard_skill _________________\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-76/test_sync_user_skills_packages0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71377a6ef770>\n\n    def test_sync_user_skills_packages_onboard_skill(tmp_path: Path, monkeypatch) -> None:\n>       from scripts.sync_claude_files import sync_user_skills\nE       ImportError: cannot import name 'sync_user_skills' from 'scripts.sync_claude_files' (/home/atomrem/projects/codefrost-dev/maid-runner/scripts/sync_claude_files.py)\n\ntests/cli/test_skills_install.py:112: ImportError\n=========================== short test summary info ============================\nFAILED tests/cli/test_skills_install.py::test_install_onboard_skill_copies_claude_and_codex_payload\nFAILED tests/cli/test_skills_install.py::test_install_onboard_skill_link_creates_symlink\nFAILED tests/cli/test_skills_install.py::test_install_onboard_skill_is_idempotent\nFAILED tests/cli/test_skills_install.py::test_skills_install_command_installs_to_target_root\nFAILED tests/cli/test_skills_install.py::test_sync_user_skills_packages_onboard_skill\n5 failed, 1 passed in 0.12s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_claude_skill",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_claude_skill:kind=attribute",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_claude_skill:of=repo_skill_source",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_claude_skill:type=markdown document",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_codex_skill",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_codex_skill:kind=attribute",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_codex_skill:of=repo_skill_source",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:repo_skill_source._source_user_onboard_codex_skill:type=markdown document",
+      ".codex/skills/maid-onboard/agents/openai.yaml:attribute:repo_skill_source._source_user_onboard_codex_agent_metadata",
+      ".codex/skills/maid-onboard/agents/openai.yaml:attribute:repo_skill_source._source_user_onboard_codex_agent_metadata:kind=attribute",
+      ".codex/skills/maid-onboard/agents/openai.yaml:attribute:repo_skill_source._source_user_onboard_codex_agent_metadata:of=repo_skill_source",
+      ".codex/skills/maid-onboard/agents/openai.yaml:attribute:repo_skill_source._source_user_onboard_codex_agent_metadata:type=yaml document",
+      "maid_runner/cli/commands/skills.py:function:cmd_skills",
+      "maid_runner/cli/commands/skills.py:function:cmd_skills:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/skills.py:function:cmd_skills:kind=function",
+      "maid_runner/cli/commands/skills.py:function:cmd_skills:returns=int",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=link:type=bool:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=payload_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=target_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:kind=function",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:returns=list[str]",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_claude_skill",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_claude_skill:kind=attribute",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_claude_skill:of=user_skills_payload",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_claude_skill:type=markdown document",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_codex_skill",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_codex_skill:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_codex_skill:of=user_skills_payload",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skills_payload._packaged_user_onboard_codex_skill:type=markdown document",
+      "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml:attribute:user_skills_payload._packaged_user_onboard_codex_agent_metadata",
+      "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml:attribute:user_skills_payload._packaged_user_onboard_codex_agent_metadata:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml:attribute:user_skills_payload._packaged_user_onboard_codex_agent_metadata:of=user_skills_payload",
+      "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml:attribute:user_skills_payload._packaged_user_onboard_codex_agent_metadata:type=yaml document",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_user_skills",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_user_skills:kind=attribute",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_user_skills:of=pyproject",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_user_skills:type=TOML package-data entry",
+      "scripts/sync_claude_files.py:function:sync_user_skills",
+      "scripts/sync_claude_files.py:function:sync_user_skills:kind=function",
+      "scripts/sync_claude_files.py:function:sync_user_skills:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_copies_claude_and_codex_payload",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_copies_claude_and_codex_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_copies_claude_and_codex_payload:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_copies_claude_and_codex_payload:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_is_idempotent",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_is_idempotent:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_is_idempotent:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_is_idempotent:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_creates_symlink",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_creates_symlink:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_creates_symlink:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_creates_symlink:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_falls_back_to_copy_when_unsupported",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_falls_back_to_copy_when_unsupported:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_falls_back_to_copy_when_unsupported:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_falls_back_to_copy_when_unsupported:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_link_falls_back_to_copy_when_unsupported:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_prunes_stale_files",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_prunes_stale_files:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_prunes_stale_files:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_prunes_stale_files:returns=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_requires_both_tool_payloads",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_requires_both_tool_payloads:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_requires_both_tool_payloads:kind=test_function",
+      "tests/cli/test_skills_install.py:test_install_onboard_skill_requires_both_tool_payloads:returns=None",
+      "tests/cli/test_skills_install.py:test_onboard_skill_absent_from_per_repo_init_distributable",
+      "tests/cli/test_skills_install.py:test_onboard_skill_absent_from_per_repo_init_distributable:kind=test_function",
+      "tests/cli/test_skills_install.py:test_onboard_skill_absent_from_per_repo_init_distributable:returns=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:kind=test_function",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:returns=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback:kind=test_function",
+      "tests/cli/test_skills_install.py:test_skills_install_command_reports_copy_fallback:returns=None",
+      "tests/cli/test_skills_install.py:test_sync_user_skills_packages_onboard_skill",
+      "tests/cli/test_skills_install.py:test_sync_user_skills_packages_onboard_skill:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_skills_install.py:test_sync_user_skills_packages_onboard_skill:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_sync_user_skills_packages_onboard_skill:kind=test_function",
+      "tests/cli/test_skills_install.py:test_sync_user_skills_packages_onboard_skill:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_skills_install.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_skills_install.py"
+    ]
+  }
+}

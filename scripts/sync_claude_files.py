@@ -337,6 +337,29 @@ def sync_cursor_payload() -> None:
     print(f"✓ Synced Cursor manifest.json to {dest_root / 'manifest.json'}")
 
 
+def sync_user_skills() -> None:
+    """Copy the repo maid-onboard skill sources into maid_runner/user_skills/.
+
+    The maid-onboard skill is a user-level bootstrapper: it is packaged so
+    `maid skills install` can deliver it to ~/.claude and ~/.codex, but it is
+    kept out of the per-repo init payloads (maid_runner/<tool>/skills) and the
+    distributable manifests so `maid init` never installs it into a project.
+    """
+    project_root = _project_root()
+    dest_root = project_root / "maid_runner" / "user_skills"
+    _remove_directory(dest_root)
+
+    copied = 0
+    for tool in ("claude", "codex"):
+        source = project_root / f".{tool}" / "skills" / "maid-onboard"
+        if not source.exists():
+            continue
+        shutil.copytree(source, dest_root / tool / "maid-onboard")
+        copied += 1
+
+    print(f"✓ Synced {copied} user skill directories to {dest_root}")
+
+
 def main() -> None:
     """Main entry point - orchestrate the full sync process."""
     print("=" * 60)
@@ -353,6 +376,7 @@ def main() -> None:
     sync_skills()
     sync_codex_payload()
     sync_cursor_payload()
+    sync_user_skills()
 
     print()
     print("=" * 60)

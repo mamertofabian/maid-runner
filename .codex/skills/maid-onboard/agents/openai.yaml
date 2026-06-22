@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Onboard"
+  short_description: "Bring a repo up to full MAID adoption"
+  default_prompt: "Use $maid-onboard to bring this repository up to full MAID: detect how it invokes maid-runner (scripts/maid wrapper, uvx, or a project dependency), make the maid-runner version current, run maid init for the agents in use (Claude and/or Codex) so the payload is installed as repo-local files, preview the Codex payload to confirm no repo-internal skills leak, reconcile any stale CLAUDE.md/AGENTS.md MAID guidance to include plan lock and maid verify, verify the result, and stop for explicit commit approval."

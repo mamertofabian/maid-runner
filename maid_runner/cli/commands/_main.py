@@ -47,9 +47,35 @@ def build_parser() -> argparse.ArgumentParser:
     _register_benchmark_parser(sub)
     _register_incident_parser(sub)
     _register_daemon_parser(sub)
+    _register_skills_parser(sub)
     _register_manifest_graph_chain_audit_parsers(sub)
 
     return parser
+
+
+def _register_skills_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("skills", help="Manage user-level MAID skills")
+    ssub = p.add_subparsers(dest="skills_command")
+    install = ssub.add_parser(
+        "install", help="Install the user-level maid-onboard skill"
+    )
+    install.add_argument(
+        "--user",
+        action="store_true",
+        default=True,
+        help="Install into the user home (default)",
+    )
+    install.add_argument(
+        "--link",
+        action="store_true",
+        help="Symlink to the packaged skill instead of copying (dev)",
+    )
+    install.add_argument(
+        "--target-root",
+        default=None,
+        dest="target_root",
+        help="Override the install base directory (default: user home)",
+    )
 
 
 def _register_validators_parser(sub: argparse._SubParsersAction) -> None:
@@ -695,6 +721,7 @@ def main(argv: list[str] | None = None) -> int:
         "chain": "_cmd_chain",
         "audit": "_cmd_audit",
         "serve": "_cmd_serve",
+        "skills": "_cmd_skills",
     }
 
     handler_name = dispatch.get(args.command)
@@ -729,6 +756,7 @@ def main(argv: list[str] | None = None) -> int:
         chain as chain_mod,
         audit as audit_mod,
         serve as serve_mod,
+        skills as skills_mod,
     )
 
     handlers = {
@@ -759,6 +787,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_chain": chain_mod.cmd_chain,
         "_cmd_audit": audit_mod.cmd_audit,
         "_cmd_serve": serve_mod.cmd_serve,
+        "_cmd_skills": skills_mod.cmd_skills,
     }
 
     handler = handlers[handler_name]

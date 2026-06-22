@@ -132,6 +132,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
 | `maid serve` | Run a long-lived validator daemon over a Unix socket | `--socket`, `--pidfile`, `--project-root`, `--client-timeout` |
 | `maid daemon ping\|validate\|verify` | Diagnostic client for a running daemon | `--transport auto\|unix\|tcp`, `--runtime-dir`, `--socket`, `--timeout`, `--json` |
+| `maid skills install` | Install the user-level `maid-onboard` skill into `~/.claude` and `~/.codex` | `--user`, `--link`, `--target-root <dir>` |
 
 **General exit codes:** `0` = success, `1` = validation failure or internal
 error, `2` = usage error. Command-specific contracts can define narrower meanings.
