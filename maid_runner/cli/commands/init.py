@@ -107,8 +107,30 @@ def _walk_resource_files(root, prefix: Path):
             yield from _walk_resource_files(child, child_path)
 
 
+def _distributable_skill_names(manifest: dict) -> set[str]:
+    return set(manifest.get("skills", {}).get("distributable", []))
+
+
+def _installable_payload_files(tool: str, manifest: dict):
+    """Yield payload files, restricting the skills subtree to distributable skills.
+
+    Non-skill payload files (manifest.json, settings.json, agents) always
+    install. A file under ``skills/<name>/`` installs only when ``<name>`` is in
+    the manifest's ``skills.distributable`` list, so packaged-but-undistributed
+    skills are never written into the target repository.
+    """
+    allowed_skills = _distributable_skill_names(manifest)
+    for source_file, relative_path in _payload_files(tool):
+        parts = relative_path.parts
+        if parts and parts[0] == "skills":
+            if len(parts) >= 2 and parts[1] not in allowed_skills:
+                continue
+        yield source_file, relative_path
+
+
 def _print_agent_dry_run(tool: str, target_dir: str, guidance_file: str | None) -> None:
-    for _, relative_path in _payload_files(tool):
+    manifest = _agent_manifest(tool)
+    for _, relative_path in _installable_payload_files(tool, manifest):
         print(f"Would create: {target_dir}/{relative_path.as_posix()}")
     if guidance_file is not None:
         print(f"Would update: {guidance_file}")
@@ -118,8 +140,8 @@ def _install_agent_payload(
     project_root: Path, tool: str, target_dir_name: str, guidance_file_name: str | None
 ) -> None:
     target_dir = project_root / target_dir_name
-    payload_files = list(_payload_files(tool))
     manifest = _agent_manifest(tool)
+    payload_files = list(_installable_payload_files(tool, manifest))
     _prune_agent_payload(
         target_dir, _read_existing_agent_manifest(target_dir), manifest
     )
@@ -259,12 +281,11 @@ def _render_agents_md_section(manifest: dict) -> str:
         f"{_MAID_SECTION_START}\n"
         "## MAID Runner\n\n"
         "### MAID Codex Skills Workflow\n"
-        "Use the installed MAID Codex skills for repository-specific "
-        f"manifest-driven development: {skills}.\n\n"
-        "For maid-runner work, plan or audit with the specialized "
-        "`maid-runner-*` skills, implement approved drafts with "
-        "`maid-runner-draft-implement`, and keep validation-hardening work "
-        "inside `maid-validate-hardening`.\n\n"
+        "Use the installed MAID Codex skills for manifest-driven development: "
+        f"{skills}.\n\n"
+        "For new features, bug fixes, and refactors, plan with `maid-planner`, "
+        "review with `maid-plan-review`, implement with `maid-implementer`, and "
+        "review the result with `maid-implementation-review` before handoff.\n\n"
         "Before editing a file during an active MAID task, run "
         "`maid hook scope-check --path <file>` and treat exit code 2 as "
         "out-of-scope. This pre-edit hook check is advisory and does not "

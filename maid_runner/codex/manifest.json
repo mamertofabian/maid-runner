@@ -2,34 +2,23 @@
   "skills": {
     "distributable": [
       "maid-planner",
+      "maid-plan-review",
       "maid-implementer",
-      "maid-implementation-review",
-      "maid-runner-cleanup-and-refactor",
-      "maid-runner-draft-implement",
-      "maid-runner-performance-optimization",
-      "maid-runner-self-improvement",
-      "maid-validate-hardening"
+      "maid-implementation-review"
     ],
     "descriptions": {
       "maid-planner": "Plan MAID changes with manifest-derived Outcome recall",
+      "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
       "maid-implementer": "Implement approved MAID manifests with Outcome recall context",
-      "maid-implementation-review": "Review MAID implementations and Outcome record needs",
-      "maid-runner-cleanup-and-refactor": "Audit cleanup and refactor opportunities for maid-runner",
-      "maid-runner-draft-implement": "Promote and implement approved maid-runner draft manifests",
-      "maid-runner-performance-optimization": "Analyze and plan maid-runner performance optimization work",
-      "maid-runner-self-improvement": "Synthesize maid-runner workflow lessons into future work",
-      "maid-validate-hardening": "Audit and plan MAID validation hardening work"
+      "maid-implementation-review": "Review MAID implementations and Outcome record needs"
     }
   },
   "skill_agents": {
     "distributable": [
       "maid-planner/agents/openai.yaml",
+      "maid-plan-review/agents/openai.yaml",
       "maid-implementer/agents/openai.yaml",
-      "maid-implementation-review/agents/openai.yaml",
-      "maid-runner-cleanup-and-refactor/agents/openai.yaml",
-      "maid-runner-performance-optimization/agents/openai.yaml",
-      "maid-runner-self-improvement/agents/openai.yaml",
-      "maid-validate-hardening/agents/openai.yaml"
+      "maid-implementation-review/agents/openai.yaml"
     ],
     "descriptions": {}
   }

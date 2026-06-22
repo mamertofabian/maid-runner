@@ -18,10 +18,25 @@ import shutil
 from pathlib import Path
 
 
+# Skills declared distributable in the generated Codex payload manifest. These
+# are the generic, tool-agnostic MAID skills that `maid init --tool codex`
+# installs into any repository. Repo-internal maid-runner-* and
+# maid-validate-hardening skills are deliberately excluded so they are never
+# installed into other repositories.
 CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-planner",
+    "maid-plan-review",
     "maid-implementer",
     "maid-implementation-review",
+]
+
+# Skills copied into the packaged Codex payload. The repo-internal skills stay
+# packaged so this repository's own Codex tooling and the generated-payload
+# artifacts declared by prior manifests keep working, but they remain inert for
+# other repositories because they are not in CODEX_DISTRIBUTABLE_SKILLS and the
+# installer honors the distributable list.
+CODEX_PACKAGED_SKILLS = [
+    *CODEX_DISTRIBUTABLE_SKILLS,
     "maid-runner-cleanup-and-refactor",
     "maid-runner-draft-implement",
     "maid-runner-performance-optimization",
@@ -244,26 +259,14 @@ def _codex_manifest(source_skills: Path, skill_names: list[str]) -> dict:
                 "maid-planner": (
                     "Plan MAID changes with manifest-derived Outcome recall"
                 ),
+                "maid-plan-review": (
+                    "Review a MAID manifest and behavioral tests before implementation"
+                ),
                 "maid-implementer": (
                     "Implement approved MAID manifests with Outcome recall context"
                 ),
                 "maid-implementation-review": (
                     "Review MAID implementations and Outcome record needs"
-                ),
-                "maid-runner-cleanup-and-refactor": (
-                    "Audit cleanup and refactor opportunities for maid-runner"
-                ),
-                "maid-runner-draft-implement": (
-                    "Promote and implement approved maid-runner draft manifests"
-                ),
-                "maid-runner-performance-optimization": (
-                    "Analyze and plan maid-runner performance optimization work"
-                ),
-                "maid-runner-self-improvement": (
-                    "Synthesize maid-runner workflow lessons into future work"
-                ),
-                "maid-validate-hardening": (
-                    "Audit and plan MAID validation hardening work"
                 ),
             },
         },
@@ -289,7 +292,7 @@ def sync_codex_payload() -> None:
 
     _replace_directory(dest_skills)
     copied = 0
-    for skill_name in CODEX_DISTRIBUTABLE_SKILLS:
+    for skill_name in CODEX_PACKAGED_SKILLS:
         source_dir = source_skills / skill_name
         if source_dir.exists():
             shutil.copytree(source_dir, dest_skills / skill_name)

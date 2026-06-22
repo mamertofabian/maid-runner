@@ -1,0 +1,190 @@
+schema: "2"
+goal: "Make maid init install only the skills declared distributable, so Codex init stops shipping repo-internal maid-runner skills to other repositories."
+type: fix
+created: "2026-06-22T09:45:00Z"
+description: |
+  `maid init` installs every skill directory present in the packaged payload
+  because `_payload_files` walks the whole payload tree and the manifest
+  `distributable` list is only consulted for stale-file pruning. As a result
+  `maid init --tool codex` ships maid-runner's own repo-internal skills
+  (maid-runner-cleanup-and-refactor, maid-runner-draft-implement,
+  maid-runner-performance-optimization, maid-runner-self-improvement,
+  maid-validate-hardening) into unrelated repositories, and the rendered
+  AGENTS.md guidance tells those repositories to use maid-runner-specific
+  skills they should never receive. The Codex distributable list also omits the
+  generic maid-plan-review skill that the Claude payload distributes.
+
+  Root-cause fix (the approach chosen over deleting packaged files): make the
+  installer honor the `distributable` contract. A payload file installs only
+  when it is not under `skills/`, or when it is under `skills/<name>/` for a
+  `name` in the manifest's `skills.distributable` list. This makes
+  `distributable` mean what it says, applies uniformly across claude/codex/
+  cursor, and leaves the repo-internal Codex skills packaged-but-inert so the
+  generated-payload artifacts declared by prior manifests (048-01, 049-02,
+  066-04, and later guidance updates) keep validating without a supersession
+  cascade.
+
+  The Codex distributable set becomes the four generic, tool-agnostic skills
+  that exist under `.codex/skills/`: maid-planner, maid-plan-review,
+  maid-implementer, maid-implementation-review. The sync script keeps copying
+  the repo-internal skills into the package (so their generated files persist)
+  but builds the Codex payload manifest from the generic distributable set, and
+  newly packages maid-plan-review for Codex. The AGENTS.md guidance prose is
+  genericized to describe the generic plan/review/implement/review workflow
+  instead of maid-runner-specific skills.
+
+  Claude behavior is unchanged: its packaged skills already equal its
+  distributable list, so install-time filtering is a no-op for Claude.
+
+  Pinned decisions (do not redesign):
+  1. Do not delete the packaged maid_runner/codex/skills/maid-runner-* or
+     maid-validate-hardening files; they stay packaged and inert.
+  2. The Codex distributable set is exactly the four generic skills above.
+  3. Install filtering keys off skill directory names in `skills.distributable`;
+     non-skill payload files (manifest.json, settings.json, agents) always
+     install.
+temptations:
+  - risk: "Do not make Codex isolation work by only editing the generated manifest distributable list while the installer still copies every packaged skill directory."
+    instead: "Filter installs and dry-run output by the manifest skills.distributable list so packaged-but-undistributed skills are never written to the target repo."
+  - risk: "Do not delete the packaged repo-internal Codex skill files to stop their install."
+    instead: "Keep them packaged and inert; exclude them from the distributable list and from install-time skill selection."
+  - risk: "Do not leave the AGENTS.md guidance prose referencing maid-runner-* skills that distributed repositories no longer receive."
+    instead: "Render generic plan/review/implement/review workflow guidance derived from the distributable skill list."
+  - risk: "Do not hardcode the installable skill set in init; that re-breaks the contract for other tools."
+    instead: "Derive installable skills from the packaged manifest's skills.distributable for every tool."
+files:
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_codex_payload
+          args: []
+          returns: None
+    - path: maid_runner/codex/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _codex_payload_manifest_distributable
+          of: codex_payload
+          type: json object
+          description: "Regenerated Codex payload manifest whose skills.distributable lists only the four generic MAID skills and excludes repo-internal skills."
+  create:
+    - path: maid_runner/codex/skills/maid-plan-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_plan_review_skill
+          of: codex_payload
+          type: markdown document
+          description: "Generated package copy of the generic Codex maid-plan-review skill."
+    - path: maid_runner/codex/skills/maid-plan-review/agents/openai.yaml
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_plan_review_agent_metadata
+          of: codex_payload
+          type: yaml document
+          description: "Generated package copy of the Codex maid-plan-review skill-local OpenAI agent metadata."
+    - path: tests/cli/test_init_codex_distributable_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_codex_init_installs_only_distributable_skills
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Codex init installs exactly the four generic skills and no repo-internal skill directories."
+        - kind: test_function
+          name: test_codex_init_agents_md_describes_generic_workflow
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Codex init writes AGENTS.md guidance referencing the generic workflow skills and no maid-runner-* skills."
+        - kind: test_function
+          name: test_codex_payload_manifest_distributable_excludes_repo_internal_skills
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "The synced Codex payload manifest lists only the four generic skills as distributable and excludes repo-internal skills and descriptions."
+  read:
+    - tests/cli/test_init_cmd.py
+    - tests/test_recall_payload_sync.py
+    - tests/test_agent_payload_distribution.py
+    - maid_runner/cli/commands/_main.py
+    - .codex/skills/maid-plan-review/SKILL.md
+    - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+    - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+    - manifests/fix-claude-skill-only-distribution.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_codex_distributable_scope.py tests/cli/test_init_cmd.py tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py
+outcome:
+  status: completed
+  completed_at: "2026-06-22T10:20:00Z"
+  summary: "maid init now installs only the skills declared in the packaged manifest's skills.distributable list, so maid init --tool codex stops shipping repo-internal maid-runner-* and maid-validate-hardening skills into other repositories. The Codex distributable is the four generic MAID skills, repo-internal skills stay packaged but inert, maid-plan-review is now packaged for Codex, and the AGENTS.md guidance prose is generic."
+  rationale: "The installer (_payload_files) walked the entire packaged payload, so the distributable list only affected pruning. Filtering installs by skills.distributable in _installable_payload_files makes the distributable contract authoritative and uniform across claude/codex/cursor while leaving the generated-payload artifacts declared by prior manifests (048-01, 049-02, 066-04, and later guidance updates) intact, avoiding a supersession cascade. Claude is unaffected because its packaged skills already equal its distributable list."
+  lessons:
+    - lesson_type: design
+      summary: "When init installed every packaged file, the manifest distributable list silently meant 'prune set' rather than 'install set'. Honoring the distributable list at install time is the correct seam and fixes the contract for all tools at once."
+      tags:
+        - init
+        - codex
+        - packaging
+        - repo-isolation
+      paths:
+        - maid_runner/cli/commands/init.py
+        - scripts/sync_claude_files.py
+  review_notes:
+    - source: codex-independent-reviewer
+      severity: info
+      summary: "Independent Codex review (reviewer 019eed10-0a29-7970-a052-62b356ea7fe0) found no code-level findings: the install filter keeps non-skill payload files, includes nested files under distributable skills, excludes packaged-but-undistributable skills, and preserves Claude/Cursor behavior. No other production path enumerates skills by walking the package directory. The only blocker raised was this missing outcome record, now captured."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_init_codex_distributable_scope.py
+        - tests/cli/test_init_cmd.py
+      status: passed
+      summary: "New behavioral tests and updated init command tests passed (16 tests)."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-codex-init-honor-distributable.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed with advisory E307 warnings for non-Python generated payload artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Whole-codebase MAID validation passed: 274 passed, 0 failed, 86 superseded."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+      status: passed
+      summary: "Full test suite passed: 2847 passed, 5 skipped."

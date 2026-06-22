@@ -1,0 +1,72 @@
+{
+  "manifest_path": "manifests/fix-codex-init-honor-distributable.manifest.yaml",
+  "manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+  "test_hashes": {
+    "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
+    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+    "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
+  },
+  "created_at": "2026-06-22T02:17:12.222652+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-22T02:17:12.903217+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_codex_distributable_scope.py tests/cli/test_init_cmd.py tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            _read(\"maid_runner/codex/manifest.json\", root=synced_workspace)\n        )\n    \n>       assert manifest[\"skills\"][\"distributable\"] == CODEX_DISTRIBUTABLE_SKILLS\nE       AssertionError: assert ['maid-planne...ization', ...] == ['maid-planne...ation-review']\nE         \nE         At index 1 diff: 'maid-implementer' != 'maid-plan-review'\nE         Left contains 4 more items, first extra item: 'maid-runner-draft-implement'\nE         Use -v to get more diff\n\ntests/test_agent_payload_distribution.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_init_installs_only_distributable_skills\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_init_agents_md_describes_generic_workflow\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_payload_manifest_distributable_excludes_repo_internal_skills\nFAILED tests/cli/test_init_cmd.py::TestCmdInit::test_init_codex_creates_repo_level_maid_assets\nFAILED tests/cli/test_init_cmd.py::TestCmdInit::test_init_codex_dry_run_reports_assets_without_creating_them\nFAILED tests/cli/test_init_cmd.py::TestCmdInit::test_init_codex_force_replaces_only_marked_agents_section_and_prunes_stale_payload\nFAILED tests/test_agent_payload_distribution.py::test_codex_payload_manifest_matches_source_skills\n7 failed, 16 passed in 0.51s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_distributable",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_distributable:kind=attribute",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_distributable:of=codex_payload",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_distributable:type=json object",
+      "maid_runner/codex/skills/maid-plan-review/SKILL.md:attribute:codex_payload._distributed_codex_plan_review_skill",
+      "maid_runner/codex/skills/maid-plan-review/SKILL.md:attribute:codex_payload._distributed_codex_plan_review_skill:kind=attribute",
+      "maid_runner/codex/skills/maid-plan-review/SKILL.md:attribute:codex_payload._distributed_codex_plan_review_skill:of=codex_payload",
+      "maid_runner/codex/skills/maid-plan-review/SKILL.md:attribute:codex_payload._distributed_codex_plan_review_skill:type=markdown document",
+      "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_plan_review_agent_metadata",
+      "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_plan_review_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_plan_review_agent_metadata:of=codex_payload",
+      "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml:attribute:codex_payload._distributed_codex_plan_review_agent_metadata:type=yaml document",
+      "scripts/sync_claude_files.py:function:sync_codex_payload",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:kind=function",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_agents_md_describes_generic_workflow",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_agents_md_describes_generic_workflow:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_agents_md_describes_generic_workflow:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_agents_md_describes_generic_workflow:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_agents_md_describes_generic_workflow:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_codex_distributable_scope.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_recall_payload_sync.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_codex_distributable_scope.py tests/cli/test_init_cmd.py tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py"
+    ]
+  }
+}

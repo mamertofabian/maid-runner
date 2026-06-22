@@ -205,25 +205,28 @@ class TestCmdInit:
         assert (tmp_path / "manifests").is_dir()
         assert (tmp_path / ".maidrc.yaml").is_file()
         assert (tmp_path / ".codex" / "manifest.json").is_file()
-        assert (
-            tmp_path / ".codex" / "skills" / "maid-runner-draft-implement" / "SKILL.md"
-        ).is_file()
+        assert (tmp_path / ".codex" / "skills" / "maid-planner" / "SKILL.md").is_file()
         assert (
             tmp_path
             / ".codex"
             / "skills"
-            / "maid-runner-cleanup-and-refactor"
+            / "maid-plan-review"
             / "agents"
             / "openai.yaml"
         ).is_file()
+        assert not (
+            tmp_path / ".codex" / "skills" / "maid-runner-draft-implement"
+        ).exists()
+        assert not (tmp_path / ".codex" / "skills" / "maid-validate-hardening").exists()
         assert not (tmp_path / ".claude").exists()
         assert not (tmp_path / "CLAUDE.md").exists()
 
         agents_md = (tmp_path / "AGENTS.md").read_text()
         assert MAID_SECTION_START in agents_md
         assert MAID_SECTION_END in agents_md
-        assert "maid-runner-draft-implement" in agents_md
-        assert "maid-validate-hardening" in agents_md
+        assert "maid-planner" in agents_md
+        assert "maid-implementation-review" in agents_md
+        assert "maid-runner-" not in agents_md
         assert "Draft manifests under `manifests/drafts/`" in agents_md
         assert "Promote one implementation-sized draft into `manifests/`" in agents_md
         assert "remove only the matching draft path" in agents_md
@@ -248,14 +251,13 @@ class TestCmdInit:
         assert not (tmp_path / ".codex").exists()
         assert not (tmp_path / "AGENTS.md").exists()
         captured = capsys.readouterr()
+        assert "Would create: .codex/skills/maid-planner/SKILL.md" in captured.out
         assert (
-            "Would create: .codex/skills/maid-runner-draft-implement/SKILL.md"
+            "Would create: .codex/skills/maid-plan-review/agents/openai.yaml"
             in captured.out
         )
-        assert (
-            "Would create: .codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml"
-            in captured.out
-        )
+        assert "maid-runner-draft-implement" not in captured.out
+        assert "maid-validate-hardening" not in captured.out
         assert "Would update: AGENTS.md" in captured.out
 
     def test_init_codex_force_replaces_only_marked_agents_section_and_prunes_stale_payload(
@@ -300,11 +302,12 @@ class TestCmdInit:
         assert "stale MAID instructions" not in agents_md
         assert agents_md.count(MAID_SECTION_START) == 1
         assert agents_md.count(MAID_SECTION_END) == 1
-        assert "maid-runner-self-improvement" in agents_md
+        assert "maid-implementation-review" in agents_md
         installed_skills = sorted(path.name for path in Path(".codex/skills").iterdir())
         assert "old-skill" not in installed_skills
         assert "custom-skill" in installed_skills
-        assert "maid-runner-draft-implement" in installed_skills
+        assert "maid-planner" in installed_skills
+        assert "maid-runner-draft-implement" not in installed_skills
         assert Path(".codex/skills/custom-skill/agents/openai.yaml").is_file()
 
     def test_init_non_codex_tool_does_not_create_codex_assets(

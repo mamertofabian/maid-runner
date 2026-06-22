@@ -2,12 +2,12 @@
   "manifest_path": "manifests/069-04-document-edit-time-scope-workflow.manifest.yaml",
   "manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+    "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
     "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
     "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
   },
   "created_at": "2026-06-17T03:58:49.712423+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4229cbd6fbbde6ba8783f11e9659b0f8932be6cf3b9080317e2d200475ce59ae",
@@ -61,6 +61,16 @@
       },
       "revised_at": "2026-06-17T04:24:11.699874+00:00",
       "reason": "Capture evidence-backed Outcome after ready implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
+      },
+      "revised_at": "2026-06-22T02:44:45.352879+00:00",
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
     }
   ],
   "red_evidence": {

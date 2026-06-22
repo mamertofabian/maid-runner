@@ -16,13 +16,9 @@ from maid_runner.cli.commands._main import build_parser
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-planner",
+    "maid-plan-review",
     "maid-implementer",
     "maid-implementation-review",
-    "maid-runner-cleanup-and-refactor",
-    "maid-runner-draft-implement",
-    "maid-runner-performance-optimization",
-    "maid-runner-self-improvement",
-    "maid-validate-hardening",
 ]
 
 
