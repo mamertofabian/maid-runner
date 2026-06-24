@@ -1,0 +1,127 @@
+schema: '2'
+goal: Accept Claude Code PreToolUse stdin envelopes in scope-check hooks
+type: fix
+created: '2026-06-24T04:03:37Z'
+metadata:
+  epic: 069-00-edit-time-scope-enforcement-hooks
+  tags:
+  - hooks
+  - claude
+  - agent-integration
+  priority: medium
+description: |
+  Fix the integration mismatch reported in
+  `~/.maid/bug-report/20260624-115241-init-claude-scope-check-hook-stdin-contract.md`.
+  `maid init --tool claude` installs `maid hook scope-check --stdin` as a
+  Claude Code PreToolUse hook, but Claude sends an envelope shaped like
+  `{"hook_event_name": "PreToolUse", "tool_name": "Edit", "tool_input":
+  {"file_path": "..."}}` while the command currently accepts only the legacy
+  `{"path": ...}` object. Preserve the existing legacy stdin contract and add
+  Claude envelope support so the packaged hook command can parse the path it is
+  actually handed.
+temptations:
+- risk: 'Do not replace the existing {"path": ...} stdin contract while fixing Claude.'
+  instead: Accept Claude's tool_input.file_path envelope in addition to the legacy path object.
+- risk: Do not hide malformed hook payloads as no-active-task decisions.
+  instead: Only unwrap known path fields; payloads without a non-empty path should continue through the existing internal-error response.
+- risk: Do not change the fail-open/fail-closed policy for hook errors.
+  instead: Keep cmd_hook's existing decision and exit-code policy; change only candidate path extraction.
+files:
+  edit:
+  - path: maid_runner/cli/commands/hook.py
+    artifacts:
+    - kind: function
+      name: cmd_hook
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: 'Handle maid hook scope-check with --stdin accepting both legacy {"path": ...} payloads and Claude Code PreToolUse envelopes containing tool_input.file_path, then print one JSON decision object and return 0 allow, 2 deny, or 1 internal error.'
+  - path: tests/cli/test_hook_claude_stdin_envelope.py
+    artifacts:
+    - kind: test_function
+      name: test_scope_check_accepts_claude_pretooluse_stdin_envelope
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: "A Claude Code PreToolUse envelope for an Edit tool with tool_input.file_path is parsed by cmd_hook and produces the normal in-scope allow decision instead of an internal-error."
+  read:
+  - manifests/069-02-add-hook-scope-check-command.manifest.yaml
+  - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+  - maid_runner/claude/settings.json
+validate:
+- uv run python -m pytest -q tests/cli/test_hook_claude_stdin_envelope.py tests/cli/test_hook_cmd.py
+- uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-24T04:34:00Z"
+  summary: "Updated `maid hook scope-check --stdin` so Claude Code PreToolUse envelopes using `tool_input.file_path` parse as normal candidate paths while preserving the legacy top-level `path` object contract and existing malformed-payload internal-error behavior."
+  rationale: "The installed Claude payload already pipes raw PreToolUse JSON into the command, so the command must accept Claude's actual envelope rather than requiring every consumer to transform it first. The parser remains deliberately narrow: it unwraps only top-level `path` or nested `tool_input.file_path`, then delegates all allow/deny policy and fail-open/fail-closed behavior to the existing `cmd_hook` and `scope_check_path` flow."
+  lessons:
+  - lesson_type: validation
+    summary: "Hook payload integration tests should execute the runtime envelope shape installed by `maid init`, not only assert generated settings strings or synthetic `{\"path\": ...}` payloads."
+    tags:
+    - hooks
+    - claude
+    - behavioral-testing
+    paths:
+    - tests/cli/test_hook_claude_stdin_envelope.py
+    - maid_runner/cli/commands/hook.py
+  - lesson_type: workflow
+    summary: "When adding regression coverage for an older plan-locked test file, prefer a new manifest-owned test module so historical plan locks remain intact; revise the current lock with matching red evidence when the test file placement changes."
+    tags:
+    - plan-lock
+    - red-evidence
+    - regression-tests
+    paths:
+    - .maid/plan-locks/fix-claude-scope-check-stdin-envelope.lock.json
+    - tests/cli/test_hook_claude_stdin_envelope.py
+  review_notes:
+  - source: independent-reviewer-019ef7d8-0d34-77b1-9418-f1cc4ad1459e
+    severity: info
+    summary: "Read-only implementation review found no actionable findings and returned ready; residual non-blocking gap is lack of negative mixed malformed-payload coverage."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_hook_claude_stdin_envelope.py
+    - tests/cli/test_hook_cmd.py
+    status: passed
+    summary: "Focused hook tests passed: 7 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml
+    status: passed
+    summary: "Manifest validation commands passed: 3 passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    status: passed
+    summary: "Handoff gate passed with explicit baseline: schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full manifest test sweep passed: 140 commands passed, 0 failed."

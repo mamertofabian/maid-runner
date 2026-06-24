@@ -49,7 +49,7 @@ def cmd_hook(args: argparse.Namespace) -> int:
 def _candidate_path(args: argparse.Namespace) -> str:
     if getattr(args, "stdin", False):
         payload = json.loads(sys.stdin.read())
-        path = payload.get("path") if isinstance(payload, dict) else None
+        path = _stdin_payload_path(payload)
         if not isinstance(path, str) or not path:
             raise ValueError("stdin JSON object must contain a non-empty path field")
         return path
@@ -58,3 +58,15 @@ def _candidate_path(args: argparse.Namespace) -> str:
     if not isinstance(path, str) or not path:
         raise ValueError("--path is required unless --stdin is used")
     return path
+
+
+def _stdin_payload_path(payload: object) -> object:
+    if not isinstance(payload, dict):
+        return None
+    path = payload.get("path")
+    if path:
+        return path
+    tool_input = payload.get("tool_input")
+    if isinstance(tool_input, dict):
+        return tool_input.get("file_path")
+    return None

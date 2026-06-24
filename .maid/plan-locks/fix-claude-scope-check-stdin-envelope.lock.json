@@ -1,0 +1,73 @@
+{
+  "manifest_path": "manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml",
+  "manifest_hash": "sha256:66368753146bd45b3777b7d9f43c7c8bfa7d99f3579a723cf68f3a836462f293",
+  "test_hashes": {
+    "tests/cli/test_hook_claude_stdin_envelope.py": "sha256:19db280122d40cc47f41ca5db29657e6d7eea916f9526aa8493614a753fd0942"
+  },
+  "created_at": "2026-06-24T04:03:43.147031+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:2c4e737e915e759e5bcc5497d3657c0b1dac8113530fdf1f56b8e70d5cb7404d",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256:8f6cee22a6ab5876cae1120cca4d045486b7492fa75d8f5b4cedf9b0ca799486"
+      },
+      "revised_at": "2026-06-24T04:06:33.279109+00:00",
+      "reason": "Move the Claude envelope regression into a new manifest-owned test file so older 069-02 plan-lock hashes remain intact."
+    },
+    {
+      "prior_manifest_hash": "sha256:66368753146bd45b3777b7d9f43c7c8bfa7d99f3579a723cf68f3a836462f293",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256:19db280122d40cc47f41ca5db29657e6d7eea916f9526aa8493614a753fd0942"
+      },
+      "revised_at": "2026-06-24T04:07:58.139067+00:00",
+      "reason": "Move the Claude envelope regression into a new manifest-owned test file so older 069-02 plan-lock hashes remain intact."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-24T04:08:01.098892+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_hook_claude_stdin_envelope.py tests/cli/test_hook_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            ),\n        )\n        _write_active_manifest(tmp_path, \"manifests/demo.manifest.yaml\")\n        args = SimpleNamespace(\n            hook_command=\"scope-check\",\n            stdin=True,\n            path=None,\n            strict=False,\n        )\n    \n        exit_code = cmd_hook(args)\n        payload = _payload(capsys.readouterr().out)\n    \n>       assert exit_code == 0\nE       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_hook_claude_stdin_envelope.py:73: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_hook_claude_stdin_envelope.py::test_scope_check_accepts_claude_pretooluse_stdin_envelope\n1 failed, 6 passed in 0.28s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/hook.py:function:cmd_hook",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:kind=function",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:returns=int",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope:kind=test_function",
+      "tests/cli/test_hook_claude_stdin_envelope.py:test_scope_check_accepts_claude_pretooluse_stdin_envelope:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_hook_claude_stdin_envelope.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_hook_claude_stdin_envelope.py tests/cli/test_hook_cmd.py",
+      "uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
