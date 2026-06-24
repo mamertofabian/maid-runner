@@ -5,16 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.17.0] - 2026-06-19
+## [2.17.0] - 2026-06-24
 
 ### Added
 - **Daemon validation workflow** — Added daemon-resident validation caching, verify protocol support, TCP transport, and a diagnostic daemon client command.
 - **Validator plugin distribution** — Added entry-point validator discovery, validator listing, a conformance kit, and plugin authoring guidance.
+- **User-level MAID onboarding** — Added `maid skills install` plus packaged Claude and Codex user-skill payloads for installing the MAID onboard skill outside a repository init.
+- **Manifest file scoping** — Added scope-only manifest files so contracts can declare files that are validated for worktree scope without requiring implementation artifacts.
 - **Release and CI diagnostics** — Added SARIF output for validate and verify, GitHub Actions SARIF integration, error-code registry export, and CI consumption guidance.
 - **MAID workflow gates** — Added plan locks, red-phase evidence checks, artifact coverage and knockout gates, edit-time scope hooks, active task commands, and structured retry/failure packets.
 - **Incident and recall tooling** — Added incident capture/export/suggestions plus manifest recall and planning packet support for agent workflows.
 
 ### Fixed
+- **Agent payload distribution** — `maid init` now installs only distributable Codex skill payloads, preventing internal source-only skills from leaking into generated init output.
+- **Claude hook compatibility** — Scope-check hooks now accept Claude stdin envelope payloads as well as direct file-change input.
 - **Workflow readiness enforcement** — Required Outcome capture before ready handoff and refreshed Outcome learning guidance after capture.
 - **CLI and manifest safety** — Rejected abbreviated CLI option prefixes, preserved red evidence during plan revision, migrated plan locks during draft promotion, and preserved multiline YAML style on promote.
 
