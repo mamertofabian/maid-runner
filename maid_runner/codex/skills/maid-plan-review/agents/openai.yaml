@@ -1,4 +1,4 @@
 interface:
   display_name: "MAID Plan Review"
   short_description: "Review a MAID manifest before coding"
-  default_prompt: "Use $maid-plan-review to review the current MAID manifest, distinguish draft inventory from implementation-ready approval, check rationale and temptations, adversarially assess likely gaming paths, and flag blockers precisely. For implementation-ready plans, confirm behavioral validation and the red phase before ending with an explicit verdict."
+  default_prompt: "Use $maid-plan-review to review the current MAID manifest, distinguish draft inventory from implementation-ready approval, check rationale and temptations, run an obviousness pass before deeper review, and flag blockers precisely. Confirm the happy path, common failure cases, behavioral validation, and final verdict."
