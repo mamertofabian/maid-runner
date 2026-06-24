@@ -1,0 +1,72 @@
+{
+  "manifest_path": "manifests/fix-typescript-assertion-nested-braces.manifest.yaml",
+  "manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+  "test_hashes": {
+    "tests/core/validation/test_assertion_checking.py": "sha256:2087303a71ece3fae893e3c84dad2c1d77857d6fe258ebca1e1819e4dcffae44"
+  },
+  "created_at": "2026-06-24T07:36:07.666034+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:047768b9fcfa9363320c5a33e8180178cad9b068d6ffcf317fd2d0bf31357621",
+      "prior_test_hashes": {
+        "tests/core/validation/test_assertion_checking.py": "sha256:1cd66513858859191d7192e722296effb74c50df739b58609cf27b93e6c3722f"
+      },
+      "revised_at": "2026-06-24T07:36:11.268596+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-assertion-nested-braces.manifest.yaml -> manifests/fix-typescript-assertion-nested-braces.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+      "prior_test_hashes": {
+        "tests/core/validation/test_assertion_checking.py": "sha256:1cd66513858859191d7192e722296effb74c50df739b58609cf27b93e6c3722f"
+      },
+      "revised_at": "2026-06-24T07:45:53.307053+00:00",
+      "reason": "Black formatting normalized behavioral test after lock"
+    },
+    {
+      "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+      "prior_test_hashes": {
+        "tests/core/validation/test_assertion_checking.py": "sha256:822f34620df4b66eb6bb94110ef31e21dc1fb5a80fe4387d25509acd2dabcc85"
+      },
+      "revised_at": "2026-06-24T07:53:44.596227+00:00",
+      "reason": "Cover focused and skipped direct TypeScript test callees after implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+      "prior_test_hashes": {
+        "tests/core/validation/test_assertion_checking.py": "sha256:ab5465f8186b4eeed2e0e01c275545dda7276229d87f036303d5163ad414d6ea"
+      },
+      "revised_at": "2026-06-24T08:05:10.019146+00:00",
+      "reason": "Ignore member helper calls while scanning direct TypeScript test callees"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-24T07:36:11.668480+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_assertion_checking.py",
+        "exit_code": 1,
+        "output_tail": "            \"});\\n\\n\"\n            \"it('still reports missing assertions with nested setup only', () => {\\n\"\n            \"  render(PublicNavigationLinks, {\\n\"\n            \"    props: {\\n\"\n            \"      items: manifestNavigation(),\\n\"\n            \"    },\\n\"\n            \"  });\\n\"\n            \"});\\n\"\n        )\n    \n        errors = check_test_assertions(source, \"tests/example.test.ts\")\n    \n>       assert len(errors) == 1\nE       assert 2 == 1\nE        +  where 2 = len([ValidationError(code=<ErrorCode.MISSING_ASSERTIONS: 'E210'>, message=\"Test 'renders links after nested setup' has no ...t.ts', line=11, column=None, end_line=None, end_column=None), suggestion='Add expect() statements to verify behavior')])\n\ntests/core/validation/test_assertion_checking.py:108: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_assertion_checking.py::test_check_test_assertions_allows_typescript_expect_after_nested_setup\n1 failed, 14 passed in 0.13s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=source:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=test_path:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:kind=function",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:returns=list[ValidationError]",
+      "tests/core/validation/test_assertion_checking.py:test_check_test_assertions_allows_typescript_expect_after_nested_setup",
+      "tests/core/validation/test_assertion_checking.py:test_check_test_assertions_allows_typescript_expect_after_nested_setup:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/validation/test_assertion_checking.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_assertion_checking.py"
+    ]
+  }
+}

@@ -12,6 +12,11 @@ from maid_runner.core.result import ErrorCode, Location, Severity, ValidationErr
 
 _TestAssertionCacheKey = tuple[str, int, int, str]
 _TestAssertionFileSignature = tuple[int, int]
+_JS_TS_TEST_PATTERN = re.compile(
+    r"(?<![\w$.])(?:it|test|fit|xit)\s*\(\s*(['\"])(.*?)\1\s*,\s*(?:async\s*)?"
+    r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{",
+    re.DOTALL,
+)
 
 
 @dataclass(frozen=True)
@@ -108,16 +113,9 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
                     )
                 )
     elif test_path.endswith((".ts", ".tsx", ".js", ".jsx")):
-        test_pattern = re.compile(
-            r"(?:it|test)\s*\(\s*['\"].*?['\"]\s*,\s*(?:async\s*)?"
-            r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{(.*?)\}",
-            re.DOTALL,
-        )
-        for match in test_pattern.finditer(source):
-            body = match.group(1)
+        for match, body in _js_ts_test_bodies(source):
             if "expect(" not in body and "assert" not in body.lower():
-                name_match = re.search(r"['\"](.+?)['\"]", match.group(0))
-                test_name = name_match.group(1) if name_match else "unknown"
+                test_name = match.group(2) or "unknown"
                 line = source[: match.start()].count("\n") + 1
                 errors.append(
                     ValidationError(
@@ -132,6 +130,77 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
                 )
 
     return errors
+
+
+def _js_ts_test_bodies(source: str) -> list[tuple[re.Match[str], str]]:
+    bodies: list[tuple[re.Match[str], str]] = []
+    for match in _JS_TS_TEST_PATTERN.finditer(source):
+        opening_brace = match.end() - 1
+        closing_brace = _find_matching_js_ts_brace(source, opening_brace)
+        if closing_brace is None:
+            continue
+        bodies.append((match, source[opening_brace + 1 : closing_brace]))
+    return bodies
+
+
+def _find_matching_js_ts_brace(source: str, opening_brace: int) -> int | None:
+    depth = 0
+    quote: str | None = None
+    line_comment = False
+    block_comment = False
+    escaped = False
+    index = opening_brace
+
+    while index < len(source):
+        char = source[index]
+        next_char = source[index + 1] if index + 1 < len(source) else ""
+
+        if line_comment:
+            if char == "\n":
+                line_comment = False
+            index += 1
+            continue
+
+        if block_comment:
+            if char == "*" and next_char == "/":
+                block_comment = False
+                index += 2
+            else:
+                index += 1
+            continue
+
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            index += 1
+            continue
+
+        if char == "/" and next_char == "/":
+            line_comment = True
+            index += 2
+            continue
+        if char == "/" and next_char == "*":
+            block_comment = True
+            index += 2
+            continue
+        if char in {"'", '"', "`"}:
+            quote = char
+            index += 1
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+
+        index += 1
+
+    return None
 
 
 def python_func_has_assertion(node) -> bool:
