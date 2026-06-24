@@ -37,6 +37,36 @@ plan lock before implementation begins:
 7. Run implementation validation, manifest tests, `uv run maid validate`, and `uv run maid test`.
 8. Before handoff, run `uv run maid verify --require-plan-lock --require-red-evidence` and treat plan-lock or red-evidence failures as workflow blockers rather than recreating evidence after implementation.
 
+## Optional Multi-Agent Division of Labor
+
+MAID is tool-agnostic: a single agent may run the entire lifecycle (plan,
+contract, implement, review). This repository also supports an optional split
+across agents, and the MAID skills support either mode without imposing one.
+
+When the split is used here, the roles are:
+
+1. **Strategy / draft (planning agent):** decompose the work, set scope
+   boundaries, and design the epic or draft manifest under `manifests/drafts/`.
+   In handoff mode the planning agent stops after the draft and adversarial
+   self-review and emits a handoff packet (draft path, scope boundaries,
+   declared-artifact intent, planned tests and `validate` commands, expected
+   red-phase failure, open questions and rationale) instead of locking.
+2. **Contract hardening (implementing agent):** resume from the handoff packet —
+   write behavioral tests, confirm the intended red phase, run
+   `uv run maid validate <manifest> --mode behavioral`, plan-review, and after
+   approval `uv run maid plan lock <manifest>` then
+   `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`.
+3. **Implementation:** implement strictly within the promoted, locked scope; do
+   not relax tests or rewrite the manifest. Send genuinely new work back into a
+   planning loop instead.
+4. **Implementation review:** review the diff against the locked contract in a
+   separate session or subagent per the MAID Review-Fix-Ready Loop, so the
+   review does not inherit blind spots from contract authoring.
+
+The split is optional and tool-neutral; any agent can play any role. Repository
+guidance (CLAUDE.md for Claude, this file for shared/Codex behavior) records
+whether a given agent prefers a specific role by default.
+
 ## Validator Hardening Constraints
 
 Do not build or extend custom static analyzers as the default answer to validator hardening, especially for Python control-flow or behavioral reachability. The abandoned 033 reachability hardening attempt showed that case-by-case AST interpretation causes large validator and test growth while still missing language edge cases. Prefer runtime-backed evidence, instrumentation, existing parser/compiler services, or a deliberately narrow syntactic rule with documented limits. If a hardening task starts requiring broad control-flow modeling, stop and propose a design direction before implementation.

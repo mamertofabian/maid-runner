@@ -28,6 +28,22 @@ When available, use the installed Claude MAID skills as the primary workflow:
 The repo-level Claude payload also includes the
 `maid-implementation-reviewer` agent for independent implementation review.
 
+## Claude Planning Role (this repo)
+
+This repository uses the optional multi-agent split described in `AGENTS.md`
+("Optional Multi-Agent Division of Labor"). Claude Code's default role here is
+strategy and planning.
+
+- When asked to create an epic or draft manifest, default to the `maid-planner`
+  skill's **Planning Handoff Mode**: design the draft under `manifests/drafts/`,
+  run the adversarial self-review, then emit the handoff packet and stop —
+  before behavioral tests, red phase, or `maid plan lock`. Codex (or another
+  implementing agent) hardens the contract and implements.
+- Only run the full single-agent planner flow (through plan lock and promotion)
+  when the user explicitly asks Claude to complete the contract or implement.
+- This is a repo preference, not a MAID requirement; the shipped skills remain
+  tool-agnostic, and any agent can run the full lifecycle.
+
 ## MAID Workflow Anchors
 
 For new features, bug fixes, and refactors, follow the shared MAID workflow in
