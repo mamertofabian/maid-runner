@@ -144,6 +144,171 @@ test('component can be imported', () => {
     )
 
 
+def test_svelte5_props_destructuring_collects_component_attributes(
+    validator: SvelteValidator,
+) -> None:
+    source = """<script lang="ts">
+import type { PageData, PublicSection } from '$lib/types/public-api';
+
+let { section, data }: { section: PublicSection; data: PageData } = $props();
+</script>
+
+<section>{section.title}</section>
+"""
+
+    result = validator.collect_implementation_artifacts(
+        source, "src/lib/components/SectionRenderer.svelte"
+    )
+
+    section = next(
+        (
+            artifact
+            for artifact in result.artifacts
+            if artifact.name == "section"
+            and artifact.kind == ArtifactKind.ATTRIBUTE
+            and artifact.of == "SectionRenderer"
+        ),
+        None,
+    )
+    data = next(
+        (
+            artifact
+            for artifact in result.artifacts
+            if artifact.name == "data"
+            and artifact.kind == ArtifactKind.ATTRIBUTE
+            and artifact.of == "SectionRenderer"
+        ),
+        None,
+    )
+
+    assert section is not None
+    assert section.type_annotation == "PublicSection"
+    assert section.module_path == "src/lib/components/SectionRenderer"
+    assert data is not None
+    assert data.type_annotation == "PageData"
+    assert data.module_path == "src/lib/components/SectionRenderer"
+
+
+def test_svelte5_props_destructuring_satisfies_implementation_validation(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "manifests" / "svelte5-props.manifest.yaml"
+    manifest_path.parent.mkdir()
+    manifest_path.write_text(
+        """schema: "2"
+goal: "Validate Svelte 5 component props"
+type: feature
+files:
+  edit:
+    - path: src/lib/components/SectionRenderer.svelte
+      artifacts:
+        - kind: function
+          name: SectionRenderer
+          returns: Svelte component instance
+        - kind: attribute
+          name: section
+          of: SectionRenderer
+          type: PublicSection
+        - kind: attribute
+          name: data
+          of: SectionRenderer
+          type: PageData
+  read:
+    - tests/section-renderer.test.ts
+validate:
+  - vitest run tests/section-renderer.test.ts
+"""
+    )
+    component_path = tmp_path / "src" / "lib" / "components" / "SectionRenderer.svelte"
+    component_path.parent.mkdir(parents=True)
+    component_path.write_text(
+        """<script lang="ts">
+import type { PageData, PublicSection } from '$lib/types/public-api';
+
+let { section, data }: { section: PublicSection; data: PageData } = $props();
+</script>
+
+<section>{section.title}</section>
+"""
+    )
+    test_path = tmp_path / "tests" / "section-renderer.test.ts"
+    test_path.parent.mkdir()
+    test_path.write_text(
+        """import SectionRenderer from '../src/lib/components/SectionRenderer.svelte';
+import type { PageData, PublicSection } from '../src/lib/types/public-api';
+
+test('component props can be declared', () => {
+  const section = { title: 'Overview' } as PublicSection;
+  const data = { sections: [section] } as PageData;
+  expect(SectionRenderer).toBeDefined();
+  expect(section).toBeDefined();
+  expect(data).toBeDefined();
+});
+"""
+    )
+
+    result = ValidationEngine(project_root=tmp_path).validate(
+        manifest_path,
+        mode=ValidationMode.IMPLEMENTATION,
+    )
+
+    assert result.success is True
+    assert not any(
+        error.code == ErrorCode.ARTIFACT_NOT_DEFINED for error in result.errors
+    )
+
+
+def test_svelte5_props_destructuring_ignores_non_props_object_patterns(
+    validator: SvelteValidator,
+) -> None:
+    source = """<script lang="ts">
+type LocalState = { section: string; data: string };
+
+const localState: LocalState = { section: 'local', data: 'local' };
+let { section, data }: LocalState = localState;
+</script>
+
+<section>{section}</section>
+"""
+
+    result = validator.collect_implementation_artifacts(
+        source, "src/lib/components/SectionRenderer.svelte"
+    )
+
+    assert not any(
+        artifact.name in {"section", "data"}
+        and artifact.kind == ArtifactKind.ATTRIBUTE
+        and artifact.of == "SectionRenderer"
+        for artifact in result.artifacts
+    )
+
+
+def test_svelte5_props_destructuring_ignores_module_scripts(
+    validator: SvelteValidator,
+) -> None:
+    source = """<script context="module" lang="ts">
+let { section }: { section: PublicSection } = $props();
+</script>
+
+<script module lang="ts">
+let { data }: { data: PageData } = $props();
+</script>
+
+<section>module props are not component props</section>
+"""
+
+    result = validator.collect_implementation_artifacts(
+        source, "src/lib/components/SectionRenderer.svelte"
+    )
+
+    assert not any(
+        artifact.name in {"section", "data"}
+        and artifact.kind == ArtifactKind.ATTRIBUTE
+        and artifact.of == "SectionRenderer"
+        for artifact in result.artifacts
+    )
+
+
 class TestSvelteScriptExtraction:
     def test_extracts_functions_from_script(self, validator):
         source = """<script>
