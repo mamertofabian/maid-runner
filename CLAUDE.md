@@ -52,6 +52,17 @@ Loop" sections for the plan-lock, draft-promotion, handoff-gate, and Outcome
 capture requirements. This file does not restate them, to keep a single
 source of truth.
 
+Keep these release-tested anchors discoverable here:
+
+- The planning loop ends with `maid plan lock <manifest>`, and the
+  implementation handoff must not proceed until
+  `maid verify --require-plan-lock --require-red-evidence` passes.
+- `maid manifest promote` migrates the promoted manifest's plan lock; use
+  `maid plan revise` for intentional contract changes instead of recreating
+  evidence.
+- `E707` / `RED_EVIDENCE_COMMAND_MISMATCH` means red-phase evidence no longer
+  matches the manifest validation commands and must be fixed before handoff.
+
 ## References
 
 - `docs/maid_specs.md`: complete MAID methodology and manifest details.
