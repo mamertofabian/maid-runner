@@ -1,0 +1,68 @@
+{
+  "manifest_path": "manifests/bump-version-2.17.2.manifest.yaml",
+  "manifest_hash": "sha256:d0580a20b22cf35d2b0a8d62a8715d9d4caa890ddd0d1343b54691c2d97f1777",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
+  },
+  "created_at": "2026-06-25T04:48:21.425947+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:b04e91b2428cad78dd7414001d416f4f66a171f2242f111a5b48a2f5a9b185e4",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
+      },
+      "revised_at": "2026-06-25T04:48:26.177400+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.17.2.manifest.yaml -> manifests/bump-version-2.17.2.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:a5ca06b4c9a6a6bda8f3bde64c2dd8fca4cb2212eb8aa3310eb9cf3430d5d91e",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
+      },
+      "revised_at": "2026-06-25T04:49:23.291504+00:00",
+      "reason": "Run full integration API test file for manifest command integrity"
+    },
+    {
+      "prior_manifest_hash": "sha256:4c2b53582ef9b8dd9cf0e607a029555ba13f6c5ff386e9f49ca66dbec324a0bb",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
+      },
+      "revised_at": "2026-06-25T04:50:09.508496+00:00",
+      "reason": "Recapture red evidence for full integration API test command"
+    },
+    {
+      "prior_manifest_hash": "sha256:4c2b53582ef9b8dd9cf0e607a029555ba13f6c5ff386e9f49ca66dbec324a0bb",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
+      },
+      "revised_at": "2026-06-25T05:02:57.065888+00:00",
+      "reason": "Capture completed outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-25T04:50:09.834165+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner import __version__\n    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.17.2\"\nE       AssertionError: assert '2.17.1' == '2.17.2'\nE         \nE         - 2.17.2\nE         ?      ^\nE         + 2.17.1\nE         ?      ^\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_17_2\n1 failed, 27 passed in 0.17s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_17_2",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_17_2:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_17_2:of=TestPublicAPIImports"
+    ],
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}

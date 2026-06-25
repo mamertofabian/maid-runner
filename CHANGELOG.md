@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.2] - 2026-06-25
+
+### Fixed
+- **Scope-only file tracking** — `files.scope` source files now count as tracked inventory, so strict `maid verify` no longer fails on intentional no-artifact Svelte route, prop-only, or config files while preserving registered-file failures for read-only production files.
+
 ## [2.17.1] - 2026-06-25
 
 ### Changed
@@ -1063,6 +1068,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.17.2]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.17.2
 [2.17.1]: https://github.com/mamertofabian/maid-runner/compare/v2.17.0...v2.17.1
 [2.17.0]: https://github.com/mamertofabian/maid-runner/compare/v2.16.3...v2.17.0
 [2.16.3]: https://github.com/mamertofabian/maid-runner/compare/v2.16.2...v2.16.3
