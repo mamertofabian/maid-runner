@@ -2,12 +2,12 @@
   "manifest_path": "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
   "manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
-    "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+    "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95",
     "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
   },
   "created_at": "2026-06-17T01:56:53.748596+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d0584dbd7d9ca6e15ca940fd9bf8c31bce1a7af70d53da3a78f8859ec8d222fe",
@@ -68,6 +68,16 @@
       },
       "revised_at": "2026-06-22T02:44:45.160030+00:00",
       "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+    },
+    {
+      "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
+        "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
+        "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+      },
+      "revised_at": "2026-06-25T12:10:51.798796+00:00",
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
     }
   ],
   "red_evidence": {

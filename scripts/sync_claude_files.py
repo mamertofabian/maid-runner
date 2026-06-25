@@ -61,6 +61,15 @@ def _cursor_dest_root() -> Path:
     return _project_root() / "maid_runner" / "cursor"
 
 
+def _copy_file(source: Path, destination: Path) -> bool:
+    if not source.exists():
+        print(f"⚠️  Warning: Source file not found: {source}. Skipping.")
+        return False
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+    return True
+
+
 def _load_claude_manifest() -> dict:
     source_manifest = _project_root() / ".claude" / "manifest.json"
     if not source_manifest.exists():
@@ -360,6 +369,29 @@ def sync_user_skills() -> None:
     print(f"✓ Synced {copied} user skill directories to {dest_root}")
 
 
+def sync_init_workflow_payloads() -> None:
+    """Copy workflow docs installed by `maid init` into package resources."""
+    project_root = _project_root()
+    payloads = (
+        (
+            "docs/draft-manifest-workflow.md",
+            "maid_runner/docs/draft-manifest-workflow.md",
+        ),
+        (
+            "docs/manifest-outcome-records.md",
+            "maid_runner/docs/manifest-outcome-records.md",
+        ),
+        ("manifests/drafts/README.md", "maid_runner/manifests/drafts/README.md"),
+    )
+
+    copied = 0
+    for source_path, destination_path in payloads:
+        if _copy_file(project_root / source_path, project_root / destination_path):
+            copied += 1
+
+    print(f"✓ Synced {copied} init workflow payload files")
+
+
 def main() -> None:
     """Main entry point - orchestrate the full sync process."""
     print("=" * 60)
@@ -377,6 +409,7 @@ def main() -> None:
     sync_codex_payload()
     sync_cursor_payload()
     sync_user_skills()
+    sync_init_workflow_payloads()
 
     print()
     print("=" * 60)

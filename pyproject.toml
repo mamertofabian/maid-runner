@@ -89,7 +89,7 @@ include = ["maid_runner*"]
 exclude = ["tests*", "manifests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "claude/manifest.json", "claude/settings.json", "claude/agents/*.md", "claude/skills/*/SKILL.md", "codex/manifest.json", "codex/skills/*/SKILL.md", "codex/skills/*/agents/*.yaml", "cursor/manifest.json", "cursor/hooks.json", "user_skills/claude/*/SKILL.md", "user_skills/codex/*/SKILL.md", "user_skills/codex/*/agents/*.yaml", "core/*.cjs"]
+maid_runner = ["py.typed", "schemas/*.json", "docs/maid_specs.md", "docs/unit-testing-rules.md", "docs/draft-manifest-workflow.md", "docs/manifest-outcome-records.md", "manifests/drafts/README.md", "claude/manifest.json", "claude/settings.json", "claude/agents/*.md", "claude/skills/*/SKILL.md", "codex/manifest.json", "codex/skills/*/SKILL.md", "codex/skills/*/agents/*.yaml", "cursor/manifest.json", "cursor/hooks.json", "user_skills/claude/*/SKILL.md", "user_skills/codex/*/SKILL.md", "user_skills/codex/*/agents/*.yaml", "core/*.cjs"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

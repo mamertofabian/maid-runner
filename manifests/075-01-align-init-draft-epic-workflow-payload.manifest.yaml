@@ -1,0 +1,320 @@
+schema: '2'
+goal: Align maid init draft and epic workflow payloads with the sanctioned draft promotion model
+type: fix
+created: '2026-06-25T12:02:05Z'
+metadata:
+  tags:
+  - init
+  - draft-manifests
+  - epic-manifests
+  - agent-guidance
+  - packaging
+  priority: high
+description: |
+  Downstream repositories initialized by maid-runner can drift when the
+  generated MAID guidance teaches the older draft lifecycle. Erindelle exposed
+  the failure mode: local init-installed guidance and draft inventory treated
+  epic plans like ordinary `.manifest.yaml` drafts, lacked a local drafts
+  README/workflow-doc payload, and still allowed manual draft moves instead of
+  the sanctioned `maid manifest promote` path that migrates plan locks and red
+  evidence.
+
+  Update `maid init` so future repositories receive the same draft/epic
+  semantics that maid-runner dogfoods:
+
+  - child implementation drafts live at `manifests/drafts/*.manifest.yaml`;
+  - epic planning records live at `manifests/drafts/*.epic.yaml` and are
+    split-before-promote inventory, never directly implemented;
+  - archived draft records live outside the top-level child queue and carry
+    explicit archive metadata;
+  - selected child drafts are promoted with
+    `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`, not
+    by manual move/copy;
+  - metadata-only reference cleanup on locked active manifests uses
+    `uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`;
+  - generated guidance points at local workflow docs that `maid init` actually
+    installs.
+
+  Planning evidence: outcome recall for
+  `manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml` warned that
+  generated guidance tests should assert exact promotion action and
+  evidence-citation wording, not only broad topic mentions. This contract must
+  follow that lesson: tests should prove the stale "Promote by moving" and
+  "Promote one implementation-sized draft into `manifests/`" guidance cannot
+  reappear in init output, source docs, packaged payloads, or installed local
+  docs.
+
+  This draft is planning inventory. It is not promotion-ready until the planned
+  behavioral tests exist, fail red for the stale guidance/payload gaps, and pass
+  `maid validate --mode behavioral` against the draft path.
+temptations:
+- risk: Do not update only AGENTS.md/CLAUDE.md source guidance while leaving `maid init` output stale.
+  instead: Change the `maid init` renderer and cover both generated AGENTS.md and CLAUDE.md output with CLI tests.
+- risk: Do not keep references to local docs that fresh initialized repositories do not receive.
+  instead: Install the draft workflow docs and drafts README during init, and package or render those payloads deterministically.
+- risk: Do not preserve manual move/copy wording as a fallback promotion path.
+  instead: Assert the exact `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml` command and the `Do not manually move or copy draft manifests` prohibition.
+- risk: Do not overwrite valid red evidence when updating locked manifest references in downstream repos.
+  instead: Include `maid plan revise --preserve-red-evidence` guidance in init output and installed docs.
+- risk: Do not broaden this into unrelated init tooling or agent-skill redesign.
+  instead: Limit implementation to draft/epic workflow docs, init-installed payloads, package-data/sync support, and focused tests.
+files:
+  create:
+  - path: tests/test_init_draft_workflow_payload.py
+    artifacts:
+    - kind: test_function
+      name: test_init_installs_local_draft_workflow_docs_and_readme
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A new repository runs `maid init --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The initialized repository contains `docs/draft-manifest-workflow.md`, `docs/manifest-outcome-records.md`, and `manifests/drafts/README.md`; those files document `.epic.yaml`, split-before-promote, archived drafts, `maid manifest promote`, and `plan revise --preserve-red-evidence` without stale manual-move promotion wording.
+    - kind: test_function
+      name: test_init_generated_agent_guidance_matches_draft_epic_workflow
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A new repository runs `maid init --tool claude` and `maid init --tool codex` in isolated workspaces.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: Generated `CLAUDE.md` and `AGENTS.md` MAID sections name `.epic.yaml` epic planning records, require `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`, forbid manual move/copy promotion, explain `plan revise --preserve-red-evidence`, and retain Outcome capture plus `maid learn` guidance.
+    - kind: test_function
+      name: test_packaged_workflow_docs_match_source_docs
+      args: []
+      returns: None
+      source_scenario: The distribution package is built from package-data resources used by `maid init`.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      - type: api_call
+        subject:
+          function: tomllib.loads
+      expected:
+        behavior: Package-data includes the workflow docs/resources that init installs, and packaged copies match the repo source docs so init cannot ship stale draft workflow text.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_draft_manifest_workflow_doc
+      of: package_resource
+      type: markdown document
+      description: Packaged copy of docs/draft-manifest-workflow.md installed by `maid init`.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_manifest_outcome_records_doc
+      of: package_resource
+      type: markdown document
+      description: Packaged copy of docs/manifest-outcome-records.md installed by `maid init`.
+  - path: maid_runner/manifests/drafts/README.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_drafts_inventory_readme
+      of: package_resource
+      type: markdown document
+      description: Packaged copy of manifests/drafts/README.md installed by `maid init`.
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      source_scenario: A user initializes a repository with `maid init --tool claude`, `maid init --tool codex`, or `maid init --tool auto`.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_init
+      expected:
+        behavior: The command creates `manifests/drafts/`, installs local draft workflow docs and drafts README, and renders agent guidance that matches the sanctioned draft/epic promotion workflow.
+  - path: tests/cli/test_init_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_init_claude_creates_repo_level_maid_assets
+      source_scenario: A repository runs `maid init --tool claude`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated `CLAUDE.md` section asserts the sanctioned draft/epic workflow and no stale manual-move promotion guidance.
+    - kind: test_function
+      name: test_init_codex_creates_repo_level_maid_assets
+      source_scenario: A repository runs `maid init --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated `AGENTS.md` section asserts the sanctioned draft/epic workflow and no stale manual-move promotion guidance.
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _sanctioned_draft_manifest_workflow_docs
+      of: documentation
+      type: markdown section
+      description: Canonical workflow docs describe `.epic.yaml`, archived draft inventory, `maid manifest promote`, and `plan revise --preserve-red-evidence` without manual move/copy promotion wording.
+  - path: manifests/drafts/README.md
+    artifacts:
+    - kind: attribute
+      name: _drafts_inventory_readme_workflow_guidance
+      of: documentation
+      type: markdown section
+      description: Draft inventory README matches the sanctioned child draft, epic draft, archive, and promotion workflow.
+  - path: pyproject.toml
+    artifacts:
+    - kind: attribute
+      name: _maid_runner_package_data_init_workflow_payloads
+      of: pyproject
+      type: TOML package-data entry
+      description: Package data includes every workflow doc/resource that `maid init` installs into downstream repositories.
+  - path: scripts/sync_claude_files.py
+    artifacts:
+    - kind: function
+      name: main
+      args: []
+      returns: None
+      description: Synchronizes generated agent and init workflow payload resources deterministically so package resources do not drift from repo source docs.
+  - path: tests/test_agent_payload_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_payload_package_data_includes_claude_and_codex_assets
+      source_scenario: The distribution package is built from pyproject package-data globs.
+      actions:
+      - type: api_call
+        subject:
+          function: tomllib.loads
+      expected:
+        behavior: Package data includes the docs/resources installed by `maid init`, in addition to existing Claude and Codex assets.
+  read:
+  - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml
+  - manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml
+  - docs/manifest-outcome-records.md
+validate:
+- uv run python -m pytest -q tests/cli/test_init_cmd.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py
+- uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-25T20:18:54+08:00"
+  summary: "Aligned `maid init` draft and epic workflow payloads with the sanctioned plan-lock-aware draft promotion model."
+  rationale: "Fresh initialized repositories now receive local draft workflow docs, Outcome docs, and drafts README payloads, and generated Claude/Codex guidance names child `.manifest.yaml` drafts, `.epic.yaml` split-before-promote records, `uv run maid manifest promote`, the no manual move/copy rule, and `maid plan revise --preserve-red-evidence` for locked metadata cleanup. Package-data and sync support keep those installed resources aligned with source docs."
+  lessons:
+  - lesson_type: testing
+    summary: "Init guidance tests need exact lifecycle assertions for promotion commands, stale manual-move wording, and evidence-preserving revision guidance; broad topic checks would have allowed the old workflow text to survive."
+    tags:
+    - init
+    - draft-manifests
+    - agent-guidance
+    paths:
+    - tests/cli/test_init_cmd.py
+    - tests/test_init_draft_workflow_payload.py
+  - lesson_type: packaging
+    summary: "When `maid init` points downstream repositories at local docs, those docs must be packaged resources and synced from source, not source-only files."
+    tags:
+    - packaging
+    - init-payloads
+    paths:
+    - scripts/sync_claude_files.py
+    - pyproject.toml
+    - maid_runner/docs/draft-manifest-workflow.md
+    - maid_runner/manifests/drafts/README.md
+  - lesson_type: workflow
+    summary: "Shared behavioral test edits can require preserve-red-evidence lock revisions for older manifests that own the same tests; verify catches those hash updates even when the current manifest is valid."
+    tags:
+    - plan-lock
+    - red-evidence
+    - shared-tests
+    paths:
+    - .maid/plan-locks/066-04-sync-init-payloads-with-recall-workflow.lock.json
+    - .maid/plan-locks/069-03-wire-hooks-into-init-payloads.lock.json
+    - .maid/plan-locks/fix-codex-init-honor-distributable.lock.json
+  review_notes:
+  - source: independent-review-subagent
+    severity: info
+    summary: "Reviewer James found no actionable findings and returned ready; residual risks were limited to keeping `.maid/active-manifest` out of the commit and the lack of an actual wheel build at review time."
+  - source: local-review
+    severity: info
+    summary: "A post-review wheel build into `/tmp/maid-runner-build-07501` succeeded and showed the new `maid_runner/docs/*` and `maid_runner/manifests/drafts/README.md` resources included in the wheel."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_init_cmd.py
+    - tests/test_init_draft_workflow_payload.py
+    - tests/test_agent_payload_distribution.py
+    status: passed
+    summary: "Focused init and payload distribution tests passed after implementation: 20 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml
+    status: passed
+    summary: "The promoted manifest's three validation commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 367 manifests, 0 failures."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed: 142 commands, 0 failures."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Plan-lock, red-evidence, changed-scope, worktree-scope, and test gates passed with explicit baseline; output included existing no-validator/stub warnings."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - build
+    - --wheel
+    - --outdir
+    - /tmp/maid-runner-build-07501
+    status: passed
+    summary: "Wheel build succeeded and included the new packaged init workflow resources."

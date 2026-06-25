@@ -19,10 +19,16 @@ _PAYLOAD_PATH_PREFIXES = {
     "skills": "skills",
     "skill_agents": "skills",
 }
+_INIT_WORKFLOW_PAYLOADS = (
+    ("docs/draft-manifest-workflow.md", Path("docs/draft-manifest-workflow.md")),
+    ("docs/manifest-outcome-records.md", Path("docs/manifest-outcome-records.md")),
+    ("manifests/drafts/README.md", Path("manifests/drafts/README.md")),
+)
 
 
 def cmd_init(args: argparse.Namespace) -> int:
     manifest_dir = Path("manifests")
+    drafts_dir = manifest_dir / "drafts"
     config_file = Path(".maidrc.yaml")
     install_claude = args.tool in {"auto", "claude"}
     install_codex = args.tool == "codex"
@@ -38,7 +44,10 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     if args.dry_run:
         print(f"Would create: {manifest_dir}/")
+        print(f"Would create: {drafts_dir}/")
         print(f"Would create: {config_file}")
+        for _, destination in _INIT_WORKFLOW_PAYLOADS:
+            print(f"Would create: {destination.as_posix()}")
         if install_claude:
             _print_agent_dry_run("claude", ".claude", "CLAUDE.md")
         if install_codex:
@@ -47,7 +56,7 @@ def cmd_init(args: argparse.Namespace) -> int:
             _print_agent_dry_run("cursor", ".cursor", None)
         return 0
 
-    manifest_dir.mkdir(exist_ok=True)
+    drafts_dir.mkdir(parents=True, exist_ok=True)
 
     config_content = (
         "# MAID Runner configuration\n"
@@ -57,6 +66,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     )
 
     config_file.write_text(config_content)
+    _install_init_workflow_payloads(Path.cwd())
 
     if install_claude:
         _install_agent_payload(Path.cwd(), "claude", ".claude", "CLAUDE.md")
@@ -67,7 +77,10 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     print(f"Initialized MAID in {Path.cwd()}")
     print(f"  Created: {manifest_dir}/")
+    print(f"  Created: {drafts_dir}/")
     print(f"  Created: {config_file}")
+    for _, destination in _INIT_WORKFLOW_PAYLOADS:
+        print(f"  Created: {destination.as_posix()}")
     if install_claude:
         print("  Updated: .claude/")
         print("  Updated: CLAUDE.md")
@@ -81,6 +94,18 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def _agent_payload_root(tool: str):
     return resources.files("maid_runner").joinpath(tool)
+
+
+def _maid_runner_resource(relative_path: str):
+    return resources.files("maid_runner").joinpath(*Path(relative_path).parts)
+
+
+def _install_init_workflow_payloads(project_root: Path) -> None:
+    for source_path, destination_path in _INIT_WORKFLOW_PAYLOADS:
+        source = _maid_runner_resource(source_path)
+        destination = project_root / destination_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(source.read_bytes())
 
 
 def _agent_manifest(tool: str) -> dict:
@@ -299,11 +324,20 @@ def _render_agents_md_section(manifest: dict) -> str:
 def _render_draft_outcome_guidance() -> str:
     return (
         "Draft manifests under `manifests/drafts/` are planning inventory, not "
-        "active contracts. Promote one implementation-sized draft into "
-        "`manifests/`, implement and review the promoted manifest, then remove "
-        "only the matching draft path.\n\n"
+        "active contracts. Child implementation drafts live at "
+        "`manifests/drafts/*.manifest.yaml`; epic planning records live at "
+        "`manifests/drafts/*.epic.yaml` and use split-before-promote before "
+        "implementation; archived draft records are historical inventory. "
+        "Promote one selected child draft with "
+        "`uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`. "
+        "Do not manually move or copy draft manifests. For metadata-only "
+        "reference cleanup on locked active manifests, use "
+        '`uv run maid plan revise <manifest> --reason "<text>" '
+        "--preserve-red-evidence`.\n\n"
         "Always capture an Outcome record after implementation validation and "
-        "implementation review, before final handoff. Outcome capture is "
+        "implementation review, before final handoff. Capture Outcome after "
+        "implementation review so the result records the reviewed evidence. "
+        "Outcome capture is "
         "required for completed, partial, failed, superseded, archived, or "
         "abandoned MAID work. The Outcome must cite "
         "concrete validation evidence and review notes; it does not replace "
