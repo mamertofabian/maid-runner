@@ -83,6 +83,54 @@ def test_check_test_assertions_allows_javascript_expect():
     assert errors == []
 
 
+def test_check_test_assertions_allows_typescript_expect_after_nested_setup():
+    source = (
+        "it('renders links after nested setup', () => {\n"
+        "  render(PublicNavigationLinks, {\n"
+        "    props: {\n"
+        "      items: manifestNavigation(),\n"
+        "      variant: 'desktop',\n"
+        "    },\n"
+        "  });\n"
+        "  expect(screen.getByTestId('public-nav-link-10')).toBeTruthy();\n"
+        "});\n\n"
+        "it('still reports missing assertions with nested setup only', () => {\n"
+        "  render(PublicNavigationLinks, {\n"
+        "    props: {\n"
+        "      items: manifestNavigation(),\n"
+        "    },\n"
+        "  });\n"
+        "});\n\n"
+        "fit('focused test still reports missing assertions', () => {\n"
+        "  const value = { nested: { count: 1 } };\n"
+        "  console.log(value);\n"
+        "});\n\n"
+        "xit('skipped test with nested setup and assertions is still scanned', () => {\n"
+        "  render(PublicNavigationLinks, {\n"
+        "    props: {\n"
+        "      items: manifestNavigation(),\n"
+        "    },\n"
+        "  });\n"
+        "  expect(screen.getByTestId('public-nav-link-10')).toBeTruthy();\n"
+        "});\n"
+        "helper.fit('member helper callback is not a test', () => {\n"
+        "  const value = { nested: { count: 1 } };\n"
+        "  console.log(value);\n"
+        "});\n"
+    )
+
+    errors = check_test_assertions(source, "tests/example.test.ts")
+
+    assert [error.code for error in errors] == [
+        ErrorCode.MISSING_ASSERTIONS,
+        ErrorCode.MISSING_ASSERTIONS,
+    ]
+    assert [
+        "still reports missing assertions with nested setup only",
+        "focused test still reports missing assertions",
+    ] == [error.message.split("'")[1] for error in errors]
+
+
 def test_check_test_assertions_reports_typescript_it_without_expect():
     source = (
         "it('should work', () => {\n"

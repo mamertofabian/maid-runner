@@ -20,6 +20,34 @@ Replace free-form markdown planning with a machine-checkable MAID manifest contr
 - ALWAYS include task-specific `temptations` when the work has likely shortcuts. Each entry must pair a concrete risk with the procedure to use instead.
 - ALWAYS record rationale for important design decisions in the manifest description or artifact descriptions.
 
+## Planning Handoff Mode (optional)
+
+The default is single-agent: one agent runs Phases 1–8 end to end. Teams may
+instead split planning — one agent owns strategy and the draft, another hardens
+the contract (behavioral tests, red phase, plan lock) and implements. This skill
+supports either; the split is a choice, and any tool can play either role.
+
+In handoff mode the planning agent stops after Phase 3 and the adversarial
+self-review, and emits a handoff packet instead of writing behavioral tests or
+locking the plan:
+
+- draft manifest path under the repo's draft convention
+- scope boundaries and explicit out-of-scope notes
+- declared-artifact intent: exact public symbols, signatures, return types, field types
+- planned behavioral tests and the `validate` commands they will back
+- the expected red-phase failure and why it should fail
+- open questions, assumptions, and design rationale
+
+The receiving agent resumes at Phase 4 (behavioral tests → red phase →
+`maid validate --mode behavioral` → plan review → plan lock → promotion) using
+only the handoff packet, then implements within the locked scope. Keep contract
+authoring and later implementation review in separate sessions or subagents so
+the review does not inherit blind spots from authoring.
+
+Check repository guidance (e.g. CLAUDE.md / AGENTS.md) for whether a repo sets
+handoff mode as the default for a given agent. Absent such guidance, default to
+the full single-agent flow.
+
 ## Prerequisites
 
 Before starting, verify:

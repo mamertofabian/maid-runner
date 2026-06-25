@@ -1,0 +1,71 @@
+{
+  "manifest_path": "manifests/fix-svelte5-props-artifact-collection.manifest.yaml",
+  "manifest_hash": "sha256:c8aee2baa4fd3cd56e0aab8b033b87894d30d0a79535600f6d0bb6f519e8fdf4",
+  "test_hashes": {
+    "tests/validators/test_svelte.py": "sha256:26c4ad38c5f06ff2fa5ae968f2229373ffc064e848fe29653bdf2fc50f5507dc"
+  },
+  "created_at": "2026-06-24T14:35:43.972298+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:2e34870d5d4e38ae049527c95511bd270eb384d129576d6595d6c85ccaa09a31",
+      "prior_test_hashes": {
+        "tests/validators/test_svelte.py": "sha256:a7ace0045cba7465e24b44c4dab92905596fe0d8650d7fffc3ebef0155cd2bca"
+      },
+      "revised_at": "2026-06-24T14:38:20.538196+00:00",
+      "reason": "Run the full Svelte validator test file so maid test can verify the behavioral test command."
+    },
+    {
+      "prior_manifest_hash": "sha256:20ad46f286486d8d808ff5d3a47301c3682d6de9e9b9f51a7ac5bf01cc2b081e",
+      "prior_test_hashes": {
+        "tests/validators/test_svelte.py": "sha256:a7ace0045cba7465e24b44c4dab92905596fe0d8650d7fffc3ebef0155cd2bca"
+      },
+      "revised_at": "2026-06-24T14:51:30.881298+00:00",
+      "reason": "Add module-script negative coverage and declare the TypeScript parse helper dependency found during implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:4c90b19fa6d8f5bf363364343be36ac2f373d02ac9ce91df75a77898d0dc84fd",
+      "prior_test_hashes": {
+        "tests/validators/test_svelte.py": "sha256:26c4ad38c5f06ff2fa5ae968f2229373ffc064e848fe29653bdf2fc50f5507dc"
+      },
+      "revised_at": "2026-06-24T15:04:31.183794+00:00",
+      "reason": "Capture Outcome after ready implementation review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-24T14:51:31.359221+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_svelte.py",
+        "exit_code": 1,
+        "output_tail": "      expect(section).toBeDefined();\n      expect(data).toBeDefined();\n    });\n    \"\"\"\n        )\n    \n        result = ValidationEngine(project_root=tmp_path).validate(\n            manifest_path,\n            mode=ValidationMode.IMPLEMENTATION,\n        )\n    \n>       assert result.success is True\nE       AssertionError: assert False is True\nE        +  where False = ValidationResult(success=False, manifest_slug='svelte5-props', manifest_path='/tmp/pytest-of-atomrem/pytest-106/test_s...ne, end_line=None, end_column=None), suggestion=None)], warnings=[], file_tracking=None, duration_ms=2.956092001113575).success\n\ntests/validators/test_svelte.py:255: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_svelte.py::test_svelte5_props_destructuring_collects_component_attributes\nFAILED tests/validators/test_svelte.py::test_svelte5_props_destructuring_satisfies_implementation_validation\n2 failed, 26 passed in 0.31s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts:arg=source:type=str:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts:kind=method",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts:of=SvelteValidator",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts:returns=CollectionResult",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_collects_component_attributes",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_collects_component_attributes:kind=test_function",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_ignores_module_scripts",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_ignores_module_scripts:kind=test_function",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_ignores_non_props_object_patterns",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_ignores_non_props_object_patterns:kind=test_function",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_satisfies_implementation_validation",
+      "tests/validators/test_svelte.py:test_svelte5_props_destructuring_satisfies_implementation_validation:kind=test_function"
+    ],
+    "test_files": [
+      "tests/validators/test_svelte.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_svelte.py"
+    ]
+  }
+}

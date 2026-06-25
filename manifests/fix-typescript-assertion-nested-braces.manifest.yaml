@@ -1,0 +1,185 @@
+schema: '2'
+goal: Fix TypeScript assertion checking so nested setup blocks before expect() do not trigger false E210 warnings
+type: fix
+created: '2026-06-24T07:36:11Z'
+metadata:
+  tags:
+  - validation
+  - assertions
+  - typescript
+  - bug-fix
+  priority: high
+description: |
+  A reported MAID verification bug showed Vitest/Svelte tests with real
+  `expect(...)` assertions being reported as E210 when the test callback
+  contains nested object-literal setup before the assertion, such as
+  `render(Component, { props: { ... } })`.
+
+  Evolve the assertion-checking contract for JavaScript/TypeScript test blocks
+  so `check_test_assertions` inspects the complete callback body rather than
+  stopping at the first nested closing brace. Keep the existing warning policy:
+  assertion-free JS/TS tests still emit E210, and Python behavior is unchanged.
+
+  This is a chain-merge evolution of the existing assertion-helper contracts:
+  it adds a regression behavior for the same public function signature and does
+  not remove, rename, or change the signature of any existing artifact.
+temptations:
+- risk: Do not silence E210 for a whole TypeScript file just because some later test contains expect().
+  instead: Determine assertion presence independently for each discovered test callback body.
+- risk: Do not broaden this into a full JavaScript or TypeScript static analyzer.
+  instead: Use a narrow balanced-delimiter extraction for test callback bodies and preserve the current expect/assert substring policy.
+- risk: Do not weaken existing no-assertion warnings to avoid the false positive.
+  instead: Keep an assertion-free nested-setup TypeScript test in the regression suite and require it to still emit E210.
+files:
+  edit:
+  - path: maid_runner/core/_test_assertions.py
+    artifacts:
+    - kind: function
+      name: check_test_assertions
+      args:
+      - name: source
+        type: str
+      - name: test_path
+        type: str
+      returns: list[ValidationError]
+      source_scenario: A TypeScript/Vitest test callback contains nested object-literal setup before direct expect() assertions.
+      actions:
+      - type: api_call
+        subject:
+          export: check_test_assertions
+      expected:
+        behavior: The helper scans each complete JS/TS test callback body, does not emit E210 when expect() appears after nested setup braces, and still emits E210 for assertion-free callbacks.
+  - path: tests/core/validation/test_assertion_checking.py
+    artifacts:
+    - kind: test_function
+      name: test_check_test_assertions_allows_typescript_expect_after_nested_setup
+      source_scenario: A TypeScript test file has one Vitest block with nested setup before expect() and another nested setup block without assertions.
+      actions:
+      - type: api_call
+        subject:
+          export: check_test_assertions
+      expected:
+        behavior: The checker reports only the assertion-free test block and does not report E210 for the block whose expect() appears after nested object-literal setup.
+  read:
+  - maid_runner/core/result.py
+  - manifests/038-12-extract-test-assertions-helper.manifest.yaml
+  - manifests/040-02-retire-duplicated-assertion-helper-legacy-cases.manifest.yaml
+  - manifests/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_assertion_checking.py
+outcome:
+  status: completed
+  completed_at: "2026-06-24T08:18:41Z"
+  summary: "Fixed JS/TS E210 assertion scanning so TypeScript/Vitest callbacks with nested object-literal setup before expect() are scanned through their complete callback body instead of stopping at the first nested closing brace."
+  rationale: "The reported Manatal false positives came from regex body extraction that inspected only setup before the first nested `}`. A narrow balanced-brace extractor preserves the existing substring-based assertion policy while avoiding broad TypeScript control-flow analysis."
+  lessons:
+  - lesson_type: implementation
+    summary: "When replacing regex body capture with balanced scanning, keep the test-call boundary aligned with the language collector: include direct `it`, `test`, `fit`, and `xit` callees, and reject member helper calls such as `helper.fit(...)`."
+    tags:
+    - assertions
+    - typescript
+    - parser-boundary
+    paths:
+    - maid_runner/core/_test_assertions.py
+    - maid_runner/validators/_typescript_behavioral.py
+  - lesson_type: testing
+    summary: "Regression tests for scanner false positives should include both the confirmed positive case and nearby negative boundaries: nested setup before expect(), assertion-free nested setup, focused/skipped direct callees, and non-test member helper calls."
+    tags:
+    - behavioral-testing
+    - e210
+    - vitest
+    paths:
+    - tests/core/validation/test_assertion_checking.py
+  review_notes:
+  - source: Chandrasekhar
+    severity: P2
+    summary: "Initial implementation missed direct `fit` and `xit` callees recognized by the TypeScript behavioral collector; fixed by scanning those direct callees and adding regression coverage."
+  - source: Newton
+    severity: P2
+    summary: "Follow-up review found member calls such as `helper.fit(...)` were matched as tests; fixed with a direct-callee guard and negative coverage."
+  - source: Gauss
+    severity: info
+    summary: "Final independent read-only review found no actionable findings and returned ready; residual risk is the intentionally narrow string-based scanner boundary for unsupported syntaxes such as `test.each` and `it.skip`."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_assertion_checking.py
+    status: passed
+    summary: "Focused assertion-checking suite passed: 15 tests."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/_test_assertions.py
+    - tests/core/validation/test_assertion_checking.py
+    status: passed
+    summary: "Ruff passed for the touched assertion helper and regression test files."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/core/_test_assertions.py
+    - tests/core/validation/test_assertion_checking.py
+    status: passed
+    summary: "Black formatting check passed for the touched assertion helper and regression test files."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-typescript-assertion-nested-braces.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Behavioral manifest validation passed for the promoted fix manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-typescript-assertion-nested-braces.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation manifest validation passed for the promoted fix manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-typescript-assertion-nested-braces.manifest.yaml
+    status: passed
+    summary: "Manifest-declared test command passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 363 manifests, 277 passed, 86 skipped, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 140 commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    status: passed
+    summary: "Baseline-scoped handoff gate passed, including plan-lock, red-evidence, changed-scope, and tests; remaining E307/E310 items were pre-existing advisory no-validator/stub warnings."

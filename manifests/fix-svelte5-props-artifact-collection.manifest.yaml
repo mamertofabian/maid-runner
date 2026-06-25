@@ -1,0 +1,178 @@
+schema: '2'
+goal: Collect Svelte 5 $props() destructured component props as implementation artifacts
+type: fix
+created: '2026-06-24T14:35:39Z'
+description: |
+  Svelte 5 component props declared through `$props()` destructuring are public
+  component inputs, but the current Svelte validator only delegates extracted
+  script text to the TypeScript validator and then adds the component file-stem
+  artifact. The TypeScript collector treats `let { section } = $props()` as an
+  object-pattern variable declarator, not as an owned component attribute, so
+  implementation validation rejects manifests that declare real props such as
+  `SectionRenderer.section` or route `Page.data`.
+
+  This fix extends Svelte implementation artifact collection only. The
+  collector should synthesize owned `attribute` artifacts for directly
+  destructured `$props()` bindings with explicit object type annotations, stamp
+  them with the Svelte component name and module path, and keep the existing
+  TypeScript delegation and file-stem component artifact behavior intact.
+temptations:
+- risk: Do not weaken E300 or treat missing Svelte attributes as warnings.
+  instead: Collect the Svelte 5 prop attributes so normal implementation validation stays strict.
+- risk: Do not add broad Svelte route semantics or infer props from markup usage.
+  instead: Recognize only explicit `$props()` object destructuring in Svelte script content for this fix.
+- risk: Do not expose arbitrary script-local destructuring as component props.
+  instead: Require the initializer to be a direct `$props()` call before creating owned attribute artifacts.
+files:
+  edit:
+  - path: maid_runner/validators/svelte.py
+    artifacts:
+    - kind: method
+      name: collect_implementation_artifacts
+      of: SvelteValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+  - path: tests/validators/test_svelte.py
+    artifacts:
+    - kind: test_function
+      name: test_svelte5_props_destructuring_collects_component_attributes
+    - kind: test_function
+      name: test_svelte5_props_destructuring_satisfies_implementation_validation
+    - kind: test_function
+      name: test_svelte5_props_destructuring_ignores_non_props_object_patterns
+    - kind: test_function
+      name: test_svelte5_props_destructuring_ignores_module_scripts
+  read:
+  - maid_runner/validators/base.py
+  - maid_runner/validators/typescript.py
+  - maid_runner/validators/_typescript_implementation.py
+  - maid_runner/validators/_typescript_parse.py
+  - maid_runner/core/validate.py
+  - maid_runner/core/_implementation_validation.py
+  - manifests/fix-svelte-component-artifact-validation.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_svelte.py
+outcome:
+  status: completed
+  summary: |
+    Svelte implementation validation now recognizes direct Svelte 5 `$props()`
+    object destructuring in instance scripts as owned component attribute
+    artifacts, so manifests can declare props such as
+    `SectionRenderer.section` and `SectionRenderer.data` without compatibility
+    anchors.
+  rationale: |
+    The fix keeps E300 strict by collecting real prop artifacts instead of
+    weakening missing-artifact checks. It preserves existing TypeScript
+    delegation for all Svelte scripts, while limiting synthesized prop
+    attributes to non-module script blocks initialized by direct `$props()`
+    calls with inline object type annotations.
+  lessons:
+    - lesson_type: validator-artifact-modeling
+      summary: |
+        Framework-specific artifact synthesis must preserve framework script
+        boundaries. For Svelte, component props belong to instance scripts, not
+        `context="module"` or `<script module>` blocks, even when script blocks
+        are flattened for TypeScript delegation.
+      tags:
+        - svelte
+        - svelte5
+        - implementation-validation
+        - artifact-collection
+      paths:
+        - maid_runner/validators/svelte.py
+        - tests/validators/test_svelte.py
+  review_notes:
+    - source: maid-plan-review
+      severity: fixed
+      summary: |
+        First plan review found missing negative coverage for ordinary typed
+        object destructuring. A regression test now proves non-`$props()`
+        destructuring is not collected as component props.
+    - source: maid-implementation-review
+      severity: fixed
+      summary: |
+        First implementation review found module-script `$props()` destructuring
+        was incorrectly collected and `_typescript_parse.py` was missing from
+        manifest read scope. The collector now excludes module scripts from
+        prop synthesis, tests both `context="module"` and `<script module>`,
+        and declares the parser helper dependency.
+    - source: maid-implementation-review
+      severity: ready
+      summary: |
+        Follow-up read-only review reported no findings and verdict ready.
+        Residual risk is intentionally limited to named `Props` aliases and
+        generic `$props<T>()` forms, which remain outside this manifest.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/validators/test_svelte.py
+      status: passed
+      summary: 28 Svelte validator tests passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-svelte5-props-artifact-collection.manifest.yaml
+        - --mode
+        - behavioral
+      status: passed
+      summary: Behavioral validation passed for the manifest.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-svelte5-props-artifact-collection.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: Implementation validation passed for the manifest.
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/validators/svelte.py
+        - tests/validators/test_svelte.py
+      status: passed
+      summary: Ruff passed for touched Python files.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: 364 manifests validated with 278 passed, 0 failed, and 86 skipped.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: 140 MAID test commands passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --base-ref
+        - origin/release/v2.next
+        - --include-tests
+      status: passed
+      summary: |
+        Baseline-scoped verify passed schema, behavioral, implementation,
+        coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and
+        tests. Historical E307/E310 warnings remained but did not fail verify.
+  completed_at: '2026-06-24T15:04:00+00:00'
