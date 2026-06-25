@@ -146,6 +146,37 @@ class TestCmdFiles:
         captured = capsys.readouterr()
         assert "src/dep.py" in captured.out
 
+    def test_files_registered_gate_ignores_scope_only_source_file(
+        self, project_with_files, capsys
+    ):
+        from maid_runner.cli.commands._main import main
+
+        manifest_path = project_with_files / "manifests" / "add-greet.manifest.yaml"
+        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest["files"]["scope"] = [
+            {
+                "path": "src/routes/settings/+page.svelte",
+                "reason": "Route-local state is covered through route tests.",
+            }
+        ]
+        manifest_path.write_text(yaml.dump(manifest))
+        route = project_with_files / "src" / "routes" / "settings" / "+page.svelte"
+        route.parent.mkdir(parents=True, exist_ok=True)
+        route.write_text('<script lang="ts">let selected = "tl";</script>\n')
+
+        os.chdir(project_with_files)
+        registered_exit_code = main(["files", "--fail-on", "registered"])
+        registered_output = capsys.readouterr().out
+        any_exit_code = main(["files", "--fail-on", "any"])
+        any_output = capsys.readouterr().out
+
+        assert registered_exit_code == 0
+        assert any_exit_code == 0
+        assert "src/routes/settings/+page.svelte" in registered_output
+        assert "src/routes/settings/+page.svelte" in any_output
+        assert "Registered" not in registered_output
+        assert "Registered" not in any_output
+
     def test_files_json_output(self, project_with_files, capsys):
         from maid_runner.cli.commands._main import main
 

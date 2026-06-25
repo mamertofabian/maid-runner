@@ -1,0 +1,213 @@
+schema: '2'
+goal: Treat files.scope entries as tracked file-tracking inventory
+type: fix
+created: '2026-06-25T04:02:16Z'
+metadata:
+  tags:
+  - file-tracking
+  - files-scope
+  - verify
+  - brownfield
+  priority: high
+description: |
+  Fix the file-tracking gate so `files.scope` entries honor the scope-only
+  inventory contract introduced for Svelte route wiring, prop-only components,
+  configuration files, and other source files with no stable public artifact
+  contract.
+
+  Scope-only files are intentionally writable and tracked without becoming
+  implementation artifact contracts. `maid verify` should therefore pass when
+  the only no-artifact source files are declared in `files.scope`, while still
+  failing undeclared files and read-only production files.
+temptations:
+- risk: Do not make all registered files advisory to get verify green.
+  instead: Classify only `FileMode.SCOPE` paths as tracked and leave read-only files registered.
+- risk: Do not add artificial public artifacts for Svelte route/config files.
+  instead: Honor the existing `files.scope` contract for files without stable public artifact surfaces.
+- risk: Do not change CLI status names, JSON shape, or verify gate semantics.
+  instead: Move scope-only paths from `registered` to existing `tracked` output and keep verify failing on remaining registered files.
+files:
+  scope:
+  - path: maid_runner/core/_file_tracking.py
+    reason: Private file-tracking implementation is exercised through ValidationEngine.run_file_tracking and CLI behavior.
+  edit:
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: method
+      name: run_file_tracking
+      of: ValidationEngine
+      args:
+      - name: chain
+        type: ManifestChain
+      returns: FileTrackingReport
+      source_scenario: A manifest declares a source file in files.scope with no artifacts.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: run_file_tracking reports the scope-only file as tracked inventory, not registered drift.
+  - path: tests/core/validation/test_file_scope_gates.py
+    artifacts:
+    - kind: test_function
+      name: test_file_tracking_classifies_files_scope_as_tracked_inventory
+      source_scenario: A Svelte route file is declared in files.scope because it has no stable public artifact contract.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: The route file appears in FileTrackingReport.tracked and not FileTrackingReport.registered.
+  - path: tests/cli/test_files_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_files_registered_gate_ignores_scope_only_source_file
+      source_scenario: maid files sees a no-artifact source file declared in files.scope and --fail-on registered is requested.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The command exits 0 because scope-only inventory is tracked rather than registered.
+  - path: tests/cli/test_verify_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_verify_file_tracking_passes_for_scope_only_source_file
+      source_scenario: maid verify runs on a project with a scope-only Svelte route file and otherwise valid manifests.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The verify command exits 0 and the file_tracking stage passes.
+  read:
+  - maid_runner/core/chain.py
+  - maid_runner/core/result.py
+  - maid_runner/core/types.py
+  - maid_runner/cli/commands/files.py
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/cli/commands/_format.py
+  - manifests/add-scope-only-file-section.manifest.yaml
+  - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_verify_cmd.py
+outcome:
+  status: completed
+  summary: |
+    `files.scope` source files now count as tracked file-tracking inventory,
+    allowing strict verify to pass for intentionally scope-only Svelte route,
+    prop-only, and config files without weakening registered-file gates.
+  rationale: |
+    The implementation keeps `maid verify` strict: undeclared files and
+    read-only production files still fail the file-tracking gate, while
+    `FileMode.SCOPE` paths move to the existing tracked bucket. This honors the
+    scope-only contract without adding artificial public artifacts or changing
+    CLI output shape.
+  lessons:
+  - lesson_type: file-tracking-scope-modeling
+    summary: |
+      File tracking must classify `files.scope` through manifest file mode, not
+      through artifact presence, because scope-only files intentionally have no
+      implementation artifact contract.
+    tags:
+    - file-tracking
+    - files-scope
+    - verify
+    paths:
+    - maid_runner/core/_file_tracking.py
+    - tests/core/validation/test_file_scope_gates.py
+  review_notes:
+  - source: maid-implementation-review-subagent
+    severity: ready
+    summary: |
+      Independent reviewer Pascal found no findings and reported verdict ready.
+      The only residual risk noted was lack of direct JSON-output assertion for
+      scope-only paths; formatter code was unchanged and the behavior is driven
+      by the shared FileTrackingReport buckets.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/cli/test_files_cmd.py
+    - tests/cli/test_verify_cmd.py
+    status: failed
+    summary: |
+      Red phase before implementation failed with exactly the three new
+      scope-only tracking tests failing because scope-only Svelte files were
+      reported as registered.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_file_scope_gates.py
+    - tests/cli/test_files_cmd.py
+    - tests/cli/test_verify_cmd.py
+    status: passed
+    summary: Focused regression suite passed with 63 tests after implementation.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-scope-only-file-tracking.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: Behavioral validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-scope-only-file-tracking.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-scope-only-file-tracking.manifest.yaml
+    status: passed
+    summary: Manifest validate command passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 365 manifests with 279 passed, 0 failed, and 86 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 140 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    - --include-tests
+    status: passed
+    summary: |
+      Strict verify passed schema, behavioral, implementation, coherence,
+      file_tracking, plan_lock, worktree_scope, changed_scope, and tests with
+      existing E307/E310 warnings only.
+  completed_at: '2026-06-25T12:16:55+08:00'

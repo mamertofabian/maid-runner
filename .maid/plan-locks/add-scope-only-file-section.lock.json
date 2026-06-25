@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/add-scope-only-file-section.manifest.yaml",
-  "manifest_hash": "sha256:a2c609595afe4d738f0c88bb09af7268d266ce1a6571e6f957539f1013d96930",
+  "manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
   "test_hashes": {
     "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
     "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
-    "tests/core/validation/test_file_scope_gates.py": "sha256:576fd1e16f4e5b175e3852800b5bf13133dccdd8fadd0de942cc8e4a562beb71",
+    "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
     "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
   },
   "created_at": "2026-06-19T10:08:55.108489+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:cfa1a62865c2d3412f9e972c10089d7f8ddfdc49eadf160a1988273f74d13a3f",
@@ -64,6 +64,17 @@
       },
       "revised_at": "2026-06-19T10:31:44.557265+00:00",
       "reason": "Preserve red evidence after asserting E114 suggestion mentions files.scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:a2c609595afe4d738f0c88bb09af7268d266ce1a6571e6f957539f1013d96930",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:576fd1e16f4e5b175e3852800b5bf13133dccdd8fadd0de942cc8e4a562beb71",
+        "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
+      },
+      "revised_at": "2026-06-25T04:07:13.023947+00:00",
+      "reason": "Add scope-only file-tracking regression coverage to shared file-scope tests"
     }
   ],
   "red_evidence": {

@@ -188,6 +188,46 @@ validate:
     assert any("read" in issue.lower() for issue in dep_entries[0].issues)
 
 
+def test_file_tracking_classifies_files_scope_as_tracked_inventory(project):
+    write_manifest(
+        project,
+        "wire-route.manifest.yaml",
+        """schema: "2"
+goal: "Wire Svelte route"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: run
+  scope:
+    - path: src/routes/settings/+page.svelte
+      reason: "Route-local state is covered through route behavior tests."
+validate:
+  - pytest tests/ -v
+""",
+    )
+    write_source(project, "src/app.py", "def run():\n    return 'ok'\n")
+    write_source(
+        project,
+        "src/routes/settings/+page.svelte",
+        '<script lang="ts">let selected = "tl";</script>\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    report = engine.run_file_tracking(manifest_chain(project))
+    route_entries = [
+        entry
+        for entry in report.entries
+        if entry.path == "src/routes/settings/+page.svelte"
+    ]
+
+    assert len(route_entries) == 1
+    assert route_entries[0].status == FileTrackingStatus.TRACKED
+    assert route_entries[0] in report.tracked
+    assert route_entries[0] not in report.registered
+
+
 def test_worktree_scope_rejects_changed_file_in_files_read(project):
     write_manifest(
         project,

@@ -258,6 +258,32 @@ def test_verify_returns_0_when_all_gates_pass(tmp_path, capsys):
     assert "PASS tests" in output
 
 
+def test_verify_file_tracking_passes_for_scope_only_source_file(tmp_path, capsys):
+    from maid_runner.cli.commands._main import main
+
+    os.chdir(tmp_path)
+    manifest_path = _write_verify_project(tmp_path, slug="verify-scope-only")
+    manifest = yaml.safe_load(manifest_path.read_text())
+    manifest["files"]["scope"] = [
+        {
+            "path": "src/routes/settings/+page.svelte",
+            "reason": "Route-local state is covered through route tests.",
+        }
+    ]
+    manifest_path.write_text(yaml.dump(manifest))
+    route = tmp_path / "src" / "routes" / "settings" / "+page.svelte"
+    route.parent.mkdir(parents=True, exist_ok=True)
+    route.write_text('<script lang="ts">let selected = "tl";</script>\n')
+
+    exit_code = main(["verify", "--no-changed-scope"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Verify: PASS" in output
+    assert "PASS file_tracking" in output
+    assert "Registered" not in output
+
+
 def test_verify_returns_1_when_behavioral_validation_fails(tmp_path, capsys):
     from maid_runner.cli.commands._main import main
 
