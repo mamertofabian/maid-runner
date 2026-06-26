@@ -85,6 +85,9 @@ instead of relying on private memory.
 
 For planning:
 
+- Active insights trigger: review recurring Outcome lessons with `maid insights`
+  before drafting or hardening the manifest. Treat insights as advisory
+  aggregate evidence for recurring lessons, not as generated narrative authority.
 - Run `maid learn` before `maid recall` when the Outcome index is stale.
 - If the Outcome index is missing, run `maid learn` once. If no index is
   created because no completed Outcome records exist, state that no advisory
@@ -94,9 +97,19 @@ For planning:
   have its own Outcome record.
 - Review recalled Outcome lessons before drafting a new manifest when recall
   results are available.
-- Use `maid insights` only as aggregate evidence for recurring lessons, not as
-  generated narrative authority.
-- Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.
+- To intentionally include instructive failed or abandoned Outcome lessons,
+  refresh the index with this opt-in command, then recall from that index:
+
+```bash
+maid learn --include-status completed --include-status abandoned
+```
+
+  This is an intentional opt-in for failure lessons; the completed-only default
+  is unchanged.
+- Recalled, aggregated, and digested Outcomes are planning evidence only. They
+  do not replace behavioral tests, declared scope, validation, approval, done
+  gates, or review, and they do not create an approval, promotion, done, or
+  review gate.
 
 ### Manifest-Derived Outcome Recall
 
@@ -115,6 +128,18 @@ completed Outcome records exist, report that no advisory history is available
 and skip recall. The manifest path may be an unimplemented draft, but recall is
 only a query for related completed Outcome records, not a lookup for the
 draft's own Outcome.
+
+### Learning Evidence Digestion
+
+The learning evidence digestion step is advisory evidence handling.
+
+Close the loop between completed Outcome records and current agent decisions;
+do not dump a raw recall or insights transcript into the plan. Before drafting
+or approving the contract, identify applicable lessons, reject stale or
+irrelevant lessons with a reason, and state what changed because of the
+evidence. For planning, name the effect on manifest scope, behavioral tests,
+temptations, or open questions. The learning evidence digestion step is
+advisory evidence handling, not a separate gate.
 
 Recalled Outcomes are planning evidence only. They do not replace the new
 manifest's behavioral tests, declared artifacts, validation commands, or

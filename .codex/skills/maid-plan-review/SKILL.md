@@ -103,11 +103,57 @@ the project has Outcome support, `maid learn`, `maid recall`, and
 
 For plan review:
 
+- Active insights trigger: review recurring Outcome lessons with `maid insights`
+  before reviewing an implementation-ready plan. Treat insights as advisory
+  aggregate evidence for recurring lessons, not as generated narrative authority.
+- Use active recall guidance to inspect related completed Outcome records when
+  the planner had a learned index, the user requested outcome-aware planning,
+  or the review needs to check whether earlier lessons affect scope, tests,
+  rationale, or temptations.
 - Check whether the draft used relevant recalled Outcome evidence when the
   planner had a learned index or the user requested outcome-aware planning.
 - Missing relevant Outcome recall is a review question, not automatic rejection;
   decide whether the omission weakens scope, tests, rationale, or temptations.
-- Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.
+- To intentionally include instructive failed or abandoned Outcome lessons,
+  refresh the index with this opt-in command, then recall from that index:
+
+```bash
+maid learn --include-status completed --include-status abandoned
+```
+
+  This is an intentional opt-in for failure lessons; the completed-only default
+  is unchanged.
+- Recalled, aggregated, and digested Outcomes are planning evidence only. They
+  do not replace behavioral tests, declared scope, validation, approval, done
+  gates, or review, and they do not create an approval, promotion, done, or
+  review gate.
+
+### Manifest-Derived Outcome Recall
+
+Before approving or rejecting an implementation-ready plan, consult related
+completed Outcome records when a learned Outcome index is available:
+
+```bash
+maid recall --for-manifest <path>
+maid recall --for-manifest <path> --plan-packet
+```
+
+If the index is stale, the stale index fails by default. The remedy is to run
+`maid learn`, or pass `--allow-stale-index` only when a stale advisory read is
+acceptable. If `.maid/outcomes.json` is missing, run `maid learn` once; if no
+completed Outcome records exist, report that no advisory history is available
+and skip recall.
+
+### Learning Evidence Digestion
+
+The learning evidence digestion step is advisory evidence handling.
+
+Close the loop between completed Outcome records and current agent decisions;
+do not dump a raw recall or insights transcript into the review. Identify
+applicable lessons, reject stale or irrelevant lessons with a reason, and state
+what changed because of the evidence. For plan review, name the effect on
+review findings, approval questions, or requested revisions. The learning
+evidence digestion step is advisory evidence handling, not a separate gate.
 
 ## Phase 6 — Behavioral Validation
 
