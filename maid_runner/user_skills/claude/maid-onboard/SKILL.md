@@ -96,8 +96,8 @@ For each chosen agent:
 
 Sanity-check before installing:
 - Codex must list **only generic** skills (`maid-planner`, `maid-plan-review`,
-  `maid-implementer`, `maid-implementation-review`) — **no** `maid-runner-*` or
-  `maid-validate-hardening`. If repo-internal skills appear, the maid-runner in
+  `maid-implementer`, `maid-implementation-review`, `maid-auditor`) — **no**
+  `maid-runner-*` or `maid-validate-hardening`. If repo-internal skills appear, the maid-runner in
   use is stale (return to Phase 3) — do not pollute the repo.
 - Claude lists its generic skills + the implementation-reviewer agent.
 
@@ -128,12 +128,17 @@ old flow (e.g. ending at `make check`, with no `maid plan lock` or
 
 ```bash
 <maid> validate                            # should pass for existing manifests
-ls .codex/skills 2>/dev/null               # only the 4 generic skills
+ls .codex/skills 2>/dev/null               # only the 5 generic skills, including maid-auditor
 grep -c "maid-runner-" AGENTS.md 2>/dev/null   # expect 0
 ```
 
 Confirm: skills/agents installed as real files, no repo-internal skills leaked
 into a distributed repo, validation still green, guidance docs consistent.
+Also verify the `maid init` installed guidance includes the Outcome learning-digestion workflow: related Outcome evidence should be digested by
+naming applicable lessons, rejecting stale or irrelevant lessons with a reason,
+and stating what changed because of the evidence, while preserving the advisory
+boundary that recall, insights, and digested Outcomes do not replace MAID
+gates.
 
 ## Phase 8 — Hand off for commit (do not auto-commit)
 

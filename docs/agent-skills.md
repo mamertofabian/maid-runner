@@ -84,6 +84,23 @@ aggregates recurring patterns. If a downstream project has not promoted those
 commands yet, skill text must describe their use as future-facing command
 guidance until deterministic command support is promoted.
 
+Learning evidence digestion is the phase-specific step that turns retrieved
+Outcome evidence into current decisions. Agents should name applicable lessons,
+name rejected stale or irrelevant lessons with reasons, and state what changed because of the evidence. The influence should stay concrete: manifest scope,
+behavioral tests, temptations, or open questions during planning; review
+findings, approval questions, or requested revisions during plan review;
+focused tests, implementation approach, or risk controls during
+implementation; and review focus, Outcome capture, or follow-up work during
+implementation review.
+
+To intentionally include instructive failed or abandoned Outcome lessons,
+refresh the index with
+`maid learn --include-status completed --include-status abandoned` before
+recall. This is an opt-in failure-lesson path. The completed-only default
+remains unchanged, and learned, recalled, aggregated, or digested Outcome
+evidence does not replace behavioral tests, declared scope, validation, review,
+or any approval, promotion, done, or review gate.
+
 ---
 
 ## Tool Packaging
