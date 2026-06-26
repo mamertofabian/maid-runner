@@ -1,0 +1,166 @@
+{
+  "manifest_path": "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+  "manifest_hash": "sha256:6398e8157b9adf977ad74bf532f8aad63084617d50dc3eebaaa6acc1eaa23878",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:21eaca943caf364f8d3953aee422eb4b231e0b1900aec405c8164ecf2c89bd15"
+  },
+  "created_at": "2026-06-26T09:50:28.500670+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:e5c421748ea776dc1e135500c7ca844fb8d397560293d9d1918fe762b87daea0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:2885b2fdd725f6866afa3a8dd3f918e77e941fb4d14242b831f8afb90bb8df66"
+      },
+      "revised_at": "2026-06-26T09:50:34.817302+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/076-01-add-stash-backed-plan-revise.manifest.yaml -> manifests/076-01-add-stash-backed-plan-revise.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:54cbba225198323700fb16c9e1663c6e264362366ac59a9ecd6bc06f3005489f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:2885b2fdd725f6866afa3a8dd3f918e77e941fb4d14242b831f8afb90bb8df66"
+      },
+      "revised_at": "2026-06-26T09:51:40.785889+00:00",
+      "reason": "format declared Python files after promotion"
+    },
+    {
+      "prior_manifest_hash": "sha256:54cbba225198323700fb16c9e1663c6e264362366ac59a9ecd6bc06f3005489f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:6df28d843e18762d21f949927fc4ff80b044e6fc0a0cf21493819d3086596e70"
+      },
+      "revised_at": "2026-06-26T09:56:27.639348+00:00",
+      "reason": "cover packaged workflow docs synchronization"
+    },
+    {
+      "prior_manifest_hash": "sha256:8573ca9e3e1da4e25380e9b201bad4696b14479cba4f5a114248958f52b2e4d2",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:9d312741cc6253d41d43e38b7d06b7f3bc1fd96b2cbf8acbfa3628ab5cb21814"
+      },
+      "revised_at": "2026-06-26T10:02:47.602289+00:00",
+      "reason": "allow current lock during stash-backed revise"
+    },
+    {
+      "prior_manifest_hash": "sha256:e4979f36ec4857bea4294be170ad0fc032bc1a46b5c08861f8a4755f552b6745",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:acb441206ed4a9db63888c2b19298f880281a23b69e973dfc5399c70b712dcb5"
+      },
+      "revised_at": "2026-06-26T10:04:06.079259+00:00",
+      "reason": "recapture red evidence for current stash-backed contract"
+    },
+    {
+      "prior_manifest_hash": "sha256:e4979f36ec4857bea4294be170ad0fc032bc1a46b5c08861f8a4755f552b6745",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:acb441206ed4a9db63888c2b19298f880281a23b69e973dfc5399c70b712dcb5"
+      },
+      "revised_at": "2026-06-26T10:11:14.894806+00:00",
+      "reason": "stash only dirty implementation targets"
+    },
+    {
+      "prior_manifest_hash": "sha256:2c7f9c771718ad1e7b6da7bc1ae2effa5ccf4e5b15c1f97ba66a2661d409e2a0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:57c3715f2971d010071eb7d4ea8b6fe8610d3f366e7424a9aafe35ee0e2bd61d"
+      },
+      "revised_at": "2026-06-26T10:22:28.916240+00:00",
+      "reason": "restore exact created stash by identity"
+    },
+    {
+      "prior_manifest_hash": "sha256:2a4b899159bf1b1c28ca3b08f8b623c9951b4bb7f2fab90473f58822002d33ec",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:4d42274cd261feedbc0b27e8728b17f0f4904092735afd6318937adc3c869424"
+      },
+      "revised_at": "2026-06-26T10:32:33.220611+00:00",
+      "reason": "refuse validation-mutated contract files"
+    },
+    {
+      "prior_manifest_hash": "sha256:dbd614f4314edd83145ffd8fa0fecf0240a2736ac8510cff9934a1981f93083b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:21eaca943caf364f8d3953aee422eb4b231e0b1900aec405c8164ecf2c89bd15"
+      },
+      "revised_at": "2026-06-26T10:37:05.237739+00:00",
+      "reason": "capture implementation outcome"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T10:32:41.052198+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py",
+        "exit_code": 1,
+        "output_tail": "        docs = (\n            Path(\"docs/maid_specs.md\").read_text()\n            + Path(\"docs/draft-manifest-workflow.md\").read_text()\n            + Path(\"README.md\").read_text()\n        )\n    \n>       assert \"--stash-implementation\" in docs\nE       AssertionError: assert '--stash-implementation' in '### **MAID: The Manifest-driven AI Development Methodology**\\n\\n**Version:** 1.3\\n**Date:** October 30, 2025\\n\\n#### ...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_plan_cmd_stash_implementation.py:491: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_revise_parser_exposes_stash_implementation\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_restores_untracked_declared_create_file\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_green_stashed_state_without_revising_lock\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_preserves_stash_when_validate_dirties_target\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_validate_mutated_behavioral_test\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_conflicting_revise_modes\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_docs_describe_stash_implementation_revise_workflow\n8 failed, 4 passed in 5.12s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._stash_implementation_plan_revise_readme_note",
+      "README.md:attribute:documentation._stash_implementation_plan_revise_readme_note:kind=attribute",
+      "README.md:attribute:documentation._stash_implementation_plan_revise_readme_note:of=documentation",
+      "README.md:attribute:documentation._stash_implementation_plan_revise_readme_note:type=markdown text",
+      "docs/draft-manifest-workflow.md:attribute:documentation._stash_implementation_plan_revise_workflow_note",
+      "docs/draft-manifest-workflow.md:attribute:documentation._stash_implementation_plan_revise_workflow_note:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._stash_implementation_plan_revise_workflow_note:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._stash_implementation_plan_revise_workflow_note:type=markdown paragraph",
+      "docs/maid_specs.md:attribute:documentation._stash_implementation_plan_revise_spec_note",
+      "docs/maid_specs.md:attribute:documentation._stash_implementation_plan_revise_spec_note:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._stash_implementation_plan_revise_spec_note:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._stash_implementation_plan_revise_spec_note:type=markdown paragraph",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._packaged_stash_implementation_plan_revise_workflow_note",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._packaged_stash_implementation_plan_revise_workflow_note:kind=attribute",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._packaged_stash_implementation_plan_revise_workflow_note:of=documentation",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._packaged_stash_implementation_plan_revise_workflow_note:type=markdown paragraph",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_docs_describe_stash_implementation_revise_workflow",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_docs_describe_stash_implementation_revise_workflow:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_revise_parser_exposes_stash_implementation",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_revise_parser_exposes_stash_implementation:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_current_lock_dirty",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_current_lock_dirty:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_ignores_clean_missing_create_targets",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_ignores_clean_missing_create_targets:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_preserves_stash_when_validate_dirties_target",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_preserves_stash_when_validate_dirties_target:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_conflicting_revise_modes",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_conflicting_revise_modes:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_validate_mutated_behavioral_test",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_validate_mutated_behavioral_test:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_restores_original_when_validate_creates_new_stash",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_restores_original_when_validate_creates_new_stash:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_restores_untracked_declared_create_file",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_restores_untracked_declared_create_file:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_implementation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py",
+      "uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

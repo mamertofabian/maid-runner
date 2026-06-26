@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import uuid
 from dataclasses import replace
 from pathlib import Path
 
@@ -100,6 +102,19 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             json_mode=ctx.json_mode,
         )
         return 2
+    stash_implementation = bool(getattr(args, "stash_implementation", False))
+    if stash_implementation and getattr(args, "no_run", False):
+        print_error(
+            "--stash-implementation cannot be combined with --no-run.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+    if stash_implementation and preserve_red_evidence:
+        print_error(
+            "--stash-implementation cannot be combined with --preserve-red-evidence.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
 
     if not ctx.lock_path.exists():
         print_error(
@@ -126,6 +141,13 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             json_mode=ctx.json_mode,
         )
         return 2
+
+    if stash_implementation:
+        return _cmd_plan_revise_with_stashed_implementation(
+            ctx=ctx,
+            existing=existing,
+            reason=reason,
+        )
 
     try:
         revised = revise_plan_lock(
@@ -244,6 +266,319 @@ def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _cmd_plan_revise_with_stashed_implementation(
+    *,
+    ctx: "_PlanContext",
+    existing,
+    reason: str,
+) -> int:
+    """Revise a lock after temporarily stashing declared implementation files."""
+    from maid_runner.core.manifest import _is_test_file, load_manifest
+    from maid_runner.core.plan_lock import capture_red_phase_evidence, revise_plan_lock
+
+    try:
+        manifest = load_manifest(ctx.manifest_path)
+        target_paths = tuple(
+            fs.path.replace("\\", "/")
+            for fs in manifest.all_file_specs
+            if not _is_test_file(fs.path)
+        )
+        if not target_paths:
+            print_error(
+                "--stash-implementation requires at least one declared non-test "
+                "implementation file.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
+
+        dirty_entries = _git_dirty_entries(ctx.project_root)
+        allowed_dirty_paths = set(target_paths)
+        allowed_dirty_paths.add(_project_relative(ctx.manifest_path, ctx.project_root))
+        allowed_dirty_paths.add(_project_relative(ctx.lock_path, ctx.project_root))
+        allowed_dirty_paths.update(_behavioral_test_paths_for_revise(manifest))
+        unrelated = sorted(
+            entry.path
+            for entry in dirty_entries
+            if entry.path not in allowed_dirty_paths
+        )
+        if unrelated:
+            print_error(
+                "--stash-implementation refuses unrelated dirty path(s): "
+                + ", ".join(unrelated),
+                json_mode=ctx.json_mode,
+            )
+            return 2
+
+        dirty_target_entries = [
+            entry for entry in dirty_entries if entry.path in set(target_paths)
+        ]
+        if not dirty_target_entries:
+            print_error(
+                "--stash-implementation found no dirty declared implementation "
+                "paths to stash.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
+        staged_targets = [
+            entry.path
+            for entry in dirty_target_entries
+            if entry.index_status not in (" ", "?")
+        ]
+        if staged_targets:
+            print_error(
+                "--stash-implementation refuses staged implementation path(s): "
+                + ", ".join(sorted(staged_targets)),
+                json_mode=ctx.json_mode,
+            )
+            return 2
+
+        before_stash_hashes = {
+            entry.commit_hash for entry in _git_stash_entries(ctx.project_root)
+        }
+        dirty_target_paths = tuple(
+            entry.path
+            for entry in dirty_target_entries
+            if entry.path in set(target_paths)
+        )
+        stash_message = f"maid plan revise --stash-implementation {uuid.uuid4().hex}"
+        _git(
+            ctx.project_root,
+            "stash",
+            "push",
+            "--include-untracked",
+            "--message",
+            stash_message,
+            "--",
+            *dirty_target_paths,
+        )
+        created_stash = _created_stash_entry(
+            ctx.project_root, stash_message, before_stash_hashes
+        )
+        if created_stash is None:
+            print_error(
+                "--stash-implementation could not create a targeted stash.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
+
+        contract_hashes = _contract_hashes_for_stash_revise(
+            ctx.project_root, ctx.manifest_path, manifest
+        )
+        stash_hash = created_stash.commit_hash
+        restored = False
+        try:
+            revised = revise_plan_lock(
+                existing, ctx.manifest_path, ctx.project_root, reason
+            )
+            evidence = capture_red_phase_evidence(
+                ctx.manifest_path, ctx.project_root
+            ).to_payload()
+            if (
+                _contract_hashes_for_stash_revise(
+                    ctx.project_root, ctx.manifest_path, manifest
+                )
+                != contract_hashes
+            ):
+                print_error(
+                    "--stash-implementation refuses to save because validation "
+                    "changed the manifest or behavioral tests.",
+                    json_mode=ctx.json_mode,
+                )
+                return 2
+            if not _red_evidence_payload_is_valid(evidence):
+                print_error(
+                    "--stash-implementation did not capture valid red evidence.",
+                    json_mode=ctx.json_mode,
+                )
+                return 1
+            _restore_stash_entry(ctx.project_root, stash_hash, target_paths)
+            restored = True
+            revised = replace(revised, red_evidence=evidence)
+            revised.save(ctx.lock_path)
+            print(
+                f"Revised plan lock for '{ctx.slug}' to revision {revised.revision} "
+                f"({ctx.lock_path})"
+            )
+            return 0
+        finally:
+            if not restored:
+                _restore_stash_entry(ctx.project_root, stash_hash, target_paths)
+    except _plan_input_errors() as exc:
+        print_error(str(exc), json_mode=ctx.json_mode)
+        return 2
+    except _GitCommandError as exc:
+        print_error(str(exc), json_mode=ctx.json_mode)
+        return 2
+
+
+class _GitCommandError(Exception):
+    """Expected git command failure for stash-backed plan revise."""
+
+
+class _DirtyEntry:
+    """One parsed porcelain status entry."""
+
+    def __init__(self, index_status: str, worktree_status: str, path: str) -> None:
+        self.index_status = index_status
+        self.worktree_status = worktree_status
+        self.path = path
+
+
+class _StashEntry:
+    """One parsed stash list entry."""
+
+    def __init__(self, commit_hash: str, ref: str, subject: str) -> None:
+        self.commit_hash = commit_hash
+        self.ref = ref
+        self.subject = subject
+
+
+def _git(project_root: Path, *args: str) -> str:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=project_root,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        raise _GitCommandError(
+            "--stash-implementation requires available Git metadata."
+        ) from exc
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        raise _GitCommandError(
+            "--stash-implementation git command failed"
+            + (f": {detail}" if detail else ".")
+        )
+    return result.stdout
+
+
+def _git_dirty_entries(project_root: Path) -> tuple[_DirtyEntry, ...]:
+    _git(project_root, "rev-parse", "--is-inside-work-tree")
+    output = _git(
+        project_root,
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=all",
+    )
+    parts = [part for part in output.split("\0") if part]
+    entries: list[_DirtyEntry] = []
+    i = 0
+    while i < len(parts):
+        item = parts[i]
+        if len(item) < 4:
+            i += 1
+            continue
+        index_status = item[0]
+        worktree_status = item[1]
+        path = item[3:].replace("\\", "/")
+        entries.append(_DirtyEntry(index_status, worktree_status, path))
+        if index_status in ("R", "C"):
+            i += 2
+        else:
+            i += 1
+    return tuple(entries)
+
+
+def _git_stash_list(project_root: Path) -> tuple[str, ...]:
+    output = _git(project_root, "stash", "list")
+    return tuple(line for line in output.splitlines() if line.strip())
+
+
+def _git_stash_entries(project_root: Path) -> tuple[_StashEntry, ...]:
+    output = _git(project_root, "stash", "list", "--format=%H%x09%gd%x09%gs")
+    entries: list[_StashEntry] = []
+    for line in output.splitlines():
+        parts = line.split("\t", maxsplit=2)
+        if len(parts) == 3:
+            entries.append(_StashEntry(parts[0], parts[1], parts[2]))
+    return tuple(entries)
+
+
+def _created_stash_entry(
+    project_root: Path, message: str, before_hashes: set[str]
+) -> _StashEntry | None:
+    matches = [
+        entry
+        for entry in _git_stash_entries(project_root)
+        if message in entry.subject and entry.commit_hash not in before_hashes
+    ]
+    if len(matches) != 1:
+        return None
+    return matches[0]
+
+
+def _stash_ref_for_hash(project_root: Path, commit_hash: str) -> str | None:
+    for entry in _git_stash_entries(project_root):
+        if entry.commit_hash == commit_hash:
+            return entry.ref
+    return None
+
+
+def _restore_stash_entry(
+    project_root: Path, stash_hash: str, target_paths: tuple[str, ...]
+) -> None:
+    dirty_target_paths = sorted(
+        entry.path
+        for entry in _git_dirty_entries(project_root)
+        if entry.path in set(target_paths)
+    )
+    if dirty_target_paths:
+        raise _GitCommandError(
+            "--stash-implementation cannot restore because validation dirtied "
+            "target path(s): " + ", ".join(dirty_target_paths)
+        )
+    _git(project_root, "stash", "apply", "--quiet", stash_hash)
+    stash_ref = _stash_ref_for_hash(project_root, stash_hash)
+    if stash_ref is None:
+        raise _GitCommandError(
+            "--stash-implementation restored changes but could not find the "
+            "created stash entry to drop."
+        )
+    _git(project_root, "stash", "drop", "--quiet", stash_ref)
+
+
+def _project_relative(path: Path, project_root: Path) -> str:
+    try:
+        return Path(path).resolve().relative_to(Path(project_root).resolve()).as_posix()
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
+def _behavioral_test_paths_for_revise(manifest) -> set[str]:
+    from maid_runner.core.manifest import _is_test_file
+
+    paths = {
+        path.replace("\\", "/") for path in manifest.files_read if _is_test_file(path)
+    }
+    paths.update(
+        fs.path.replace("\\", "/")
+        for fs in manifest.all_file_specs
+        if _is_test_file(fs.path)
+    )
+    return paths
+
+
+def _contract_hashes_for_stash_revise(
+    project_root: Path, manifest_path: Path, manifest
+) -> dict[str, str | None]:
+    from maid_runner.core.supersession_audit import compute_manifest_hash
+
+    paths = {_project_relative(manifest_path, project_root)}
+    paths.update(_behavioral_test_paths_for_revise(manifest))
+    hashes: dict[str, str | None] = {}
+    for rel_path in sorted(paths):
+        full_path = project_root / rel_path
+        hashes[rel_path] = (
+            compute_manifest_hash(full_path) if full_path.exists() else None
+        )
+    return hashes
 
 
 class _PlanContext:

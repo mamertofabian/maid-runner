@@ -58,6 +58,10 @@ rewrite the contract. Use the normal MAID evolution path instead. For
 metadata-only reference cleanup on locked active manifests, use
 `uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
 so valid red evidence remains attached to the revised contract.
+If review changes behavioral tests after implementation is already present, use
+`uv run maid plan revise <manifest> --reason "<text>" --stash-implementation`
+instead so MAID temporarily removes only declared implementation changes while
+the revised behavioral tests stay in place for fresh red evidence capture.
 
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the

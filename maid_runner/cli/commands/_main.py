@@ -346,6 +346,11 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         action="store_true",
         dest="preserve_red_evidence",
     )
+    rp.add_argument(
+        "--stash-implementation",
+        action="store_true",
+        dest="stash_implementation",
+    )
     rp.add_argument("--project-root", default=".", dest="project_root")
     sp = psub.add_parser("status", help="Report plan lock state and hash matches")
     sp.add_argument("manifest_path")

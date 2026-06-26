@@ -1,0 +1,322 @@
+schema: '2'
+goal: Add stash-backed plan-lock revision for review-driven behavioral contract changes
+type: feature
+created: '2026-06-26T09:50:34Z'
+metadata:
+  epic: 076-00-plan-lock-revision-recovery
+  tags:
+  - plan-lock
+  - red-phase
+  - workflow-hardening
+  - cli
+description: |
+  Add a guarded `maid plan revise --stash-implementation` workflow for the
+  case where implementation review adds or tightens behavioral tests after an
+  implementation already makes the old contract green.
+
+  The command temporarily stashes only declared non-test implementation paths,
+  leaves the revised manifest and behavioral tests in place, captures fresh red
+  evidence, restores the implementation changes, and saves the revised lock
+  only when the stashed-state evidence is genuinely red. This is intentionally
+  separate from `--preserve-red-evidence`, which remains for metadata-only
+  corrections that should keep existing red evidence.
+
+  Rationale: prior incidents show agents need one concrete, repeatable method
+  rather than open-ended advice. A targeted stash workflow is pragmatic for the
+  review-finding case, but it must be refusal-heavy so unrelated user work,
+  staged changes, behavioral tests, manifests, and lock files are never hidden
+  inside the stash.
+temptations:
+- risk: Do not use broad `git stash -u` or stash all dirty files to make red evidence easy to capture.
+  instead: Derive exact declared non-test implementation paths from the manifest, refuse unrelated dirty paths, and pass only those paths to `git stash push`.
+- risk: Do not save a revised plan lock when the stashed-state validation exits green or invalid.
+  instead: Restore the implementation changes first, then return a nonzero result with the existing lock bytes unchanged unless captured evidence is valid red.
+- risk: Do not combine this workflow with metadata-only evidence preservation or no-run evidence.
+  instead: Reject `--stash-implementation` when `--preserve-red-evidence` or `--no-run` is also supplied.
+- risk: Do not hide index state or unrelated worktree changes.
+  instead: Refuse staged target changes, missing Git metadata, unrelated dirty paths, and ambiguous stash failures before mutating any lock file.
+files:
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: The maid plan revise parser exposes --stash-implementation alongside --reason, --no-run, and --preserve-red-evidence.
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Supports stash-backed implementation revision by temporarily stashing declared non-test implementation paths, capturing valid red evidence, refusing validation-mutated contract files, restoring implementation changes, and saving the revised lock only on valid red evidence.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _stash_implementation_plan_revise_readme_note
+      of: documentation
+      type: markdown text
+      description: CLI reference and workflow text name --stash-implementation for review-driven behavioral contract changes and distinguish it from --preserve-red-evidence.
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _stash_implementation_plan_revise_spec_note
+      of: documentation
+      type: markdown paragraph
+      description: Plan-lock specification documents the targeted stash workflow, valid-red requirement, refusal cases, and relationship to --preserve-red-evidence.
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _stash_implementation_plan_revise_workflow_note
+      of: documentation
+      type: markdown paragraph
+      description: Draft workflow guidance tells agents to use --stash-implementation when review-driven behavioral test changes need fresh red evidence after implementation is present.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_stash_implementation_plan_revise_workflow_note
+      of: documentation
+      type: markdown paragraph
+      description: Packaged draft workflow guidance stays synchronized with docs/draft-manifest-workflow.md and includes the --stash-implementation workflow note.
+  create:
+  - path: tests/cli/test_plan_cmd_stash_implementation.py
+    artifacts:
+    - kind: test_function
+      name: test_revise_parser_exposes_stash_implementation
+      source_scenario: A planner needs a concrete CLI option for review-driven contract changes after implementation is present.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: The plan revise parser accepts --stash-implementation and sets stash_implementation true.
+    - kind: test_function
+      name: test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change
+      source_scenario: A tracked declared implementation file makes the revised behavioral test green, but the pre-fix tracked version remains red.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds, lock evidence is valid red, the implementation file is restored, and no stash entry remains.
+    - kind: test_function
+      name: test_stash_implementation_restores_untracked_declared_create_file
+      source_scenario: An untracked declared create-path implementation file makes validation green after review adds contract metadata.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds with red evidence captured while the create-path is stashed, then restores the untracked implementation file.
+    - kind: test_function
+      name: test_stash_implementation_rejects_green_stashed_state_without_revising_lock
+      source_scenario: Stashing implementation changes still leaves the revised validation command green.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 1, restores implementation changes, leaves no stash entry, and leaves the lock bytes unchanged.
+    - kind: test_function
+      name: test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing
+      source_scenario: The worktree contains unrelated dirty user work while a target implementation file is also dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves implementation changes restored, leaves no stash entry, and leaves the lock bytes unchanged.
+    - kind: test_function
+      name: test_stash_implementation_allows_current_lock_dirty
+      source_scenario: The current task's existing plan lock is uncommitted while a target implementation file is also dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command allows the current lock path to be dirty, does not stash it, restores implementation changes, and records valid red evidence.
+    - kind: test_function
+      name: test_stash_implementation_ignores_clean_missing_create_targets
+      source_scenario: A manifest has a dirty declared edit path and an absent declared create path that is not part of the implementation delta yet.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command stashes only dirty target paths, succeeds without passing the absent create path to Git, restores the dirty edit path, and leaves the create path absent.
+    - kind: test_function
+      name: test_stash_implementation_restores_original_when_validate_creates_new_stash
+      source_scenario: A validate command creates another stash after MAID creates its targeted implementation stash.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command restores and drops the exact MAID-created stash by identity, leaves the validate-created stash intact, restores implementation changes, and records valid red evidence.
+    - kind: test_function
+      name: test_stash_implementation_preserves_stash_when_validate_dirties_target
+      source_scenario: A validate command writes to a stashed target implementation path before MAID restores the implementation stash.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before saving the lock, leaves the original lock bytes unchanged, and preserves the MAID-created stash for manual recovery instead of overwriting validation-written target changes.
+    - kind: test_function
+      name: test_stash_implementation_rejects_validate_mutated_behavioral_test
+      source_scenario: A validate command rewrites a behavioral test after the stash-backed revise has hidden implementation changes and captured red evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before saving the lock, leaves the original lock bytes unchanged, restores implementation changes, and leaves no MAID-created stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_conflicting_revise_modes
+      source_scenario: A user combines --stash-implementation with --no-run or --preserve-red-evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Each conflicting mode exits 2 and leaves the lock unchanged.
+    - kind: test_function
+      name: test_docs_describe_stash_implementation_revise_workflow
+      source_scenario: A reader checks the MAID docs for the supported review-driven plan-revise recovery workflow.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: Docs name --stash-implementation, distinguish it from --preserve-red-evidence, and mention behavioral tests and implementation changes.
+  read:
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/manifest.py
+  - manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py
+- uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/076-01-add-stash-backed-plan-revise.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-26T10:36:29Z"
+  summary: "Added `maid plan revise --stash-implementation` for review-driven behavioral contract changes after implementation exists. The command stashes only dirty declared non-test implementation paths, captures fresh red evidence, restores the exact created stash by identity, rejects green or invalid evidence, and refuses to save if validation mutates the manifest or behavioral tests."
+  rationale: "The incident showed that open-ended guidance lets agents invent recovery maneuvers around red evidence. A first-class targeted stash mode gives agents one concrete method while failing closed on unrelated work, staged target paths, conflicting revise modes, ambiguous stash identity, target-path restore conflicts, and validation-mutated contract files."
+  lessons:
+    - lesson_type: workflow
+      summary: "When implementation review tightens behavioral tests after code is already green, use the explicit `maid plan revise --stash-implementation` path instead of broad stash advice or ad hoc worktree surgery. It hides only declared implementation paths, leaves the revised tests visible for evidence capture, and restores implementation changes before saving the lock."
+      tags:
+        - plan-lock
+        - red-phase
+        - workflow
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+    - lesson_type: validation
+      summary: "Stash-backed workflows must restore and drop the exact MAID-created stash by identity; tests now simulate validation creating its own stash so `stash@{0}` assumptions cannot silently pop the wrong entry."
+      tags:
+        - stash
+        - git
+        - regression-test
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+    - lesson_type: validation
+      summary: "Red-evidence capture must not be allowed to rewrite the reviewed contract. The stash-backed revise path hashes the manifest and behavioral tests before validation and refuses to save if validation mutates those files."
+      tags:
+        - plan-lock
+        - anti-gaming
+        - contract-integrity
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+    - lesson_type: workflow
+      summary: "Format declared Python files before plan locking when possible; if formatting or review metadata changes the manifest after valid red evidence exists, use a sanctioned revise mode rather than recreating evidence after implementation."
+      tags:
+        - formatting
+        - plan-lock
+        - outcome
+      paths:
+        - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+        - .maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json
+  review_notes:
+    - source: implementation-review-subagent-Dewey
+      severity: high
+      summary: "Needs-changes finding: validation could mutate manifest or behavioral test files during stash-backed revise and the mutated contract could be locked. Fixed by adding contract-file hash checks around evidence capture and a regression test."
+    - source: implementation-review-subagent-Sagan
+      severity: info
+      summary: "Final independent read-only review reported no actionable findings. Scope matched the manifest, lock hashes matched current manifest and behavioral test bytes, and the verdict was ready. Reviewer also noted Outcome capture and `maid learn` remained before handoff."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Focused behavioral suite passed: 12 passed, including regressions for exact stash identity, validation-dirtied targets, and validation-mutated behavioral tests."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Black check passed on touched Python files after formatting."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Ruff passed on touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - plan
+        - revise
+        - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+        - --reason
+        - refuse validation-mutated contract files
+        - --stash-implementation
+      status: passed
+      summary: "Stash-backed plan revise succeeded and updated the lock to revision 9 with fresh valid red evidence."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+      status: passed
+      summary: "Declared manifest test gate passed: 3 commands passed, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 370 manifests, 282 passed, 0 failed, and 88 skipped."

@@ -100,6 +100,16 @@ and the revision re-baselines the manifest and behavioral test hashes. Use
 `maid plan status <manifest-path>` to inspect lock state, hash matches and
 mismatches, and red evidence in text or JSON form.
 
+When implementation review changes the behavioral contract after implementation
+is already present, use `maid plan revise <manifest-path> --reason "<text>"
+--stash-implementation`. This is a targeted recovery workflow: MAID stashes
+only declared non-test implementation paths, leaves the revised manifest and
+behavioral tests in the worktree, captures fresh red evidence, restores the
+implementation changes, and saves the revised lock only when the evidence is
+valid red. It refuses missing Git metadata, unrelated dirty paths, staged target
+changes, missing target implementation changes, and conflicting `--no-run` or
+`--preserve-red-evidence` modes.
+
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
 --preserve-red-evidence`. This preserves the existing valid red evidence while
