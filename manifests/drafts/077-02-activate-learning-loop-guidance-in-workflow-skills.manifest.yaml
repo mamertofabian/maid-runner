@@ -72,9 +72,12 @@ description: |
   plan-review / implementer / implementation-review contain active recall
   guidance with the exact command surface, (c) the failure-lesson note quotes the
   exact `maid learn --include-status` form, (d) only registered options appear
-  (negative coverage), (e) the advisory framing is preserved, and (f) the
-  generated Claude and Codex package copies equal their sources after an isolated
-  sync.
+  (negative coverage), (e) stale indexes are handled explicitly with `maid learn`
+  as the default remedy and `--allow-stale-index` only when a stale advisory read
+  is acceptable, (f) the advisory framing is preserved, (g) the generated Claude
+  and Codex package copies equal their sources after an isolated sync, and (h)
+  the generated Claude and Codex manifests list the four workflow skills as
+  distributable so the activated guidance reaches initialized repositories.
 
   Out of scope for this child: maid-auditor (077-01), the recall ranking change
   (077-03), and any CLI behavior change.
@@ -112,6 +115,11 @@ files:
           returns: None
           description: "Negative behavioral coverage that guidance uses only registered options per command and never attaches --include-status to recall/insights or invents insights flags."
         - kind: test_function
+          name: test_workflow_guidance_handles_stale_indexes_explicitly
+          args: []
+          returns: None
+          description: "Behavioral coverage that all four workflow skills say stale recall/insights indexes fail by default and name `maid learn` plus `--allow-stale-index` as the only stale-read remedies."
+        - kind: test_function
           name: test_workflow_guidance_stays_advisory
           args: []
           returns: None
@@ -123,6 +131,13 @@ files:
               type: Path
           returns: None
           description: "Behavioral coverage that generated Claude and Codex package copies equal their sources for all four skills after an isolated sync and carry the activated guidance anchors."
+        - kind: test_function
+          name: test_workflow_guidance_distribution_manifests_include_all_four_skills
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage that an isolated payload sync lists maid-planner, maid-plan-review, maid-implementer, and maid-implementation-review in both generated Claude and Codex distributable skill manifests."
   edit:
     - path: .claude/skills/maid-planner/SKILL.md
       artifacts:
@@ -244,8 +259,12 @@ files:
     - maid_runner/cli/commands/learn.py
     - maid_runner/cli/commands/_main.py
     - scripts/sync_claude_files.py
+    - .claude/manifest.json
     - tests/test_recall_skill_guidance.py
     - tests/test_recall_payload_sync.py
+    - tests/test_agent_payload_distribution.py
+    - tests/cli/test_learn_cmd.py
     - docs/agent-skills.md
+    - docs/manifest-outcome-records.md
 validate:
-  - uv run python -m pytest -q tests/test_learning_loop_workflow_guidance.py tests/test_recall_skill_guidance.py tests/test_recall_payload_sync.py
+  - uv run python -m pytest -q tests/test_learning_loop_workflow_guidance.py tests/test_recall_skill_guidance.py tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py
