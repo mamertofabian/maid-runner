@@ -68,6 +68,30 @@ hardening, test focus, and implementation risks, but it does not expand the
 draft scope or replace red evidence, behavioral validation, plan lock,
 implementation validation, or review.
 
+## Learning Evidence Digestion
+
+Completed Outcome records should close the loop between prior MAID work and
+current agent decisions. When selected-draft recall, plan packets, or
+`uv run maid insights` return related Outcome evidence, do not paste a raw
+recall or insights transcript into the plan or handoff. Digest it visibly:
+identify applicable lessons, reject stale or irrelevant lessons with a reason,
+and state what changed because of the evidence.
+
+The influence should be phase-specific. During draft hardening, name any effect
+on manifest scope, behavioral tests, temptations, or open questions. During
+implementation, name the effect on focused tests, implementation approach, or
+implementation risks while staying inside the approved scope. During review,
+name the effect on review focus, Outcome capture, or candidate follow-up work.
+
+To intentionally learn from failed or abandoned Outcome lessons, refresh the
+index with
+`uv run maid learn --include-status completed --include-status abandoned` and
+then recall from that index. The completed-only default remains unchanged.
+Recalled, aggregated, and digested Outcomes are advisory planning context only:
+they do not expand scope, and the evidence does not replace red evidence,
+behavioral validation, plan lock, implementation validation, or review. They do
+not create an approval, promotion, done, or review gate.
+
 ## When To Pre-Create Drafts
 
 Pre-create drafts when the work can be enumerated with reasonable confidence:

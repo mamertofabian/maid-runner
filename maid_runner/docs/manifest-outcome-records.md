@@ -105,6 +105,29 @@ refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
 `.maid/outcomes.json` is generated and ignored; do not commit it. If
 `maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
 
+## Learning Evidence Digestion
+
+Learning commands close the loop from completed Outcome records to current agent decisions only when the agent reasons over the retrieved evidence. A
+planner, implementer, reviewer, or auditor should not paste a raw recall or
+insights transcript into the current task and stop there. The agent should name
+applicable lessons, reject stale or irrelevant lessons with a reason, and state
+what changed because of the evidence.
+
+The decision impact should be concrete and phase-specific: manifest scope,
+behavioral tests, temptations, open questions, implementation approach, risk
+controls, review findings, Outcome capture, or candidate follow-up work. If no
+completed Outcome records are relevant, say that and continue with the current
+manifest's own tests, scope, validation commands, and review.
+
+To intentionally include instructive failed or abandoned Outcome lessons,
+refresh the index with
+`uv run maid learn --include-status completed --include-status abandoned` and
+then recall from that index. This is an opt-in failure-lesson workflow; the
+completed-only default is unchanged. Recalled, aggregated, and digested
+Outcomes are advisory evidence. They do not replace behavioral tests, declared
+artifacts, validation commands, supersession, manifest evolution,
+implementation review, or any approval, promotion, done, or review gate.
+
 ## Practical Uses
 
 ### Planning Recall Packet

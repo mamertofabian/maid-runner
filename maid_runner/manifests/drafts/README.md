@@ -64,6 +64,20 @@ it can inform selected-draft hardening and implementation risks, but it does
 not expand scope or replace red evidence, behavioral validation, plan lock, or
 implementation validation, or review.
 
+Digest any related Outcome evidence before promotion or handoff to close the loop
+between completed Outcome records and current agent decisions. Do not paste a
+raw recall or insights transcript into the draft. Name applicable lessons,
+reject stale or irrelevant lessons with a reason, and state what changed because of the evidence for current agent decisions such as manifest scope, behavioral
+tests, temptations, open questions, implementation risks, review focus, or
+follow-up work. To intentionally include failed or abandoned Outcome lessons,
+refresh with
+`uv run maid learn --include-status completed --include-status abandoned` and
+then recall from that index; the completed-only default remains unchanged.
+Recalled, aggregated, and digested Outcomes are advisory evidence that does not
+replace red evidence, behavioral validation, plan lock, implementation
+validation, or review. They do not create an approval, promotion, done, or
+review gate.
+
 Promote one selected child draft with
 `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`.
 Do not manually move or copy draft manifests; the command migrates plan locks,

@@ -1,0 +1,210 @@
+{
+  "manifest_path": "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
+  "manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+  "test_hashes": {
+    "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+    "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+    "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072"
+  },
+  "created_at": "2026-06-26T22:43:02.370223+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:a8a79f2bafbebb0d897cc9dd5f58fe723aacb758ce61e2f60213a4c40aac7f40",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:a9cf0f497deee6acd9c176292eac9ed1bf7ff305455fe86f9893a6eefee5543e"
+      },
+      "revised_at": "2026-06-26T22:43:07.242789+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml -> manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:a9cf0f497deee6acd9c176292eac9ed1bf7ff305455fe86f9893a6eefee5543e"
+      },
+      "revised_at": "2026-06-26T22:43:46.329754+00:00",
+      "reason": "Normalize learning-digestion phrase assertions so existing 077-02 workflow skill line wrapping does not force out-of-scope source skill wording changes"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:a9cf0f497deee6acd9c176292eac9ed1bf7ff305455fe86f9893a6eefee5543e"
+      },
+      "revised_at": "2026-06-26T22:44:45.930894+00:00",
+      "reason": "Normalize installed workflow skill digest assertions for existing capitalization and line wrapping while preserving 077-04-owned red failures"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:1fd014aca07388ef40f0ff1e45b0b4abe122dcd0a0b8ace5a1769832240c31fc"
+      },
+      "revised_at": "2026-06-26T23:02:26.773357+00:00",
+      "reason": "Refresh red evidence after Black formatting changed the behavioral test file hash"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:c6b6e68fd63c226f5b4ef54b0b42dd1900bb9639398772dac87cb8d20823cac5"
+      },
+      "revised_at": "2026-06-26T23:10:51.253196+00:00",
+      "reason": "Refresh red evidence after review fix added maid-auditor onboard guidance assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:9990febe3c56b81ffeef9ee1da0977d7660436d656f799f7f1f553c589b6ef2f",
+        "tests/test_learning_loop_init_payload.py": "sha256:c6b6e68fd63c226f5b4ef54b0b42dd1900bb9639398772dac87cb8d20823cac5"
+      },
+      "revised_at": "2026-06-26T23:16:13.568725+00:00",
+      "reason": "Refresh red evidence after moving reviewer-fix assertions into the 077-04 test file"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T23:16:14.465724+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_learning_loop_init_payload.py tests/test_learning_loop_workflow_guidance.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py tests/test_recall_payload_sync.py tests/cli/test_init_cmd.py tests/cli/test_init_codex_distributable_scope.py tests/cli/test_skills_install.py",
+        "exit_code": 1,
+        "output_tail": "E       assert 'do not create an approval, promotion, done, or review gate' in \"<!-- BEGIN MAID RUNNER -->\\n## MAID Runner\\n\\n### MAID Codex Skills Workflow\\nUse the installed MAID Codex skills for...optional `outcome` field records the completed result,\\nvalidation evidence, and review notes after the work closes.\\n\"\n\n/home/atomrem/projects/codefrost-dev/maid-runner-077-04/tests/test_learning_loop_init_payload.py:252: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInitialized MAID in /tmp/pytest-of-atomrem/pytest-82/test_init_learning_digest_guid0/codex\n  Created: manifests/\n  Created: manifests/drafts/\n  Created: .maidrc.yaml\n  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Updated: .codex/\n  Updated: AGENTS.md\n=========================== short test summary info ============================\nFAILED tests/test_learning_loop_init_payload.py::test_init_generated_guidance_requires_learning_digest\nFAILED tests/test_learning_loop_init_payload.py::test_init_installed_docs_close_the_outcome_learning_loop\nFAILED tests/test_learning_loop_init_payload.py::test_agent_skill_docs_describe_current_init_distribution\nFAILED tests/test_learning_loop_init_payload.py::test_learning_digest_payload_sources_and_packages_match\nFAILED tests/test_learning_loop_init_payload.py::test_init_learning_digest_guidance_stays_advisory\n5 failed, 48 passed in 0.68s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_learning_digest_refresh_guidance",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_learning_digest_refresh_guidance:kind=attribute",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_learning_digest_refresh_guidance:of=user_skill_payload",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_learning_digest_refresh_guidance:type=markdown section",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_learning_digest_refresh_guidance",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_learning_digest_refresh_guidance:kind=attribute",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_learning_digest_refresh_guidance:of=user_skill_payload",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_learning_digest_refresh_guidance:type=markdown section",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_learning_digest_lifecycle",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_learning_digest_lifecycle:kind=attribute",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_learning_digest_lifecycle:of=documentation",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_learning_digest_lifecycle:type=markdown section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_workflow_learning_digest_step",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_workflow_learning_digest_step:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_workflow_learning_digest_step:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_workflow_learning_digest_step:type=markdown section",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learning_digest_guidance",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learning_digest_guidance:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learning_digest_guidance:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_learning_digest_guidance:type=markdown section",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:kind=function",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:returns=str",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_workflow_learning_digest_step",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_workflow_learning_digest_step:kind=attribute",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_workflow_learning_digest_step:of=package_resource",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_workflow_learning_digest_step:type=markdown document",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_learning_digest_guidance",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_learning_digest_guidance:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_learning_digest_guidance:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_learning_digest_guidance:type=markdown document",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_learning_digest_guidance",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_learning_digest_guidance:kind=attribute",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_learning_digest_guidance:of=package_resource",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_learning_digest_guidance:type=markdown document",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_learning_digest_refresh_guidance",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_learning_digest_refresh_guidance:kind=attribute",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_learning_digest_refresh_guidance:of=user_skill_payload",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_learning_digest_refresh_guidance:type=markdown section",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_learning_digest_refresh_guidance",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_learning_digest_refresh_guidance:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_learning_digest_refresh_guidance:of=user_skill_payload",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_learning_digest_refresh_guidance:type=markdown section",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_learning_digest_guidance",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_learning_digest_guidance:kind=attribute",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_learning_digest_guidance:of=documentation",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_learning_digest_guidance:type=markdown section",
+      "tests/test_learning_loop_init_payload.py:test_agent_skill_docs_describe_current_init_distribution",
+      "tests/test_learning_loop_init_payload.py:test_agent_skill_docs_describe_current_init_distribution:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_agent_skill_docs_describe_current_init_distribution:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_init_generated_guidance_requires_learning_digest",
+      "tests/test_learning_loop_init_payload.py:test_init_generated_guidance_requires_learning_digest:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_generated_guidance_requires_learning_digest:arg=tmp_path:type=Path:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_generated_guidance_requires_learning_digest:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_init_generated_guidance_requires_learning_digest:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installed_docs_close_the_outcome_learning_loop",
+      "tests/test_learning_loop_init_payload.py:test_init_installed_docs_close_the_outcome_learning_loop:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installed_docs_close_the_outcome_learning_loop:arg=tmp_path:type=Path:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installed_docs_close_the_outcome_learning_loop:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_init_installed_docs_close_the_outcome_learning_loop:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installs_learning_digest_workflow_skills",
+      "tests/test_learning_loop_init_payload.py:test_init_installs_learning_digest_workflow_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installs_learning_digest_workflow_skills:arg=tmp_path:type=Path:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_installs_learning_digest_workflow_skills:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_init_installs_learning_digest_workflow_skills:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:arg=tmp_path:type=Path:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_codex_distributable_scope.py",
+      "tests/cli/test_skills_install.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_init_draft_workflow_payload.py",
+      "tests/test_learning_loop_init_payload.py",
+      "tests/test_learning_loop_workflow_guidance.py",
+      "tests/test_recall_payload_sync.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_learning_loop_init_payload.py tests/test_learning_loop_workflow_guidance.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py tests/test_recall_payload_sync.py tests/cli/test_init_cmd.py tests/cli/test_init_codex_distributable_scope.py tests/cli/test_skills_install.py"
+    ]
+  }
+}
