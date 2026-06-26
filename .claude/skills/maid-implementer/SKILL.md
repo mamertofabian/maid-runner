@@ -35,6 +35,22 @@ Stop at the default 5 attempt bound. If the gate still fails, or the packet
 requests `escalate-human`, stop and escalate to a human with the final packet
 instead of looping, hiding the failure, or broadening scope.
 
+## Plan Revision Recovery
+
+If implementation review requires review-driven behavioral contract changes
+after implementation already exists, do not invent a manual stash or worktree
+procedure. Use the sanctioned recovery command:
+
+```bash
+maid plan revise <manifest> --reason "<text>" --stash-implementation
+```
+
+Use `--stash-implementation` only for review-driven behavioral contract changes
+that need fresh red evidence while declared implementation changes are
+temporarily hidden. For metadata-only cleanup on a locked manifest, use
+`maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
+instead.
+
 ## Phase 1 — Load the Manifest
 
 Read the approved manifest and extract:

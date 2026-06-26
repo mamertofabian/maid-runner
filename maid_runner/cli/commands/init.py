@@ -340,7 +340,11 @@ def _render_draft_outcome_guidance() -> str:
         "Do not manually move or copy draft manifests. For metadata-only "
         "reference cleanup on locked active manifests, use "
         '`uv run maid plan revise <manifest> --reason "<text>" '
-        "--preserve-red-evidence`.\n\n"
+        "--preserve-red-evidence`. For review-driven behavioral contract "
+        "changes after implementation exists, use "
+        '`uv run maid plan revise <manifest> --reason "<text>" '
+        "--stash-implementation` so MAID temporarily hides declared "
+        "implementation changes while it captures fresh red evidence.\n\n"
         "Always capture an Outcome record after implementation validation and "
         "implementation review, before final handoff. Capture Outcome after "
         "implementation review so the result records the reviewed evidence. "

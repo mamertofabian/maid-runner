@@ -93,6 +93,22 @@ manifest scope. Recalled Outcomes are planning evidence only. They do not
 replace behavioral tests, declared artifacts, validation commands, or
 implementation review.
 
+## Plan Revision Recovery
+
+If implementation review requires review-driven behavioral contract changes
+after implementation already exists, do not invent a manual stash or worktree
+procedure. Use the sanctioned recovery command:
+
+```bash
+maid plan revise <manifest> --reason "<text>" --stash-implementation
+```
+
+Use `--stash-implementation` only for review-driven behavioral contract changes
+that need fresh red evidence while declared implementation changes are
+temporarily hidden. For metadata-only cleanup on a locked manifest, use
+`maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
+instead.
+
 ## Phase 3 — Implement
 
 If the plan appears wrong, incomplete, or impossible, stop and write `plan-revision.md` instead of editing around it. Include:
