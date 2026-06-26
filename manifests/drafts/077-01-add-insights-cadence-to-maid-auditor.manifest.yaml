@@ -1,0 +1,114 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Give maid insights a distributable entry point by adding an advisory insights cadence step to the maid-auditor skill"
+type: feature
+created: "2026-06-26T20:11:00Z"
+metadata:
+  status: draft
+  epic: 077-00-skills-exploit-outcome-learning-loop
+  tags:
+    - agent-skills
+    - insights
+    - outcome-records
+    - maid-workflow
+  priority: medium
+description: |
+  Distributable entry point for `maid insights`. Today `maid insights` is a
+  working CLI command with no distributable trigger: the only skill that tells
+  an agent to run it is `maid-runner-self-improvement`, which `maid init` does
+  not install. maid-auditor is the natural home because it is Claude-distributed
+  and already has "Before Release", "After Large Refactor", and "Periodic Health
+  Check" usage sections; an aggregate-insights review is a portfolio-level
+  cadence step, not a per-task step.
+
+  This child adds an advisory insights cadence subsection to the maid-auditor
+  skill that instructs the auditor to run `maid insights` during its periodic /
+  release cadences to surface recurring Outcome lessons across modules, paths,
+  tags, and review findings, and to fold notable recurring patterns into the
+  audit's recommended-actions output as candidate follow-up work.
+
+  Pinned decisions (do not redesign):
+
+  1. Quote only registered `maid insights` options. The shipped surface is
+     `--index`, `--manifest-dir`, `--project-root`, `--allow-stale-index`,
+     `--limit`, and `--json`. There is no `--tag` and no `--include-status` on
+     insights. Guidance must not invent flags (the negative test pins this).
+  2. Insights is advisory aggregate evidence only. It must never gate or modify
+     the audit verdict; maid-auditor stays read-only and verdict-neutral. The
+     guidance states this explicitly.
+  3. Claude-only distribution. maid-auditor is not a Codex skill and must not be
+     added to `CODEX_DISTRIBUTABLE_SKILLS`. Only the Claude source and the
+     generated Claude package copy are touched.
+  4. Stale-index handling mirrors recall guidance: insights fails on a stale
+     index by default; the remedy is `maid learn`, or `--allow-stale-index` when
+     a stale read is acceptable. Never work around the failure another way.
+
+  Files touched mirror the 066-03 guidance pattern, narrowed to the Claude-only
+  auditor skill: the repo-local source `.claude/skills/maid-auditor/SKILL.md`
+  and the generated package copy `maid_runner/claude/skills/maid-auditor/SKILL.md`
+  (gitignored, produced by `scripts/sync_claude_files.py`). Per the 047-06 /
+  066-03 lesson, the parity test must run the sync script in an isolated
+  workspace rather than depend on the ignored local generated file.
+
+  Behavioral test expectations: tests read the auditor skill and assert that
+  (a) it contains an insights cadence anchor tied to the release / periodic
+  health cadences and frames insights as advisory, (b) the guidance uses only
+  registered insights options and contains no unregistered flags, and (c) the
+  generated Claude package copy equals the source after an isolated sync and
+  carries the same anchor.
+
+  Out of scope for this child: the four cross-tool workflow skills (077-02), any
+  recall ranking change (077-03), and any Codex distribution of maid-auditor.
+temptations:
+  - risk: "Do not write insights filter flags that do not exist (for example `maid insights --tag` or `--include-status`)."
+    instead: "Quote only the registered insights options; assert the absence of unregistered flags in a negative test."
+  - risk: "Do not let the cadence imply insights can block or change an audit verdict."
+    instead: "State that insights is advisory aggregate evidence; the auditor stays read-only and verdict-neutral."
+  - risk: "Do not edit the source skill and leave the generated Claude package copy stale, or add maid-auditor to the Codex distributable set."
+    instead: "Update the source and regenerate via the sync script, assert parity from an isolated workspace, and keep maid-auditor Claude-only."
+files:
+  create:
+    - path: tests/test_insights_skill_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_auditor_insights_cadence_is_present_and_specific
+          args: []
+          returns: None
+          description: "Behavioral coverage that the maid-auditor skill contains an advisory `maid insights` cadence anchor tied to its release / periodic health cadences."
+        - kind: test_function
+          name: test_auditor_insights_guidance_uses_only_registered_options
+          args: []
+          returns: None
+          description: "Behavioral coverage that the auditor insights guidance uses only registered insights options and contains no unregistered flags such as --tag or --include-status."
+        - kind: test_function
+          name: test_auditor_insights_guidance_synced_to_claude_payload
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Behavioral coverage that the generated Claude package copy equals the source maid-auditor skill after an isolated sync and carries the insights cadence anchor."
+  edit:
+    - path: .claude/skills/maid-auditor/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _auditor_insights_cadence_guidance
+          of: skill
+          type: markdown section
+          description: "Advisory `maid insights` cadence step for the auditor's release / periodic health checks, using only registered insights options and never gating the audit verdict."
+    - path: maid_runner/claude/skills/maid-auditor/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_auditor_insights_cadence_guidance
+          of: skill
+          type: markdown section
+          description: "Generated Claude package copy of the auditor insights cadence guidance."
+  read:
+    - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+    - maid_runner/cli/commands/insights.py
+    - maid_runner/cli/commands/_main.py
+    - scripts/sync_claude_files.py
+    - tests/test_recall_skill_guidance.py
+    - docs/agent-skills.md
+validate:
+  - uv run python -m pytest -q tests/test_insights_skill_guidance.py
