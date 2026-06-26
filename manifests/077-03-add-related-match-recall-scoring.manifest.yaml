@@ -1,0 +1,297 @@
+schema: '2'
+goal: Loosen recall ranking so same-directory paths and substring-related tags surface at reduced weights below exact matches via a narrow documented rule
+type: feature
+created: '2026-06-26T22:37:10Z'
+metadata:
+  epic: 077-00-skills-exploit-outcome-learning-loop
+  tags:
+  - recall
+  - outcome-records
+  - ranking
+  - maid-workflow
+  priority: medium
+description: |
+  Engine child. Today `recall_outcomes` (in `maid_runner/core/outcome_recall.py`)
+  excludes a record entirely unless each supplied query dimension has an exact
+  match: a record declaring `maid_runner/core/chain.py` is invisible to a query
+  for `maid_runner/core/manifest.py` even though both live in the same module
+  directory, and a record tagged `validator-hardening` is invisible to a query
+  for `hardening`. This drops genuinely related lessons that recall should
+  surface as advisory context.
+
+  This child loosens ranking with a deliberately narrow, documented rule so
+  related records surface at reduced weights strictly below their exact
+  counterparts, observable through the public `recall_outcomes` return value.
+
+  Pinned decisions (do not redesign):
+
+  1. Two narrow partial signals only, applied only to the path and tag
+     dimensions; exact matches keep full weight and their existing reason
+     strings unchanged:
+     - Path shared-parent: when a query path and a record path differ but share
+       the same immediate parent directory (`Path(q).parent == Path(r).parent`),
+       award a reduced partial weight below the exact path weight (80). Counts
+       at most one best partial per query path; no recursive ancestor walking and
+       no fuzzy/substring directory matching.
+     - Tag containment: when no exact tag matched but a lowercased query tag is a
+       substring of a record tag or vice versa, award a reduced partial weight
+       below the exact tag weight (40).
+  2. Gating change: a supplied dimension excludes a record only when it yields
+     neither an exact nor a partial signal. Partial matches add distinct reason
+     labels (for example `path~dir:<dir> (+N)` and `tag~related:<tag> (+N)`) so
+     the partial nature is observable through `OutcomeRecallMatch.reasons` and
+     does not collide with existing exact `path:`/`tag:` reasons.
+  3. Bounded and documented per the AGENTS.md "Validator Hardening Constraints":
+     no heuristic analyzers, no synonym tables, no recursive or fuzzy matching.
+     Spelling-unrelated synonyms (for example `hardening` vs `anti-gaming`) are
+     intentionally out of scope; the negative test pins that they do not match.
+     The new partial weights are centralized as named module constants for
+     greppability; they are implementation detail, not part of the public
+     contract, which is the observable `recall_outcomes` behavior.
+  4. Partial never outranks exact and partials do not stack into inflated scores:
+     each partial weight is strictly below its exact counterpart, and at most one
+     best partial per query value is counted.
+
+  The contracted production artifact is the public `recall_outcomes` function,
+  whose signature is unchanged; only its ranking behavior is extended. The new
+  behavioral tests live in a dedicated file so the large existing
+  `tests/core/test_outcome_recall.py` is kept as a stay-green regression guard
+  (its exact-weight assertions must not change) rather than reorganized.
+
+  Behavioral test expectations (all assert via the public `recall_outcomes`
+  API on score, reasons, and inclusion; never on private helpers):
+  - a same-directory record surfaces for a sibling-path query at the reduced
+    path weight with a `path~dir` reason;
+  - an exact path match outranks a same-directory partial match;
+  - a substring-related tag surfaces at the reduced tag weight while a
+    spelling-unrelated tag query returns no match (narrowness pinned);
+  - a record with a valid partial path match is still excluded when another
+    supplied dimension, such as tag, has neither an exact nor partial match;
+  - an unrelated record (different parent directory and no tag relation) is
+    still excluded;
+  - partial matches stay bounded and never outrank an exact path+tag combination.
+
+  Out of scope for this child: the skill guidance children (077-01, 077-02), any
+  CLI flag change, and any change to the learn index schema or insights.
+temptations:
+- risk: Do not build a synonym table or semantic similarity so spelling-unrelated tags match.
+  instead: Ship only lowercased substring containment for tags; pin the unrelated-synonym exclusion with a negative test.
+- risk: Do not add recursive ancestor-directory walking or fuzzy path distance.
+  instead: Compare only immediate parent equality (`Path(q).parent == Path(r).parent`); bound with the no-inflation test.
+- risk: Do not let a partial match equal or outrank an exact match, or let partials stack into an inflated score.
+  instead: Keep each partial weight strictly below its exact counterpart and count at most one best partial per query value; pin with the exact-outranks-partial and no-inflation tests.
+- risk: Do not reuse the existing `path:`/`tag:` reason prefixes for partial matches and silently change exact-match reason strings.
+  instead: Use distinct `path~dir`/`tag~related` reason labels and keep `tests/core/test_outcome_recall.py` exact-weight assertions green unmodified.
+- risk: Do not suppress recall CLI or plan-packet tests if their output shifts because more related records now surface.
+  instead: Re-verify `tests/cli/test_recall_plan_packet_cmd.py`; if packet content legitimately changes, update those expectations within this child rather than hiding the change.
+files:
+  create:
+  - path: tests/core/test_outcome_recall_related_match.py
+    artifacts:
+    - kind: test_function
+      name: test_recall_partial_match_same_directory_surfaces_related_record
+      args: []
+      returns: None
+      description: A record declaring a sibling path in the same directory surfaces for a query path it does not exactly match, at the reduced path weight with a path~dir reason.
+    - kind: test_function
+      name: test_recall_exact_path_outranks_partial_path
+      args: []
+      returns: None
+      description: An exact path match ranks above a same-directory partial match, with distinct exact and partial reason labels.
+    - kind: test_function
+      name: test_recall_related_tag_substring_surfaces_but_unrelated_excluded
+      args: []
+      returns: None
+      description: A substring-related tag surfaces at the reduced tag weight while a spelling-unrelated tag query returns no match, pinning the rule's narrowness.
+    - kind: test_function
+      name: test_recall_partial_match_still_requires_every_supplied_dimension
+      args: []
+      returns: None
+      description: A record with a same-directory partial path match is still excluded when another supplied query dimension has neither an exact nor partial match, preserving the all-dimensions gate.
+    - kind: test_function
+      name: test_recall_unrelated_record_still_excluded
+      args: []
+      returns: None
+      description: A record with a different parent directory and no tag relation is still excluded, proving loosening did not become a catch-all.
+    - kind: test_function
+      name: test_recall_partial_does_not_inflate_above_exact_combination
+      args: []
+      returns: None
+      description: An exact path-and-tag record ranks above records with only partial matches, and partials do not stack into an inflated score.
+  edit:
+  - path: maid_runner/core/outcome_recall.py
+    artifacts:
+    - kind: function
+      name: recall_outcomes
+      args:
+      - name: index
+        type: OutcomeIndex
+      - name: query
+        type: OutcomeRecallQuery
+      - name: limit
+        type: int
+        default: '10'
+      returns: list[OutcomeRecallMatch]
+      description: Rank Outcome index records for a query; extended so same-directory paths and substring-related tags surface at reduced weights below exact matches, with distinct partial reason labels, while exact-match scoring and reasons are unchanged.
+  read:
+  - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+  - manifests/066-01-add-recall-for-manifest-query.manifest.yaml
+  - maid_runner/core/outcomes.py
+  - tests/core/test_outcome_recall.py
+  - tests/core/test_plan_packet.py
+  - tests/cli/test_recall_plan_packet_cmd.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest -q tests/core/test_outcome_recall_related_match.py tests/core/test_outcome_recall.py tests/core/test_plan_packet.py tests/cli/test_recall_cmd.py tests/cli/test_recall_for_manifest_cmd.py tests/cli/test_recall_plan_packet_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-06-26T23:10:15Z"
+  summary: "Extended `recall_outcomes` with narrow same-directory path and substring-related tag partial scoring, added focused behavioral coverage for inclusion, ordering, gating, unrelated exclusions, and capped no-inflation behavior, and promoted the draft manifest with plan-lock red evidence."
+  rationale: "The implementation keeps recall deterministic and advisory: exact path and tag matches retain their existing weights and reason strings, while partial path and tag signals use named reduced weights with distinct `path~dir` and `tag~related` reasons. After implementation review found that partials could stack across multiple query values, the plan lock was revised with fresh red evidence and the scorer was capped to one partial signal per path/tag dimension when no exact match exists."
+  lessons:
+  - lesson_type: testing
+    summary: "No-inflation recall tests need multiple related query paths and tags; a single query value can miss partial-score stacking that lets related-only records outrank exact path+tag matches."
+    tags:
+    - recall
+    - behavioral-testing
+    - ranking
+    paths:
+    - tests/core/test_outcome_recall_related_match.py
+    - maid_runner/core/outcome_recall.py
+  - lesson_type: design
+    summary: "For advisory recall ranking, exact path/tag matches should take precedence and partial path/tag signals should be capped per dimension so related matches surface without dominating exact matches."
+    tags:
+    - recall
+    - outcome-records
+    - ranking
+    paths:
+    - maid_runner/core/outcome_recall.py
+  - lesson_type: workflow
+    summary: "Stash-backed plan revision is the right recovery path for review-driven behavioral coverage changes after implementation, but it only permits declared dirty paths; generated active-task state and promotion-only draft deletion must be cleared from the dirty set first."
+    tags:
+    - plan-lock
+    - red-evidence
+    - implementation-review
+    paths:
+    - .maid/plan-locks/077-03-add-related-match-recall-scoring.lock.json
+    - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+  review_notes:
+  - source: Aristotle
+    severity: warning
+    summary: "Initial read-only implementation review found a P2 no-inflation gap: partial path and tag scores could stack across multiple query values and outrank an exact path+tag combination."
+  - source: Feynman
+    severity: ready
+    summary: "Re-review found no findings after the no-inflation test was strengthened and partial scoring was capped per dimension; residual risk is limited to intentionally exact-first mixed exact/partial behavior."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_outcome_recall_related_match.py
+    - tests/core/test_outcome_recall.py
+    - tests/core/test_plan_packet.py
+    - tests/cli/test_recall_cmd.py
+    - tests/cli/test_recall_for_manifest_cmd.py
+    - tests/cli/test_recall_plan_packet_cmd.py
+    status: failed
+    summary: "Plan-lock red evidence captured the exact-only behavior before implementation: 4 related-match tests failed while 26 existing regression tests passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - revise
+    - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+    - --stash-implementation
+    status: passed
+    summary: "Review-driven plan revision refreshed red evidence after strengthening the no-inflation test for multiple related query paths and tags."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_outcome_recall_related_match.py
+    - tests/core/test_outcome_recall.py
+    - tests/core/test_plan_packet.py
+    - tests/cli/test_recall_cmd.py
+    - tests/cli/test_recall_for_manifest_cmd.py
+    - tests/cli/test_recall_plan_packet_cmd.py
+    status: passed
+    summary: "Focused related-match, exact recall regression, plan-packet, and recall CLI tests passed: 30 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Promoted manifest behavioral validation passed after the review-driven plan revision."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Promoted manifest implementation validation passed for the unchanged public `recall_outcomes` signature and declared tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+    status: passed
+    summary: "Manifest-scoped MAID test runner passed the declared validation command."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/outcome_recall.py
+    - tests/core/test_outcome_recall_related_match.py
+    status: passed
+    summary: "Focused Ruff checks passed for the production scorer and new behavioral test file."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/core/outcome_recall.py
+    - tests/core/test_outcome_recall_related_match.py
+    status: passed
+    summary: "Focused Black check passed for the production scorer and new behavioral test file."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed for 374 manifests with 286 passed, 0 failed, and 88 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test runner passed 147 commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - HEAD
+    status: passed
+    summary: "Explicit-base handoff verification passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests with existing advisory warnings only."
