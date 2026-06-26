@@ -3,11 +3,11 @@
   "manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
   "test_hashes": {
     "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
-    "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949",
+    "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836",
     "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
   },
   "created_at": "2026-06-17T03:00:03.061118+00:00",
-  "revision": 9,
+  "revision": 22,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:140eed0b7817ce7f44c1a7a42bf7945ac82a75dcf8adcdfbb92ec7eb2f2db9d2",
@@ -88,6 +88,136 @@
       },
       "revised_at": "2026-06-25T04:07:17.316980+00:00",
       "reason": "Add scope-only file-tracking verify regression to shared verify tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T13:14:08.307054+00:00",
+      "reason": "Refresh lock after Black formatting of shared validate command tests."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:c13481b51de75889d850aed5452667e8ee04063514ea5c9415de85451cbb6b4e",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T22:40:22.308698+00:00",
+      "reason": "Refresh lock after fast-only E2E validate command coverage updated shared validate tests."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:8f125f984aab51e4de05577927c6d0123c2e0fbc7b4b3bcd5d72c2dc57349096",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T22:51:14.861491+00:00",
+      "reason": "Refresh lock after selector-bearing browser E2E coverage updated shared validate tests."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:ab6d1100ec6bf07a9d05228569e7fea0eef1ba7f09dfd83d43534017bb4887bf",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T23:05:54.410603+00:00",
+      "reason": "Refresh lock after Black formatting of shared validate command tests."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:088ad96a51154432fbfff9583e3b78b0dbcda8e70b49beabf3c69591980a8311",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T23:25:00.693578+00:00",
+      "reason": "Refresh lock after shared validate command tests gained E2E fast-gate follow-up coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:6611d655b656d0a9e0c47f3259ff503464d1907b685c034c9138552e8c09e8ca",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T23:42:32.348135+00:00",
+      "reason": "Refresh lock after shared validate command tests gained final E2E wrapper coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:a28d166041a431be6efa9d142b97488438f9d2e5f5f9b87e68c4f3adfad2371f",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T23:59:30.111112+00:00",
+      "reason": "Refresh lock after shared validate command tests gained mixed-command E2E coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:70008ee4f0b7e80e20d67ff72ccbf36c03674bc8d4c060abb0f6ce1f4de511c1",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T00:14:07.723444+00:00",
+      "reason": "Refresh lock after shared validate command tests gained pytest html report-path coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:39d1bb33db65afa013cdfdaeabeab51f0809bae5835894a135532cad29852b77",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T00:31:36.292454+00:00",
+      "reason": "Refresh lock after shared validate command tests gained package call and e2e cwd coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:c8028786825958ee56fa4da1074bbe3c5d2c7b4d49b53de5c387a5f62f7c1154",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T00:52:56.442655+00:00",
+      "reason": "Refresh lock after shared validate command tests gained scoped Playwright and output-file E2E path coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:5437ecea1b74e4afec0bf0f4c65a8f5ccb3a79f0f3c4c8f6e562c9e820deee07",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T01:08:01.813078+00:00",
+      "reason": "Refresh lock after shared validate command tests gained package-call E2E wrapper coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:4aca1ddb52a00483b6dcd32d42a169455d8276b78828f48eccf4e6c92d453e86",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T01:26:04.221785+00:00",
+      "reason": "Refresh lock after shared validate command tests gained bounded launcher wrapper and JS output directory E2E coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:11214cf18f9abf2db7389599e732894b1b1b0ab21869627d77b80dd8a7c03536",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-26T01:40:18.361434+00:00",
+      "reason": "Refresh lock after shared validate command tests gained wrapper inner separator E2E coverage."
     }
   ],
   "red_evidence": {
