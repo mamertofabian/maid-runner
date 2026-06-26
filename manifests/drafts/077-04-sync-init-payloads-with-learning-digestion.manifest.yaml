@@ -1,0 +1,241 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Propagate learning-digestion guidance through maid init installed payloads, docs, and instructions"
+type: feature
+created: "2026-06-26T21:20:00Z"
+metadata:
+  status: draft
+  epic: 077-00-skills-exploit-outcome-learning-loop
+  tags:
+    - init
+    - agent-skills
+    - outcome-records
+    - recall
+    - insights
+    - packaging
+    - maid-workflow
+  priority: medium
+description: |
+  Downstream MAID repositories receive the workflow through `maid init`, not by
+  reading maid-runner's local source tree. After 077-02 updates the four
+  cross-tool workflow skills, propagate the same close-loop learning-digestion
+  guidance through the init-installed surfaces: generated CLAUDE/AGENTS managed
+  sections, installed workflow docs, drafts README, packaged doc copies,
+  user-facing agent skill documentation, and assertions that initialized Claude
+  and Codex repos receive the activated workflow skill payloads.
+
+  This mirrors the 066-04 and 075-02 payload lessons: source guidance is not
+  enough. A repo using MAID must get the guidance when it runs `maid init
+  --tool claude` or `maid init --tool codex`, and tests must exercise that
+  install path instead of trusting ignored local generated payload state.
+
+  Pinned decisions (do not redesign):
+
+  1. `maid init` remains a deterministic payload installer. This child may edit
+     the generated guidance text and packaged docs, but it must not add AI
+     inference, hidden memory, new command flags, or tool-specific background
+     behavior.
+  2. Learning evidence stays advisory. Installed guidance may require agents to
+     digest retrieved lessons visibly, but recall, insights, and digested
+     Outcomes must not become validation, approval, promotion, implementation,
+     review, done, or commit gates.
+  3. The installed guidance must preserve exact command surfaces:
+     `uv run maid learn`, `uv run maid recall --for-manifest
+     manifests/drafts/<slug>.manifest.yaml --plan-packet`, `uv run maid
+     insights`, and the 077-02 failure-lesson opt-in on `maid learn
+     --include-status completed --include-status abandoned`.
+  4. Source/package parity stays explicit. Canonical docs and user-facing skill
+     docs must match their packaged copies, and initialized repositories must
+     receive the packaged versions.
+
+  Behavioral test expectations: tests initialize temporary Claude and Codex
+  repositories and assert that (a) installed workflow skill payloads include the
+  active insights trigger, recall/plan-packet guidance, failure-lesson learning
+  note, and phase-specific learning-evidence digestion anchors from 077-02, (b)
+  generated CLAUDE.md and AGENTS.md sections explain that agents should digest
+  related Outcome evidence by naming applicable lessons, rejected stale or
+  irrelevant lessons, and what changed because of the evidence, (c) installed
+  `docs/draft-manifest-workflow.md`,
+  `docs/manifest-outcome-records.md`, and `manifests/drafts/README.md` carry
+  the close-loop guidance and advisory boundary, (d) `docs/agent-skills.md`
+  accurately describes the current Claude and Codex init distributions and the
+  learning-digestion lifecycle, (e) packaged docs and user-level `maid-onboard`
+  skill copies match their sources after sync, and (f) the installed guidance
+  does not install repo-internal maid-runner skills into Codex repos or imply
+  that learn/recall/insights replace MAID gates.
+
+  Out of scope for this child: changing the 077-02 source workflow-skill
+  wording, changing recall scoring (077-03), changing maid-auditor cadence
+  (077-01), adding new CLI commands or flags, and changing `maid init` install
+  semantics beyond managed guidance text.
+temptations:
+  - risk: "Do not update only repo-local `.claude` or `.codex` skill sources and assume downstream users benefit."
+    instead: "Assert the guidance after running `maid init` into temporary repositories and reading the installed payload files."
+  - risk: "Do not leave generated CLAUDE.md / AGENTS.md sections or installed docs saying only 'run recall' without the agent digestion step."
+    instead: "Update managed init guidance and docs to require applicable lessons, rejected stale or irrelevant lessons, and concrete influence on the current phase."
+  - risk: "Do not make learning digestion a new MAID gate."
+    instead: "Keep the advisory/no-bypass sentence in every installed surface and assert it in tests."
+  - risk: "Do not regress Codex init distribution back to repo-internal maid-runner skills."
+    instead: "Keep Codex installed skills limited to the cross-tool workflow set and assert the repo-internal skills are absent."
+  - risk: "Do not trust ignored package payloads or user-skill copies."
+    instead: "Run payload sync or compare source/package copies in tests so stale generated docs and skills are caught."
+files:
+  create:
+    - path: tests/test_learning_loop_init_payload.py
+      artifacts:
+        - kind: test_function
+          name: test_init_installs_learning_digest_workflow_skills
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Behavioral coverage that `maid init --tool claude` and `maid init --tool codex` install workflow skill payloads carrying active insights, recall, failure-lesson learning, and phase-specific evidence-digestion anchors."
+        - kind: test_function
+          name: test_init_generated_guidance_requires_learning_digest
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Behavioral coverage that generated CLAUDE.md and AGENTS.md sections require agents to name applicable lessons, reject stale or irrelevant lessons with a reason, and state what changed because of the evidence."
+        - kind: test_function
+          name: test_init_installed_docs_close_the_outcome_learning_loop
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Behavioral coverage that initialized repositories receive draft workflow docs, Outcome docs, and drafts README text that close the loop from completed Outcomes to current agent decisions while preserving advisory boundaries."
+        - kind: test_function
+          name: test_agent_skill_docs_describe_current_init_distribution
+          args: []
+          returns: None
+          description: "Behavioral coverage that docs/agent-skills.md describes the current Claude and Codex init distributions and the learning-evidence digestion lifecycle instead of stale runner-specific Codex payloads."
+        - kind: test_function
+          name: test_learning_digest_payload_sources_and_packages_match
+          args: []
+          returns: None
+          description: "Behavioral coverage that packaged workflow docs, drafts README, and user-level maid-onboard skill payloads match their source copies after sync."
+        - kind: test_function
+          name: test_init_learning_digest_guidance_stays_advisory
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Negative behavioral coverage that installed learning-loop guidance keeps recall, insights, and digested Outcomes advisory and does not install repo-internal Codex skills."
+  edit:
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: _render_draft_outcome_guidance
+          args: []
+          returns: str
+          source_scenario: "A repository runs `maid init --tool claude` or `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: _render_draft_outcome_guidance
+          expected:
+            behavior: "Generated CLAUDE.md and AGENTS.md managed sections tell agents to digest related Outcome evidence visibly while preserving the advisory/no-bypass boundary."
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _draft_workflow_learning_digest_step
+          of: documentation
+          type: markdown section
+          description: "Canonical draft workflow explains how selected-draft recall and insights should be digested into manifest scope, tests, temptations, open questions, implementation risks, review focus, or follow-up work."
+    - path: docs/manifest-outcome-records.md
+      artifacts:
+        - kind: attribute
+          name: _outcome_learning_digest_guidance
+          of: documentation
+          type: markdown section
+          description: "Outcome docs state that agents must reason over recalled or aggregated records by applying relevant lessons, rejecting stale lessons, and naming the influence on decisions."
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _drafts_readme_learning_digest_guidance
+          of: documentation
+          type: markdown section
+          description: "Draft inventory README repeats the selected-child learning-digestion step and advisory scope boundary for downstream repos."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _agent_skills_learning_digest_lifecycle
+          of: documentation
+          type: markdown section
+          description: "Agent skill docs describe current init-distributed Claude/Codex workflow skills and the phase-specific learning-evidence digestion lifecycle."
+    - path: .claude/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_onboard_learning_digest_refresh_guidance
+          of: user_skill_payload
+          type: markdown section
+          description: "User-level onboard skill reminds refreshes to verify init-installed guidance includes the Outcome learning-digestion workflow."
+    - path: .codex/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_onboard_learning_digest_refresh_guidance
+          of: user_skill_payload
+          type: markdown section
+          description: "Codex user-level onboard skill mirrors the learning-digestion refresh guidance."
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_draft_workflow_learning_digest_step
+          of: package_resource
+          type: markdown document
+          description: "Packaged copy of the draft workflow learning-digestion guidance installed by `maid init`."
+    - path: maid_runner/docs/manifest-outcome-records.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_outcome_learning_digest_guidance
+          of: package_resource
+          type: markdown document
+          description: "Packaged copy of the Outcome learning-digestion guidance installed by `maid init`."
+    - path: maid_runner/manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_drafts_readme_learning_digest_guidance
+          of: package_resource
+          type: markdown document
+          description: "Packaged copy of the drafts README learning-digestion guidance installed by `maid init`."
+    - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_claude_onboard_learning_digest_refresh_guidance
+          of: user_skill_payload
+          type: markdown section
+          description: "Packaged Claude maid-onboard copy matches the source learning-digestion refresh guidance."
+    - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_codex_onboard_learning_digest_refresh_guidance
+          of: user_skill_payload
+          type: markdown section
+          description: "Packaged Codex maid-onboard copy matches the source learning-digestion refresh guidance."
+  read:
+    - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    - manifests/drafts/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml
+    - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+    - manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - scripts/sync_claude_files.py
+    - maid_runner/cli/commands/init.py
+    - .claude/manifest.json
+    - maid_runner/codex/manifest.json
+    - tests/test_learning_loop_workflow_guidance.py
+    - tests/test_init_draft_workflow_payload.py
+    - tests/test_agent_payload_distribution.py
+    - tests/test_recall_payload_sync.py
+    - tests/cli/test_init_cmd.py
+    - tests/cli/test_init_codex_distributable_scope.py
+    - tests/cli/test_skills_install.py
+validate:
+  - uv run python -m pytest -q tests/test_learning_loop_init_payload.py tests/test_learning_loop_workflow_guidance.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py tests/test_recall_payload_sync.py tests/cli/test_init_cmd.py tests/cli/test_init_codex_distributable_scope.py tests/cli/test_skills_install.py

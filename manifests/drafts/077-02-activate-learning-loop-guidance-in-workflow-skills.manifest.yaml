@@ -1,6 +1,6 @@
 # draft-kind: implementation
 schema: "2"
-goal: "Activate insights, threaded recall, and failure-lesson learning guidance across the four cross-tool workflow skills"
+goal: "Activate insights, threaded recall, failure-lesson learning, and evidence-digestion guidance across the four cross-tool workflow skills"
 type: feature
 created: "2026-06-26T20:12:00Z"
 metadata:
@@ -18,13 +18,14 @@ description: |
   maid-planner, maid-plan-review, maid-implementer, and
   maid-implementation-review. Today these skills mention `maid insights` and
   (outside the planner) `maid recall` only defensively, so planning-phase
-  learning is not actually exploited during implementation or review. This child
-  upgrades three concerns at once, in one child, because all three edit the same
-  four SKILL.md files; splitting them into sequential drafts over the same files
-  would create the plan-lock / stale-sync churn the 066-03/066-04 Outcome
-  lessons flag.
+  learning is not actually exploited during implementation or review, and even
+  when evidence is retrieved the skills do not require agents to reason about
+  applicability before acting. This child upgrades four concerns at once, in one
+  child, because all four edit the same four SKILL.md files; splitting them into
+  sequential drafts over the same files would create the plan-lock / stale-sync
+  churn the 066-03/066-04 Outcome lessons flag.
 
-  Three concerns:
+  Four concerns:
 
   1. Insights trigger. Replace the defensive "use `maid insights` only as
      aggregate evidence" framing with an active trigger ("review recurring
@@ -41,6 +42,19 @@ description: |
      and abandoned Outcomes reach recall only when the index is refreshed with
      `maid learn --include-status completed --include-status abandoned` (then
      recall); framed as an intentional opt-in, not a new default.
+  4. Learning evidence digestion. Add a visible reasoning protocol so agents do
+     not merely paste recall/insights output. Each workflow skill must tell the
+     agent to identify applicable lessons, reject stale or irrelevant lessons
+     with a reason, and state what changed because of the evidence:
+     - planner: manifest scope, behavioral tests, temptations, or open questions;
+     - plan-review: review findings, approval questions, or requested revisions;
+     - implementer: focused tests, implementation approach, or risk controls,
+       while staying inside approved scope;
+     - implementation-review: review focus, Outcome capture, and candidate
+       follow-up work.
+     This is the "close the loop" behavior promised by the 047/066 Outcome
+     learning work: deterministic MAID commands retrieve explicit evidence, and
+     the consuming agent makes a visible, phase-specific judgment from it.
 
   Pinned decisions (do not redesign):
 
@@ -66,6 +80,10 @@ description: |
      byte-for-byte sync parity; keep exactly one canonical recall command line
      per skill and re-run the sync so these stay green. They are included in this
      child's validate command.
+  5. Evidence digestion is visible but advisory. The guidance must require
+     agents to reason about applicability, rejected lessons, and concrete
+     influence on the task, but the digest is not a validation, approval, or done
+     gate. It must not require a special output file or introduce hidden state.
 
   Behavioral test expectations: tests read the four skills (and their Codex
   copies) and assert that (a) each contains an active insights trigger, (b)
@@ -74,13 +92,19 @@ description: |
   exact `maid learn --include-status` form, (d) only registered options appear
   (negative coverage), (e) stale indexes are handled explicitly with `maid learn`
   as the default remedy and `--allow-stale-index` only when a stale advisory read
-  is acceptable, (f) the advisory framing is preserved, (g) the generated Claude
-  and Codex package copies equal their sources after an isolated sync, and (h)
-  the generated Claude and Codex manifests list the four workflow skills as
-  distributable so the activated guidance reaches initialized repositories.
+  is acceptable, (f) each skill contains a learning-evidence digestion protocol
+  that asks agents to identify applicable lessons, reject stale/irrelevant
+  lessons, and state concrete influence on that workflow phase, (g) the advisory
+  framing is preserved, (h) the generated Claude and Codex package copies equal
+  their sources after an isolated sync, and (i) the generated Claude and Codex
+  manifests list the four workflow skills as distributable so the activated
+  guidance reaches initialized repositories. The tests must also pin close-loop
+  language so a future edit cannot regress back to "run recall and mention the
+  output" without requiring agent judgment.
 
   Out of scope for this child: maid-auditor (077-01), the recall ranking change
-  (077-03), and any CLI behavior change.
+  (077-03), downstream `maid init` docs / generated CLAUDE/AGENTS guidance /
+  installed-repository assertions (077-04), and any CLI behavior change.
 temptations:
   - risk: "Do not attach `--include-status` to `maid recall` or `maid insights`, or invent insights filter flags."
     instead: "Keep `--include-status` on `maid learn`; assert only registered options per command with negative tests."
@@ -90,6 +114,8 @@ temptations:
     instead: "Edit all four copies per skill, regenerate via the sync script, and assert isolated-workspace parity plus single-canonical-command-line counts."
   - risk: "Do not silently broaden the default learning set to all Outcome statuses."
     instead: "Frame `maid learn --include-status` as an intentional opt-in for chasing failure lessons; the completed-only default is unchanged."
+  - risk: "Do not let learning-loop guidance become a raw recall/insights transcript dump."
+    instead: "Require a concise digestion step covering applicable lessons, rejected lessons with reasons, and the concrete influence on the current workflow phase."
 files:
   create:
     - path: tests/test_learning_loop_workflow_guidance.py
@@ -120,10 +146,25 @@ files:
           returns: None
           description: "Behavioral coverage that all four workflow skills say stale recall/insights indexes fail by default and name `maid learn` plus `--allow-stale-index` as the only stale-read remedies."
         - kind: test_function
+          name: test_workflow_guidance_requires_learning_evidence_digestion
+          args: []
+          returns: None
+          description: "Behavioral coverage that all four workflow skills require agents to reason over retrieved learning by naming applicable lessons, rejected stale or irrelevant lessons, and concrete influence on the current phase."
+        - kind: test_function
+          name: test_learning_evidence_digest_is_phase_specific
+          args: []
+          returns: None
+          description: "Behavioral coverage that the digestion protocol is phase-specific: planner affects scope/tests/temptations/questions, plan-review affects findings/revisions, implementer affects tests/approach/risk controls inside scope, and implementation-review affects review focus/Outcome capture/follow-up work."
+        - kind: test_function
+          name: test_workflow_guidance_closes_loop_between_outcomes_and_decisions
+          args: []
+          returns: None
+          description: "Behavioral coverage that all four workflow skills frame recall/insights as closing the loop between completed Outcome records and current agent decisions, not as a raw transcript or passive lookup."
+        - kind: test_function
           name: test_workflow_guidance_stays_advisory
           args: []
           returns: None
-          description: "Behavioral coverage that each skill preserves the advisory framing that recalled and aggregated Outcomes never replace tests, scope, validation, or review."
+          description: "Behavioral coverage that each skill preserves the advisory framing that recalled, aggregated, and digested Outcomes never replace tests, scope, validation, approval, done gates, or review."
         - kind: test_function
           name: test_workflow_guidance_synced
           args:
@@ -145,114 +186,116 @@ files:
           name: _planner_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Active insights trigger plus failure-lesson opt-in note for the planner, preserving the existing 066-03 recall anchor and advisory framing."
+          description: "Active insights trigger, failure-lesson opt-in note, and learning-evidence digestion protocol for the planner, preserving the existing 066-03 recall anchor and advisory framing."
     - path: .codex/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_planner_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Codex source copy of the planner learning-loop guidance."
+          description: "Codex source copy of the planner learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/claude/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
           name: _distributed_planner_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Claude package copy of the planner learning-loop guidance."
+          description: "Generated Claude package copy of the planner learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/codex/skills/maid-planner/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_distributed_planner_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Codex package copy of the planner learning-loop guidance."
+          description: "Generated Codex package copy of the planner learning-loop guidance, including phase-specific evidence digestion."
     - path: .claude/skills/maid-plan-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _plan_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Active insights and threaded-recall review guidance for plan-review, preserving advisory framing."
+          description: "Active insights, threaded-recall, and learning-evidence digestion guidance for plan-review, preserving advisory framing."
     - path: .codex/skills/maid-plan-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_plan_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Codex source copy of the plan-review learning-loop guidance."
+          description: "Codex source copy of the plan-review learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/claude/skills/maid-plan-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _distributed_plan_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Claude package copy of the plan-review learning-loop guidance."
+          description: "Generated Claude package copy of the plan-review learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/codex/skills/maid-plan-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_distributed_plan_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Codex package copy of the plan-review learning-loop guidance."
+          description: "Generated Codex package copy of the plan-review learning-loop guidance, including phase-specific evidence digestion."
     - path: .claude/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: _implementer_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Active insights trigger, threaded-recall guidance, and failure-lesson opt-in note for the implementer, preserving advisory framing and manifest scope."
+          description: "Active insights trigger, threaded-recall guidance, failure-lesson opt-in note, and learning-evidence digestion protocol for the implementer, preserving advisory framing and manifest scope."
     - path: .codex/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_implementer_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Codex source copy of the implementer learning-loop guidance."
+          description: "Codex source copy of the implementer learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/claude/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: _distributed_implementer_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Claude package copy of the implementer learning-loop guidance."
+          description: "Generated Claude package copy of the implementer learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/codex/skills/maid-implementer/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_distributed_implementer_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Codex package copy of the implementer learning-loop guidance."
+          description: "Generated Codex package copy of the implementer learning-loop guidance, including phase-specific evidence digestion."
     - path: .claude/skills/maid-implementation-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _implementation_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Active insights and threaded-recall guidance for implementation review, preserving advisory framing and the existing Outcome-record check."
+          description: "Active insights, threaded-recall, and learning-evidence digestion guidance for implementation review, preserving advisory framing and the existing Outcome-record check."
     - path: .codex/skills/maid-implementation-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_implementation_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Codex source copy of the implementation-review learning-loop guidance."
+          description: "Codex source copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _distributed_implementation_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Claude package copy of the implementation-review learning-loop guidance."
+          description: "Generated Claude package copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion."
     - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
       artifacts:
         - kind: attribute
           name: _codex_distributed_implementation_review_learning_loop_guidance
           of: skill
           type: markdown section
-          description: "Generated Codex package copy of the implementation-review learning-loop guidance."
+          description: "Generated Codex package copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion."
   read:
     - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
     - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
     - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
     - maid_runner/cli/commands/insights.py
