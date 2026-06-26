@@ -157,7 +157,8 @@ After onboarding, "using MAID to the full" per change is: `maid-planner` →
 approve → run
 `maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet`
 before promoting the selected draft when completed Outcomes exist →
-`maid plan lock` (red evidence) → implement →
+`maid plan lock` (red evidence) →
+`maid manifest promote manifests/drafts/<slug>.manifest.yaml` → implement →
 `maid validate --mode implementation` →
 `maid verify --require-plan-lock --require-red-evidence` → review →
 capture `outcome:` + `maid learn`. Optionally wire `maid verify` / SARIF into CI.

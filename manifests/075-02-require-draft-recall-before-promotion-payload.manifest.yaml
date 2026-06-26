@@ -232,6 +232,16 @@ outcome:
       paths:
         - .maid/plan-locks/075-01-align-init-draft-epic-workflow-payload.lock.json
         - .maid/plan-locks/add-skills-install-command.lock.json
+    - lesson_type: testing
+      summary: "Compressed workflow guidance needs order assertions for every critical verb; checking recall, plan lock, promotion, and validation without `implement` can still allow promotion to drift after implementation."
+      tags:
+        - onboard
+        - workflow-guidance
+        - behavioral-tests
+      paths:
+        - tests/cli/test_skills_install.py
+        - .claude/skills/maid-onboard/SKILL.md
+        - .codex/skills/maid-onboard/SKILL.md
   review_notes:
     - source: maid-implementation-reviewer
       severity: should-fix
@@ -245,6 +255,15 @@ outcome:
     - source: maid-implementation-reviewer
       severity: info
       summary: "Final read-only implementation review found no findings, verified source/package parity, and reran focused pytest, behavioral validation, implementation validation, ruff, and strict verify successfully."
+    - source: codex-reviewer-huygens
+      severity: should-fix
+      summary: "Post-commit coherence review found that onboard usage reminders mentioned recall before promotion but skipped the `maid manifest promote` step; source/package onboard payloads and install assertions were updated."
+    - source: codex-reviewer-halley
+      severity: should-fix
+      summary: "Review-fix follow-up found the new assertion did not prove promotion happened before implementation; the install test now asserts recall, plan lock, promotion, implement, and implementation validation order within the usage reminder."
+    - source: codex-reviewer-euler
+      severity: info
+      summary: "Final read-only review found no actionable findings, verified onboard source/package parity, checked the tightened usage-reminder order assertion, and reported ready with only existing repo-wide advisory warnings as residual risk."
   validation:
     - command:
         - uv
@@ -284,11 +303,19 @@ outcome:
     - command:
         - uv
         - run
+        - black
+        - --check
+        - tests/cli/test_skills_install.py
+      status: passed
+      summary: "Black reported the tightened install test was already formatted."
+    - command:
+        - uv
+        - run
         - ruff
         - check
-        - "."
+        - tests/cli/test_skills_install.py
       status: passed
-      summary: "Ruff reported no lint failures."
+      summary: "Ruff reported no lint failures for the changed install test."
     - command:
         - uv
         - run

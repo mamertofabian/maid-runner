@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml",
-  "manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+  "manifest_hash": "sha256:6cd42a3525a72f27dd2f8491ef0df0079c19fa093ed596304870935b756a9b3c",
   "test_hashes": {
     "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
-    "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
+    "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88"
   },
   "created_at": "2026-06-26T05:35:23.496989+00:00",
-  "revision": 4,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
@@ -34,6 +34,42 @@
       },
       "revised_at": "2026-06-26T08:37:40.773788+00:00",
       "reason": "Assert full draft recall advisory boundary in tests and skill payloads"
+    },
+    {
+      "prior_manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
+      },
+      "revised_at": "2026-06-26T09:20:35.965681+00:00",
+      "reason": "Review fix: assert onboard reminder includes sanctioned draft promotion command"
+    },
+    {
+      "prior_manifest_hash": "sha256:d5a82fedecb3a45bde408c2fd651acf7aca078714bcea95e797a8d37ac2e3b2e",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_skills_install.py": "sha256:746801e7b2cb073b55fcd49cfabcf61d6e4f119e92249f3fbc568f58ad1450e0"
+      },
+      "revised_at": "2026-06-26T09:22:26.225175+00:00",
+      "reason": "Format onboard promotion sequence assertion after review fix"
+    },
+    {
+      "prior_manifest_hash": "sha256:d5a82fedecb3a45bde408c2fd651acf7aca078714bcea95e797a8d37ac2e3b2e",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_skills_install.py": "sha256:ca127b8c20f66511e647370f584d82d1cfb199d1103163439095a4cb855edbfe"
+      },
+      "revised_at": "2026-06-26T09:29:01.323606+00:00",
+      "reason": "Assert onboard promotion occurs before implementation in usage reminder"
+    },
+    {
+      "prior_manifest_hash": "sha256:d5a82fedecb3a45bde408c2fd651acf7aca078714bcea95e797a8d37ac2e3b2e",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88"
+      },
+      "revised_at": "2026-06-26T09:36:22.708505+00:00",
+      "reason": "Capture review-fix outcome evidence after ready review"
     }
   ],
   "red_evidence": {

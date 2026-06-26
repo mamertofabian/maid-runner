@@ -111,11 +111,29 @@ def test_skills_install_command_installs_to_target_root(tmp_path: Path) -> None:
     ).is_file()
     for skill_text in (claude_skill.read_text(), codex_skill.read_text()):
         normalized_skill_text = " ".join(skill_text.split())
+        usage_reminder = skill_text.split('After onboarding, "using MAID to the full"')[
+            1
+        ]
+        normalized_usage_reminder = " ".join(usage_reminder.split())
         assert (
             "maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet"
             in skill_text
         )
         assert "before promoting the selected draft" in skill_text
+        assert (
+            "maid manifest promote manifests/drafts/<slug>.manifest.yaml" in skill_text
+        )
+        recall_index = normalized_usage_reminder.index("maid recall --for-manifest")
+        plan_lock_index = normalized_usage_reminder.index("maid plan lock")
+        promotion_index = normalized_usage_reminder.index("maid manifest promote")
+        implementation_index = normalized_usage_reminder.index(
+            "implement", promotion_index
+        )
+        implementation_validation_index = normalized_usage_reminder.index(
+            "maid validate --mode implementation"
+        )
+        assert recall_index < plan_lock_index < promotion_index
+        assert promotion_index < implementation_index < implementation_validation_index
         assert "Recall is advisory planning context only" in skill_text
         assert "does not expand scope or replace red evidence" in normalized_skill_text
         for boundary in (
