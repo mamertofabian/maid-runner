@@ -154,7 +154,13 @@ the supported path.
 ## Full usage reminder
 
 After onboarding, "using MAID to the full" per change is: `maid-planner` →
-approve → `maid plan lock` (red evidence) → implement →
+approve → run
+`maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet`
+before promoting the selected draft when completed Outcomes exist →
+`maid plan lock` (red evidence) → implement →
 `maid validate --mode implementation` →
 `maid verify --require-plan-lock --require-red-evidence` → review →
 capture `outcome:` + `maid learn`. Optionally wire `maid verify` / SARIF into CI.
+Recall is advisory planning context only; it does not expand scope or replace
+red evidence, behavioral validation, plan lock, implementation validation, or
+review.

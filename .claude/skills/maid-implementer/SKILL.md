@@ -52,6 +52,22 @@ If the manifest includes `temptations`, identify which entries apply to this imp
 
 Read every file listed in `files.read` and the behavioral tests referenced by the manifest.
 
+### Promoted Draft Recall
+
+When implementation starts from a draft manifest, refresh recall before
+promotion when completed Outcome records exist:
+
+```bash
+uv run maid learn
+uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet
+```
+
+If `maid learn` finds no completed Outcome records, state that no advisory
+history is available and continue. Use recalled lessons to sharpen test focus
+and implementation risks. Recall is advisory planning context only; it does
+not expand scope or replace red evidence, behavioral validation, plan lock,
+implementation validation, or review.
+
 ## Outcome-Aware MAID Guidance
 
 Outcome records are deterministic manifest data, not agent-only memory. When

@@ -31,30 +31,38 @@ that makes them not promotion-ready, but it is not by itself a planning defect.
 
 1. Define the larger goal in an issue, spec, roadmap, or epic draft.
 2. Split the known work into child draft manifests under `manifests/drafts/`.
-3. Review and refine each draft until its scope, declared artifacts, planned or
+3. Refresh the Outcome index when needed and run
+   `uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet`
+   for the selected child draft when completed Outcome records exist.
+4. Review and refine each draft until its scope, declared artifacts, planned or
    actual behavioral tests, validation command, dependencies, and temptations
    are coherent.
-4. Promote one implementation-sized draft with
+5. Promote one implementation-sized draft with
    `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`.
    Do not manually move or copy draft manifests; the command migrates the
    promoted manifest's plan lock, red evidence, and self-referencing validate
    paths.
-5. Implement strictly inside the promoted manifest's declared file scope.
-6. Validate the promoted path, run the declared tests, run the changed-scope
+6. Implement strictly inside the promoted manifest's declared file scope.
+7. Validate the promoted path, run the declared tests, run the changed-scope
    handoff gate, and review the implementation against the manifest.
-7. Capture Outcome after implementation review and before final handoff when
+8. Capture Outcome after implementation review and before final handoff when
    the schema is available. Outcome records are completion metadata documented
    in `docs/manifest-outcome-records.md`; they do not replace behavioral tests,
    declared artifacts, validation commands, or review.
-8. Commit only after the manifest, implementation, validation evidence, review,
+9. Commit only after the manifest, implementation, validation evidence, review,
    and Outcome capture are ready.
-9. Re-scan `manifests/drafts/` for the next child draft.
+10. Re-scan `manifests/drafts/` for the next child draft.
 
 Drafts may be edited freely before promotion. After promotion, do not silently
 rewrite the contract. Use the normal MAID evolution path instead. For
 metadata-only reference cleanup on locked active manifests, use
 `uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
 so valid red evidence remains attached to the revised contract.
+
+Recall is advisory planning context only. It can inform selected-draft
+hardening, test focus, and implementation risks, but it does not expand the
+draft scope or replace red evidence, behavioral validation, plan lock,
+implementation validation, or review.
 
 ## When To Pre-Create Drafts
 
@@ -90,7 +98,9 @@ Do not apply the promotion checklist to every draft in the queue. For an
 inventory draft, schema validation and coherent scope may be enough to keep it
 as a future work item. For the draft selected for implementation, the first
 work is to create or refine the behavioral tests, confirm the red phase, pass
-behavioral validation against the draft path, then promote it to `manifests/`.
+behavioral validation against the draft path, run
+`uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet`
+when completed Outcome records exist, then promote it to `manifests/`.
 
 ## Plan Locks at Promotion
 

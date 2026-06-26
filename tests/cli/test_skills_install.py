@@ -102,10 +102,29 @@ def test_skills_install_command_installs_to_target_root(tmp_path: Path) -> None:
     exit_code = main(["skills", "install", "--target-root", str(home)])
 
     assert exit_code == 0
-    assert (home / ".claude" / "skills" / "maid-onboard" / "SKILL.md").is_file()
+    claude_skill = home / ".claude" / "skills" / "maid-onboard" / "SKILL.md"
+    codex_skill = home / ".codex" / "skills" / "maid-onboard" / "SKILL.md"
+    assert claude_skill.is_file()
+    assert codex_skill.is_file()
     assert (
         home / ".codex" / "skills" / "maid-onboard" / "agents" / "openai.yaml"
     ).is_file()
+    for skill_text in (claude_skill.read_text(), codex_skill.read_text()):
+        normalized_skill_text = " ".join(skill_text.split())
+        assert (
+            "maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet"
+            in skill_text
+        )
+        assert "before promoting the selected draft" in skill_text
+        assert "Recall is advisory planning context only" in skill_text
+        assert "does not expand scope or replace red evidence" in normalized_skill_text
+        for boundary in (
+            "behavioral validation",
+            "plan lock",
+            "implementation validation",
+            "review",
+        ):
+            assert boundary in normalized_skill_text
 
 
 def test_sync_user_skills_packages_onboard_skill(tmp_path: Path, monkeypatch) -> None:

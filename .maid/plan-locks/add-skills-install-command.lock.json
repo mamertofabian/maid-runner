@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/add-skills-install-command.manifest.yaml",
-  "manifest_hash": "sha256:14f3057152f60c4f1b8085d23e7de7fff6f049ead1bd60a360290594d42a2f74",
+  "manifest_hash": "sha256:17cd21c29b9cae500810e93af2a5b29765c64e21224fcc8321fdf8371b4c33bb",
   "test_hashes": {
-    "tests/cli/test_skills_install.py": "sha256:23814d8fda9b5cd7b5a36f84a70a38707483c3efe1794ec7466328031e4561b1"
+    "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
   },
   "created_at": "2026-06-22T06:25:19.337496+00:00",
-  "revision": 3,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4bd206ee1bb3f23c63fc6b22293e98a5f21938383032e356c3839b77a048a6e0",
@@ -24,6 +24,38 @@
       },
       "revised_at": "2026-06-22T06:49:35.927913+00:00",
       "reason": "Review-fix iteration: add regression tests and fixes for --link copy-fallback reporting, fail-loud on partial payload, and convergent reinstall (stale-file pruning). Re-seal with updated test hashes; preserve original red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:14f3057152f60c4f1b8085d23e7de7fff6f049ead1bd60a360290594d42a2f74",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256:23814d8fda9b5cd7b5a36f84a70a38707483c3efe1794ec7466328031e4561b1"
+      },
+      "revised_at": "2026-06-26T05:37:43.558827+00:00",
+      "reason": "Update shared onboarding skill test assertions for draft recall before promotion"
+    },
+    {
+      "prior_manifest_hash": "sha256:17cd21c29b9cae500810e93af2a5b29765c64e21224fcc8321fdf8371b4c33bb",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256:766dc507708f46072ca4f92972f2ad066062792655d334ddf4c8875afb13752d"
+      },
+      "revised_at": "2026-06-26T05:46:20.723152+00:00",
+      "reason": "Tighten onboard skill recall advisory assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:17cd21c29b9cae500810e93af2a5b29765c64e21224fcc8321fdf8371b4c33bb",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256:eb33f6f018c3d98c62f24ac48f3088db2857ea52ade250866286ecc4355fef84"
+      },
+      "revised_at": "2026-06-26T05:55:11.870413+00:00",
+      "reason": "Assert full recall advisory boundary in onboard install tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:17cd21c29b9cae500810e93af2a5b29765c64e21224fcc8321fdf8371b4c33bb",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
+      },
+      "revised_at": "2026-06-26T08:37:40.645699+00:00",
+      "reason": "Assert full draft recall advisory boundary in onboard install tests"
     }
   ],
   "red_evidence": {

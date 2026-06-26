@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml",
-  "manifest_hash": "sha256:78a4ee6e3f4b531c3f1d20bcbb2006a6ba03a69961638c1ceaecd736bfe3f0e4",
+  "manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
   "test_hashes": {
-    "tests/test_init_draft_workflow_payload.py": "sha256:869a10367e3465c0add9ebb86dbbccdb6c46eb12d24d56e77c0313aa87312b3e",
+    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
     "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
   },
   "created_at": "2026-06-25T12:01:58.480418+00:00",
-  "revision": 4,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:54d31c119b73f9a317b3b190e1931559960b29bee070857018c29939eaeece8a",
@@ -47,6 +47,36 @@
       },
       "revised_at": "2026-06-25T12:10:36.941633+00:00",
       "reason": "Finalize init workflow payload contract after implementation review of E230 scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:78a4ee6e3f4b531c3f1d20bcbb2006a6ba03a69961638c1ceaecd736bfe3f0e4",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:869a10367e3465c0add9ebb86dbbccdb6c46eb12d24d56e77c0313aa87312b3e",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T05:37:43.583599+00:00",
+      "reason": "Update shared init draft workflow tests for recall before promotion guidance"
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:e27e6339772bade0bd65056349e7b0d63bef4173757947f69a2f5d67642d6659",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T05:55:12.090459+00:00",
+      "reason": "Assert implementation validation boundary in init draft workflow tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:23ff2712f8f9b7fe207d9baf417a7e1ff02f46cba7045d4d6161c42bf833a3f7",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T08:37:40.801277+00:00",
+      "reason": "Assert full draft recall advisory boundary in init workflow tests"
     }
   ],
   "red_evidence": {

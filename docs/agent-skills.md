@@ -73,7 +73,7 @@ declared scope, validation, or review.
 |------|-------------|
 | `maid-planner` | Run `maid learn` when the index is stale, or once when it is missing. If no completed Outcome records exist, skip recall and report that no advisory history is available. For drafts, `maid recall --for-manifest <draft>` is only a query builder for related completed Outcomes, not a lookup for an Outcome on the unimplemented draft itself. |
 | `maid-plan-review` | Check whether relevant recalled evidence informed the draft when available, without making recall an automatic approval or rejection rule. |
-| `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, while staying inside the approved manifest scope. |
+| `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, including before promoting the selected draft, while staying inside the approved manifest scope. |
 | `maid-implementation-review` | After the review verdict is ready, check whether the completed manifest needs an `outcome:` record backed by validation and review evidence. |
 | `maid-runner-draft-implement` | Recall related lessons before promotion and treat them as historical context for tests, implementation, and review packet quality. |
 | `maid-runner-self-improvement` | Use `maid insights` to route recurring Outcome lessons into the appropriate future draft queue. |

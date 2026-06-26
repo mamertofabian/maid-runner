@@ -1,0 +1,139 @@
+{
+  "manifest_path": "manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml",
+  "manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+  "test_hashes": {
+    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+    "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
+  },
+  "created_at": "2026-06-26T05:35:23.496989+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:e27e6339772bade0bd65056349e7b0d63bef4173757947f69a2f5d67642d6659",
+        "tests/cli/test_skills_install.py": "sha256:766dc507708f46072ca4f92972f2ad066062792655d334ddf4c8875afb13752d"
+      },
+      "revised_at": "2026-06-26T05:46:20.904982+00:00",
+      "reason": "Tighten onboard skill recall advisory assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:e27e6339772bade0bd65056349e7b0d63bef4173757947f69a2f5d67642d6659",
+        "tests/cli/test_skills_install.py": "sha256:eb33f6f018c3d98c62f24ac48f3088db2857ea52ade250866286ecc4355fef84"
+      },
+      "revised_at": "2026-06-26T05:55:12.089116+00:00",
+      "reason": "Assert full recall advisory boundary after implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:629c7093829ae572575858f8647568aa3b0e3371e6fa8933524de7697c128293",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:23ff2712f8f9b7fe207d9baf417a7e1ff02f46cba7045d4d6161c42bf833a3f7",
+        "tests/cli/test_skills_install.py": "sha256:c36b273294995a7bdadcfa074ba4385c3284d21b7902eefd4ff320a707f9f7be"
+      },
+      "revised_at": "2026-06-26T08:37:40.773788+00:00",
+      "reason": "Assert full draft recall advisory boundary in tests and skill payloads"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T05:35:26.329883+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_init_draft_workflow_payload.py tests/cli/test_skills_install.py tests/test_recall_skill_guidance.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            home / \".codex\" / \"skills\" / \"maid-onboard\" / \"agents\" / \"openai.yaml\"\n        ).is_file()\n        for skill_text in (claude_skill.read_text(), codex_skill.read_text()):\n>           assert (\n                \"maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet\"\n                in skill_text\n            )\nE           AssertionError: assert 'maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet' in '---\\nname: maid-onboard\\ndescription: Bring the current repository up to full MAID adoption, or refresh a repo that w...-require-red-evidence` \u2192 review \u2192\\ncapture `outcome:` + `maid learn`. Optionally wire `maid verify` / SARIF into CI.\\n'\n\ntests/cli/test_skills_install.py:113: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInstalled maid-onboard skill (3 files) under /tmp/pytest-of-atomrem/pytest-201/test_skills_install_command_in0/home\n  .claude/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/agents/openai.yaml\n=========================== short test summary info ============================\nFAILED tests/test_init_draft_workflow_payload.py::test_init_installs_local_draft_workflow_docs_and_readme\nFAILED tests/test_init_draft_workflow_payload.py::test_init_generated_agent_guidance_matches_draft_epic_workflow\nFAILED tests/cli/test_skills_install.py::test_skills_install_command_installs_to_target_root\n3 failed, 17 passed in 0.35s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._claude_implementer_draft_recall_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._claude_implementer_draft_recall_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._claude_implementer_draft_recall_guidance:of=skill_payload",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._claude_implementer_draft_recall_guidance:type=markdown section",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_draft_recall_guidance",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_draft_recall_guidance:kind=attribute",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_draft_recall_guidance:of=user_skill_payload",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._claude_onboard_draft_recall_guidance:type=markdown section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._codex_implementer_draft_recall_guidance",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._codex_implementer_draft_recall_guidance:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._codex_implementer_draft_recall_guidance:of=skill_payload",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._codex_implementer_draft_recall_guidance:type=markdown section",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_draft_recall_guidance",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_draft_recall_guidance:kind=attribute",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_draft_recall_guidance:of=user_skill_payload",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:user_skill_payload._codex_onboard_draft_recall_guidance:type=markdown section",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_recall_before_draft_promotion",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_recall_before_draft_promotion:kind=attribute",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_recall_before_draft_promotion:of=documentation",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_recall_before_draft_promotion:type=markdown section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_recall_before_promotion_workflow",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_recall_before_promotion_workflow:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_recall_before_promotion_workflow:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._draft_recall_before_promotion_workflow:type=markdown section",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_claude_implementer_draft_recall_guidance",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_claude_implementer_draft_recall_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_claude_implementer_draft_recall_guidance:of=skill_payload",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_claude_implementer_draft_recall_guidance:type=markdown section",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_codex_implementer_draft_recall_guidance",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_codex_implementer_draft_recall_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_codex_implementer_draft_recall_guidance:of=skill_payload",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill_payload._packaged_codex_implementer_draft_recall_guidance:type=markdown section",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_recall_workflow_doc",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_recall_workflow_doc:kind=attribute",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_recall_workflow_doc:of=package_resource",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_recall_workflow_doc:type=markdown document",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_recall_guidance",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_recall_guidance:kind=attribute",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_recall_guidance:of=package_resource",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_readme_recall_guidance:type=markdown document",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_draft_recall_guidance",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_draft_recall_guidance:kind=attribute",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_draft_recall_guidance:of=user_skill_payload",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_claude_onboard_draft_recall_guidance:type=markdown section",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_draft_recall_guidance",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_draft_recall_guidance:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_draft_recall_guidance:of=user_skill_payload",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:user_skill_payload._packaged_codex_onboard_draft_recall_guidance:type=markdown section",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_recall_before_promotion",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_recall_before_promotion:kind=attribute",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_recall_before_promotion:of=documentation",
+      "manifests/drafts/README.md:attribute:documentation._drafts_readme_recall_before_promotion:type=markdown section",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:kind=test_function",
+      "tests/cli/test_skills_install.py:test_skills_install_command_installs_to_target_root:returns=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:arg=tmp_path:type=Path:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:returns=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:arg=tmp_path:type=Path:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_skills_install.py",
+      "tests/test_init_draft_workflow_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_init_draft_workflow_payload.py tests/cli/test_skills_install.py tests/test_recall_skill_guidance.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

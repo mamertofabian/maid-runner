@@ -56,6 +56,14 @@ A draft is ready to promote when:
 - `maid validate <draft-path> --mode behavioral` passes;
 - the manifest has been reviewed and approved.
 
+Before promoting the selected draft, refresh the Outcome index when needed and
+run
+`uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet`
+when completed Outcome records exist. Recall is advisory planning context only:
+it can inform selected-draft hardening and implementation risks, but it does
+not expand scope or replace red evidence, behavioral validation, plan lock, or
+implementation validation, or review.
+
 Promote one selected child draft with
 `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`.
 Do not manually move or copy draft manifests; the command migrates plan locks,

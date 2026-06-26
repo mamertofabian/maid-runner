@@ -13,9 +13,21 @@ WORKFLOW_TERMS = (
     "manifests/drafts/*.epic.yaml",
     "split-before-promote",
     "archived",
+    "uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet",
     "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml",
     "Do not manually move or copy draft manifests",
     'uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence',
+    "Recall is advisory planning context only",
+    "implementation validation",
+)
+
+ADVISORY_BOUNDARY_TERMS = (
+    "does not expand",
+    "replace red evidence",
+    "behavioral validation",
+    "plan lock",
+    "implementation validation",
+    "review",
 )
 
 STALE_PROMOTION_TERMS = (
@@ -33,6 +45,9 @@ def _read(relative_path: str) -> str:
 def _assert_sanctioned_workflow(text: str) -> None:
     for term in WORKFLOW_TERMS:
         assert term in text
+    normalized_text = " ".join(text.split())
+    for term in ADVISORY_BOUNDARY_TERMS:
+        assert term in normalized_text
     for stale_term in STALE_PROMOTION_TERMS:
         assert stale_term not in text
 
@@ -66,7 +81,9 @@ def test_init_generated_agent_guidance_matches_draft_epic_workflow(
     tmp_path: Path, monkeypatch
 ) -> None:
     from maid_runner.cli.commands._main import main
+    from maid_runner.cli.commands.init import cmd_init
 
+    assert callable(cmd_init)
     claude_repo = tmp_path / "claude"
     codex_repo = tmp_path / "codex"
     claude_repo.mkdir()

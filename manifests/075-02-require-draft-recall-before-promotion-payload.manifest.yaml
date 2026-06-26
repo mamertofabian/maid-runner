@@ -1,0 +1,302 @@
+schema: "2"
+goal: "Require draft Outcome recall before promotion in init and onboard payloads"
+type: fix
+created: "2026-06-26T05:40:00Z"
+metadata:
+  status: active
+  tags:
+    - init
+    - onboard
+    - draft-manifests
+    - recall
+    - agent-skills
+    - packaging
+  priority: high
+description: |
+  Downstream MAID users receive draft workflow guidance from two install
+  surfaces: `maid init` per-repo payloads and the user-level `maid-onboard`
+  bootstrap skill. The current guidance refreshes the Outcome index with
+  `maid learn` after Outcome capture, but the draft implementation path can
+  promote and implement a selected draft without first running
+  `maid recall --for-manifest <draft> --plan-packet`.
+
+  Add explicit recall-before-promotion guidance to the canonical draft workflow
+  docs, generated CLAUDE/AGENTS init section, generic implementer skills,
+  packaged init payload copies, and packaged `maid-onboard` skills. The recall
+  remains advisory planning evidence only: it may sharpen draft hardening and
+  implementation risks, but it must not broaden scope or replace red evidence,
+  behavioral validation, plan lock, implementation validation, or review.
+
+  Outcome recall for this work surfaced the 047-06, 050-02, 066-03, and 066-04
+  lessons: assert exact guidance strings, keep generated payloads synced from
+  source, update repo-local and user-level skill copies together, and exercise
+  payload sync in tests instead of trusting ignored generated state.
+temptations:
+  - risk: "Do not update only source docs while leaving `maid init` generated CLAUDE/AGENTS sections stale."
+    instead: "Update `maid_runner/cli/commands/init.py` and assert generated guidance includes the exact draft recall command."
+  - risk: "Do not update only repo-local skills while packaged payloads stay stale."
+    instead: "Edit source `.claude`/`.codex` skills, run `make sync-agent-payloads`, and validate source/package parity tests."
+  - risk: "Do not make recall sound like a scope-expansion or validation bypass."
+    instead: "State that recall is advisory planning context and cannot replace red evidence, behavioral validation, plan lock, or review."
+  - risk: "Do not omit the user-level onboard skill, because stale onboarding guidance can reinstall old habits into new repos."
+    instead: "Update the source `maid-onboard` skills and packaged `maid_runner/user_skills` copies."
+files:
+  edit:
+    - path: tests/test_init_draft_workflow_payload.py
+      artifacts:
+        - kind: test_function
+          name: test_init_installs_local_draft_workflow_docs_and_readme
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          source_scenario: "A new repository runs `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "Installed draft workflow docs and drafts README require recall for the selected draft before promotion, then retain sanctioned promotion and no-manual-move guidance."
+        - kind: test_function
+          name: test_init_generated_agent_guidance_matches_draft_epic_workflow
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          source_scenario: "New repositories run `maid init --tool claude` and `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "Generated CLAUDE.md and AGENTS.md sections require the exact draft recall command before promotion and keep recall advisory."
+    - path: tests/cli/test_skills_install.py
+      artifacts:
+        - kind: test_function
+          name: test_skills_install_command_installs_to_target_root
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "`maid skills install` installs the user-level onboard skill."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "Installed Claude and Codex maid-onboard skills tell users to run draft Outcome recall before promoting the selected draft."
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "A user initializes a repository with `maid init --tool claude` or `maid init --tool codex`."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_init
+          expected:
+            behavior: "The generated marked MAID section instructs users to run draft recall before promoting the selected child draft and treats recall as advisory."
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _draft_recall_before_promotion_workflow
+          of: documentation
+          type: markdown section
+          description: "Canonical draft lifecycle requires `uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet` before selected-child promotion when completed Outcomes exist."
+    - path: manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _drafts_readme_recall_before_promotion
+          of: documentation
+          type: markdown section
+          description: "Draft inventory README repeats the selected-child recall-before-promotion step and advisory scope boundary."
+    - path: docs/agent-skills.md
+      artifacts:
+        - kind: attribute
+          name: _agent_skills_recall_before_draft_promotion
+          of: documentation
+          type: markdown section
+          description: "Role lifecycle docs make implementers consult recall before promoting a selected draft."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_implementer_draft_recall_guidance
+          of: skill_payload
+          type: markdown section
+    - path: .codex/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_implementer_draft_recall_guidance
+          of: skill_payload
+          type: markdown section
+    - path: .claude/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _claude_onboard_draft_recall_guidance
+          of: user_skill_payload
+          type: markdown section
+    - path: .codex/skills/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_onboard_draft_recall_guidance
+          of: user_skill_payload
+          type: markdown section
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_draft_recall_workflow_doc
+          of: package_resource
+          type: markdown document
+    - path: maid_runner/manifests/drafts/README.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_drafts_readme_recall_guidance
+          of: package_resource
+          type: markdown document
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_claude_implementer_draft_recall_guidance
+          of: skill_payload
+          type: markdown section
+    - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_codex_implementer_draft_recall_guidance
+          of: skill_payload
+          type: markdown section
+    - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_claude_onboard_draft_recall_guidance
+          of: user_skill_payload
+          type: markdown section
+    - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_codex_onboard_draft_recall_guidance
+          of: user_skill_payload
+          type: markdown section
+  read:
+    - scripts/sync_claude_files.py
+    - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+    - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+    - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+    - manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml
+    - docs/manifest-outcome-records.md
+validate:
+  - uv run python -m pytest -q tests/test_init_draft_workflow_payload.py tests/cli/test_skills_install.py tests/test_recall_skill_guidance.py tests/test_agent_payload_distribution.py
+  - uv run maid validate manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-26T08:50:09Z"
+  summary: "Added recall-before-promotion guidance for draft manifests across canonical docs, generated `maid init` payloads, local implementer skills, packaged implementer payloads, and the user-level `maid-onboard` skills."
+  rationale: "Downstream MAID users now receive consistent guidance to refresh Outcomes with `maid learn`, run `uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet` before promoting the selected draft, and treat recall as advisory planning context only. The change keeps recall from expanding scope or replacing red evidence, behavioral validation, plan lock, implementation validation, or review."
+  lessons:
+    - lesson_type: payload-sync
+      summary: "Draft workflow changes must update source docs, generated init guidance, repo-local skills, packaged payload copies, and user-level onboard skills together; otherwise new repositories can reinstall stale MAID habits."
+      tags:
+        - draft-manifests
+        - init
+        - onboard
+        - packaging
+      paths:
+        - maid_runner/cli/commands/init.py
+        - docs/draft-manifest-workflow.md
+        - maid_runner/docs/draft-manifest-workflow.md
+        - maid_runner/user_skills/claude/maid-onboard/SKILL.md
+        - maid_runner/user_skills/codex/maid-onboard/SKILL.md
+    - lesson_type: validation
+      summary: "Recall guidance tests need exact advisory-boundary assertions, including implementation validation, because partial string checks missed stale bypass wording in init and skill payloads."
+      tags:
+        - recall
+        - behavioral-tests
+        - validation-boundary
+      paths:
+        - tests/test_init_draft_workflow_payload.py
+        - tests/cli/test_skills_install.py
+    - lesson_type: workflow
+      summary: "When shared tests evolve during a MAID-backed payload change, affected existing plan locks need `maid plan revise --preserve-red-evidence` so strict verify can distinguish intentional test hardening from red-evidence loss."
+      tags:
+        - plan-lock
+        - red-evidence
+        - shared-tests
+      paths:
+        - .maid/plan-locks/075-01-align-init-draft-epic-workflow-payload.lock.json
+        - .maid/plan-locks/add-skills-install-command.lock.json
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: should-fix
+      summary: "First read-only review found that onboard payloads lacked the advisory/no-bypass boundary; the onboard source/package copies and install tests were updated."
+    - source: maid-implementation-reviewer
+      severity: should-fix
+      summary: "Second read-only review found that init guidance and drafts README omitted implementation validation from the no-bypass boundary; those payloads and assertions were updated."
+    - source: maid-implementation-reviewer
+      severity: blocking
+      summary: "Third read-only review found that init tests still asserted only part of the boundary and implementer payloads omitted the full no-bypass sentence; the tests and all implementer payload copies were fixed."
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: "Final read-only implementation review found no findings, verified source/package parity, and reran focused pytest, behavioral validation, implementation validation, ruff, and strict verify successfully."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_init_draft_workflow_payload.py
+        - tests/cli/test_skills_install.py
+        - tests/test_recall_skill_guidance.py
+        - tests/test_agent_payload_distribution.py
+      status: passed
+      summary: "Focused init, install, recall guidance, and payload distribution tests passed: 20 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the active manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the active manifest."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - "."
+      status: passed
+      summary: "Ruff reported no lint failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict MAID verify passed, including plan lock, changed scope, and tests; existing repo-wide advisory warnings did not fail the gate."
