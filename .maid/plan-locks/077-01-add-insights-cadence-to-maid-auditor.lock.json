@@ -1,0 +1,145 @@
+{
+  "manifest_path": "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+  "manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+  "test_hashes": {
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+    "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
+  },
+  "created_at": "2026-06-26T15:11:22.630016+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c3015811b406cecae78d12db651ff95660add175760e5593d3f6029e5cd3d00f",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf",
+        "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
+      },
+      "revised_at": "2026-06-26T15:11:28.855758+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml -> manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:59230d1fb8fdba0fe6f2fcb94ac7d843a228c3f44c3d90653b789a9eccc02cd5",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf",
+        "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
+      },
+      "revised_at": "2026-06-26T15:14:37.941913+00:00",
+      "reason": "Remove contextual recall-guidance test read dependency so manifest test coverage matches the declared validation command."
+    },
+    {
+      "prior_manifest_hash": "sha256:f5fd7f98a6f392b1a85c0d8f08e2f51e361597f9542974d6178df219a4f8ed70",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
+      },
+      "revised_at": "2026-06-26T15:19:16.994495+00:00",
+      "reason": "Refresh plan lock after Black formatting of the new behavioral test file."
+    },
+    {
+      "prior_manifest_hash": "sha256:f5fd7f98a6f392b1a85c0d8f08e2f51e361597f9542974d6178df219a4f8ed70",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
+      },
+      "revised_at": "2026-06-26T15:33:28.893992+00:00",
+      "reason": "Capture completed Outcome metadata after ready implementation review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T15:11:29.487046+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_insights_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py",
+        "exit_code": 1,
+        "output_tail": "\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/test_insights_skill_guidance.py:182: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInitialized MAID in /tmp/pytest-of-atomrem/pytest-411/test_codex_init_installs_audit0\n  Created: manifests/\n  Created: manifests/drafts/\n  Created: .maidrc.yaml\n  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Updated: .codex/\n  Updated: AGENTS.md\n=========================== short test summary info ============================\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_cadence_is_present_and_specific\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_uses_only_registered_options\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_handles_stale_index_explicitly\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_synced_to_agent_payloads\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_is_distributed_to_codex\nFAILED tests/test_insights_skill_guidance.py::test_codex_init_installs_auditor_insights_skill\n6 failed, 7 passed in 0.41s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-auditor/SKILL.md:attribute:skill._auditor_insights_cadence_guidance",
+      ".claude/skills/maid-auditor/SKILL.md:attribute:skill._auditor_insights_cadence_guidance:kind=attribute",
+      ".claude/skills/maid-auditor/SKILL.md:attribute:skill._auditor_insights_cadence_guidance:of=skill",
+      ".claude/skills/maid-auditor/SKILL.md:attribute:skill._auditor_insights_cadence_guidance:type=markdown section",
+      ".codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_auditor_insights_cadence_guidance",
+      ".codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_auditor_insights_cadence_guidance:kind=attribute",
+      ".codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_auditor_insights_cadence_guidance:of=skill",
+      ".codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_auditor_insights_cadence_guidance:type=markdown section",
+      ".codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_auditor_agent_metadata",
+      ".codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_auditor_agent_metadata:kind=attribute",
+      ".codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_auditor_agent_metadata:of=skill",
+      ".codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_auditor_agent_metadata:type=yaml document",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_codex_auditor_distribution",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_codex_auditor_distribution:kind=attribute",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_codex_auditor_distribution:of=documentation",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_codex_auditor_distribution:type=markdown section",
+      "maid_runner/claude/skills/maid-auditor/SKILL.md:attribute:skill._distributed_auditor_insights_cadence_guidance",
+      "maid_runner/claude/skills/maid-auditor/SKILL.md:attribute:skill._distributed_auditor_insights_cadence_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-auditor/SKILL.md:attribute:skill._distributed_auditor_insights_cadence_guidance:of=skill",
+      "maid_runner/claude/skills/maid-auditor/SKILL.md:attribute:skill._distributed_auditor_insights_cadence_guidance:type=markdown section",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_auditor_distribution",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_auditor_distribution:kind=attribute",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_auditor_distribution:of=codex_payload",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_auditor_distribution:type=json object",
+      "maid_runner/codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_distributed_auditor_insights_cadence_guidance",
+      "maid_runner/codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_distributed_auditor_insights_cadence_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_distributed_auditor_insights_cadence_guidance:of=skill",
+      "maid_runner/codex/skills/maid-auditor/SKILL.md:attribute:skill._codex_distributed_auditor_insights_cadence_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_distributed_auditor_agent_metadata",
+      "maid_runner/codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_distributed_auditor_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_distributed_auditor_agent_metadata:of=skill",
+      "maid_runner/codex/skills/maid-auditor/agents/openai.yaml:attribute:skill._codex_distributed_auditor_agent_metadata:type=yaml document",
+      "scripts/sync_claude_files.py:function:sync_codex_payload",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:kind=function",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:returns=None",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:arg=tmp_path:type=Path:default=None",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:kind=test_function",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_cadence_is_present_and_specific",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_cadence_is_present_and_specific:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_cadence_is_present_and_specific:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_handles_stale_index_explicitly",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_handles_stale_index_explicitly:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_handles_stale_index_explicitly:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:arg=tmp_path:type=Path:default=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_synced_to_agent_payloads",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_synced_to_agent_payloads:arg=tmp_path:type=Path:default=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_synced_to_agent_payloads:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_synced_to_agent_payloads:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_uses_only_registered_options",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_uses_only_registered_options:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_uses_only_registered_options:returns=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:arg=tmp_path:type=Path:default=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_codex_distributable_scope.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_insights_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_insights_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py"
+    ]
+  }
+}

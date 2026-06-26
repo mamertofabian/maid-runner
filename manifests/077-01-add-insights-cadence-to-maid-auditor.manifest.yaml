@@ -1,0 +1,329 @@
+schema: '2'
+goal: Give maid insights a cross-tool distributable entry point by adding an advisory insights cadence step to maid-auditor for Claude and Codex
+type: feature
+created: '2026-06-26T15:11:28Z'
+metadata:
+  epic: 077-00-skills-exploit-outcome-learning-loop
+  tags:
+  - agent-skills
+  - insights
+  - outcome-records
+  - maid-workflow
+  priority: medium
+description: |
+  Distributable entry point for `maid insights`. Today `maid insights` is a
+  working CLI command with no distributable trigger: the only skill that tells
+  an agent to run it is `maid-runner-self-improvement`, which `maid init` does
+  not install. maid-auditor is the natural home because it already has "Before
+  Release", "After Large Refactor", and "Periodic Health Check" usage sections;
+  an aggregate-insights review is a portfolio-level cadence step, not a
+  per-task step.
+
+  This child adds an advisory insights cadence subsection to the maid-auditor
+  skill for both Claude and Codex. It instructs the auditor to run
+  `maid insights` during periodic / release cadences to surface recurring
+  Outcome lessons across modules, paths, tags, and review findings, and to fold
+  notable recurring patterns into the audit's recommended-actions output as
+  candidate follow-up work.
+
+  Tool parity is a first-class requirement. Claude and Codex MAID payloads must
+  not drift unless a manifest explicitly justifies a tool-specific exception
+  (for example a planner-only optimization assigned to Claude). This work is
+  not planner-specific, so Codex repositories initialized with MAID must receive
+  the same auditor capability instead of missing the insights cadence.
+
+  Pinned decisions (do not redesign):
+
+  1. Quote only registered `maid insights` options. The shipped surface is
+     `--index`, `--manifest-dir`, `--project-root`, `--allow-stale-index`,
+     `--limit`, and `--json`. There is no `--tag` and no `--include-status` on
+     insights. Guidance must not invent flags (the negative test pins this).
+  2. Insights is advisory aggregate evidence only. It must never gate or modify
+     the audit verdict; maid-auditor stays read-only and verdict-neutral. The
+     guidance states this explicitly.
+  3. Cross-tool distribution. The auditor skill must ship through both
+     `maid init --tool claude` and `maid init --tool codex`. Claude already has
+     `.claude/skills/maid-auditor/SKILL.md`; Codex needs a matching
+     `.codex/skills/maid-auditor/SKILL.md`, skill-local OpenAI metadata, a
+     generated packaged copy, and inclusion in `CODEX_DISTRIBUTABLE_SKILLS`.
+  4. Stale-index handling mirrors recall guidance: insights fails on a stale
+     index by default; the remedy is `maid learn`, or `--allow-stale-index` when
+     a stale read is acceptable. Never work around the failure another way.
+
+  Files touched mirror the 066-03 / 066-04 guidance pattern across both tools:
+  the repo-local source `.claude/skills/maid-auditor/SKILL.md`, the new
+  `.codex/skills/maid-auditor/SKILL.md` and
+  `.codex/skills/maid-auditor/agents/openai.yaml`, generated package copies
+  under `maid_runner/claude/` and `maid_runner/codex/`, and the sync script /
+  tests that control `maid init` distributable payloads. Per the 047-06 /
+  066-03 lesson, parity tests must run the sync script in an isolated workspace
+  rather than depend on ignored local generated files.
+
+  Behavioral test expectations: tests read the auditor skill and assert that
+  (a) both Claude and Codex copies contain an insights cadence anchor tied to
+  the release / periodic health cadences and frame insights as advisory, (b) the
+  guidance uses only registered insights options and contains no unregistered
+  flags, (c) stale index handling is explicit: stale reads fail by default, with
+  `maid learn` as the remedy or `--allow-stale-index` only when a stale advisory
+  read is acceptable, (d) generated Claude and Codex package copies equal their
+  sources after an isolated sync and carry the same anchor, (e) the isolated
+  sync's generated Codex manifest includes `maid-auditor` in distributable
+  skills and lists its skill-local OpenAI metadata, (f) `maid init --tool codex`
+  installs `maid-auditor` while still excluding repo-internal maid-runner
+  skills, and (g) user-facing agent skill docs describe the current equal
+  Claude/Codex auditor distribution.
+
+  Out of scope for this child: the four cross-tool workflow skills (077-02), any
+  recall ranking change (077-03), planner-specific Claude advantages, and any
+  new `maid insights` CLI behavior.
+temptations:
+- risk: Do not write insights filter flags that do not exist (for example `maid insights --tag` or `--include-status`).
+  instead: Quote only the registered insights options; assert the absence of unregistered flags in a negative test.
+- risk: Do not let the cadence imply insights can block or change an audit verdict.
+  instead: State that insights is advisory aggregate evidence; the auditor stays read-only and verdict-neutral.
+- risk: Do not keep the insights cadence Claude-only when the capability is not planner-specific.
+  instead: Create and distribute the Codex maid-auditor skill alongside Claude, and assert `maid init --tool codex` installs it.
+- risk: Do not edit the source skills and leave generated package copies or distribution manifests stale.
+  instead: Update the source files, regenerate via the sync script, and assert Claude/Codex parity from an isolated workspace.
+files:
+  create:
+  - path: tests/test_insights_skill_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_auditor_insights_cadence_is_present_and_specific
+      args: []
+      returns: None
+      description: Behavioral coverage that Claude and Codex maid-auditor skills contain an advisory `maid insights` cadence anchor tied to release / periodic health cadences.
+    - kind: test_function
+      name: test_auditor_insights_guidance_uses_only_registered_options
+      args: []
+      returns: None
+      description: Behavioral coverage that Claude and Codex auditor insights guidance uses only registered insights options and contains no unregistered flags such as --tag or --include-status.
+    - kind: test_function
+      name: test_auditor_insights_guidance_handles_stale_index_explicitly
+      args: []
+      returns: None
+      description: Behavioral coverage that Claude and Codex auditor insights guidance states stale indexes fail by default and names `maid learn` plus `--allow-stale-index` as the only remedies.
+    - kind: test_function
+      name: test_auditor_insights_guidance_synced_to_agent_payloads
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Behavioral coverage that generated Claude and Codex package copies equal the source maid-auditor skills after an isolated sync and carry the insights cadence anchor.
+    - kind: test_function
+      name: test_auditor_insights_guidance_is_distributed_to_codex
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Behavioral coverage that an isolated payload sync includes maid-auditor in the Codex distributable skill list and includes its skill-local OpenAI agent metadata.
+    - kind: test_function
+      name: test_codex_init_installs_auditor_insights_skill
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      description: Behavioral coverage that `maid init --tool codex` installs maid-auditor with insights cadence guidance while still excluding repo-internal maid-runner skills.
+  - path: .codex/skills/maid-auditor/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_auditor_insights_cadence_guidance
+      of: skill
+      type: markdown section
+      description: Codex source maid-auditor skill with the advisory `maid insights` cadence step, using only registered insights options and never gating the audit verdict.
+  - path: .codex/skills/maid-auditor/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _codex_auditor_agent_metadata
+      of: skill
+      type: yaml document
+      description: Codex skill-local OpenAI metadata for the maid-auditor skill.
+  - path: maid_runner/codex/skills/maid-auditor/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_distributed_auditor_insights_cadence_guidance
+      of: skill
+      type: markdown section
+      description: Generated Codex package copy of the auditor insights cadence guidance.
+  - path: maid_runner/codex/skills/maid-auditor/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _codex_distributed_auditor_agent_metadata
+      of: skill
+      type: yaml document
+      description: Generated Codex package copy of the maid-auditor skill-local OpenAI metadata.
+  edit:
+  - path: .claude/skills/maid-auditor/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _auditor_insights_cadence_guidance
+      of: skill
+      type: markdown section
+      description: Advisory `maid insights` cadence step for the auditor's release / periodic health checks, using only registered insights options and never gating the audit verdict.
+  - path: maid_runner/claude/skills/maid-auditor/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _distributed_auditor_insights_cadence_guidance
+      of: skill
+      type: markdown section
+      description: Generated Claude package copy of the auditor insights cadence guidance.
+  - path: scripts/sync_claude_files.py
+    artifacts:
+    - kind: function
+      name: sync_codex_payload
+      args: []
+      returns: None
+      source_scenario: Maintainers sync agent payloads before building a package.
+      actions:
+      - type: api_call
+        subject:
+          function: sync_codex_payload
+      expected:
+        behavior: CODEX_DISTRIBUTABLE_SKILLS includes maid-auditor, and sync copies the Codex auditor skill plus skill-local OpenAI metadata into the generated package payload.
+  - path: maid_runner/codex/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _codex_payload_manifest_auditor_distribution
+      of: codex_payload
+      type: json object
+      description: Regenerated Codex payload manifest listing maid-auditor as distributable and including its skill-local agent metadata.
+  - path: tests/test_agent_payload_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_codex_payload_manifest_matches_source_skills
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Existing payload distribution coverage updated so the expected Codex distributable skills include maid-auditor.
+  - path: tests/cli/test_init_codex_distributable_scope.py
+    artifacts:
+    - kind: test_function
+      name: test_codex_init_installs_only_distributable_skills
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      description: Existing Codex init coverage updated so maid-auditor is an expected generic installed skill, while repo-internal skills remain excluded.
+  - path: docs/agent-skills.md
+    artifacts:
+    - kind: attribute
+      name: _agent_skills_codex_auditor_distribution
+      of: documentation
+      type: markdown section
+      description: Agent skill distribution docs state that maid-auditor ships through both Claude and Codex init payloads, with Codex no longer limited to the four implementation workflow skills.
+  read:
+  - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+  - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+  - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+  - maid_runner/cli/commands/insights.py
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/init.py
+  - scripts/sync_claude_files.py
+  - .claude/manifest.json
+  - maid_runner/codex/manifest.json
+  - tests/test_agent_payload_distribution.py
+  - tests/cli/test_init_codex_distributable_scope.py
+  - docs/agent-skills.md
+validate:
+- uv run python -m pytest -q tests/test_insights_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py
+outcome:
+  status: completed
+  completed_at: "2026-06-26T15:32:48Z"
+  summary: "Promoted 077-01 and added a cross-tool advisory `maid insights` cadence to maid-auditor, including Codex source and packaged payload distribution."
+  rationale: "The auditor skill now tells Claude and Codex agents to run `maid insights` during release and periodic health cadences, frames insights as advisory aggregate evidence only, documents stale-index recovery with `maid learn` or `--allow-stale-index`, and quotes only registered insights options. Codex init distribution now includes maid-auditor and its skill-local OpenAI metadata while repo-internal skills remain excluded."
+  lessons:
+    - lesson_type: testing
+      summary: "Skill distribution tests should derive documented command options from the registered argparse parser and assert forbidden unregistered flags are absent, so guidance cannot drift ahead of the shipped CLI surface."
+      tags:
+        - agent-skills
+        - cli-options
+        - insights
+      paths:
+        - tests/test_insights_skill_guidance.py
+        - maid_runner/cli/commands/_main.py
+    - lesson_type: workflow
+      summary: "When shared payload/init tests are intentionally updated for a new distributable skill, older manifests that lock those shared test files may need preserved-evidence plan-lock refreshes before the global handoff verify gate will pass."
+      tags:
+        - plan-lock
+        - generated-payloads
+        - validation-trust
+      paths:
+        - tests/test_agent_payload_distribution.py
+        - tests/cli/test_init_codex_distributable_scope.py
+        - .maid/plan-locks/066-04-sync-init-payloads-with-recall-workflow.lock.json
+    - lesson_type: testing
+      summary: "Payload parity coverage stays reproducible when tests run the sync script in a temporary workspace and compare generated Claude/Codex package copies to tracked source skills byte-for-byte."
+      tags:
+        - generated-payloads
+        - test-reproducibility
+        - codex
+      paths:
+        - tests/test_insights_skill_guidance.py
+        - scripts/sync_claude_files.py
+  review_notes:
+    - source: Banach
+      severity: info
+      summary: "Read-only implementation review found no actionable findings; residual risk is limited to text/distribution coverage because runtime `maid insights` behavior was explicitly out of scope."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_insights_skill_guidance.py
+        - tests/test_agent_payload_distribution.py
+        - tests/cli/test_init_codex_distributable_scope.py
+      status: passed
+      summary: "Focused auditor insights guidance, payload distribution, and Codex init tests passed after the intended red phase."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
+      status: passed
+      summary: "Manifest-scoped MAID test runner passed the declared validation command."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed with expected advisory E307 warnings for Markdown, YAML, JSON, and documentation artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed for 372 manifests with zero failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test runner passed 147 declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Baseline-scoped handoff verification passed schema, behavioral, implementation, coherence, file tracking, plan lock, worktree scope, changed scope, and tests with existing advisory warnings only."

@@ -112,12 +112,13 @@ places the MAID-only skill set into a target repository under `.claude/skills/`:
 `maid-incident-logger`. The Claude repo-level payload is generated from
 `.claude/skills/` into `maid_runner/claude/` by `scripts/sync_claude_files.py`.
 
-The Codex distribution installed by `maid init --tool codex` places the
-repo-owned maid-runner skill set into `.codex/skills/`: `maid-runner-cleanup-and-refactor`,
-`maid-runner-draft-implement`, `maid-runner-performance-optimization`,
-`maid-runner-self-improvement`, and `maid-validate-hardening`. Skill-local
-agent metadata under `agents/` is copied with those skills and listed in the
-generated `maid_runner/codex/manifest.json` for stale-file pruning.
+The Codex distribution installed by `maid init --tool codex` places the same
+generic MAID workflow and audit skills into `.codex/skills/`: `maid-planner`,
+`maid-plan-review`, `maid-implementer`, `maid-implementation-review`, and
+`maid-auditor`. Repo-internal maid-runner skills remain packaged for this
+repository's own tooling but are excluded from the distributable list. Skill-local
+agent metadata under `agents/` is copied with distributable skills and listed in
+the generated `maid_runner/codex/manifest.json` for stale-file pruning.
 
 ---
 
