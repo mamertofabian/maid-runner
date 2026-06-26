@@ -61,8 +61,9 @@ description: |
   accurately describes the current Claude and Codex init distributions and the
   learning-digestion lifecycle, (e) packaged docs and user-level `maid-onboard`
   skill copies match their sources after sync, and (f) the installed guidance
-  does not install repo-internal maid-runner skills into Codex repos or imply
-  that learn/recall/insights replace MAID gates.
+  preserves the 077-01 Codex maid-auditor distribution while still excluding
+  repo-internal maid-runner skills from Codex repos and never implying that
+  learn/recall/insights replace MAID gates.
 
   Out of scope for this child: changing the 077-02 source workflow-skill
   wording, changing recall scoring (077-03), changing maid-auditor cadence
@@ -75,8 +76,8 @@ temptations:
     instead: "Update managed init guidance and docs to require applicable lessons, rejected stale or irrelevant lessons, and concrete influence on the current phase."
   - risk: "Do not make learning digestion a new MAID gate."
     instead: "Keep the advisory/no-bypass sentence in every installed surface and assert it in tests."
-  - risk: "Do not regress Codex init distribution back to repo-internal maid-runner skills."
-    instead: "Keep Codex installed skills limited to the cross-tool workflow set and assert the repo-internal skills are absent."
+  - risk: "Do not regress Codex init distribution by either dropping the 077-01 maid-auditor skill or reinstalling repo-internal maid-runner skills."
+    instead: "Assert Codex init keeps the generic MAID skill set, including maid-auditor, while repo-internal maid-runner skills remain absent."
   - risk: "Do not trust ignored package payloads or user-skill copies."
     instead: "Run payload sync or compare source/package copies in tests so stale generated docs and skills are caught."
 files:
@@ -128,7 +129,7 @@ files:
             - name: monkeypatch
               type: pytest.MonkeyPatch
           returns: None
-          description: "Negative behavioral coverage that installed learning-loop guidance keeps recall, insights, and digested Outcomes advisory and does not install repo-internal Codex skills."
+          description: "Negative behavioral coverage that installed learning-loop guidance keeps recall, insights, and digested Outcomes advisory, preserves the Codex maid-auditor distribution, and does not install repo-internal Codex skills."
   edit:
     - path: maid_runner/cli/commands/init.py
       artifacts:
@@ -222,6 +223,7 @@ files:
           description: "Packaged Codex maid-onboard copy matches the source learning-digestion refresh guidance."
   read:
     - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    - manifests/drafts/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
     - manifests/drafts/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml
     - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
     - manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml
