@@ -294,6 +294,229 @@ def test_stash_implementation_allows_current_lock_dirty(
     assert _lock_record(tmp_path)["red_evidence"]["red"] is True
 
 
+def test_stash_implementation_allows_matching_active_manifest_marker(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    active_marker = tmp_path / ".maid" / "active-manifest"
+    active_marker.write_text("manifests/demo-task.manifest.yaml\n")
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior while active marker was present",
+        )
+    )
+
+    assert exit_code == 0
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert active_marker.read_text() == "manifests/demo-task.manifest.yaml\n"
+    assert _git(tmp_path, "stash", "list") == ""
+    assert _lock_record(tmp_path)["red_evidence"]["red"] is True
+
+
+def test_stash_implementation_rejects_different_active_manifest_marker(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    active_marker = tmp_path / ".maid" / "active-manifest"
+    active_marker.write_text("manifests/other-task.manifest.yaml\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with a different active marker",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert active_marker.read_text() == "manifests/other-task.manifest.yaml\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_rejects_staged_different_active_marker(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    active_marker = tmp_path / ".maid" / "active-manifest"
+    active_marker.write_text("manifests/other-task.manifest.yaml\n")
+    _git(tmp_path, "add", ".maid/active-manifest")
+    active_marker.write_text("manifests/demo-task.manifest.yaml\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with staged active marker",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert active_marker.read_text() == "manifests/demo-task.manifest.yaml\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_allows_matching_promoted_draft_deletion(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
+    draft_path.parent.mkdir()
+    draft_path.write_text(manifest_path.read_text())
+    _commit_all(tmp_path, "track promoted draft source")
+    draft_path.unlink()
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior after draft promotion",
+        )
+    )
+
+    assert exit_code == 0
+    assert not draft_path.exists()
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+    assert _lock_record(tmp_path)["red_evidence"]["red"] is True
+
+
+def test_stash_implementation_rejects_matching_draft_modification(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
+    draft_path.parent.mkdir()
+    draft_path.write_text(manifest_path.read_text())
+    _commit_all(tmp_path, "track draft source")
+    draft_path.write_text(draft_path.read_text().replace("Demo task", "Edited draft"))
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with modified draft inventory",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert "Edited draft" in draft_path.read_text()
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_rejects_staged_matching_draft_modification_then_delete(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
+    draft_path.parent.mkdir()
+    draft_path.write_text(manifest_path.read_text())
+    _commit_all(tmp_path, "track draft source")
+    draft_path.write_text(draft_path.read_text().replace("Demo task", "Staged draft"))
+    _git(tmp_path, "add", "manifests/drafts/demo-task.manifest.yaml")
+    draft_path.unlink()
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with staged draft mutation",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert not draft_path.exists()
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_rejects_staged_matching_draft_add_then_delete(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
+    draft_path.parent.mkdir()
+    draft_path.write_text(manifest_path.read_text())
+    _git(tmp_path, "add", "manifests/drafts/demo-task.manifest.yaml")
+    draft_path.unlink()
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with staged draft add",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert not draft_path.exists()
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_rejects_unrelated_draft_deletion(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    draft_path = tmp_path / "manifests" / "drafts" / "other-task.manifest.yaml"
+    draft_path.parent.mkdir()
+    draft_path.write_text(manifest_path.read_text())
+    _commit_all(tmp_path, "track unrelated draft source")
+    draft_path.unlink()
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "review added missing behavior with unrelated draft deletion",
+        )
+    )
+
+    assert exit_code == 2
+    assert lock_path.read_bytes() == original_lock
+    assert not draft_path.exists()
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+
+
 def test_stash_implementation_ignores_clean_missing_create_targets(
     tmp_path: Path,
 ) -> None:

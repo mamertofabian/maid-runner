@@ -298,6 +298,11 @@ def _cmd_plan_revise_with_stashed_implementation(
         allowed_dirty_paths.add(_project_relative(ctx.manifest_path, ctx.project_root))
         allowed_dirty_paths.add(_project_relative(ctx.lock_path, ctx.project_root))
         allowed_dirty_paths.update(_behavioral_test_paths_for_revise(manifest))
+        allowed_dirty_paths.update(
+            _same_task_lifecycle_dirty_paths(
+                ctx.project_root, ctx.manifest_path, dirty_entries
+            )
+        )
         unrelated = sorted(
             entry.path
             for entry in dirty_entries
@@ -563,6 +568,52 @@ def _behavioral_test_paths_for_revise(manifest) -> set[str]:
         if _is_test_file(fs.path)
     )
     return paths
+
+
+def _same_task_lifecycle_dirty_paths(
+    project_root: Path, manifest_path: Path, dirty_entries: tuple[_DirtyEntry, ...]
+) -> set[str]:
+    manifest_rel = _project_relative(manifest_path, project_root)
+    paths: set[str] = set()
+    for entry in dirty_entries:
+        if _is_matching_active_manifest_marker(project_root, manifest_rel, entry):
+            paths.add(entry.path)
+        if _is_matching_promoted_draft_deletion(project_root, manifest_rel, entry):
+            paths.add(entry.path)
+    return paths
+
+
+def _is_matching_active_manifest_marker(
+    project_root: Path, manifest_rel: str, entry: _DirtyEntry
+) -> bool:
+    if entry.path != ".maid/active-manifest":
+        return False
+    if entry.index_status not in (" ", "?"):
+        return False
+    marker_path = project_root / entry.path
+    if not marker_path.is_file():
+        return False
+    try:
+        first_line = marker_path.read_text().splitlines()[0].strip()
+    except (IndexError, OSError, UnicodeDecodeError):
+        return False
+    return first_line == manifest_rel
+
+
+def _is_matching_promoted_draft_deletion(
+    project_root: Path, manifest_rel: str, entry: _DirtyEntry
+) -> bool:
+    manifest_parts = Path(manifest_rel).parts
+    if len(manifest_parts) != 2 or manifest_parts[0] != "manifests":
+        return False
+    expected_draft = f"manifests/drafts/{manifest_parts[1]}"
+    if entry.path != expected_draft:
+        return False
+    if entry.index_status != " " or entry.worktree_status != "D":
+        return False
+    return (project_root / manifest_rel).is_file() and not (
+        project_root / entry.path
+    ).exists()
 
 
 def _contract_hashes_for_stash_revise(

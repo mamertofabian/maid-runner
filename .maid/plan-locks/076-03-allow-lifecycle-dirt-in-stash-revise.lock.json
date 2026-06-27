@@ -1,0 +1,99 @@
+{
+  "manifest_path": "manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml",
+  "manifest_hash": "sha256:7af43482536b5c1594255a449470798a4edf9505b137ef92f6615311fe884878",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:fa8fd3a8f624c09299878cb59363a4cb9acb3438d680ef214a31f55a2d569e15"
+  },
+  "created_at": "2026-06-26T23:14:56.954675+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:b1c14f90005e072a10d49d651a1b8db698ce466d3b771778ce15b7c46f81cd47",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:f4582da7c404210400a65e93a9c9534e9bb3fea2a4d72ff1f32c775413486ed7"
+      },
+      "revised_at": "2026-06-26T23:15:12.176111+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml -> manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:04b32c226ab6d08420ab5ab4c051a39d86f6be0fe1c09b25f46d9b6b224b3628",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:f4582da7c404210400a65e93a9c9534e9bb3fea2a4d72ff1f32c775413486ed7"
+      },
+      "revised_at": "2026-06-26T23:34:02.921776+00:00",
+      "reason": "Review tightened promoted draft deletion guard for staged mixed statuses"
+    },
+    {
+      "prior_manifest_hash": "sha256:20e4624d3c419b2cf16428907755119167747dedc88a5582d28100d0ffc07818",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:b3112ba34948b11961985caf79c2b1c12a7a1ac111ff93b2b1de5fb64d47514b"
+      },
+      "revised_at": "2026-06-26T23:42:52.512926+00:00",
+      "reason": "Review tightened active marker guard for staged mixed statuses"
+    },
+    {
+      "prior_manifest_hash": "sha256:e51f2f89d636b08376694c437bad77833215e176d8eb47522ca2b0dd1e2f9ffd",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:fa8fd3a8f624c09299878cb59363a4cb9acb3438d680ef214a31f55a2d569e15"
+      },
+      "revised_at": "2026-06-26T23:51:35.628939+00:00",
+      "reason": "Capture completed implementation outcome after ready review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T23:43:03.724623+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py",
+        "exit_code": 1,
+        "output_tail": "        exit_code = cmd_plan_revise(\n            _revise_args(\n                manifest_path,\n                tmp_path,\n                \"review added missing behavior after draft promotion\",\n            )\n        )\n    \n>       assert exit_code == 0\nE       assert 2 == 0\n\ntests/cli/test_plan_cmd_stash_implementation.py:395: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-127/test_stash_implementation_allo2/.maid/plan-locks/demo-task.lock.json)\n----------------------------- Captured stderr call -----------------------------\nError: --stash-implementation refuses unrelated dirty path(s): manifests/drafts/demo-task.manifest.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_active_manifest_marker\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_promoted_draft_deletion\n2 failed, 18 passed in 8.53s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_matching_active_manifest_marker",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_matching_active_manifest_marker:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_matching_promoted_draft_deletion",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_allows_matching_promoted_draft_deletion:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_different_active_manifest_marker",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_different_active_manifest_marker:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_matching_draft_modification",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_matching_draft_modification:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_different_active_marker",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_different_active_marker:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_matching_draft_add_then_delete",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_matching_draft_add_then_delete:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_matching_draft_modification_then_delete",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_staged_matching_draft_modification_then_delete:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_draft_deletion",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_draft_deletion:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_implementation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py",
+      "uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
