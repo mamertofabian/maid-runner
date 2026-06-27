@@ -1,0 +1,139 @@
+{
+  "manifest_path": "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+  "manifest_hash": "sha256:735812350bb15b3463140a7fb26cc4946590c86915acc343902d87d48b6d7d4b",
+  "test_hashes": {
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
+  },
+  "created_at": "2026-06-27T06:02:17.382198+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:eace2b13a3da7c66b745a7abd61764fa9ffb89f94d1b9e40539737a0b4c0d4ff",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:fbd9ecc5d230199644f83084374b80f8078ae9d400915c1471056fe3607dfe0f"
+      },
+      "revised_at": "2026-06-27T06:02:29.528833+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/079-01-version-init-instruction-payload.manifest.yaml -> manifests/079-01-version-init-instruction-payload.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:4f8b5fee61a29cb9c6dc5cf7886ba2d578d71ab11ef2951afd9dc607bf4cb653",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:fbd9ecc5d230199644f83084374b80f8078ae9d400915c1471056fe3607dfe0f"
+      },
+      "revised_at": "2026-06-27T06:06:36.330848+00:00",
+      "reason": "valid red evidence for payload module contract"
+    },
+    {
+      "prior_manifest_hash": "sha256:e080695d4eee77923d5bbfef23c34ca3d010c69950d6e6768846556bd9f817d3",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
+      },
+      "revised_at": "2026-06-27T06:07:39.502354+00:00",
+      "reason": "run all declared behavioral test files"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-27T06:07:43.445034+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_instruction_payload_version.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py tests/test_learning_loop_init_payload.py",
+        "exit_code": 1,
+        "output_tail": "    def _instruction_payload_contract() -> tuple[str, dict[str, str]]:\n        try:\n            from maid_runner.instruction_payload import (\n                INSTRUCTION_PAYLOAD_VERSION,\n                instruction_payload_metadata,\n            )\n        except ModuleNotFoundError as exc:\n>           pytest.fail(f\"missing instruction payload module: {exc}\")\nE           Failed: missing instruction payload module: No module named 'maid_runner.instruction_payload'\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_init_instruction_payload_version.py:47: Failed\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_stamps_instruction_payload_version_into_codex_payload\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_stamps_instruction_payload_version_into_claude_payload\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_check_reports_current_installed_payload\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_check_reports_missing_payload\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_check_reports_stale_payload\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_check_reports_stale_when_any_installed_payload_is_stale\nFAILED tests/cli/test_init_instruction_payload_version.py::test_init_check_prints_human_readable_status\n7 failed, 23 passed in 0.88s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "maid_runner/instruction_payload.py:function:instruction_payload_metadata",
+      "maid_runner/instruction_payload.py:function:instruction_payload_metadata:kind=function",
+      "maid_runner/instruction_payload.py:function:instruction_payload_metadata:returns=dict[str, str]",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_prints_human_readable_status:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_current_installed_payload:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_missing_payload:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_payload:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_check_reports_stale_when_any_installed_payload_is_stale:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_claude_payload",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_claude_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_claude_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_claude_payload:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_claude_payload:returns=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_learning_loop_init_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_instruction_payload_version.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py tests/test_learning_loop_init_payload.py",
+      "uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

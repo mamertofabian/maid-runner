@@ -610,6 +610,12 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
         default="auto",
         choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
     )
+    p.add_argument(
+        "--check",
+        action="store_true",
+        help="Check whether installed MAID init instruction payloads are current",
+    )
+    p.add_argument("--json", action="store_true")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--force", action="store_true")
 

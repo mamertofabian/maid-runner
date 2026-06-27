@@ -9,9 +9,18 @@ import sys
 from importlib import resources
 from pathlib import Path
 
+from maid_runner.instruction_payload import (
+    INSTRUCTION_PAYLOAD_VERSION,
+    instruction_payload_metadata,
+)
+
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
 _MAID_SECTION_END = "<!-- END MAID RUNNER -->"
+_CHECKED_AGENT_MANIFESTS = {
+    "claude": Path(".claude/manifest.json"),
+    "codex": Path(".codex/manifest.json"),
+}
 _PAYLOAD_PATH_PREFIXES = {
     "root": "",
     "agents": "agents",
@@ -27,6 +36,9 @@ _INIT_WORKFLOW_PAYLOADS = (
 
 
 def cmd_init(args: argparse.Namespace) -> int:
+    if args.check:
+        return _cmd_init_check(args)
+
     manifest_dir = Path("manifests")
     drafts_dir = manifest_dir / "drafts"
     config_file = Path(".maidrc.yaml")
@@ -113,6 +125,14 @@ def _agent_manifest(tool: str) -> dict:
     return json.loads(manifest.read_text())
 
 
+def _stamp_instruction_payload_metadata(manifest: dict) -> dict:
+    stamped = dict(manifest)
+    metadata = dict(stamped.get("metadata", {}))
+    metadata.update(instruction_payload_metadata())
+    stamped["metadata"] = metadata
+    return stamped
+
+
 def _payload_files(tool: str):
     root = _agent_payload_root(tool)
     for child in root.iterdir():
@@ -166,6 +186,8 @@ def _install_agent_payload(
 ) -> None:
     target_dir = project_root / target_dir_name
     manifest = _agent_manifest(tool)
+    if tool in _CHECKED_AGENT_MANIFESTS:
+        manifest = _stamp_instruction_payload_metadata(manifest)
     payload_files = list(_installable_payload_files(tool, manifest))
     _prune_agent_payload(
         target_dir, _read_existing_agent_manifest(target_dir), manifest
@@ -173,7 +195,9 @@ def _install_agent_payload(
     for source_file, relative_path in payload_files:
         destination = target_dir / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        if tool == "claude" and relative_path == Path("settings.json"):
+        if relative_path == Path("manifest.json"):
+            destination.write_text(json.dumps(manifest, indent=2) + "\n")
+        elif tool == "claude" and relative_path == Path("settings.json"):
             _merge_claude_settings(destination, json.loads(source_file.read_text()))
         else:
             destination.write_bytes(source_file.read_bytes())
@@ -281,6 +305,7 @@ def _render_claude_md_section(manifest: dict) -> str:
     return (
         f"{_MAID_SECTION_START}\n"
         "## MAID Runner\n\n"
+        f"Instruction payload version: {INSTRUCTION_PAYLOAD_VERSION}\n\n"
         "### MAID Skills Workflow\n"
         "Use the installed MAID skills for manifest-driven development: "
         f"{skills}.\n\n"
@@ -305,6 +330,7 @@ def _render_agents_md_section(manifest: dict) -> str:
     return (
         f"{_MAID_SECTION_START}\n"
         "## MAID Runner\n\n"
+        f"Instruction payload version: {INSTRUCTION_PAYLOAD_VERSION}\n\n"
         "### MAID Codex Skills Workflow\n"
         "Use the installed MAID Codex skills for manifest-driven development: "
         f"{skills}.\n\n"
@@ -373,3 +399,79 @@ def _render_draft_outcome_guidance() -> str:
         "task. See `docs/draft-manifest-workflow.md` and "
         "`docs/manifest-outcome-records.md`."
     )
+
+
+def _cmd_init_check(args: argparse.Namespace) -> int:
+    status = _instruction_payload_status(Path.cwd())
+    if args.json:
+        print(json.dumps(status))
+    else:
+        _print_instruction_payload_status(status)
+    return 0 if status["status"] == "current" else 1
+
+
+def _instruction_payload_status(project_root: Path) -> dict:
+    installed = {
+        tool: _installed_agent_payload_status(project_root, manifest_path)
+        for tool, manifest_path in _CHECKED_AGENT_MANIFESTS.items()
+    }
+    present = [info for info in installed.values() if info["present"]]
+    if not present:
+        status = "missing"
+    elif any(info["status"] != "current" for info in present):
+        status = "stale"
+    else:
+        status = "current"
+
+    metadata = instruction_payload_metadata()
+    return {
+        "status": status,
+        "maid_runner_version": metadata["maid_runner_version"],
+        "instruction_payload_version": metadata["instruction_payload_version"],
+        "installed": installed,
+    }
+
+
+def _installed_agent_payload_status(project_root: Path, manifest_path: Path) -> dict:
+    path = project_root / manifest_path
+    if not path.exists():
+        return {
+            "manifest_path": manifest_path.as_posix(),
+            "present": False,
+            "instruction_payload_version": None,
+            "status": "absent",
+        }
+
+    payload_version = _read_installed_payload_version(path)
+    return {
+        "manifest_path": manifest_path.as_posix(),
+        "present": True,
+        "instruction_payload_version": payload_version,
+        "status": (
+            "current" if payload_version == INSTRUCTION_PAYLOAD_VERSION else "stale"
+        ),
+    }
+
+
+def _read_installed_payload_version(path: Path) -> str | None:
+    try:
+        manifest = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    metadata = manifest.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    version = metadata.get("instruction_payload_version")
+    return version if isinstance(version, str) else None
+
+
+def _print_instruction_payload_status(status: dict) -> None:
+    print(f"MAID instruction payload status: {status['status']}")
+    print(
+        "Current instruction payload version: "
+        f"{status['instruction_payload_version']}"
+    )
+    for tool, info in status["installed"].items():
+        version = info["instruction_payload_version"]
+        suffix = f" ({version})" if version is not None else ""
+        print(f"{tool}: {info['status']}{suffix}")

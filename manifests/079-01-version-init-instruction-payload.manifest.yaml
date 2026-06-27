@@ -1,0 +1,348 @@
+schema: '2'
+goal: Version the MAID init instruction payload separately from the maid-runner package version
+type: feature
+created: '2026-06-27T06:02:29Z'
+metadata:
+  tags:
+  - init-payload
+  - agent-guidance
+  - versioning
+  - downstream
+  priority: medium
+description: |
+  Add explicit instruction-payload versioning so downstream repositories can
+  tell whether their checked-in MAID init guidance and repo-local agent payloads
+  are current, independent of the `maid-runner` package version.
+
+  The package version can change without any instruction payload change, and
+  instruction payloads can change during local editable development before a
+  package release. Downstream repositories need a cheap status signal that
+  answers: "is my installed `.claude` / `.codex` / generated guidance payload
+  current for the maid-runner I am using?"
+
+  Pinned design:
+
+  - Introduce a human-readable instruction payload version constant in the
+    package, separate from the project/package version.
+  - Stamp that payload version into installed Claude and Codex manifest metadata
+    when `maid init` writes `.claude/manifest.json` or `.codex/manifest.json`.
+  - Stamp the same payload version into the generated `CLAUDE.md` / `AGENTS.md`
+    MAID Runner section so humans can inspect the guidance block without
+    opening JSON metadata.
+  - Add a small `maid init --check` status mode that compares installed payload
+    metadata in the current repository with the package's current instruction
+    payload version. It should print a human-readable status by default and
+    return non-zero when no known Claude/Codex payload metadata is installed or
+    when any installed known payload is stale. A repository that intentionally
+    installed only Codex or only Claude can still be `current` when that
+    installed payload matches the package's current instruction payload version.
+  - Add `maid init --check --json` for automation. JSON output should include
+    exactly these top-level keys: `status`, `maid_runner_version`,
+    `instruction_payload_version`, and `installed`. `installed` maps `claude`
+    and `codex` to objects with `manifest_path`, `present`,
+    `instruction_payload_version`, and `status`. Tool status is `absent` when
+    no manifest exists, `current` when the installed metadata matches,
+    and `stale` when an installed manifest lacks the metadata or has an older
+    payload version. Overall status is `missing` only when neither Claude nor
+    Codex manifests are installed, `stale` when any installed known payload is
+    stale, and `current` when every installed known payload matches the package
+    payload version.
+  - Human-readable `maid init --check` should print the same overall status and
+    per-tool status without rewriting any files.
+
+  Keep this intentionally small. Do not add content hashes, full drift
+  detection, auto-refresh, CI integration, or a new command namespace in this
+  slice. A later manifest can add payload hashes if version-only status proves
+  insufficient.
+
+  Outcome recall / insights digest: recent init-payload Outcomes repeatedly
+  show that downstream behavior must be tested through actual `maid init`
+  output, not only source files, and that package-data / generated payload sync
+  has drifted before. This draft therefore requires tests that initialize
+  throwaway downstream repos and inspect installed metadata plus rendered
+  guidance.
+temptations:
+- risk: Do not conflate the instruction payload version with the pyproject package version.
+  instead: Add a separate instruction-payload version constant and stamp it into installed payload metadata and generated guidance.
+- risk: Do not test only source manifests or source guidance text.
+  instead: Run `maid init` in throwaway repositories and assert the installed `.claude` / `.codex` manifests plus generated guidance contain the payload version.
+- risk: Do not broaden this into full payload drift detection or auto-upgrade behavior.
+  instead: Limit this slice to version stamping and explicit `maid init --check` status reporting; leave hashes and refresh workflows to follow-up work.
+- risk: Do not let local editable development depend on a published package version bump.
+  instead: Have `maid init --check` compare against the currently importable package payload version, regardless of whether the package version changed.
+- risk: Do not report a Codex-only repository as missing just because Claude was never installed.
+  instead: Treat installed known payloads as the comparison set; return `missing` only when neither Claude nor Codex manifest exists, and pin exact JSON keys for missing, current, stale, and mixed states.
+files:
+  create:
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Human-readable version for the init-installed MAID instruction payload, maintained separately from the maid-runner package version.
+    - kind: function
+      name: instruction_payload_metadata
+      args: []
+      returns: dict[str, str]
+      description: Return metadata fields that `maid init` stamps into installed agent payload manifests.
+  - path: tests/cli/test_init_instruction_payload_version.py
+    artifacts:
+    - kind: test_function
+      name: test_init_stamps_instruction_payload_version_into_codex_payload
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A downstream repository initializes Codex MAID payloads from the current package.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The installed `.codex/manifest.json` and generated `AGENTS.md` MAID section include the current instruction payload version.
+    - kind: test_function
+      name: test_init_stamps_instruction_payload_version_into_claude_payload
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A downstream repository initializes Claude MAID payloads from the current package.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The installed `.claude/manifest.json` and generated `CLAUDE.md` MAID section include the current instruction payload version.
+    - kind: test_function
+      name: test_init_check_reports_current_installed_payload
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A downstream repository has just refreshed its MAID init payload from the current package.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: '`maid init --check --json` exits 0 and reports current package and installed instruction payload versions with status `current`.'
+    - kind: test_function
+      name: test_init_check_reports_missing_payload
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A downstream repository has no installed payload metadata or an older instruction payload version.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: '`maid init --check --json` exits non-zero and reports `missing` without rewriting files.'
+    - kind: test_function
+      name: test_init_check_reports_stale_payload
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A downstream repository has an older instruction payload version.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: '`maid init --check --json` exits non-zero and reports `stale` for the installed old payload without rewriting files.'
+    - kind: test_function
+      name: test_init_check_reports_stale_when_any_installed_payload_is_stale
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A downstream repository has both Claude and Codex metadata but only one payload is current.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: '`maid init --check --json` exits non-zero and reports overall `stale` with the current and stale tool statuses preserved.'
+    - kind: test_function
+      name: test_init_check_prints_human_readable_status
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A downstream repository checks its refreshed MAID init payload for a human operator.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: '`maid init --check` exits 0 and prints the overall current status plus per-tool installed payload status.'
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Register `maid init --check` and `maid init --check --json` without changing normal init behavior.
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Handle init status checks before normal init writes, and stamp instruction payload metadata during installs.
+  read:
+  - pyproject.toml
+  - maid_runner/__version__.py
+  - scripts/sync_claude_files.py
+  - .claude/manifest.json
+  - maid_runner/claude/manifest.json
+  - maid_runner/codex/manifest.json
+  - tests/cli/test_init_cmd.py
+  - tests/test_agent_payload_distribution.py
+  - tests/test_learning_loop_init_payload.py
+  - manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml
+  - manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_init_instruction_payload_version.py tests/cli/test_init_cmd.py tests/test_agent_payload_distribution.py tests/test_learning_loop_init_payload.py
+- uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/079-01-version-init-instruction-payload.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-27T07:37:00Z"
+  summary: "Added separate MAID init instruction-payload versioning for Claude and Codex payloads. `maid init` now stamps the current payload metadata into installed `.claude/manifest.json` and `.codex/manifest.json`, renders the payload version in generated `CLAUDE.md` and `AGENTS.md` sections, and exposes `maid init --check` plus `maid init --check --json` for current, missing, and stale status checks."
+  rationale: "Downstream repositories need a cheap signal for whether their installed MAID guidance payload is current without tying that state to the package version. The implementation keeps the slice version-only, avoids content hashes and auto-refresh, and limits stamping/checking to the Claude/Codex payloads named by the contract. Cursor init remains unchanged and outside this status mode."
+  lessons:
+  - lesson_type: workflow
+    summary: "When adding metadata to shared init-install code, explicitly gate the affected tools so adjacent init payloads such as Cursor do not receive silent behavior changes outside the manifest contract."
+    tags:
+    - init-payload
+    - scope-control
+    - review
+    paths:
+    - maid_runner/cli/commands/init.py
+  - lesson_type: testing
+    summary: "For MAID plan-lock red evidence, a new-module failure should occur during test execution rather than collection so the failure is classified as valid red evidence."
+    tags:
+    - plan-lock
+    - red-evidence
+    - behavioral-testing
+    paths:
+    - tests/cli/test_init_instruction_payload_version.py
+    - .maid/plan-locks/079-01-version-init-instruction-payload.lock.json
+  review_notes:
+  - source: implementation-review-subagent-Mencius
+    severity: P2
+    summary: "Initial read-only review found Cursor manifests were being stamped despite the contract only covering Claude/Codex. Fixed by stamping metadata only for tools listed in `_CHECKED_AGENT_MANIFESTS`."
+  - source: implementation-review-subagent-Ampere
+    severity: info
+    summary: "Re-review found no findings, confirmed the Cursor scope fix, and reported ready. Residual gaps noted were no explicit test for an installed manifest missing metadata and no explicit test for `maid init --json` without `--check`, with no bug found from those gaps."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_init_instruction_payload_version.py
+    - tests/cli/test_init_cmd.py
+    - tests/test_agent_payload_distribution.py
+    - tests/test_learning_loop_init_payload.py
+    status: passed
+    summary: "Focused init payload and existing init-distribution coverage passed: 30 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/079-01-version-init-instruction-payload.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the declared module constant, metadata helper, init CLI parser, and init command behavior."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/079-01-version-init-instruction-payload.manifest.yaml
+    status: passed
+    summary: "Manifest test gate passed: 3 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/instruction_payload.py
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_init_instruction_payload_version.py
+    status: passed
+    summary: "Ruff passed on touched Python files."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/instruction_payload.py
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_init_instruction_payload_version.py
+    status: passed
+    summary: "Black check passed on touched Python files."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 378 manifests, 290 passed, 0 failed, and 88 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed: 153 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict changed-scope handoff gate passed, including plan lock, red evidence, worktree scope, changed scope, and tests; output retained existing repository advisory warnings."
