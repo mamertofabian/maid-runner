@@ -1,0 +1,107 @@
+{
+  "manifest_path": "manifests/077-03-add-related-match-recall-scoring.manifest.yaml",
+  "manifest_hash": "sha256:4f102fd1cd2bca2cf7735db204e0f0bab9570c4897537ecf6492e2ccb94ef3e0",
+  "test_hashes": {
+    "tests/core/test_outcome_recall.py": "sha256:56f721b6ca53fe42ee738b9491ac7278b4b5537a2e02c45bf9edee260ea43cfe",
+    "tests/core/test_plan_packet.py": "sha256:68ffbc719ac8a8f1ccf42d8ccf70cb692e25eb1a63d765fefd49d156cf636f9f",
+    "tests/cli/test_recall_plan_packet_cmd.py": "sha256:fe67efeea87f5a8cf895a7dc0c5e16cf889d65fb9886b25e42fde9f2078ef9fd",
+    "tests/core/test_outcome_recall_related_match.py": "sha256:5270e1d5c44baf67f7a9a865e513f3af479a0f8b64019de694025e32a28c2ee4"
+  },
+  "created_at": "2026-06-26T22:37:06.047289+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:a4c1f21fb95c1f46b9e51a238119705a9eeeaf7cb4f6afa93fba118b3fc13e71",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_recall.py": "sha256:56f721b6ca53fe42ee738b9491ac7278b4b5537a2e02c45bf9edee260ea43cfe",
+        "tests/core/test_plan_packet.py": "sha256:68ffbc719ac8a8f1ccf42d8ccf70cb692e25eb1a63d765fefd49d156cf636f9f",
+        "tests/cli/test_recall_plan_packet_cmd.py": "sha256:fe67efeea87f5a8cf895a7dc0c5e16cf889d65fb9886b25e42fde9f2078ef9fd",
+        "tests/core/test_outcome_recall_related_match.py": "sha256:c03eb4857889671612e42507cef4dd672a27665720156a376263b1db20a3def3"
+      },
+      "revised_at": "2026-06-26T22:37:10.709764+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/077-03-add-related-match-recall-scoring.manifest.yaml -> manifests/077-03-add-related-match-recall-scoring.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:3f4e5d79b879a5d2f84ab523b2dd0f819c25ece3a9b6234ba7a4d1ea134a3a88",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_recall.py": "sha256:56f721b6ca53fe42ee738b9491ac7278b4b5537a2e02c45bf9edee260ea43cfe",
+        "tests/core/test_plan_packet.py": "sha256:68ffbc719ac8a8f1ccf42d8ccf70cb692e25eb1a63d765fefd49d156cf636f9f",
+        "tests/cli/test_recall_plan_packet_cmd.py": "sha256:fe67efeea87f5a8cf895a7dc0c5e16cf889d65fb9886b25e42fde9f2078ef9fd",
+        "tests/core/test_outcome_recall_related_match.py": "sha256:c03eb4857889671612e42507cef4dd672a27665720156a376263b1db20a3def3"
+      },
+      "revised_at": "2026-06-26T22:53:23.005413+00:00",
+      "reason": "Implementation review found partial related-match scores could stack across multiple query values and outrank an exact path+tag combination; strengthen the no-inflation behavioral coverage before fixing."
+    },
+    {
+      "prior_manifest_hash": "sha256:3f4e5d79b879a5d2f84ab523b2dd0f819c25ece3a9b6234ba7a4d1ea134a3a88",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_recall.py": "sha256:56f721b6ca53fe42ee738b9491ac7278b4b5537a2e02c45bf9edee260ea43cfe",
+        "tests/core/test_plan_packet.py": "sha256:68ffbc719ac8a8f1ccf42d8ccf70cb692e25eb1a63d765fefd49d156cf636f9f",
+        "tests/cli/test_recall_plan_packet_cmd.py": "sha256:fe67efeea87f5a8cf895a7dc0c5e16cf889d65fb9886b25e42fde9f2078ef9fd",
+        "tests/core/test_outcome_recall_related_match.py": "sha256:5270e1d5c44baf67f7a9a865e513f3af479a0f8b64019de694025e32a28c2ee4"
+      },
+      "revised_at": "2026-06-26T23:12:19.239852+00:00",
+      "reason": "Capture completed Outcome after ready implementation review while preserving existing red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:18a97b925b7bfdca66d6addd4fd3633e9f195d7f87358daa45ffa2040975e234",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_recall.py": "sha256:56f721b6ca53fe42ee738b9491ac7278b4b5537a2e02c45bf9edee260ea43cfe",
+        "tests/core/test_plan_packet.py": "sha256:68ffbc719ac8a8f1ccf42d8ccf70cb692e25eb1a63d765fefd49d156cf636f9f",
+        "tests/cli/test_recall_plan_packet_cmd.py": "sha256:fe67efeea87f5a8cf895a7dc0c5e16cf889d65fb9886b25e42fde9f2078ef9fd",
+        "tests/core/test_outcome_recall_related_match.py": "sha256:5270e1d5c44baf67f7a9a865e513f3af479a0f8b64019de694025e32a28c2ee4"
+      },
+      "revised_at": "2026-06-26T23:34:42.592012+00:00",
+      "reason": "Remove stale promoted draft reference from captured Outcome while preserving red evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T22:53:23.807237+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_outcome_recall_related_match.py tests/core/test_outcome_recall.py tests/core/test_plan_packet.py tests/cli/test_recall_cmd.py tests/cli/test_recall_for_manifest_cmd.py tests/cli/test_recall_plan_packet_cmd.py",
+        "exit_code": 1,
+        "output_tail": "                tags=(\"recall\", \"outcome\", \"planning\", \"learning\", \"loop\"),\n            ),\n        )\n    \n>       assert [match.record.manifest_slug for match in matches] == [\n            \"exact-combination\",\n            \"partial-combination\",\n        ]\nE       AssertionError: assert ['exact-combination'] == ['exact-combi...-combination']\nE         \nE         Right contains one more item: 'partial-combination'\nE         Use -v to get more diff\n\ntests/core/test_outcome_recall_related_match.py:143: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_outcome_recall_related_match.py::test_recall_partial_match_same_directory_surfaces_related_record\nFAILED tests/core/test_outcome_recall_related_match.py::test_recall_exact_path_outranks_partial_path\nFAILED tests/core/test_outcome_recall_related_match.py::test_recall_related_tag_substring_surfaces_but_unrelated_excluded\nFAILED tests/core/test_outcome_recall_related_match.py::test_recall_partial_does_not_inflate_above_exact_combination\n4 failed, 26 passed in 0.27s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes",
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes:arg=limit:type=int:default=10",
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes:arg=query:type=OutcomeRecallQuery:default=None",
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes:kind=function",
+      "maid_runner/core/outcome_recall.py:function:recall_outcomes:returns=list[OutcomeRecallMatch]",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_exact_path_outranks_partial_path",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_exact_path_outranks_partial_path:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_exact_path_outranks_partial_path:returns=None",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_does_not_inflate_above_exact_combination",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_does_not_inflate_above_exact_combination:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_does_not_inflate_above_exact_combination:returns=None",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_same_directory_surfaces_related_record",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_same_directory_surfaces_related_record:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_same_directory_surfaces_related_record:returns=None",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_still_requires_every_supplied_dimension",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_still_requires_every_supplied_dimension:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_partial_match_still_requires_every_supplied_dimension:returns=None",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_related_tag_substring_surfaces_but_unrelated_excluded",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_related_tag_substring_surfaces_but_unrelated_excluded:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_related_tag_substring_surfaces_but_unrelated_excluded:returns=None",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_unrelated_record_still_excluded",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_unrelated_record_still_excluded:kind=test_function",
+      "tests/core/test_outcome_recall_related_match.py:test_recall_unrelated_record_still_excluded:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_recall_plan_packet_cmd.py",
+      "tests/core/test_outcome_recall.py",
+      "tests/core/test_outcome_recall_related_match.py",
+      "tests/core/test_plan_packet.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_outcome_recall_related_match.py tests/core/test_outcome_recall.py tests/core/test_plan_packet.py tests/cli/test_recall_cmd.py tests/cli/test_recall_for_manifest_cmd.py tests/cli/test_recall_plan_packet_cmd.py"
+    ]
+  }
+}

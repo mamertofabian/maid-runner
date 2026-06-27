@@ -83,12 +83,15 @@ def _run_cached_maid_validate_command_in_scope(
         mode = parsed["mode"]
         manifest_dir = parsed["manifest_dir"]
         json_mode = parsed["json_mode"]
+        quiet = parsed["quiet"]
         manifest_path = parsed["manifest_path"]
         use_chain = parsed["use_chain"]
 
         if manifest_path is None:
             result = engine.validate_all(manifest_dir, mode=mode)
-            stdout = format_batch_result(result, json_mode=json_mode)
+            stdout = format_batch_result(result, json_mode=json_mode, quiet=quiet)
+            if quiet and not json_mode and stdout == "":
+                stdout = "\n"
             success = result.success
         else:
             chain = None
@@ -106,7 +109,7 @@ def _run_cached_maid_validate_command_in_scope(
                 chain=chain,
                 manifest_dir=manifest_dir,
             )
-            stdout = format_validation_result(result, json_mode=json_mode)
+            stdout = format_validation_result(result, json_mode=json_mode, quiet=quiet)
             success = result.success
 
         return TestRunResult(
@@ -143,6 +146,7 @@ def _parse_maid_validate_command(command: tuple[str, ...]) -> dict[str, object] 
     mode = ValidationMode.IMPLEMENTATION
     manifest_dir = "manifests/"
     json_mode = False
+    quiet = False
     use_chain = True
     manifest_path: str | None = None
 
@@ -180,6 +184,10 @@ def _parse_maid_validate_command(command: tuple[str, ...]) -> dict[str, object] 
             json_mode = True
             index += 1
             continue
+        if part == "--quiet":
+            quiet = True
+            index += 1
+            continue
         if part == "--no-chain":
             use_chain = False
             index += 1
@@ -195,6 +203,7 @@ def _parse_maid_validate_command(command: tuple[str, ...]) -> dict[str, object] 
         "mode": mode,
         "manifest_dir": manifest_dir,
         "json_mode": json_mode,
+        "quiet": quiet,
         "use_chain": use_chain,
         "manifest_path": manifest_path,
     }

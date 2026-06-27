@@ -346,6 +346,11 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         action="store_true",
         dest="preserve_red_evidence",
     )
+    rp.add_argument(
+        "--stash-implementation",
+        action="store_true",
+        dest="stash_implementation",
+    )
     rp.add_argument("--project-root", default=".", dest="project_root")
     sp = psub.add_parser("status", help="Report plan lock state and hash matches")
     sp.add_argument("manifest_path")
@@ -605,6 +610,12 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
         default="auto",
         choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
     )
+    p.add_argument(
+        "--check",
+        action="store_true",
+        help="Check whether installed MAID init instruction payloads are current",
+    )
+    p.add_argument("--json", action="store_true")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--force", action="store_true")
 

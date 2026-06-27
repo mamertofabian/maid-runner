@@ -92,8 +92,17 @@ class TestCmdInit:
         assert "maid-planner" in claude_md
         assert "maid-implementation-review" in claude_md
         assert "Draft manifests under `manifests/drafts/`" in claude_md
-        assert "Promote one implementation-sized draft into `manifests/`" in claude_md
-        assert "remove only the matching draft path" in claude_md
+        assert "manifests/drafts/*.epic.yaml" in claude_md
+        assert (
+            "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml"
+            in claude_md
+        )
+        assert "Do not manually move or copy draft manifests" in claude_md
+        assert "plan revise <manifest>" in claude_md
+        assert "--preserve-red-evidence" in claude_md
+        assert (
+            "Promote one implementation-sized draft into `manifests/`" not in claude_md
+        )
         assert "capture an Outcome record" in claude_md
         assert "after implementation validation and implementation review" in claude_md
         assert "concrete validation evidence and review notes" in claude_md
@@ -228,8 +237,17 @@ class TestCmdInit:
         assert "maid-implementation-review" in agents_md
         assert "maid-runner-" not in agents_md
         assert "Draft manifests under `manifests/drafts/`" in agents_md
-        assert "Promote one implementation-sized draft into `manifests/`" in agents_md
-        assert "remove only the matching draft path" in agents_md
+        assert "manifests/drafts/*.epic.yaml" in agents_md
+        assert (
+            "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml"
+            in agents_md
+        )
+        assert "Do not manually move or copy draft manifests" in agents_md
+        assert "plan revise <manifest>" in agents_md
+        assert "--preserve-red-evidence" in agents_md
+        assert (
+            "Promote one implementation-sized draft into `manifests/`" not in agents_md
+        )
         assert "capture an Outcome record" in agents_md
         assert "after implementation validation and implementation review" in agents_md
         assert "concrete validation evidence and review notes" in agents_md

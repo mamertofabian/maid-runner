@@ -1,0 +1,35 @@
+{
+  "manifest_path": "manifests/bump-version-2.18.0.manifest.yaml",
+  "manifest_hash": "sha256:3d9f453d9e1be320f23b0c181124b5208c9d9588b056e903b37ca1783c9ca2f9",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256:cf54a136cbd6796414e385238d89128501b303b8f12ee2154678b3db46915571"
+  },
+  "created_at": "2026-06-27T11:54:00.206221+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-27T11:54:00.553594+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_release_metadata_is_2_18_0(self):\n        from maid_runner import __version__\n    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.18.0\"\nE       AssertionError: assert '2.17.2' == '2.18.0'\nE         \nE         - 2.18.0\nE         + 2.17.2\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_18_0\n1 failed, 27 passed in 0.18s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_18_0",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_18_0:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_18_0:of=TestPublicAPIImports"
+    ],
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}

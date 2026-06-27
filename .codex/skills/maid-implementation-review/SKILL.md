@@ -146,16 +146,36 @@ and changed files.
 
 For implementation review:
 
+- Active insights trigger: review recurring Outcome lessons with `maid insights`
+  before reviewing the implementation. Treat insights as advisory aggregate
+  evidence for recurring lessons, not as generated narrative authority.
+- Use active recall guidance to thread the planner's and implementer's recalled
+  evidence into review focus, while still grounding findings in the current
+  manifest, tests, validation, and diff.
 - After the review verdict is ready, check whether the completed manifest needs an `outcome:` record.
 - Outcome capture happens after implementation review and before final handoff.
 - Confirm new Outcome lessons cite concrete validation, review, or file evidence.
 - Do not mark work ready if Outcome claims are not backed by validation and review evidence.
-- Outcome records do not replace behavioral tests, declared scope, validation, or review.
+- To intentionally include instructive failed or abandoned Outcome lessons,
+  refresh the index with this opt-in command, then recall from that index:
+
+```bash
+maid learn --include-status completed --include-status abandoned
+```
+
+  This is an intentional opt-in for failure lessons; the completed-only default
+  is unchanged.
+- Recalled, aggregated, and digested Outcomes are planning evidence only. They
+  do not replace behavioral tests, declared scope, validation, approval, done
+  gates, or review, and they do not create an approval, promotion, done, or
+  review gate.
 
 ### Manifest Outcome Record Check
 
 After the review verdict is ready, check related completed Outcome records to
 decide whether this completed manifest needs a new or updated Outcome record:
+this Manifest-Derived Outcome Recall step is active recall guidance for review
+and Outcome capture.
 
 ```bash
 maid recall --for-manifest <path>
@@ -174,6 +194,18 @@ Recalled Outcomes are planning evidence only. They do not replace behavioral
 tests, declared artifacts, validation commands, or implementation review.
 After Outcome capture, run `uv run maid learn` to refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
 `.maid/outcomes.json` is generated and ignored; do not commit it. If `maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
+
+### Learning Evidence Digestion
+
+The learning evidence digestion step is advisory evidence handling.
+
+Close the loop between completed Outcome records and current agent decisions;
+do not dump a raw recall or insights transcript into the review. Identify
+applicable lessons, reject stale or irrelevant lessons with a reason, and state
+what changed because of the evidence. For implementation review, name the
+effect on review focus, Outcome capture, or candidate follow-up work. The
+learning evidence digestion step is advisory evidence handling, not a separate
+gate.
 
 ## Phase 8 — Run Practical Validation
 

@@ -1,0 +1,312 @@
+{
+  "manifest_path": "manifests/ban-e2e-from-maid-test.manifest.yaml",
+  "manifest_hash": "sha256:85163e93a2bb86b1d863112a33d7fe6d418f0242188cce547959d877117d6479",
+  "test_hashes": {
+    "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+    "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+    "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836",
+    "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+  },
+  "created_at": "2026-06-25T12:56:08.193055+00:00",
+  "revision": 22,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:14b0d5c5472c57dc9cf909b2c4e1e7e31fbf27aa60d92fd56dd81e109bb79a22",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "maid_runner/core/test_runner.py": "sha256:513d23127cf80d5f573a954c543804acc3605bcd921e97b463377a850130311d",
+        "tests/core/test_test_runner.py": "sha256:19b7f32f721e0cc8b763c24e11d10e2343cdb14013fe354d81228cd86976ee37",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T12:56:13.165607+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/ban-e2e-from-maid-test.manifest.yaml -> manifests/ban-e2e-from-maid-test.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:02821295985e21578fdd8735c15f68eb43936caec4dd1a699032584c817e00b8",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "maid_runner/core/test_runner.py": "sha256:513d23127cf80d5f573a954c543804acc3605bcd921e97b463377a850130311d",
+        "tests/core/test_test_runner.py": "sha256:19b7f32f721e0cc8b763c24e11d10e2343cdb14013fe354d81228cd86976ee37",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T12:59:44.078723+00:00",
+      "reason": "Supersede the previous acceptance-first stream orchestration contract now that maid test is fast-only."
+    },
+    {
+      "prior_manifest_hash": "sha256:99e4ae8d25ddecda12988f6a626a79ce0bd36dfde228cbc05c0c5fc908e88ca4",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:19b7f32f721e0cc8b763c24e11d10e2343cdb14013fe354d81228cd86976ee37",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:01:01.444631+00:00",
+      "reason": "Align legacy stream characterization tests with the superseded fast-only behavior."
+    },
+    {
+      "prior_manifest_hash": "sha256:99e4ae8d25ddecda12988f6a626a79ce0bd36dfde228cbc05c0c5fc908e88ca4",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:01:17.360493+00:00",
+      "reason": "Declare the new ErrorCode member as an enum attribute for implementation validation."
+    },
+    {
+      "prior_manifest_hash": "sha256:19b74bcea197ed7febc845cf330681b4f8a84c84f2af13d2c70fb77207f3c92a",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:01:41.255670+00:00",
+      "reason": "Remove non-contract verify test read dependency that command integrity correctly required validate to run."
+    },
+    {
+      "prior_manifest_hash": "sha256:f9812114b5bdb397e061754282e2bc03c1261cce661c1b55bd616fb01c103625",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:02:31.995391+00:00",
+      "reason": "Use full behavioral test file validate commands because node selectors are not accepted done gates."
+    },
+    {
+      "prior_manifest_hash": "sha256:048c0e91b822464505a246bfb88c30d247dde9c511fe7d64e884c52f71e29f87",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:242becbd2f24360f7097bd28f26921820cdb1172c4c8e7a253561f37bca62314",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:06:47.688691+00:00",
+      "reason": "Refresh lock after Black formatting of the declared validate-command test file."
+    },
+    {
+      "prior_manifest_hash": "sha256:048c0e91b822464505a246bfb88c30d247dde9c511fe7d64e884c52f71e29f87",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:c13481b51de75889d850aed5452667e8ee04063514ea5c9415de85451cbb6b4e",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:14:08.285691+00:00",
+      "reason": "Regenerate red evidence for the final full-file validate command."
+    },
+    {
+      "prior_manifest_hash": "sha256:048c0e91b822464505a246bfb88c30d247dde9c511fe7d64e884c52f71e29f87",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:c13481b51de75889d850aed5452667e8ee04063514ea5c9415de85451cbb6b4e",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T13:30:08.856969+00:00",
+      "reason": "Capture post-review E2E wrapper and selector precedence coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:adac10d43156d4ec42f080fd5a8524b3834eb27ab60e65558929cbb81d1f9d92",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:8f125f984aab51e4de05577927c6d0123c2e0fbc7b4b3bcd5d72c2dc57349096",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T22:51:00.734622+00:00",
+      "reason": "Capture selector-bearing browser E2E no-test-file validation coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:ab6d1100ec6bf07a9d05228569e7fea0eef1ba7f09dfd83d43534017bb4887bf",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T23:05:54.374813+00:00",
+      "reason": "Refresh lock after Black formatting of short package-manager flag coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:088ad96a51154432fbfff9583e3b78b0dbcda8e70b49beabf3c69591980a8311",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T23:25:00.665594+00:00",
+      "reason": "Capture reviewer follow-up coverage for package script names, output path values, and wrapped selectors."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:6611d655b656d0a9e0c47f3259ff503464d1907b685c034c9138552e8c09e8ca",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T23:42:32.327904+00:00",
+      "reason": "Capture final reviewer follow-up coverage for selector E2E paths, versioned browser runners, and corepack wrappers."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:a28d166041a431be6efa9d142b97488438f9d2e5f5f9b87e68c4f3adfad2371f",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-25T23:59:30.086931+00:00",
+      "reason": "Capture final mixed-command browser selector, direct corepack, and benign report-path coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:70008ee4f0b7e80e20d67ff72ccbf36c03674bc8d4c060abb0f6ce1f4de511c1",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T00:14:07.699121+00:00",
+      "reason": "Capture benign pytest html report path coverage for E2E path classification."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:39d1bb33db65afa013cdfdaeabeab51f0809bae5835894a135532cad29852b77",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T00:31:36.272148+00:00",
+      "reason": "Capture package call, package e2e cwd, and pytest exclusion-value coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:c8028786825958ee56fa4da1074bbe3c5d2c7b4d49b53de5c387a5f62f7c1154",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T00:52:52.648280+00:00",
+      "reason": "Capture reviewer follow-up coverage for scoped Playwright packages and JS output-file E2E paths."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:5437ecea1b74e4afec0bf0f4c65a8f5ccb3a79f0f3c4c8f6e562c9e820deee07",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T01:07:54.112057+00:00",
+      "reason": "Capture reviewer follow-up coverage for package-call E2E script and cwd wrappers."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:4aca1ddb52a00483b6dcd32d42a169455d8276b78828f48eccf4e6c92d453e86",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T01:25:57.925349+00:00",
+      "reason": "Capture bounded launcher wrapper and JS output directory E2E coverage."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:11214cf18f9abf2db7389599e732894b1b1b0ab21869627d77b80dd8a7c03536",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T01:40:11.834815+00:00",
+      "reason": "Capture wrapper inner command separator coverage for E2E detection."
+    },
+    {
+      "prior_manifest_hash": "sha256:7737cd37527ce3e5b0e7f920d7af5c8118764fdd670cc62b1d41a0e4ee92b26f",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836",
+        "tests/cli/test_test_cmd.py": "sha256:d4c673a2295460303ddf3d0da7499749d53722e50e5bca902c8902e49cb6bb75"
+      },
+      "revised_at": "2026-06-26T03:41:51.613629+00:00",
+      "reason": "Capture implementation outcome after ready review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-25T13:14:14.827537+00:00",
+    "commands": [
+      {
+        "command": "pytest tests/core/test_test_runner.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "                    },\n                    \"acceptance\": {\"tests\": [\"playwright test tests/e2e/flow.spec.ts\"]},\n                    \"validate\": [\"pytest tests/test_fast.py -q\"],\n                }\n            )\n        )\n    \n        errors = validate_manifest_test_commands(load_manifest(manifest_path), tmp_path)\n    \n>       assert ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED not in {\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            error.code for error in errors\n        }\nE       AttributeError: type object 'ErrorCode' has no attribute 'E2E_VALIDATE_COMMAND_NOT_ALLOWED'\n\ntests/cli/test_validate_cmd.py:1564: AttributeError\n=========================== short test summary info ============================\nFAILED tests/cli/test_validate_cmd.py::TestCmdValidateSingleManifest::test_validate_command_integrity_rejects_e2e_validate_commands\nFAILED tests/cli/test_validate_cmd.py::TestCmdValidateSingleManifest::test_validate_command_integrity_allows_e2e_acceptance_metadata\n======================== 2 failed, 220 passed in 6.39s =========================",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:returns=list[ValidationError]",
+      "maid_runner/core/result.py:attribute:ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED",
+      "maid_runner/core/result.py:attribute:ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED:type=str",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=fail_fast:type=bool:default=False",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=manifest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:kind=function",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:returns=BatchTestResult",
+      "maid_runner/core/test_runner.py:function:run_tests",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=batch:type=bool | None:default=None",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=fail_fast:type=bool:default=False",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=jobs:type=int:default=1",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:run_tests:kind=function",
+      "maid_runner/core/test_runner.py:function:run_tests:returns=BatchTestResult",
+      "tests/cli/test_test_cmd.py:test_json_output_excludes_acceptance_commands",
+      "tests/cli/test_test_cmd.py:test_json_output_excludes_acceptance_commands:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_allows_e2e_acceptance_metadata",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_allows_e2e_acceptance_metadata:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_keeps_e2e_marker_on_selector_error",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_keeps_e2e_marker_on_selector_error:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_rejects_e2e_validate_commands",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_rejects_e2e_validate_commands:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_rejects_wrapped_e2e_without_test_files",
+      "tests/cli/test_validate_cmd.py:test_validate_command_integrity_rejects_wrapped_e2e_without_test_files:kind=test_function",
+      "tests/core/test_test_runner.py:test_run_manifest_tests_ignores_acceptance_commands",
+      "tests/core/test_test_runner.py:test_run_manifest_tests_ignores_acceptance_commands:kind=test_function",
+      "tests/core/test_test_runner.py:test_run_tests_ignores_acceptance_commands_while_batching_implementation",
+      "tests/core/test_test_runner.py:test_run_tests_ignores_acceptance_commands_while_batching_implementation:kind=test_function"
+    ],
+    "test_files": [
+      "maid_runner/core/test_runner.py",
+      "tests/cli/test_test_cmd.py",
+      "tests/cli/test_validate_cmd.py",
+      "tests/core/test_test_runner.py"
+    ],
+    "validate_commands": [
+      "pytest tests/core/test_test_runner.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py -v"
+    ]
+  }
+}

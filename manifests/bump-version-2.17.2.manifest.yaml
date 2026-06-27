@@ -1,0 +1,160 @@
+schema: '2'
+goal: Bump maid-runner patch version to 2.17.2
+type: fix
+created: '2026-06-25T04:48:26Z'
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package patch version from 2.17.1 to 2.17.2 after the scope-only
+  file-tracking fix. Keep package metadata, lockfile metadata, changelog, and
+  roadmap version references synchronized.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, and docs/ROADMAP.md alongside the package version.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package/source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the new patch version.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_2_17_2
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.17.2 patch release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog, and roadmap all report 2.17.2.
+  read:
+  - maid_runner/__version__.py
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  summary: |
+    Bumped maid-runner from 2.17.1 to 2.17.2 and synchronized package
+    metadata, lock metadata, changelog, roadmap version text, and release
+    metadata coverage.
+  rationale: |
+    The patch release captures the scope-only file-tracking fix in the prior
+    commit. The runtime version still comes from package/source metadata rather
+    than a duplicated constant, and a focused integration test now checks that
+    the version mirrors stay aligned.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: |
+      Patch bumps should update pyproject metadata, editable lock metadata,
+      changelog, and user-facing current-version docs together, with a focused
+      test guarding those mirrors.
+    tags:
+    - release
+    - version
+    - packaging
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - tests/integration/test_library_api.py
+  review_notes:
+  - source: maid-implementation-review-subagent
+    severity: ready
+    summary: |
+      Independent reviewer Poincare found no findings and reported verdict
+      ready. Residual risk noted: no package build/twine inspection was run,
+      and the new test does not assert the changelog compare link directly.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    - -k
+    - test_release_metadata_is_2_17_2
+    status: failed
+    summary: Red phase failed before the bump because runtime version was 2.17.1 instead of 2.17.2.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: Integration API suite passed with 28 tests after the bump.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.17.2.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: Behavioral validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.17.2.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/bump-version-2.17.2.manifest.yaml
+    status: passed
+    summary: Manifest validate command passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 366 manifests with 280 passed, 0 failed, and 86 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    - --include-tests
+    status: passed
+    summary: |
+      Strict verify passed schema, behavioral, implementation, coherence,
+      file_tracking, plan_lock, worktree_scope, changed_scope, and tests with
+      existing E307/E310 warnings only.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 140 commands.
+  completed_at: '2026-06-25T13:02:20+08:00'

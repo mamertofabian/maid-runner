@@ -2,14 +2,37 @@
   "manifest_path": "manifests/fix-codex-init-honor-distributable.manifest.yaml",
   "manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460"
   },
   "created_at": "2026-06-22T02:17:12.222652+00:00",
-  "revision": 1,
-  "revisions": [],
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:44e88964997708e94936037e8c1a4e66cc44f3fd9fc979e8f50cda3e97067499",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
+      },
+      "revised_at": "2026-06-25T12:10:52.156347+00:00",
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
+      },
+      "revised_at": "2026-06-26T15:24:29.122520+00:00",
+      "reason": "Refresh lock after shared payload and Codex init test expectation updates for 077-01 auditor distribution."
+    }
+  ],
   "red_evidence": {
     "red": true,
     "captured_at": "2026-06-22T02:17:12.903217+00:00",

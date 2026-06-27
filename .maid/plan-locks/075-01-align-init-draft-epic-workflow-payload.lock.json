@@ -1,0 +1,180 @@
+{
+  "manifest_path": "manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml",
+  "manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+  "test_hashes": {
+    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813"
+  },
+  "created_at": "2026-06-25T12:01:58.480418+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:54d31c119b73f9a317b3b190e1931559960b29bee070857018c29939eaeece8a",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc",
+        "tests/test_init_draft_workflow_payload.py": "sha256:00cd9fb13d29e1631e2ec24bd65b5e170cc86fd1984e572a723e0eeabf3ddaaf",
+        "tests/cli/test_init_cmd.py": "sha256:728ce4f7a013de3e1aea994490a594a2651dd115e60db3b1e5e4722a400bed45",
+        "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
+      },
+      "revised_at": "2026-06-25T12:02:05.514314+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/075-01-align-init-draft-epic-workflow-payload.manifest.yaml -> manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:b2603b9389275b243a445331fe5d257ce7b62cc5f898d6fea31bff67f82ccb7c",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc",
+        "tests/test_init_draft_workflow_payload.py": "sha256:00cd9fb13d29e1631e2ec24bd65b5e170cc86fd1984e572a723e0eeabf3ddaaf",
+        "tests/cli/test_init_cmd.py": "sha256:728ce4f7a013de3e1aea994490a594a2651dd115e60db3b1e5e4722a400bed45",
+        "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
+      },
+      "revised_at": "2026-06-25T12:05:49.114797+00:00",
+      "reason": "Add read-context behavioral tests to validate commands"
+    },
+    {
+      "prior_manifest_hash": "sha256:c3d17e4abb15842b4e5b8344a895e8d8f5d52e4532ea4a2280de2ff46b14c44a",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_outcome_learn_refresh_guidance.py": "sha256:c5c201f040819c3af2479ac31d1797d2598aaedb1d0d358edcd48eff8f115309",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc",
+        "tests/test_init_draft_workflow_payload.py": "sha256:00cd9fb13d29e1631e2ec24bd65b5e170cc86fd1984e572a723e0eeabf3ddaaf",
+        "tests/cli/test_init_cmd.py": "sha256:728ce4f7a013de3e1aea994490a594a2651dd115e60db3b1e5e4722a400bed45",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-25T12:10:36.941633+00:00",
+      "reason": "Finalize init workflow payload contract after implementation review of E230 scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:78a4ee6e3f4b531c3f1d20bcbb2006a6ba03a69961638c1ceaecd736bfe3f0e4",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:869a10367e3465c0add9ebb86dbbccdb6c46eb12d24d56e77c0313aa87312b3e",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T05:37:43.583599+00:00",
+      "reason": "Update shared init draft workflow tests for recall before promotion guidance"
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:e27e6339772bade0bd65056349e7b0d63bef4173757947f69a2f5d67642d6659",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T05:55:12.090459+00:00",
+      "reason": "Assert implementation validation boundary in init draft workflow tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:23ff2712f8f9b7fe207d9baf417a7e1ff02f46cba7045d4d6161c42bf833a3f7",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T08:37:40.801277+00:00",
+      "reason": "Assert full draft recall advisory boundary in init workflow tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T15:24:29.180741+00:00",
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-25T12:02:08.584385+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_cmd.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "        package_data = tomllib.loads(_read(\"pyproject.toml\"))[\"tool\"][\"setuptools\"][\n            \"package-data\"\n        ][\"maid_runner\"]\n    \n        for pattern in (\n            \"docs/draft-manifest-workflow.md\",\n            \"docs/manifest-outcome-records.md\",\n            \"manifests/drafts/README.md\",\n        ):\n>           assert pattern in package_data\nE           AssertionError: assert 'docs/draft-manifest-workflow.md' in ['py.typed', 'schemas/*.json', 'docs/maid_specs.md', 'docs/unit-testing-rules.md', 'claude/manifest.json', 'claude/settings.json', ...]\n\ntests/test_init_draft_workflow_payload.py:102: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_cmd.py::TestCmdInit::test_init_claude_creates_repo_level_maid_assets\nFAILED tests/cli/test_init_cmd.py::TestCmdInit::test_init_codex_creates_repo_level_maid_assets\nFAILED tests/test_init_draft_workflow_payload.py::test_init_installs_local_draft_workflow_docs_and_readme\nFAILED tests/test_init_draft_workflow_payload.py::test_init_generated_agent_guidance_matches_draft_epic_workflow\nFAILED tests/test_init_draft_workflow_payload.py::test_packaged_workflow_docs_match_source_docs\n5 failed, 15 passed in 0.38s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/draft-manifest-workflow.md:attribute:documentation._sanctioned_draft_manifest_workflow_docs",
+      "docs/draft-manifest-workflow.md:attribute:documentation._sanctioned_draft_manifest_workflow_docs:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._sanctioned_draft_manifest_workflow_docs:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._sanctioned_draft_manifest_workflow_docs:type=markdown section",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_manifest_workflow_doc",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_manifest_workflow_doc:kind=attribute",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_manifest_workflow_doc:of=package_resource",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:package_resource._packaged_draft_manifest_workflow_doc:type=markdown document",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_manifest_outcome_records_doc",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_manifest_outcome_records_doc:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_manifest_outcome_records_doc:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_manifest_outcome_records_doc:type=markdown document",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_inventory_readme",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_inventory_readme:kind=attribute",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_inventory_readme:of=package_resource",
+      "maid_runner/manifests/drafts/README.md:attribute:package_resource._packaged_drafts_inventory_readme:type=markdown document",
+      "manifests/drafts/README.md:attribute:documentation._drafts_inventory_readme_workflow_guidance",
+      "manifests/drafts/README.md:attribute:documentation._drafts_inventory_readme_workflow_guidance:kind=attribute",
+      "manifests/drafts/README.md:attribute:documentation._drafts_inventory_readme_workflow_guidance:of=documentation",
+      "manifests/drafts/README.md:attribute:documentation._drafts_inventory_readme_workflow_guidance:type=markdown section",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_init_workflow_payloads",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_init_workflow_payloads:kind=attribute",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_init_workflow_payloads:of=pyproject",
+      "pyproject.toml:attribute:pyproject._maid_runner_package_data_init_workflow_payloads:type=TOML package-data entry",
+      "scripts/sync_claude_files.py:function:main",
+      "scripts/sync_claude_files.py:function:main:kind=function",
+      "scripts/sync_claude_files.py:function:main:returns=None",
+      "tests/cli/test_init_cmd.py:test_init_claude_creates_repo_level_maid_assets",
+      "tests/cli/test_init_cmd.py:test_init_claude_creates_repo_level_maid_assets:kind=test_function",
+      "tests/cli/test_init_cmd.py:test_init_codex_creates_repo_level_maid_assets",
+      "tests/cli/test_init_cmd.py:test_init_codex_creates_repo_level_maid_assets:kind=test_function",
+      "tests/test_agent_payload_distribution.py:test_agent_payload_package_data_includes_claude_and_codex_assets",
+      "tests/test_agent_payload_distribution.py:test_agent_payload_package_data_includes_claude_and_codex_assets:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:arg=tmp_path:type=Path:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_init_generated_agent_guidance_matches_draft_epic_workflow:returns=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:arg=tmp_path:type=Path:default=None",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_init_installs_local_draft_workflow_docs_and_readme:returns=None",
+      "tests/test_init_draft_workflow_payload.py:test_packaged_workflow_docs_match_source_docs",
+      "tests/test_init_draft_workflow_payload.py:test_packaged_workflow_docs_match_source_docs:kind=test_function",
+      "tests/test_init_draft_workflow_payload.py:test_packaged_workflow_docs_match_source_docs:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_init_draft_workflow_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_cmd.py tests/test_init_draft_workflow_payload.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

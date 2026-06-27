@@ -1,0 +1,269 @@
+schema: '2'
+goal: Allow same-task MAID lifecycle dirt during stash-backed plan revise
+type: fix
+created: '2026-06-26T23:15:12Z'
+metadata:
+  epic: 076-00-plan-lock-revision-recovery
+  tags:
+  - plan-lock
+  - red-phase
+  - workflow-hardening
+  - cli
+description: |
+  Refine `maid plan revise --stash-implementation` so it remains refusal-heavy
+  for unrelated user work while allowing two same-task lifecycle byproducts
+  produced by the normal MAID workflow: `.maid/active-manifest` when it points
+  at the manifest being revised, and the deleted source draft
+  `manifests/drafts/<slug>.manifest.yaml` when the promoted
+  `manifests/<slug>.manifest.yaml` is the manifest being revised.
+
+  Rationale: the original stash-backed revise guard correctly refuses arbitrary
+  dirty paths before stashing, but repeated agent logs show that normal
+  promote-then-implement sessions often have an active-task marker and the
+  promoted draft deletion present. Forcing agents to clear or separately stash
+  those lifecycle paths creates manual worktree surgery around the exact safety
+  command that was meant to remove ad hoc recovery steps. The fix should only
+  classify verifiable same-task lifecycle paths as allowed dirt; it must not
+  expand the targeted stash set beyond declared non-test implementation paths.
+temptations:
+- risk: Do not solve this by allowing every `.maid/*` path or every `manifests/drafts/*` deletion.
+  instead: Allow only `.maid/active-manifest` whose first line equals the revised manifest path, and only the deleted draft path matching the revised promoted manifest slug.
+- risk: Do not add lifecycle metadata paths to the targeted implementation stash.
+  instead: Keep `git stash push` limited to dirty declared non-test implementation paths while lifecycle dirt remains visible in the worktree.
+- risk: Do not weaken the unrelated dirty path rejection that protects user work.
+  instead: Keep rejecting arbitrary dirty files, different active-task markers, and unrelated draft deletions before any stash or lock mutation.
+files:
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Allows verified same-task MAID lifecycle dirt during --stash-implementation while still stashing only declared non-test implementation paths and rejecting unrelated dirty paths before mutating the lock.
+  - path: tests/cli/test_plan_cmd_stash_implementation.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_implementation_allows_matching_active_manifest_marker
+      source_scenario: A promoted implementation session has a dirty declared implementation path and an untracked `.maid/active-manifest` marker pointing at the manifest being revised.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, captures valid red evidence, restores the implementation path, leaves the active marker intact, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_different_active_manifest_marker
+      source_scenario: A dirty active-task marker points at a different manifest while the current manifest also has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the implementation and active marker contents, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_different_active_marker
+      source_scenario: The active-task marker has a staged value for a different manifest and a worktree value for the current manifest while implementation changes are dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the implementation and active marker contents, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_allows_matching_promoted_draft_deletion
+      source_scenario: A normal promote-then-implement workflow leaves a tracked `manifests/drafts/<slug>.manifest.yaml` deletion next to the promoted `manifests/<slug>.manifest.yaml` while implementation changes are dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, captures valid red evidence, restores the implementation path, preserves the draft deletion, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_matching_draft_modification
+      source_scenario: The matching source draft path is modified rather than deleted while the promoted manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the modified draft contents and implementation contents, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_matching_draft_modification_then_delete
+      source_scenario: The matching source draft path has a staged modification and a worktree deletion while the promoted manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the staged draft/worktree deletion state and implementation contents, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_matching_draft_add_then_delete
+      source_scenario: The matching source draft path is staged as a new file and deleted from the worktree while the promoted manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the staged draft/worktree deletion state and implementation contents, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_unrelated_draft_deletion
+      source_scenario: A different tracked draft manifest deletion is present while the current manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged, preserves the unrelated draft deletion and implementation contents, and leaves no stash entry behind.
+  read:
+  - maid_runner/core/active_task.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/plan_lock.py
+  - manifests/069-01-add-task-active-manifest-commands.manifest.yaml
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py
+- uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-26T23:55:00Z"
+  summary: "Stash-backed plan revise now treats same-task MAID lifecycle dirt as safe only when it is fully verified: `.maid/active-manifest` may remain dirty only when unstaged or untracked and pointing at the revised manifest, and the promoted source draft deletion may remain dirty only as a clean worktree deletion for the matching slug. Lifecycle paths stay outside the targeted stash set."
+  rationale: "The original guard was correct to refuse unrelated dirt, but normal promote-then-implement sessions produce same-task lifecycle byproducts that repeatedly forced agents into manual cleanup. The implementation preserves the fail-closed stance by allowing only verifiable lifecycle states and adding staged/index mismatch regressions for both active markers and promoted draft deletions."
+  lessons:
+    - lesson_type: validation
+      summary: "When allowing workflow lifecycle dirt around targeted stash operations, check both worktree and index state. A path that looks safe from current file contents may still carry staged unrelated data, so mixed porcelain statuses need explicit rejection tests."
+      tags:
+        - plan-lock
+        - git-status
+        - anti-gaming
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+  review_notes:
+    - source: "implementation-review-subagent-Wegener"
+      severity: warning
+      summary: "Needs-changes finding: mixed promoted draft statuses such as staged modification plus worktree deletion could be allowed as lifecycle dirt. Fixed by requiring a clean worktree deletion and adding staged draft mismatch regressions."
+    - source: "implementation-review-subagent-Linnaeus"
+      severity: warning
+      summary: "Needs-changes finding: staged active-marker content could differ from matching worktree content. Fixed by rejecting staged active-marker entries and adding a staged marker mismatch regression."
+    - source: "implementation-review-subagent-Kant"
+      severity: info
+      summary: "Final independent read-only review reported no findings and verdict ready. Reviewer confirmed lifecycle paths are not added to targeted stash paths."
+  validation:
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Black check passed on touched Python files."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Ruff check passed on touched Python files."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_cmd_stash_implementation.py
+      status: passed
+      summary: "Focused stash-revise suite passed: 20 passed."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml
+        - --mode
+        - schema
+        - --quiet
+      status: passed
+      summary: "Schema validation passed for the promoted manifest."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 374 manifests, 286 passed, 0 failed, and 88 skipped."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test passed with 149 commands, 149 passed, 0 failed."
+    - command:
+        - env
+        - -u
+        - VIRTUAL_ENV
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict verify passed with plan-lock, worktree-scope, changed-scope, and tests gates passing; existing implementation warnings were advisory."

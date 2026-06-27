@@ -1424,6 +1424,26 @@ class TestCmdValidateSingleManifest:
                 "tests/foo.spec.ts",
                 "playwright test tests -g test_other",
             ),
+            (
+                "playwright-grep-e2e-value",
+                "tests/foo.spec.ts",
+                "playwright test tests --grep=e2e",
+            ),
+            (
+                "playwright-e2e-path-with-selector",
+                "tests/e2e/foo.spec.ts",
+                "playwright test tests/e2e/foo.spec.ts --grep smoke",
+            ),
+            (
+                "npm-exec-playwright-grep",
+                "tests/foo.spec.ts",
+                "npm exec -p playwright -- playwright test tests --grep smoke",
+            ),
+            (
+                "npx-package-playwright-e2e-path-with-selector",
+                "tests/e2e/foo.spec.ts",
+                "npx -p playwright playwright test tests/e2e/foo.spec.ts --grep smoke",
+            ),
         ]
 
         for slug, test_path, validate_command in cases:
@@ -1458,6 +1478,467 @@ class TestCmdValidateSingleManifest:
             assert [error.code for error in errors] == [
                 ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
             ]
+
+    def test_validate_command_integrity_rejects_e2e_validate_commands(self, tmp_path):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        cases = [
+            (
+                "playwright-direct",
+                "tests/e2e/flow.spec.ts",
+                "playwright test tests/e2e/flow.spec.ts",
+            ),
+            (
+                "playwright-wrapper",
+                "e2e/create-hub.spec.ts",
+                (
+                    "env CHOKIDAR_USEPOLLING=true "
+                    "pnpm exec playwright test e2e/create-hub.spec.ts"
+                ),
+            ),
+            (
+                "cypress-spec",
+                "cypress/e2e/user.cy.ts",
+                "npx cypress run --spec cypress/e2e/user.cy.ts",
+            ),
+            (
+                "pytest-e2e-path",
+                "tests/e2e/test_flow.py",
+                "pytest tests/e2e/test_flow.py -v",
+            ),
+            (
+                "package-script",
+                "tests/test_fast.py",
+                "pnpm test:e2e",
+            ),
+            (
+                "package-script-with-filter",
+                "tests/test_fast.py",
+                "pnpm --filter web test:e2e",
+            ),
+            (
+                "npm-prefix-run-script",
+                "tests/test_fast.py",
+                "npm --prefix web run test:e2e",
+            ),
+            (
+                "npm-exec-playwright",
+                "tests/test_fast.py",
+                "npm exec -- playwright test",
+            ),
+            (
+                "pnpm-dlx-playwright",
+                "tests/test_fast.py",
+                "pnpm dlx playwright test",
+            ),
+            (
+                "npm-run-test-e2e",
+                "tests/test_fast.py",
+                "npm run test-e2e",
+            ),
+            (
+                "pnpm-e2e-test",
+                "tests/test_fast.py",
+                "pnpm e2e-test",
+            ),
+            (
+                "bun-run-e2e-ci",
+                "tests/test_fast.py",
+                "bun run e2e_ci",
+            ),
+        ]
+
+        for slug, test_path, validate_command in cases:
+            test_file = tmp_path / test_path
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text("def test_fast():\n    assert True\n")
+            manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject E2E validate command",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.py",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": [test_path],
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED
+            ]
+
+    def test_validate_command_integrity_rejects_wrapped_e2e_without_test_files(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        cases = [
+            ("playwright-selector", "playwright test --grep smoke"),
+            ("npx-playwright-selector", "npx playwright test --grep smoke"),
+            ("pytest-e2e-path-selector", "pytest tests/e2e/test_flow.py -k smoke"),
+            ("vitest-e2e-path-selector", "vitest tests/e2e/foo.spec.ts -t smoke"),
+            ("npx-versioned-playwright", "npx playwright@latest test"),
+            ("npx-scoped-playwright", "npx @playwright/test test"),
+            ("npx-scoped-versioned-playwright", "npx @playwright/test@latest test"),
+            ("pnpm-dlx-versioned-playwright", "pnpm dlx playwright@latest test"),
+            ("npm-exec-versioned-playwright", "npm exec playwright@latest test"),
+            ("npm-exec-scoped-playwright", "npm exec @playwright/test test"),
+            ("pnpm-dlx-versioned-cypress", "pnpm dlx cypress@latest run"),
+            ("npm-exec-call-playwright", 'npm exec -c "playwright test"'),
+            ("npm-exec-call-cypress", 'npm exec --call "cypress run"'),
+            ("npx-call-playwright", 'npx -c "playwright test"'),
+            ("npm-exec-call-pnpm-script", 'npm exec -c "pnpm test:e2e"'),
+            ("npm-exec-call-yarn-e2e-cwd", 'npm exec --call "yarn --cwd e2e test"'),
+            (
+                "npm-exec-call-chained-pnpm-script",
+                'npm exec -c "echo ok && pnpm test:e2e"',
+            ),
+            (
+                "npm-exec-call-semicolon-yarn-e2e-cwd",
+                'npm exec --call "echo ok ; yarn --cwd e2e test"',
+            ),
+            ("npx-call-yarn-e2e-cwd", 'npx -c "yarn --cwd e2e test"'),
+            ("sh-call-playwright", 'sh -c "playwright test"'),
+            ("bash-login-call-playwright", 'bash -lc "playwright test"'),
+            ("sh-call-pnpm-script", 'sh -c "pnpm test:e2e"'),
+            ("sh-call-chained-playwright", 'sh -c "echo ok && playwright test"'),
+            ("sh-call-or-playwright", 'sh -c "echo ok || playwright test"'),
+            ("sh-call-semicolon-playwright", 'sh -c "echo ok ; playwright test"'),
+            ("uv-run-playwright", "uv run playwright test"),
+            ("uv-run-pnpm-script", "uv run pnpm test:e2e"),
+            ("poetry-run-pnpm-script", "poetry run pnpm test:e2e"),
+            ("pdm-run-yarn-e2e-cwd", "pdm run yarn --cwd e2e test"),
+            ("docker-exec-playwright", "docker exec app playwright test"),
+            ("docker-exec-pnpm-script", "docker exec app pnpm test:e2e"),
+            (
+                "docker-exec-yarn-e2e-cwd",
+                "docker exec -w /app app yarn --cwd e2e test",
+            ),
+            ("npm-prefix-e2e-test", "npm --prefix e2e test"),
+            ("pnpm-dir-e2e-test", "pnpm --dir e2e test"),
+            ("yarn-cwd-e2e-test", "yarn --cwd e2e test"),
+            ("corepack-yarn-cwd-e2e-test", "corepack yarn --cwd e2e test"),
+            ("pnpm-filter-script", "pnpm --filter web test:e2e"),
+            ("pnpm-workspace-script", "pnpm -w test:e2e"),
+            ("npm-prefix-run-script", "npm --prefix web run test:e2e"),
+            ("npm-exec-playwright", "npm exec -- playwright test"),
+            ("corepack-pnpm-exec-playwright", "corepack pnpm exec playwright test"),
+            ("corepack-pnpm-script", "corepack pnpm test:e2e"),
+            ("corepack-yarn-script", "corepack yarn test:e2e"),
+            ("corepack-yarn-playwright", "corepack yarn playwright test"),
+            (
+                "corepack-yarn-cwd-playwright",
+                "corepack yarn --cwd web playwright test",
+            ),
+            ("corepack-yarn-cypress", "corepack yarn cypress run"),
+            (
+                "npm-exec-package-playwright",
+                "npm exec -p playwright -- playwright test",
+            ),
+            ("pnpm-dlx-playwright", "pnpm dlx playwright test"),
+            ("pnpm-dlx-package-playwright", "pnpm dlx -p playwright playwright test"),
+            ("npx-package-playwright", "npx -p playwright playwright test"),
+            ("npm-run-test-e2e", "npm run test-e2e"),
+            ("pnpm-e2e-test", "pnpm e2e-test"),
+            ("bun-run-e2e-ci", "bun run e2e_ci"),
+        ]
+
+        for slug, validate_command in cases:
+            manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject wrapped E2E validate command",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.py",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ]
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED
+            ]
+
+        fast_test = tmp_path / "tests" / "test_fast.py"
+        fast_test.parent.mkdir(parents=True, exist_ok=True)
+        fast_test.write_text("def test_fast():\n    assert True\n")
+        mixed_cases = [
+            ("mixed-fast-browser-selector", "playwright test --grep smoke"),
+            ("mixed-fast-npm-call-playwright", 'npm exec -c "playwright test"'),
+            ("mixed-fast-npm-call-pnpm-script", 'npm exec -c "pnpm test:e2e"'),
+            (
+                "mixed-fast-npx-call-yarn-e2e-cwd",
+                'npx -c "yarn --cwd e2e test"',
+            ),
+            ("mixed-fast-sh-playwright", 'sh -c "playwright test"'),
+            (
+                "mixed-fast-sh-chained-playwright",
+                'sh -c "echo ok && playwright test"',
+            ),
+            ("mixed-fast-uv-pnpm-script", "uv run pnpm test:e2e"),
+            ("mixed-fast-docker-pnpm-script", "docker exec app pnpm test:e2e"),
+            (
+                "mixed-fast-npm-call-chained-pnpm-script",
+                'npm exec -c "echo ok && pnpm test:e2e"',
+            ),
+        ]
+        for slug, browser_command in mixed_cases:
+            mixed_manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            mixed_manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject browser command hidden by fast command",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.py",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": ["tests/test_fast.py"],
+                        },
+                        "validate": [
+                            "pytest tests/test_fast.py -q",
+                            browser_command,
+                        ],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(mixed_manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED
+            ]
+
+    def test_validate_command_integrity_keeps_e2e_marker_on_selector_error(
+        self, tmp_path
+    ):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        test_path = "tests/test_fast.py"
+        test_file = tmp_path / test_path
+        test_file.parent.mkdir(parents=True)
+        test_file.write_text("def test_fast():\n    assert True\n")
+        manifest_path = manifest_dir / "pytest-e2e-marker.manifest.yaml"
+        manifest_path.write_text(
+            yaml.dump(
+                {
+                    "schema": "2",
+                    "goal": "Reject pytest selector",
+                    "type": "feature",
+                    "files": {
+                        "edit": [
+                            {
+                                "path": "src/foo.py",
+                                "artifacts": [{"kind": "function", "name": "foo"}],
+                            }
+                        ],
+                        "read": [test_path],
+                    },
+                    "validate": ["pytest tests/test_fast.py -m e2e"],
+                }
+            )
+        )
+
+        errors = validate_manifest_test_commands(load_manifest(manifest_path), tmp_path)
+
+        assert [error.code for error in errors] == [
+            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+        ]
+
+        exclusion_cases = [
+            (
+                "pytest-e2e-ignore-output",
+                "pytest tests/test_fast.py --ignore tests/e2e",
+            ),
+            (
+                "pytest-e2e-ignore-attached",
+                "pytest tests/test_fast.py --ignore=tests/e2e",
+            ),
+            (
+                "pytest-e2e-deselect",
+                "pytest tests/test_fast.py --deselect tests/e2e/test_flow.py::test_smoke",
+            ),
+        ]
+        for slug, validate_command in exclusion_cases:
+            exclusion_manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            exclusion_manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Reject non-executing pytest selection flags",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.py",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": [test_path],
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(exclusion_manifest_path), tmp_path
+            )
+
+            assert [error.code for error in errors] == [
+                ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+            ]
+
+        benign_report_cases = [
+            (
+                "pytest-e2e-junit-output",
+                "pytest tests/test_fast.py --junitxml reports/e2e/results.xml",
+            ),
+            (
+                "pytest-e2e-log-output",
+                "pytest tests/test_fast.py --log-file reports/e2e/pytest.log",
+            ),
+            (
+                "pytest-e2e-cov-report-output",
+                "pytest tests/test_fast.py --cov-report html:reports/e2e/coverage",
+            ),
+            (
+                "pytest-e2e-html-output",
+                "pytest tests/test_fast.py --html reports/e2e/report.html",
+            ),
+            (
+                "pytest-e2e-html-attached-output",
+                "pytest tests/test_fast.py --html=reports/e2e/report.html",
+            ),
+            (
+                "vitest-e2e-output-file",
+                "vitest tests/test_fast.py --outputFile reports/e2e/results.json",
+            ),
+            (
+                "jest-e2e-output-file-attached",
+                "jest tests/test_fast.py --outputFile=reports/e2e/results.json",
+            ),
+            (
+                "jest-e2e-coverage-directory",
+                "jest tests/test_fast.py --coverageDirectory reports/e2e/coverage",
+            ),
+            (
+                "jest-e2e-cache-directory-attached",
+                "jest tests/test_fast.py --cacheDirectory=reports/e2e/cache",
+            ),
+            (
+                "vitest-e2e-output-dir",
+                "vitest tests/test_fast.py --outputDir reports/e2e",
+            ),
+            (
+                "vitest-e2e-output-dir-attached",
+                "vitest tests/test_fast.py --outputDir=reports/e2e",
+            ),
+            (
+                "vitest-e2e-coverage-reports-directory",
+                "vitest tests/test_fast.py "
+                "--coverage.reportsDirectory=reports/e2e/coverage",
+            ),
+        ]
+        for slug, validate_command in benign_report_cases:
+            benign_report_manifest_path = manifest_dir / f"{slug}.manifest.yaml"
+            benign_report_manifest_path.write_text(
+                yaml.dump(
+                    {
+                        "schema": "2",
+                        "goal": "Allow output report paths with e2e directories",
+                        "type": "feature",
+                        "files": {
+                            "edit": [
+                                {
+                                    "path": "src/foo.py",
+                                    "artifacts": [{"kind": "function", "name": "foo"}],
+                                }
+                            ],
+                            "read": [test_path],
+                        },
+                        "validate": [validate_command],
+                    }
+                )
+            )
+
+            errors = validate_manifest_test_commands(
+                load_manifest(benign_report_manifest_path), tmp_path
+            )
+
+            assert errors == []
+
+    def test_validate_command_integrity_allows_e2e_acceptance_metadata(self, tmp_path):
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        fast_test = tmp_path / "tests" / "test_fast.py"
+        fast_test.parent.mkdir(parents=True)
+        fast_test.write_text(
+            "from src.foo import foo\n\n\ndef test_fast():\n    assert foo\n"
+        )
+        e2e_test = tmp_path / "tests" / "e2e" / "flow.spec.ts"
+        e2e_test.parent.mkdir(parents=True)
+        e2e_test.write_text("test('flow', () => expect(true).toBe(true));\n")
+        manifest_path = manifest_dir / "acceptance-e2e.manifest.yaml"
+        manifest_path.write_text(
+            yaml.dump(
+                {
+                    "schema": "2",
+                    "goal": "Allow E2E metadata outside validate",
+                    "type": "feature",
+                    "files": {
+                        "edit": [
+                            {
+                                "path": "src/foo.py",
+                                "artifacts": [{"kind": "function", "name": "foo"}],
+                            }
+                        ],
+                        "read": ["tests/test_fast.py"],
+                    },
+                    "acceptance": {"tests": ["playwright test tests/e2e/flow.spec.ts"]},
+                    "validate": ["pytest tests/test_fast.py -q"],
+                }
+            )
+        )
+
+        errors = validate_manifest_test_commands(load_manifest(manifest_path), tmp_path)
+
+        assert ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED not in {
+            error.code for error in errors
+        }
 
     def test_validate_run_tests_rejects_backdated_pytest_node_selector(
         self, tmp_path, capsys

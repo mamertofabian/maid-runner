@@ -115,29 +115,6 @@ def run_manifest_tests(
     passed = 0
     failed = 0
 
-    # Stream 1: Acceptance tests (run first)
-    if manifest.acceptance is not None:
-        for cmd in manifest.acceptance.tests:
-            result = run_command(
-                cmd,
-                cwd=project_root,
-                manifest_slug=manifest.slug,
-                stream=TestStream.ACCEPTANCE,
-            )
-            results.append(result)
-            if result.success:
-                passed += 1
-            else:
-                failed += 1
-                if fail_fast:
-                    return BatchTestResult(
-                        results=results,
-                        total=len(results),
-                        passed=passed,
-                        failed=failed,
-                    )
-
-    # Stream 3: Implementation tests
     for cmd in manifest.validate_commands:
         result = run_command(cmd, cwd=project_root, manifest_slug=manifest.slug)
         results.append(result)
@@ -224,15 +201,7 @@ def _run_tests_cached(
             chain_errors=[*chain_errors, *integrity_errors],
         )
 
-    acceptance_commands, implementation_commands = _collect_test_command_streams(active)
-    results, passed, failed, early_result = _run_acceptance_commands(
-        acceptance_commands,
-        project_root,
-        fail_fast,
-        chain_errors,
-    )
-    if early_result is not None:
-        return early_result
+    _, implementation_commands = _collect_test_command_streams(active)
 
     results, passed, failed, early_result = _run_implementation_commands(
         implementation_commands,
@@ -240,9 +209,9 @@ def _run_tests_cached(
         batch,
         fail_fast,
         chain_errors,
-        results,
-        passed,
-        failed,
+        [],
+        0,
+        0,
         jobs=jobs,
     )
     if early_result is not None:

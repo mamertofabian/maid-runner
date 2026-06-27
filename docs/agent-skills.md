@@ -73,7 +73,7 @@ declared scope, validation, or review.
 |------|-------------|
 | `maid-planner` | Run `maid learn` when the index is stale, or once when it is missing. If no completed Outcome records exist, skip recall and report that no advisory history is available. For drafts, `maid recall --for-manifest <draft>` is only a query builder for related completed Outcomes, not a lookup for an Outcome on the unimplemented draft itself. |
 | `maid-plan-review` | Check whether relevant recalled evidence informed the draft when available, without making recall an automatic approval or rejection rule. |
-| `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, while staying inside the approved manifest scope. |
+| `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, including before promoting the selected draft, while staying inside the approved manifest scope. |
 | `maid-implementation-review` | After the review verdict is ready, check whether the completed manifest needs an `outcome:` record backed by validation and review evidence. |
 | `maid-runner-draft-implement` | Recall related lessons before promotion and treat them as historical context for tests, implementation, and review packet quality. |
 | `maid-runner-self-improvement` | Use `maid insights` to route recurring Outcome lessons into the appropriate future draft queue. |
@@ -83,6 +83,23 @@ The deterministic commands are promoted in the 047 Outcome-learning sequence:
 aggregates recurring patterns. If a downstream project has not promoted those
 commands yet, skill text must describe their use as future-facing command
 guidance until deterministic command support is promoted.
+
+Learning evidence digestion is the phase-specific step that turns retrieved
+Outcome evidence into current decisions. Agents should name applicable lessons,
+name rejected stale or irrelevant lessons with reasons, and state what changed because of the evidence. The influence should stay concrete: manifest scope,
+behavioral tests, temptations, or open questions during planning; review
+findings, approval questions, or requested revisions during plan review;
+focused tests, implementation approach, or risk controls during
+implementation; and review focus, Outcome capture, or follow-up work during
+implementation review.
+
+To intentionally include instructive failed or abandoned Outcome lessons,
+refresh the index with
+`maid learn --include-status completed --include-status abandoned` before
+recall. This is an opt-in failure-lesson path. The completed-only default
+remains unchanged, and learned, recalled, aggregated, or digested Outcome
+evidence does not replace behavioral tests, declared scope, validation, review,
+or any approval, promotion, done, or review gate.
 
 ---
 
@@ -112,12 +129,13 @@ places the MAID-only skill set into a target repository under `.claude/skills/`:
 `maid-incident-logger`. The Claude repo-level payload is generated from
 `.claude/skills/` into `maid_runner/claude/` by `scripts/sync_claude_files.py`.
 
-The Codex distribution installed by `maid init --tool codex` places the
-repo-owned maid-runner skill set into `.codex/skills/`: `maid-runner-cleanup-and-refactor`,
-`maid-runner-draft-implement`, `maid-runner-performance-optimization`,
-`maid-runner-self-improvement`, and `maid-validate-hardening`. Skill-local
-agent metadata under `agents/` is copied with those skills and listed in the
-generated `maid_runner/codex/manifest.json` for stale-file pruning.
+The Codex distribution installed by `maid init --tool codex` places the same
+generic MAID workflow and audit skills into `.codex/skills/`: `maid-planner`,
+`maid-plan-review`, `maid-implementer`, `maid-implementation-review`, and
+`maid-auditor`. Repo-internal maid-runner skills remain packaged for this
+repository's own tooling but are excluded from the distributable list. Skill-local
+agent metadata under `agents/` is copied with distributable skills and listed in
+the generated `maid_runner/codex/manifest.json` for stale-file pruning.
 
 ---
 

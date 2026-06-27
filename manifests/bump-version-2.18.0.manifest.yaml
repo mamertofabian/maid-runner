@@ -1,0 +1,201 @@
+schema: '2'
+goal: Bump maid-runner minor version to 2.18.0
+type: feature
+created: '2026-06-27T11:55:00Z'
+supersedes:
+- bump-version-2.17.2
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package minor version from 2.17.2 to 2.18.0 because the pending
+  release includes user-visible workflow features, init payload version
+  reporting, Outcome learning loop guidance, and recall scoring changes.
+  Keep package metadata, lockfile metadata, changelog, and roadmap version
+  references synchronized.
+temptations:
+- risk: Do not keep the release as a patch when it includes new user-visible workflow capabilities.
+  instead: Publish this release as 2.18.0 and keep all version mirrors aligned.
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, and docs/ROADMAP.md alongside the package version.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package/source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the new minor version.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_2_18_0
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.18.0 minor release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog, and roadmap all report 2.18.0.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.17.2.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  summary: |
+    Bumped maid-runner from 2.17.2 to 2.18.0 and synchronized package
+    metadata, lock metadata, changelog release notes, roadmap version text, and
+    release metadata coverage. The prior 2.17.2 version contract is superseded
+    because this release contains user-visible workflow features rather than a
+    patch-only fix.
+  rationale: |
+    The pending release includes stash-backed plan revision, instruction
+    payload version reporting, Outcome learning loop guidance, and recall
+    scoring changes. Publishing these as 2.18.0 better reflects the minor
+    feature surface while preserving the dynamic runtime version mechanism from
+    package/source metadata.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: |
+      Release bumps that reuse a shared API integration test may need dependent
+      plan locks revised with preserved red evidence before strict verify can
+      pass. The changed test hash was valid release metadata work, but the
+      historical diagnostics export lock still had to record that intentional
+      shared-test refresh.
+    tags:
+    - release
+    - plan-lock
+    - version
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+  - lesson_type: packaging
+    summary: |
+      For publish readiness, pair MAID validation with actual distribution
+      evidence: build the wheel and sdist, run twine metadata checks against the
+      new artifacts, and verify PyPI has not already published the target
+      version.
+    tags:
+    - packaging
+    - release
+    - pypi
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - dist/maid_runner-2.18.0-py3-none-any.whl
+    - dist/maid_runner-2.18.0.tar.gz
+  review_notes:
+  - source: maid-implementation-review-subagent
+    severity: ready
+    summary: |
+      Independent reviewer Einstein found no findings and reported verdict
+      ready. Residual risk noted: the automated release metadata test does not
+      assert the changelog compare link directly or invoke `maid --version`;
+      those were covered by inspection and command validation.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    - -k
+    - test_release_metadata_is_2_18_0
+    status: failed
+    summary: Red phase failed before the bump because runtime version was 2.17.2 instead of 2.18.0.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.18.0.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: Behavioral validation passed for the superseding release manifest.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: Integration API suite passed with 28 tests after the 2.18.0 bump.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.18.0.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed for the superseding release manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/bump-version-2.18.0.manifest.yaml
+    status: passed
+    summary: Manifest validate command passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 381 manifests with 292 passed, 0 failed, and 89 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 153 commands.
+  - command:
+    - make
+    - build
+    status: passed
+    summary: Built dist/maid_runner-2.18.0.tar.gz and dist/maid_runner-2.18.0-py3-none-any.whl.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - twine
+    - check
+    - dist/maid_runner-2.18.0*
+    status: passed
+    summary: Twine metadata checks passed for the 2.18.0 wheel and source distribution.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - v2.17.1
+    status: passed
+    summary: |
+      Strict verify passed schema, behavioral, implementation, coherence,
+      file_tracking, plan_lock, worktree_scope, changed_scope, and tests with
+      existing E307/E310 warnings only.
+  completed_at: '2026-06-27T20:02:00+08:00'

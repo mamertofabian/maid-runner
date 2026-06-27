@@ -1,0 +1,120 @@
+{
+  "manifest_path": "manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml",
+  "manifest_hash": "sha256:339122f3f0cbca5caa48a08e70938dea25e10e44f95a475e9e09a4dfaad2f89c",
+  "test_hashes": {
+    "tests/cli/test_init_stash_revise_guidance.py": "sha256:7cf3379ef51955e270722680371e79fab7ba02a0a2cee39611ddaf8e9d37b0fc"
+  },
+  "created_at": "2026-06-26T10:51:09.119667+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:f4f244f8796b83a3d84dbb33acc403765ec88a11ccf3ecb568505e0e60fc0389",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:da6c0b1c8bcc39a42b523d5f5a633882748be8a9fe55ebc37e2c25720bca9506",
+        "tests/test_agent_payload_distribution.py": "sha256:47c9e079812085b6dad2f91289f4950d1f47cc790a17f52f73170567460af181"
+      },
+      "revised_at": "2026-06-26T10:53:29.549554+00:00",
+      "reason": "correct generated Claude payload scope"
+    },
+    {
+      "prior_manifest_hash": "sha256:5f033f1963d27abcf61b9ecb8c16b8b181dfcd4a411affcbff9216b9f83316e9",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:da6c0b1c8bcc39a42b523d5f5a633882748be8a9fe55ebc37e2c25720bca9506",
+        "tests/test_agent_payload_distribution.py": "sha256:47c9e079812085b6dad2f91289f4950d1f47cc790a17f52f73170567460af181"
+      },
+      "revised_at": "2026-06-26T10:54:23.522799+00:00",
+      "reason": "run behavioral test files for maid test"
+    },
+    {
+      "prior_manifest_hash": "sha256:041d9fbd191637790061e4a3a8e522cb8fa64e05b23124244507ba985fbf1733",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:da6c0b1c8bcc39a42b523d5f5a633882748be8a9fe55ebc37e2c25720bca9506",
+        "tests/test_agent_payload_distribution.py": "sha256:47c9e079812085b6dad2f91289f4950d1f47cc790a17f52f73170567460af181"
+      },
+      "revised_at": "2026-06-26T10:55:38.136057+00:00",
+      "reason": "verify generated payloads from synced sources"
+    },
+    {
+      "prior_manifest_hash": "sha256:d011e8cfcc33c1489497c3c62192497cc2829287e8751795f1dd3a423b01619b",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:da6c0b1c8bcc39a42b523d5f5a633882748be8a9fe55ebc37e2c25720bca9506",
+        "tests/test_agent_payload_distribution.py": "sha256:806162956fac947a672974bdf62a94f682bc42b828925b66dc72b5b5fcf866fa"
+      },
+      "revised_at": "2026-06-26T11:01:03.035485+00:00",
+      "reason": "isolate init guidance tests from shared locked files"
+    },
+    {
+      "prior_manifest_hash": "sha256:19d3bc0c397d82482f3186b8aa85a227f6653c5357c3758d93007a33b67cb128",
+      "prior_test_hashes": {
+        "tests/cli/test_init_stash_revise_guidance.py": "sha256:f46242eef05b0eed83feb10d8d345c8a3c7396a9e5ff196fb7d905280031e225"
+      },
+      "revised_at": "2026-06-26T11:01:50.643029+00:00",
+      "reason": "inline payload guidance assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:19d3bc0c397d82482f3186b8aa85a227f6653c5357c3758d93007a33b67cb128",
+      "prior_test_hashes": {
+        "tests/cli/test_init_stash_revise_guidance.py": "sha256:7cf3379ef51955e270722680371e79fab7ba02a0a2cee39611ddaf8e9d37b0fc"
+      },
+      "revised_at": "2026-06-26T11:09:58.068450+00:00",
+      "reason": "capture implementation outcome"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-26T11:01:53.530045+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_stash_revise_guidance.py",
+        "exit_code": 1,
+        "output_tail": "            / \"SKILL.md\",\n            synced_workspace\n            / \"maid_runner\"\n            / \"codex\"\n            / \"skills\"\n            / \"maid-implementer\"\n            / \"SKILL.md\",\n        ]\n    \n        for path in paths:\n            text = path.read_text()\n>           assert \"--preserve-red-evidence\" in text\nE           AssertionError: assert '--preserve-red-evidence' in '---\\nname: maid-implementer\\ndescription: Implement code against an approved MAID manifest. Loads only the declared f...all the work ready for commit or further\\nintegration when validation passes and the latest review verdict is ready.\\n'\n\ntests/cli/test_init_stash_revise_guidance.py:91: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_stash_revise_guidance.py::test_claude_init_installs_stash_revise_guidance\nFAILED tests/cli/test_init_stash_revise_guidance.py::test_codex_init_installs_stash_revise_guidance\nFAILED tests/cli/test_init_stash_revise_guidance.py::test_source_implementer_guidance_syncs_to_packaged_payloads\n3 failed in 0.21s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementer/SKILL.md:attribute:documentation._claude_implementer_stash_revise_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:documentation._claude_implementer_stash_revise_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:documentation._claude_implementer_stash_revise_guidance:of=documentation",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:documentation._claude_implementer_stash_revise_guidance:type=markdown text",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:documentation._codex_implementer_stash_revise_guidance",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:documentation._codex_implementer_stash_revise_guidance:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:documentation._codex_implementer_stash_revise_guidance:of=documentation",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:documentation._codex_implementer_stash_revise_guidance:type=markdown text",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:kind=function",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:returns=str",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:documentation._packaged_codex_implementer_stash_revise_guidance",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:documentation._packaged_codex_implementer_stash_revise_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:documentation._packaged_codex_implementer_stash_revise_guidance:of=documentation",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:documentation._packaged_codex_implementer_stash_revise_guidance:type=markdown text",
+      "tests/cli/test_init_stash_revise_guidance.py:test_claude_init_installs_stash_revise_guidance",
+      "tests/cli/test_init_stash_revise_guidance.py:test_claude_init_installs_stash_revise_guidance:kind=test_function",
+      "tests/cli/test_init_stash_revise_guidance.py:test_codex_init_installs_stash_revise_guidance",
+      "tests/cli/test_init_stash_revise_guidance.py:test_codex_init_installs_stash_revise_guidance:kind=test_function",
+      "tests/cli/test_init_stash_revise_guidance.py:test_source_implementer_guidance_syncs_to_packaged_payloads",
+      "tests/cli/test_init_stash_revise_guidance.py:test_source_implementer_guidance_syncs_to_packaged_payloads:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_init_stash_revise_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_stash_revise_guidance.py",
+      "uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

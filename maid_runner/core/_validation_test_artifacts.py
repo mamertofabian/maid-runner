@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 import re
+import shlex
 from pathlib import Path
 from typing import Optional, Union
 
@@ -66,6 +67,7 @@ from maid_runner.core._test_runner_invocation import (
     _TEST_RUNNER_VALUE_FLAGS as _TEST_RUNNER_VALUE_FLAGS,
     _test_runner_invocation as _runner_test_runner_invocation,
     _test_runner_target_scan_segment as _test_runner_target_scan_segment,
+    _uv_run_inner_command as _uv_run_inner_command,
 )
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, Manifest
@@ -77,6 +79,50 @@ from maid_runner.validators.registry import (
 
 _STRICT_TEST_COMMAND_COVERAGE_SINCE = "2026-05-17"
 _TEST_COMMAND_TASK_TYPES = frozenset({"feature", "fix", "refactor"})
+_PACKAGE_MANAGER_COMMANDS = frozenset({"npm", "pnpm", "yarn", "bun"})
+_PACKAGE_EXEC_WRAPPERS = frozenset({"npx", "bunx"})
+_PACKAGE_EXEC_SUBCOMMANDS = frozenset({"exec", "dlx", "x"})
+_PACKAGE_RUN_SUBCOMMANDS = frozenset({"run", "run-script"})
+_PACKAGE_CWD_VALUE_FLAGS = frozenset({"-C", "--cwd", "--dir", "--prefix"})
+_SCOPED_BROWSER_RUNNER_PACKAGES = {"@playwright/test": "playwright"}
+_SHELL_COMMANDS = frozenset({"bash", "sh", "zsh"})
+_E2E_PATH_VALUE_FLAGS = frozenset(
+    {
+        "--cov-report",
+        "--coverage-directory",
+        "--coverage.reportsDirectory",
+        "--coverage.reports-directory",
+        "--coverageDirectory",
+        "--cache-directory",
+        "--cacheDirectory",
+        "--html",
+        "--log-file",
+        "--output-dir",
+        "--output-file",
+        "--outputDir",
+        "--outputFile",
+    }
+) | frozenset(_TEST_RUNNER_VALUE_FLAGS)
+_E2E_PATH_EXCLUSION_VALUE_FLAGS = frozenset({"--deselect", "--ignore", "--ignore-glob"})
+_PACKAGE_OPTION_VALUE_FLAGS = frozenset(
+    {
+        "-C",
+        "-F",
+        "-p",
+        "--cache",
+        "--config",
+        "--cwd",
+        "--dir",
+        "--filter",
+        "--package",
+        "--prefix",
+        "--registry",
+        "--scope",
+        "--store-dir",
+        "--userconfig",
+        "--workspace",
+    }
+)
 _LEGACY_TEST_COMMAND_TARGET_SLUGS = frozenset(
     {
         "017-04-typescript-decorator-metadata-boundary",
@@ -293,10 +339,40 @@ def validate_manifest_test_commands(
     project_root: Path,
 ) -> list[ValidationError]:
     """Require validate commands to execute discovered behavioral tests."""
-    if not _requires_validate_command_test_coverage(manifest):
+    requires_coverage = _requires_validate_command_test_coverage(manifest)
+    test_files = (
+        _find_command_integrity_test_files(manifest, project_root)
+        if requires_coverage
+        else []
+    )
+    has_existing_test_files = any(
+        (project_root / path).is_file() for path in test_files
+    )
+    covered: set[str] = set()
+    missing: list[str] = []
+    if requires_coverage and test_files:
+        for command in manifest.validate_commands:
+            covered.update(
+                _test_files_covered_by_validate_command(
+                    command,
+                    test_files,
+                    project_root,
+                )
+            )
+        missing = [test_file for test_file in test_files if test_file not in covered]
+
+    e2e_errors = _e2e_validate_command_errors(
+        manifest,
+        classify_selector_browser_commands=not bool(
+            requires_coverage and has_existing_test_files and missing
+        ),
+    )
+    if e2e_errors:
+        return e2e_errors
+
+    if not requires_coverage:
         return []
 
-    test_files = _find_command_integrity_test_files(manifest, project_root)
     if not test_files:
         return []
 
@@ -307,13 +383,6 @@ def validate_manifest_test_commands(
     if config_errors:
         return config_errors
 
-    covered: set[str] = set()
-    for command in manifest.validate_commands:
-        covered.update(
-            _test_files_covered_by_validate_command(command, test_files, project_root)
-        )
-
-    missing = [test_file for test_file in test_files if test_file not in covered]
     if not missing:
         return []
     if _allows_legacy_test_command_target(
@@ -344,6 +413,434 @@ def validate_manifest_test_commands(
             ),
         )
     ]
+
+
+def _e2e_validate_command_errors(
+    manifest: Manifest,
+    *,
+    classify_selector_browser_commands: bool,
+) -> list[ValidationError]:
+    errors: list[ValidationError] = []
+    for command in manifest.validate_commands:
+        if not _is_e2e_validate_command(
+            command,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        ):
+            continue
+        errors.append(
+            ValidationError(
+                code=ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED,
+                message=(
+                    "E2E_VALIDATE_COMMAND_NOT_ALLOWED: "
+                    f"Manifest '{manifest.slug}' validate command belongs to "
+                    "the E2E/browser layer, not the fast behavioral gate. "
+                    f"Command: {_format_command(command)}"
+                ),
+                location=Location(file=manifest.source_path),
+                suggestion=(
+                    "Keep validate commands limited to fast behavioral tests. "
+                    "Move browser or E2E checks to acceptance metadata or a "
+                    "separate E2E workflow."
+                ),
+            )
+        )
+    return errors
+
+
+def _is_e2e_validate_command(
+    command: tuple[str, ...],
+    *,
+    classify_selector_browser_commands: bool,
+) -> bool:
+    return _parts_include_e2e_validate_command(
+        list(command),
+        classify_selector_browser_commands=classify_selector_browser_commands,
+    )
+
+
+def _parts_include_e2e_validate_command(
+    parts: list[str],
+    *,
+    classify_selector_browser_commands: bool,
+) -> bool:
+    return any(
+        _segment_is_e2e_validate_command(
+            segment,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        )
+        for segment in command_segments(tuple(parts))
+        if segment
+    )
+
+
+def _segment_is_e2e_validate_command(
+    segment: list[str],
+    *,
+    classify_selector_browser_commands: bool,
+) -> bool:
+    transparent_inner = _transparent_wrapper_inner_command(segment)
+    if transparent_inner is not None and transparent_inner != segment:
+        return _parts_include_e2e_validate_command(
+            transparent_inner,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        )
+
+    if (
+        _segment_invokes_browser_e2e_runner(
+            segment,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        )
+        or _segment_targets_e2e_path(
+            segment,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        )
+        or _segment_runs_e2e_package_script(segment)
+    ):
+        return True
+
+    inner = _package_manager_exec_inner_command(segment)
+    return (
+        inner is not None
+        and inner != segment
+        and _parts_include_e2e_validate_command(
+            inner,
+            classify_selector_browser_commands=classify_selector_browser_commands,
+        )
+    )
+
+
+def _transparent_wrapper_inner_command(segment: list[str]) -> list[str] | None:
+    parts = _strip_environment_prefix(segment)
+    if not parts:
+        return None
+
+    command = _command_name(parts[0])
+    if command in _SHELL_COMMANDS:
+        return _shell_inner_command(parts)
+    if command == "uv":
+        return _uv_run_inner_command(parts)
+    if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
+        return parts[2:]
+    if command == "docker":
+        return _docker_exec_inner_command(parts)
+    if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
+        return parts[3:]
+    return None
+
+
+def _shell_inner_command(parts: list[str]) -> list[str] | None:
+    index = 1
+    while index < len(parts):
+        part = parts[index]
+        if _is_shell_command_string_flag(part):
+            if index + 1 >= len(parts):
+                return None
+            return _split_package_call_value(parts[index + 1])
+        if part == "--":
+            index += 1
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+        return None
+    return None
+
+
+def _is_shell_command_string_flag(part: str) -> bool:
+    return part.startswith("-") and "c" in part and not part.startswith("--")
+
+
+def _segment_invokes_browser_e2e_runner(
+    segment: list[str],
+    *,
+    classify_selector_browser_commands: bool,
+) -> bool:
+    if (
+        _segment_has_test_runner_selector(segment)
+        and not classify_selector_browser_commands
+    ):
+        return False
+
+    invocation = _runner_test_runner_invocation(segment)
+    if invocation is not None and invocation[0] == "playwright":
+        return True
+
+    inner = _package_manager_exec_inner_command(segment)
+    if inner is not None and _segment_starts_browser_e2e_runner(inner):
+        return True
+
+    scan_segment = _test_runner_target_scan_segment(segment)
+    return _segment_starts_browser_e2e_runner(scan_segment)
+
+
+def _segment_has_test_runner_selector(segment: list[str]) -> bool:
+    if _has_test_runner_selector(segment):
+        return True
+    inner = _package_manager_exec_inner_command(segment)
+    return inner is not None and _has_test_runner_selector(inner)
+
+
+def _segment_starts_browser_e2e_runner(segment: list[str]) -> bool:
+    if len(segment) < 2:
+        return False
+    command = _package_command_name(segment[0])
+    if command == "playwright" and segment[1] == "test":
+        return True
+    return command == "cypress" and segment[1] in {"run", "open"}
+
+
+def _segment_targets_e2e_path(
+    segment: list[str],
+    *,
+    classify_selector_browser_commands: bool,
+) -> bool:
+    if (
+        _segment_has_test_runner_selector(segment)
+        and not classify_selector_browser_commands
+    ):
+        return False
+
+    if _segment_has_e2e_package_cwd(segment):
+        return True
+
+    django_runner = _runs_django_test_runner(segment)
+    scan_segment = _package_manager_exec_inner_command(
+        segment
+    ) or _test_runner_target_scan_segment(segment)
+    index = 0
+    while index < len(scan_segment):
+        part = scan_segment[index]
+        if part in _PACKAGE_CWD_VALUE_FLAGS and index + 1 < len(scan_segment):
+            index += 2
+            continue
+        if django_runner and _is_django_test_runner_value_flag(part):
+            index += 2 if "=" not in part and index + 1 < len(scan_segment) else 1
+            continue
+        flag = part.split("=", 1)[0]
+        if flag in _E2E_PATH_VALUE_FLAGS or flag in _E2E_PATH_EXCLUSION_VALUE_FLAGS:
+            index += 2 if "=" not in part and index + 1 < len(scan_segment) else 1
+            continue
+        if part.startswith("-") and "=" not in part:
+            index += 1
+            continue
+        if _has_e2e_path_component(part):
+            return True
+        index += 1
+    return False
+
+
+def _segment_has_e2e_package_cwd(segment: list[str]) -> bool:
+    parts = _strip_package_manager_prefix(segment)
+    if not parts:
+        return False
+    if _package_command_name(parts[0]) not in _PACKAGE_MANAGER_COMMANDS:
+        return False
+
+    index = 1
+    while index < len(parts):
+        part = parts[index]
+        flag, separator, attached_value = part.partition("=")
+        if flag in _PACKAGE_CWD_VALUE_FLAGS:
+            if separator:
+                return _has_e2e_path_component(attached_value)
+            if index + 1 < len(parts) and _has_e2e_path_component(parts[index + 1]):
+                return True
+            index += 2
+            continue
+        if part == "--":
+            return False
+        if _package_option_has_attached_value(part):
+            index += 1
+            continue
+        if _package_option_consumes_value(
+            flag, command=_package_command_name(parts[0])
+        ):
+            index += 2 if index + 1 < len(parts) else 1
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+        return False
+    return False
+
+
+def _has_e2e_path_component(value: str) -> bool:
+    if "=" in value and value.startswith("-"):
+        _, value = value.split("=", 1)
+    path_part = value.partition("::")[0].replace("\\", "/")
+    return any(part.lower() == "e2e" for part in path_part.split("/"))
+
+
+def _segment_runs_e2e_package_script(segment: list[str]) -> bool:
+    parts = _strip_package_manager_prefix(segment)
+    if not parts:
+        return False
+
+    command = _package_command_name(parts[0])
+    if command not in _PACKAGE_MANAGER_COMMANDS:
+        return False
+
+    index = _skip_package_options(parts, 1, command=command)
+    if index >= len(parts):
+        return False
+
+    if command == "npm":
+        return _package_script_name_is_e2e(parts, index)
+
+    if command == "yarn" and parts[index] == "workspace":
+        index = _skip_package_options(parts, index + 2, command=command)
+        if index >= len(parts):
+            return False
+
+    if parts[index] in _PACKAGE_EXEC_SUBCOMMANDS:
+        return False
+    return _package_script_name_is_e2e(parts, index)
+
+
+def _package_script_name_is_e2e(parts: list[str], index: int) -> bool:
+    subcommand = parts[index]
+    if subcommand in _PACKAGE_EXEC_SUBCOMMANDS:
+        return False
+    if subcommand in _PACKAGE_RUN_SUBCOMMANDS:
+        index = _skip_package_options(
+            parts,
+            index + 1,
+            command=_package_command_name(parts[0]),
+        )
+        return index < len(parts) and _is_e2e_script_name(parts[index])
+    return _is_e2e_script_name(subcommand)
+
+
+def _package_manager_exec_inner_command(segment: list[str]) -> list[str] | None:
+    parts = _strip_package_manager_prefix(segment)
+    if not parts:
+        return None
+
+    command = _package_command_name(parts[0])
+    if command in _PACKAGE_EXEC_WRAPPERS:
+        return _normalize_package_inner_command(parts[1:], command=command)
+
+    if command not in _PACKAGE_MANAGER_COMMANDS:
+        return None
+
+    index = _skip_package_options(parts, 1, command=command)
+    if command == "yarn" and index < len(parts) and parts[index] == "workspace":
+        index = _skip_package_options(parts, index + 2, command=command)
+    if index >= len(parts) or parts[index] not in _PACKAGE_EXEC_SUBCOMMANDS:
+        if command != "npm" and index < len(parts):
+            return _normalize_package_inner_command(parts[index:], command=command)
+        return None
+    return _normalize_package_inner_command(parts[index + 1 :], command=command)
+
+
+def _strip_package_manager_prefix(segment: list[str]) -> list[str]:
+    parts = _strip_environment_prefix(segment)
+    if len(parts) < 2 or _command_name(parts[0]) != "corepack":
+        return parts
+    candidate = _package_command_name(parts[1])
+    if candidate in _PACKAGE_MANAGER_COMMANDS or candidate in _PACKAGE_EXEC_WRAPPERS:
+        return parts[1:]
+    return parts
+
+
+def _package_command_name(part: str) -> str:
+    command = part if part.startswith("@") else _command_name(part)
+    if command.startswith("@"):
+        package_name = _scoped_package_name_without_version(command)
+        if package_name in _SCOPED_BROWSER_RUNNER_PACKAGES:
+            return _SCOPED_BROWSER_RUNNER_PACKAGES[package_name]
+        return command
+    return command.split("@", 1)[0]
+
+
+def _scoped_package_name_without_version(command: str) -> str:
+    scoped_name, _, _version = command[1:].partition("@")
+    return f"@{scoped_name}"
+
+
+def _normalize_package_inner_command(
+    parts: list[str],
+    *,
+    command: str,
+) -> list[str] | None:
+    parts = _strip_command_separator(parts)
+    call_inner = _package_call_inner_command(parts)
+    if call_inner is not None:
+        return call_inner
+    index = _skip_package_options(parts, 0, command=command)
+    inner = _strip_command_separator(parts[index:])
+    call_inner = _package_call_inner_command(inner)
+    if call_inner is not None:
+        return call_inner
+    return inner or None
+
+
+def _package_call_inner_command(parts: list[str]) -> list[str] | None:
+    if not parts:
+        return None
+    part = parts[0]
+    if part in {"-c", "--call"}:
+        if len(parts) < 2:
+            return None
+        return _split_package_call_value(parts[1])
+    if part.startswith("--call="):
+        return _split_package_call_value(part.split("=", 1)[1])
+    return None
+
+
+def _split_package_call_value(value: str) -> list[str] | None:
+    try:
+        parts = shlex.split(value)
+    except ValueError:
+        parts = [value]
+    return parts or None
+
+
+def _strip_command_separator(parts: list[str]) -> list[str]:
+    if parts and parts[0] == "--":
+        return parts[1:]
+    return parts
+
+
+def _skip_package_options(
+    parts: list[str],
+    index: int,
+    *,
+    command: str,
+) -> int:
+    while index < len(parts):
+        part = parts[index]
+        if part == "--":
+            return index + 1
+        if part in {"-c", "--call"} or part.startswith("--call="):
+            return index
+        if _package_option_has_attached_value(part):
+            index += 1
+            continue
+        flag = part.split("=", 1)[0]
+        if _package_option_consumes_value(flag, command=command):
+            index += 2 if index + 1 < len(parts) else 1
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+        return index
+    return index
+
+
+def _package_option_has_attached_value(part: str) -> bool:
+    return part.startswith("--") and "=" in part
+
+
+def _package_option_consumes_value(flag: str, *, command: str) -> bool:
+    if flag in _PACKAGE_OPTION_VALUE_FLAGS:
+        return True
+    return command == "npm" and flag == "-w"
+
+
+def _is_e2e_script_name(value: str) -> bool:
+    script = value.strip().lower()
+    return "e2e" in re.split(r"[:._-]+", script)
 
 
 def _pyproject_pytest_addopts_integrity_errors(

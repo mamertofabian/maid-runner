@@ -1,0 +1,257 @@
+schema: '2'
+goal: Keep maid test fast by excluding E2E and acceptance-layer commands
+type: fix
+created: '2026-06-25T12:56:13Z'
+supersedes:
+- gate-archspec-e2e-strict-mode
+- 045-02-extract-test-runner-stream-orchestration
+description: |
+  `maid test` is the fast behavioral contract gate. Acceptance and browser E2E
+  checks are a layer above that gate and must not execute from `maid test`,
+  `maid test --manifest`, `validate --run-tests`, or the shared verify tests
+  stage.
+
+  The manifest acceptance section remains valid metadata for future tooling and
+  path validation, but the test runner ignores acceptance commands. Validate
+  commands fail loudly when they point at known E2E/browser execution shapes so
+  slow browser flows cannot contaminate the behavioral gate.
+
+  This supersedes the old ArchSpec E2E-only strict-mode contract because that
+  contract belongs to an E2E layer, not the fast MAID behavioral gate.
+temptations:
+- risk: Do not silently skip E2E commands from validate.
+  instead: Return a validation error that tells users to move browser/E2E checks out of validate.
+- risk: Do not add an opt-in acceptance flag to maid test.
+  instead: Keep maid test fast-only; leave any future E2E runner to a separate command or workflow.
+- risk: Do not delete acceptance schema or metadata handling.
+  instead: Preserve manifest parsing and acceptance path validation while removing execution from test_runner.
+- risk: Do not classify ordinary .spec.ts files, tests/acceptance files, or selector values as E2E by filename alone.
+  instead: Reject explicit browser runners, e2e path components, and e2e script names after normalizing package-manager options and wrappers; leave selector-bearing commands on the existing integrity diagnostic path.
+files:
+  edit:
+  - path: maid_runner/core/test_runner.py
+    artifacts:
+    - kind: function
+      name: run_manifest_tests
+      args:
+      - name: manifest_path
+        type: Union[str, Path]
+      - name: fail_fast
+        type: bool
+        default: 'False'
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      returns: BatchTestResult
+    - kind: function
+      name: run_tests
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      - name: fail_fast
+        type: bool
+        default: 'False'
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      - name: batch
+        type: bool | None
+        default: None
+      - name: jobs
+        type: int
+        default: '1'
+      returns: BatchTestResult
+  - path: maid_runner/core/_validation_test_artifacts.py
+    artifacts:
+    - kind: function
+      name: validate_manifest_test_commands
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: list[ValidationError]
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: E2E_VALIDATE_COMMAND_NOT_ALLOWED
+      of: ErrorCode
+      type: str
+  - path: tests/core/test_test_runner.py
+    artifacts:
+    - kind: test_function
+      name: test_run_manifest_tests_ignores_acceptance_commands
+      source_scenario: A single manifest declares an acceptance command that would fail and a fast validate command that passes.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: The acceptance command is not executed, the validate command runs, and the result has no acceptance stream entries.
+    - kind: test_function
+      name: test_run_tests_ignores_acceptance_commands_while_batching_implementation
+      source_scenario: Multiple active manifests include acceptance commands plus compatible pytest validate commands.
+      actions:
+      - type: api_call
+        subject:
+          export: run_tests
+      expected:
+        behavior: Only the batched implementation command executes and no acceptance stream entries are reported.
+  - path: tests/cli/test_validate_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_validate_command_integrity_rejects_e2e_validate_commands
+      source_scenario: A manifest puts explicit browser/E2E commands in validate.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_manifest_test_commands
+      expected:
+        behavior: Validation reports ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED for each E2E validate command.
+    - kind: test_function
+      name: test_validate_command_integrity_rejects_wrapped_e2e_without_test_files
+      source_scenario: A manifest has no discoverable behavioral tests and puts package-manager-wrapped E2E or selector-bearing browser commands in validate.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_manifest_test_commands
+      expected:
+        behavior: Validation still reports ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED instead of letting coverage checks skip the command.
+    - kind: test_function
+      name: test_validate_command_integrity_keeps_e2e_marker_on_selector_error
+      source_scenario: A validate command uses e2e as a pytest selector value rather than an E2E path or script name.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_manifest_test_commands
+      expected:
+        behavior: Validation reports the existing selector integrity error instead of classifying the selector value as an E2E path.
+    - kind: test_function
+      name: test_validate_command_integrity_allows_e2e_acceptance_metadata
+      source_scenario: A manifest records the same E2E commands in acceptance.tests while validate runs fast behavioral tests.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_manifest_test_commands
+      expected:
+        behavior: No E2E validate-command error is reported because acceptance metadata is not the fast validate stream.
+  - path: tests/cli/test_test_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_json_output_excludes_acceptance_commands
+      source_scenario: The maid test CLI runs a project whose manifest includes failing acceptance metadata and a passing validate command.
+      actions:
+      - type: api_call
+        subject:
+          command: maid test --json
+      expected:
+        behavior: JSON reports only implementation test results and contains no acceptance stream entries.
+  read:
+  - maid_runner/core/types.py
+  - maid_runner/core/_test_runner_invocation.py
+  - maid_runner/core/_test_command_targets.py
+  - maid_runner/core/validate.py
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/cli/commands/validate.py
+validate:
+- pytest tests/core/test_test_runner.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py -v
+outcome:
+  status: completed
+  completed_at: "2026-06-26T11:41:05+08:00"
+  summary: "Kept the MAID behavioral test gate fast by preventing `maid test` from executing acceptance commands and by rejecting explicit E2E validate-command shapes."
+  rationale: "`maid test` now executes only validate commands while preserving acceptance metadata for manifest parsing and path validation. Validate-command integrity gained a bounded guardrail for known browser runners, E2E path components, E2E package scripts, and common transparent wrapper/package-manager forms, returning `ErrorCode.E2E_VALIDATE_COMMAND_NOT_ALLOWED` instead of silently allowing slow browser flows into the fast behavioral gate."
+  lessons:
+  - lesson_type: validation-boundary
+    summary: "The reliable fast-test boundary is execution-layer separation: `maid test` must not run `acceptance.tests`; command classification should remain a bounded guardrail for explicit E2E declarations, not a claim to understand arbitrary shell indirection."
+    tags:
+    - maid-test
+    - e2e
+    - command-integrity
+    paths:
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/core/test_test_runner.py
+    - tests/cli/test_validate_cmd.py
+  - lesson_type: review-hardening
+    summary: "Reviewer passes found practical bypass and false-positive cases across package managers, shell wrappers, scoped Playwright packages, selector handling, and report/cache output paths; behavioral coverage was expanded around each supported shape instead of broadening into an unbounded shell analyzer."
+    tags:
+    - implementation-review
+    - package-managers
+    - wrappers
+    - false-positives
+    paths:
+    - tests/cli/test_validate_cmd.py
+    - maid_runner/core/_validation_test_artifacts.py
+  review_notes:
+  - source: independent-review-subagent
+    severity: info
+    summary: "Reviewer Ohm found no actionable findings and returned ready; residual risk is limited to the intentionally bounded detector, while `validate --run-tests` and verify rely on the shared runner path for acceptance skipping."
+  - source: local-review
+    severity: info
+    summary: "Plan-lock status was OK for the active manifest and the two older manifests sharing `tests/cli/test_validate_cmd.py`; `git diff --check` reported no whitespace errors."
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - tests/core/test_test_runner.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_test_cmd.py
+    - -q
+    status: passed
+    summary: "Focused runner, validate-command, and CLI tests passed: 224 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/ban-e2e-from-maid-test.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Behavioral validation for the active manifest passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/ban-e2e-from-maid-test.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation for the active manifest passed before outcome capture."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/ban-e2e-from-maid-test.manifest.yaml
+    status: passed
+    summary: "The manifest validation command passed through `maid test --manifest`."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 368 manifests, 280 passed, 0 failed, 88 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed: 142 commands, 0 failures."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Plan-lock, red-evidence, changed-scope, worktree-scope, and test gates passed with the explicit baseline; output included unrelated legacy warnings from older manifests."

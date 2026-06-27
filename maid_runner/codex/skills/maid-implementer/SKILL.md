@@ -41,6 +41,22 @@ If the manifest includes `temptations`, identify which entries apply to this imp
 
 Read every file listed in `files.read` and the behavioral tests referenced by the manifest.
 
+### Promoted Draft Recall
+
+When implementation starts from a draft manifest, refresh recall before
+promotion when completed Outcome records exist:
+
+```bash
+uv run maid learn
+uv run maid recall --for-manifest manifests/drafts/<slug>.manifest.yaml --plan-packet
+```
+
+If `maid learn` finds no completed Outcome records, state that no advisory
+history is available and continue. Use recalled lessons to sharpen test focus
+and implementation risks. Recall is advisory planning context only; it does
+not expand scope or replace red evidence, behavioral validation, plan lock,
+implementation validation, or review.
+
 ## Outcome-Aware MAID Guidance
 
 Outcome records are deterministic manifest data, not agent-only memory. When
@@ -49,11 +65,28 @@ the project has Outcome support, use `maid learn`, `maid recall`, and
 
 For implementation:
 
+- Active insights trigger: review recurring Outcome lessons with `maid insights`
+  before implementing the approved manifest. Treat insights as advisory
+  aggregate evidence for recurring lessons, not as generated narrative authority.
 - Consult recalled Outcome records when choosing focused tests and code patterns.
 - Do not broaden the approved manifest scope because an older Outcome mentioned adjacent work.
 - Treat `maid insights` as aggregate evidence for recurring lessons, not as
   permission to skip the current manifest contract.
-- Recalled outcomes are planning evidence only and do not replace behavioral tests, declared scope, validation, or review.
+- Use active recall guidance to thread the planner's recalled evidence into
+  implementation decisions while staying inside the approved scope.
+- To intentionally include instructive failed or abandoned Outcome lessons,
+  refresh the index with this opt-in command, then recall from that index:
+
+```bash
+maid learn --include-status completed --include-status abandoned
+```
+
+  This is an intentional opt-in for failure lessons; the completed-only default
+  is unchanged.
+- Recalled, aggregated, and digested Outcomes are planning evidence only. They
+  do not replace behavioral tests, declared scope, validation, approval, done
+  gates, or review, and they do not create an approval, promotion, done, or
+  review gate.
 
 ### Manifest-Derived Outcome Recall
 
@@ -76,6 +109,34 @@ Use recall to identify relevant prior lessons, but stay inside the approved
 manifest scope. Recalled Outcomes are planning evidence only. They do not
 replace behavioral tests, declared artifacts, validation commands, or
 implementation review.
+
+### Learning Evidence Digestion
+
+The learning evidence digestion step is advisory evidence handling.
+
+Close the loop between completed Outcome records and current agent decisions;
+do not dump a raw recall or insights transcript into the implementation notes.
+Identify applicable lessons, reject stale or irrelevant lessons with a reason,
+and state what changed because of the evidence. For implementation, name the
+effect on focused tests, implementation approach, or risk controls inside the
+approved scope. The learning evidence digestion step is advisory evidence
+handling, not a separate gate.
+
+## Plan Revision Recovery
+
+If implementation review requires review-driven behavioral contract changes
+after implementation already exists, do not invent a manual stash or worktree
+procedure. Use the sanctioned recovery command:
+
+```bash
+maid plan revise <manifest> --reason "<text>" --stash-implementation
+```
+
+Use `--stash-implementation` only for review-driven behavioral contract changes
+that need fresh red evidence while declared implementation changes are
+temporarily hidden. For metadata-only cleanup on a locked manifest, use
+`maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
+instead.
 
 ## Phase 3 — Implement
 

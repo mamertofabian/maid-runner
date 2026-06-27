@@ -11,6 +11,7 @@ from maid_runner.core.result import (
     FileTrackingReport,
     FileTrackingStatus,
 )
+from maid_runner.core.types import FileMode
 
 
 def _run_file_tracking(project_root: Path, chain: ManifestChain) -> FileTrackingReport:
@@ -46,6 +47,16 @@ def _run_file_tracking(project_root: Path, chain: ManifestChain) -> FileTracking
                 )
             )
         elif manifests:
+            if chain.file_mode_for(path) == FileMode.SCOPE:
+                entries.append(
+                    FileTrackingEntry(
+                        path=path,
+                        status=FileTrackingStatus.TRACKED,
+                        manifests=manifest_slugs,
+                    )
+                )
+                continue
+
             has_artifacts = any(
                 spec is not None and spec.artifacts
                 for spec in (m.file_spec_for(path) for m in manifests)

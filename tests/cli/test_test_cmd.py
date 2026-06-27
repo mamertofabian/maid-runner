@@ -268,6 +268,39 @@ class TestCmdTestAll:
         assert data["total"] >= 1
         assert data["passed"] >= 1
 
+    def test_json_output_excludes_acceptance_commands(self, tmp_path, capsys):
+        from maid_runner.cli.commands._main import main
+
+        manifest_dir = tmp_path / "manifests"
+        manifest_dir.mkdir()
+        manifest = {
+            "schema": "2",
+            "goal": "Keep maid test fast",
+            "type": "feature",
+            "files": {
+                "create": [
+                    {
+                        "path": "src/app.py",
+                        "artifacts": [{"kind": "function", "name": "app"}],
+                    }
+                ]
+            },
+            "acceptance": {"tests": ["false"]},
+            "validate": ["true"],
+        }
+        (manifest_dir / "fast-only.manifest.yaml").write_text(yaml.dump(manifest))
+
+        os.chdir(tmp_path)
+        exit_code = main(["test", "--json"])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["success"] is True
+        assert data["total"] == 1
+        assert [item["stream"] for item in data["results"]] == ["implementation"]
+        assert data["results"][0]["command"] == ["true"]
+
     def test_verbose_shows_stdout(self, project_with_tests, capsys):
         from maid_runner.cli.commands._main import main
 

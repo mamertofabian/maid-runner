@@ -12,6 +12,10 @@ from maid_runner.core.manifest import load_manifest_raw
 from maid_runner.core.outcomes import OutcomeIndex, OutcomeIndexRecord
 
 
+_PARTIAL_PATH_SHARED_PARENT_WEIGHT = 20
+_PARTIAL_TAG_CONTAINMENT_WEIGHT = 10
+
+
 @dataclass(frozen=True)
 class OutcomeRecallQuery:
     text: str | None = None
@@ -380,11 +384,9 @@ def _score_record(
     score += slug_score[0]
     reasons.extend(slug_score[1])
 
-    path_score = _score_exact(
+    path_score = _score_paths(
         query.paths,
         {_normalize_path(path, query.project_root) for path in record.declared_paths},
-        weight=80,
-        reason_prefix="path",
     )
     if path_score is None:
         return None
@@ -402,11 +404,9 @@ def _score_record(
     score += artifact_score[0]
     reasons.extend(artifact_score[1])
 
-    tag_score = _score_exact(
+    tag_score = _score_tags(
         query.tags,
-        {tag.lower() for tag in record.tags},
-        weight=40,
-        reason_prefix="tag",
+        {tag.lower() for tag in record.tags if str(tag).strip()},
     )
     if tag_score is None:
         return None
@@ -465,6 +465,71 @@ def _score_exact(
     return (
         len(matched) * weight,
         [f"{reason_prefix}:{value} (+{weight})" for value in matched],
+    )
+
+
+def _score_paths(
+    query_values: tuple[str, ...],
+    record_values: set[str],
+) -> tuple[int, list[str]] | None:
+    if not query_values:
+        return 0, []
+
+    score = 0
+    reasons: list[str] = []
+
+    for value in query_values:
+        if value in record_values:
+            score += 80
+            reasons.append(f"path:{value} (+80)")
+    if reasons:
+        return score, reasons
+
+    for value in query_values:
+        parent = Path(value).parent.as_posix()
+        has_same_parent = any(
+            record_value != value and Path(record_value).parent.as_posix() == parent
+            for record_value in record_values
+        )
+        if has_same_parent:
+            return (
+                _PARTIAL_PATH_SHARED_PARENT_WEIGHT,
+                [
+                    f"path~dir:{parent} (+{_PARTIAL_PATH_SHARED_PARENT_WEIGHT})",
+                ],
+            )
+
+    return None
+
+
+def _score_tags(
+    query_values: tuple[str, ...],
+    record_values: set[str],
+) -> tuple[int, list[str]] | None:
+    if not query_values:
+        return 0, []
+
+    exact_matched = [value for value in query_values if value in record_values]
+    if exact_matched:
+        return (
+            len(exact_matched) * 40,
+            [f"tag:{value} (+40)" for value in exact_matched],
+        )
+
+    for value in query_values:
+        if _has_related_tag(value, record_values):
+            return (
+                _PARTIAL_TAG_CONTAINMENT_WEIGHT,
+                [f"tag~related:{value} (+{_PARTIAL_TAG_CONTAINMENT_WEIGHT})"],
+            )
+    return None
+
+
+def _has_related_tag(query_value: str, record_values: set[str]) -> bool:
+    return any(
+        query_value != record_value
+        and (query_value in record_value or record_value in query_value)
+        for record_value in record_values
     )
 
 

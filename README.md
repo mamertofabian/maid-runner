@@ -108,7 +108,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid verify` | Run the combined done gate | `--strict`, `--advisory`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
-| `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--json` (status), `--project-root` |
+| `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
@@ -274,6 +274,13 @@ files after the planning loop passes behavioral validation and the user approves
 the plan. `maid plan revise <manifest> --reason "<text>"` records intentional
 plan changes with a required reason, and `maid plan status <manifest>` reports
 lock state, hash matches or mismatches, and red evidence.
+
+If implementation review adds or tightens behavioral tests after implementation
+is already present, use `maid plan revise <manifest> --reason "<text>"
+--stash-implementation`. The command stashes only declared non-test
+implementation files, leaves the revised manifest and behavioral tests in
+place, captures fresh red evidence, restores the implementation changes, and
+saves the revised lock only when the evidence is valid red.
 
 Red-phase evidence uses exit-code-only classification: pytest exit 1 is valid
 red, exits 2/3/4/5 are invalid, and exit 0 means the tests already pass and are

@@ -19,6 +19,7 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-plan-review",
     "maid-implementer",
     "maid-implementation-review",
+    "maid-auditor",
 ]
 
 
@@ -96,6 +97,9 @@ def test_agent_payload_package_data_includes_claude_and_codex_assets():
         "codex/manifest.json",
         "codex/skills/*/SKILL.md",
         "codex/skills/*/agents/*.yaml",
+        "docs/draft-manifest-workflow.md",
+        "docs/manifest-outcome-records.md",
+        "manifests/drafts/README.md",
     ):
         assert pattern in package_data
 

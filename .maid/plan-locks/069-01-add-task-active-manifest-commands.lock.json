@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
     "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
-    "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
+    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813"
   },
   "created_at": "2026-06-16T23:12:19.331337+00:00",
-  "revision": 4,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:79d552f5a220850dcf71e86903756333c5a2a1506a52df9eda65b2c0ace60e83",
@@ -38,6 +38,26 @@
       },
       "revised_at": "2026-06-22T02:44:44.770129+00:00",
       "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+    },
+    {
+      "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
+      "prior_test_hashes": {
+        "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+        "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+        "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
+      },
+      "revised_at": "2026-06-25T12:10:51.428392+00:00",
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+    },
+    {
+      "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
+      "prior_test_hashes": {
+        "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+        "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+        "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
+      },
+      "revised_at": "2026-06-26T15:24:29.071037+00:00",
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
     }
   ],
   "red_evidence": {

@@ -1,0 +1,216 @@
+schema: '2'
+goal: Sync stash-backed plan revise guidance into maid init artifacts
+type: feature
+created: '2026-06-26T11:02:00Z'
+metadata:
+  epic: 076-00-plan-lock-revision-recovery
+  tags:
+  - init-payload
+  - agent-guidance
+  - plan-lock
+  - red-phase
+description: |
+  Update the repo-local and packaged MAID init artifacts so downstream
+  repositories that run `maid init --force` receive agent-facing guidance for
+  the new `maid plan revise --stash-implementation` workflow.
+
+  The previous change added the CLI and docs, but the init-installed
+  `CLAUDE.md`/`AGENTS.md` sections and implementer skill payloads still only
+  mentioned `--preserve-red-evidence`. This follow-up keeps metadata-only
+  guidance intact while adding the review-driven behavioral contract recovery
+  path for agents that are operating in repos initialized from maid-runner.
+temptations:
+- risk: Do not update only the repo-local `.claude` or `.codex` skill files and forget the packaged `maid_runner/*` payloads used by `maid init`.
+  instead: Update the source skill payloads, run the payload sync, and test the installed output created by `maid init`.
+- risk: Do not blur `--preserve-red-evidence` and `--stash-implementation` into one generic revise instruction.
+  instead: State that preserve is for metadata-only cleanup and stash-backed revise is for review-driven behavioral contract changes after implementation exists.
+- risk: Do not rely on docs-only assertions while the actual installed agent prompts remain stale.
+  instead: Assert both rendered guidance files and installed Claude/Codex implementer skills contain the stash-backed workflow.
+files:
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: _render_draft_outcome_guidance
+      args: []
+      returns: str
+      description: Rendered init guidance distinguishes metadata-only preserved evidence from review-driven stash-backed plan revise.
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_implementer_stash_revise_guidance
+      of: documentation
+      type: markdown text
+      description: Claude implementer skill tells agents to use --stash-implementation for review-driven behavioral contract changes after implementation exists.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_implementer_stash_revise_guidance
+      of: documentation
+      type: markdown text
+      description: Codex implementer skill tells agents to use --stash-implementation for review-driven behavioral contract changes after implementation exists.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_codex_implementer_stash_revise_guidance
+      of: documentation
+      type: markdown text
+      description: Packaged Codex implementer skill stays synchronized with the source skill and includes --stash-implementation guidance.
+  create:
+  - path: tests/cli/test_init_stash_revise_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_claude_init_installs_stash_revise_guidance
+      source_scenario: A downstream repository refreshes Claude MAID init artifacts after the stash-backed plan revise workflow ships.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The rendered CLAUDE.md section and installed Claude implementer skill distinguish --preserve-red-evidence from --stash-implementation.
+    - kind: test_function
+      name: test_codex_init_installs_stash_revise_guidance
+      source_scenario: A downstream repository refreshes Codex MAID init artifacts after the stash-backed plan revise workflow ships.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The rendered AGENTS.md section and installed Codex implementer skill distinguish --preserve-red-evidence from --stash-implementation.
+    - kind: test_function
+      name: test_source_implementer_guidance_syncs_to_packaged_payloads
+      source_scenario: The source and packaged Claude/Codex implementer skills are checked directly after adding stash-backed revise guidance.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: Source Claude/Codex implementer skills and synced packaged Claude/Codex implementer skills contain --preserve-red-evidence, --stash-implementation, and review-driven behavioral contract guidance.
+  read:
+  - maid_runner/cli/commands/plan.py
+  - scripts/sync_claude_files.py
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_init_stash_revise_guidance.py
+- uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-26T11:09:18Z"
+  summary: "Synced `--stash-implementation` recovery guidance into downstream `maid init` artifacts: rendered CLAUDE.md/AGENTS.md guidance, source Claude/Codex implementer skills, and the committed packaged Codex implementer payload. Added a dedicated init regression file that verifies Claude init, Codex init, and temp-synced source-to-packaged payload output contain both `--preserve-red-evidence` and `--stash-implementation` guidance."
+  rationale: "The prior CLI/docs change made the command available, but downstream initialized repositories would still install agent prompts that only mentioned `--preserve-red-evidence`. This follow-up makes the proven recovery path visible in the actual init payloads while keeping metadata-only preserve guidance distinct from review-driven behavioral contract recovery."
+  lessons:
+    - lesson_type: workflow
+      summary: "When updating init-installed agent guidance, test the installed output from `maid init`, not just repository docs. Downstream repos consume rendered guidance sections and packaged skill payloads."
+      tags:
+        - init-payload
+        - agent-guidance
+        - downstream
+      paths:
+        - maid_runner/cli/commands/init.py
+        - .claude/skills/maid-implementer/SKILL.md
+        - .codex/skills/maid-implementer/SKILL.md
+    - lesson_type: validation
+      summary: "Avoid adding assertions to shared behavioral test files already locked by older active manifests. New follow-up contracts should prefer dedicated test files unless the older locks are intentionally evolved."
+      tags:
+        - plan-lock
+        - shared-tests
+        - changed-scope
+      paths:
+        - tests/cli/test_init_stash_revise_guidance.py
+        - .maid/plan-locks/076-02-sync-stash-revise-init-guidance.lock.json
+    - lesson_type: validation
+      summary: "Tests that verify generated payloads should create the packaged payload in a temp workspace with `scripts/sync_claude_files.py` rather than depending on ignored generated files in the working tree."
+      tags:
+        - generated-payload
+        - package-data
+        - tests
+      paths:
+        - tests/cli/test_init_stash_revise_guidance.py
+        - scripts/sync_claude_files.py
+  review_notes:
+    - source: implementation-review-subagent-Ramanujan
+      severity: high
+      summary: "Initial implementation review found that edits to shared test files caused older active manifests to fail plan-lock verification. Fixed by moving the new assertions into a dedicated test file owned by this manifest."
+    - source: implementation-review-subagent-Ptolemy
+      severity: info
+      summary: "Final read-only review reported no findings. It confirmed the prior shared-lock drift was closed, scope matched the manifest, dedicated coverage was adequate, and downstream guidance appeared in init rendering and source skills."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_init_stash_revise_guidance.py
+      status: passed
+      summary: "Dedicated init guidance regression passed: 3 passed."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/cli/commands/init.py
+        - tests/cli/test_init_stash_revise_guidance.py
+      status: passed
+      summary: "Black check passed on touched Python files after formatting."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/init.py
+        - tests/cli/test_init_stash_revise_guidance.py
+      status: passed
+      summary: "Ruff passed on touched Python files."
+    - command:
+        - uv
+        - run
+        - maid
+        - plan
+        - revise
+        - manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml
+        - --reason
+        - inline payload guidance assertions
+        - --stash-implementation
+      status: passed
+      summary: "Stash-backed plan revise updated the lock to revision 6 with valid red evidence for the dedicated test file."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: "Implementation validation passed for declared artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml
+      status: passed
+      summary: "Manifest test gate passed: 3 commands passed, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 371 manifests, 283 passed, 0 failed, and 88 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict changed-scope handoff gate passed. Bare verify without a baseline failed only with the known E115 changed-scope baseline requirement."

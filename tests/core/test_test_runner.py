@@ -80,6 +80,114 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     return project_root, manifest_path
 
 
+def test_run_manifest_tests_ignores_acceptance_commands(tmp_path, monkeypatch):
+    manifest = tmp_path / "manifests" / "fast-only.manifest.yaml"
+    manifest.parent.mkdir()
+    manifest.write_text(
+        """schema: "2"
+goal: "Keep single-manifest test fast"
+files:
+  create:
+    - path: src/app.py
+      artifacts:
+        - kind: function
+          name: app
+acceptance:
+  tests:
+    - echo slow-acceptance
+validate:
+  - echo fast-validate
+"""
+    )
+    observed: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        observed.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_manifest_tests(manifest, project_root=tmp_path)
+
+    assert result.success is True
+    assert result.total == 1
+    assert observed == [("echo", "fast-validate")]
+    assert result.acceptance_results == []
+    assert [item.stream for item in result.results] == [TestStream.IMPLEMENTATION]
+
+
+def test_run_tests_ignores_acceptance_commands_while_batching_implementation(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    manifests_dir.mkdir()
+    (manifests_dir / "a.manifest.yaml").write_text(
+        """schema: "2"
+goal: "A"
+files:
+  create:
+    - path: src/a.py
+      artifacts:
+        - kind: function
+          name: a
+acceptance:
+  tests:
+    - echo acceptance-a
+validate:
+  - pytest tests/test_a.py -v
+"""
+    )
+    (manifests_dir / "b.manifest.yaml").write_text(
+        """schema: "2"
+goal: "B"
+files:
+  create:
+    - path: src/b.py
+      artifacts:
+        - kind: function
+          name: b
+acceptance:
+  tests:
+    - echo acceptance-b
+validate:
+  - pytest tests/test_b.py -v
+"""
+    )
+    observed: list[tuple[str, ...]] = []
+
+    def fake_run_command(command, **kwargs):
+        observed.append(command)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+
+    result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
+
+    assert result.success is True
+    assert result.total == 1
+    assert observed == [
+        ("pytest", "tests/test_a.py", "tests/test_b.py", "-v"),
+    ]
+    assert result.acceptance_results == []
+    assert result.implementation_results[0].manifest_slug == "batch"
+
+
 def test_run_tests_preserves_acceptance_before_batched_implementation_order(
     tmp_path, monkeypatch
 ):
@@ -131,12 +239,9 @@ validate:
     result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
 
     assert result.success is True
-    assert result.total == 2
-    assert [item.stream for item in result.results] == [
-        TestStream.ACCEPTANCE,
-        TestStream.IMPLEMENTATION,
-    ]
-    assert result.acceptance_results[0].manifest_slug == "a"
+    assert result.total == 1
+    assert [item.stream for item in result.results] == [TestStream.IMPLEMENTATION]
+    assert result.acceptance_results == []
     assert result.implementation_results[0].manifest_slug == "batch"
     assert result.implementation_results[0].command == (
         "pytest",
@@ -189,9 +294,9 @@ validate:
     assert result.total == 1
     assert result.passed == 0
     assert result.failed == 1
-    assert len(result.acceptance_results) == 1
-    assert result.implementation_results == []
-    assert observed == [("echo", "acceptance-a")]
+    assert result.acceptance_results == []
+    assert len(result.implementation_results) == 1
+    assert observed == [("echo", "should-not-run")]
     assert result.chain_errors == []
 
 
@@ -242,15 +347,12 @@ validate:
     )
 
     assert result.success is False
-    assert result.total == 2
-    assert result.passed == 1
+    assert result.total == 1
+    assert result.passed == 0
     assert result.failed == 1
-    assert [item.stream for item in result.results] == [
-        TestStream.ACCEPTANCE,
-        TestStream.IMPLEMENTATION,
-    ]
-    assert observed == [("echo", "acceptance-a"), ("echo", "impl-a")]
-    assert result.acceptance_results[0].manifest_slug == "a"
+    assert [item.stream for item in result.results] == [TestStream.IMPLEMENTATION]
+    assert observed == [("echo", "impl-a")]
+    assert result.acceptance_results == []
     assert result.implementation_results[0].manifest_slug == "a"
 
 
@@ -1141,9 +1243,8 @@ validate:
 """
         )
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path, batch=True)
-        # 1 acceptance (sequential) + 1 batched impl = 2 commands
-        assert result.total == 2
-        assert len(result.acceptance_results) == 1
+        assert result.total == 1
+        assert result.acceptance_results == []
         assert len(result.implementation_results) == 1  # batched into one
 
     def test_mixed_runners_not_batched(self, tmp_path):
@@ -2139,7 +2240,7 @@ validate:
 
 class TestAcceptanceInManifestTests:
     def test_acceptance_runs_first(self, tmp_path):
-        """Acceptance tests run before implementation tests."""
+        """Acceptance metadata is not executed by the fast test gate."""
         manifest = tmp_path / "manifests" / "test.manifest.yaml"
         manifest.parent.mkdir()
         manifest.write_text(
@@ -2161,14 +2262,13 @@ validate:
 
         result = run_manifest_tests(manifest, project_root=tmp_path)
         assert result.success is True
-        assert result.total == 2
-        assert len(result.acceptance_results) == 1
+        assert result.total == 1
+        assert result.acceptance_results == []
         assert len(result.implementation_results) == 1
-        assert result.acceptance_results[0].stream == TestStream.ACCEPTANCE
         assert result.implementation_results[0].stream == TestStream.IMPLEMENTATION
 
     def test_acceptance_fail_fast(self, tmp_path):
-        """Failing acceptance test with fail_fast stops execution."""
+        """Failing acceptance metadata does not stop fast implementation tests."""
         manifest = tmp_path / "manifests" / "test.manifest.yaml"
         manifest.parent.mkdir()
         manifest.write_text(
@@ -2189,10 +2289,11 @@ validate:
         )
 
         result = run_manifest_tests(manifest, fail_fast=True, project_root=tmp_path)
-        assert result.failed >= 1
-        # Implementation tests should not run
+        assert result.success is True
+        assert result.failed == 0
         assert result.total == 1
-        assert result.implementation_results == []
+        assert result.acceptance_results == []
+        assert len(result.implementation_results) == 1
 
     def test_no_acceptance_backward_compat(self, tmp_path):
         """Manifest without acceptance works unchanged."""
@@ -2264,7 +2365,7 @@ validate:
         assert result.total == 0
 
     def test_manifests_with_acceptance(self, tmp_path):
-        """Multi-manifest run includes acceptance tests."""
+        """Multi-manifest run ignores acceptance metadata."""
         manifests_dir = tmp_path / "manifests"
         manifests_dir.mkdir()
         (manifests_dir / "a.manifest.yaml").write_text(
@@ -2299,8 +2400,8 @@ validate:
 
         result = run_tests(manifest_dir="manifests/", project_root=tmp_path)
         assert result.success is True
-        assert result.total == 3  # 1 acceptance + 2 implementation
-        assert len(result.acceptance_results) == 1
+        assert result.total == 2
+        assert result.acceptance_results == []
         assert len(result.implementation_results) == 2
 
 

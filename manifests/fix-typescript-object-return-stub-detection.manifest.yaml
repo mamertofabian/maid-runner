@@ -1,0 +1,210 @@
+schema: '2'
+goal: Fix TypeScript stub detection for non-empty object literal returns
+type: fix
+created: '2026-06-27T07:19:25Z'
+metadata:
+  tags:
+  - typescript
+  - validation
+  - stub-detection
+  - e310
+  priority: high
+description: |
+  Erindelle exposed a strict verify false positive where a real TypeScript
+  state facade function was reported as E310 because its only statement returned
+  an object literal made of getter methods. The current stub detector treats
+  object returns as non-empty only when tree-sitter reports `pair` children,
+  so getters, methods, shorthand properties, and spreads are misclassified like
+  `return {};`.
+
+  Keep the E310 warning and strict verify policy intact. Narrow the TypeScript
+  object-literal emptiness check so real object members count as implementation
+  behavior while empty object returns remain stub-like.
+temptations:
+- risk: Do not make E310 advisory or disable strict verify warnings to make Erindelle pass.
+  instead: Fix the TypeScript implementation collector so the source artifact is classified correctly before warning policy runs.
+- risk: Do not make every object node non-stub just because it has braces or punctuation.
+  instead: Count only concrete object member nodes such as pairs, methods, shorthand properties, and spreads as non-empty.
+- risk: Do not test the private stub helper directly.
+  instead: Exercise behavior through TypeScriptValidator.collect_implementation_artifacts and assert the public FoundArtifact.is_stub result.
+files:
+  scope:
+  - path: maid_runner/validators/_typescript_implementation.py
+    reason: The fix is a private helper-level TypeScript implementation collector change with no public API change.
+  edit:
+  - path: tests/validators/test_typescript.py
+    artifacts:
+    - kind: test_function
+      name: test_return_object_with_getter_is_not_stub
+      source_scenario: A TypeScript function returns an object literal containing a getter accessor, matching Svelte state facade patterns.
+      actions:
+      - type: api_call
+        subject:
+          export: TypeScriptValidator
+      expected:
+        behavior: The collected function artifact has is_stub false because the getter object return is real implementation behavior.
+    - kind: test_function
+      name: test_return_object_with_method_is_not_stub
+      source_scenario: A TypeScript function returns an object literal containing a method definition.
+      actions:
+      - type: api_call
+        subject:
+          export: TypeScriptValidator
+      expected:
+        behavior: The collected function artifact has is_stub false because the method object return is real implementation behavior.
+    - kind: test_function
+      name: test_return_object_with_shorthand_property_is_not_stub
+      source_scenario: A TypeScript function returns an object literal containing a shorthand property.
+      actions:
+      - type: api_call
+        subject:
+          export: TypeScriptValidator
+      expected:
+        behavior: The collected function artifact has is_stub false because the shorthand property object return is real implementation behavior.
+    - kind: test_function
+      name: test_return_object_with_spread_is_not_stub
+      source_scenario: A TypeScript function returns an object literal containing a spread element.
+      actions:
+      - type: api_call
+        subject:
+          export: TypeScriptValidator
+      expected:
+        behavior: The collected function artifact has is_stub false because the spread object return is real implementation behavior.
+  read:
+  - maid_runner/validators/typescript.py
+  - maid_runner/validators/base.py
+  - manifests/fix-typescript-assertion-nested-braces.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/validators/test_typescript.py
+outcome:
+  status: completed
+  completed_at: '2026-06-27T15:30:00+08:00'
+  summary: |
+    Fixed TypeScript E310 false positives for block-bodied functions whose only
+    statement returns a non-empty object literal made of getters, methods,
+    shorthand properties, or spreads.
+  rationale: |
+    The implementation keeps strict E310 warning policy unchanged and narrows
+    only the TypeScript object-literal emptiness predicate. Empty object returns
+    still classify as stub-like, while concrete tree-sitter member nodes now
+    count as implementation behavior. The exact Erindelle `getLearnerState`
+    source now collects with `is_stub` false.
+  lessons:
+  - lesson_type: validation
+    summary: |
+      TypeScript object-literal stub checks must distinguish punctuation-only
+      empty objects from real object member nodes; checking only for `pair`
+      misses accessors, methods, shorthand properties, and spreads.
+    tags:
+    - typescript
+    - stub-detection
+    - e310
+    paths:
+    - maid_runner/validators/_typescript_implementation.py
+    - tests/validators/test_typescript.py
+  review_notes:
+  - source: independent-review-subagent-locke
+    severity: ready
+    summary: |
+      No actionable findings. Residual gap noted for parenthesized arrow object
+      bodies, which is pre-existing behavior outside this manifest's
+      block-bodied return regression scope.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_typescript.py::TestStubDetection
+    status: failed
+    summary: |
+      Red phase failed exactly the four new non-empty object-return tests before
+      implementation; 14 existing stub-detection tests passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_typescript.py::TestStubDetection
+    status: passed
+    summary: Focused stub-detection suite passed with 18 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-typescript-object-return-stub-detection.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: Behavioral validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-typescript-object-return-stub-detection.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed for the promoted manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-typescript-object-return-stub-detection.manifest.yaml
+    status: passed
+    summary: Manifest test command passed using the full discovered TypeScript validator test file.
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/validators/_typescript_implementation.py
+    - tests/validators/test_typescript.py
+    status: passed
+    summary: Ruff passed for the touched validator and test files.
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/validators/_typescript_implementation.py
+    - tests/validators/test_typescript.py
+    status: passed
+    summary: Black check passed for the touched validator and test files.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Full MAID validation passed for 380 manifests with 292 passed, 0 failed, and 88 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Full MAID test run passed with 153 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    - --include-tests
+    - --keep-going
+    status: passed
+    summary: |
+      Strict verify passed all stages for the changed scope; older-manifest
+      E307/E310 warnings remained advisory and non-blocking.

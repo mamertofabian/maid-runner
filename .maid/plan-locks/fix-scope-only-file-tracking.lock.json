@@ -1,0 +1,68 @@
+{
+  "manifest_path": "manifests/fix-scope-only-file-tracking.manifest.yaml",
+  "manifest_hash": "sha256:6b5e953a0b392aea1294c062a32360393a44f238e12b1c1738ca56693e501e5a",
+  "test_hashes": {
+    "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
+    "tests/cli/test_files_cmd.py": "sha256:65e83b229ae74a92fceb48946d6825be7a0596ab221fa962a58d20581ed8e212",
+    "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+  },
+  "created_at": "2026-06-25T04:02:07.875510+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:71434de7bb44c6241bdeab885279d9a43c1f6a96cf29aaf5ac3ea0e476a00f11",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
+        "tests/cli/test_files_cmd.py": "sha256:65e83b229ae74a92fceb48946d6825be7a0596ab221fa962a58d20581ed8e212",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T04:02:16.183342+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-scope-only-file-tracking.manifest.yaml -> manifests/fix-scope-only-file-tracking.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:c57c61f1ae0a94bd749f226821ba0943b74af5fa69d863fef2ab187261cfdf99",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
+        "tests/cli/test_files_cmd.py": "sha256:65e83b229ae74a92fceb48946d6825be7a0596ab221fa962a58d20581ed8e212",
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
+      },
+      "revised_at": "2026-06-25T04:17:42.037128+00:00",
+      "reason": "Capture completed outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-25T04:02:19.384975+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_verify_cmd.py",
+        "exit_code": 1,
+        "output_tail": "E       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_verify_cmd.py:280: AssertionError\n----------------------------- Captured stdout call -----------------------------\nVerify: FAIL\n  Duration: 13ms\n  PASS schema\n  PASS behavioral\n  PASS implementation\n  PASS coherence\n  FAIL file_tracking\n    Registered (1):\n      src/routes/settings/+page.svelte (No artifacts declared)\n    Tracked (1):\n      src/gate.py\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_file_scope_gates.py::test_file_tracking_classifies_files_scope_as_tracked_inventory\nFAILED tests/cli/test_files_cmd.py::TestCmdFiles::test_files_registered_gate_ignores_scope_only_source_file\nFAILED tests/cli/test_verify_cmd.py::test_verify_file_tracking_passes_for_scope_only_source_file\n3 failed, 60 passed in 2.97s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:returns=FileTrackingReport",
+      "tests/cli/test_files_cmd.py:test_files_registered_gate_ignores_scope_only_source_file",
+      "tests/cli/test_files_cmd.py:test_files_registered_gate_ignores_scope_only_source_file:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_file_tracking_passes_for_scope_only_source_file",
+      "tests/cli/test_verify_cmd.py:test_verify_file_tracking_passes_for_scope_only_source_file:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_file_tracking_classifies_files_scope_as_tracked_inventory",
+      "tests/core/validation/test_file_scope_gates.py:test_file_tracking_classifies_files_scope_as_tracked_inventory:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_files_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/core/validation/test_file_scope_gates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_verify_cmd.py"
+    ]
+  }
+}
