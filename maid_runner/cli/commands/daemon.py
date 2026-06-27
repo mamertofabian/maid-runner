@@ -39,6 +39,7 @@ def register_daemon_subparser(
         "--mode",
         default="implementation",
         choices=["schema", "behavioral", "implementation"],
+        help="Validation mode to run through the daemon",
     )
     _add_common_options(validate)
 
@@ -46,8 +47,16 @@ def register_daemon_subparser(
         "verify",
         help="Run the daemon-supported verify subset",
     )
-    verify.add_argument("--manifest-dir", default="manifests/")
-    verify.add_argument("--allow-empty", action="store_true")
+    verify.add_argument(
+        "--manifest-dir",
+        default="manifests/",
+        help="Directory of active manifests to verify through the daemon",
+    )
+    verify.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Allow daemon verification when no active manifests are found",
+    )
     _add_common_options(verify)
 
     return parser
@@ -116,4 +125,6 @@ def _add_common_options(parser: argparse.ArgumentParser) -> None:
         default=_DEFAULT_TIMEOUT_S,
         help=f"Daemon client timeout in seconds (default: {_DEFAULT_TIMEOUT_S})",
     )
-    parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--json", action="store_true", help="Print daemon response as compact JSON"
+    )

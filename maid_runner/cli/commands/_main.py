@@ -80,7 +80,7 @@ def _register_skills_parser(sub: argparse._SubParsersAction) -> None:
 
 def _register_validators_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("validators", help="List discovered validators")
-    p.add_argument("--json", action="store_true")
+    p.add_argument("--json", action="store_true", help="Print validator data as JSON")
 
 
 def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
@@ -90,19 +90,34 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         "--mode",
         default="implementation",
         choices=["schema", "behavioral", "implementation"],
+        help="Validation mode to run",
     )
-    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+    )
     p.add_argument(
         "--allow-empty",
         action="store_true",
         help="Allow directory-wide validation to succeed when no active manifests are found",
     )
-    p.add_argument("--no-chain", action="store_true")
+    p.add_argument(
+        "--no-chain",
+        action="store_true",
+        help="Validate the selected manifest without manifest-chain merging",
+    )
     p.add_argument(
         "--use-manifest-chain", action="store_true", help=argparse.SUPPRESS
     )  # v1 compat alias (chain is default)
-    p.add_argument("--coherence", action="store_true")
-    p.add_argument("--coherence-only", action="store_true")
+    p.add_argument(
+        "--coherence",
+        action="store_true",
+        help="Run coherence checks after manifest validation",
+    )
+    p.add_argument(
+        "--coherence-only",
+        action="store_true",
+        help="Run coherence checks without structural manifest validation",
+    )
     p.add_argument(
         "--check-assertions",
         action="store_true",
@@ -164,7 +179,10 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         help="Include changed test files in scope checks",
     )
     p.add_argument(
-        "--json", "--json-output", action="store_true"
+        "--json",
+        "--json-output",
+        action="store_true",
+        help="Print validation results as JSON",
     )  # --json-output is v1 compat alias
     p.add_argument(
         "--packet",
@@ -178,34 +196,71 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         help="Write a SARIF 2.1.0 report to the given path",
     )
-    p.add_argument("--quiet", action="store_true")
-    p.add_argument("--watch", action="store_true")
-    p.add_argument("--watch-all", action="store_true")
+    p.add_argument(
+        "--quiet", action="store_true", help="Suppress non-error validation output"
+    )
+    p.add_argument(
+        "--watch",
+        action="store_true",
+        help="Re-run validation when relevant files change",
+    )
+    p.add_argument(
+        "--watch-all",
+        action="store_true",
+        help="Re-run validation when any project file changes",
+    )
 
 
 def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.core.test_runner import _positive_jobs_arg
 
     p = sub.add_parser("test", help="Run validation commands from manifests")
-    p.add_argument("--manifest", default=None)
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--fail-fast", action="store_true")
+    p.add_argument(
+        "--manifest", default=None, help="Run validate commands for one manifest"
+    )
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+    )
+    p.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop after the first failing validate command",
+    )
     p.add_argument(
         "--jobs",
         type=_positive_jobs_arg,
         default=1,
         help="Run independent implementation command groups with this many workers",
     )
-    p.add_argument("--verbose", action="store_true")
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--watch", action="store_true")
-    p.add_argument("--watch-all", action="store_true")
+    p.add_argument(
+        "--verbose", action="store_true", help="Print command output while tests run"
+    )
+    p.add_argument("--json", action="store_true", help="Print test results as JSON")
+    p.add_argument(
+        "--watch",
+        action="store_true",
+        help="Re-run manifest tests when relevant files change",
+    )
+    p.add_argument(
+        "--watch-all",
+        action="store_true",
+        help="Re-run manifest tests when any project file changes",
+    )
     batch_group = p.add_mutually_exclusive_group()
     batch_group.add_argument(
-        "--batch", action="store_const", const=True, default=None, dest="batch"
+        "--batch",
+        action="store_const",
+        const=True,
+        default=None,
+        dest="batch",
+        help="Batch independent command groups when possible",
     )
     batch_group.add_argument(
-        "--no-batch", action="store_const", const=False, dest="batch"
+        "--no-batch",
+        action="store_const",
+        const=False,
+        dest="batch",
+        help="Run validate commands without batching independent groups",
     )
 
 
@@ -213,8 +268,14 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.core.test_runner import _positive_jobs_arg
 
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--allow-empty", action="store_true")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+    )
+    p.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Allow verification when no active manifests are found",
+    )
     verify_fast = p.add_mutually_exclusive_group()
     verify_fast.add_argument(
         "--fail-fast",
@@ -229,9 +290,21 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         dest="fail_fast",
         help="Run remaining verification stages after a failure",
     )
-    p.add_argument("--check-assertions", action="store_true")
-    p.add_argument("--check-stubs", action="store_true")
-    p.add_argument("--fail-on-warnings", action="store_true")
+    p.add_argument(
+        "--check-assertions",
+        action="store_true",
+        help="Warn when behavioral tests exercise artifacts without assertions",
+    )
+    p.add_argument(
+        "--check-stubs",
+        action="store_true",
+        help="Warn when implementation validation finds stubbed artifacts",
+    )
+    p.add_argument(
+        "--fail-on-warnings",
+        action="store_true",
+        help="Fail verification when warnings are present",
+    )
     p.add_argument(
         "--strict",
         action="store_true",
@@ -327,7 +400,9 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         help="Write a SARIF 2.1.0 report to the given path",
     )
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--json", action="store_true", help="Print verification results as JSON"
+    )
 
 
 def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
@@ -335,27 +410,60 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     psub = p.add_subparsers(dest="plan_command")
     lp = psub.add_parser("lock", help="Create a plan lock for a manifest")
     lp.add_argument("manifest_path")
-    lp.add_argument("--no-run", action="store_true", dest="no_run")
-    lp.add_argument("--project-root", default=".", dest="project_root")
+    lp.add_argument(
+        "--no-run",
+        action="store_true",
+        dest="no_run",
+        help="Create the lock without capturing red-phase evidence",
+    )
+    lp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest",
+    )
     rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
     rp.add_argument("manifest_path")
-    rp.add_argument("--reason", default=None)
-    rp.add_argument("--no-run", action="store_true", dest="no_run")
+    rp.add_argument(
+        "--reason",
+        default=None,
+        help="Human-readable reason for revising the plan lock",
+    )
+    rp.add_argument(
+        "--no-run",
+        action="store_true",
+        dest="no_run",
+        help="Revise the lock without recapturing red-phase evidence",
+    )
     rp.add_argument(
         "--preserve-red-evidence",
         action="store_true",
         dest="preserve_red_evidence",
+        help="Keep existing valid red evidence during metadata-only revisions",
     )
     rp.add_argument(
         "--stash-implementation",
         action="store_true",
         dest="stash_implementation",
+        help="Temporarily stash declared implementation changes while recapturing red evidence",
     )
-    rp.add_argument("--project-root", default=".", dest="project_root")
+    rp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest",
+    )
     sp = psub.add_parser("status", help="Report plan lock state and hash matches")
     sp.add_argument("manifest_path")
-    sp.add_argument("--json", action="store_true")
-    sp.add_argument("--project-root", default=".", dest="project_root")
+    sp.add_argument(
+        "--json", action="store_true", help="Print plan-lock status as JSON"
+    )
+    sp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest",
+    )
 
 
 def _register_task_parser(sub: argparse._SubParsersAction) -> None:
@@ -365,56 +473,132 @@ def _register_task_parser(sub: argparse._SubParsersAction) -> None:
     start.add_argument("manifest_path")
     tsub.add_parser("stop", help="Clear the active task manifest")
     status = tsub.add_parser("status", help="Show the active task manifest")
-    status.add_argument("--json", action="store_true")
+    status.add_argument(
+        "--json", action="store_true", help="Print active-task status as JSON"
+    )
 
 
 def _register_hook_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("hook", help="Run MAID agent hook helpers")
     hsub = p.add_subparsers(dest="hook_command")
     scope_check = hsub.add_parser("scope-check", help="Check active manifest scope")
-    scope_check.add_argument("--path", default=None)
-    scope_check.add_argument("--stdin", action="store_true")
-    scope_check.add_argument("--strict", action="store_true")
+    scope_check.add_argument(
+        "--path",
+        default=None,
+        help="Candidate path to check against active manifest scope",
+    )
+    scope_check.add_argument(
+        "--stdin", action="store_true", help="Read a hook payload from standard input"
+    )
+    scope_check.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail when the candidate path is outside writable scope",
+    )
 
 
 def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("snapshot", help="Generate manifest from existing code")
     p.add_argument("file_path")
-    p.add_argument("--output-dir", default="manifests/")
-    p.add_argument("--output", default=None)
-    p.add_argument("--with-tests", action="store_true")
-    p.add_argument("--force", action="store_true")
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--dry-run", action="store_true")
+    p.add_argument(
+        "--output-dir",
+        default="manifests/",
+        help="Directory where the snapshot manifest will be written",
+    )
+    p.add_argument("--output", default=None, help="Explicit manifest output path")
+    p.add_argument(
+        "--with-tests",
+        action="store_true",
+        help="Include discovered test files in the snapshot",
+    )
+    p.add_argument(
+        "--force", action="store_true", help="Overwrite an existing output manifest"
+    )
+    p.add_argument("--json", action="store_true", help="Print snapshot result as JSON")
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the snapshot without writing files",
+    )
 
 
 def _register_snapshot_system_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("snapshot-system", help="Generate system-wide manifest")
-    p.add_argument("--output", default=None)
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--quiet", action="store_true")
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--output", default=None, help="Explicit output path for the system manifest"
+    )
+    p.add_argument(
+        "--manifest-dir",
+        default="manifests/",
+        help="Directory used when deriving default output paths",
+    )
+    p.add_argument(
+        "--quiet", action="store_true", help="Suppress non-error snapshot output"
+    )
+    p.add_argument(
+        "--json", action="store_true", help="Print system snapshot result as JSON"
+    )
 
 
 def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("bootstrap", help="Bootstrap MAID for an existing project")
     p.add_argument("directory", nargs="?", default=".")
-    p.add_argument("--output-dir", default="manifests/")
-    p.add_argument("--exclude", action="append", default=None)
-    p.add_argument("--no-gitignore", action="store_true")
-    p.add_argument("--rank", action="store_true")
-    p.add_argument("--limit", type=int, default=20)
-    p.add_argument("--include-private", action="store_true")
-    p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--quiet", action="store_true")
-    p.add_argument("--verbose", action="store_true")
+    p.add_argument(
+        "--output-dir",
+        default="manifests/",
+        help="Directory where bootstrap manifests will be written",
+    )
+    p.add_argument(
+        "--exclude",
+        action="append",
+        default=None,
+        help="Exclude a path pattern from bootstrap discovery; may be repeated",
+    )
+    p.add_argument(
+        "--no-gitignore",
+        action="store_true",
+        help="Ignore .gitignore rules during bootstrap discovery",
+    )
+    p.add_argument(
+        "--rank",
+        action="store_true",
+        help="Rank undeclared files into an adoption plan",
+    )
+    p.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="Maximum number of ranked files to include",
+    )
+    p.add_argument(
+        "--include-private",
+        action="store_true",
+        help="Include private or hidden files in bootstrap discovery",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview bootstrap output without writing files",
+    )
+    p.add_argument("--json", action="store_true", help="Print bootstrap result as JSON")
+    p.add_argument(
+        "--quiet", action="store_true", help="Suppress non-error bootstrap output"
+    )
+    p.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print detailed bootstrap discovery output",
+    )
 
 
 def _register_learn_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("learn", help="Refresh the deterministic Outcome index")
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--output", default=".maid/outcomes.json")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to index"
+    )
+    p.add_argument(
+        "--output", default=".maid/outcomes.json", help="Outcome index output path"
+    )
     p.add_argument(
         "--include-status",
         action="append",
@@ -422,37 +606,116 @@ def _register_learn_parser(sub: argparse._SubParsersAction) -> None:
         dest="include_status",
         help="Outcome status to index; replaces the completed-only default",
     )
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--quiet", action="store_true")
+    p.add_argument("--json", action="store_true", help="Print learn result as JSON")
+    p.add_argument(
+        "--quiet", action="store_true", help="Suppress non-error learn output"
+    )
 
 
 def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("recall", help="Search the deterministic Outcome index")
-    p.add_argument("--index", default=".maid/outcomes.json")
-    p.add_argument("--text", default=None)
-    p.add_argument("--tag", action="append", default=None)
-    p.add_argument("--path", action="append", default=None)
-    p.add_argument("--artifact", action="append", default=None)
-    p.add_argument("--validation-command", action="append", default=None)
-    p.add_argument("--review-text", default=None)
-    p.add_argument("--manifest-slug", action="append", default=None)
-    p.add_argument("--for-manifest", default=None)
-    p.add_argument("--plan-packet", action="store_true")
-    p.add_argument("--manifest-dir", default=None)
-    p.add_argument("--project-root", default=None)
-    p.add_argument("--allow-stale-index", action="store_true")
-    p.add_argument("--limit", type=int, default=10)
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--index", default=".maid/outcomes.json", help="Outcome index path to search"
+    )
+    p.add_argument(
+        "--text", default=None, help="Free-text query matched against learned outcomes"
+    )
+    p.add_argument(
+        "--tag",
+        action="append",
+        default=None,
+        help="Outcome tag filter; may be repeated",
+    )
+    p.add_argument(
+        "--path",
+        action="append",
+        default=None,
+        help="Path signal to match; may be repeated",
+    )
+    p.add_argument(
+        "--artifact",
+        action="append",
+        default=None,
+        help="Artifact signal to match; may be repeated",
+    )
+    p.add_argument(
+        "--validation-command",
+        action="append",
+        default=None,
+        help="Validation command signal to match; may be repeated",
+    )
+    p.add_argument(
+        "--review-text",
+        default=None,
+        help="Review finding text to use as a recall signal",
+    )
+    p.add_argument(
+        "--manifest-slug",
+        action="append",
+        default=None,
+        help="Manifest slug filter; may be repeated",
+    )
+    p.add_argument(
+        "--for-manifest",
+        default=None,
+        help="Derive recall signals from a manifest file",
+    )
+    p.add_argument(
+        "--plan-packet",
+        action="store_true",
+        help="Print a planning-oriented recall packet",
+    )
+    p.add_argument(
+        "--manifest-dir",
+        default=None,
+        help="Manifest directory used for staleness checks",
+    )
+    p.add_argument(
+        "--project-root",
+        default=None,
+        help="Project root used to resolve manifest-relative paths",
+    )
+    p.add_argument(
+        "--allow-stale-index",
+        action="store_true",
+        help="Use the index even when source manifests changed",
+    )
+    p.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum number of recall matches to print",
+    )
+    p.add_argument("--json", action="store_true", help="Print recall results as JSON")
 
 
 def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("insights", help="Aggregate deterministic Outcome insights")
-    p.add_argument("--index", default=".maid/outcomes.json")
-    p.add_argument("--manifest-dir", default=None)
-    p.add_argument("--project-root", default=None)
-    p.add_argument("--allow-stale-index", action="store_true")
-    p.add_argument("--limit", type=int, default=10)
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--index", default=".maid/outcomes.json", help="Outcome index path to aggregate"
+    )
+    p.add_argument(
+        "--manifest-dir",
+        default=None,
+        help="Manifest directory used for staleness checks",
+    )
+    p.add_argument(
+        "--project-root",
+        default=None,
+        help="Project root used to resolve manifest-relative paths",
+    )
+    p.add_argument(
+        "--allow-stale-index",
+        action="store_true",
+        help="Use the index even when source manifests changed",
+    )
+    p.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum number of insight groups to print",
+    )
+    p.add_argument("--json", action="store_true", help="Print insights as JSON")
 
 
 def _register_benchmark_parser(sub: argparse._SubParsersAction) -> None:
@@ -461,7 +724,9 @@ def _register_benchmark_parser(sub: argparse._SubParsersAction) -> None:
         help="Run local benchmark timings for MAID validation gates",
     )
     p.add_argument("projects", nargs="*", help="Project paths to benchmark")
-    p.add_argument("--manifest-dir", default="manifests/")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Manifest directory to benchmark"
+    )
     p.add_argument(
         "--command-prefix",
         action="append",
@@ -474,9 +739,17 @@ def _register_benchmark_parser(sub: argparse._SubParsersAction) -> None:
         default=1,
         help="Run the full benchmark matrix this many times per project",
     )
-    p.add_argument("--json-output", default=None)
-    p.add_argument("--markdown-output", default=None)
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--json-output", default=None, help="Write benchmark results to a JSON file"
+    )
+    p.add_argument(
+        "--markdown-output",
+        default=None,
+        help="Write benchmark results to a Markdown file",
+    )
+    p.add_argument(
+        "--json", action="store_true", help="Print benchmark results as JSON"
+    )
 
 
 def _positive_repeat_arg(value: str) -> int:
@@ -494,29 +767,53 @@ def _register_incident_parser(sub: argparse._SubParsersAction) -> None:
     isub = p.add_subparsers(dest="incident_command")
 
     capture = isub.add_parser("capture", help="Capture a caught gaming incident")
-    capture.add_argument("--manifest", required=True)
-    capture.add_argument("--packet", required=True)
-    capture.add_argument("--rejected-diff", required=True)
-    capture.add_argument("--tags", required=True)
-    capture.add_argument("--notes", default=None)
+    capture.add_argument(
+        "--manifest", required=True, help="Manifest path associated with the incident"
+    )
+    capture.add_argument(
+        "--packet", required=True, help="Failure or review packet JSON path"
+    )
+    capture.add_argument(
+        "--rejected-diff",
+        required=True,
+        help="Path to the rejected implementation diff",
+    )
+    capture.add_argument("--tags", required=True, help="Comma-separated incident tags")
+    capture.add_argument(
+        "--notes", default=None, help="Optional notes to store with the incident"
+    )
 
     update = isub.add_parser("update", help="Attach the accepted fix diff")
     update.add_argument("incident_path")
-    update.add_argument("--chosen-diff", required=True)
+    update.add_argument(
+        "--chosen-diff", required=True, help="Path to the accepted fix diff"
+    )
 
     list_parser = isub.add_parser("list", help="List captured incidents")
-    list_parser.add_argument("--tag", default=None)
-    list_parser.add_argument("--json", action="store_true")
+    list_parser.add_argument("--tag", default=None, help="Filter incidents by tag")
+    list_parser.add_argument(
+        "--json", action="store_true", help="Print incident list as JSON"
+    )
 
     export = isub.add_parser("export", help="Export incident training data")
-    export.add_argument("--format", choices=["dpo"], required=True)
-    export.add_argument("--output", required=True)
+    export.add_argument(
+        "--format", choices=["dpo"], required=True, help="Training-data export format"
+    )
+    export.add_argument(
+        "--output", required=True, help="Output file for exported training data"
+    )
 
     suggest = isub.add_parser(
         "suggest-temptations", help="Suggest advisory manifest temptations"
     )
-    suggest.add_argument("--paths", required=True)
-    suggest.add_argument("--json", action="store_true")
+    suggest.add_argument(
+        "--paths",
+        required=True,
+        help="Comma-separated paths to consider for temptations",
+    )
+    suggest.add_argument(
+        "--json", action="store_true", help="Print suggested temptations as JSON"
+    )
 
 
 def _register_daemon_parser(sub: argparse._SubParsersAction) -> None:
@@ -546,14 +843,37 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     msub = p.add_subparsers(dest="manifest_command")
     cp = msub.add_parser("create", help="Create a new manifest")
     cp.add_argument("file_path")
-    cp.add_argument("--goal", required=True)
-    cp.add_argument("--type", default="feature", dest="task_type")
-    cp.add_argument("--artifacts", default=None)
-    cp.add_argument("--output-dir", default="manifests/")
-    cp.add_argument("--dry-run", action="store_true")
-    cp.add_argument("--json", action="store_true")
-    cp.add_argument("--delete", action="store_true")
-    cp.add_argument("--rename-to", default=None)
+    cp.add_argument(
+        "--goal", required=True, help="Goal statement for the generated manifest"
+    )
+    cp.add_argument(
+        "--type",
+        default="feature",
+        dest="task_type",
+        help="Task type to write into the manifest",
+    )
+    cp.add_argument(
+        "--artifacts", default=None, help="Comma-separated artifact names to declare"
+    )
+    cp.add_argument(
+        "--output-dir",
+        default="manifests/",
+        help="Directory where the manifest will be written",
+    )
+    cp.add_argument(
+        "--dry-run", action="store_true", help="Preview the manifest without writing it"
+    )
+    cp.add_argument(
+        "--json", action="store_true", help="Print manifest creation result as JSON"
+    )
+    cp.add_argument(
+        "--delete",
+        action="store_true",
+        help="Declare the file as deleted instead of edited",
+    )
+    cp.add_argument(
+        "--rename-to", default=None, help="Declare a rename target for the file"
+    )
     cp.add_argument(
         "--temptation",
         dest="temptations",
@@ -563,35 +883,82 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     )
     pp = msub.add_parser("promote", help="Promote a draft manifest")
     pp.add_argument("manifest_path")
-    pp.add_argument("--output-dir", default="manifests/")
-    pp.add_argument("--no-run", action="store_true", dest="no_run")
-    pp.add_argument("--project-root", default=".", dest="project_root")
-    pp.add_argument("--json", action="store_true")
+    pp.add_argument(
+        "--output-dir",
+        default="manifests/",
+        help="Directory where the promoted manifest will be written",
+    )
+    pp.add_argument(
+        "--no-run",
+        action="store_true",
+        dest="no_run",
+        help="Promote without running migration validation",
+    )
+    pp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the draft manifest",
+    )
+    pp.add_argument(
+        "--json", action="store_true", help="Print promotion result as JSON"
+    )
     fdp = msub.add_parser(
         "from-diff", help="Generate a draft manifest from git diff scope"
     )
-    fdp.add_argument("--since", default=None)
-    fdp.add_argument("--base-ref", default=None, dest="base_ref")
-    fdp.add_argument("--worktree", action="store_true")
-    fdp.add_argument("--slug", default=None)
-    fdp.add_argument("--output", default=None)
-    fdp.add_argument("--force", action="store_true")
-    fdp.add_argument("--dry-run", action="store_true")
-    fdp.add_argument("--json", action="store_true")
+    fdp.add_argument("--since", default=None, help="Commit-ish baseline for the diff")
+    fdp.add_argument(
+        "--base-ref",
+        default=None,
+        dest="base_ref",
+        help="Ref whose merge-base with HEAD is used as the diff baseline",
+    )
+    fdp.add_argument(
+        "--worktree",
+        action="store_true",
+        help="Use current worktree changes as the diff source",
+    )
+    fdp.add_argument(
+        "--slug", default=None, help="Slug for the generated draft manifest"
+    )
+    fdp.add_argument(
+        "--output", default=None, help="Explicit output path for the draft manifest"
+    )
+    fdp.add_argument(
+        "--force", action="store_true", help="Overwrite an existing draft manifest"
+    )
+    fdp.add_argument(
+        "--dry-run", action="store_true", help="Preview the draft without writing it"
+    )
+    fdp.add_argument(
+        "--json", action="store_true", help="Print generated draft details as JSON"
+    )
 
 
 def _register_manifests_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("manifests", help="List manifests referencing a file")
     p.add_argument("file_path")
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--quiet", action="store_true")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to search"
+    )
+    p.add_argument(
+        "--json", action="store_true", help="Print matching manifests as JSON"
+    )
+    p.add_argument(
+        "--quiet", action="store_true", help="Print only matching manifest paths"
+    )
 
 
 def _register_files_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("files", help="Show file tracking status")
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--hide-private", action="store_true")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to inspect"
+    )
+    p.add_argument(
+        "--hide-private",
+        action="store_true",
+        help="Hide private or ignored files from the report",
+    )
     p.add_argument(
         "--fail-on",
         action="append",
@@ -599,8 +966,12 @@ def _register_files_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         help="Return 1 when the selected file-tracking status is present",
     )
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--quiet", action="store_true")
+    p.add_argument(
+        "--json", action="store_true", help="Print file-tracking status as JSON"
+    )
+    p.add_argument(
+        "--quiet", action="store_true", help="Print only paths selected by the report"
+    )
 
 
 def _register_init_parser(sub: argparse._SubParsersAction) -> None:
@@ -609,15 +980,26 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
         "--tool",
         default="auto",
         choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
+        help="Agent tool payload to initialize",
     )
     p.add_argument(
         "--check",
         action="store_true",
         help="Check whether installed MAID init instruction payloads are current",
     )
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--force", action="store_true")
+    p.add_argument(
+        "--json", action="store_true", help="Print init or check result as JSON"
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview initialization without writing files",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing MAID instruction payload files",
+    )
 
 
 def _register_graph_parser(sub: argparse._SubParsersAction) -> None:
@@ -625,32 +1007,60 @@ def _register_graph_parser(sub: argparse._SubParsersAction) -> None:
     gsub = p.add_subparsers(dest="graph_command")
     gq = gsub.add_parser("query", help="Query the knowledge graph")
     gq.add_argument("question")
-    gq.add_argument("--json", action="store_true")
+    gq.add_argument(
+        "--json", action="store_true", help="Print graph query result as JSON"
+    )
     ge = gsub.add_parser("export", help="Export knowledge graph")
-    ge.add_argument("--format", default="json", choices=["json", "dot", "graphml"])
-    ge.add_argument("--output", default=None)
+    ge.add_argument(
+        "--format",
+        default="json",
+        choices=["json", "dot", "graphml"],
+        help="Graph export format",
+    )
+    ge.add_argument(
+        "--output", default=None, help="Output path for exported graph data"
+    )
     ga = gsub.add_parser("analyze", help="Analyze file dependencies")
     ga.add_argument("file_path")
-    ga.add_argument("--json", action="store_true")
-    p.add_argument("--manifest-dir", default="manifests/")
+    ga.add_argument(
+        "--json", action="store_true", help="Print dependency analysis as JSON"
+    )
+    p.add_argument(
+        "--manifest-dir",
+        default="manifests/",
+        help="Directory of manifests used to build the graph",
+    )
 
 
 def _register_coherence_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("coherence", help="Run coherence checks")
-    p.add_argument("--manifest-dir", default="manifests/")
-    p.add_argument("--checks", default=None)
-    p.add_argument("--exclude", default=None)
-    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to check"
+    )
+    p.add_argument(
+        "--checks", default=None, help="Comma-separated coherence checks to run"
+    )
+    p.add_argument(
+        "--exclude", default=None, help="Comma-separated coherence checks to skip"
+    )
+    p.add_argument(
+        "--json", action="store_true", help="Print coherence results as JSON"
+    )
 
 
 def _register_schema_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("schema", help="Display manifest JSON Schema")
-    p.add_argument("--version", default="2", dest="version")
+    p.add_argument(
+        "--version",
+        default="2",
+        dest="version",
+        help="Manifest schema version to display",
+    )
 
 
 def _register_howto_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("howto", help="Show MAID workflow guidance")
-    p.add_argument("--section", dest="topic")
+    p.add_argument("--section", dest="topic", help="Guidance section to display")
     p.add_argument("topic", nargs="?", default=argparse.SUPPRESS)
 
 
@@ -658,19 +1068,51 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("chain", help="Manifest chain operations")
     csub = p.add_subparsers(dest="chain_command")
     clp = csub.add_parser("log", help="Show manifest event log")
-    clp.add_argument("--manifest-dir", default="manifests/")
-    clp.add_argument("--json", action="store_true")
-    clp.add_argument("--active", action="store_true")
-    clp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
-    clp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
+    clp.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to read"
+    )
+    clp.add_argument("--json", action="store_true", help="Print chain log as JSON")
+    clp.add_argument(
+        "--active", action="store_true", help="Show only active chain events"
+    )
+    clp.add_argument(
+        "--until-seq",
+        type=int,
+        default=None,
+        dest="until_seq",
+        help="Replay events through this sequence number",
+    )
+    clp.add_argument(
+        "--version-tag",
+        type=str,
+        default=None,
+        dest="version_tag",
+        help="Replay events through this version tag",
+    )
 
     rp = csub.add_parser(
         "replay", help="Preview effective artifacts at a point in time"
     )
-    rp.add_argument("--manifest-dir", default="manifests/")
-    rp.add_argument("--json", action="store_true")
-    rp.add_argument("--until-seq", type=int, default=None, dest="until_seq")
-    rp.add_argument("--version-tag", type=str, default=None, dest="version_tag")
+    rp.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to read"
+    )
+    rp.add_argument(
+        "--json", action="store_true", help="Print chain replay result as JSON"
+    )
+    rp.add_argument(
+        "--until-seq",
+        type=int,
+        default=None,
+        dest="until_seq",
+        help="Replay events through this sequence number",
+    )
+    rp.add_argument(
+        "--version-tag",
+        type=str,
+        default=None,
+        dest="version_tag",
+        help="Replay events through this version tag",
+    )
 
 
 def _register_serve_parser(sub: argparse._SubParsersAction) -> None:
@@ -686,13 +1128,28 @@ def _register_audit_parser(sub: argparse._SubParsersAction) -> None:
         "supersessions",
         help="Audit supersession artifact preservation",
     )
-    aup.add_argument("--manifest-dir", default="manifests/")
-    aup.add_argument("--lock", default=None)
-    aup.add_argument("--seal", action="store_true")
-    aup.add_argument("--unseal", action="store_true")
-    aup.add_argument("--json", action="store_true")
-    aup.add_argument("--quiet", action="store_true")
-    aup.add_argument("--project-root", default=".", dest="project_root")
+    aup.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to audit"
+    )
+    aup.add_argument(
+        "--lock", default=None, help="Path to the supersession preservation lock file"
+    )
+    aup.add_argument(
+        "--seal", action="store_true", help="Seal the current audit baseline"
+    )
+    aup.add_argument(
+        "--unseal", action="store_true", help="Remove the current audit baseline seal"
+    )
+    aup.add_argument("--json", action="store_true", help="Print audit results as JSON")
+    aup.add_argument(
+        "--quiet", action="store_true", help="Suppress non-error audit output"
+    )
+    aup.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root used for audit path resolution",
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

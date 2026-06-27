@@ -1,0 +1,148 @@
+schema: '2'
+goal: Add descriptive help text for every visible CLI option
+type: fix
+created: '2026-06-27T13:00:50Z'
+metadata:
+  tags:
+  - cli
+  - help
+  - documentation
+  priority: medium
+description: |
+  Fill the remaining sparse argparse help entries so newly added MAID CLI
+  commands and options are discoverable from their `--help` pages. The behavior
+  change is intentionally limited to parser help text: command names, option
+  names, defaults, parsing semantics, dispatch, and exit behavior must remain
+  unchanged.
+
+  Rationale: recent CLI work added commands and automation flags faster than
+  the local help text was kept polished. The parser already exposes the flags,
+  but many visible options such as `--json`, `--no-run`,
+  `--stash-implementation`, and `--for-manifest` are listed without any
+  operator-facing description. A recursive parser-level behavioral test gives
+  this a durable contract without duplicating every help page in tests.
+temptations:
+- risk: Do not rename options or change parser defaults while improving documentation.
+  instead: Add only argparse `help=` text and keep parsed attribute names, choices, defaults, and dispatch untouched.
+- risk: Do not hide sparse options with `argparse.SUPPRESS` to make the test pass.
+  instead: Keep public options visible and give each one a concise description.
+- risk: Do not assert exact full help-page formatting in the behavioral test.
+  instead: Assert the observable contract that every visible optional flag has explicit help text, while allowing argparse line wrapping to vary.
+files:
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Registers public CLI options with concise operator-facing help text for every visible option.
+  - path: maid_runner/cli/commands/daemon.py
+    artifacts:
+    - kind: function
+      name: register_daemon_subparser
+      args:
+      - name: subparsers
+        type: argparse._SubParsersAction
+      returns: argparse.ArgumentParser
+      description: Registers daemon client subcommands whose shared visible options all include concise help text.
+  create:
+  - path: tests/cli/test_cli_help_text.py
+    artifacts:
+    - kind: test_function
+      name: test_build_parser_visible_options_have_explicit_help_text
+      args: []
+      returns: None
+      source_scenario: A user or automation author inspects MAID CLI help after new commands and options are added.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: Every visible optional flag registered under the top-level parser or nested subparsers has explicit help text instead of appearing as a bare option name.
+validate:
+- uv run python -m pytest -q tests/cli/test_cli_help_text.py
+outcome:
+  status: completed
+  completed_at: "2026-06-27T13:08:00Z"
+  summary: "Added concise argparse help text for every visible public CLI option registered by `build_parser`, including recent init, plan revise, daemon, manifest, recall, verify, and reporting flags. Added a recursive parser help-completeness test so future visible options cannot appear as bare flag names unless intentionally hidden with `argparse.SUPPRESS`."
+  rationale: "The request was about `--help` discoverability, not parser behavior. The implementation therefore changed only `help=` strings and preserved command names, option names, destinations, defaults, choices, dispatch, and exit behavior. A parser-tree contract avoids brittle full help snapshots while still catching sparse user-facing help text across nested subcommands."
+  lessons:
+  - lesson_type: testing
+    summary: "For argparse command trees, recursive parser inspection is a useful behavioral guard for help completeness when full `--help` snapshot tests would be too brittle and too broad."
+    tags:
+    - cli
+    - argparse
+    - help
+    paths:
+    - tests/cli/test_cli_help_text.py
+    - maid_runner/cli/commands/_main.py
+  review_notes:
+  - source: implementation-review-subagent-Popper
+    severity: info
+    summary: "Independent read-only review found no issues, confirmed the parser diff was limited to help text/reflow, and reported verdict ready. Reviewer noted the argparse internals in the test are a reasonable focused tradeoff for recursive parser inspection."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_cli_help_text.py
+    status: passed
+    summary: "Focused help-completeness test passed after implementation; red phase failed first with 163 missing-help options when parser edits were stashed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/080-01-fill-cli-help-text.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed for `build_parser`, `register_daemon_subparser`, and the declared behavioral test."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/080-01-fill-cli-help-text.manifest.yaml
+    status: passed
+    summary: "Manifest test gate passed: 1 command passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/cli/commands/daemon.py
+    - tests/cli/test_cli_help_text.py
+    status: passed
+    summary: "Ruff passed on touched Python files."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 382 manifests, 293 passed, 0 failed, and 89 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed: 153 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict verify passed with schema, behavioral, implementation, coherence, file tracking, plan lock, worktree scope, changed scope, and tests gates passing; existing historical implementation warnings remained advisory."

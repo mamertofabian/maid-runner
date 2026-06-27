@@ -1,0 +1,67 @@
+{
+  "manifest_path": "manifests/080-01-fill-cli-help-text.manifest.yaml",
+  "manifest_hash": "sha256:4aeebb07bbb5e37af6e30c147ba259293e2252800194b2f64f23e4e4a2a6e058",
+  "test_hashes": {
+    "tests/cli/test_cli_help_text.py": "sha256:5c6b534ad1720913843b1f2bbf04af4a20e3c25107565a72a555ebf4a098e5cc"
+  },
+  "created_at": "2026-06-27T13:00:38.724576+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:db4427aeb9a430f077e17d04ccda5ed536953c174076dfaf0318268583e5d1c1",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256:5c6b534ad1720913843b1f2bbf04af4a20e3c25107565a72a555ebf4a098e5cc"
+      },
+      "revised_at": "2026-06-27T13:00:50.907335+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/080-01-fill-cli-help-text.manifest.yaml -> manifests/080-01-fill-cli-help-text.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:0588a9fd1e0f9567a9a476d7bf9f3565f21933f4038224440392a765ec9e64d0",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256:5c6b534ad1720913843b1f2bbf04af4a20e3c25107565a72a555ebf4a098e5cc"
+      },
+      "revised_at": "2026-06-27T13:01:10.180816+00:00",
+      "reason": "recapture red evidence after draft promotion restored implementation state"
+    },
+    {
+      "prior_manifest_hash": "sha256:0588a9fd1e0f9567a9a476d7bf9f3565f21933f4038224440392a765ec9e64d0",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256:5c6b534ad1720913843b1f2bbf04af4a20e3c25107565a72a555ebf4a098e5cc"
+      },
+      "revised_at": "2026-06-27T13:09:31.524200+00:00",
+      "reason": "capture completed outcome after implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-27T13:01:10.470937+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_cli_help_text.py",
+        "exit_code": 1,
+        "output_tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n__________ test_build_parser_visible_options_have_explicit_help_text ___________\n\n    def test_build_parser_visible_options_have_explicit_help_text() -> None:\n        assert callable(register_daemon_subparser)\n        parser = build_parser()\n    \n        missing_help = list(_visible_options_without_help(parser, [\"maid\"]))\n    \n>       assert missing_help == []\nE       AssertionError: assert ['maid valida...-output', ...] == []\nE         \nE         Left contains 163 more items, first extra item: 'maid validate --mode'\nE         Use -v to get more diff\n\ntests/cli/test_cli_help_text.py:17: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_cli_help_text.py::test_build_parser_visible_options_have_explicit_help_text\n1 failed in 0.12s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:arg=subparsers:type=argparse._SubParsersAction:default=None",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:kind=function",
+      "maid_runner/cli/commands/daemon.py:function:register_daemon_subparser:returns=argparse.ArgumentParser",
+      "tests/cli/test_cli_help_text.py:test_build_parser_visible_options_have_explicit_help_text",
+      "tests/cli/test_cli_help_text.py:test_build_parser_visible_options_have_explicit_help_text:kind=test_function",
+      "tests/cli/test_cli_help_text.py:test_build_parser_visible_options_have_explicit_help_text:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_cli_help_text.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_cli_help_text.py"
+    ]
+  }
+}
