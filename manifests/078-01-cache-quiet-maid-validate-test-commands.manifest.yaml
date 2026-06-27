@@ -1,0 +1,307 @@
+schema: '2'
+goal: Make quiet `maid validate` commands cache-eligible inside `maid test` so repeated manifest validation does not fall back to subprocess execution
+type: fix
+created: '2026-06-27T00:45:51Z'
+metadata:
+  tags:
+  - performance
+  - test-runner
+  - validation-cache
+  - quiet-output
+  priority: high
+description: |
+  `uv run maid test --json` currently takes 4:06.26 in this repository. The
+  largest avoidable cost is not the batched pytest suite but repeated
+  manifest-specific MAID validation:
+
+  - 140 `maid validate` shaped commands ran during the measured `maid test`.
+  - 130 of them included `--quiet`.
+  - `_parse_maid_validate_command` rejects `--quiet`, so those 130 commands
+    bypass `_run_cached_maid_validate_command` and run as external
+    `uv run maid validate` subprocesses.
+  - The quiet validate commands accounted for 161.86s of the run.
+  - The 10 non-quiet validate commands accounted for 4.32s.
+  - A throwaway counterfactual over the same command tuples, with `--quiet`
+    stripped and an outer manifest-chain cache scope, passed in 15.80s.
+
+  This is intentionally a standalone implementation draft rather than a child
+  of an epic. The measured regression has one high-confidence MAID-owned fix.
+  The remaining 60.72s batched pytest command should be remeasured after this
+  cache fix lands before planning any separate pytest parallelization or
+  dependency change.
+
+  Implement the narrow cache eligibility fix: parse `--quiet`, preserve the
+  flag in the parsed command dictionary, and pass it into the same validation
+  formatters the CLI uses. Keep unsupported flags unsupported.
+
+  Expected behavior:
+
+  - `maid test` executes `uv run maid validate <manifest> --mode behavioral
+    --quiet` through `_run_cached_maid_validate_command` rather than
+    `run_command` subprocess fallback.
+  - Successful quiet cached single-manifest validation produces empty stdout,
+    matching `maid validate <manifest> --quiet` behavior.
+  - Successful quiet cached directory-wide validation preserves the subprocess
+    stdout shape produced by `maid validate --quiet`.
+  - Failed quiet cached validation still reports visible diagnostics, matching
+    the quiet formatter.
+  - JSON mode and quiet mode remain independent: `--json --quiet` should keep
+    JSON output semantics because the CLI formatter gives JSON precedence.
+  - Existing unsupported flags still return `None` from the parser and use the
+    subprocess fallback.
+
+  Out of scope:
+
+  - Grouping all manifest-specific validate commands into one `validate_all`
+    execution.
+  - Adding pytest-xdist or changing pytest batching policy.
+  - Parallelizing cached `maid validate` commands.
+  - Supporting additional validate CLI flags beyond `--quiet`.
+  - Changing single-manifest `maid test --manifest ...`; that path still uses
+    `run_manifest_tests` and can be optimized separately if a fresh benchmark
+    shows it matters.
+temptations:
+- risk: Do not silently skip quiet validate commands or treat them as already covered by a broad validation command.
+  instead: Run each declared quiet validate command through the cached validation path and return a `TestRunResult` for it.
+- risk: Do not make quiet output noisy on success just because the command is cached.
+  instead: Pass the parsed quiet flag into `format_validation_result` and `format_batch_result`.
+- risk: Do not let unsupported validate flags accidentally enter the cached path.
+  instead: Keep the parser fail-closed for every flag other than the explicitly supported set.
+- risk: Do not hide the performance regression behind wall-clock-only tests.
+  instead: Add a call-count/subprocess-fallback test proving quiet validate commands are handled in-process.
+- risk: Do not change `maid test --manifest` or fail-fast semantics incidentally.
+  instead: Limit behavior changes to cache eligibility for validate-shaped commands already passed to `_run_implementation_commands`.
+files:
+  edit:
+  - path: maid_runner/core/_maid_validate_command_cache.py
+    artifacts:
+    - kind: function
+      name: _parse_maid_validate_command
+      args:
+      - name: command
+        type: tuple[str, Ellipsis]
+      returns: dict[str, object] | None
+      source_scenario: A manifest validate command is `uv run maid validate manifests/example.manifest.yaml --mode behavioral --quiet`.
+      actions:
+      - type: api_call
+        subject:
+          function: _parse_maid_validate_command
+      expected:
+        behavior: 'The parser accepts `--quiet`, records `quiet: True`, preserves the existing mode, manifest_dir, json_mode, use_chain, and manifest_path fields, and still rejects unrelated unsupported flags.'
+    - kind: function
+      name: _run_cached_maid_validate_command
+      args:
+      - name: command
+        type: tuple[str, Ellipsis]
+      - name: cwd
+        type: Union[str, Path]
+      - name: manifest_slug
+        type: str
+      - name: stream
+        type: TestStream
+      - name: cache
+        type: dict[str, object]
+      - name: resolve_command
+        type: _CommandResolver
+        default: _identity_resolve_command
+      returns: TestRunResult | None
+      source_scenario: '`maid test` reaches a quiet validate command in an active manifest validate list.'
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command
+      expected:
+        behavior: The command returns a cached `TestRunResult` rather than `None`, so the caller does not use subprocess fallback.
+    - kind: function
+      name: _run_cached_maid_validate_command_in_scope
+      args:
+      - name: command
+        type: tuple[str, Ellipsis]
+      - name: cwd
+        type: Union[str, Path]
+      - name: manifest_slug
+        type: str
+      - name: stream
+        type: TestStream
+      - name: cache
+        type: dict[str, object]
+      - name: resolve_command
+        type: _CommandResolver
+      - name: parsed
+        type: dict[str, object]
+      returns: TestRunResult
+      source_scenario: Cached validation handles quiet single-manifest commands, quiet directory-wide commands, JSON+quiet commands, and quiet failures.
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command_in_scope
+      expected:
+        behavior: Successful quiet output is empty for non-JSON mode; JSON output remains JSON when `--json` is present; failures match the quiet formatter rather than the noisy formatter.
+  - path: tests/core/validation/test_maid_validate_command_cache.py
+    artifacts:
+    - kind: test_function
+      name: test_parse_maid_validate_command_accepts_quiet_flag
+      source_scenario: A quiet validate command uses the same supported command shape that MAID manifests now commonly declare.
+      actions:
+      - type: api_call
+        subject:
+          function: _parse_maid_validate_command
+      expected:
+        behavior: 'The parsed command includes `quiet: True` and remains cache-compatible.'
+    - kind: test_function
+      name: test_run_cached_maid_validate_command_preserves_quiet_success_output
+      source_scenario: A quiet cached single-manifest validation succeeds.
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command
+      expected:
+        behavior: The returned result succeeds with exit code 0 and empty stdout.
+    - kind: test_function
+      name: test_run_cached_maid_validate_command_preserves_quiet_failure_output
+      source_scenario: A quiet cached single-manifest validation fails with a real validation error.
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command
+      expected:
+        behavior: The returned result fails with exit code 1, includes the quiet error-code/message diagnostic, and omits non-quiet summary text such as `FAIL <slug>` and `Mode:`.
+    - kind: test_function
+      name: test_run_cached_maid_validate_command_json_takes_precedence_over_quiet
+      source_scenario: A cached single-manifest validation command includes both `--json` and `--quiet`.
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command
+      expected:
+        behavior: 'The returned result succeeds and stdout is valid JSON with `success: true`, proving JSON mode takes precedence over quiet formatting.'
+    - kind: test_function
+      name: test_run_cached_maid_validate_command_preserves_quiet_batch_success_output
+      source_scenario: A quiet cached directory-wide validation succeeds.
+      actions:
+      - type: api_call
+        subject:
+          function: _run_cached_maid_validate_command
+      expected:
+        behavior: The returned result succeeds with exit code 0 and stdout matching the subprocess newline shape, proving quiet is passed into the batch formatter without changing `maid test --json` payloads.
+    - kind: test_function
+      name: test_run_tests_executes_quiet_maid_validate_commands_in_process
+      source_scenario: An active manifest declares `uv run maid validate manifests/target.manifest.yaml --mode schema --quiet` as its validate command.
+      actions:
+      - type: api_call
+        subject:
+          function: run_tests
+      expected:
+        behavior: '`run_tests` returns a successful `TestRunResult` for the quiet validate command without invoking `run_command` subprocess fallback.'
+    - kind: test_function
+      name: test_run_tests_keeps_unsupported_validate_flags_on_subprocess_path
+      source_scenario: An active manifest declares a `maid validate` command with an unsupported flag.
+      actions:
+      - type: api_call
+        subject:
+          function: run_tests
+      expected:
+        behavior: The unsupported command still reaches `run_command`, proving the cache parser remains fail-closed.
+  - path: docs/plans/maid-runner-performance-backlog.md
+    artifacts:
+    - kind: attribute
+      name: _performance_backlog_078_01_quiet_validate_cache_status
+      of: documentation
+      type: markdown
+      description: Records the post-077 `maid test` timing probe and identifies quiet `maid validate` cache eligibility as the next performance slice.
+  read:
+  - maid_runner/core/test_runner.py
+  - maid_runner/cli/commands/_format.py
+  - maid_runner/cli/commands/validate.py
+validate:
+- uv run python -m pytest -q tests/core/validation/test_maid_validate_command_cache.py
+- uv run maid validate manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-06-27T09:16:31+08:00"
+  summary: "Made quiet `maid validate` commands cache-eligible inside `maid test` while preserving quiet and JSON output semantics."
+  rationale: "The parser now accepts only the explicit `--quiet` flag, records it in the parsed command, and the cached validate path passes it to the same formatters used by the CLI. Directory-wide quiet success preserves the subprocess newline stdout shape, while single-manifest quiet success remains empty and unsupported flags still fall back to subprocess execution."
+  lessons:
+  - lesson_type: cache-output-fidelity
+    summary: "In-process command caches must match captured subprocess stdout, not only formatter return values; batch quiet validation prints an empty formatter result as a newline."
+    tags:
+    - maid-test
+    - validation-cache
+    - quiet-output
+    paths:
+    - maid_runner/core/_maid_validate_command_cache.py
+    - tests/core/validation/test_maid_validate_command_cache.py
+  - lesson_type: manifest-scope
+    summary: "Performance backlog updates that record measurement and implementation status should be declared as editable documentation artifacts, not read-only context."
+    tags:
+    - maid-manifest
+    - documentation
+    - performance
+    paths:
+    - docs/plans/maid-runner-performance-backlog.md
+    - manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml
+  review_notes:
+  - source: independent-review-subagent
+    severity: fixed
+    summary: "Reviewer Russell flagged the performance backlog as read-only scope while dirty; the manifest now declares it as an editable markdown artifact."
+  - source: independent-review-subagent
+    severity: fixed
+    summary: "Reviewer Ohm flagged directory-wide quiet stdout mismatch and stale backlog status; cached batch quiet success now returns the subprocess newline shape and the backlog marks 078-01 implemented."
+  - source: independent-review-subagent
+    severity: info
+    summary: "Reviewer Newton returned READY after static and diff review, with no blocking findings and no remaining scope, plan-lock, or behavior concerns."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_maid_validate_command_cache.py
+    status: passed
+    summary: "Focused cache tests passed: 13 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed with an expected non-failing E307 markdown warning for the performance backlog."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Ruff passed for the repository."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Full MAID validation passed: 377 manifests, 289 passed, 88 skipped, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full MAID test passed: 151 commands, 151 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Handoff verify passed with plan_lock, worktree_scope, changed_scope, and tests passing; existing broad warnings remain non-failing."

@@ -57,6 +57,49 @@ hotspot is closed enough to stop planning more TypeScript-cache work for now.
 The remaining measurable MAID-runner-side opportunity is the `maid test` stage:
 after safe batching and pruning, independent command groups still run serially.
 
+## Post-077 `maid test` Timing Probe
+
+Measured on 2026-06-27 on `release/v2.next` with 381 manifest files, 6 draft
+manifests, and 200 pytest files.
+
+| Command / probe | Wall time | Result | Notes |
+| --- | ---: | --- | --- |
+| `uv run maid test --json` | 4:06.26 | pass | 147 command executions after batching and pruning. |
+| `uv run maid test --jobs 8 --json` | 1:33.64 | pass | 149 command executions after adding the 078 drafts; overlaps subprocess fallback work but still spends 253.07s summed command time. |
+| `uv run maid validate --mode schema --quiet` | 2.95s | pass | Mode-wide schema validation. |
+| `uv run maid validate --mode behavioral --quiet` | 6.50s | pass | Mode-wide behavioral validation. |
+| `uv run maid validate --mode implementation --quiet` | 7.07s | pass | Mode-wide implementation validation. |
+| `uv run maid validate --quiet` | 6.99s | pass | Default implementation validation. |
+| In-process probe over 140 validate-shaped commands with `--quiet` stripped and outer chain cache | 15.80s | pass | Counterfactual for making quiet commands cache-eligible inside `run_tests()`. |
+| In-process probe over the same commands with outer chain and validation cache scopes | 13.88s | pass | Validation cache scope adds a small extra win; chain caching is the dominant win. |
+
+`maid test --json` split by command kind:
+
+| Kind | Count | Sum | Max | Notes |
+| --- | ---: | ---: | ---: | --- |
+| `maid validate` commands | 140 | 166.18s | 6.54s | 130 included `--quiet` and were not cache-eligible. |
+| pytest commands | 5 | 70.04s | 60.72s | The largest command is one batched pytest run over the repo test suite. |
+| docs / formatting commands | 2 | 3.69s | 3.11s | Sphinx API docs build and Black check. |
+
+The current slowdown is not primarily the pytest batch. The largest avoidable
+amplification is 130 `maid validate ... --quiet` commands falling through the
+in-process cache parser and running as external `uv run maid validate`
+subprocesses. Those commands account for 161.86s of the 246.26s wall run.
+Only 10 non-quiet validate commands were cache-compatible, and they accounted
+for 4.32s total.
+
+Because `run_tests()` already opens an outer manifest-chain cache scope, adding
+`--quiet` support to `_parse_maid_validate_command` should allow the existing
+cached path to reuse the chain across these commands. The counterfactual probe
+shows the validate-shaped portion can fall from roughly 166s to roughly 16s
+without weakening validation or changing the declared command set.
+
+Immediate workaround: `uv run maid test --jobs 8 --json` reduces wall time to
+1:33.64 in the current checkout, but it does this by running multiple external
+`uv run maid validate` subprocesses concurrently. It uses similar total CPU
+time to the default run, so it is useful for local waiting time but does not
+close the underlying cache miss.
+
 ## Post-041 Timing Summary
 
 Measured on 2026-05-29 after `041-01` through `041-04` landed. Commands used
@@ -281,6 +324,50 @@ jobs remain serial, fail-fast stays on the serial path, cached in-process
 `maid validate` commands are kept out of the worker pool, and results are
 reported in serial-equivalent order.
 
+### 6. `maid test` misses cached execution for quiet `maid validate` commands
+
+Files and functions:
+
+- `maid_runner/core/_maid_validate_command_cache.py::_parse_maid_validate_command`
+- `maid_runner/core/_maid_validate_command_cache.py::_run_cached_maid_validate_command_in_scope`
+- `maid_runner/core/test_runner.py::_run_implementation_commands`
+- `maid_runner/cli/commands/_format.py::format_validation_result`
+- `maid_runner/cli/commands/_format.py::format_batch_result`
+
+Evidence:
+
+- MAID Runner `uv run maid test --json` passed in 4:06.26 on 2026-06-27.
+- The run executed 147 commands after batching and pruning. 140 were
+  `maid validate` shaped commands with a combined 166.18s duration.
+- 130 of the 140 validate-shaped commands included `--quiet`.
+  `_parse_maid_validate_command` accepts `--mode`, `--manifest-dir`, `--json`,
+  and `--no-chain`, but rejects unrecognized flags, so every quiet validate
+  command falls back to a full subprocess.
+- The 130 quiet validate commands accounted for 161.86s. The 10 non-quiet
+  validate commands accounted for 4.32s.
+- A throwaway in-process probe over the same 140 commands, with `--quiet`
+  stripped and an outer manifest-chain cache scope matching `run_tests()`, took
+  15.80s with all commands passing.
+
+Closure shape:
+
+- Extend `_parse_maid_validate_command` to accept `--quiet` and record a
+  `quiet` boolean separately from `json_mode`.
+- Keep unsupported flags fail-closed; do not broaden the parser to arbitrary
+  validate options without tests for output equivalence and cache safety.
+- Make `_run_cached_maid_validate_command_in_scope` pass the parsed quiet flag
+  into `format_validation_result` and `format_batch_result`, preserving quiet
+  success output shape and visible diagnostics on failure.
+- Add runner coverage proving `maid test` does not call the subprocess
+  fallback for quiet `maid validate` commands and still returns the same
+  success flags, exit codes, command ordering, and quiet stdout/stderr shape.
+- Re-benchmark `uv run maid test --json` after implementation. Expected wall
+  time should fall near the remaining pytest/docs cost plus roughly 16s of
+  cached validation.
+
+Status: implemented as
+`manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml`.
+
 ## Speculative Ideas
 
 - Opt-in parallel validation can help only after the caching work above. Running
@@ -303,6 +390,7 @@ Completed:
 4. `041-04-cache-ts-reexport-compiler-fallback.manifest.yaml`
 5. `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
 6. `046-01-parallelize-independent-maid-test-command-groups.manifest.yaml`
+7. `078-01-cache-quiet-maid-validate-test-commands.manifest.yaml`
 
 Next draft:
 
@@ -311,6 +399,9 @@ Next draft:
 
 Future draft candidates:
 
+- Re-benchmark the 60.72s batched pytest command after 078-01 lands before
+  planning pytest parallelization, xdist, or batching-policy changes. The
+  current evidence says the first MAID-owned win is quiet validate caching.
 - None for TypeScript validation until a fresh profile shows a new dominant
   TypeScript bridge cost.
 
@@ -325,6 +416,8 @@ Future draft candidates:
 - `maid test --jobs N` proves the same commands and exit statuses are reported
   in deterministic result order, with deterministic overlap instrumentation
   proving eligible independent command groups can run concurrently.
+- Quiet `maid validate` commands executed by `maid test` use the in-process
+  cached path and preserve quiet output semantics.
 - `maid verify --json` remains deterministic except for duration fields.
 - No optimization weakens schema, file-tracking, worktree-scope, coherence, or
   validate-command integrity checks.
@@ -335,6 +428,18 @@ The post-041 planning pass promoted and implemented `043-04`. The 046 pass
 promoted and implemented opt-in parallel test command execution. Future draft
 manifests must schema-validate before promotion, then be implemented one at a
 time through the MAID implementation workflow.
+
+Commands run during the 2026-06-27 refresh:
+
+- `uv run maid test --json`
+- `uv run maid test --jobs 8 --json`
+- `uv run maid validate --mode schema --quiet`
+- `uv run maid validate --mode behavioral --quiet`
+- `uv run maid validate --mode implementation --quiet`
+- `uv run maid validate --quiet`
+- `uv run maid validate manifests/drafts/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml --mode schema --quiet`
+- throwaway in-process probes over the 140 validate-shaped command tuples from
+  `/tmp/maid-test-default.json`
 
 Commands run during the 2026-05-29 refresh:
 
