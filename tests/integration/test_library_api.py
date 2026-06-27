@@ -31,7 +31,7 @@ class TestPublicAPIImports:
 
         assert isinstance(__version__, str)
 
-    def test_release_metadata_is_2_17_2(self):
+    def test_release_metadata_is_2_18_0(self):
         from maid_runner import __version__
 
         root = Path(__file__).resolve().parents[2]
@@ -40,15 +40,15 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.17.2"
-        assert re.search(r'^version = "2\.17\.2"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.18.0"
+        assert re.search(r'^version = "2\.18\.0"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.17\.2"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.18\.0"',
             lockfile.read_text(),
         )
-        assert "## [2.17.2] - 2026-06-25" in changelog.read_text()
-        assert "**Current Version:** 2.17.2" in roadmap.read_text()
-        assert "The local CLI reports `maid 2.17.2`." in roadmap.read_text()
+        assert "## [2.18.0] - 2026-06-27" in changelog.read_text()
+        assert "**Current Version:** 2.18.0" in roadmap.read_text()
+        assert "The local CLI reports `maid 2.18.0`." in roadmap.read_text()
 
     def test_convenience_functions(self):
         from maid_runner import validate, validate_all

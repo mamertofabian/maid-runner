@@ -5,10 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.17.2] - 2026-06-25
+## [2.18.0] - 2026-06-27
+
+### Added
+- **Stash-backed plan revision** — Added a `maid plan revise --stash` workflow so implementation feedback can be revised through a temporary clean worktree while preserving local lifecycle artifacts.
+- **Instruction payload versioning** — `maid init` now records and reports the installed MAID Runner and instruction payload versions so stale generated agent guidance can be detected explicitly.
+- **Outcome learning loop guidance** — Distributed guidance for using completed Outcomes in planning, implementation, review, onboarding, and auditor cadence workflows, including Codex parity for the auditor payload.
+- **Recall related-match scoring** — Outcome recall now gives related-path and related-tag matches explicit scoring weight when building planning context.
+
+### Changed
+- **Draft workflow payloads** — Refreshed generated Claude, Codex, and packaged onboarding guidance so draft recall, plan locks, promotion, review, Outcome capture, and `maid learn` stay aligned across init payloads.
+- **Release version metadata** — Bumped the package version to `2.18.0`.
 
 ### Fixed
 - **Scope-only file tracking** — `files.scope` source files now count as tracked inventory, so strict `maid verify` no longer fails on intentional no-artifact Svelte route, prop-only, or config files while preserving registered-file failures for read-only production files.
+- **Fast `maid test` contract** — `maid test` now keeps its manifest-declared command surface fast-only and blocks accidental E2E coverage from leaking into the default release gate.
+- **Stash revise lifecycle files** — `maid plan revise --stash` tolerates lifecycle metadata dirt created by the revision workflow instead of failing on its own bookkeeping.
+- **Quiet validate command caching** — Cached `maid validate` test-command checks now preserve quiet-mode behavior instead of treating quiet output as a cache miss.
+- **Python skill script identity** — Behavioral coverage now recognizes hyphenated MAID skill scripts as their canonical import identities, avoiding false `E200` gaps.
+- **TypeScript object-return stubs** — TypeScript implementation validation now detects object-return stub patterns that previously escaped placeholder checks.
 
 ## [2.17.1] - 2026-06-25
 
@@ -1068,7 +1083,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[2.17.2]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.17.2
+[2.18.0]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.18.0
 [2.17.1]: https://github.com/mamertofabian/maid-runner/compare/v2.17.0...v2.17.1
 [2.17.0]: https://github.com/mamertofabian/maid-runner/compare/v2.16.3...v2.17.0
 [2.16.3]: https://github.com/mamertofabian/maid-runner/compare/v2.16.2...v2.16.3
