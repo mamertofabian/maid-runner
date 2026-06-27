@@ -1,0 +1,79 @@
+{
+  "manifest_path": "manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml",
+  "manifest_hash": "sha256:cde553cb796514aeff223ffcd7a0f7dcf8067811d6e87892448b1bcb6f7c1525",
+  "test_hashes": {
+    "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+    "tests/core/validation/test_behavioral_coverage.py": "sha256:c8763fb0bdc12711484e3628061292cfb0af687b8166e652fae880af46cfec5c"
+  },
+  "created_at": "2026-06-27T06:35:20.593663+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:e56f6489b6e98bfab2ec5e70de80a6a44ed810608915f56834bfef51c9654e8a",
+      "prior_test_hashes": {
+        "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256:8e58c7c4753f6eeeaee20b62e6e3611f727403943aecdfa653328942dce67c8f"
+      },
+      "revised_at": "2026-06-27T06:35:27.647075+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-hyphenated-skill-script-e200.manifest.yaml -> manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:1e38207199b174fd9d140d04fa9fb9d9d0b924efd002ac3bbed3e7d19cce90f7",
+      "prior_test_hashes": {
+        "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256:8e58c7c4753f6eeeaee20b62e6e3611f727403943aecdfa653328942dce67c8f"
+      },
+      "revised_at": "2026-06-27T06:38:11.868408+00:00",
+      "reason": "Format behavioral coverage test after Black check"
+    },
+    {
+      "prior_manifest_hash": "sha256:1e38207199b174fd9d140d04fa9fb9d9d0b924efd002ac3bbed3e7d19cce90f7",
+      "prior_test_hashes": {
+        "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256:c8763fb0bdc12711484e3628061292cfb0af687b8166e652fae880af46cfec5c"
+      },
+      "revised_at": "2026-06-27T06:45:27.435809+00:00",
+      "reason": "Capture completed Outcome after implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-27T06:35:28.306545+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_identity_matching.py tests/core/validation/test_behavioral_coverage.py",
+        "exit_code": 1,
+        "output_tail": "            \"SCRIPTS_DIR = Path(__file__).resolve().parents[1] / '.codex' / 'skills' / \"\n            \"'pdf-book-lesson-compiler' / 'scripts'\\n\"\n            \"sys.path.insert(0, str(SCRIPTS_DIR))\\n\\n\"\n            \"from extract_exercise_candidates import extract_candidates\\n\\n\"\n            \"def test_extract_candidates():\\n\"\n            \"    assert extract_candidates('1. Do the thing') == []\\n\",\n        )\n    \n        engine = ValidationEngine(project_root=project)\n        result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)\n    \n>       assert result.success is True\nE       AssertionError: assert False is True\nE        +  where False = ValidationResult(success=False, manifest_slug='extract-exercise-candidates', manifest_path='/tmp/pytest-of-atomrem/pyt...e, end_line=None, end_column=None), suggestion=None)], warnings=[], file_tracking=None, duration_ms=1.8476449986337684).success\n\ntests/core/validation/test_behavioral_coverage.py:155: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_identity_matching.py::TestMatchArtifactToReferences::test_non_importable_python_module_path_matches_sys_path_module_stem_import\nFAILED tests/core/validation/test_behavioral_coverage.py::test_sys_path_imported_python_script_in_hyphenated_skill_dir_satisfies_e200\n2 failed, 106 passed in 0.48s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/identity.py:function:match_artifact_to_references",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=artifact:type=FoundArtifact:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=project_root:type=Path:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=reexport_resolver:type=Optional[_ReexportResolver]:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=references:type=Iterable[FoundArtifact]:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:kind=function",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:returns=bool",
+      "tests/core/test_identity_matching.py:test_importable_python_module_path_rejects_stem_only_import_source",
+      "tests/core/test_identity_matching.py:test_importable_python_module_path_rejects_stem_only_import_source:kind=test_function",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_matches_sys_path_module_stem_import",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_matches_sys_path_module_stem_import:kind=test_function",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_rejects_name_only_fallback",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_rejects_name_only_fallback:kind=test_function",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_rejects_unrelated_import_source",
+      "tests/core/test_identity_matching.py:test_non_importable_python_module_path_rejects_unrelated_import_source:kind=test_function",
+      "tests/core/validation/test_behavioral_coverage.py:test_sys_path_imported_python_script_in_hyphenated_skill_dir_satisfies_e200",
+      "tests/core/validation/test_behavioral_coverage.py:test_sys_path_imported_python_script_in_hyphenated_skill_dir_satisfies_e200:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_identity_matching.py",
+      "tests/core/validation/test_behavioral_coverage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_identity_matching.py tests/core/validation/test_behavioral_coverage.py"
+    ]
+  }
+}

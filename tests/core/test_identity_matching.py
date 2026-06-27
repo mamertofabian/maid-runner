@@ -206,6 +206,86 @@ class TestMatchArtifactToReferences:
 
         assert not match_artifact_to_references(artifact, references, tmp_path)
 
+    def test_non_importable_python_module_path_matches_sys_path_module_stem_import(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "extract_candidates",
+            module_path=(
+                ".codex.skills.pdf-book-lesson-compiler.scripts."
+                "extract_exercise_candidates"
+            ),
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="extract_candidates",
+                import_source="extract_exercise_candidates",
+                reference_context="call",
+            )
+        ]
+
+        assert match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_non_importable_python_module_path_rejects_name_only_fallback(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "extract_candidates",
+            module_path=(
+                ".codex.skills.pdf-book-lesson-compiler.scripts."
+                "extract_exercise_candidates"
+            ),
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="extract_candidates",
+                reference_context="call",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_non_importable_python_module_path_rejects_unrelated_import_source(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "extract_candidates",
+            module_path=(
+                ".codex.skills.pdf-book-lesson-compiler.scripts."
+                "extract_exercise_candidates"
+            ),
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="extract_candidates",
+                import_source="unrelated_helpers",
+                reference_context="call",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
+    def test_importable_python_module_path_rejects_stem_only_import_source(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = _artifact(
+            "extract_candidates",
+            module_path="pkg.scripts.extract_exercise_candidates",
+        )
+        references = [
+            FoundArtifact(
+                kind=ArtifactKind.FUNCTION,
+                name="extract_candidates",
+                import_source="extract_exercise_candidates",
+                reference_context="call",
+            )
+        ]
+
+        assert not match_artifact_to_references(artifact, references, tmp_path)
+
     def test_dotful_path_modules_do_not_match_slash_normalized_paths(
         self, tmp_path: Path
     ) -> None:

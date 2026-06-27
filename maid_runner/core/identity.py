@@ -9,6 +9,7 @@ reference carries no resolvable import information.
 
 from __future__ import annotations
 
+import keyword
 from pathlib import Path
 from typing import Callable, Iterable, Optional
 
@@ -50,6 +51,8 @@ def _module_identity_matches(reference_module: str, artifact_module: str) -> boo
         return True
     if _source_root_module_identity_matches(reference_module, artifact_module):
         return True
+    if _non_importable_python_module_stem_matches(reference_module, artifact_module):
+        return True
     if "/" in reference_module or "/" not in artifact_module:
         return False
     if "." in Path(artifact_module).name:
@@ -70,6 +73,22 @@ def _without_source_root_prefix(module: str) -> Optional[str]:
     if len(parts) < 2 or parts[0] not in _SOURCE_ROOT_MODULE_PREFIXES:
         return None
     return ".".join(parts[1:])
+
+
+def _non_importable_python_module_stem_matches(
+    reference_module: str,
+    artifact_module: str,
+) -> bool:
+    if "/" in reference_module or "/" in artifact_module:
+        return False
+    if "." in reference_module:
+        return False
+    parts = artifact_module.split(".")
+    if len(parts) < 2 or not parts[-1]:
+        return False
+    if all(part.isidentifier() and not keyword.iskeyword(part) for part in parts):
+        return False
+    return reference_module == parts[-1]
 
 
 def _reference_identity_can_represent_artifact(

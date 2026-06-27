@@ -1,0 +1,216 @@
+schema: '2'
+goal: Fix Python E200 false positives for sys.path-imported scripts in hyphenated skill directories
+type: fix
+created: '2026-06-27T06:35:27Z'
+metadata:
+  tags:
+  - python
+  - behavioral-coverage
+  - identity
+  - e200
+  priority: high
+description: |
+  Python skill/tool scripts may live under non-package directories such as
+  .codex/skills/pdf-book-lesson-compiler/scripts/. MAID derives artifact module
+  identity from the file path, producing a dotted string with a leading dot and
+  hyphenated path segment that cannot be a Python import module. Tests correctly
+  import those scripts by inserting the scripts directory on sys.path and then
+  importing the file stem, but the identity matcher currently compares the
+  legal runtime import source against the non-importable path-derived module
+  identity and reports E200.
+
+  Preserve identity-backed E200 enforcement while accepting this specific
+  Python script layout: a behavioral reference imported from the artifact file
+  stem may cover an artifact whose path-derived Python module identity is not
+  importable. This belongs in identity matching so Python collection and
+  file_to_module_path remain stable for already-covered layouts.
+temptations:
+- risk: Do not silence E200 whenever a same-named artifact appears in any test.
+  instead: Require an identity-bearing behavioral reference whose import_source matches the non-importable artifact module's file stem.
+- risk: Do not count import-only declarations as behavioral coverage for skill scripts.
+  instead: Keep the existing reference_context checks so the test must call, access, or otherwise exercise the artifact.
+- risk: Do not apply Python identifier validity rules to TypeScript or Svelte path identities.
+  instead: Handle only dotted Python-style module identities inside the shared matcher without changing slash-based module identity behavior.
+- risk: Do not supersede older identity manifests for an additive compatibility case.
+  instead: Chain-merge this regression with existing source-root and same-name identity contracts.
+files:
+  edit:
+  - path: maid_runner/core/identity.py
+    artifacts:
+    - kind: function
+      name: match_artifact_to_references
+      args:
+      - name: artifact
+        type: FoundArtifact
+      - name: references
+        type: Iterable[FoundArtifact]
+      - name: project_root
+        type: Path
+      - name: reexport_resolver
+        type: Optional[_ReexportResolver]
+        default: None
+      returns: bool
+      description: Match behavioral references to declared artifacts while accepting sys.path-imported Python script stems for non-importable path-derived module identities.
+  - path: tests/core/test_identity_matching.py
+    artifacts:
+    - kind: test_function
+      name: test_non_importable_python_module_path_matches_sys_path_module_stem_import
+      source_scenario: A manifest path under .codex/skills/pdf-book-lesson-compiler/scripts produces a non-importable dotted module identity while the test imports extract_exercise_candidates from a sys.path-inserted scripts directory.
+      actions:
+      - type: api_call
+        subject:
+          export: match_artifact_to_references
+      expected:
+        behavior: The identity matcher accepts extract_exercise_candidates.extract_candidates as coverage for the script artifact.
+    - kind: test_function
+      name: test_non_importable_python_module_path_rejects_name_only_fallback
+      source_scenario: A test calls a local same-name extract_candidates helper without any import_source while the manifest artifact has a non-importable path-derived module identity.
+      actions:
+      - type: api_call
+        subject:
+          export: match_artifact_to_references
+      expected:
+        behavior: The identity matcher rejects the local name-only call so the compatibility path cannot become a broad E200 bypass.
+    - kind: test_function
+      name: test_non_importable_python_module_path_rejects_unrelated_import_source
+      source_scenario: A test imports extract_candidates from unrelated_helpers while the manifest artifact lives in a non-importable skill script path.
+      actions:
+      - type: api_call
+        subject:
+          export: match_artifact_to_references
+      expected:
+        behavior: The identity matcher rejects the unrelated import source despite the same artifact name.
+    - kind: test_function
+      name: test_importable_python_module_path_rejects_stem_only_import_source
+      source_scenario: A manifest artifact lives in importable package module pkg.scripts.extract_exercise_candidates while a test imports extract_candidates from top-level extract_exercise_candidates.
+      actions:
+      - type: api_call
+        subject:
+          export: match_artifact_to_references
+      expected:
+        behavior: The identity matcher rejects stem-only coverage for importable dotted modules so the compatibility path stays limited to non-importable path identities.
+  - path: tests/core/validation/test_behavioral_coverage.py
+    artifacts:
+    - kind: test_function
+      name: test_sys_path_imported_python_script_in_hyphenated_skill_dir_satisfies_e200
+      source_scenario: A temporary project declares .codex/skills/pdf-book-lesson-compiler/scripts/extract_exercise_candidates.py and tests it through a sys.path-inserted import of extract_exercise_candidates.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: Behavioral validation succeeds without E200 because the test calls the imported script artifact through its runtime module stem.
+  read:
+  - maid_runner/core/module_paths.py
+  - maid_runner/validators/python.py
+  - maid_runner/core/_behavioral_validation.py
+  - maid_runner/core/validate.py
+  - maid_runner/validators/base.py
+  - manifests/add-semantic-reference-index.manifest.yaml
+  - manifests/fix-python-src-root-identity-e200.manifest.yaml
+  - manifests/040-29-retire-python-identity-e200-legacy-cases.manifest.yaml
+  - manifests/040-35-retire-identity-backed-coverage-legacy-cases.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_identity_matching.py tests/core/validation/test_behavioral_coverage.py
+outcome:
+  status: completed
+  completed_at: "2026-06-27T06:55:00Z"
+  summary: "Fixed Python E200 false positives for sys.path-imported scripts in hyphenated skill directories by allowing identity matching between a non-importable path-derived Python module identity and its runtime file-stem import source. The fix preserves identity-backed coverage: local name-only calls, unrelated import sources, import-only references, slash-based path identities, and importable dotted Python modules do not get the stem shortcut."
+  rationale: "The downstream bug came from file_to_module_path deriving a dotted identity such as .codex.skills.pdf-book-lesson-compiler.scripts.extract_exercise_candidates, while correct tests import the script as extract_exercise_candidates after adding the scripts directory to sys.path. Keeping file_to_module_path unchanged avoids disturbing existing module identity contracts; the matcher now recognizes only invalid Python dotted identities whose final segment matches the reference import_source."
+  lessons:
+    - lesson_type: validation
+      summary: "Positive compatibility tests for identity fallbacks need paired negative guards for name-only fallback, unrelated import sources, and valid importable modules; otherwise a broad stem-matching shortcut can silently weaken E200."
+      tags:
+        - e200
+        - identity
+        - behavioral-tests
+      paths:
+        - tests/core/test_identity_matching.py
+        - tests/core/validation/test_behavioral_coverage.py
+    - lesson_type: design
+      summary: "When path-derived identities can describe non-importable Python files, keep the compatibility rule at the identity-comparison boundary and require an identity-bearing runtime import source instead of erasing module identity entirely."
+      tags:
+        - python
+        - identity
+        - validation
+      paths:
+        - maid_runner/core/identity.py
+  review_notes:
+    - source: maid-plan-review
+      severity: warning
+      summary: "First plan review found the draft allowed an over-broad implementation that could match file stems for importable modules; the contract was revised with an importable-module negative guard and re-reviewed as approved."
+    - source: maid-implementation-review
+      severity: info
+      summary: "Independent implementation review reported no findings, confirmed the implementation stayed within scope, preserved the narrow stem-import match, and retained red evidence through the formatting-only lock revision."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_identity_matching.py
+        - tests/core/validation/test_behavioral_coverage.py
+      status: passed
+      summary: "Focused identity and behavioral coverage tests passed: 108 passed. The positive matcher and end-to-end E200 tests failed before implementation while guard tests stayed green."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml
+      status: passed
+      summary: "Manifest-scoped MAID test runner passed the declared validation command."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed for 379 manifests with 291 passed, 0 failed, and 88 skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test runner passed 153 commands."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - .
+      status: passed
+      summary: "Black formatting check passed for 351 files after formatting the touched behavioral coverage test."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - .
+      status: passed
+      summary: "Ruff lint passed for the repository."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Explicit-baseline handoff verification passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests with existing advisory warnings only."

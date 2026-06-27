@@ -110,6 +110,51 @@ validate:
     assert coverage_issues(result) == []
 
 
+def test_sys_path_imported_python_script_in_hyphenated_skill_dir_satisfies_e200(
+    project,
+):
+    manifest_path = write_manifest(
+        project,
+        "extract-exercise-candidates.manifest.yaml",
+        """schema: "2"
+goal: "Extract exercise candidates"
+files:
+  edit:
+    - path: .codex/skills/pdf-book-lesson-compiler/scripts/extract_exercise_candidates.py
+      artifacts:
+        - kind: function
+          name: extract_candidates
+  read:
+    - tests/test_extract_exercise_candidates.py
+validate:
+  - pytest tests/test_extract_exercise_candidates.py -v
+""",
+    )
+    write_source(
+        project,
+        ".codex/skills/pdf-book-lesson-compiler/scripts/extract_exercise_candidates.py",
+        "def extract_candidates(text):\n" "    return []\n",
+    )
+    write_source(
+        project,
+        "tests/test_extract_exercise_candidates.py",
+        "import sys\n"
+        "from pathlib import Path\n\n"
+        "SCRIPTS_DIR = Path(__file__).resolve().parents[1] / '.codex' / 'skills' / "
+        "'pdf-book-lesson-compiler' / 'scripts'\n"
+        "sys.path.insert(0, str(SCRIPTS_DIR))\n\n"
+        "from extract_exercise_candidates import extract_candidates\n\n"
+        "def test_extract_candidates():\n"
+        "    assert extract_candidates('1. Do the thing') == []\n",
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.BEHAVIORAL)
+
+    assert result.success is True
+    assert coverage_issues(result) == []
+
+
 def test_behavioral_validation_fails_when_artifact_is_not_used_in_test(project):
     manifest_path = write_manifest(
         project,
