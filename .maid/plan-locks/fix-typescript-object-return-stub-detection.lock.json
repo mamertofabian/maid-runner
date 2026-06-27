@@ -1,0 +1,65 @@
+{
+  "manifest_path": "manifests/fix-typescript-object-return-stub-detection.manifest.yaml",
+  "manifest_hash": "sha256:0821e1c9f830d9371fe57aadd273c31144d34f61644ace71f994c90b9f62fb99",
+  "test_hashes": {
+    "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d"
+  },
+  "created_at": "2026-06-27T07:19:12.046769+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:58532a42240e15b8b4a4697a2abe6d353c966e49826973a1f22bacdb70a46d64",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d"
+      },
+      "revised_at": "2026-06-27T07:19:25.325378+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-object-return-stub-detection.manifest.yaml -> manifests/fix-typescript-object-return-stub-detection.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:d5c583943c18036e5c4d03b4306a713787c3c49ad09138b11e425fedf0a88bf6",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d"
+      },
+      "revised_at": "2026-06-27T07:22:34.953444+00:00",
+      "reason": "Use the discovered TypeScript validator test file in validate command"
+    },
+    {
+      "prior_manifest_hash": "sha256:884278f5641b1c6f9842dcd69730bcba1735ac9993c562b179a7017fd66ca1d9",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d"
+      },
+      "revised_at": "2026-06-27T07:29:05.743477+00:00",
+      "reason": "Capture completed outcome metadata"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-27T07:22:35.393509+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_typescript.py",
+        "exit_code": 1,
+        "output_tail": "\nself = <test_typescript.TestStubDetection object at 0x760c9d4c1340>\n\n    def test_return_object_with_spread_is_not_stub(self):\n        validator = TypeScriptValidator()\n        source = \"function foo(profile: object): object { return { ...profile }; }\\n\"\n        result = validator.collect_implementation_artifacts(source, \"test.ts\")\n        a = _find(result.artifacts, \"foo\")\n        assert a is not None\n>       assert a.is_stub is False\nE       AssertionError: assert True is False\nE        +  where True = FoundArtifact(kind=<ArtifactKind.FUNCTION: 'function'>, name='foo', of=None, args=(ArgSpec(name='profile', type='objec...None, is_stub=True, line=1, column=None, module_path='test', import_source=None, alias_of=None, reference_context=None).is_stub\n\ntests/validators/test_typescript.py:846: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_typescript.py::TestStubDetection::test_return_object_with_getter_is_not_stub\nFAILED tests/validators/test_typescript.py::TestStubDetection::test_return_object_with_method_is_not_stub\nFAILED tests/validators/test_typescript.py::TestStubDetection::test_return_object_with_shorthand_property_is_not_stub\nFAILED tests/validators/test_typescript.py::TestStubDetection::test_return_object_with_spread_is_not_stub\n4 failed, 62 passed in 0.28s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/validators/test_typescript.py:test_return_object_with_getter_is_not_stub",
+      "tests/validators/test_typescript.py:test_return_object_with_getter_is_not_stub:kind=test_function",
+      "tests/validators/test_typescript.py:test_return_object_with_method_is_not_stub",
+      "tests/validators/test_typescript.py:test_return_object_with_method_is_not_stub:kind=test_function",
+      "tests/validators/test_typescript.py:test_return_object_with_shorthand_property_is_not_stub",
+      "tests/validators/test_typescript.py:test_return_object_with_shorthand_property_is_not_stub:kind=test_function",
+      "tests/validators/test_typescript.py:test_return_object_with_spread_is_not_stub",
+      "tests/validators/test_typescript.py:test_return_object_with_spread_is_not_stub:kind=test_function"
+    ],
+    "test_files": [
+      "tests/validators/test_typescript.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_typescript.py"
+    ]
+  }
+}

@@ -12,6 +12,20 @@ def _text(node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8")
 
 
+_OBJECT_MEMBER_NODE_TYPES = frozenset(
+    {
+        "pair",
+        "method_definition",
+        "shorthand_property_identifier",
+        "spread_element",
+    }
+)
+
+
+def _object_literal_has_members(node) -> bool:
+    return any(child.type in _OBJECT_MEMBER_NODE_TYPES for child in node.children)
+
+
 def _is_stub_body_ts(node, source: bytes) -> bool:
     """Check if a function body is a stub (no real implementation).
 
@@ -37,9 +51,7 @@ def _is_stub_body_ts(node, source: bytes) -> bool:
                     return True
             if child.type == "false":
                 return True
-            if child.type == "object" and not any(
-                c.type == "pair" for c in child.children
-            ):
+            if child.type == "object" and not _object_literal_has_members(child):
                 return True
             if child.type == "array" and not any(
                 c.type not in ("[", "]", ",") for c in child.children
@@ -83,7 +95,7 @@ def _is_stub_body_ts(node, source: bytes) -> bool:
                 )
                 if not has_substitution:
                     return True
-            if val.type == "object" and not any(c.type == "pair" for c in val.children):
+            if val.type == "object" and not _object_literal_has_members(val):
                 return True
             if val.type == "array" and not any(
                 c.type not in ("[", "]", ",") for c in val.children

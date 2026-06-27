@@ -810,6 +810,41 @@ class TestStubDetection:
         a = _find(result.artifacts, "foo")
         assert a.is_stub is True
 
+    def test_return_object_with_getter_is_not_stub(self):
+        validator = TypeScriptValidator()
+        source = (
+            "function foo(profile: object): object { "
+            "return { get profile() { return profile; } }; }\n"
+        )
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is False
+
+    def test_return_object_with_method_is_not_stub(self):
+        validator = TypeScriptValidator()
+        source = "function foo(): object { return { profile() { return 1; } }; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is False
+
+    def test_return_object_with_shorthand_property_is_not_stub(self):
+        validator = TypeScriptValidator()
+        source = "function foo(profile: object): object { return { profile }; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is False
+
+    def test_return_object_with_spread_is_not_stub(self):
+        validator = TypeScriptValidator()
+        source = "function foo(profile: object): object { return { ...profile }; }\n"
+        result = validator.collect_implementation_artifacts(source, "test.ts")
+        a = _find(result.artifacts, "foo")
+        assert a is not None
+        assert a.is_stub is False
+
     def test_return_empty_array_is_stub(self, validator):
         source = "function foo(): string[] { return []; }\n"
         result = validator.collect_implementation_artifacts(source, "test.ts")
