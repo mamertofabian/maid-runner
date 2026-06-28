@@ -22,8 +22,9 @@ description: |
   loads the advisory digest, rejects it if it is stale relative to the index
   (via `digest_is_stale`) unless `--allow-stale-index` is set, and replaces the
   `by_lesson_type` section of the rendered report with the canonical-theme
-  re-aggregation from `apply_theme_map` (081-01). The `--theme-map` flag itself
-  is registered in `_main.py` (wiring only, no new public contract there).
+  re-aggregation from `apply_theme_map` (081-01). The `--theme-map` flag is
+  registered by editing `build_parser` in `_main.py`, declared under
+  `files.edit` per the 047-05 precedent (which contracted `_main.py`).
 
   Pinned decisions (do not redesign):
 
@@ -78,10 +79,17 @@ files:
           of: package_resource
           type: doc-section
           description: "Packaged copy of the advisory enrichment note kept in sync with the repo docs."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Expose the opt-in --theme-map option on the insights subparser."
   read:
     - maid_runner/core/outcome_enrichment.py
     - maid_runner/core/outcome_insights.py
-    - maid_runner/cli/commands/_main.py
+    - tests/cli/test_insights_cmd.py
     - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
     - manifests/drafts/081-01-add-outcome-enrichment-core.manifest.yaml
   create:
@@ -108,4 +116,4 @@ files:
           returns: None
           description: "A theme map whose source fingerprint no longer matches the index is rejected unless --allow-stale-index is supplied."
 validate:
-  - uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py
+  - uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py tests/cli/test_insights_cmd.py

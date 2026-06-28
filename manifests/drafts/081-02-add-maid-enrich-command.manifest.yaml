@@ -1,5 +1,5 @@
 schema: "2"
-goal: "Add the `maid enrich` CLI composition root and the stdlib-urllib LLM edge adapters (llama-server default, anthropic fallback) behind an injectable transport, writing advisory JSON + Markdown digests and failing loud on client errors"
+goal: "Add the deterministic, AI-free `maid enrich` CLI (prompt | validate | render subcommands) that emits a bounded enrichment corpus, validates a candidate digest against the index, and renders advisory markdown atomically — never calling a model"
 type: feature
 created: "2026-06-28T14:32:00Z"
 metadata:
@@ -9,144 +9,69 @@ metadata:
     - outcome-records
     - insights
     - llm-enrichment
-    - local-first
     - cli
     - maid-workflow
   priority: medium
 description: |
-  Command child of the 081 epic. Adds the composition root and the network
-  edge, building on the pure policy and seam from 081-01.
+  Command child of the 081 hybrid epic. Adds the deterministic runner-side
+  building blocks the `maid-outcome-enrich` skill (081-04) orchestrates. This
+  command NEVER calls an AI service, opens an LLM network socket, or reads
+  provider API keys — that responsibility is entirely the skill's, preserving
+  the AI-free runner boundary in `docs/manifest-outcome-records.md`.
 
-  New files:
+  New file `maid_runner/cli/commands/enrich.py` exposes `cmd_enrich(args)`
+  dispatching three subcommands:
 
-  - `maid_runner/core/llm_adapters.py`: concrete `LLMClient` implementations
-    plus a factory. `LlamaServerClient` POSTs an OpenAI-compatible
-    `/v1/chat/completions` request to a base URL (default
-    `http://localhost:1234`); `AnthropicClient` POSTs the Messages API. Both
-    accept an injectable `HttpPostJson` transport so `complete()` is unit
-    testable with a fake transport and never requires real network in tests;
-    the default transport is a thin `urllib.request` POST. `build_llm_client`
-    selects the implementation by provider name and raises on unknown providers.
-  - `maid_runner/cli/commands/enrich.py`: `cmd_enrich(args)` reads the Outcome
-    index, runs the same staleness guard as insights, resolves provider/base
-    URL/model/API key here at the composition root, constructs the client via
-    `build_llm_client`, runs `run_enrichment` (081-01), and writes
-    `.maid/outcomes-digest.json` and `.maid/outcomes-digest.md`. On any LLM or
-    network failure it surfaces the error and writes no files (fail loud).
+  - `maid enrich prompt`: read the Outcome index (with the standard staleness
+    guard), call `build_enrichment_request` (081-01), and emit the bounded
+    system/user prompt and validation universe to stdout or `--output`. This is
+    the corpus the skill sends to its model.
+  - `maid enrich validate`: read the index and a candidate digest file, run
+    `validate_enrichment_digest` plus `digest_is_stale`, and exit non-zero with
+    a clear message on any fabrication or staleness. This is how the runner
+    rejects bad model output.
+  - `maid enrich render`: read a digest file, validate it against the index, and
+    render advisory markdown via `render_digest_markdown` (081-01), written
+    atomically to `--md-output`.
 
   Pinned decisions (do not redesign):
 
-  1. Local-first default: provider defaults to `llama`, base URL defaults to
-     `http://localhost:1234`. `--provider anthropic` switches to the Messages
-     API and reads `ANTHROPIC_API_KEY` at the composition root (not in core
-     logic). No new runtime dependency: adapters use stdlib `urllib.request`.
-  2. Network is reachable only through the injected `HttpPostJson` transport, so
-     adapter behavior (request shape, response parsing) is tested with a fake
-     transport and the CLI is tested by monkeypatching `build_llm_client` to
-     return a fake client. No test performs real network I/O.
-  3. Fail loud: a raising client or transport yields a non-zero exit and leaves
-     no digest files behind; partial/stub output is never written.
-  4. Staleness: reuse `outcome_index_is_stale` and require `--allow-stale-index`
-     to enrich from a stale index, mirroring `insights`/`recall`.
+  1. No model access in the runner: no provider/base-url/model/timeout/api-key
+     flags, no httpx/urllib-to-an-LLM, no os.environ provider keys. The command
+     is pure read/transform/validate/write over local files.
+  2. Configurable paths: `--index` (default `.maid/outcomes.json`), `--digest`
+     (default `.maid/outcomes-digest.json`), `--md-output` (default
+     `.maid/outcomes-digest.md`), `--output` for the prompt corpus. Do not
+     hardcode beyond these defaults.
+  3. Staleness: reuse the index staleness guard and require `--allow-stale-index`
+     to operate on a stale index, mirroring `insights`/`recall`.
+  4. Atomic render: serialize/render fully, then write to a temp file and rename,
+     so a render failure never leaves a truncated markdown file behind.
   5. Error/JSON output mirrors the existing `learn.py`/`insights.py` `_error`
-     pattern; registration in `_main.py` follows the established
-     parser/dispatch/handlers pattern. `_main.py` is rewiring only (no new
-     public contract there), so it is listed under `files.read`, following the
-     precedent of `manifests/047-04-add-maid-recall-outcome-search.manifest.yaml`
-     and `manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml`,
-     which added CLI subcommands with `_main.py` under read. During contract
-     hardening, verify the pinned MAID runner accepts the `enrich` subparser and
-     dispatch edits with `_main.py` in `files.read`; if implementation
-     validation rejects the touched file, move `maid_runner/cli/commands/_main.py`
-     into `files.edit` via plan revision rather than relaxing the contract.
+     pattern. Registration in `_main.py` edits `build_parser` and `main` to add
+     the `enrich` subparser and dispatch, following the precedent of
+     `manifests/047-04-add-maid-recall-outcome-search.manifest.yaml` and
+     `manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml`,
+     which both declared `_main.py` under `files.edit`.
 
   Generated artifacts `.maid/outcomes-digest.json` and `.maid/outcomes-digest.md`
   are added to `.gitignore` alongside the existing `.maid/outcomes.json`.
+
+  Tests are deterministic and offline: candidate digests are constructed in
+  tests; no network or model is involved.
 temptations:
-  - risk: "Do not add httpx, requests, the OpenAI SDK, or the Anthropic SDK to make the HTTP call."
-    instead: "Use stdlib urllib.request inside the default HttpPostJson transport; keep adapters dependency-free."
-  - risk: "Do not call urllib or read os.environ inside core enrichment logic or adapter decision code."
-    instead: "Inject the HttpPostJson transport; read provider/base-url/model/ANTHROPIC_API_KEY only at the cmd_enrich composition root."
-  - risk: "Do not write a placeholder or partial digest when the model call fails."
-    instead: "Let the error propagate to cmd_enrich, return non-zero, and assert no digest files were written."
-  - risk: "Do not hit a real LLM server in tests for determinism."
-    instead: "Test adapters with a fake HttpPostJson transport and test cmd_enrich by monkeypatching build_llm_client to a fake client."
-  - risk: "Do not enrich silently from a stale Outcome index."
-    instead: "Reuse outcome_index_is_stale and require --allow-stale-index; pin with a stale-index rejection test."
+  - risk: "Do not add provider/model/base-url/timeout/api-key flags or any LLM call to maid enrich."
+    instead: "Keep the command read/transform/validate/write only; the model call lives in the 081-04 skill. Pin with a test that enrich validate rejects a fabricated digest without any network."
+  - risk: "Do not write a truncated or single-sided artifact when rendering fails."
+    instead: "Render fully, write to a temp path, then atomically rename; pin with an atomic-render test."
+  - risk: "Do not operate silently on a stale Outcome index."
+    instead: "Reuse the staleness guard and require --allow-stale-index; pin with a stale-rejection test."
+  - risk: "Do not leave _main.py under files.read for a new subcommand."
+    instead: "Declare maid_runner/cli/commands/_main.py under files.edit and contract build_parser/main, matching the 047-04/047-05 precedent."
+  - risk: "Do not duplicate digest validation logic in the CLI."
+    instead: "Delegate to validate_enrichment_digest and digest_is_stale from 081-01; the CLI only wires arguments and reports results."
 files:
   create:
-    - path: maid_runner/core/llm_adapters.py
-      artifacts:
-        - kind: type
-          name: HttpPostJson
-          type: "Callable[[str, dict, dict], str]"
-          description: "Injectable transport: given (url, json_payload, headers) perform a POST and return the response body text."
-        - kind: class
-          name: LlamaServerClient
-          description: "LLMClient implementation posting OpenAI-compatible chat completions to a llama-server base URL."
-        - kind: method
-          name: __init__
-          of: LlamaServerClient
-          args:
-            - name: base_url
-              type: str
-            - name: model
-              type: str
-            - name: transport
-              type: "HttpPostJson | None"
-              default: "None"
-          returns: None
-          description: "Store base URL and model; use the injected transport or the default urllib transport."
-        - kind: method
-          name: complete
-          of: LlamaServerClient
-          args:
-            - name: system
-              type: str
-            - name: user
-              type: str
-          returns: str
-          description: "POST an OpenAI-compatible chat-completions request via the transport and return the assistant message text."
-        - kind: class
-          name: AnthropicClient
-          description: "LLMClient implementation posting to the Anthropic Messages API."
-        - kind: method
-          name: __init__
-          of: AnthropicClient
-          args:
-            - name: model
-              type: str
-            - name: api_key
-              type: str
-            - name: transport
-              type: "HttpPostJson | None"
-              default: "None"
-          returns: None
-          description: "Store model and API key; use the injected transport or the default urllib transport."
-        - kind: method
-          name: complete
-          of: AnthropicClient
-          args:
-            - name: system
-              type: str
-            - name: user
-              type: str
-          returns: str
-          description: "POST a Messages API request via the transport and return the response text."
-        - kind: function
-          name: build_llm_client
-          args:
-            - name: provider
-              type: str
-            - name: base_url
-              type: str
-            - name: model
-              type: str
-            - name: api_key
-              type: "str | None"
-              default: "None"
-          returns: LLMClient
-          description: "Construct the LLMClient for the named provider (llama or anthropic); raise ValueError for unknown providers."
     - path: maid_runner/cli/commands/enrich.py
       artifacts:
         - kind: function
@@ -155,57 +80,50 @@ files:
             - name: args
               type: argparse.Namespace
           returns: int
-          description: "Read the Outcome index, guard staleness, construct the provider client at the composition root, run enrichment, and write advisory JSON and Markdown digests; fail loud with non-zero exit and no files on error."
-    - path: tests/core/test_llm_adapters.py
-      artifacts:
-        - kind: test_function
-          name: test_llama_client_posts_openai_chat_payload
-          args: []
-          returns: None
-          description: "LlamaServerClient.complete posts an OpenAI-compatible chat-completions payload to the base URL via the injected transport."
-        - kind: test_function
-          name: test_llama_client_returns_assistant_message_text
-          args: []
-          returns: None
-          description: "LlamaServerClient.complete returns the assistant message text parsed from a canned transport response."
-        - kind: test_function
-          name: test_anthropic_client_posts_messages_payload
-          args: []
-          returns: None
-          description: "AnthropicClient.complete posts a Messages API payload with the API key header via the injected transport and returns the response text."
-        - kind: test_function
-          name: test_build_llm_client_selects_provider
-          args: []
-          returns: None
-          description: "build_llm_client returns a LlamaServerClient for 'llama' and an AnthropicClient for 'anthropic'."
-        - kind: test_function
-          name: test_build_llm_client_rejects_unknown_provider
-          args: []
-          returns: None
-          description: "build_llm_client raises ValueError for an unrecognized provider name."
+          description: "Dispatch the enrich prompt/validate/render subcommands deterministically over local files; never call a model. Return non-zero on validation failure, staleness without opt-in, or missing inputs."
     - path: tests/cli/test_enrich_cmd.py
       artifacts:
         - kind: test_function
-          name: test_enrich_writes_json_and_markdown_digests
+          name: test_enrich_prompt_emits_bounded_corpus_from_index
           args: []
           returns: None
-          description: "cmd_enrich with a fake client writes both .maid/outcomes-digest.json and .maid/outcomes-digest.md and returns 0."
+          description: "maid enrich prompt emits the system/user prompt and validation universe derived from the index."
         - kind: test_function
-          name: test_enrich_defaults_to_llama_provider
+          name: test_enrich_validate_accepts_grounded_digest
           args: []
           returns: None
-          description: "cmd_enrich with no --provider builds a client for the llama provider at the default base URL."
+          description: "maid enrich validate returns 0 for a digest whose references all co-occur in the index and whose fingerprint matches."
         - kind: test_function
-          name: test_enrich_fails_loud_when_client_errors
+          name: test_enrich_validate_rejects_fabricated_digest
           args: []
           returns: None
-          description: "When the client raises, cmd_enrich returns non-zero and writes no digest files."
+          description: "maid enrich validate returns non-zero for a digest citing a non-co-occurring (manifest, lesson_type) pair, with no network involved."
         - kind: test_function
-          name: test_enrich_rejects_stale_index_without_allow_flag
+          name: test_enrich_validate_rejects_stale_digest_without_allow_flag
           args: []
           returns: None
-          description: "cmd_enrich returns an error for a stale index unless --allow-stale-index is passed."
+          description: "maid enrich validate returns non-zero for a stale digest unless --allow-stale-index is supplied."
+        - kind: test_function
+          name: test_enrich_render_writes_markdown_atomically
+          args: []
+          returns: None
+          description: "maid enrich render writes the advisory markdown for a validated digest and leaves no partial file when rendering is interrupted."
   edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Expose the enrich subcommand group (prompt/validate/render) with index/digest/md-output/output path options and the stale-index opt-in."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: "list[str] | None"
+              default: "None"
+          returns: int
+          description: "Dispatch the enrich command to cmd_enrich alongside the existing commands."
     - path: .gitignore
       artifacts:
         - kind: attribute
@@ -215,11 +133,11 @@ files:
           description: "Ignore the generated advisory enrichment artifacts .maid/outcomes-digest.json and .maid/outcomes-digest.md."
   read:
     - maid_runner/core/outcome_enrichment.py
-    - maid_runner/core/llm_client.py
     - maid_runner/core/outcomes.py
-    - maid_runner/cli/commands/_main.py
     - maid_runner/cli/commands/learn.py
     - maid_runner/cli/commands/insights.py
+    - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
+    - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
     - manifests/drafts/081-01-add-outcome-enrichment-core.manifest.yaml
 validate:
-  - uv run python -m pytest -q tests/core/test_llm_adapters.py tests/cli/test_enrich_cmd.py
+  - uv run python -m pytest -q tests/cli/test_enrich_cmd.py
