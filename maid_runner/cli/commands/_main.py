@@ -44,6 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_learn_parser(sub)
     _register_recall_parser(sub)
     _register_insights_parser(sub)
+    _register_enrich_parser(sub)
     _register_benchmark_parser(sub)
     _register_incident_parser(sub)
     _register_daemon_parser(sub)
@@ -718,6 +719,73 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--json", action="store_true", help="Print insights as JSON")
 
 
+def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "enrich",
+        help="Build and verify deterministic Outcome enrichment artifacts",
+    )
+    ssub = p.add_subparsers(dest="enrich_command")
+
+    prompt = ssub.add_parser(
+        "prompt", help="Emit the bounded Outcome enrichment prompt corpus"
+    )
+    _add_enrich_common_options(prompt)
+    prompt.add_argument(
+        "--output",
+        default=None,
+        help="Write prompt corpus JSON to this path instead of stdout",
+    )
+
+    validate = ssub.add_parser(
+        "validate", help="Validate an Outcome enrichment digest against the index"
+    )
+    _add_enrich_common_options(validate)
+    _add_enrich_digest_option(validate)
+
+    render = ssub.add_parser(
+        "render", help="Render a validated Outcome enrichment digest as markdown"
+    )
+    _add_enrich_common_options(render)
+    _add_enrich_digest_option(render)
+    render.add_argument(
+        "--md-output",
+        default=".maid/outcomes-digest.md",
+        help="Markdown output path for the rendered digest",
+    )
+
+
+def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--index",
+        default=".maid/outcomes.json",
+        help="Outcome index path to enrich",
+    )
+    parser.add_argument(
+        "--manifest-dir",
+        default=None,
+        help="Manifest directory used for staleness checks",
+    )
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Project root used to resolve manifest-relative paths",
+    )
+    parser.add_argument(
+        "--allow-stale-index",
+        action="store_true",
+        help="Use stale index or digest inputs explicitly",
+    )
+    parser.add_argument("--json", action="store_true", help="Print result as JSON")
+
+
+def _add_enrich_digest_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--digest",
+        default=".maid/outcomes-digest.json",
+        help="Outcome enrichment digest JSON path",
+    )
+
+
 def _register_benchmark_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser(
         "benchmark",
@@ -1175,6 +1243,7 @@ def main(argv: list[str] | None = None) -> int:
         "learn": "_cmd_learn",
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
+        "enrich": "_cmd_enrich",
         "benchmark": "_cmd_benchmark",
         "incident": "_cmd_incident",
         "daemon": "_cmd_daemon",
@@ -1211,6 +1280,7 @@ def main(argv: list[str] | None = None) -> int:
         learn as learn_mod,
         recall as recall_mod,
         insights as insights_mod,
+        enrich as enrich_mod,
         benchmark as benchmark_mod,
         incident as incident_mod,
         daemon as daemon_mod,
@@ -1241,6 +1311,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
+        "_cmd_enrich": enrich_mod.cmd_enrich,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,
         "_cmd_incident": incident_mod.cmd_incident,
         "_cmd_daemon": daemon_mod.cmd_daemon,

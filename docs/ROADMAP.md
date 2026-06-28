@@ -51,6 +51,7 @@ Current CLI commands:
 - `maid learn`
 - `maid recall`
 - `maid insights`
+- `maid enrich`
 - `maid manifest create`
 - `maid manifests`
 - `maid files`
