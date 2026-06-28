@@ -711,6 +711,11 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
         help="Use the index even when source manifests changed",
     )
     p.add_argument(
+        "--theme-map",
+        default=None,
+        help="Advisory enrichment digest used to re-aggregate lesson types",
+    )
+    p.add_argument(
         "--limit",
         type=int,
         default=10,

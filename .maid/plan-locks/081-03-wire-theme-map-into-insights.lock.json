@@ -1,0 +1,94 @@
+{
+  "manifest_path": "manifests/081-03-wire-theme-map-into-insights.manifest.yaml",
+  "manifest_hash": "sha256:8dfd677f2c229582b8ee66634dab9998336cad222d2cc54a8d52b4edbf91e76d",
+  "test_hashes": {
+    "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+    "tests/test_insights_skill_guidance.py": "sha256:9be917a685e96cbf5160836ccfa034d9e58f2101690f3ec732582c9f0856f51e",
+    "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
+  },
+  "created_at": "2026-06-28T10:12:12.333345+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:4925fd9bab1ff2b7c08252c8dddd9582e0e9a2360827706bd27c1f936160d4b6",
+      "prior_test_hashes": {
+        "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:04eaf42124fbde17d94edcbfdb78d7acadc99803ba7b100f4fd8f453dd52a39b"
+      },
+      "revised_at": "2026-06-28T10:12:16.597464+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-03-wire-theme-map-into-insights.manifest.yaml -> manifests/081-03-wire-theme-map-into-insights.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:7cff68cf9427cc4ee3343099153baa9ac815345194e4a7dc7bb2f8cf6b32e41e",
+      "prior_test_hashes": {
+        "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:04eaf42124fbde17d94edcbfdb78d7acadc99803ba7b100f4fd8f453dd52a39b"
+      },
+      "revised_at": "2026-06-28T10:18:10.882242+00:00",
+      "reason": "Add existing insights parser-surface guidance test to scope for the new --theme-map flag"
+    },
+    {
+      "prior_manifest_hash": "sha256:7cff68cf9427cc4ee3343099153baa9ac815345194e4a7dc7bb2f8cf6b32e41e",
+      "prior_test_hashes": {
+        "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
+      },
+      "revised_at": "2026-06-28T10:21:11.896133+00:00",
+      "reason": "Include shared insights guidance parser-surface test in the 081-03 validation command"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-28T10:21:12.923884+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py tests/cli/test_insights_cmd.py tests/test_insights_skill_guidance.py",
+        "exit_code": 1,
+        "output_tail": "            \"--allow-stale-index\",\n            \"--theme-map\",\n            \"--limit\",\n            \"--json\",\n        }\nE       AssertionError: assert {'--allow-sta...project-root'} == {'--allow-sta...ct-root', ...}\nE         \nE         Extra items in the right set:\nE         '--theme-map'\nE         Use -v to get more diff\n\ntests/test_insights_skill_guidance.py:102: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_insights_theme_map_cmd.py::test_insights_without_theme_map_keeps_default_aggregation\nFAILED tests/cli/test_insights_theme_map_cmd.py::test_insights_with_theme_map_collapses_lesson_types\nFAILED tests/cli/test_insights_theme_map_cmd.py::test_insights_rejects_stale_theme_map_without_allow_flag\nFAILED tests/cli/test_insights_theme_map_cmd.py::test_insights_rejects_fabricated_theme_map\nFAILED tests/cli/test_insights_theme_map_cmd.py::test_outcome_enrichment_guidance_documents_advisory_artifacts\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_uses_only_registered_options\n6 failed, 10 passed in 0.44s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_enrichment_advisory_guidance",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_enrichment_advisory_guidance:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_enrichment_advisory_guidance:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_enrichment_advisory_guidance:type=doc-section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:kind=function",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:returns=int",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_enrichment_advisory_guidance",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_enrichment_advisory_guidance:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_enrichment_advisory_guidance:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_enrichment_advisory_guidance:type=doc-section",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_fabricated_theme_map",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_fabricated_theme_map:kind=test_function",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_fabricated_theme_map:returns=None",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_stale_theme_map_without_allow_flag",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_stale_theme_map_without_allow_flag:kind=test_function",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_rejects_stale_theme_map_without_allow_flag:returns=None",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_collapses_lesson_types",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_collapses_lesson_types:kind=test_function",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_collapses_lesson_types:returns=None",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_emits_no_generated_narrative",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_emits_no_generated_narrative:kind=test_function",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_with_theme_map_emits_no_generated_narrative:returns=None",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_without_theme_map_keeps_default_aggregation",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_without_theme_map_keeps_default_aggregation:kind=test_function",
+      "tests/cli/test_insights_theme_map_cmd.py:test_insights_without_theme_map_keeps_default_aggregation:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_insights_cmd.py",
+      "tests/cli/test_insights_theme_map_cmd.py",
+      "tests/test_insights_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py tests/cli/test_insights_cmd.py tests/test_insights_skill_guidance.py"
+    ]
+  }
+}

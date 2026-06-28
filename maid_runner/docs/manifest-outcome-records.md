@@ -105,6 +105,20 @@ refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
 `.maid/outcomes.json` is generated and ignored; do not commit it. If
 `maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
 
+## Advisory Enrichment Artifacts
+
+`maid enrich` provides deterministic support for optional Outcome enrichment.
+It can emit a bounded prompt corpus, validate a proposed digest, and render an
+advisory Markdown retrospective. The generated `.maid/outcomes-digest.json`
+and `.maid/outcomes-digest.md` files are generated and ignored; do not commit
+them as authoritative Outcome data.
+
+The digest may be consumed by `maid insights --theme-map <digest.json>` to
+replace only the `by_lesson_type` section with deterministic canonical-theme
+aggregation. The insights report does not include generated narrative from the
+digest. Stale or fabricated digest data is rejected unless the existing
+`--allow-stale-index` opt-in is supplied for staleness.
+
 ## Learning Evidence Digestion
 
 Learning commands close the loop from completed Outcome records to current agent decisions only when the agent reasons over the retrieved evidence. A

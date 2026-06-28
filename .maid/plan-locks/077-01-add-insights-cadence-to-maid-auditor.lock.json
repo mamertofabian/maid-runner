@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
     "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
-    "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
+    "tests/test_insights_skill_guidance.py": "sha256:9be917a685e96cbf5160836ccfa034d9e58f2101690f3ec732582c9f0856f51e"
   },
   "created_at": "2026-06-26T15:11:22.630016+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c3015811b406cecae78d12db651ff95660add175760e5593d3f6029e5cd3d00f",
@@ -50,6 +50,16 @@
       },
       "revised_at": "2026-06-26T15:33:28.893992+00:00",
       "reason": "Capture completed Outcome metadata after ready implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
+      },
+      "revised_at": "2026-06-28T10:21:11.904173+00:00",
+      "reason": "Refresh shared insights parser option test after 081-03 adds --theme-map"
     }
   ],
   "red_evidence": {

@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import json
 from pathlib import Path
 import sys
 
+from maid_runner.core.outcome_enrichment import (
+    apply_theme_map,
+    digest_is_stale,
+    read_enrichment_digest,
+    validate_enrichment_digest,
+)
 from maid_runner.core.outcome_insights import (
     OutcomeInsightGroup,
     aggregate_outcome_insights,
@@ -51,6 +57,25 @@ def cmd_insights(args: argparse.Namespace) -> int:
         )
     except Exception as exc:
         return _error(str(exc), args)
+
+    theme_map_path = getattr(args, "theme_map", None)
+    if theme_map_path is not None:
+        try:
+            digest = read_enrichment_digest(theme_map_path)
+            validate_enrichment_digest(digest, index)
+            if digest_is_stale(digest, index) and not getattr(
+                args, "allow_stale_index", False
+            ):
+                return _error(
+                    "Outcome theme map is stale; run `maid enrich` or pass "
+                    "--allow-stale-index",
+                    args,
+                )
+            theme_groups = apply_theme_map(index, digest)
+            limit = max(0, getattr(args, "limit", 10))
+            report = replace(report, by_lesson_type=theme_groups[:limit])
+        except Exception as exc:
+            return _error(str(exc), args)
 
     if getattr(args, "json", False):
         print(json.dumps(_report_to_dict(report), sort_keys=True))
