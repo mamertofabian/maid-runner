@@ -111,10 +111,10 @@ def test_outcome_enrich_skill_marks_validate_as_hard_stop() -> None:
 
 def test_outcome_enrich_skill_states_cloud_privacy_and_local_default() -> None:
     phrases = (
-        "Default to local llama-server generation",
-        "Cloud generation is explicit opt-in only",
+        "Use the model access already available to the hosting agent",
+        "specific model the user chooses",
         "CLOUD-PRIVACY",
-        "sending the lesson corpus to a cloud provider publishes Outcome lessons externally",
+        "sending the lesson corpus to an external provider publishes Outcome lessons externally",
     )
     assert all(phrase in text for text in _skill_texts() for phrase in phrases)
     _assert_all_skills_contain(*phrases)

@@ -1,6 +1,6 @@
 ---
 name: maid-outcome-enrich
-description: Generate optional advisory Outcome enrichment outside maid-runner by orchestrating maid enrich prompt, local-first model generation, maid enrich validate, and maid enrich render with cloud privacy disclosure.
+description: Generate optional advisory Outcome enrichment outside maid-runner by orchestrating maid enrich prompt, agent-available model generation, maid enrich validate, and maid enrich render with cloud privacy disclosure.
 ---
 
 # MAID Outcome Enrich
@@ -13,8 +13,8 @@ workflow that may call a model or touch provider credentials.
 
 - Keep runner commands deterministic. Use `maid enrich` only for prompt corpus
   creation, digest validation, and markdown rendering.
-- Default to local llama-server generation. Cloud generation is explicit opt-in only.
-- CLOUD-PRIVACY: sending the lesson corpus to a cloud provider publishes Outcome lessons externally. Use cloud generation only after the user deliberately accepts that privacy boundary.
+- Use the model access already available to the hosting agent, or a specific model the user chooses.
+- CLOUD-PRIVACY: sending the lesson corpus to an external provider publishes Outcome lessons externally. Use external generation only after the user deliberately accepts that privacy boundary.
 - A non-zero `maid enrich validate` result is a hard stop. Do not hand-edit `.maid/outcomes-digest.json` to satisfy validation; regenerate the candidate digest from the bounded corpus instead.
 - Use only registered `maid enrich` and `maid insights` options. Do not invent
   provider, model, base URL, timeout, or API-key options for maid-runner.
@@ -41,10 +41,10 @@ workflow that may call a model or touch provider credentials.
 
 3. Send only `.maid/outcomes-enrichment-prompt.json` to a model.
 
-   Prefer a local llama-server endpoint already available to the agent. If the
-   user explicitly opts into cloud generation, disclose CLOUD-PRIVACY first:
-   sending the lesson corpus to a cloud provider publishes Outcome lessons
-   externally.
+   Use the model access already available to the hosting agent, or a specific
+   model the user chooses. If that sends the corpus to an external provider,
+   disclose CLOUD-PRIVACY first: sending the lesson corpus externally publishes
+   Outcome lessons outside the local repository boundary.
 
    The model output must be a candidate `.maid/outcomes-digest.json`.
 
