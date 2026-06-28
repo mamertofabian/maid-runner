@@ -75,13 +75,14 @@ description: |
     seam. No LLM client, no network, no orchestration-with-a-model.
   - `081-02-add-maid-enrich-command`: the deterministic `maid enrich`
     CLI (`prompt`, `validate`, `render` subcommands; NO AI call), `_main.py`
-    registration (edit), `.gitignore`.
+    registration (edit), `.gitignore`, and command documentation so the parser
+    surface stays covered by the existing docs-sync test.
   - `081-03-wire-theme-map-into-insights`: opt-in `maid insights --theme-map`
     re-aggregation + advisory docs.
   - `081-04-add-outcome-enrich-skill`: the `maid-outcome-enrich` skill payload
     (Claude + Codex source and packaged copies) and its init distribution
-    entry; this is the only place an LLM is invoked, and it carries the
-    cloud-privacy disclosure.
+    entries in the Claude manifest and Codex generated payload; this is the
+    only place an LLM is invoked, and it carries the cloud-privacy disclosure.
 
   Promotion order is dependency-driven and must be `081-01` → `081-02` →
   `081-03` → `081-04`: 081-02 imports the policy from 081-01; 081-03 imports

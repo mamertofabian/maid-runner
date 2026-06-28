@@ -62,14 +62,15 @@ description: |
      index.
   7. Shared record-set seam: rather than importing the private
      `_active_unique_records` from `outcome_insights.py`, this child adds a
-     PUBLIC `active_unique_records(index)` to `outcome_insights.py` and refactors
-     the existing private `_active_unique_records` to delegate to it (behavior
-     unchanged). Enrichment imports the public function so enrichment and
-     insights share one definition of the active, deduped record set. During
-     contract hardening, if implementation validation requires the full public
-     surface of the edited `outcome_insights.py`, also declare the existing
-     public `aggregate_outcome_insights` in `files.edit` (unchanged signature)
-     rather than narrowing the edit.
+     PUBLIC `active_unique_records(index)` to `outcome_insights.py`. The public
+     function delegates to a private record-iterable helper, and the existing
+     `aggregate_outcome_insights` implementation uses the public function
+     (behavior unchanged). Enrichment imports the public function so enrichment
+     and insights share one definition of the active, deduped record set.
+     During contract hardening, if implementation validation requires the full
+     public surface of the edited `outcome_insights.py`, also declare the
+     existing public `aggregate_outcome_insights` in `files.edit` (unchanged
+     signature) rather than narrowing the edit.
 
   All behavioral tests assert through the public functions on returned values
   and raised errors. No test performs network or model I/O.
@@ -83,7 +84,7 @@ temptations:
   - risk: "Do not make apply_theme_map emit narrative or inferred guidance into the aggregation."
     instead: "Re-key the existing deterministic lesson_type aggregation through the validated map only; assert collapsed counts and source manifests, not prose."
   - risk: "Do not duplicate the insights active/dedup filtering or reach into private helpers from tests."
-    instead: "Add a public active_unique_records to outcome_insights.py, delegate the private helper to it, import the public one, and assert only through public functions."
+    instead: "Add a public active_unique_records to outcome_insights.py, have aggregate_outcome_insights use it, keep any record-iterable filtering private, and assert only through public functions."
 files:
   create:
     - path: maid_runner/core/outcome_enrichment.py
@@ -335,7 +336,7 @@ files:
             - name: index
               type: OutcomeIndex
           returns: tuple[OutcomeIndexRecord, ...]
-          description: "Public shared seam returning the active, deduped Outcome records; the existing private _active_unique_records delegates to it so insights and enrichment share one definition."
+          description: "Public shared seam returning the active, deduped Outcome records; aggregate_outcome_insights uses it so insights and enrichment share one definition while record-iterable filtering stays private."
   read:
     - maid_runner/core/outcomes.py
     - maid_runner/core/types.py

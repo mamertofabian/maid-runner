@@ -53,6 +53,11 @@ description: |
      `manifests/047-04-add-maid-recall-outcome-search.manifest.yaml` and
      `manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml`,
      which both declared `_main.py` under `files.edit`.
+  6. Command docs stay in lockstep with parser registration. The existing
+     command-docs test asserts every registered top-level `maid` command appears
+     in `README.md` or `docs/ROADMAP.md`, so this child also documents
+     `maid enrich` as the deterministic prompt/validate/render counterpart to
+     the agent skill.
 
   Generated artifacts `.maid/outcomes-digest.json` and `.maid/outcomes-digest.md`
   are added to `.gitignore` alongside the existing `.maid/outcomes.json`.
@@ -66,8 +71,8 @@ temptations:
     instead: "Render fully, write to a temp path, then atomically rename; pin with an atomic-render test."
   - risk: "Do not operate silently on a stale Outcome index."
     instead: "Reuse the staleness guard and require --allow-stale-index; pin with a stale-rejection test."
-  - risk: "Do not leave _main.py under files.read for a new subcommand."
-    instead: "Declare maid_runner/cli/commands/_main.py under files.edit and contract build_parser/main, matching the 047-04/047-05 precedent."
+  - risk: "Do not leave _main.py under files.read for a new subcommand or register maid enrich without updating command docs."
+    instead: "Declare _main.py under files.edit, contract build_parser/main, add concise README/ROADMAP coverage for `maid enrich`, and run the existing command-docs test."
   - risk: "Do not duplicate digest validation logic in the CLI."
     instead: "Delegate to validate_enrichment_digest and digest_is_stale from 081-01; the CLI only wires arguments and reports results."
 files:
@@ -131,13 +136,28 @@ files:
           of: gitignore
           type: ignore-pattern
           description: "Ignore the generated advisory enrichment artifacts .maid/outcomes-digest.json and .maid/outcomes-digest.md."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _readme_enrich_command_documentation
+          of: documentation
+          type: doc-section
+          description: "Concise user-facing command reference for `maid enrich` as the deterministic prompt/validate/render support command for Outcome enrichment."
+    - path: docs/ROADMAP.md
+      artifacts:
+        - kind: attribute
+          name: _roadmap_enrich_command_documentation
+          of: documentation
+          type: doc-section
+          description: "Roadmap/command surface note for `maid enrich` so parser command documentation remains complete."
   read:
     - maid_runner/core/outcome_enrichment.py
     - maid_runner/core/outcomes.py
     - maid_runner/cli/commands/learn.py
     - maid_runner/cli/commands/insights.py
+    - tests/test_agent_payload_distribution.py
     - manifests/047-04-add-maid-recall-outcome-search.manifest.yaml
     - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
     - manifests/drafts/081-01-add-outcome-enrichment-core.manifest.yaml
 validate:
-  - uv run python -m pytest -q tests/cli/test_enrich_cmd.py
+  - uv run python -m pytest -q tests/cli/test_enrich_cmd.py tests/test_agent_payload_distribution.py

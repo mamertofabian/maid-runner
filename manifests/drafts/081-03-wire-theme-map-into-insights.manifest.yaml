@@ -19,11 +19,13 @@ description: |
   `cmd_insights` (`maid_runner/cli/commands/insights.py`) gains an opt-in
   `--theme-map <path>` flag. When absent, insights behaves exactly as today
   (deterministic aggregation; output unchanged). When present, the command
-  loads the advisory digest, rejects it if it is stale relative to the index
-  (via `digest_is_stale`) unless `--allow-stale-index` is set, and replaces the
-  `by_lesson_type` section of the rendered report with the canonical-theme
-  re-aggregation from `apply_theme_map` (081-01). The `--theme-map` flag is
-  registered by editing `build_parser` in `_main.py`, declared under
+  loads the advisory digest, runs `validate_enrichment_digest` against the
+  index so fabricated or mis-attributed theme maps are rejected, rejects it if
+  it is stale relative to the index (via `digest_is_stale`) unless
+  `--allow-stale-index` is set, and replaces the `by_lesson_type` section of
+  the rendered report with the canonical-theme re-aggregation from
+  `apply_theme_map` (081-01). The `--theme-map` flag is registered by editing
+  `build_parser` in `_main.py`, declared under
   `files.edit` per the 047-05 precedent (which contracted `_main.py`).
 
   Pinned decisions (do not redesign):
@@ -39,6 +41,10 @@ description: |
   3. A stale theme map is rejected with a clear error unless the existing
      `--allow-stale-index` opt-in is supplied, mirroring the index staleness
      guard already in `cmd_insights`.
+  4. A fabricated or semantically invalid theme map is rejected before
+     aggregation by calling `validate_enrichment_digest`; staleness alone is not
+     enough because a non-stale digest can still cite non-cooccurring
+     (manifest, lesson_type) pairs.
 
   Documentation: `docs/manifest-outcome-records.md` and its packaged copy
   `maid_runner/docs/manifest-outcome-records.md` gain an advisory note
@@ -52,6 +58,8 @@ temptations:
     instead: "Use apply_theme_map's deterministic re-aggregation only; assert collapsed counts and source manifests, not prose."
   - risk: "Do not consume a stale theme map silently."
     instead: "Reject a stale digest via digest_is_stale unless --allow-stale-index is set; pin with a stale-digest rejection test."
+  - risk: "Do not apply a non-stale but fabricated theme map just because its fingerprint matches the index."
+    instead: "Call validate_enrichment_digest before apply_theme_map and pin with a fabricated-theme-map rejection test."
   - risk: "Do not document the digest as authoritative outcome data."
     instead: "Describe it as advisory, generated, and gitignored, matching the existing outcomes.json wording."
 files:
@@ -64,7 +72,7 @@ files:
             - name: args
               type: argparse.Namespace
           returns: int
-          description: "Aggregate deterministic Outcome insights; when --theme-map is supplied, validate the advisory digest against the index and replace the by_lesson_type section with the canonical-theme re-aggregation, otherwise behave exactly as before."
+          description: "Aggregate deterministic Outcome insights; when --theme-map is supplied, validate the advisory digest against the index, reject stale or fabricated maps, and replace the by_lesson_type section with canonical-theme re-aggregation, otherwise behave exactly as before."
     - path: docs/manifest-outcome-records.md
       artifacts:
         - kind: attribute
@@ -115,5 +123,10 @@ files:
           args: []
           returns: None
           description: "A theme map whose source fingerprint no longer matches the index is rejected unless --allow-stale-index is supplied."
+        - kind: test_function
+          name: test_insights_rejects_fabricated_theme_map
+          args: []
+          returns: None
+          description: "A non-stale theme map that cites a non-cooccurring (manifest, lesson_type) pair is rejected before aggregation."
 validate:
   - uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py tests/cli/test_insights_cmd.py

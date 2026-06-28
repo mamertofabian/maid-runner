@@ -53,7 +53,9 @@ description: |
   Behavioral tests assert the workflow anchors are present, that guidance uses
   only registered options, that the validate-is-a-hard-stop and cloud-privacy
   rules are stated, and that source and packaged copies stay in sync after an
-  isolated payload sync.
+  isolated payload sync. Existing shared payload tests are updated in the same
+  child because adding a new distributable Codex skill changes their hardcoded
+  expected skill lists.
 temptations:
   - risk: "Do not let the skill tell the agent to bypass or hand-satisfy maid enrich validate."
     instead: "State that a non-zero validate is a hard stop requiring regeneration; pin with a guidance test."
@@ -61,8 +63,8 @@ temptations:
     instead: "Default to local llama-server, mark cloud as explicit opt-in, and state that cloud sends lessons externally; pin with a disclosure test."
   - risk: "Do not reference unregistered maid enrich / maid insights flags in the skill."
     instead: "Use only registered options; pin with a registered-options-only test like the auditor skill guidance test."
-  - risk: "Do not let source and packaged skill copies drift."
-    instead: "Add maid-outcome-enrich to the sync and Codex distribution and assert source == generated copies after an isolated sync."
+  - risk: "Do not let source, generated package copies, Claude/Codex manifests, or shared payload tests drift apart."
+    instead: "Add maid-outcome-enrich to sync and both init payload manifests, update existing hardcoded distribution tests, and assert source == generated copies after isolated sync."
   - risk: "Do not put an LLM client back into the runner because the skill feels indirect."
     instead: "Keep generation in the skill; the runner only provides prompt/validate/render. Genuinely new runner needs go through a fresh planning loop."
 files:
@@ -147,7 +149,30 @@ files:
               type: pytest.MonkeyPatch
           returns: None
           description: "`maid init --tool codex` installs maid-outcome-enrich while still excluding repo-internal maid-runner skills."
+        - kind: test_function
+          name: test_claude_init_installs_outcome_enrich_skill
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "`maid init --tool claude` installs maid-outcome-enrich from the Claude manifest-driven payload."
   edit:
+    - path: .claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _claude_manifest_outcome_enrich_distribution
+          of: claude_payload
+          type: json object
+          description: "Claude source payload manifest lists maid-outcome-enrich as a distributable skill with its description so maid init --tool claude installs it."
+    - path: maid_runner/claude/manifest.json
+      artifacts:
+        - kind: attribute
+          name: _claude_payload_manifest_outcome_enrich_distribution
+          of: claude_payload
+          type: json object
+          description: "Generated Claude payload manifest listing maid-outcome-enrich as distributable."
     - path: scripts/sync_claude_files.py
       artifacts:
         - kind: attribute
@@ -169,6 +194,35 @@ files:
           of: documentation
           type: markdown section
           description: "Agent-skill distribution docs note that maid-outcome-enrich ships through both Claude and Codex init payloads and is the AI-calling counterpart to the deterministic maid enrich command."
+    - path: tests/test_agent_payload_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_codex_payload_manifest_matches_source_skills
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Existing payload distribution coverage updated so the expected Codex distributable skills include maid-outcome-enrich."
+    - path: tests/cli/test_init_codex_distributable_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_codex_init_installs_only_distributable_skills
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Existing Codex init coverage updated so maid-outcome-enrich is an expected generic installed skill, while repo-internal skills remain excluded."
+        - kind: test_function
+          name: test_codex_payload_manifest_distributable_excludes_repo_internal_skills
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Existing Codex payload manifest coverage updated so the distributable list includes maid-outcome-enrich and still excludes repo-internal skills."
   read:
     - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
     - manifests/drafts/081-02-add-maid-enrich-command.manifest.yaml
@@ -176,4 +230,4 @@ files:
     - scripts/sync_claude_files.py
     - docs/manifest-outcome-records.md
 validate:
-  - uv run python -m pytest -q tests/test_outcome_enrich_skill_guidance.py
+  - uv run python -m pytest -q tests/test_outcome_enrich_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py
