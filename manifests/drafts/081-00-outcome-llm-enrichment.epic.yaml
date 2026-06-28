@@ -1,0 +1,118 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Plan an optional, advisory, local-first LLM enrichment layer over the Outcome index (lesson-type theme normalization + recurring-lessons digest) that keeps the deterministic learn/recall/insights core untouched and isolates the LLM behind a seam"
+type: feature
+created: "2026-06-28T14:30:00Z"
+metadata:
+  status: planning
+  tags:
+    - outcome-records
+    - insights
+    - learning
+    - llm-enrichment
+    - local-first
+    - maid-workflow
+  priority: medium
+description: |
+  Split-before-promote epic. The Outcome learning loop (`maid learn` →
+  `maid recall` / `maid insights`) is fully deterministic, but inspection of the
+  live `.maid/outcomes.json` (95 completed outcomes) showed two pools of value
+  the current surfaces cannot extract:
+
+  1. Lesson prose is the richest field but is structurally discarded.
+     `aggregate_outcome_insights` (`maid_runner/core/outcome_insights.py`) only
+     counts by key and never synthesizes the 225 hand-written lesson summaries;
+     `recall` matches them only by literal token overlap.
+  2. The free-text `lesson_type` taxonomy is fragmented enough to defeat
+     aggregation: 72 distinct types for 225 lessons, 49 singletons, with the
+     "validation" theme alone splintered across 8 near-synonym keys (43 lessons)
+     that `maid insights` reports as 8 separate small buckets.
+
+  Neither is fixable deterministically — both are clustering / prose-synthesis
+  jobs. This epic adds an optional enrichment layer that (a) collapses
+  lesson_types into a small canonical theme map and (b) produces a
+  recurring-lessons retrospective, written as advisory artifacts beside (never
+  inside) the deterministic index.
+
+  Approved design (do not redesign):
+
+  - Local-first: default provider is llama-server (OpenAI-compatible
+    `http://localhost:1234/v1/chat/completions`); `--provider anthropic` is an
+    opt-in cloud fallback reading `ANTHROPIC_API_KEY`. Adapters use stdlib
+    `urllib.request` only — zero new runtime dependencies.
+  - The LLM is isolated behind an `LLMClient` seam. All decision logic
+    (request building, response parsing/validation, theme re-aggregation,
+    markdown rendering, staleness) is pure and unit-tested with a fake client;
+    network I/O lives only in edge adapters and the CLI composition root.
+  - Anti-fabrication: response parsing rejects any theme or digest entry that
+    cites a `manifest_slug` or `lesson_type` not present in the index. The LLM
+    clusters and summarizes existing lessons; it never invents manifests or
+    lessons.
+  - Fail loud: on LLM/network failure the command surfaces the error and writes
+    no digest file. No silent or partial fallback.
+  - Advisory and opt-in: the digest carries `advisory: true` and the source
+    index `generated_from` fingerprint. `maid insights` default behavior is
+    byte-for-byte unchanged; theme normalization is reached only via the opt-in
+    `maid insights --theme-map <digest.json>` flag, which performs deterministic
+    re-aggregation through the canonical map (it does NOT emit generated
+    narrative into the insights report — see 047-05 lesson).
+  - Output: `.maid/outcomes-digest.json` (machine-readable, drives the insights
+    wiring) and `.maid/outcomes-digest.md` (human/agent-readable retrospective).
+    Both are gitignored generated artifacts.
+
+  This epic decomposes into three implementation-sized child drafts:
+
+  - `081-01-add-outcome-enrichment-core`: the pure enrichment policy
+    (`maid_runner/core/outcome_enrichment.py`) — request building, response
+    parsing with anti-fabrication validation, theme re-aggregation, markdown
+    rendering, digest serialization/staleness, and the `run_enrichment`
+    orchestration over an injected client — plus the `LLMClient` seam
+    (`maid_runner/core/llm_client.py`). Fully unit-tested with a fake client; no
+    network, no CLI.
+  - `081-02-add-maid-enrich-command`: the `maid enrich` CLI composition root
+    (`maid_runner/cli/commands/enrich.py`), the stdlib-urllib edge adapters
+    (`LlamaServerClient`, `AnthropicClient`) and `build_llm_client` factory in
+    `llm_client.py`, `_main.py` registration, and `.gitignore` entries.
+  - `081-03-wire-theme-map-into-insights`: the opt-in `maid insights
+    --theme-map` re-aggregation wiring and advisory documentation.
+
+  Promote one child at a time after contract hardening (behavioral tests, red
+  evidence, plan lock). Promotion order is dependency-driven and must be
+  `081-01` → `081-02` → `081-03`: 081-02 imports the policy and seam from
+  081-01 (`run_enrichment`, `EnrichmentDigest`, `LLMClient`), and 081-03 imports
+  `apply_theme_map`/`digest_is_stale`/`read_enrichment_digest` from 081-01 and
+  consumes the digest artifact produced by 081-02. Do not promote a later child
+  before its predecessor's contract is locked and implemented.
+temptations:
+  - risk: "Do not let enrichment mutate the deterministic core (learn/recall/insights default behavior, OutcomeIndex schema, or the outcomes.json contract)."
+    instead: "Keep enrichment additive in new modules and an opt-in insights flag; the deterministic core stays byte-for-byte unchanged when the flag is absent."
+  - risk: "Do not let the LLM invent manifests, lessons, or lesson_types in the digest."
+    instead: "Validate every theme/digest reference against the index in parse_enrichment_response and raise on any foreign manifest_slug or lesson_type."
+  - risk: "Do not silently substitute a stub/empty/stale digest when the LLM call fails."
+    instead: "Fail loud: surface the error and write no digest file; pin with a failing-client test in 081-01 and an error-path test in 081-02."
+  - risk: "Do not emit generated narrative into the deterministic insights report (047-05 lesson)."
+    instead: "Keep `--theme-map` a deterministic re-aggregation through the canonical map; narrative prose lives only in the separate advisory digest artifacts."
+  - risk: "Do not add httpx, openai, anthropic SDKs, or embeddings to satisfy the LLM call."
+    instead: "Use stdlib urllib.request in thin edge adapters behind the LLMClient seam; no new runtime dependency and no semantic-search rewrite of recall."
+files:
+  edit:
+    - path: manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _outcome_llm_enrichment_epic
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote planning record for child drafts 081-01 through 081-03."
+  read:
+    - manifests/drafts/081-01-add-outcome-enrichment-core.manifest.yaml
+    - manifests/drafts/081-02-add-maid-enrich-command.manifest.yaml
+    - manifests/drafts/081-03-wire-theme-map-into-insights.manifest.yaml
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/outcome_insights.py
+    - maid_runner/cli/commands/insights.py
+    - maid_runner/cli/commands/learn.py
+    - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - AGENTS.md
+validate:
+  - uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet
