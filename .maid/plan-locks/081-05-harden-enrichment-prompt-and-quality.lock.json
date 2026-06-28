@@ -1,0 +1,109 @@
+{
+  "manifest_path": "manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml",
+  "manifest_hash": "sha256:cc1b7b671bdfc605d922b5ad5f823e7d388b4cc12cd5357e8d911c9a4dc50717",
+  "test_hashes": {
+    "tests/core/test_outcome_enrichment.py": "sha256:634d5c4bff34ffe3225ad5a88687813fb90fab03ca31a377b164d98c1ea4d9f0",
+    "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+    "tests/core/test_outcome_enrichment_quality.py": "sha256:b44e8d13480ef2bbb76848eb8b2bc7860d3ce27312a3827c8336dbb61531868b",
+    "tests/cli/test_enrich_quality_warnings_cmd.py": "sha256:35c3ac3fefa0a40a8ae23dcf94197fc81d696872f9f609f1299c524fd15fe239"
+  },
+  "created_at": "2026-06-28T15:21:55.306284+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d2beceefa9beeca47e526a8739deadac941c9c6b8bf4258b7286f825dcc21886",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:634d5c4bff34ffe3225ad5a88687813fb90fab03ca31a377b164d98c1ea4d9f0",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:b44e8d13480ef2bbb76848eb8b2bc7860d3ce27312a3827c8336dbb61531868b",
+        "tests/cli/test_enrich_quality_warnings_cmd.py": "sha256:35c3ac3fefa0a40a8ae23dcf94197fc81d696872f9f609f1299c524fd15fe239"
+      },
+      "revised_at": "2026-06-28T15:22:00.235072+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-05-harden-enrichment-prompt-and-quality.manifest.yaml -> manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-28T15:22:00.685418+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_outcome_enrichment_quality.py tests/cli/test_enrich_quality_warnings_cmd.py tests/core/test_outcome_enrichment.py tests/cli/test_enrich_cmd.py",
+        "exit_code": 1,
+        "output_tail": "                \"code\": \"single_source_entry\",\n                \"message\": payload[\"quality_warnings\"][2][\"message\"],\n            },\n        ]\nE       KeyError: 'quality_warnings'\n\ntests/cli/test_enrich_quality_warnings_cmd.py:48: KeyError\n=========================== short test summary info ============================\nFAILED tests/core/test_outcome_enrichment_quality.py::test_request_user_prompt_includes_lesson_type_frequency_table\nFAILED tests/core/test_outcome_enrichment_quality.py::test_request_system_prompt_instructs_canonical_multi_member_grouping\nFAILED tests/core/test_outcome_enrichment_quality.py::test_request_system_prompt_requires_multi_source_recurring_entries\nFAILED tests/core/test_outcome_enrichment_quality.py::test_request_system_prompt_states_coverage_and_output_schema\nFAILED tests/core/test_outcome_enrichment_quality.py::test_assess_quality_flags_low_coverage\nFAILED tests/core/test_outcome_enrichment_quality.py::test_assess_quality_flags_singleton_theme_map\nFAILED tests/core/test_outcome_enrichment_quality.py::test_assess_quality_flags_single_source_entries\nFAILED tests/core/test_outcome_enrichment_quality.py::test_assess_quality_returns_empty_for_strong_digest\nFAILED tests/core/test_outcome_enrichment_quality.py::test_assess_quality_never_raises\nFAILED tests/cli/test_enrich_quality_warnings_cmd.py::test_validate_text_mode_writes_quality_warnings_to_stderr_and_exits_zero\nFAILED tests/cli/test_enrich_quality_warnings_cmd.py::test_validate_json_mode_includes_quality_warnings_array_on_single_object\n11 failed, 19 passed in 0.26s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:kind=function",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:returns=int",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.code",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.code:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.code:of=DigestQualityWarning",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.code:type=str",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.message",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.message:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.message:of=DigestQualityWarning",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestQualityWarning.message:type=str",
+      "maid_runner/core/outcome_enrichment.py:class:DigestQualityWarning",
+      "maid_runner/core/outcome_enrichment.py:class:DigestQualityWarning:kind=class",
+      "maid_runner/core/outcome_enrichment.py:function:assess_digest_quality",
+      "maid_runner/core/outcome_enrichment.py:function:assess_digest_quality:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:assess_digest_quality:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:assess_digest_quality:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:assess_digest_quality:returns=tuple[DigestQualityWarning, ...]",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:returns=EnrichmentRequest",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_json_mode_includes_quality_warnings_array_on_single_object",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_json_mode_includes_quality_warnings_array_on_single_object:kind=test_function",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_json_mode_includes_quality_warnings_array_on_single_object:returns=None",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_still_fails_on_fabricated_digest",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_still_fails_on_fabricated_digest:kind=test_function",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_still_fails_on_fabricated_digest:returns=None",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_text_mode_writes_quality_warnings_to_stderr_and_exits_zero",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_text_mode_writes_quality_warnings_to_stderr_and_exits_zero:kind=test_function",
+      "tests/cli/test_enrich_quality_warnings_cmd.py:test_validate_text_mode_writes_quality_warnings_to_stderr_and_exits_zero:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_low_coverage",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_low_coverage:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_low_coverage:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_single_source_entries",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_single_source_entries:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_single_source_entries:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_singleton_theme_map",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_singleton_theme_map:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_flags_singleton_theme_map:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_never_raises",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_never_raises:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_never_raises:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_returns_empty_for_strong_digest",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_returns_empty_for_strong_digest:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_assess_quality_returns_empty_for_strong_digest:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_instructs_canonical_multi_member_grouping",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_instructs_canonical_multi_member_grouping:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_instructs_canonical_multi_member_grouping:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_requires_multi_source_recurring_entries",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_requires_multi_source_recurring_entries:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_requires_multi_source_recurring_entries:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_states_coverage_and_output_schema",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_states_coverage_and_output_schema:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_system_prompt_states_coverage_and_output_schema:returns=None",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_user_prompt_includes_lesson_type_frequency_table",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_user_prompt_includes_lesson_type_frequency_table:kind=test_function",
+      "tests/core/test_outcome_enrichment_quality.py:test_request_user_prompt_includes_lesson_type_frequency_table:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_enrich_cmd.py",
+      "tests/cli/test_enrich_quality_warnings_cmd.py",
+      "tests/core/test_outcome_enrichment.py",
+      "tests/core/test_outcome_enrichment_quality.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_outcome_enrichment_quality.py tests/cli/test_enrich_quality_warnings_cmd.py tests/core/test_outcome_enrichment.py tests/cli/test_enrich_cmd.py"
+    ]
+  }
+}

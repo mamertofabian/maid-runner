@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -52,16 +53,25 @@ class EnrichmentDigest:
     digest_entries: tuple[DigestEntry, ...]
 
 
+@dataclass(frozen=True)
+class DigestQualityWarning:
+    code: str
+    message: str
+
+
 def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
     records = active_unique_records(index)
-    lesson_types = sorted(
-        {
-            lesson.lesson_type
-            for record in records
-            for lesson in record.lessons
-            if lesson.lesson_type.strip()
-        }
+    lesson_type_counts = Counter(
+        lesson.lesson_type
+        for record in records
+        for lesson in record.lessons
+        if lesson.lesson_type.strip()
     )
+    lesson_types = sorted(lesson_type_counts)
+    lesson_type_frequencies = [
+        {"lesson_type": lesson_type, "count": lesson_type_counts[lesson_type]}
+        for lesson_type in lesson_types
+    ]
     manifest_slugs = tuple(sorted({record.manifest_slug for record in records}))
     corpus = []
     for record in records:
@@ -87,13 +97,23 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
         system_prompt=(
             "cluster and summarize only the provided MAID Outcome lessons. "
             "Do not invent manifests, lesson_types, themes, source lessons, "
-            "private context, or validation evidence."
+            "private context, or validation evidence. Map every lesson_type "
+            "into a small set of about 8-12 canonical themes, explicitly "
+            "merging near-synonym families such as validation-* lessons into "
+            "multi-member themes with multiple member_lesson_types. Aim for "
+            "full lesson_type coverage. Each recurring digest_entries item "
+            "must cite at least two source_lessons drawn from at least two "
+            "distinct manifests. Emit exactly one JSON object with "
+            "schema_version, source_generated_from, advisory, themes "
+            "(canonical_name, member_lesson_types, summary, source_manifests), "
+            "and digest_entries (theme, summary, source_lessons)."
         ),
         user_prompt=json.dumps(
             {
                 "generated_from": index.generated_from,
                 "known_lesson_types": lesson_types,
                 "known_manifest_slugs": list(manifest_slugs),
+                "lesson_type_frequencies": lesson_type_frequencies,
                 "records": corpus,
             },
             indent=2,
@@ -102,6 +122,79 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
         known_lesson_types=tuple(lesson_types),
         known_manifest_slugs=manifest_slugs,
     )
+
+
+def assess_digest_quality(
+    digest: EnrichmentDigest,
+    index: OutcomeIndex,
+) -> "tuple[DigestQualityWarning, ...]":
+    lesson_types = {
+        lesson.lesson_type
+        for record in active_unique_records(index)
+        for lesson in record.lessons
+        if lesson.lesson_type.strip()
+    }
+    warnings: list[DigestQualityWarning] = []
+
+    mapped_lesson_types = {
+        lesson_type
+        for theme in digest.themes
+        for lesson_type in theme.member_lesson_types
+        if lesson_type in lesson_types
+    }
+    if lesson_types:
+        coverage = len(mapped_lesson_types) / len(lesson_types)
+        if coverage < _MIN_LESSON_TYPE_COVERAGE:
+            warnings.append(
+                DigestQualityWarning(
+                    code="low_coverage",
+                    message=(
+                        "Theme map covers "
+                        f"{len(mapped_lesson_types)} of {len(lesson_types)} "
+                        "active lesson_type values; the digest may leave "
+                        "fragmented lessons uncollapsed."
+                    ),
+                )
+            )
+
+    if len(digest.themes) >= _MIN_THEME_COUNT_FOR_SINGLETON_WARNING:
+        singleton_count = sum(
+            1 for theme in digest.themes if len(theme.member_lesson_types) <= 1
+        )
+        singleton_share = singleton_count / len(digest.themes)
+        if singleton_share > _MAX_SINGLETON_THEME_SHARE:
+            warnings.append(
+                DigestQualityWarning(
+                    code="singleton_theme_map",
+                    message=(
+                        f"{singleton_count} of {len(digest.themes)} themes "
+                        "contain only one member_lesson_type; the digest may "
+                        "not be collapsing near-synonym lesson families."
+                    ),
+                )
+            )
+
+    single_source_entries = [
+        entry
+        for entry in digest.digest_entries
+        if len(entry.source_lessons) < _MIN_ENTRY_SOURCE_LESSONS
+        or len({source.manifest_slug for source in entry.source_lessons})
+        < _MIN_ENTRY_SOURCE_MANIFESTS
+    ]
+    if single_source_entries:
+        warnings.append(
+            DigestQualityWarning(
+                code="single_source_entry",
+                message=(
+                    f"{len(single_source_entries)} digest_entries item(s) cite "
+                    "fewer than two source_lessons or fewer than two distinct "
+                    "manifests; recurring lessons should be grounded across "
+                    "multiple sources."
+                ),
+            )
+        )
+
+    return tuple(warnings)
 
 
 def validate_enrichment_digest(
@@ -335,6 +428,11 @@ def write_enrichment_digest(
 
 
 _DIGEST_SCHEMA_VERSION = "1"
+_MIN_LESSON_TYPE_COVERAGE = 0.80
+_MAX_SINGLETON_THEME_SHARE = 0.50
+_MIN_THEME_COUNT_FOR_SINGLETON_WARNING = 2
+_MIN_ENTRY_SOURCE_LESSONS = 2
+_MIN_ENTRY_SOURCE_MANIFESTS = 2
 
 
 def _lesson_pairs(index: OutcomeIndex) -> set[tuple[str, str]]:

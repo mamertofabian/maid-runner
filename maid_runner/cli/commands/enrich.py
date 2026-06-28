@@ -9,6 +9,8 @@ import sys
 from tempfile import NamedTemporaryFile
 
 from maid_runner.core.outcome_enrichment import (
+    DigestQualityWarning,
+    assess_digest_quality,
     build_enrichment_request,
     digest_is_stale,
     read_enrichment_digest,
@@ -30,7 +32,12 @@ def cmd_enrich(args: argparse.Namespace) -> int:
             return _cmd_prompt(args, index)
         if subcommand == "validate":
             digest = _read_valid_digest(args, index)
-            _emit_validate_success(args, digest_path=Path(args.digest))
+            quality_warnings = assess_digest_quality(digest, index)
+            _emit_validate_success(
+                args,
+                digest_path=Path(args.digest),
+                quality_warnings=quality_warnings,
+            )
             return 0
         digest = _read_valid_digest(args, index)
         markdown = render_digest_markdown(digest)
@@ -108,11 +115,33 @@ def _read_valid_digest(args: argparse.Namespace, index: OutcomeIndex):
     return digest
 
 
-def _emit_validate_success(args: argparse.Namespace, *, digest_path: Path) -> None:
+def _emit_validate_success(
+    args: argparse.Namespace,
+    *,
+    digest_path: Path,
+    quality_warnings: tuple[DigestQualityWarning, ...],
+) -> None:
     if getattr(args, "json", False):
-        print(json.dumps({"digest": str(digest_path), "valid": True}))
+        print(
+            json.dumps(
+                {
+                    "digest": str(digest_path),
+                    "quality_warnings": [
+                        {"code": warning.code, "message": warning.message}
+                        for warning in quality_warnings
+                    ],
+                    "valid": True,
+                }
+            )
+        )
     else:
         print(f"Enrichment digest valid: {digest_path}")
+        for warning in quality_warnings:
+            print(
+                f"Advisory digest quality warning [{warning.code}]: "
+                f"{warning.message}",
+                file=sys.stderr,
+            )
 
 
 def _write_text_atomic(path: Path, text: str) -> None:
