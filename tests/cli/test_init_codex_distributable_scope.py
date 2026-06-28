@@ -15,6 +15,7 @@ GENERIC_CODEX_SKILLS = [
     "maid-auditor",
     "maid-implementation-review",
     "maid-implementer",
+    "maid-outcome-enrich",
     "maid-plan-review",
     "maid-planner",
 ]

@@ -27,7 +27,8 @@
       "maid-implementation-review",
       "maid-evolver",
       "maid-auditor",
-      "maid-incident-logger"
+      "maid-incident-logger",
+      "maid-outcome-enrich"
     ],
     "descriptions": {
       "maid-planner": "Create a machine-checkable MAID manifest and behavioral tests",
@@ -36,7 +37,8 @@
       "maid-implementation-review": "Review implementation scope, artifacts, tests, and validation",
       "maid-evolver": "Intentionally evolve existing MAID manifest contracts",
       "maid-auditor": "Audit active manifests for regressions, drift, and broken contracts",
-      "maid-incident-logger": "Record curated MAID workflow drift or gaming incidents"
+      "maid-incident-logger": "Record curated MAID workflow drift or gaming incidents",
+      "maid-outcome-enrich": "Generate advisory Outcome enrichment outside maid-runner"
     }
   }
 }

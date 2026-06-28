@@ -23,6 +23,7 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-implementer",
     "maid-implementation-review",
     "maid-auditor",
+    "maid-outcome-enrich",
 ]
 REPO_INTERNAL_CODEX_SKILLS = [
     "maid-runner-cleanup-and-refactor",

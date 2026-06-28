@@ -3,11 +3,11 @@
   "manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
     "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
   },
   "created_at": "2026-06-17T01:56:53.748596+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d0584dbd7d9ca6e15ca940fd9bf8c31bce1a7af70d53da3a78f8859ec8d222fe",
@@ -88,6 +88,16 @@
       },
       "revised_at": "2026-06-26T15:24:29.053318+00:00",
       "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+    },
+    {
+      "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+      },
+      "revised_at": "2026-06-28T11:41:20.141915+00:00",
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
     }
   ],
   "red_evidence": {

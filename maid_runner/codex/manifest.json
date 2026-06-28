@@ -5,14 +5,16 @@
       "maid-plan-review",
       "maid-implementer",
       "maid-implementation-review",
-      "maid-auditor"
+      "maid-auditor",
+      "maid-outcome-enrich"
     ],
     "descriptions": {
       "maid-planner": "Plan MAID changes with manifest-derived Outcome recall",
       "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
       "maid-implementer": "Implement approved MAID manifests with Outcome recall context",
       "maid-implementation-review": "Review MAID implementations and Outcome record needs",
-      "maid-auditor": "Audit MAID contracts with advisory Outcome insights cadence"
+      "maid-auditor": "Audit MAID contracts with advisory Outcome insights cadence",
+      "maid-outcome-enrich": "Generate advisory Outcome enrichment outside maid-runner"
     }
   },
   "skill_agents": {
@@ -21,7 +23,8 @@
       "maid-plan-review/agents/openai.yaml",
       "maid-implementer/agents/openai.yaml",
       "maid-implementation-review/agents/openai.yaml",
-      "maid-auditor/agents/openai.yaml"
+      "maid-auditor/agents/openai.yaml",
+      "maid-outcome-enrich/agents/openai.yaml"
     ],
     "descriptions": {}
   }

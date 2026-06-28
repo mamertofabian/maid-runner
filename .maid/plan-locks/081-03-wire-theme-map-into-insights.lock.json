@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/081-03-wire-theme-map-into-insights.manifest.yaml",
-  "manifest_hash": "sha256:8dfd677f2c229582b8ee66634dab9998336cad222d2cc54a8d52b4edbf91e76d",
+  "manifest_hash": "sha256:3239f3b96af680cb8ea7851ddfc07f32ede909f63a0b01edb5e452d1e4317ffe",
   "test_hashes": {
     "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
-    "tests/test_insights_skill_guidance.py": "sha256:9be917a685e96cbf5160836ccfa034d9e58f2101690f3ec732582c9f0856f51e",
+    "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
     "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
   },
   "created_at": "2026-06-28T10:12:12.333345+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4925fd9bab1ff2b7c08252c8dddd9582e0e9a2360827706bd27c1f936160d4b6",
@@ -35,6 +35,16 @@
       },
       "revised_at": "2026-06-28T10:21:11.896133+00:00",
       "reason": "Include shared insights guidance parser-surface test in the 081-03 validation command"
+    },
+    {
+      "prior_manifest_hash": "sha256:8dfd677f2c229582b8ee66634dab9998336cad222d2cc54a8d52b4edbf91e76d",
+      "prior_test_hashes": {
+        "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+        "tests/test_insights_skill_guidance.py": "sha256:9be917a685e96cbf5160836ccfa034d9e58f2101690f3ec732582c9f0856f51e",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
+      },
+      "revised_at": "2026-06-28T11:41:21.822630+00:00",
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
     }
   ],
   "red_evidence": {

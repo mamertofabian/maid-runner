@@ -29,6 +29,7 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-implementer",
     "maid-implementation-review",
     "maid-auditor",
+    "maid-outcome-enrich",
 ]
 
 # Skills copied into the packaged Codex payload. The repo-internal skills stay
@@ -280,6 +281,9 @@ def _codex_manifest(source_skills: Path, skill_names: list[str]) -> dict:
                 ),
                 "maid-auditor": (
                     "Audit MAID contracts with advisory Outcome insights cadence"
+                ),
+                "maid-outcome-enrich": (
+                    "Generate advisory Outcome enrichment outside maid-runner"
                 ),
             },
         },

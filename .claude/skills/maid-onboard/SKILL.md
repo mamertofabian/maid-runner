@@ -96,7 +96,8 @@ For each chosen agent:
 
 Sanity-check before installing:
 - Codex must list **only generic** skills (`maid-planner`, `maid-plan-review`,
-  `maid-implementer`, `maid-implementation-review`, `maid-auditor`) — **no**
+  `maid-implementer`, `maid-implementation-review`, `maid-auditor`,
+  `maid-outcome-enrich`) — **no**
   `maid-runner-*` or `maid-validate-hardening`. If repo-internal skills appear, the maid-runner in
   use is stale (return to Phase 3) — do not pollute the repo.
 - Claude lists its generic skills + the implementation-reviewer agent.
@@ -128,7 +129,7 @@ old flow (e.g. ending at `make check`, with no `maid plan lock` or
 
 ```bash
 <maid> validate                            # should pass for existing manifests
-ls .codex/skills 2>/dev/null               # only the 5 generic skills, including maid-auditor
+ls .codex/skills 2>/dev/null               # only the 6 generic skills, including maid-auditor and maid-outcome-enrich
 grep -c "maid-runner-" AGENTS.md 2>/dev/null   # expect 0
 ```
 
