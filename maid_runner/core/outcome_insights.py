@@ -35,7 +35,7 @@ def aggregate_outcome_insights(
     index: OutcomeIndex,
     limit_per_group: int = 10,
 ) -> OutcomeInsightsReport:
-    records = tuple(_active_unique_records(index.records))
+    records = active_unique_records(index)
     return OutcomeInsightsReport(
         total_records=len(records),
         by_tag=_aggregate(records, lambda record: record.tags, limit_per_group),
@@ -77,6 +77,10 @@ def aggregate_outcome_insights(
 
 _ACTIVE_LIFECYCLE_STATUSES = frozenset({"active"})
 _MONTH_PATTERN = re.compile(r"^\d{4}-\d{2}")
+
+
+def active_unique_records(index: OutcomeIndex) -> "tuple[OutcomeIndexRecord, ...]":
+    return tuple(_active_unique_records(index.records))
 
 
 def _active_unique_records(
