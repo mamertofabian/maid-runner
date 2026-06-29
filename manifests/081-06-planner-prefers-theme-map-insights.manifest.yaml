@@ -1,0 +1,318 @@
+schema: '2'
+goal: Teach the distributed maid-planner Outcome-Aware phase to prefer `maid insights --theme-map <digest>` when a fresh advisory enrichment digest exists, and to fall back to plain `maid insights` otherwise, closing the 081 enrichment loop into planning for both Claude and Codex, and bump the instruction payload version so downstream `maid init --check` reports the changed planner payload as stale
+type: feature
+created: '2026-06-28T23:49:42Z'
+metadata:
+  epic: 081-00-outcome-llm-enrichment
+  tags:
+  - agent-skills
+  - insights
+  - outcome-records
+  - llm-enrichment
+  - maid-workflow
+  priority: low
+description: |
+  Final 081 enrichment-loop child. The deterministic enrichment pipeline now
+  exists end to end: the `maid-outcome-enrich` skill generates an advisory
+  `.maid/outcomes-digest.json`, `maid enrich validate` rejects fabricated or
+  stale digests, and `maid insights --theme-map <digest>` deterministically
+  re-aggregates `by_lesson_type` using the normalized themes. But nothing ever
+  consumes that enriched view during planning: the maid-planner Outcome-Aware
+  phase only tells agents to run plain `maid insights`, which reads the raw
+  `.maid/outcomes.json` index and never sees the digest. The theme-mapped
+  clustering is therefore opt-in-by-memory only, and a fresh digest provides no
+  planning benefit unless an agent happens to remember the `--theme-map` flag.
+
+  This child adds one short preference rule to the maid-planner Outcome-Aware
+  guidance for both Claude and Codex: when an advisory enrichment digest is
+  present, prefer `maid insights --theme-map .maid/outcomes-digest.json` so
+  recurring lessons cluster by normalized theme; when the digest is absent or
+  the runner reports it stale or invalid, fall back to plain `maid insights`.
+  The rule attaches to the existing "Active insights trigger" bullet so it
+  reads as a refinement of current advisory-insights behavior, not a new gate.
+
+  Pinned decisions (do not redesign):
+
+  1. Lean on the runner's own digest rejection, not planner-side freshness
+     logic. `maid insights --theme-map` already validates the digest against
+     the current Outcome index and refuses a stale or fabricated digest. The
+     guidance therefore says: try `--theme-map` when the digest file exists;
+     if the runner reports it missing, stale, or invalid, fall back to plain
+     `maid insights`. The planner must NOT compute freshness itself, and must
+     NOT pass `--allow-stale-index` to force a stale enriched digest into
+     planning. A stale enriched digest is worse than none, because it presents
+     LLM-normalized themes that no longer match the real index.
+
+  2. The fallback is mandatory and non-blocking. A missing or rejected digest
+     must never block, gate, or downgrade planning. Plain `maid insights`
+     remains the always-available baseline; the theme-mapped view is a strict
+     improvement when available and a no-op when not.
+
+  3. The planner never generates or refreshes the digest. Producing the digest
+     requires a model call and lives only in the `maid-outcome-enrich` skill.
+     The planner is a read-only consumer of an already-validated digest. The
+     guidance must not instruct the planner to run `maid enrich` generation,
+     call a model, or hand-edit the digest.
+
+  4. Tool parity, not a planner-only Claude advantage. Consuming an existing
+     advisory digest is not a planner-specific Claude optimization; it is
+     generic read-only evidence selection. Claude and Codex maid-planner
+     payloads must carry identical theme-map guidance. The repo CLAUDE.md note
+     about optional planner-only Claude advantages does not apply here.
+
+  5. Quote only registered `maid insights` options. The shipped insights
+     surface is `--index`, `--manifest-dir`, `--project-root`,
+     `--allow-stale-index`, `--theme-map`, `--limit`, and `--json`. There is no
+     `--digest` on insights (that belongs to `maid enrich`); the guidance must
+     not invent flags, and a negative test pins this.
+
+  6. The digest stays advisory. The existing section already states that
+     recalled, aggregated, and digested Outcomes are planning evidence only and
+     do not create an approval, promotion, done, or review gate. The new rule
+     reinforces, and must not weaken, that framing.
+
+  Scope: the distributed maid-planner skill guidance plus an instruction
+  payload version bump. maid-planner is already a distributable skill for both
+  tools, so no `maid init` scope, `manifest.json`, or
+  `scripts/sync_claude_files.py` change is required. Edits touch the two source
+  skills (`.claude/` and `.codex/`) plus their generated package copies under
+  `maid_runner/`, kept byte-for-byte in sync by the existing sync script. No
+  `maid insights`, `maid enrich`, or core enrichment CLI behavior changes in
+  this child.
+
+  Instruction payload version bump: the skills `maid init` installs are exactly
+  the repo-local agent payloads that `INSTRUCTION_PAYLOAD_VERSION` tracks
+  (079-01). Changing the planner skill guidance without bumping the constant
+  would let a downstream repo that already ran `maid init` keep the old planner
+  payload while `maid init --check` still reports `current`, masking the
+  staleness the versioning exists to surface. This child therefore advances
+  `INSTRUCTION_PAYLOAD_VERSION` in `maid_runner/instruction_payload.py` to a new
+  date-stamped value past the current `2026.06.27.1`, so downstream `--check`
+  reports the changed planner payload as stale until re-init.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  a new `tests/test_planner_theme_map_guidance.py` reads the maid-planner
+  skills and asserts, for both Claude and Codex source copies, that
+  (a) the Outcome-Aware guidance tells the planner to prefer
+  `maid insights --theme-map .maid/outcomes-digest.json` when a fresh
+  advisory enrichment digest exists, (b) the guidance states the mandatory
+  fallback to plain `maid insights` when the digest is absent, stale, or
+  invalid, and explicitly forbids forcing a stale digest with
+  `--allow-stale-index`, (c) the guidance keeps the digest advisory and
+  read-only — the planner must not generate the digest, call a model, or run
+  `maid enrich`, (d) the guidance uses only registered `maid insights` options
+  and contains no unregistered flags such as `--digest`, (e) the generated
+  Claude and Codex package copies equal their sources after an isolated sync of
+  the payload, so source and packaged guidance cannot drift, and (f) the
+  instruction payload version advanced past the pre-change `2026.06.27.1`
+  baseline so downstream `maid init --check` will report the changed payload as
+  stale.
+
+  Out of scope: changing `maid insights --theme-map` runtime behavior, the
+  enrichment digest schema, the `maid-outcome-enrich` generation skill, recall
+  ranking, and any non-planner skill guidance.
+temptations:
+- risk: Do not add planner-side freshness logic, a manual digest mtime check, or force a stale enriched digest with `--allow-stale-index`.
+  instead: Tell the planner to try `maid insights --theme-map .maid/outcomes-digest.json` and fall back to plain `maid insights` when the runner reports the digest missing, stale, or invalid; the runner owns digest validation, and a stale enriched digest is worse than none.
+- risk: Do not make the theme-mapped view mandatory or let a missing/rejected digest block, gate, or downgrade planning.
+  instead: Keep plain `maid insights` as the always-available baseline; assert the fallback is explicit and non-blocking.
+- risk: Do not instruct the planner to generate or refresh the digest (that needs a model call) or to run `maid enrich`.
+  instead: Frame the planner as a read-only consumer; defer digest generation to the maid-outcome-enrich skill, and assert the planner guidance does not invoke enrich generation or a model.
+- risk: Do not invent insights flags such as `maid insights --digest` (that flag belongs to `maid enrich`).
+  instead: Quote only registered insights options and assert the absence of unregistered flags in a negative test.
+- risk: Do not edit only the source skills, leave the generated package copies stale, make the guidance Claude-only, or change the installed planner payload without bumping the instruction payload version.
+  instead: Edit both source skills plus generated copies, keep Claude/Codex identical, assert byte-for-byte parity from an isolated sync workspace, and advance `INSTRUCTION_PAYLOAD_VERSION` so `maid init --check` reports the changed payload as stale.
+files:
+  create:
+  - path: tests/test_planner_theme_map_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_planner_outcome_phase_prefers_theme_map_when_digest_present
+      args: []
+      returns: None
+      description: Behavioral coverage that both Claude and Codex maid-planner Outcome-Aware guidance tells the planner to prefer `maid insights --theme-map .maid/outcomes-digest.json` when a fresh advisory enrichment digest exists.
+    - kind: test_function
+      name: test_planner_outcome_phase_falls_back_without_fresh_digest
+      args: []
+      returns: None
+      description: Behavioral coverage that both planner skills state the mandatory non-blocking fallback to plain `maid insights` when the digest is absent, stale, or invalid, and forbid forcing a stale digest with `--allow-stale-index`.
+    - kind: test_function
+      name: test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only
+      args: []
+      returns: None
+      description: Behavioral coverage that both planner skills keep the digest advisory and read-only, stating the planner must not generate the digest, call a model, or run `maid enrich` generation.
+    - kind: test_function
+      name: test_planner_theme_map_guidance_uses_only_registered_insights_options
+      args: []
+      returns: None
+      description: Behavioral coverage that planner theme-map guidance uses only registered `maid insights` options and contains no unregistered flags such as `--digest`.
+    - kind: test_function
+      name: test_planner_theme_map_guidance_synced_to_agent_payloads
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Behavioral coverage that generated Claude and Codex maid-planner package copies equal their source skills after an isolated payload sync, so theme-map guidance cannot drift between source and package.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_planner_change
+      args: []
+      returns: None
+      description: Behavioral coverage that INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change `2026.06.27.1` baseline, so downstream `maid init --check` reports the changed planner payload as stale.
+  edit:
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _planner_theme_map_insights_guidance
+      of: skill
+      type: markdown section
+      description: Claude source maid-planner Outcome-Aware rule to prefer `maid insights --theme-map .maid/outcomes-digest.json` when a fresh advisory digest exists, with a mandatory non-blocking fallback to plain `maid insights`, no `--allow-stale-index` override, and no planner-side digest generation.
+  - path: .codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_planner_theme_map_insights_guidance
+      of: skill
+      type: markdown section
+      description: Codex source maid-planner Outcome-Aware rule identical to the Claude copy, preferring `maid insights --theme-map` with the same fallback, override, and read-only-consumer constraints.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _distributed_planner_theme_map_insights_guidance
+      of: skill
+      type: markdown section
+      description: Generated Claude package copy of the planner theme-map insights guidance, kept byte-for-byte in sync with the source skill.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_distributed_planner_theme_map_insights_guidance
+      of: skill
+      type: markdown section
+      description: Generated Codex package copy of the planner theme-map insights guidance, kept byte-for-byte in sync with the source skill.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version advanced past `2026.06.27.1` so that changing the installed planner skill payload makes downstream `maid init --check` report the installed payload as stale.
+  read:
+  - manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml
+  - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+  - manifests/081-04-add-outcome-enrich-skill.manifest.yaml
+  - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
+  - manifests/079-01-version-init-instruction-payload.manifest.yaml
+  - tests/cli/test_init_instruction_payload_version.py
+  - maid_runner/cli/commands/insights.py
+  - maid_runner/cli/commands/_main.py
+  - scripts/sync_claude_files.py
+  - tests/test_insights_skill_guidance.py
+  - tests/test_outcome_enrich_skill_guidance.py
+validate:
+- uv run python -m pytest -q tests/test_planner_theme_map_guidance.py tests/cli/test_init_instruction_payload_version.py tests/test_insights_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py
+outcome:
+  status: completed
+  completed_at: "2026-06-28T23:59:00Z"
+  summary: "Promoted 081-06 and updated the distributed maid-planner Outcome-Aware guidance so Claude and Codex planners prefer `maid insights --theme-map .maid/outcomes-digest.json` when a fresh advisory digest exists, fall back to plain `maid insights` when it does not, and keep digest use read-only and non-blocking. The init instruction payload version was advanced to `2026.06.29.1`."
+  rationale: "The implementation closes the 081 enrichment loop without adding planner-side freshness logic or model calls. The planner guidance tells agents to try the runner-validated `--theme-map` view only when an advisory digest is available, forbids forcing stale enriched digest data with `--allow-stale-index`, and preserves plain `maid insights` as the mandatory fallback. Source planner skills and generated package copies are kept in sync by the existing sync script and covered by an isolated sync parity test, while the payload version bump makes downstream `maid init --check` report old installed planner payloads as stale."
+  lessons:
+  - lesson_type: workflow
+    summary: "When a manifest declares existing behavioral test files as read dependencies, its validate command must run them too; otherwise `maid test` can fail E230 even if the new focused test file passes."
+    tags:
+    - maid-test
+    - behavioral-tests
+    - validation-commands
+    paths:
+    - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+    - tests/test_planner_theme_map_guidance.py
+  - lesson_type: workflow
+    summary: "If a validate command changes after red evidence exists, use `maid plan revise --stash-implementation` to recapture red evidence against the corrected command instead of preserving mismatched evidence."
+    tags:
+    - plan-lock
+    - red-evidence
+    - workflow-integrity
+    paths:
+    - .maid/plan-locks/081-06-planner-prefers-theme-map-insights.lock.json
+    - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+  - lesson_type: validation
+    summary: "Plan-lock verify can surface pre-existing lock hash drift outside the current manifest; resolving it through `maid plan revise --preserve-red-evidence` keeps the fix auditable without hand-editing lock files."
+    tags:
+    - plan-lock
+    - verify
+    - validation-trust
+    paths:
+    - .maid/plan-locks/081-04-add-outcome-enrich-skill.lock.json
+    - tests/test_outcome_enrich_skill_guidance.py
+  - lesson_type: implementation-review
+    summary: "Implementation review should treat `.maid/active-manifest` as lifecycle state that must be cleared before handoff; a ready source diff is still not ready while the active task pointer is left behind."
+    tags:
+    - task-lifecycle
+    - implementation-review
+    - handoff
+    paths:
+    - .maid/active-manifest
+  review_notes:
+  - source: implementation-review-subagent-019f10ac-8d8f-7411-89da-955784323b6d
+    severity: warning
+    summary: "Initial read-only implementation review found `.maid/active-manifest` still present as untracked lifecycle state; it was cleared with `uv run maid task stop`."
+  - source: implementation-review-subagent-019f10b1-73cf-71c0-a520-02ac17726e9d
+    severity: ready
+    summary: "Re-review found no remaining findings, confirmed the active task pointer was gone, and rechecked focused validation, manifest test, verify, and generated Claude planner parity."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_planner_theme_map_guidance.py
+    - tests/cli/test_init_instruction_payload_version.py
+    - tests/test_insights_skill_guidance.py
+    - tests/test_outcome_enrich_skill_guidance.py
+    status: passed
+    summary: "Focused command passed with 26 tests covering planner theme-map preference, fallback/read-only constraints, registered insights options, payload sync parity, and instruction payload versioning."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+    - --mode
+    - behavioral
+    - --packet
+    status: passed
+    summary: "Promoted manifest behavioral validation passed after the focused tests were added."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: "Implementation validation passed with expected E307 warnings for markdown skill files."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 388 manifests: 299 passed and 89 superseded."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide manifest test run passed with 153 commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Handoff verify passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests after using an explicit `HEAD` baseline for the current uncommitted task diff."

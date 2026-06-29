@@ -2,14 +2,14 @@
   "manifest_path": "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
   "manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
   "test_hashes": {
-    "tests/test_outcome_enrich_skill_guidance.py": "sha256:673f6ed23dbf26d4d9e10ba33457228bbcd5764c57ae3e8f3738f7007081f65a",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
     "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
     "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
     "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
     "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
   },
   "created_at": "2026-06-28T11:25:07.010877+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ba8e660b0e744db10714000cba6954ba14c33b2e9b7b9f40573e0e213309f72e",
@@ -74,6 +74,18 @@
       },
       "revised_at": "2026-06-28T11:46:05.099971+00:00",
       "reason": "Refresh lock after Outcome capture"
+    },
+    {
+      "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:673f6ed23dbf26d4d9e10ba33457228bbcd5764c57ae3e8f3738f7007081f65a",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-06-28T23:56:20.419998+00:00",
+      "reason": "Refresh behavioral test hash after verify reported existing 081-04 lock drift for tests/test_outcome_enrich_skill_guidance.py."
     }
   ],
   "red_evidence": {

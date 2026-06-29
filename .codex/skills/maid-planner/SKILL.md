@@ -86,8 +86,17 @@ instead of relying on private memory.
 For planning:
 
 - Active insights trigger: review recurring Outcome lessons with `maid insights`
-  before drafting or hardening the manifest. Treat insights as advisory
-  aggregate evidence for recurring lessons, not as generated narrative authority.
+  before drafting or hardening the manifest. When a fresh advisory enrichment
+  digest exists at `.maid/outcomes-digest.json`, prefer
+  `maid insights --theme-map .maid/outcomes-digest.json` so recurring lessons
+  cluster by normalized theme. If the digest is absent, stale, or invalid, fall
+  back to plain `maid insights`; this fallback is mandatory, non-blocking, and
+  must never block, gate, or downgrade planning. Do not pass
+  `--allow-stale-index` to force a stale enriched digest into planning. The
+  planner is a read-only consumer of the digest: the planner must not generate
+  the digest, must not call a model, and must not run `maid enrich`. Treat
+  theme-mapped insights as advisory planning evidence only, not generated
+  narrative authority.
 - Run `maid learn` before `maid recall` when the Outcome index is stale.
 - If the Outcome index is missing, run `maid learn` once. If no index is
   created because no completed Outcome records exist, state that no advisory
