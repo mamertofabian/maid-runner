@@ -281,9 +281,11 @@ def _cmd_plan_revise_with_stashed_implementation(
     try:
         manifest = load_manifest(ctx.manifest_path)
         target_paths = tuple(
-            fs.path.replace("\\", "/")
-            for fs in manifest.all_file_specs
-            if not _is_test_file(fs.path)
+            sorted(
+                path.replace("\\", "/")
+                for path in manifest.all_writable_paths
+                if not _is_test_file(path)
+            )
         )
         if not target_paths:
             print_error(

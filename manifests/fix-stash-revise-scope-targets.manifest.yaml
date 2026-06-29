@@ -1,0 +1,158 @@
+schema: '2'
+goal: Allow stash-backed plan revise to hide dirty files.scope implementation paths
+type: fix
+created: '2026-06-29T03:20:32Z'
+metadata:
+  tags:
+  - plan-lock
+  - files-scope
+  - stash-implementation
+  priority: high
+description: |
+  `maid plan revise --stash-implementation` currently derives implementation
+  stash targets from artifact-bearing file specs. That misses `files.scope`,
+  even though scope-only paths are explicitly writable implementation scope for
+  files such as route wiring that have no validator-visible public artifact.
+
+  The command should use writable implementation paths when deciding which dirty
+  non-test files may be temporarily hidden for fresh red evidence. `files.read`
+  remains context only and must still be rejected when dirty unless the same
+  path is also declared in a writable section.
+temptations:
+- risk: Do not make files.read eligible for stash-backed writes to silence the reported error.
+  instead: Include files.scope via the manifest writable-path contract and keep read-only dirty paths rejected.
+- risk: Do not only add files.scope to the allowed dirty set.
+  instead: Add files.scope to the actual target paths passed to the targeted git stash so implementation code is hidden during red evidence capture.
+files:
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Revise a plan lock, including stash-backed recovery that hides dirty writable implementation paths.
+  create:
+  - path: tests/cli/test_plan_cmd_stash_scope_targets.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_implementation_recaptures_red_evidence_and_restores_scope_only_change
+      source_scenario: A manifest declares a dirty implementation route only in files.scope because it has no public artifact contract.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_plan_revise
+      expected:
+        behavior: The command accepts the dirty files.scope path, stashes it while capturing red evidence, restores it, and leaves no MAID stash behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_dirty_read_only_path_with_scope_target
+      source_scenario: A manifest has a dirty files.scope implementation target and a separate dirty files.read context file.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_plan_revise
+      expected:
+        behavior: The command rejects the dirty files.read-only path before stashing while preserving all dirty work.
+  read:
+  - maid_runner/core/types.py
+  - README.md
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_cmd_stash_scope_targets.py
+outcome:
+  status: completed
+  completed_at: "2026-06-29T03:35:50Z"
+  summary: "Updated stash-backed plan revision so dirty non-test `files.scope` paths are actual targeted-stash implementation paths. Scope-only wiring files are now hidden while fresh red evidence is captured, and `files.read` remains read-only context that is rejected when dirty unless also declared writable."
+  rationale: "The bug came from using `Manifest.all_file_specs`, which intentionally excludes scope-only files because they have no public artifact contract. `Manifest.all_writable_paths` is the correct contract for stash eligibility because it includes create/edit/snapshot/delete/scope paths while excluding read-only context."
+  lessons:
+  - lesson_type: workflow
+    summary: "Recovery commands that temporarily hide implementation must use writable manifest scope, not artifact-bearing file specs, because `files.scope` is explicitly writable while intentionally absent from `all_file_specs`."
+    tags:
+    - plan-lock
+    - files-scope
+    - stash-implementation
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - maid_runner/core/types.py
+  - lesson_type: validation
+    summary: "When adding regression coverage to a test file already hashed by older plan locks, prefer an isolated new test module if the new behavior belongs to a new manifest; this avoids forcing unrelated historical lock revisions."
+    tags:
+    - plan-lock
+    - test-design
+    - red-evidence
+    paths:
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    - .maid/plan-locks/fix-stash-revise-scope-targets.lock.json
+  review_notes:
+  - source: plan-review-subagent-Hegel
+    severity: ready
+    summary: "Approved the plan and confirmed the scope-only regression test proved the dirty `files.scope` file was actually stashed, while the dirty read-only case pinned `files.read` rejection."
+  - source: implementation-review-subagent-Noether
+    severity: ready
+    summary: "Independent read-only implementation review found no actionable findings. It reran focused pytest, implementation validation, and strict verify, and returned verdict ready."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    status: passed
+    summary: "Focused regression module passed: scope-only dirty implementation paths are stashed/restored and dirty read-only context paths are rejected."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-stash-revise-scope-targets.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-stash-revise-scope-targets.manifest.yaml
+    status: passed
+    summary: "Manifest test gate passed with 1 command and 0 failures."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    status: passed
+    summary: "Ruff passed on the changed Python implementation and new regression test file."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 389 manifests, 300 passed, 0 failed, and 89 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full active MAID test sweep passed: 153 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict verify passed schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests with existing E307/E310 repository warnings only."
