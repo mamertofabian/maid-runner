@@ -1,0 +1,239 @@
+schema: '2'
+goal: Add the opt-in `maid insights --theme-map <digest.json>` flag that deterministically re-aggregates lesson_types through the advisory canonical theme map, keeping default insights byte-for-byte unchanged, and document the advisory enrichment artifacts
+type: feature
+created: '2026-06-28T10:12:16Z'
+metadata:
+  epic: 081-00-outcome-llm-enrichment
+  tags:
+  - outcome-records
+  - insights
+  - llm-enrichment
+  - documentation
+  - maid-workflow
+  priority: medium
+description: |
+  Insights-wiring child of the 081 epic. Surfaces the payoff of theme
+  normalization without compromising the deterministic insights contract.
+
+  `cmd_insights` (`maid_runner/cli/commands/insights.py`) gains an opt-in
+  `--theme-map <path>` flag. When absent, insights behaves exactly as today
+  (deterministic aggregation; output unchanged). When present, the command
+  loads the advisory digest, runs `validate_enrichment_digest` against the
+  index so fabricated or mis-attributed theme maps are rejected, rejects it if
+  it is stale relative to the index (via `digest_is_stale`) unless
+  `--allow-stale-index` is set, and replaces the `by_lesson_type` section of
+  the rendered report with the canonical-theme re-aggregation from
+  `apply_theme_map` (081-01). The `--theme-map` flag is registered by editing
+  `build_parser` in `_main.py`, declared under
+  `files.edit` per the 047-05 precedent (which contracted `_main.py`).
+
+  Pinned decisions (do not redesign):
+
+  1. Default insights output is byte-for-byte unchanged when `--theme-map` is
+     not supplied. The flag is purely additive.
+  2. The re-aggregation is deterministic and emits no generated narrative into
+     the insights report — it only re-keys the existing lesson_type aggregation
+     through the canonical map. This honors the 047-05 lesson that insight
+     reports stay deterministic aggregate data with source manifest lists, not
+     generated guidance. The narrative retrospective stays in the separate
+     `.maid/outcomes-digest.md` produced by `maid enrich`.
+  3. A stale theme map is rejected with a clear error unless the existing
+     `--allow-stale-index` opt-in is supplied, mirroring the index staleness
+     guard already in `cmd_insights`.
+  4. A fabricated or semantically invalid theme map is rejected before
+     aggregation by calling `validate_enrichment_digest`; staleness alone is not
+     enough because a non-stale digest can still cite non-cooccurring
+     (manifest, lesson_type) pairs.
+
+  Documentation: `docs/manifest-outcome-records.md` and its packaged copy
+  `maid_runner/docs/manifest-outcome-records.md` gain an advisory note
+  describing `maid enrich`, the generated digest artifacts, and the opt-in
+  `maid insights --theme-map` consumption — using the same "advisory,
+  generated and ignored" framing already applied to `.maid/outcomes.json`.
+temptations:
+- risk: Do not change default insights output or aggregation when --theme-map is absent.
+  instead: Gate all new behavior behind the flag; pin an unchanged-default test that asserts identical output without the flag.
+- risk: Do not emit generated narrative or inferred guidance into the insights report via the theme map.
+  instead: Use apply_theme_map's deterministic re-aggregation only; assert collapsed counts and source manifests, not prose.
+- risk: Do not consume a stale theme map silently.
+  instead: Reject a stale digest via digest_is_stale unless --allow-stale-index is set; pin with a stale-digest rejection test.
+- risk: Do not apply a non-stale but fabricated theme map just because its fingerprint matches the index.
+  instead: Call validate_enrichment_digest before apply_theme_map and pin with a fabricated-theme-map rejection test.
+- risk: Do not document the digest as authoritative outcome data.
+  instead: Describe it as advisory, generated, and gitignored, matching the existing outcomes.json wording.
+files:
+  edit:
+  - path: maid_runner/cli/commands/insights.py
+    artifacts:
+    - kind: function
+      name: cmd_insights
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Aggregate deterministic Outcome insights; when --theme-map is supplied, validate the advisory digest against the index, reject stale or fabricated maps, and replace the by_lesson_type section with canonical-theme re-aggregation, otherwise behave exactly as before.
+  - path: docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _outcome_enrichment_advisory_guidance
+      of: documentation
+      type: doc-section
+      description: Advisory note describing maid enrich, the generated .maid/outcomes-digest.json and .md artifacts, and the opt-in maid insights --theme-map consumption.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_outcome_enrichment_advisory_guidance
+      of: package_resource
+      type: doc-section
+      description: Packaged copy of the advisory enrichment note kept in sync with the repo docs.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Expose the opt-in --theme-map option on the insights subparser.
+  read:
+  - maid_runner/core/outcome_enrichment.py
+  - maid_runner/core/outcome_insights.py
+  - tests/cli/test_insights_cmd.py
+  - tests/test_insights_skill_guidance.py
+  - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+  - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+  create:
+  - path: tests/cli/test_insights_theme_map_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_insights_without_theme_map_keeps_default_aggregation
+      args: []
+      returns: None
+      description: Running insights without --theme-map produces the existing deterministic lesson_type aggregation unchanged.
+    - kind: test_function
+      name: test_insights_with_theme_map_collapses_lesson_types
+      args: []
+      returns: None
+      description: With --theme-map, fragmented lesson_types are reported under their canonical theme buckets.
+    - kind: test_function
+      name: test_insights_with_theme_map_emits_no_generated_narrative
+      args: []
+      returns: None
+      description: The theme-mapped report contains only aggregate keys, counts, and source manifests, not synthesized prose.
+    - kind: test_function
+      name: test_insights_rejects_stale_theme_map_without_allow_flag
+      args: []
+      returns: None
+      description: A theme map whose source fingerprint no longer matches the index is rejected unless --allow-stale-index is supplied.
+    - kind: test_function
+      name: test_insights_rejects_fabricated_theme_map
+      args: []
+      returns: None
+      description: A non-stale theme map that cites a non-cooccurring (manifest, lesson_type) pair is rejected before aggregation.
+validate:
+- uv run python -m pytest -q tests/cli/test_insights_theme_map_cmd.py tests/cli/test_insights_cmd.py tests/test_insights_skill_guidance.py
+outcome:
+  status: completed
+  completed_at: "2026-06-28T10:40:00Z"
+  summary: "Promoted 081-03 and added opt-in `maid insights --theme-map` support that validates advisory enrichment digests, rejects stale or fabricated maps, re-aggregates only `by_lesson_type`, and documents generated digest artifacts as advisory."
+  rationale: "The implementation keeps default `maid insights` aggregation unchanged unless `--theme-map` is supplied. When supplied, `cmd_insights` reads the enrichment digest, validates it against the Outcome index, rejects stale digests unless `--allow-stale-index` is explicit, and replaces only the deterministic lesson-type grouping with `apply_theme_map` output. Documentation in the source and packaged Outcome records guide frames `.maid/outcomes-digest.json` and `.maid/outcomes-digest.md` as advisory, generated, ignored, and non-authoritative."
+  lessons:
+  - lesson_type: workflow
+    summary: "When a new CLI option changes a shared parser-surface test owned by an older manifest, update the current manifest scope and validation command, then refresh the older manifest's plan lock with preserved red evidence so the handoff gate can distinguish intentional shared-test drift from tampering."
+    tags:
+    - plan-lock
+    - shared-tests
+    - cli-options
+    paths:
+    - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+    - .maid/plan-locks/077-01-add-insights-cadence-to-maid-auditor.lock.json
+    - tests/test_insights_skill_guidance.py
+  - lesson_type: validation
+    summary: "For optional enrichment features, pin both unchanged-default behavior and hostile digest cases: stale provenance and non-cooccurring source lesson references should fail before any re-aggregation is rendered."
+    tags:
+    - outcome-records
+    - insights
+    - anti-fabrication
+    paths:
+    - tests/cli/test_insights_theme_map_cmd.py
+    - maid_runner/cli/commands/insights.py
+  - lesson_type: workflow
+    summary: "A ready implementation review can still be blocked by local MAID lifecycle state; stop the active task before handoff so `.maid/active-manifest` does not leak into the worktree or future scope checks."
+    tags:
+    - task-lifecycle
+    - implementation-review
+    - handoff
+    paths:
+    - .maid/active-manifest
+    - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+  review_notes:
+  - source: implementation-review-subagent-019f0dc3-ca09-7e20-a7bf-af83825b675c
+    severity: warning
+    summary: "Initial read-only implementation review found stale local active-task state in `.maid/active-manifest`; it was fixed with `uv run maid task stop` before re-review."
+  - source: implementation-review-subagent-019f0dc8-0623-7fb2-a49c-5b7288db2d55
+    severity: ready
+    summary: "Re-review found no actionable findings after active-task cleanup; residual risk was limited to not independently rerunning full pytest or full `maid test` inside the subagent."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_insights_theme_map_cmd.py
+    - tests/cli/test_insights_cmd.py
+    - tests/test_insights_skill_guidance.py
+    status: passed
+    summary: "Focused command passed with 16 tests covering default output, theme-map collapse, no generated narrative, stale/fabricated rejection, parser registration, and shared option guidance."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Promoted manifest behavioral validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Promoted manifest implementation validation passed with expected E307 warnings for documentation files."
+  - command:
+    - uv
+    - run
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: "Full pytest suite passed with 2977 passed and 5 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository MAID validation passed with 296 active manifests passing, 0 failed, and 89 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository MAID test runner passed all 153 commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Handoff verify passed with an explicit HEAD baseline for this uncommitted task diff; plain verify without a baseline failed changed-scope because the branch was already ahead of upstream."

@@ -4,12 +4,12 @@
   "test_hashes": {
     "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
     "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
     "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
   },
   "created_at": "2026-06-26T15:40:51.445215+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c85a5f1aacba8177d19f8b248aa51da35b4d9fbe74c5aa0c69830dd3e2934c2b",
@@ -58,6 +58,18 @@
       },
       "revised_at": "2026-06-26T16:04:58.268665+00:00",
       "reason": "Capture completed Outcome after ready implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:4da1964e401dc2e5a613eb86d8452c3739f020511e3cef5b2167f2b822b49018",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
+      },
+      "revised_at": "2026-06-28T11:41:21.076128+00:00",
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
     }
   ],
   "red_evidence": {

@@ -1,0 +1,370 @@
+schema: '2'
+goal: Harden the deterministic enrichment prompt so generation actually collapses fragmented lesson_types and produces multi-source recurring lessons, and add advisory (non-blocking) digest quality warnings to maid enrich validate, after the first real digest came back structurally valid but hollow
+type: feature
+created: '2026-06-28T15:22:00Z'
+metadata:
+  epic: 081-00-outcome-llm-enrichment
+  tags:
+  - outcome-records
+  - insights
+  - llm-enrichment
+  - prompt-engineering
+  - maid-workflow
+  priority: medium
+description: |
+  Post-implementation hardening follow-up to the 081 epic. The first real
+  `.maid/outcomes-digest.json` produced by the shipped pipeline passed every
+  contract check (schema, advisory flag, fingerprint match, anti-fabrication)
+  but did not deliver the feature's purpose:
+
+  - No collapsing: all 11 themes had exactly ONE member lesson_type and covered
+    only 11 of 72 index lesson_types. The flagship validation family (8
+    near-synonym keys, 34+ lessons) was not merged, so
+    `maid insights --theme-map` would barely change.
+  - Not recurring: every digest entry cited a single `source_lesson` from a
+    single manifest, i.e. reworded individual lessons, not cross-manifest
+    synthesis.
+
+  Verified root cause (not the core contract): the deterministic prompt from
+  `build_enrichment_request` under-specifies the task. Its entire system prompt
+  is "cluster and summarize only the provided MAID Outcome lessons. Do not
+  invent ...", and the user prompt is a raw corpus dump with no lesson_type
+  frequencies, no grouping/coverage/recurrence instructions, and no output
+  schema. A weak local model then takes the path of least resistance. The
+  deterministic validator correctly cannot catch this — it enforces
+  anti-fabrication + staleness, not clustering quality.
+
+  This child fixes the two deterministic levers the runner legitimately owns,
+  staying inside the AI-free boundary (the prompt is deterministic; only the
+  model output is not):
+
+  1. Strengthen `build_enrichment_request` (evolve 081-01 via maid-evolver
+     chain-merge; signature unchanged, behavior strengthened):
+     - Include a deterministic lesson_type FREQUENCY TABLE in the request,
+       carried in `user_prompt` under the exact key `lesson_type_frequencies` as
+       a list of `{"lesson_type": str, "count": int}` objects (counts = number
+       of lessons of that type across the active records, sorted
+       deterministically), so the model sees which types dominate and which are
+       near-synonym long-tail. Tests assert the exact key, shape, and counts.
+     - Strengthen `system_prompt` to instruct: map EVERY index lesson_type into
+       a small set (~8-12) of canonical themes, explicitly merging near-synonym
+       families (e.g. the validation-* family) into one theme with MULTIPLE
+       `member_lesson_types`; make each recurring `digest_entry` cite at least
+       two `source_lessons` drawn from at least two distinct manifests; aim for
+       full lesson_type coverage; and emit the exact digest JSON shape.
+  2. Add an ADVISORY, non-blocking quality assessment so a hollow-but-valid
+     digest is visibly hollow:
+     - New pure `assess_digest_quality(digest, index) -> tuple[DigestQualityWarning, ...]`
+       returning deterministic warnings for: low lesson_type coverage,
+       singleton-dominated theme maps, and digest entries grounded in a single
+       source lesson / single manifest. It NEVER raises and NEVER changes
+       `validate_enrichment_digest`'s anti-fabrication contract.
+     - `cmd_enrich` (evolve 081-02 via chain-merge; signature unchanged) prints
+       these warnings during `maid enrich validate` while keeping exit status
+       driven only by fabrication/staleness, so quality stays advisory.
+
+  Pinned decisions (do not redesign):
+
+  1. Stay AI-free in the runner: only the deterministic prompt text/frequency
+     table and deterministic threshold checks change. No model call is added.
+  2. Quality warnings are advisory only: `maid enrich validate` still exits
+     non-zero solely on fabrication or staleness, never on low quality. (A
+     future `--strict-quality` gate is intentionally out of scope here.)
+     Output contract so machine consumers never break: in `--json` mode the
+     existing validate success object gains a `quality_warnings` array of
+     `{"code": str, "message": str}` objects (empty when none) and stdout stays
+     a single JSON object; in text mode the warnings are written to STDERR so
+     stdout stays parseable. The render/prompt JSON output shapes are unchanged.
+  3. Quality thresholds are deliberately narrow, documented, PRIVATE module
+     constants (coverage fraction, singleton-theme share, minimum sources per
+     entry) per the AGENTS.md validator-hardening constraint; this is bounded
+     heuristic reporting, not control-flow analysis. They are implementation
+     detail, not public contract: tests assert the observable warning behavior
+     by crafting digests that cross the thresholds, never by importing or
+     asserting the constant values.
+  4. Prompt strengthening is behavior observable through `EnrichmentRequest`
+     fields (system_prompt content and the user_prompt frequency table); it does
+     not change the `EnrichmentRequest` dataclass shape or the
+     `build_enrichment_request` signature.
+  5. Evolution scope: this child chain-merges the prior contracts via
+     maid-evolver. Any existing assertions in `tests/core/test_outcome_enrichment.py`
+     or `tests/cli/test_enrich_cmd.py` that pinned the old thin prompt must be
+     updated within this evolution rather than left stale; the validate command
+     reruns both existing suites to catch regressions.
+temptations:
+- risk: Do not add an LLM call, retry-with-model, or scoring-by-model to the runner to improve quality.
+  instead: Only strengthen the deterministic prompt and add deterministic threshold warnings; model quality is the 081-04 skill's responsibility (use a stronger/local model).
+- risk: Do not make low quality fail maid enrich validate and conflate it with fabrication.
+  instead: Keep assess_digest_quality non-raising and advisory; exit status stays driven by validate_enrichment_digest and staleness only. Pin with a hollow-but-valid digest test that warns yet exits 0.
+- risk: Do not assert the exact prompt wording in tests and create brittle string-pinning.
+  instead: Assert observable prompt properties (frequency table present and correct; instructions mention canonical grouping, multi-source recurrence, coverage, and an output schema) without pinning full sentences.
+- risk: Do not build an open-ended quality taxonomy or semantic clustering scorer.
+  instead: Use the three named bounded thresholds (coverage, singleton share, sources-per-entry) as documented constants; evolve them with a new manifest if they change.
+- risk: Do not silently change the EnrichmentRequest shape or build_enrichment_request signature.
+  instead: Keep the dataclass and signature stable; carry the frequency table inside user_prompt and the new guidance inside system_prompt.
+files:
+  edit:
+  - path: maid_runner/core/outcome_enrichment.py
+    artifacts:
+    - kind: function
+      name: build_enrichment_request
+      args:
+      - name: index
+        type: OutcomeIndex
+      returns: EnrichmentRequest
+      description: Build the deterministic enrichment request; strengthened so user_prompt includes a lesson_type_frequencies table ([{lesson_type, count}]) and system_prompt instructs canonical near-synonym grouping into ~8-12 multi-member themes, multi-source recurring entries, full coverage, and an explicit output JSON shape. Signature and EnrichmentRequest shape unchanged; no model call.
+    - kind: class
+      name: DigestQualityWarning
+      description: 'Frozen dataclass: one advisory, non-blocking quality finding about a digest''s collapse/coverage/recurrence.'
+    - kind: attribute
+      name: code
+      of: DigestQualityWarning
+      type: str
+      description: Stable machine-readable warning code, e.g. 'low_coverage', 'singleton_theme_map', 'single_source_entry'.
+    - kind: attribute
+      name: message
+      of: DigestQualityWarning
+      type: str
+      description: Human-readable advisory description of the quality finding.
+    - kind: function
+      name: assess_digest_quality
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      - name: index
+        type: OutcomeIndex
+      returns: tuple[DigestQualityWarning, ...]
+      description: Deterministically assess digest quality against bounded named thresholds (lesson_type coverage, singleton-theme share, sources per digest entry) and return advisory warnings. Never raises; does not alter anti-fabrication validation.
+  - path: maid_runner/cli/commands/enrich.py
+    artifacts:
+    - kind: function
+      name: cmd_enrich
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Dispatch enrich prompt/validate/render; the validate path now also surfaces advisory digest quality warnings from assess_digest_quality (in --json mode as a quality_warnings array on the single stdout JSON object; in text mode written to stderr) while keeping exit status driven only by fabrication and staleness.
+  create:
+  - path: tests/core/test_outcome_enrichment_quality.py
+    artifacts:
+    - kind: test_function
+      name: test_request_user_prompt_includes_lesson_type_frequency_table
+      args: []
+      returns: None
+      description: build_enrichment_request emits user_prompt JSON with a lesson_type_frequencies list of {lesson_type, count} whose exact counts match the active index lessons.
+    - kind: test_function
+      name: test_request_system_prompt_instructs_canonical_multi_member_grouping
+      args: []
+      returns: None
+      description: system_prompt instructs mapping every lesson_type into a small set of canonical themes that merge near-synonym families into multi-member themes.
+    - kind: test_function
+      name: test_request_system_prompt_requires_multi_source_recurring_entries
+      args: []
+      returns: None
+      description: system_prompt requires each recurring digest entry to cite at least two source_lessons from at least two manifests.
+    - kind: test_function
+      name: test_request_system_prompt_states_coverage_and_output_schema
+      args: []
+      returns: None
+      description: system_prompt states a full-coverage target and specifies the output JSON shape.
+    - kind: test_function
+      name: test_assess_quality_flags_low_coverage
+      args: []
+      returns: None
+      description: assess_digest_quality returns a low_coverage warning when themes map far fewer than the index's lesson_types.
+    - kind: test_function
+      name: test_assess_quality_flags_singleton_theme_map
+      args: []
+      returns: None
+      description: assess_digest_quality returns a singleton_theme_map warning when most themes have a single member lesson_type.
+    - kind: test_function
+      name: test_assess_quality_flags_single_source_entries
+      args: []
+      returns: None
+      description: assess_digest_quality returns a single_source_entry warning when digest entries cite a single source lesson or single manifest.
+    - kind: test_function
+      name: test_assess_quality_returns_empty_for_strong_digest
+      args: []
+      returns: None
+      description: A digest with broad coverage, multi-member themes, and multi-source entries yields no quality warnings.
+    - kind: test_function
+      name: test_assess_quality_never_raises
+      args: []
+      returns: None
+      description: assess_digest_quality returns warnings rather than raising, even for a degenerate digest, keeping quality advisory.
+  - path: tests/cli/test_enrich_quality_warnings_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_validate_text_mode_writes_quality_warnings_to_stderr_and_exits_zero
+      args: []
+      returns: None
+      description: For a non-fabricated but hollow digest, maid enrich validate writes advisory quality warnings to stderr, keeps stdout clean, and exits 0.
+    - kind: test_function
+      name: test_validate_json_mode_includes_quality_warnings_array_on_single_object
+      args: []
+      returns: None
+      description: maid enrich validate --json emits a single stdout JSON object that parses and carries a quality_warnings array of {code, message} (empty when none), so JSON consumers do not break.
+    - kind: test_function
+      name: test_validate_still_fails_on_fabricated_digest
+      args: []
+      returns: None
+      description: maid enrich validate still exits non-zero on a fabricated digest, independent of quality warnings.
+  read:
+  - maid_runner/core/outcomes.py
+  - maid_runner/core/outcome_insights.py
+  - tests/core/test_outcome_enrichment.py
+  - tests/cli/test_enrich_cmd.py
+  - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+  - manifests/081-02-add-maid-enrich-command.manifest.yaml
+  - AGENTS.md
+validate:
+- uv run python -m pytest -q tests/core/test_outcome_enrichment_quality.py tests/cli/test_enrich_quality_warnings_cmd.py tests/core/test_outcome_enrichment.py tests/cli/test_enrich_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-06-28T23:58:00Z"
+  summary: "Hardened the deterministic Outcome enrichment request with lesson_type frequency evidence and explicit canonical grouping, coverage, output-shape, and multi-source recurrence instructions; added advisory digest quality warnings to `maid enrich validate` without changing fabrication or staleness failure semantics."
+  rationale: "The runner remains AI-free: prompt construction is deterministic, digest quality checks are bounded local heuristics, and `maid enrich validate` still exits non-zero only for anti-fabrication or staleness failures. Hollow-but-valid digests now become visible through stderr warnings in text mode and a `quality_warnings` array in JSON mode."
+  lessons:
+  - lesson_type: prompt-engineering
+    summary: "Deterministic prompt builders should expose corpus distribution signals, such as lesson_type frequencies, when downstream generation is expected to collapse fragmented taxonomies rather than reword individual records."
+    tags:
+    - outcome-records
+    - llm-enrichment
+    - prompt-engineering
+    paths:
+    - maid_runner/core/outcome_enrichment.py
+  - lesson_type: validation
+    summary: "Quality checks that judge model output usefulness should stay advisory and separate from anti-fabrication gates unless the manifest explicitly introduces a strict quality mode."
+    tags:
+    - outcome-records
+    - validation
+    - cli
+    paths:
+    - maid_runner/core/outcome_enrichment.py
+    - maid_runner/cli/commands/enrich.py
+  - lesson_type: workflow
+    summary: "After starting a promoted MAID task, stop the active task before handoff so `.maid/active-manifest` runtime state does not appear as untracked commit noise."
+    tags:
+    - maid-workflow
+    - implementation-review
+    paths:
+    - .maid/active-manifest
+  review_notes:
+  - source: Pascal
+    severity: warning
+    summary: "Initial implementation review found `.maid/active-manifest` runtime state outside the manifest scope; `uv run maid task stop` cleared it."
+  - source: Laplace
+    severity: ready
+    summary: "Re-review found no actionable findings after the active task pointer was cleared; focused pytest and final verify evidence remained passing."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_outcome_enrichment_quality.py
+    - tests/cli/test_enrich_quality_warnings_cmd.py
+    - tests/core/test_outcome_enrichment.py
+    - tests/cli/test_enrich_cmd.py
+    status: failed
+    summary: "Plan-lock red evidence before implementation: 11 new behavioral assertions failed for missing frequency table, thin prompt guidance, missing assess_digest_quality, and missing quality-warning output; existing coverage still ran."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/drafts/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Draft behavioral validation passed after tests directly exercised DigestQualityWarning and its message attribute."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - lock
+    - manifests/drafts/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    status: passed
+    summary: "Plan lock revision 1 captured the red-phase evidence before production implementation."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_outcome_enrichment_quality.py
+    - tests/cli/test_enrich_quality_warnings_cmd.py
+    - tests/core/test_outcome_enrichment.py
+    - tests/cli/test_enrich_cmd.py
+    status: passed
+    summary: "Focused enrichment prompt, quality warning, core enrichment, and enrich CLI suites passed: 30 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Promoted manifest implementation validation passed after quoting the variadic tuple return annotation for validator compatibility."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/core/outcome_enrichment.py
+    - maid_runner/cli/commands/enrich.py
+    - tests/core/test_outcome_enrichment_quality.py
+    - tests/cli/test_enrich_quality_warnings_cmd.py
+    status: passed
+    summary: "Black formatting check passed for all touched Python files."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/outcome_enrichment.py
+    - maid_runner/cli/commands/enrich.py
+    - tests/core/test_outcome_enrichment_quality.py
+    - tests/cli/test_enrich_quality_warnings_cmd.py
+    status: passed
+    summary: "Ruff check passed for all touched Python files."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    status: passed
+    summary: "Manifest-declared validation command passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Full manifest validation passed: 387 manifests, 298 passed, 0 failed, 89 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full MAID test suite passed: 153 commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    status: passed
+    summary: "Final handoff verify passed schema, behavioral, implementation, coherence, file tracking, plan lock, worktree scope, changed scope, and tests; repo-wide E307/E310 warnings remained advisory."

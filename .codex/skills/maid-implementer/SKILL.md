@@ -12,9 +12,12 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - Load the manifest first.
 - Implement only what the manifest declares.
 - `files.create` and `files.edit` declare contracted public artifacts.
-- `files.read` may include touched-but-uncontracted files for behavioral tests,
-  imports, or narrow call-site delegation when the manifest intent and pinned
-  MAID implementation validation allow it.
+- `files.scope` declares writable implementation files that have no stable
+  public artifact contract, such as route/page wiring covered by behavioral
+  tests.
+- `files.read` is dependency context, not writable production scope. Do not
+  edit production files listed only in `files.read`; stop for plan revision and
+  move intentional no-artifact wiring to `files.scope`.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
 - NEVER modify files not listed in the manifest `files.create`, `files.edit`, or
@@ -30,7 +33,8 @@ Read the approved manifest and extract:
 
 - files to create
 - files to edit
-- read dependencies and any touched-but-uncontracted contextual files
+- scope-only files
+- read-only dependencies
 - exact artifacts
 - temptations and their `instead` procedures
 - validation commands
@@ -158,14 +162,20 @@ For `files.edit`:
 - add or change the declared artifacts conservatively
 - preserve existing behavior unless the tests require change
 
+For `files.scope`:
+
+- make only the narrow writable change described by the scope reason
+- rely on behavioral tests for route/page wiring or other no-artifact surfaces
+- do not add public artifacts to a scope-only file; stop for plan revision if
+  the change becomes artifact-bearing
+
 For `files.read`:
 
-- treat the file as contextual unless the manifest description clearly allows a
-  narrow edit
-- allowed narrow edits include behavioral spec coverage, imports, and call-site
-  replacement that delegates to contracted artifacts
-- do not introduce or change public API from a `files.read` file; stop for a
-  plan revision if that becomes necessary
+- treat the file as contextual and read-only for production code
+- behavioral test files listed in `files.read` may be changed only when the user
+  explicitly approves a contract revision
+- if implementation requires changing a production `files.read` file, stop for
+  plan revision and declare it in `files.edit` or `files.scope` as appropriate
 
 ## Phase 4 — Validate Implementation
 

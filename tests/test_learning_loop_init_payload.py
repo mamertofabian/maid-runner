@@ -13,6 +13,7 @@ GENERIC_CODEX_SKILLS = [
     "maid-auditor",
     "maid-implementation-review",
     "maid-implementer",
+    "maid-outcome-enrich",
     "maid-plan-review",
     "maid-planner",
 ]
@@ -218,7 +219,10 @@ def test_learning_digest_payload_sources_and_packages_match() -> None:
         assert "Outcome learning-digestion workflow" in packaged
         assert "maid init" in packaged
         assert "`maid-auditor`" in packaged
-        assert "only the 5 generic skills, including maid-auditor" in packaged
+        assert (
+            "only the 6 generic skills, including maid-auditor and maid-outcome-enrich"
+            in packaged
+        )
         assert "only the 4 generic skills" not in packaged
 
 

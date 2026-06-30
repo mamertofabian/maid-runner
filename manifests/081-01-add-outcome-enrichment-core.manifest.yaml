@@ -1,0 +1,437 @@
+schema: '2'
+goal: Add the deterministic, AI-free Outcome enrichment policy (bounded prompt/corpus building, deep anti-fabrication digest validation, theme-map application, markdown rendering, serialization/staleness) plus a public shared record-set seam, fully unit-tested with no network and no LLM client
+type: feature
+created: '2026-06-28T07:54:55Z'
+metadata:
+  epic: 081-00-outcome-llm-enrichment
+  tags:
+  - outcome-records
+  - insights
+  - llm-enrichment
+  - learning
+  - maid-workflow
+  priority: medium
+description: |
+  Core child of the 081 hybrid epic. Adds ONLY deterministic policy to the
+  runner. There is no LLM client, no network, and no model orchestration here —
+  the `maid-outcome-enrich` skill (081-04) generates the digest and the runner
+  validates it.
+
+  New file `maid_runner/core/outcome_enrichment.py` mirrors the structure of
+  `maid_runner/core/outcomes.py` (frozen dataclasses + pure to_dict/from_dict +
+  thin read/write wrappers).
+
+  Pinned decisions (do not redesign):
+
+  1. `build_enrichment_request(index)` derives its lesson/manifest universe from
+     the same active/deduped record set insights uses (see decision 7) and
+     returns an `EnrichmentRequest` carrying the bounded system/user prompt plus
+     the known lesson_type and manifest_slug universe. It performs no I/O and no
+     model call — it only assembles the corpus the skill will send to a model.
+  2. `validate_enrichment_digest(digest, index)` is the deep anti-fabrication
+     gate (raises `ValueError` on any violation):
+     - every theme `member_lesson_types` value exists in the index;
+     - every cited (manifest_slug, lesson_type) pair actually CO-OCCURS in the
+       index (the cited manifest really declares a lesson of that type), not
+       merely "the slug exists and the type exists somewhere";
+     - every `DigestEntry.theme` is one of the digest's declared theme
+       `canonical_name`s;
+     - no lesson_type is mapped into more than one theme;
+     - `source_lessons` reference real (manifest_slug, lesson_type) pairs.
+     The model may cluster and summarize existing lessons; it may never invent
+     or mis-attribute manifests, lesson_types, or themes.
+  3. Unmapped lesson_types are explicitly allowed and pass through: lesson_types
+     present in the index but not placed in any theme are not an error;
+     `apply_theme_map` keeps them under their original lesson_type key so no
+     lesson is silently dropped.
+  4. `apply_theme_map(index, digest)` is the deterministic payoff: it
+     re-aggregates the index lesson_types into canonical-theme buckets using the
+     validated theme map and returns `tuple[OutcomeInsightGroup, ...]`. It emits
+     NO generated narrative — only re-keyed deterministic aggregation (honoring
+     the 047-05 lesson).
+  5. `EnrichmentDigest` carries `schema_version`, `source_generated_from` (the
+     index `generated_from` fingerprint at generation time), and `advisory`
+     (always True) so consumers detect staleness via `digest_is_stale` and never
+     mistake the artifact for deterministic truth.
+  6. Serialization mirrors `outcomes.py`: pure `enrichment_digest_to_dict` /
+     `enrichment_digest_from_dict` (structural parse, raises on malformed shape)
+     plus thin `read_enrichment_digest` / `write_enrichment_digest` file
+     wrappers. Semantic anti-fabrication is separate
+     (`validate_enrichment_digest`) so callers always validate against the
+     index.
+  7. Shared record-set seam: rather than importing the private
+     `_active_unique_records` from `outcome_insights.py`, this child adds a
+     PUBLIC `active_unique_records(index)` to `outcome_insights.py`. The public
+     function delegates to a private record-iterable helper, and the existing
+     `aggregate_outcome_insights` implementation uses the public function
+     (behavior unchanged). Enrichment imports the public function so enrichment
+     and insights share one definition of the active, deduped record set.
+     During contract hardening, if implementation validation requires the full
+     public surface of the edited `outcome_insights.py`, also declare the
+     existing public `aggregate_outcome_insights` in `files.edit` (unchanged
+     signature) rather than narrowing the edit.
+
+  All behavioral tests assert through the public functions on returned values
+  and raised errors. No test performs network or model I/O.
+temptations:
+- risk: Do not add an LLM client, network call, or provider key handling to this module.
+  instead: Keep every function deterministic and offline; the model call is the 081-04 skill's responsibility.
+- risk: Do not let validate_enrichment_digest accept shallow existence checks.
+  instead: Require (manifest, lesson_type) co-occurrence, declared-theme membership, single-theme membership, and real source_lessons; pin each violation with its own rejection test.
+- risk: Do not silently drop lesson_types that the theme map omits.
+  instead: Pass unmapped lesson_types through under their original key in apply_theme_map; pin with a pass-through test.
+- risk: Do not make apply_theme_map emit narrative or inferred guidance into the aggregation.
+  instead: Re-key the existing deterministic lesson_type aggregation through the validated map only; assert collapsed counts and source manifests, not prose.
+- risk: Do not duplicate the insights active/dedup filtering or reach into private helpers from tests.
+  instead: Add a public active_unique_records to outcome_insights.py, have aggregate_outcome_insights use it, keep any record-iterable filtering private, and assert only through public functions.
+files:
+  create:
+  - path: maid_runner/core/outcome_enrichment.py
+    artifacts:
+    - kind: class
+      name: LessonRef
+      description: 'Frozen dataclass: a stable reference to a source lesson by manifest slug and lesson_type, used to ground digest entries in real index lessons.'
+    - kind: attribute
+      name: manifest_slug
+      of: LessonRef
+      type: str
+      description: Slug of the manifest whose Outcome declares the cited lesson; must exist in the index.
+    - kind: attribute
+      name: lesson_type
+      of: LessonRef
+      type: str
+      description: lesson_type of the cited lesson; must co-occur with manifest_slug in the index.
+    - kind: class
+      name: EnrichmentTheme
+      description: 'Frozen dataclass: one canonical theme grouping several fragmented lesson_types.'
+    - kind: attribute
+      name: canonical_name
+      of: EnrichmentTheme
+      type: str
+      description: Canonical theme label, e.g. 'validation'.
+    - kind: attribute
+      name: member_lesson_types
+      of: EnrichmentTheme
+      type: tuple[str, ...]
+      description: Index lesson_types mapped into this theme; each must exist in the source index and appear in only one theme.
+    - kind: attribute
+      name: summary
+      of: EnrichmentTheme
+      type: str
+      description: Short synthesized description of the theme.
+    - kind: attribute
+      name: source_manifests
+      of: EnrichmentTheme
+      type: tuple[str, ...]
+      description: Manifest slugs contributing lessons to this theme; each must co-occur with a member lesson_type in the index.
+    - kind: class
+      name: DigestEntry
+      description: 'Frozen dataclass: one recurring-lesson retrospective entry grounded in real lessons.'
+    - kind: attribute
+      name: theme
+      of: DigestEntry
+      type: str
+      description: Canonical theme this recurring lesson belongs to; must be a declared theme canonical_name.
+    - kind: attribute
+      name: summary
+      of: DigestEntry
+      type: str
+      description: Synthesized recurring-lesson statement.
+    - kind: attribute
+      name: source_lessons
+      of: DigestEntry
+      type: tuple[LessonRef, ...]
+      description: Exact source lesson references grounding this entry; each must co-occur in the index.
+    - kind: class
+      name: EnrichmentRequest
+      description: 'Frozen dataclass: the deterministic prompt/corpus payload plus the validation universe for one enrichment generation.'
+    - kind: attribute
+      name: system_prompt
+      of: EnrichmentRequest
+      type: str
+      description: System instruction constraining the model to cluster and summarize existing lessons only.
+    - kind: attribute
+      name: user_prompt
+      of: EnrichmentRequest
+      type: str
+      description: 'Bounded corpus: the active lessons with their types, tags, and source manifests.'
+    - kind: attribute
+      name: known_lesson_types
+      of: EnrichmentRequest
+      type: tuple[str, ...]
+      description: Every lesson_type present in the active index, used downstream to reject fabricated types.
+    - kind: attribute
+      name: known_manifest_slugs
+      of: EnrichmentRequest
+      type: tuple[str, ...]
+      description: Every manifest slug present in the active index, used downstream to reject fabricated references.
+    - kind: class
+      name: EnrichmentDigest
+      description: 'Frozen dataclass: the advisory enrichment artifact (theme map + recurring-lessons digest) with provenance.'
+    - kind: attribute
+      name: schema_version
+      of: EnrichmentDigest
+      type: str
+      description: Digest schema version, independent of the outcome index schema.
+    - kind: attribute
+      name: source_generated_from
+      of: EnrichmentDigest
+      type: str
+      description: The source index generated_from fingerprint at generation time, for staleness detection.
+    - kind: attribute
+      name: advisory
+      of: EnrichmentDigest
+      type: bool
+      description: Always True; marks the artifact as derived, advisory, non-authoritative.
+    - kind: attribute
+      name: themes
+      of: EnrichmentDigest
+      type: tuple[EnrichmentTheme, ...]
+      description: Canonical theme map collapsing fragmented lesson_types.
+    - kind: attribute
+      name: digest_entries
+      of: EnrichmentDigest
+      type: tuple[DigestEntry, ...]
+      description: Recurring-lessons retrospective entries.
+    - kind: function
+      name: build_enrichment_request
+      args:
+      - name: index
+        type: OutcomeIndex
+      returns: EnrichmentRequest
+      description: Build the deterministic bounded prompt/corpus and validation universe from the active, deduped records of the index. No I/O, no model call.
+    - kind: function
+      name: validate_enrichment_digest
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      - name: index
+        type: OutcomeIndex
+      returns: None
+      description: 'Deep anti-fabrication check: raise ValueError unless every cited (manifest, lesson_type) co-occurs in the index, every entry theme is declared, no lesson_type spans multiple themes, and every source_lesson is real.'
+    - kind: function
+      name: apply_theme_map
+      args:
+      - name: index
+        type: OutcomeIndex
+      - name: digest
+        type: EnrichmentDigest
+      returns: tuple[OutcomeInsightGroup, ...]
+      description: Deterministically re-aggregate the index lesson_types into canonical-theme buckets using the validated theme map, passing unmapped lesson_types through under their original key, with no generated narrative.
+    - kind: function
+      name: render_digest_markdown
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      returns: str
+      description: Render the advisory digest (themes + recurring lessons) as a human/agent-readable Markdown retrospective.
+    - kind: function
+      name: digest_is_stale
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      - name: index
+        type: OutcomeIndex
+      returns: bool
+      description: Return True when the digest source_generated_from no longer matches the index generated_from fingerprint.
+    - kind: function
+      name: enrichment_digest_to_dict
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      returns: dict
+      description: Serialize an EnrichmentDigest to a JSON-ready dict.
+    - kind: function
+      name: enrichment_digest_from_dict
+      args:
+      - name: data
+        type: dict
+      returns: EnrichmentDigest
+      description: Structurally parse a dict into an EnrichmentDigest, raising ValueError on malformed shape (no index semantics).
+    - kind: function
+      name: read_enrichment_digest
+      args:
+      - name: digest_path
+        type: Union[str, Path]
+      returns: EnrichmentDigest
+      description: Load and structurally parse an EnrichmentDigest from a JSON file.
+    - kind: function
+      name: write_enrichment_digest
+      args:
+      - name: digest
+        type: EnrichmentDigest
+      - name: output_path
+        type: Union[str, Path]
+      returns: None
+      description: Write an EnrichmentDigest to a JSON file, creating parent directories.
+  - path: tests/core/test_outcome_enrichment.py
+    artifacts:
+    - kind: test_function
+      name: test_build_request_covers_active_lesson_types_and_slugs
+      args: []
+      returns: None
+      description: build_enrichment_request includes every active lesson_type and manifest slug in the request's validation universe.
+    - kind: test_function
+      name: test_validate_digest_accepts_grounded_digest
+      args: []
+      returns: None
+      description: A digest whose themes and entries cite only real co-occurring (manifest, lesson_type) pairs passes validation.
+    - kind: test_function
+      name: test_validate_digest_rejects_unknown_manifest_slug
+      args: []
+      returns: None
+      description: validate_enrichment_digest raises when a theme or entry cites a manifest slug absent from the index.
+    - kind: test_function
+      name: test_validate_digest_rejects_non_cooccurring_lesson_type
+      args: []
+      returns: None
+      description: validate_enrichment_digest raises when a cited (manifest, lesson_type) pair does not co-occur in the index even though both exist separately.
+    - kind: test_function
+      name: test_validate_digest_rejects_entry_with_undeclared_theme
+      args: []
+      returns: None
+      description: validate_enrichment_digest raises when a DigestEntry.theme is not one of the digest's declared theme canonical_names.
+    - kind: test_function
+      name: test_validate_digest_rejects_source_lesson_under_wrong_theme
+      args: []
+      returns: None
+      description: validate_enrichment_digest raises when a DigestEntry cites a real source lesson whose lesson_type is not mapped to that entry's theme.
+    - kind: test_function
+      name: test_validate_digest_rejects_lesson_type_in_multiple_themes
+      args: []
+      returns: None
+      description: validate_enrichment_digest raises when a lesson_type is mapped into more than one theme.
+    - kind: test_function
+      name: test_apply_theme_map_collapses_fragmented_lesson_types
+      args: []
+      returns: None
+      description: apply_theme_map re-aggregates several fragmented lesson_types into a single canonical-theme bucket with combined source manifests.
+    - kind: test_function
+      name: test_apply_theme_map_passes_through_unmapped_lesson_types
+      args: []
+      returns: None
+      description: apply_theme_map keeps lesson_types absent from the theme map under their original key rather than dropping them.
+    - kind: test_function
+      name: test_render_digest_markdown_lists_themes_and_entries
+      args: []
+      returns: None
+      description: render_digest_markdown produces Markdown containing each theme's canonical name and each recurring-lesson summary.
+    - kind: test_function
+      name: test_digest_is_stale_detects_fingerprint_change
+      args: []
+      returns: None
+      description: digest_is_stale returns False for a matching fingerprint and True when the index generated_from differs.
+    - kind: test_function
+      name: test_digest_roundtrips_through_dict_and_file
+      args: []
+      returns: None
+      description: enrichment_digest_to_dict/from_dict and write/read_enrichment_digest round-trip an EnrichmentDigest without loss.
+    - kind: test_function
+      name: test_active_unique_records_matches_insights_record_set
+      args: []
+      returns: None
+      description: active_unique_records returns the same active, deduped record set that insights aggregation uses.
+  edit:
+  - path: maid_runner/core/outcome_insights.py
+    artifacts:
+    - kind: function
+      name: active_unique_records
+      args:
+      - name: index
+        type: OutcomeIndex
+      returns: tuple[OutcomeIndexRecord, ...]
+      description: Public shared seam returning the active, deduped Outcome records; aggregate_outcome_insights uses it so insights and enrichment share one definition while record-iterable filtering stays private.
+  read:
+  - maid_runner/core/outcomes.py
+  - maid_runner/core/types.py
+  - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_outcome_enrichment.py tests/core/test_outcome_insights.py
+outcome:
+  status: completed
+  completed_at: "2026-06-28T08:11:06Z"
+  summary: "Implemented the deterministic, AI-free Outcome enrichment core with frozen digest/request dataclasses, bounded prompt/corpus construction, deep anti-fabrication validation, theme-map aggregation, digest markdown rendering, staleness checks, JSON/file serialization, and a public active_unique_records seam shared with outcome insights."
+  rationale: "The runner now owns only deterministic policy and validation for advisory enrichment artifacts. Model generation remains outside the package, while validation rejects invented or misattributed manifest/lesson/theme references before any digest can be applied to insight aggregation."
+  lessons:
+  - lesson_type: validation
+    summary: "Anti-fabrication checks for generated advisory digests must validate not only that source lessons exist, but that each cited source lesson belongs to the digest entry's declared effective theme; otherwise a real lesson can still be misattributed."
+    tags:
+    - outcome-enrichment
+    - anti-fabrication
+    - theme-map
+    paths:
+    - maid_runner/core/outcome_enrichment.py
+    - tests/core/test_outcome_enrichment.py
+  - lesson_type: workflow
+    summary: "Review-driven behavioral contract hardening after implementation should use `maid plan revise --stash-implementation` so the new rejection test captures fresh red evidence without losing the implemented work."
+    tags:
+    - maid-workflow
+    - plan-lock
+    - red-evidence
+    paths:
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - .maid/plan-locks/081-01-add-outcome-enrichment-core.lock.json
+  review_notes:
+  - source: implementation-review-subagent-Lagrange
+    severity: blocking
+    summary: "Needs changes: validate_enrichment_digest accepted a DigestEntry whose source_lesson pair existed but whose lesson_type mapped to a different declared theme, allowing cross-theme misattribution."
+  - source: implementation-review-subagent-Locke
+    severity: info
+    summary: "Re-review found no remaining findings after adding the wrong-theme rejection test and validator check; verdict ready."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_outcome_enrichment.py
+    - tests/core/test_outcome_insights.py
+    status: passed
+    summary: "Focused tests passed after implementation and review fix: 17 passed. Red phases first failed on missing enrichment artifacts, then on the review-added wrong-theme rejection with DID NOT RAISE before the validator fix."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Promoted manifest behavioral validation passed after declared test coverage and review-driven test addition."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Promoted manifest implementation validation passed for the new enrichment module and public active_unique_records seam."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 383 manifests, 294 passed, 0 failed, 89 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed: 153 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict verify passed with schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests gates passing. Existing historical implementation warnings remained advisory."

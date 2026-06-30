@@ -1,0 +1,132 @@
+{
+  "manifest_path": "manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml",
+  "manifest_hash": "sha256:0a40ad87f717ee5de4abc3bf6627b9758b0dfe534461c3ea297c3ce1bbf1543c",
+  "test_hashes": {
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+    "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+    "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+  },
+  "created_at": "2026-06-28T23:49:37.447274+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:047d2ab545418d96c6ded1d59e8d2fd1f7eec789441e5b1b207457b9925b9390",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-06-28T23:49:42.178955+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-06-planner-prefers-theme-map-insights.manifest.yaml -> manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:81f837933e94ba92c4c1d0c77700d5e324ab59fa8e9a14c7944995ea0f457d17",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-06-28T23:51:31.006209+00:00",
+      "reason": "Correct instruction payload version artifact declaration from owned attribute to top-level module constant after implementation validation reported instruction_payload.INSTRUCTION_PAYLOAD_VERSION."
+    },
+    {
+      "prior_manifest_hash": "sha256:81f837933e94ba92c4c1d0c77700d5e324ab59fa8e9a14c7944995ea0f457d17",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-06-28T23:52:38.890066+00:00",
+      "reason": "Include all declared behavioral test files in the validate command after maid test reported E230."
+    },
+    {
+      "prior_manifest_hash": "sha256:55119681d9793b879d08773bd221c98c95a06fe5004053175944f3b0ce74a0f2",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-06-28T23:55:34.894468+00:00",
+      "reason": "Recapture red evidence after adding all declared behavioral test files to the validate command."
+    },
+    {
+      "prior_manifest_hash": "sha256:55119681d9793b879d08773bd221c98c95a06fe5004053175944f3b0ce74a0f2",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-06-29T00:09:14.778725+00:00",
+      "reason": "Capture completed Outcome after implementation review and validation."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-28T23:55:35.686885+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_planner_theme_map_guidance.py tests/cli/test_init_instruction_payload_version.py tests/test_insights_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py",
+        "exit_code": 1,
+        "output_tail": "tests/test_planner_theme_map_guidance.py:166: AssertionError\n__________ test_instruction_payload_version_bumped_for_planner_change __________\n\n    def test_instruction_payload_version_bumped_for_planner_change() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\n            BASELINE_PAYLOAD_VERSION\n        )\nE       AssertionError: assert (2026, 6, 27, 1) > (2026, 6, 27, 1)\nE        +  where (2026, 6, 27, 1) = _version_tuple('2026.06.27.1')\nE        +  and   (2026, 6, 27, 1) = _version_tuple('2026.06.27.1')\n\ntests/test_planner_theme_map_guidance.py:173: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_outcome_phase_prefers_theme_map_when_digest_present\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_outcome_phase_falls_back_without_fresh_digest\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_theme_map_guidance_uses_only_registered_insights_options\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_theme_map_guidance_synced_to_agent_payloads\nFAILED tests/test_planner_theme_map_guidance.py::test_instruction_payload_version_bumped_for_planner_change\n6 failed, 20 passed in 0.58s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_theme_map_insights_guidance",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_theme_map_insights_guidance:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_theme_map_insights_guidance:of=skill",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_theme_map_insights_guidance:type=markdown section",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_theme_map_insights_guidance",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_theme_map_insights_guidance:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_theme_map_insights_guidance:of=skill",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_theme_map_insights_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_theme_map_insights_guidance",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_theme_map_insights_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_theme_map_insights_guidance:of=skill",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_theme_map_insights_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_theme_map_insights_guidance",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_theme_map_insights_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_theme_map_insights_guidance:of=skill",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_theme_map_insights_guidance:type=markdown section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_planner_theme_map_guidance.py:test_instruction_payload_version_bumped_for_planner_change",
+      "tests/test_planner_theme_map_guidance.py:test_instruction_payload_version_bumped_for_planner_change:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_instruction_payload_version_bumped_for_planner_change:returns=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_falls_back_without_fresh_digest",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_falls_back_without_fresh_digest:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_falls_back_without_fresh_digest:returns=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_prefers_theme_map_when_digest_present",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_prefers_theme_map_when_digest_present:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_planner_outcome_phase_prefers_theme_map_when_digest_present:returns=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only:returns=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_synced_to_agent_payloads",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_synced_to_agent_payloads:arg=tmp_path:type=Path:default=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_synced_to_agent_payloads:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_synced_to_agent_payloads:returns=None",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_uses_only_registered_insights_options",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_uses_only_registered_insights_options:kind=test_function",
+      "tests/test_planner_theme_map_guidance.py:test_planner_theme_map_guidance_uses_only_registered_insights_options:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_insights_skill_guidance.py",
+      "tests/test_outcome_enrich_skill_guidance.py",
+      "tests/test_planner_theme_map_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_planner_theme_map_guidance.py tests/cli/test_init_instruction_payload_version.py tests/test_insights_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py"
+    ]
+  }
+}

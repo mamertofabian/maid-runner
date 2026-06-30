@@ -1,0 +1,127 @@
+{
+  "manifest_path": "manifests/081-02-add-maid-enrich-command.manifest.yaml",
+  "manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
+  "test_hashes": {
+    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+  },
+  "created_at": "2026-06-28T08:18:22.993393+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:ee666fa3e19316551a73b46cfcae6d882b696cd2e93984ab0cb843c3606e58d0",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
+      },
+      "revised_at": "2026-06-28T08:18:31.023567+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-02-add-maid-enrich-command.manifest.yaml -> manifests/081-02-add-maid-enrich-command.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
+      },
+      "revised_at": "2026-06-28T08:20:14.331795+00:00",
+      "reason": "Fix enrich behavioral test monkeypatch restoration so direct cmd_enrich execution exercises the real implementation"
+    },
+    {
+      "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
+      },
+      "revised_at": "2026-06-28T08:20:51.062489+00:00",
+      "reason": "Refresh corrected enrich behavioral test lock after fixing monkeypatch restoration"
+    },
+    {
+      "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+      },
+      "revised_at": "2026-06-28T09:59:37.375698+00:00",
+      "reason": "Update promoted enrich manifest read dependency from draft 081-01 path to active promoted 081-01 manifest"
+    },
+    {
+      "prior_manifest_hash": "sha256:4e7fdcdbe54991695faa229c7545e458e9c5fa9c0c643cf51ae43c86ff45cb79",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+      },
+      "revised_at": "2026-06-28T10:03:32.750769+00:00",
+      "reason": "Capture completed Outcome after ready implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+      },
+      "revised_at": "2026-06-28T11:41:21.646087+00:00",
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-28T08:20:51.492141+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_enrich_cmd.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "tmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-100/test_enrich_render_writes_mark0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c31a046ba0>\ncapsys = <_pytest.capture.CaptureFixture object at 0x77c31a046ed0>\n\n    def test_enrich_render_writes_markdown_atomically(\n        tmp_path: Path,\n        monkeypatch,\n        capsys,\n    ):\n>       from maid_runner.cli.commands import enrich as enrich_mod\nE       ImportError: cannot import name 'enrich' from 'maid_runner.cli.commands' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/cli/commands/__init__.py)\n\ntests/cli/test_enrich_cmd.py:159: ImportError\n=========================== short test summary info ============================\nFAILED tests/cli/test_enrich_cmd.py::test_enrich_prompt_emits_bounded_corpus_from_index\nFAILED tests/cli/test_enrich_cmd.py::test_enrich_validate_accepts_grounded_digest\nFAILED tests/cli/test_enrich_cmd.py::test_enrich_validate_rejects_fabricated_digest\nFAILED tests/cli/test_enrich_cmd.py::test_enrich_validate_rejects_stale_digest_without_allow_flag\nFAILED tests/cli/test_enrich_cmd.py::test_enrich_render_writes_markdown_atomically\n5 failed, 4 passed in 0.23s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".gitignore:attribute:gitignore._ignore_outcome_digest_artifacts",
+      ".gitignore:attribute:gitignore._ignore_outcome_digest_artifacts:kind=attribute",
+      ".gitignore:attribute:gitignore._ignore_outcome_digest_artifacts:of=gitignore",
+      ".gitignore:attribute:gitignore._ignore_outcome_digest_artifacts:type=ignore-pattern",
+      "README.md:attribute:documentation._readme_enrich_command_documentation",
+      "README.md:attribute:documentation._readme_enrich_command_documentation:kind=attribute",
+      "README.md:attribute:documentation._readme_enrich_command_documentation:of=documentation",
+      "README.md:attribute:documentation._readme_enrich_command_documentation:type=doc-section",
+      "docs/ROADMAP.md:attribute:documentation._roadmap_enrich_command_documentation",
+      "docs/ROADMAP.md:attribute:documentation._roadmap_enrich_command_documentation:kind=attribute",
+      "docs/ROADMAP.md:attribute:documentation._roadmap_enrich_command_documentation:of=documentation",
+      "docs/ROADMAP.md:attribute:documentation._roadmap_enrich_command_documentation:type=doc-section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:kind=function",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:returns=int",
+      "tests/cli/test_enrich_cmd.py:test_enrich_prompt_emits_bounded_corpus_from_index",
+      "tests/cli/test_enrich_cmd.py:test_enrich_prompt_emits_bounded_corpus_from_index:kind=test_function",
+      "tests/cli/test_enrich_cmd.py:test_enrich_prompt_emits_bounded_corpus_from_index:returns=None",
+      "tests/cli/test_enrich_cmd.py:test_enrich_render_writes_markdown_atomically",
+      "tests/cli/test_enrich_cmd.py:test_enrich_render_writes_markdown_atomically:kind=test_function",
+      "tests/cli/test_enrich_cmd.py:test_enrich_render_writes_markdown_atomically:returns=None",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_accepts_grounded_digest",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_accepts_grounded_digest:kind=test_function",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_accepts_grounded_digest:returns=None",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_fabricated_digest",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_fabricated_digest:kind=test_function",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_fabricated_digest:returns=None",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_stale_digest_without_allow_flag",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_stale_digest_without_allow_flag:kind=test_function",
+      "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_stale_digest_without_allow_flag:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_enrich_cmd.py",
+      "tests/test_agent_payload_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_enrich_cmd.py tests/test_agent_payload_distribution.py"
+    ]
+  }
+}

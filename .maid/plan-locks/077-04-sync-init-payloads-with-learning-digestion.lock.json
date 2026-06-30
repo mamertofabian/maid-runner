@@ -1,18 +1,18 @@
 {
   "manifest_path": "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
-  "manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+  "manifest_hash": "sha256:78a499f4eb70f3c6993f828c8f585a6cad3540ac1d8ab41fb35aa9b526d85fc7",
   "test_hashes": {
     "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
     "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
-    "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
     "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
-    "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072"
+    "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
   },
   "created_at": "2026-06-26T22:43:02.370223+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:a8a79f2bafbebb0d897cc9dd5f58fe723aacb758ce61e2f60213a4c40aac7f40",
@@ -103,6 +103,21 @@
       },
       "revised_at": "2026-06-26T23:16:13.568725+00:00",
       "reason": "Refresh red evidence after moving reviewer-fix assertions into the 077-04 test file"
+    },
+    {
+      "prior_manifest_hash": "sha256:49aaa8805e5bba7e5de5a86bdad609de5b99a2c7e72abab82ee45986ad31df04",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:9e83ad107217ad5d393775a5fb4fe3eec8a3f10e8c2de4cd20fa71cc94b57072"
+      },
+      "revised_at": "2026-06-28T11:41:21.269035+00:00",
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
     }
   ],
   "red_evidence": {

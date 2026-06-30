@@ -1,0 +1,233 @@
+{
+  "manifest_path": "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
+  "manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+  "test_hashes": {
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+    "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+    "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+  },
+  "created_at": "2026-06-28T11:25:07.010877+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:ba8e660b0e744db10714000cba6954ba14c33b2e9b7b9f40573e0e213309f72e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5008c024a4fea6429b644400083f0ab6b91a8e33eb02a3202fd45f4f60fee399",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+      },
+      "revised_at": "2026-06-28T11:25:11.934968+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-04-add-outcome-enrich-skill.manifest.yaml -> manifests/081-04-add-outcome-enrich-skill.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:5c90a27d247673c08bdbcea688022f7740ab051d33de04ea7148c511e9566020",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5008c024a4fea6429b644400083f0ab6b91a8e33eb02a3202fd45f4f60fee399",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+      },
+      "revised_at": "2026-06-28T11:29:30.811118+00:00",
+      "reason": "Correct sync script artifact declaration to public sync_codex_payload contract"
+    },
+    {
+      "prior_manifest_hash": "sha256:2dd3cabcce72df3a424e001e8c98fd736eeb5476596a4cee62b3231fcc46c8dc",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5008c024a4fea6429b644400083f0ab6b91a8e33eb02a3202fd45f4f60fee399",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+      },
+      "revised_at": "2026-06-28T11:32:02.573342+00:00",
+      "reason": "Refresh lock after formatting behavioral test file"
+    },
+    {
+      "prior_manifest_hash": "sha256:2dd3cabcce72df3a424e001e8c98fd736eeb5476596a4cee62b3231fcc46c8dc",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:7740ad48925c031fe4e9f7a1c942f8cb8a1af881ec9342e99461027b940159e4",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+      },
+      "revised_at": "2026-06-28T11:36:42.928403+00:00",
+      "reason": "Add missed shared distribution tests and onboard guidance for outcome-enrich skill"
+    },
+    {
+      "prior_manifest_hash": "sha256:a303f6c9f3943bf3ba66aff2a98a636b02ec91686ceb2438fb35c3af3bd3eef8",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:7740ad48925c031fe4e9f7a1c942f8cb8a1af881ec9342e99461027b940159e4",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-06-28T11:40:45.170448+00:00",
+      "reason": "Refresh lock after adding explicit assertion statements to behavioral tests"
+    },
+    {
+      "prior_manifest_hash": "sha256:a303f6c9f3943bf3ba66aff2a98a636b02ec91686ceb2438fb35c3af3bd3eef8",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:673f6ed23dbf26d4d9e10ba33457228bbcd5764c57ae3e8f3738f7007081f65a",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-06-28T11:46:05.099971+00:00",
+      "reason": "Refresh lock after Outcome capture"
+    },
+    {
+      "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:673f6ed23dbf26d4d9e10ba33457228bbcd5764c57ae3e8f3738f7007081f65a",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-06-28T23:56:20.419998+00:00",
+      "reason": "Refresh behavioral test hash after verify reported existing 081-04 lock drift for tests/test_outcome_enrich_skill_guidance.py."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-28T11:36:43.825629+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_outcome_enrich_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py",
+        "exit_code": 1,
+        "output_tail": "  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Updated: .codex/\n  Updated: AGENTS.md\n=========================== short test summary info ============================\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_outcome_enrich_skill_describes_validate_render_workflow\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_outcome_enrich_skill_marks_validate_as_hard_stop\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_outcome_enrich_skill_states_cloud_privacy_and_local_default\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_outcome_enrich_skill_uses_only_registered_options\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_outcome_enrich_skill_synced_to_agent_payloads\nFAILED tests/test_outcome_enrich_skill_guidance.py::test_codex_init_installs_outcome_enrich_skill\nFAILED tests/test_agent_payload_distribution.py::test_codex_payload_manifest_matches_source_skills\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_init_installs_only_distributable_skills\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_payload_manifest_distributable_excludes_repo_internal_skills\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_is_distributed_to_codex\nFAILED tests/test_insights_skill_guidance.py::test_codex_init_installs_auditor_insights_skill\nFAILED tests/test_learning_loop_init_payload.py::test_learning_digest_payload_sources_and_packages_match\nFAILED tests/test_learning_loop_init_payload.py::test_init_learning_digest_guidance_stays_advisory\n13 failed, 13 passed in 0.68s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/manifest.json:attribute:claude_payload._claude_manifest_outcome_enrich_distribution",
+      ".claude/manifest.json:attribute:claude_payload._claude_manifest_outcome_enrich_distribution:kind=attribute",
+      ".claude/manifest.json:attribute:claude_payload._claude_manifest_outcome_enrich_distribution:of=claude_payload",
+      ".claude/manifest.json:attribute:claude_payload._claude_manifest_outcome_enrich_distribution:type=json object",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:skill._claude_onboard_outcome_enrich_distribution_guidance",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:skill._claude_onboard_outcome_enrich_distribution_guidance:kind=attribute",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:skill._claude_onboard_outcome_enrich_distribution_guidance:of=skill",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:skill._claude_onboard_outcome_enrich_distribution_guidance:type=markdown section",
+      ".claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_outcome_enrich_workflow_guidance",
+      ".claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_outcome_enrich_workflow_guidance:kind=attribute",
+      ".claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_outcome_enrich_workflow_guidance:of=skill",
+      ".claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_outcome_enrich_workflow_guidance:type=markdown section",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:skill._codex_onboard_outcome_enrich_distribution_guidance",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:skill._codex_onboard_outcome_enrich_distribution_guidance:kind=attribute",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:skill._codex_onboard_outcome_enrich_distribution_guidance:of=skill",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:skill._codex_onboard_outcome_enrich_distribution_guidance:type=markdown section",
+      ".codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_outcome_enrich_workflow_guidance",
+      ".codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_outcome_enrich_workflow_guidance:kind=attribute",
+      ".codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_outcome_enrich_workflow_guidance:of=skill",
+      ".codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_outcome_enrich_workflow_guidance:type=markdown section",
+      ".codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_outcome_enrich_agent_metadata",
+      ".codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_outcome_enrich_agent_metadata:kind=attribute",
+      ".codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_outcome_enrich_agent_metadata:of=skill",
+      ".codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_outcome_enrich_agent_metadata:type=yaml document",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_outcome_enrich_distribution",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_outcome_enrich_distribution:kind=attribute",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_outcome_enrich_distribution:of=documentation",
+      "docs/agent-skills.md:attribute:documentation._agent_skills_outcome_enrich_distribution:type=markdown section",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._claude_payload_manifest_outcome_enrich_distribution",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._claude_payload_manifest_outcome_enrich_distribution:kind=attribute",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._claude_payload_manifest_outcome_enrich_distribution:of=claude_payload",
+      "maid_runner/claude/manifest.json:attribute:claude_payload._claude_payload_manifest_outcome_enrich_distribution:type=json object",
+      "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_distributed_outcome_enrich_workflow_guidance",
+      "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_distributed_outcome_enrich_workflow_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_distributed_outcome_enrich_workflow_guidance:of=skill",
+      "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md:attribute:skill._claude_distributed_outcome_enrich_workflow_guidance:type=markdown section",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_outcome_enrich_distribution",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_outcome_enrich_distribution:kind=attribute",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_outcome_enrich_distribution:of=codex_payload",
+      "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_outcome_enrich_distribution:type=json object",
+      "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_distributed_outcome_enrich_workflow_guidance",
+      "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_distributed_outcome_enrich_workflow_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_distributed_outcome_enrich_workflow_guidance:of=skill",
+      "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md:attribute:skill._codex_distributed_outcome_enrich_workflow_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_distributed_outcome_enrich_agent_metadata",
+      "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_distributed_outcome_enrich_agent_metadata:kind=attribute",
+      "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_distributed_outcome_enrich_agent_metadata:of=skill",
+      "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml:attribute:skill._codex_distributed_outcome_enrich_agent_metadata:type=yaml document",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:skill._claude_packaged_onboard_outcome_enrich_distribution_guidance",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:skill._claude_packaged_onboard_outcome_enrich_distribution_guidance:kind=attribute",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:skill._claude_packaged_onboard_outcome_enrich_distribution_guidance:of=skill",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:skill._claude_packaged_onboard_outcome_enrich_distribution_guidance:type=markdown section",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:skill._codex_packaged_onboard_outcome_enrich_distribution_guidance",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:skill._codex_packaged_onboard_outcome_enrich_distribution_guidance:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:skill._codex_packaged_onboard_outcome_enrich_distribution_guidance:of=skill",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:skill._codex_packaged_onboard_outcome_enrich_distribution_guidance:type=markdown section",
+      "scripts/sync_claude_files.py:function:sync_codex_payload",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:kind=function",
+      "scripts/sync_claude_files.py:function:sync_codex_payload:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_init_installs_only_distributable_skills:returns=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:kind=test_function",
+      "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:returns=None",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:arg=tmp_path:type=Path:default=None",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:kind=test_function",
+      "tests/test_agent_payload_distribution.py:test_codex_payload_manifest_matches_source_skills:returns=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:arg=tmp_path:type=Path:default=None",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_auditor_insights_guidance_is_distributed_to_codex:returns=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:arg=tmp_path:type=Path:default=None",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:kind=test_function",
+      "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:arg=tmp_path:type=Path:default=None",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_init_learning_digest_guidance_stays_advisory:returns=None",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match:kind=test_function",
+      "tests/test_learning_loop_init_payload.py:test_learning_digest_payload_sources_and_packages_match:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_claude_init_installs_outcome_enrich_skill",
+      "tests/test_outcome_enrich_skill_guidance.py:test_claude_init_installs_outcome_enrich_skill:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_claude_init_installs_outcome_enrich_skill:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_claude_init_installs_outcome_enrich_skill:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_claude_init_installs_outcome_enrich_skill:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_codex_init_installs_outcome_enrich_skill",
+      "tests/test_outcome_enrich_skill_guidance.py:test_codex_init_installs_outcome_enrich_skill:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_codex_init_installs_outcome_enrich_skill:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_codex_init_installs_outcome_enrich_skill:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_codex_init_installs_outcome_enrich_skill:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_describes_validate_render_workflow",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_describes_validate_render_workflow:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_describes_validate_render_workflow:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_marks_validate_as_hard_stop",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_marks_validate_as_hard_stop:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_marks_validate_as_hard_stop:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_states_cloud_privacy_and_local_default",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_states_cloud_privacy_and_local_default:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_states_cloud_privacy_and_local_default:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_synced_to_agent_payloads",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_synced_to_agent_payloads:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_synced_to_agent_payloads:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_synced_to_agent_payloads:returns=None",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_uses_only_registered_options",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_uses_only_registered_options:kind=test_function",
+      "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_uses_only_registered_options:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_codex_distributable_scope.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_insights_skill_guidance.py",
+      "tests/test_learning_loop_init_payload.py",
+      "tests/test_outcome_enrich_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_outcome_enrich_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py"
+    ]
+  }
+}

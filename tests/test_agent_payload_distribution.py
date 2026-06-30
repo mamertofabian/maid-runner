@@ -20,6 +20,7 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-implementer",
     "maid-implementation-review",
     "maid-auditor",
+    "maid-outcome-enrich",
 ]
 
 

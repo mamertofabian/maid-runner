@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0] - 2026-06-30
+
+### Added
+- **Outcome enrichment workflow** — Added deterministic `maid enrich` prompt, validate, and render commands plus the core digest validation and rendering policy for advisory Outcome theme maps.
+- **Outcome enrichment agent skill** — Added the distributed `maid-outcome-enrich` skill for Claude and Codex so model-backed digest generation stays outside the deterministic runner.
+- **Theme-mapped insights** — Added `maid insights --theme-map` so validated enrichment digests can group recurring Outcome lessons by canonical theme.
+
+### Changed
+- **Planner insight guidance** — Updated planner payloads to prefer a validated theme-map digest when present while keeping plain `maid insights` as the mandatory fallback.
+- **Enrichment prompt quality** — Strengthened enrichment prompt inputs and validation warnings for low coverage, singleton-heavy themes, and single-source digest entries.
+- **Codex MAID guidance** — Clarified that production files listed only in `files.read` are read-only context and that no-artifact wiring belongs in `files.scope`.
+- **Release version metadata** — Bumped the package version to `2.19.0`.
+
+### Fixed
+- **CLI help coverage** — Filled visible argparse option help text across the CLI without changing option names, defaults, choices, or dispatch behavior.
+- **Scope-only stash revision** — `maid plan revise --stash` now includes `files.scope` implementation files in the temporary stash target set while keeping `files.read` production files read-only.
+- **Generated enrichment artifacts** — Ignored generated outcome enrichment prompt artifacts so local advisory files do not leak into release diffs.
+- **Outcome enrich model guidance** — Relaxed skill guidance so agent-side generation can use the hosting agent's available model access or a user-selected model while preserving cloud privacy disclosure.
+
 ## [2.18.0] - 2026-06-27
 
 ### Added
@@ -1083,6 +1102,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.19.0]: https://github.com/mamertofabian/maid-runner/compare/v2.18.0...v2.19.0
 [2.18.0]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.18.0
 [2.17.1]: https://github.com/mamertofabian/maid-runner/compare/v2.17.0...v2.17.1
 [2.17.0]: https://github.com/mamertofabian/maid-runner/compare/v2.16.3...v2.17.0

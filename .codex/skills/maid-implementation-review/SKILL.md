@@ -108,14 +108,18 @@ risk. End with one verdict: ready, needs changes, or needs discussion.
 
 Compare the working tree or branch state against the manifest:
 
-- only files declared in `files.create`, `files.edit`, or `files.read` were
-  changed
-- `files.read` changes are limited to the manifest intent, such as behavioral
-  tests, imports, or narrow call-site delegation through contracted artifacts
+- only files declared in `files.create`, `files.edit`, or `files.scope` were
+  changed as production implementation files
+- `files.read` production files are dependency context, not writable scope;
+  flag dirty production files listed only in `files.read` and require plan
+  revision to `files.scope` for no-artifact wiring or `files.edit` for public
+  artifact changes
+- behavioral test files listed in `files.read` may change only as part of an
+  approved contract revision
 - no undeclared public symbols leaked into strict files
-- do not flag a `files.read` edit solely because it was edited; first run or
-  inspect pinned MAID implementation validation and determine whether the edit
-  contracts public API that should be in `files.edit`
+- do not treat `maid validate --mode implementation` alone as proof that a
+  dirty `files.read` production file is writable; use the manifest scope model
+  and worktree/changed-scope evidence when available
 
 ## Phase 5 — Review Declared Artifacts
 
